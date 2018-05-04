@@ -29,12 +29,11 @@
 
   <PropertyGroup>
     <TraversalBuildDependsOn>
-      DownloadExternalTestFiles;
       CreateOrUpdateCurrentVersionFile;
       RestoreProjects;
       BuildNative;
       $(TraversalBuildDependsOn);
-      
+      DownloadExternalTestFiles;
       RunTests;
     </TraversalBuildDependsOn>
   </PropertyGroup>
