@@ -54,7 +54,7 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 
 ## License
 
-ML.NET is licensed under the [MIT license](LICENSE.TXT).
+ML.NET is licensed under the [MIT license](LICENSE).
 
 ## .NET Foundation
 
