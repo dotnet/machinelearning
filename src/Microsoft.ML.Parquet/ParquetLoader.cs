@@ -390,9 +390,21 @@ namespace Microsoft.ML.Runtime.Data
                     Columns = _loader._columnsLoaded.Select(i => i.Name).ToArray()
                 };
 
-                int numBlocks = (int)Math.Ceiling(((decimal)parent.GetRowCount() / _readerOptions.Count));
-                int[] blockOrder = _rand == null ? Utils.GetIdentityPermutation(numBlocks) : Utils.GetRandomPermutation(rand, numBlocks);
-                _blockEnumerator = blockOrder.GetEnumerator();
+                try
+                {
+                    int numBlocks = checked((int)Math.Ceiling(((decimal)parent.GetRowCount() / _readerOptions.Count)));
+                    int[] blockOrder = _rand == null ? Utils.GetIdentityPermutation(numBlocks) : Utils.GetRandomPermutation(rand, numBlocks);
+                    _blockEnumerator = blockOrder.GetEnumerator();
+                }
+                catch (Exception e)
+                {
+                    if (e is OutOfMemoryException || e is OverflowException)
+                    {
+                        throw new InvalidDataException("Error due to too many blocks. Try increasing block size.", e);
+                    }
+
+                    throw;
+                }
 
                 _dataSetEnumerator = new int[0].GetEnumerator(); // Initialize an empty enumerator to get started
                 _columnValues = new IList[_actives.Length];
@@ -477,7 +489,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else if (_blockEnumerator.MoveNext())
                 {
-                    _readerOptions.Offset = (int)_blockEnumerator.Current * _readerOptions.Count;
+                    _readerOptions.Offset = (long)_blockEnumerator.Current * _readerOptions.Count;
 
                     // When current dataset runs out, read the next portion of the parquet file.
                     DataSet ds;
@@ -486,9 +498,21 @@ namespace Microsoft.ML.Runtime.Data
                         ds = ParquetReader.Read(_loader._parquetStream, _loader._parquetOptions, _readerOptions);
                     }
 
-                    int[] dataSetOrder = _rand == null ? Utils.GetIdentityPermutation(ds.RowCount) : Utils.GetRandomPermutation(_rand, ds.RowCount);
-                    _dataSetEnumerator = dataSetOrder.GetEnumerator();
-                    _curDataSetRow = dataSetOrder[0];
+                    try
+                    {
+                        int[] dataSetOrder = _rand == null ? Utils.GetIdentityPermutation(ds.RowCount) : Utils.GetRandomPermutation(_rand, ds.RowCount);
+                        _dataSetEnumerator = dataSetOrder.GetEnumerator();
+                        _curDataSetRow = dataSetOrder[0];
+                    }
+                    catch (Exception e)
+                    {
+                        if (e is OutOfMemoryException)
+                        {
+                            throw new InvalidDataException("Error caused because block size too big. Try decreasing block size.", e);
+                        }
+
+                        throw;
+                    }
 
                     // Cache list for each active column
                     for (int i = 0; i < _actives.Length; i++)
