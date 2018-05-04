@@ -729,7 +729,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         private void RunTrainScoreEvaluate(string learner, string evaluator, string dataPath, string warningsPath, string overallMetricsPath,
-                    string instanceMetricsPath, string confusionMatrixPath = null)
+                    string instanceMetricsPath, string confusionMatrixPath = null, string loader = null)
         {
             string inputGraph = string.Format(@"
                 {{
@@ -738,6 +738,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       'Name': 'Data.TextLoader',
                       'Inputs': {{
                         'InputFile': '$file'
+                        {8}
                       }},
                       'Outputs': {{
                         'Data': '$AllData'
@@ -797,7 +798,8 @@ namespace Microsoft.ML.Runtime.RunTests
                   }}
                 }}", learner, evaluator, EscapePath(dataPath), EscapePath(warningsPath), EscapePath(overallMetricsPath), EscapePath(instanceMetricsPath),
                 confusionMatrixPath != null ? ", 'ConfusionMatrix': '$ConfusionMatrix'" : "",
-                confusionMatrixPath != null ? string.Format(", 'ConfusionMatrix' : '{0}'", EscapePath(confusionMatrixPath)) : "");
+                confusionMatrixPath != null ? string.Format(", 'ConfusionMatrix' : '{0}'", EscapePath(confusionMatrixPath)) : "",
+                string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': '{0}'", loader));
 
             var jsonPath = DeleteOutputPath("graph.json");
             File.WriteAllLines(jsonPath, new[] { inputGraph });
@@ -855,15 +857,16 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.Equal(3, CountRows(loader));
         }
 
-        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
+        [Fact()]
         public void EntryPointEvaluateRegression()
         {
-            var dataPath = GetDataPath("housing.txt");
+            var dataPath = GetDataPath(@"external\winequality-white.csv");
             var warningsPath = DeleteOutputPath("warnings.idv");
             var overallMetricsPath = DeleteOutputPath("overall.idv");
             var instanceMetricsPath = DeleteOutputPath("instance.idv");
 
-            RunTrainScoreEvaluate("Trainers.StochasticDualCoordinateAscentRegressor", "Models.RegressionEvaluator", dataPath, warningsPath, overallMetricsPath, instanceMetricsPath);
+            RunTrainScoreEvaluate("Trainers.StochasticDualCoordinateAscentRegressor", "Models.RegressionEvaluator",
+                dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, loader: "col=Label:R4:11 col=Features:R4:0-10 sep=; header+");
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), warningsPath))
                 Assert.Equal(0, CountRows(loader));
@@ -872,7 +875,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.Equal(1, CountRows(loader));
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), instanceMetricsPath))
-                Assert.Equal(104, CountRows(loader));
+                Assert.Equal(975, CountRows(loader));
         }
 
         [Fact]
@@ -887,10 +890,10 @@ namespace Microsoft.ML.Runtime.RunTests
             TestEntryPointRoutine("iris.txt", "Trainers.StochasticDualCoordinateAscentClassifier");
         }
 
-        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
+        [Fact()]
         public void EntryPointSDCARegression()
         {
-            TestEntryPointRoutine("housing.txt", "Trainers.StochasticDualCoordinateAscentRegressor");
+            TestEntryPointRoutine(@"external\winequality-white.csv", "Trainers.StochasticDualCoordinateAscentRegressor", loader: "col=Label:R4:11 col=Features:R4:0-10 sep=; header+");
         }
 
         [Fact]
@@ -961,10 +964,10 @@ namespace Microsoft.ML.Runtime.RunTests
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.StochasticGradientDescentBinaryClassifier");
         }
 
-        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
+        [Fact()]
         public void EntryPointPoissonRegression()
         {
-            TestEntryPointRoutine("housing.txt", "Trainers.PoissonRegressor");
+            TestEntryPointRoutine(@"external\winequality-white.csv", "Trainers.PoissonRegressor", loader: "col=Label:R4:11 col=Features:R4:0-10 sep=; header+");
         }
 
         [Fact]
