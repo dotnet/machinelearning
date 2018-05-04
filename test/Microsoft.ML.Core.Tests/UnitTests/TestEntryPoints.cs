@@ -860,7 +860,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact()]
         public void EntryPointEvaluateRegression()
         {
-            var dataPath = GetDataPath(@"external\winequality-white.csv");
+            var dataPath = GetDataPath(@"external/winequality-white.csv");
             var warningsPath = DeleteOutputPath("warnings.idv");
             var overallMetricsPath = DeleteOutputPath("overall.idv");
             var instanceMetricsPath = DeleteOutputPath("instance.idv");
@@ -893,7 +893,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact()]
         public void EntryPointSDCARegression()
         {
-            TestEntryPointRoutine(@"external\winequality-white.csv", "Trainers.StochasticDualCoordinateAscentRegressor", loader: "col=Label:R4:11 col=Features:R4:0-10 sep=; header+");
+            TestEntryPointRoutine(@"external/winequality-white.csv", "Trainers.StochasticDualCoordinateAscentRegressor", loader: "col=Label:R4:11 col=Features:R4:0-10 sep=; header+");
         }
 
         [Fact]
@@ -967,7 +967,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact()]
         public void EntryPointPoissonRegression()
         {
-            TestEntryPointRoutine(@"external\winequality-white.csv", "Trainers.PoissonRegressor", loader: "col=Label:R4:11 col=Features:R4:0-10 sep=; header+");
+            TestEntryPointRoutine(@"external/winequality-white.csv", "Trainers.PoissonRegressor", loader: "col=Label:R4:11 col=Features:R4:0-10 sep=; header+");
         }
 
         [Fact]
