@@ -26,17 +26,64 @@ namespace Microsoft.ML
         public Var<ITransformModel> Model { get; }
     }
 
+
+    /// <summary>
+    /// The LearningPipeline is used to define the steps needed to perform desired machine learning task.<para/>
+    /// The steps are defined by adding a data loader <see cref="TextLoader"/> followed by zero or more transforms (e.g. <see cref="Microsoft.ML.Transforms.TextFeaturizer"/>) 
+    /// and atmost one trainer/learner (e.g. <see cref="Microsoft.ML.Trainers.FastTreeBinaryClassifier"/>) into the LearningPipeline.
+    /// <example>
+    /// <code>
+    /// var pipeline = new LearningPipeline();
+    /// pipeline.Add(new TextLoader &lt;SentimentData&gt; (dataPath, separator: ","));
+    /// pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
+    /// pipeline.Add(new FastTreeBinaryClassifier());
+    /// 
+    /// var model = pipeline.Train&lt;SentimentData, SentimentPrediction&gt;();
+    /// </code>
+    /// </example>
+    /// </summary>
     [DebuggerTypeProxy(typeof(LearningPipelineDebugProxy))]
     public class LearningPipeline : ICollection<ILearningPipelineItem>
     {
         private List<ILearningPipelineItem> Items { get; } = new List<ILearningPipelineItem>();
 
+        /// <summary>
+        /// Construct an empty LearningPipeline object
+        /// </summary>
         public LearningPipeline()
         {
         }
 
+        /// <summary>
+        /// Get the count of ML components in the LearningPipeline object
+        /// </summary>
         public int Count => Items.Count;
         public bool IsReadOnly => false;
+
+        /// <summary>
+        /// Add transforms and trainer into the pipeline
+        /// E.g.
+        /// <para>
+        /// Transforms:
+        ///     <see cref="Microsoft.ML.Transforms.Dictionarizer"/>,
+        ///     <see cref="Microsoft.ML.Transforms.CategoricalOneHotVectorizer"/>
+        ///     <see cref="Microsoft.ML.Transforms.MinMaxNormalizer"/>,
+        ///     <see cref="Microsoft.ML.Transforms.ColumnCopier"/>,
+        ///     <see cref="Microsoft.ML.Transforms.ColumnConcatenator"/>,
+        ///     <see cref="Microsoft.ML.Transforms.TextFeaturizer"/>,
+        ///     etc.
+        /// </para>
+        /// <para>
+        /// Trainers:
+        ///     <see cref="Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier"/>,
+        ///     <see cref="Microsoft.ML.Trainers.LogisticRegressor"/>,
+        ///     <see cref="Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier"/>,
+        ///     <see cref="Microsoft.ML.Trainers.FastTreeRegressor"/>,
+        ///     etc.
+        /// </para>
+        /// For list of available transforms and trainers please see "Microsoft.ML.Transforms" and "Microsoft.ML.Trainers" namespaces.
+        /// </summary>
+        /// <param name="item"></param>
         public void Add(ILearningPipelineItem item) => Items.Add(item);
         public void Clear() => Items.Clear();
         public bool Contains(ILearningPipelineItem item) => Items.Contains(item);
@@ -45,6 +92,23 @@ namespace Microsoft.ML
         public bool Remove(ILearningPipelineItem item) => Items.Remove(item);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>
+        /// Train the model using the ML components in the pipeline.
+        /// </summary>
+        /// <typeparam name="TInput">Type of data instances the model will be trained on. In most cases, its a custom type defined by the user according to the structure of data.
+        /// E.g.
+        /// <example>
+        /// Please see <see cref="Microsoft.ML.Scenarios.SentimentData"/> for input type definition for sentiment classification task.
+        /// The type is defined for a .csv file that contains sentiment classification data with Sentiment and SentimentText as two columns.
+        /// </example>
+        /// </typeparam>
+        /// <typeparam name="TOutput">Ouput type. The prediction will be return based on this type.
+        /// E.g.
+        /// <example>
+        /// For sentiment classifcation scenario, the prediction type is defined at <see cref="Microsoft.ML.Scenarios.SentimentPrediction"/> .
+        /// </example>
+        /// </typeparam>
+        /// <returns>PredictionModel object </returns>
         public PredictionModel<TInput, TOutput> Train<TInput, TOutput>()
             where TInput : class
             where TOutput : class, new()
