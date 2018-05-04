@@ -855,7 +855,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.Equal(3, CountRows(loader));
         }
 
-        [Fact]
+        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
         public void EntryPointEvaluateRegression()
         {
             var dataPath = GetDataPath("housing.txt");
@@ -887,7 +887,7 @@ namespace Microsoft.ML.Runtime.RunTests
             TestEntryPointRoutine("iris.txt", "Trainers.StochasticDualCoordinateAscentClassifier");
         }
 
-        [Fact]
+        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
         public void EntryPointSDCARegression()
         {
             TestEntryPointRoutine("housing.txt", "Trainers.StochasticDualCoordinateAscentRegressor");
@@ -961,7 +961,7 @@ namespace Microsoft.ML.Runtime.RunTests
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.StochasticGradientDescentBinaryClassifier");
         }
 
-        [Fact]
+        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
         public void EntryPointPoissonRegression()
         {
             TestEntryPointRoutine("housing.txt", "Trainers.PoissonRegressor");

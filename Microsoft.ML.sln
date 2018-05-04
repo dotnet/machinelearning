@@ -38,8 +38,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Tests", "test\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "data", "data", "{FDA2FD2C-A708-43AC-A941-4D941B0853BF}"
 	ProjectSection(SolutionItems) = preProject
-		test\data\kc_house_data.csv = test\data\kc_house_data.csv
-		test\data\kc_house_test.csv = test\data\kc_house_test.csv
 		test\data\sentiment_data.tsv = test\data\sentiment_data.tsv
 		test\data\sentiment_test.tsv = test\data\sentiment_test.tsv
 	EndProjectSection
