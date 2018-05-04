@@ -11,7 +11,7 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class Top5Scenarios
     {
-        [Fact(Skip="Missing data set")]
+        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
         public void TrainAndPredictHousePriceModelTest()
         {
             string dataPath = GetDataPath("kc_house_data.csv");

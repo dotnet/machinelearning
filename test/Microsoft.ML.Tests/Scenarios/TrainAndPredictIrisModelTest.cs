@@ -12,7 +12,7 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class Top5Scenarios
     {
-        [Fact(Skip="Missing data set")]
+        [Fact]
         public void TrainAndPredictIrisModelTest()
         {
             string dataPath = GetDataPath("iris.txt");

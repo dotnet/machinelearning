@@ -41,7 +41,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float Price;
         }
 
-        [Fact(Skip="Missing data set")]
+        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
         public async Task ReadStrongTypeModelFromStream()
         {
             using (var memoryStream = new MemoryStream())
