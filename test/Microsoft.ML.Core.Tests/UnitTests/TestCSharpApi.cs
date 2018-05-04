@@ -269,7 +269,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
         public void TestCrossValidationMacro()
         {
             var dataPath = GetDataPath(@"housing.txt");

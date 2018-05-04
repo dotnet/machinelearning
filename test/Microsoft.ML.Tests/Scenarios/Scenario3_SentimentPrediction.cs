@@ -15,8 +15,8 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class Top5Scenarios
     {
-        public const string SentimentDataPath = "sentiment_data.tsv";
-        public const string SentimentTestPath = "sentiment_test.tsv";
+        public const string SentimentDataPath = "wikipedia-detox-250-line-data.tsv";
+        public const string SentimentTestPath = "wikipedia-detox-250-line-test.tsv";
 
         [Fact]
         public void TrainAndPredictSentimentModelTest()
