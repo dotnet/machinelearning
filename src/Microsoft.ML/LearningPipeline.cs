@@ -128,11 +128,11 @@ namespace Microsoft.ML
         /// </summary>
         /// <typeparam name="TInput">Type of data instances the model will be trained on. It's a custom type defined by the user according to the structure of data.
         /// <para/>
-        /// E.g. please see "Microsoft.ML.Scenarios.SentimentData" in "Microsoft.ML.Tests.csproj" for input type definition for sentiment classification task.
+        /// E.g. please see "Microsoft.ML.Scenarios.ScenarioTests.SentimentData" in "Microsoft.ML.Tests.csproj" for input type definition for sentiment classification task.
         /// The type is defined for a .csv file that contains sentiment classification data with Sentiment and SentimentText as two columns in the .csv file.
         /// </typeparam>
         /// <typeparam name="TOutput">Ouput type. The prediction will be return based on this type.
-        /// E.g. for sentiment classifcation scenario, the prediction type is defined at "Microsoft.ML.Scenarios.SentimentPrediction" in "Microsoft.ML.Tests.csproj".
+        /// E.g. for sentiment classifcation scenario, the prediction type is defined at "Microsoft.ML.Scenarios.ScenarioTests.SentimentPrediction" in "Microsoft.ML.Tests.csproj".
         /// </typeparam>
         /// <returns>PredictionModel object. This is the model object used for prediction on new instances. </returns>
         public PredictionModel<TInput, TOutput> Train<TInput, TOutput>()
