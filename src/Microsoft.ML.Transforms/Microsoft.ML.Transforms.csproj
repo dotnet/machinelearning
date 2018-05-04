@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeInPackage>Microsoft.ML</IncludeInPackage>
+    <DefineConstants>CORECLR</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Text\StopWords\Arabic.txt" />
+    <None Remove="Text\StopWords\Czech.txt" />
+    <None Remove="Text\StopWords\Danish.txt" />
+    <None Remove="Text\StopWords\Dutch.txt" />
+    <None Remove="Text\StopWords\English.txt" />
+    <None Remove="Text\StopWords\French.txt" />
+    <None Remove="Text\StopWords\German.txt" />
+    <None Remove="Text\StopWords\Italian.txt" />
+    <None Remove="Text\StopWords\Japanese.txt" />
+    <None Remove="Text\StopWords\Norwegian_Bokmal.txt" />
+    <None Remove="Text\StopWords\Polish.txt" />
+    <None Remove="Text\StopWords\Portuguese.txt" />
+    <None Remove="Text\StopWords\Portuguese_Brazilian.txt" />
+    <None Remove="Text\StopWords\Russian.txt" />
+    <None Remove="Text\StopWords\Spanish.txt" />
+    <None Remove="Text\StopWords\Swedish.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Text\StopWords\Arabic.txt" />
+    <EmbeddedResource Include="Text\StopWords\Czech.txt" />
+    <EmbeddedResource Include="Text\StopWords\Danish.txt" />
+    <EmbeddedResource Include="Text\StopWords\Dutch.txt" />
+    <EmbeddedResource Include="Text\StopWords\English.txt" />
+    <EmbeddedResource Include="Text\StopWords\French.txt" />
+    <EmbeddedResource Include="Text\StopWords\German.txt" />
+    <EmbeddedResource Include="Text\StopWords\Italian.txt" />
+    <EmbeddedResource Include="Text\StopWords\Japanese.txt" />
+    <EmbeddedResource Include="Text\StopWords\Norwegian_Bokmal.txt" />
+    <EmbeddedResource Include="Text\StopWords\Polish.txt" />
+    <EmbeddedResource Include="Text\StopWords\Portuguese.txt" />
+    <EmbeddedResource Include="Text\StopWords\Portuguese_Brazilian.txt" />
+    <EmbeddedResource Include="Text\StopWords\Russian.txt" />
+    <EmbeddedResource Include="Text\StopWords\Spanish.txt" />
+    <EmbeddedResource Include="Text\StopWords\Swedish.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Api\Microsoft.ML.Api.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

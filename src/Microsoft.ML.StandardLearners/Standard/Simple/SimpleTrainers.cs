@@ -1,0 +1,393 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Float = System.Single;
+
+using System;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+
+[assembly: LoadableClass(RandomTrainer.Summary, typeof(RandomTrainer), typeof(RandomTrainer.Arguments),
+    new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
+    RandomTrainer.UserNameValue,
+    RandomTrainer.LoadNameValue,
+    "random")]
+
+[assembly: LoadableClass(RandomTrainer.Summary, typeof(PriorTrainer), typeof(PriorTrainer.Arguments),
+    new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
+    PriorTrainer.UserNameValue,
+    PriorTrainer.LoadNameValue,
+    "prior",
+    "constant")]
+
+[assembly: LoadableClass(typeof(RandomPredictor), null, typeof(SignatureLoadModel),
+    "Random predictor", RandomPredictor.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(PriorPredictor), null, typeof(SignatureLoadModel),
+    "Prior predictor", PriorPredictor.LoaderSignature)]
+
+namespace Microsoft.ML.Runtime.Learners
+{
+    /// <summary>
+    /// A trainer that trains a predictor that returns random values
+    /// </summary>
+    public sealed class RandomTrainer : TrainerBase<RoleMappedData, RandomPredictor>
+    {
+        internal const string LoadNameValue = "RandomPredictor";
+        internal const string UserNameValue = "Random Predictor";
+        internal const string Summary = "A toy predictor that returns a random value.";
+
+        public class Arguments
+        {
+            // Some sample arguments
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr")]
+            public Float LearningRate = (Float)1.0;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Some bool arg", ShortName = "boolarg")]
+            public bool BooleanArg = false;
+        }
+
+        private Arguments _args;
+
+        public RandomTrainer(IHostEnvironment env, Arguments args)
+            : base(env, LoadNameValue)
+        {
+            _args = args;
+        }
+
+        public override PredictionKind PredictionKind
+        { get { return PredictionKind.BinaryClassification; } }
+        public override bool NeedNormalization
+        { get { return false; } }
+        public override bool NeedCalibration
+        { get { return false; } }
+        public override bool WantCaching
+        { get { return false; } }
+
+        public override void Train(RoleMappedData data)
+        {
+        }
+
+        public override RandomPredictor CreatePredictor()
+        {
+            return new RandomPredictor(Host, Host.Rand.Next());
+        }
+    }
+
+    /// <summary>
+    /// The predictor implements the Predict() interface. The predictor returns a
+    ///  uniform random probability and classification assignment.
+    /// </summary>
+    public sealed class RandomPredictor :
+        PredictorBase<Float>,
+        IDistPredictorProducing<Float, Float>,
+        IValueMapperDist,
+        ICanSaveModel
+    {
+        public const string LoaderSignature = "RandomPredictor";
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "RANDOMPR", // Unique 8-letter string.
+                verWrittenCur: 0x00010001,
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature);
+        }
+
+        // Keep all the serializable state here.
+        private readonly int _seed;
+        private readonly object _instanceLock;
+        private readonly Random _random;
+
+        private readonly ColumnType _inputType;
+
+        public override PredictionKind PredictionKind
+        { get { return PredictionKind.BinaryClassification; } }
+        public ColumnType InputType
+        { get { return _inputType; } }
+        public ColumnType OutputType
+        { get { return NumberType.Float; } }
+        public ColumnType DistType
+        { get { return NumberType.Float; } }
+
+        public RandomPredictor(IHostEnvironment env, int seed)
+            : base(env, LoaderSignature)
+        {
+            _seed = seed;
+
+            _instanceLock = new object();
+            _random = new Random(_seed);
+
+            _inputType = new VectorType(NumberType.Float);
+        }
+
+        /// <summary>
+        /// Load the predictor from the binary format.
+        /// </summary>
+        private RandomPredictor(IHostEnvironment env, ModelLoadContext ctx)
+            : base(env, LoaderSignature, ctx)
+        {
+            // *** Binary format ***
+            // int: _seed
+
+            _seed = ctx.Reader.ReadInt32();
+
+            _instanceLock = new object();
+            _random = new Random(_seed);
+        }
+
+        public static RandomPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            return new RandomPredictor(env, ctx);
+        }
+
+        /// <summary>
+        /// Save the predictor in the binary format.
+        /// </summary>
+        /// <param name="ctx"></param>
+        protected override void SaveCore(ModelSaveContext ctx)
+        {
+            base.SaveCore(ctx);
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // int: _seed
+
+            ctx.Writer.Write(_seed);
+        }
+
+        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        {
+            Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
+            Contracts.Check(typeof(TOut) == typeof(Float));
+
+            ValueMapper<VBuffer<Float>, Float> del = Map;
+            return (ValueMapper<TIn, TOut>)(Delegate)del;
+        }
+
+        public ValueMapper<TIn, TOut, TDist> GetMapper<TIn, TOut, TDist>()
+        {
+            Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
+            Contracts.Check(typeof(TOut) == typeof(Float));
+            Contracts.Check(typeof(TDist) == typeof(Float));
+
+            ValueMapper<VBuffer<Float>, Float, Float> del = MapDist;
+            return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
+        }
+
+        private Float PredictCore()
+        {
+            // Predict can be called from different threads.
+            // Ensure your implementation is thread-safe
+            lock (_instanceLock)
+            {
+                // For binary classification, prediction may be in range [-infinity, infinity].
+                //  default class decision boundary is at 0.
+                return (_random.NextDouble() * 2 - 1).ToFloat();
+            }
+        }
+
+        private void Map(ref VBuffer<Float> src, ref Float dst)
+        {
+            dst = PredictCore();
+        }
+
+        private void MapDist(ref VBuffer<Float> src, ref Float score, ref Float prob)
+        {
+            score = PredictCore();
+            prob = (score + 1) / 2;
+        }
+    }
+
+    // Learns the prior distribution for 0/1 class labels and just outputs that.
+    public sealed class PriorTrainer : TrainerBase<RoleMappedData, PriorPredictor>
+    {
+        internal const string LoadNameValue = "PriorPredictor";
+        internal const string UserNameValue = "Prior Predictor";
+
+        public sealed class Arguments
+        {
+        }
+
+        private Float _prob;
+
+        public override PredictionKind PredictionKind
+        { get { return PredictionKind.BinaryClassification; } }
+        public override bool NeedNormalization
+        { get { return false; } }
+        public override bool NeedCalibration
+        { get { return false; } }
+        public override bool WantCaching
+        { get { return false; } }
+
+        public PriorTrainer(IHostEnvironment env, Arguments args)
+            : base(env, LoadNameValue)
+        {
+            _prob = Float.NaN;
+        }
+
+        public override void Train(RoleMappedData data)
+        {
+            Contracts.CheckValue(data, nameof(data));
+            Contracts.CheckParam(data.Schema.Label != null, nameof(data), "Missing Label column");
+            Contracts.CheckParam(data.Schema.Label.Type == NumberType.Float, nameof(data), "Invalid type for Label column");
+
+            double pos = 0;
+            double neg = 0;
+
+            int col = data.Schema.Label.Index;
+            int colWeight = -1;
+            if (data.Schema.Weight != null && data.Schema.Weight.Type == NumberType.Float)
+                colWeight = data.Schema.Weight.Index;
+            using (var cursor = data.Data.GetRowCursor(c => c == col || c == colWeight))
+            {
+                var getLab = cursor.GetGetter<Float>(col);
+                var getWeight = colWeight >= 0 ? cursor.GetGetter<Float>(colWeight) : null;
+                Float lab = default(Float);
+                Float weight = 1;
+                while (cursor.MoveNext())
+                {
+                    getLab(ref lab);
+                    if (getWeight != null)
+                    {
+                        getWeight(ref weight);
+                        if (!(0 < weight && weight < Float.PositiveInfinity))
+                            continue;
+                    }
+
+                    // Testing both directions effectively ignores NaNs.
+                    if (lab > 0)
+                        pos += weight;
+                    else if (lab <= 0)
+                        neg += weight;
+                }
+            }
+
+            if (pos + neg > 0)
+                _prob = (Float)(pos / (pos + neg));
+        }
+
+        public override PriorPredictor CreatePredictor()
+        {
+            return new PriorPredictor(Host, _prob);
+        }
+    }
+
+    public sealed class PriorPredictor :
+        PredictorBase<Float>,
+        IDistPredictorProducing<Float, Float>,
+        IValueMapperDist,
+        ICanSaveModel
+    {
+        public const string LoaderSignature = "PriorPredictor";
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "PRIORPRD",
+                verWrittenCur: 0x00010001,
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature);
+        }
+
+        private readonly Float _prob;
+        private readonly Float _raw;
+
+        private readonly ColumnType _inputType;
+
+        public PriorPredictor(IHostEnvironment env, Float prob)
+            : base(env, LoaderSignature)
+        {
+            Host.Check(!Float.IsNaN(prob));
+
+            _prob = prob;
+            _raw = 2 * _prob - 1;       // This could be other functions -- logodds for instance
+
+            _inputType = new VectorType(NumberType.Float);
+        }
+
+        private PriorPredictor(IHostEnvironment env, ModelLoadContext ctx)
+            : base(env, LoaderSignature, ctx)
+        {
+            // *** Binary format ***
+            // Float: _prob
+
+            _prob = ctx.Reader.ReadFloat();
+            Host.CheckDecode(!Float.IsNaN(_prob));
+
+            _raw = 2 * _prob - 1;
+
+            _inputType = new VectorType(NumberType.Float);
+        }
+
+        public static PriorPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            return new PriorPredictor(env, ctx);
+        }
+
+        protected override void SaveCore(ModelSaveContext ctx)
+        {
+            base.SaveCore(ctx);
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // Float: _prob
+
+            Contracts.Assert(!Float.IsNaN(_prob));
+            ctx.Writer.Write(_prob);
+        }
+
+        public override PredictionKind PredictionKind
+        { get { return PredictionKind.BinaryClassification; } }
+        public ColumnType InputType
+        { get { return _inputType; } }
+        public ColumnType OutputType
+        { get { return NumberType.Float; } }
+        public ColumnType DistType
+        { get { return NumberType.Float; } }
+
+        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        {
+            Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
+            Contracts.Check(typeof(TOut) == typeof(Float));
+
+            ValueMapper<VBuffer<Float>, Float> del = Map;
+            return (ValueMapper<TIn, TOut>)(Delegate)del;
+        }
+
+        public ValueMapper<TIn, TOut, TDist> GetMapper<TIn, TOut, TDist>()
+        {
+            Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
+            Contracts.Check(typeof(TOut) == typeof(Float));
+            Contracts.Check(typeof(TDist) == typeof(Float));
+
+            ValueMapper<VBuffer<Float>, Float, Float> del = MapDist;
+            return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
+        }
+
+        private void Map(ref VBuffer<Float> src, ref Float dst)
+        {
+            dst = _raw;
+        }
+
+        private void MapDist(ref VBuffer<Float> src, ref Float score, ref Float prob)
+        {
+            score = _raw;
+            prob = _prob;
+        }
+    }
+}

@@ -1,0 +1,27 @@
+maml.exe TrainTest test=F:\data\housing.txt tr=FastTreeRegression{lr=0.2238537 shrk=3.782416 nl=48 iter=20} loader=TextLoader{col=Label:R4:0 col=Features:R4:1-13} data=F:\data\housing.txt
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 506 instances
+Binning and forming Feature objects
+******** Warning: No input ini specified. Raw Features will be used.
+Reserved memory for tree learner: 724992 bytes
+
+00:00:00.0682649:	Starting to train ...
+....................
+Not training a calibrator because it is not needed.
+L1(avg):           0.21558913
+L2(avg):           0.15639098
+RMS(avg):          0.39546299
+LOSS-FN(avg):      0.15639098
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):             0.2156 (0.0000)
+L2(avg):             0.1564 (0.0000)
+RMS(avg):            0.3955 (0.0000)
+LOSS-FN(avg):        0.1564 (0.0000)
+
+---------------------------------------
+2/2/2016 11:08:34 AM	 Time elapsed(s): 0.585
+

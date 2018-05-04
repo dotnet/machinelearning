@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonPackageVersion)" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightPackageVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowPackageVersion)" />
+    <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
+	<PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="$(PackageAssetsPath)$(MSBuildProjectName)\lib\**\*.dll" Pack="true" PackagePath="lib" />
+    <Content Include="$(PackageAssetsPath)$(MSBuildProjectName)\lib\**\*.xml" Pack="true" PackagePath="lib" />
+    <Content Include="$(PackageAssetsPath)$(MSBuildProjectName)\runtimes\**\*.dll" Pack="true" PackagePath="runtimes" />
+    <Content Include="$(PackageAssetsPath)$(MSBuildProjectName)\runtimes\**\*.dylib" Pack="true" PackagePath="runtimes" />
+    <Content Include="$(PackageAssetsPath)$(MSBuildProjectName)\runtimes\**\*.so" Pack="true" PackagePath="runtimes" />
+  </ItemGroup>
+
+</Project>

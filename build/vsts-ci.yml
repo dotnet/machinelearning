@@ -1,0 +1,170 @@
+phases:
+################################################################################
+- phase: Linux
+################################################################################
+  variables:
+    _PREVIEW_VSTS_DOCKER_IMAGE: microsoft/dotnet-buildtools-prereqs:centos-7-d485f41-20173404063424
+    BuildConfig: Release
+    OfficialBuildId: $(BUILD.BUILDNUMBER)
+  queue:
+    name: DotNetCore-Test
+    demands:
+    - agent.os -equals linux
+  steps:
+  - script: ./build.sh -buildNative -$(BuildConfig)
+    displayName: Build
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Linux package assets
+    inputs:
+      pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
+      artifactName: PackageAssets
+      artifactType: container
+
+################################################################################
+- phase: MacOS
+################################################################################
+  variables:
+    BuildConfig: Release
+    OfficialBuildId: $(BUILD.BUILDNUMBER)
+  queue:
+    name: DotNetCore-Build
+    demands:
+    - agent.os -equals Darwin
+  steps:
+  - script: ./build.sh -buildNative -$(BuildConfig)
+    displayName: Build
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish macOS package assets
+    inputs:
+      pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
+      artifactName: PackageAssets
+      artifactType: container
+
+################################################################################
+- phase: Windows
+################################################################################
+  variables:
+    BuildConfig: Release
+    OfficialBuildId: $(BUILD.BUILDNUMBER)
+    _SignType: real
+    _UseEsrpSigning: true
+    _TeamName: DotNetCore
+  queue:
+    name: DotNetCore-Build
+    demands: 
+      - agent.os -equals Windows_NT
+  steps:
+
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
+    displayName: Install MicroBuild Signing Plugin
+    inputs:
+      signType: '$(_SignType)'
+      zipSources: false
+      esrpSigning: '$(_UseEsrpSigning)'
+    env:
+      TeamName: $(_TeamName)
+    continueOnError: false
+    condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
+
+  - script: ./build.cmd -$(BuildConfig)
+    displayName: Build
+  
+  - task: MSBuild@1
+    displayName: Sign Windows Binaries
+    inputs:
+      solution: build/sign.proj
+      msbuildArguments: /p:SignType=$(_SignType)
+      msbuildVersion: 15.0
+    continueOnError: false
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Windows package assets
+    inputs:
+      pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
+      artifactName: PackageAssets
+      artifactType: container
+
+################################################################################
+- phase: Package
+################################################################################
+  dependsOn:
+  - Linux
+  - MacOS
+  - Windows
+  variables:
+    BuildConfig: Release
+    OfficialBuildId: $(BUILD.BUILDNUMBER)
+    _SignType: real
+    _UseEsrpSigning: true
+    _TeamName: DotNetCore
+    _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
+    _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
+    _SymbolExpirationInDays: 30
+  queue:
+    name: DotNetCore-Build
+    demands: 
+      - agent.os -equals Windows_NT
+  steps:
+
+  # Install MicroBuild plugin
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
+    displayName: Install MicroBuild Signing Plugin
+    inputs:
+      signType: '$(_SignType)'
+      zipSources: false
+      esrpSigning: '$(_UseEsrpSigning)'
+    env:
+      TeamName: $(_TeamName)
+    continueOnError: false
+    condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
+
+  # Download all agent packages from all previous phases
+  - task: DownloadBuildArtifacts@0
+    displayName: Download package assets
+    inputs:
+      artifactName: PackageAssets
+      downloadPath: $(Build.SourcesDirectory)/bin/obj/packages
+
+  # Workaround https://github.com/Microsoft/vsts-tasks/issues/6739
+  - task: CopyFiles@2
+    displayName: Copy package assets to correct folder
+    inputs:
+      sourceFolder: $(Build.SourcesDirectory)/bin/obj/packages/PackageAssets
+      targetFolder: $(Build.SourcesDirectory)/bin/obj/packages
+  
+  - script: ./build.cmd -buildPackages
+    displayName: Create Packages
+
+  - task: MSBuild@1
+    displayName: Sign Packages
+    inputs:
+      solution: build/sign.proj
+      msbuildArguments: /p:SignType=$(_SignType) /p:SignNugetPackages=true
+      msbuildVersion: 15.0
+    continueOnError: false
+
+  - task: NuGetCommand@2
+    displayName: Publish Packages to VSTS Feed
+    inputs:
+      command: push
+      packagesToPush: $(Build.SourcesDirectory)/bin/packages/**/*.nupkg;!$(Build.SourcesDirectory)/bin/packages/**/*.symbols.nupkg
+      nuGetFeedType: internal
+      feedPublish: MachineLearning
+
+  - task: MSBuild@1
+    displayName: Publish Symbols to SymWeb Symbol Server
+    inputs:
+      solution: build/publish.proj
+      msbuildArguments: /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(SymwebSymbolServerPAT) /p:SymbolExpirationInDays=$(_SymbolExpirationInDays)
+      msbuildVersion: 15.0
+    continueOnError: true
+
+  - task: MSBuild@1
+    displayName: Publish Symbols to Msdl Symbol Server
+    inputs:
+      solution: build/publish.proj
+      msbuildArguments: /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT) /p:SymbolExpirationInDays=$(_SymbolExpirationInDays)
+      msbuildVersion: 15.0
+    continueOnError: true

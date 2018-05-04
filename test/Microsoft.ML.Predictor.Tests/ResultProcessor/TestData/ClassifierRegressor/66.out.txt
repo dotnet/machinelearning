@@ -1,0 +1,101 @@
+maml.exe TrainTest test=F:\data\housing.txt tr=RegressionNeuralNetwork{iter=56} loader=TextLoader{col=Label:R4:0 col=Features:R4:1-13} data=F:\data\housing.txt
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Using: AVX Math
+
+***** Net definition *****
+  input Data [13];
+  hidden H [100] sigmoid { // Depth 1
+    from Data all;
+  }
+  output Result [1] linear { // Depth 0
+    from H all;
+  }
+***** End net definition *****
+Input count: 13
+Output count: 1
+Output Function: Linear
+Loss Function: SquaredError
+PreTrainer: NoPreTrainer
+___________________________________________________________________
+Starting training...
+Learning rate: 0.001000
+Momentum: 0.000000
+InitWtsDiameter: 0.100000
+___________________________________________________________________
+Initializing 1 Hidden Layers, 1501 Weights...
+Estimated Pre-training MeanError = 593.733147
+Iter:1/56, MeanErr=90.920961(-84.69%), 67.88M WeightUpdates/sec
+Iter:2/56, MeanErr=66.302396(-27.08%), 809.89M WeightUpdates/sec
+Iter:3/56, MeanErr=57.618547(-13.10%), 824.17M WeightUpdates/sec
+Iter:4/56, MeanErr=53.266412(-7.55%), 816.34M WeightUpdates/sec
+Iter:5/56, MeanErr=49.866079(-6.38%), 828.79M WeightUpdates/sec
+Iter:6/56, MeanErr=46.824146(-6.10%), 828.79M WeightUpdates/sec
+Iter:7/56, MeanErr=44.775544(-4.38%), 825.19M WeightUpdates/sec
+Iter:8/56, MeanErr=41.632638(-7.02%), 829.04M WeightUpdates/sec
+Iter:9/56, MeanErr=39.700274(-4.64%), 826.99M WeightUpdates/sec
+Iter:10/56, MeanErr=37.696276(-5.05%), 779.78M WeightUpdates/sec
+Iter:11/56, MeanErr=35.701736(-5.29%), 807.19M WeightUpdates/sec
+Iter:12/56, MeanErr=34.068636(-4.57%), 810.63M WeightUpdates/sec
+Iter:13/56, MeanErr=32.141335(-5.66%), 810.63M WeightUpdates/sec
+Iter:14/56, MeanErr=30.375516(-5.49%), 814.84M WeightUpdates/sec
+Iter:15/56, MeanErr=29.397106(-3.22%), 813.60M WeightUpdates/sec
+Iter:16/56, MeanErr=28.071527(-4.51%), 814.59M WeightUpdates/sec
+Iter:17/56, MeanErr=27.064848(-3.59%), 811.62M WeightUpdates/sec
+Iter:18/56, MeanErr=25.987059(-3.98%), 813.10M WeightUpdates/sec
+Iter:19/56, MeanErr=25.196358(-3.04%), 818.10M WeightUpdates/sec
+Iter:20/56, MeanErr=24.511504(-2.72%), 810.87M WeightUpdates/sec
+Iter:21/56, MeanErr=23.818562(-2.83%), 802.57M WeightUpdates/sec
+Iter:22/56, MeanErr=23.041125(-3.26%), 824.94M WeightUpdates/sec
+Iter:23/56, MeanErr=22.553236(-2.12%), 826.99M WeightUpdates/sec
+Iter:24/56, MeanErr=22.285082(-1.19%), 825.96M WeightUpdates/sec
+Iter:25/56, MeanErr=21.973300(-1.40%), 828.27M WeightUpdates/sec
+Iter:26/56, MeanErr=21.789680(-0.84%), 818.60M WeightUpdates/sec
+Iter:27/56, MeanErr=21.139086(-2.99%), 827.24M WeightUpdates/sec
+Iter:28/56, MeanErr=20.932896(-0.98%), 828.79M WeightUpdates/sec
+Iter:29/56, MeanErr=20.829736(-0.49%), 799.44M WeightUpdates/sec
+Iter:30/56, MeanErr=20.423635(-1.95%), 807.19M WeightUpdates/sec
+Iter:31/56, MeanErr=20.867323(2.17%), 814.34M WeightUpdates/sec
+Iter:32/56, MeanErr=20.189058(-3.25%), 818.85M WeightUpdates/sec
+Iter:33/56, MeanErr=20.542329(1.75%), 819.86M WeightUpdates/sec
+Iter:34/56, MeanErr=20.423069(-0.58%), 818.10M WeightUpdates/sec
+Iter:35/56, MeanErr=19.942569(-2.35%), 816.84M WeightUpdates/sec
+Iter:36/56, MeanErr=20.258208(1.58%), 811.12M WeightUpdates/sec
+Iter:37/56, MeanErr=19.784856(-2.34%), 817.09M WeightUpdates/sec
+Iter:38/56, MeanErr=19.672786(-0.57%), 796.33M WeightUpdates/sec
+Iter:39/56, MeanErr=19.518646(-0.78%), 814.59M WeightUpdates/sec
+Iter:40/56, MeanErr=19.538196(0.10%), 815.84M WeightUpdates/sec
+Iter:41/56, MeanErr=19.534190(-0.02%), 819.86M WeightUpdates/sec
+Iter:42/56, MeanErr=19.525631(-0.04%), 815.59M WeightUpdates/sec
+Iter:43/56, MeanErr=18.986129(-2.76%), 814.34M WeightUpdates/sec
+Iter:44/56, MeanErr=19.489638(2.65%), 817.84M WeightUpdates/sec
+Iter:45/56, MeanErr=19.357690(-0.68%), 814.84M WeightUpdates/sec
+Iter:46/56, MeanErr=19.337800(-0.10%), 814.84M WeightUpdates/sec
+Iter:47/56, MeanErr=19.299184(-0.20%), 810.38M WeightUpdates/sec
+Iter:48/56, MeanErr=19.464236(0.86%), 825.96M WeightUpdates/sec
+Iter:49/56, MeanErr=19.126380(-1.74%), 827.76M WeightUpdates/sec
+Iter:50/56, MeanErr=19.169964(0.23%), 826.99M WeightUpdates/sec
+Iter:51/56, MeanErr=19.084334(-0.45%), 827.24M WeightUpdates/sec
+Iter:52/56, MeanErr=18.832103(-1.32%), 820.62M WeightUpdates/sec
+Iter:53/56, MeanErr=19.037984(1.09%), 826.99M WeightUpdates/sec
+Iter:54/56, MeanErr=18.786339(-1.32%), 194.28M WeightUpdates/sec
+Iter:55/56, MeanErr=18.869002(0.44%), 821.63M WeightUpdates/sec
+Iter:56/56, MeanErr=18.966049(0.51%), 831.63M WeightUpdates/sec
+Done!
+Estimated Post-training MeanError = 18.063053
+___________________________________________________________________
+Not training a calibrator because it is not needed.
+L1(avg):           3.05345381
+L2(avg):           18.06305250
+RMS(avg):          4.25006500
+LOSS-FN(avg):      18.06305259
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):             3.0535 (0.0000)
+L2(avg):            18.0631 (0.0000)
+RMS(avg):            4.2501 (0.0000)
+LOSS-FN(avg):       18.0631 (0.0000)
+
+---------------------------------------
+2/2/2016 11:08:17 AM	 Time elapsed(s): 0.595
+

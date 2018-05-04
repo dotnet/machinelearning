@@ -1,0 +1,18 @@
+maml.exe TrainTest test=F:\data\housing.txt tr=SDCAR{loss=SquaredLoss l2=0.001 l1=0.75 t=4 tol=0.001} loader=TextLoader{col=Label:R4:0 col=Features:R4:1-13} data=F:\data\housing.txt
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+L1(avg):           7.14198401
+L2(avg):           72.25844659
+RMS(avg):          8.50049684
+LOSS-FN(avg):      72.25844650
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):             7.1420 (0.0000)
+L2(avg):            72.2584 (0.0000)
+RMS(avg):            8.5005 (0.0000)
+LOSS-FN(avg):       72.2584 (0.0000)
+
+---------------------------------------
+2/2/2016 11:08:20 AM	 Time elapsed(s): 0.591
+

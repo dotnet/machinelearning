@@ -1,0 +1,4 @@
+AveragedPerceptron
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/lr	/iter	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.995995	0.972182	0.95082	0.970711	0.984055	0.972973	0.115962	87.58437	0.960663	0.99184	0.01	100	AveragedPerceptron	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=AveragedPerceptron{lr=0.01 iter=100 lazy+} dout=%Output% data=%Data% out=%Output% seed=1	/lr:0.01;/iter:100	
+

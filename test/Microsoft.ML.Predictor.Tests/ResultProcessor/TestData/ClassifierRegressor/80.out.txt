@@ -1,0 +1,169 @@
+maml.exe TrainTest test=F:\data\housing.txt tr=EnsembleRegression loader=TextLoader{col=Label:R4:0 col=Features:R4:1-13} data=F:\data\housing.txt
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Training 50 learners for the batch 1
+Beginning training model 1 of 50
+
+Trainer 1 of 50 finished in 00:00:00.0616305
+Beginning training model 2 of 50
+
+Trainer 2 of 50 finished in 00:00:00.0009466
+Beginning training model 3 of 50
+
+Trainer 3 of 50 finished in 00:00:00.0003278
+Beginning training model 4 of 50
+
+Trainer 4 of 50 finished in 00:00:00.0002922
+Beginning training model 5 of 50
+
+Trainer 5 of 50 finished in 00:00:00.0003187
+Beginning training model 6 of 50
+
+Trainer 6 of 50 finished in 00:00:00.0002757
+Beginning training model 7 of 50
+
+Trainer 7 of 50 finished in 00:00:00.0002973
+Beginning training model 8 of 50
+
+Trainer 8 of 50 finished in 00:00:00.0003241
+Beginning training model 9 of 50
+
+Trainer 9 of 50 finished in 00:00:00.0002931
+Beginning training model 10 of 50
+
+Trainer 10 of 50 finished in 00:00:00.0002888
+Beginning training model 11 of 50
+
+Trainer 11 of 50 finished in 00:00:00.0002931
+Beginning training model 12 of 50
+
+Trainer 12 of 50 finished in 00:00:00.0037990
+Beginning training model 13 of 50
+
+Trainer 13 of 50 finished in 00:00:00.0003153
+Beginning training model 14 of 50
+
+Trainer 14 of 50 finished in 00:00:00.0002677
+Beginning training model 15 of 50
+
+Trainer 15 of 50 finished in 00:00:00.0002603
+Beginning training model 16 of 50
+
+Trainer 16 of 50 finished in 00:00:00.0002671
+Beginning training model 17 of 50
+
+Trainer 17 of 50 finished in 00:00:00.0002777
+Beginning training model 18 of 50
+
+Trainer 18 of 50 finished in 00:00:00.0002742
+Beginning training model 19 of 50
+
+Trainer 19 of 50 finished in 00:00:00.0002583
+Beginning training model 20 of 50
+
+Trainer 20 of 50 finished in 00:00:00.0002720
+Beginning training model 21 of 50
+
+Trainer 21 of 50 finished in 00:00:00.0002799
+Beginning training model 22 of 50
+
+Trainer 22 of 50 finished in 00:00:00.0002705
+Beginning training model 23 of 50
+
+Trainer 23 of 50 finished in 00:00:00.0002697
+Beginning training model 24 of 50
+
+Trainer 24 of 50 finished in 00:00:00.0002916
+Beginning training model 25 of 50
+
+Trainer 25 of 50 finished in 00:00:00.0002626
+Beginning training model 26 of 50
+
+Trainer 26 of 50 finished in 00:00:00.0002594
+Beginning training model 27 of 50
+
+Trainer 27 of 50 finished in 00:00:00.0002762
+Beginning training model 28 of 50
+
+Trainer 28 of 50 finished in 00:00:00.0003090
+Beginning training model 29 of 50
+
+Trainer 29 of 50 finished in 00:00:00.0002891
+Beginning training model 30 of 50
+
+Trainer 30 of 50 finished in 00:00:00.0002674
+Beginning training model 31 of 50
+
+Trainer 31 of 50 finished in 00:00:00.0002674
+Beginning training model 32 of 50
+
+Trainer 32 of 50 finished in 00:00:00.0002740
+Beginning training model 33 of 50
+
+Trainer 33 of 50 finished in 00:00:00.0002395
+Beginning training model 34 of 50
+
+Trainer 34 of 50 finished in 00:00:00.0002466
+Beginning training model 35 of 50
+
+Trainer 35 of 50 finished in 00:00:00.0002526
+Beginning training model 36 of 50
+
+Trainer 36 of 50 finished in 00:00:00.0002842
+Beginning training model 37 of 50
+
+Trainer 37 of 50 finished in 00:00:00.0002626
+Beginning training model 38 of 50
+
+Trainer 38 of 50 finished in 00:00:00.0002700
+Beginning training model 39 of 50
+
+Trainer 39 of 50 finished in 00:00:00.0002680
+Beginning training model 40 of 50
+
+Trainer 40 of 50 finished in 00:00:00.0002606
+Beginning training model 41 of 50
+
+Trainer 41 of 50 finished in 00:00:00.0002631
+Beginning training model 42 of 50
+
+Trainer 42 of 50 finished in 00:00:00.0002825
+Beginning training model 43 of 50
+
+Trainer 43 of 50 finished in 00:00:00.0002688
+Beginning training model 44 of 50
+
+Trainer 44 of 50 finished in 00:00:00.0002765
+Beginning training model 45 of 50
+
+Trainer 45 of 50 finished in 00:00:00.0002646
+Beginning training model 46 of 50
+
+Trainer 46 of 50 finished in 00:00:00.0002646
+Beginning training model 47 of 50
+
+Trainer 47 of 50 finished in 00:00:00.0002811
+Beginning training model 48 of 50
+
+Trainer 48 of 50 finished in 00:00:00.0002848
+Beginning training model 49 of 50
+
+Trainer 49 of 50 finished in 00:00:00.0002868
+Beginning training model 50 of 50
+
+Trainer 50 of 50 finished in 00:00:00.0002914
+Not training a calibrator because it is not needed.
+L1(avg):           5.22275265
+L2(avg):           56.04625047
+RMS(avg):          7.48640438
+LOSS-FN(avg):      56.04625046
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):             5.2228 (0.0000)
+L2(avg):            56.0463 (0.0000)
+RMS(avg):            7.4864 (0.0000)
+LOSS-FN(avg):       56.0463 (0.0000)
+
+---------------------------------------
+2/2/2016 11:08:49 AM	 Time elapsed(s): 0.719
+

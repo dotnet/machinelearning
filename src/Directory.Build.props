@@ -1,0 +1,17 @@
+<Project>
+
+  <Import Project="..\Directory.Build.props" />
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Not all types and members have XML docs yet.
+         When you are ready to tackle adding them, remove <NoWarn>
+         below, and when you get clean, also remove <WarningsNotAsErrors>
+    -->
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);1591</WarningsNotAsErrors>
+
+
+  </PropertyGroup>
+
+</Project>

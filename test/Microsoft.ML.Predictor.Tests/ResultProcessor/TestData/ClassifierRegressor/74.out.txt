@@ -1,0 +1,70 @@
+maml.exe TrainTest test=F:\data\housing.txt tr=PoissonRegression{l1=0 ot=0.0001} loader=TextLoader{col=Label:R4:0 col=Features:R4:1-13} data=F:\data\housing.txt
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Beginning optimization
+   num vars: 14
+   term criterion: Mean rel impr over 5 iter'ns < tol: 1.000e-4
+
+Iter n: new_value (term_crit)
+-------------------------------------------------
+Iter 0: 5.2860e1 (**********) 
+Iter 1: 1.2567e1 (...) --
+Iter 2: 5.9948e0 (...) 
+Iter 3: 5.6158e0 (...) 
+Iter 4: 3.7056e0 (...) 
+Iter 5: 3.5793e0 (...) 
+Iter 6: 3.4482e0 (5.2894e-1) 
+Iter 7: 3.2370e0 (1.7039e-1) 
+Iter 8: 3.0640e0 (1.6656e-1) 
+Iter 9: 2.9704e0 (4.9503e-2) 
+Iter 10: 2.9624e0 (4.1644e-2) 
+Iter 11: 2.9523e0 (3.3588e-2) 
+Iter 12: 2.9377e0 (2.0377e-2) 
+Iter 13: 2.9275e0 (9.3264e-3) 
+Iter 14: 2.9172e0 (3.6489e-3) 
+Iter 15: 2.9020e0 (4.1678e-3) 
+Iter 16: 2.8938e0 (4.0430e-3) 
+Iter 17: 2.8916e0 (3.1875e-3) 
+Iter 18: 2.8817e0 (3.1805e-3) 
+Iter 19: 2.8557e0 (4.3097e-3) 
+Iter 20: 2.8396e0 (4.3932e-3) 
+Iter 21: 2.8333e0 (4.2756e-3) 
+Iter 22: 2.8310e0 (4.2817e-3) 
+Iter 23: 2.8282e0 (3.7801e-3) -
+Iter 24: 2.8263e0 (2.0780e-3) 
+Iter 25: 2.8222e0 (1.2308e-3) 
+Iter 26: 2.8193e0 (9.9452e-4) 
+Iter 27: 2.8174e0 (9.6702e-4) 
+Iter 28: 2.8152e0 (9.2957e-4) -
+Iter 29: 2.8133e0 (9.2395e-4) 
+Iter 30: 2.8107e0 (8.1785e-4) 
+Iter 31: 2.8089e0 (7.3853e-4) 
+Iter 32: 2.8086e0 (6.2887e-4) 
+Iter 33: 2.8083e0 (4.8820e-4) -
+Iter 34: 2.8072e0 (4.3376e-4) 
+Iter 35: 2.8057e0 (3.6085e-4) 
+Iter 36: 2.8039e0 (3.5645e-4) 
+Iter 37: 2.8034e0 (3.7122e-4) 
+Iter 38: 2.8028e0 (3.8952e-4) -
+Iter 39: 2.8025e0 (3.3921e-4) 
+Iter 40: 2.8017e0 (2.8539e-4) 
+Iter 41: 2.8009e0 (2.1028e-4) 
+Iter 42: 2.8009e0 (1.7433e-4) 
+Iter 43: 2.8009e0 (1.4028e-4) 
+Iter 44: 2.8008e0 (1.1713e-4) -
+Iter 45: 2.8008e0 (6.2925e-5)
+Not training a calibrator because it is not needed.
+L1(avg):           2.81666962
+L2(avg):           16.80191029
+RMS(avg):          4.09901333
+LOSS-FN(avg):      16.80191024
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):             2.8167 (0.0000)
+L2(avg):            16.8019 (0.0000)
+RMS(avg):            4.0990 (0.0000)
+LOSS-FN(avg):       16.8019 (0.0000)
+
+---------------------------------------
+2/2/2016 11:08:39 AM	 Time elapsed(s): 0.501
+

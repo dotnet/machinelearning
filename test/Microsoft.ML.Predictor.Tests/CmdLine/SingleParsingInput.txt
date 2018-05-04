@@ -1,0 +1,26 @@
+﻿value=1
+$
+value=-1
+$
+value:2
+$
+value 3
+$
+value {}
+$
+value:
+$
+val=4
+$
+val 5.0
+$
+val = {}
+$
+val:
+$
+val = 73
+$
+val = hello
+$
+val = 1.25e8
+$

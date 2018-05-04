@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <GoogleProtobufPackageVersion>3.5.1</GoogleProtobufPackageVersion>
+    <NewtonsoftJsonPackageVersion>10.0.3</NewtonsoftJsonPackageVersion>
+    <ParquetDotNetPackageVersion>2.1.3</ParquetDotNetPackageVersion>
+    <SystemThreadingTasksDataflowPackageVersion>4.8.0</SystemThreadingTasksDataflowPackageVersion>
+    <SystemCodeDomPackageVersion>4.4.0</SystemCodeDomPackageVersion>
+    <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
+    <SystemValueTupleVersion>4.4.0</SystemValueTupleVersion>
+    <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
+  </PropertyGroup>
+</Project>

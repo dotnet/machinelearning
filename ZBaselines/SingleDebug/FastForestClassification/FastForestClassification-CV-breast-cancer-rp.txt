@@ -1,0 +1,4 @@
+FastForestClassification
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/nl	/iter	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.987017	0.951604	0.920861	0.94117	0.969017	0.956274	0.19553	78.99393	0.930793	0.961717	5	10	FastForestClassification	%Data%		%Output%	99	0	0	maml.exe CV tr=FastForestClassification{nl=5 mil=10 iter=10} threads=- dout=%Output% data=%Data% seed=1	/nl:5;/iter:10	
+

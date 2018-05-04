@@ -1,0 +1,37 @@
+loader=TextLoader{col=Sentiment:R4:0 col=SentimentText:TX:1}
+xf=Copy{col=Label:Sentiment}
+xf=Text{col=SentimentText_tf:SentimentText}
+xf=Concat{col=Features:SentimentText_tf}
+
+
+loader=TextLoader{col=Sentiment:R4:0 col=SentimentText:TX:1}
+xf=Copy{col=Label:Sentiment}
+xf=Text{col=FeaturesText:SentimentText  wordExtractor=NgramExtractorTransform{ngram=2} charExtractor=NgramExtractorTransform{ngram=3}}
+xf=Concat{col=Features:FeaturesText}
+tr=AveragedPerceptron{iter=10}
+
+
+loader=TextLoader{col=Sentiment:R4:0 col=SentimentText:TX:1}
+xf=Copy{col=Label:Sentiment}
+xf=Text{col=FeaturesText:SentimentText  wordExtractor=NgramExtractorTransform charExtractor=NgramExtractorTransform{ngram=3}}
+xf=Concat{col=Features:FeaturesText}
+tr=FastTreeBinaryClassification{}
+
+
+loader=TextLoader{col=Sentiment:R4:0 col=SentimentText:TX:1}
+xf=Copy{col=Label:Sentiment}
+xf=Text{col=FeaturesText:SentimentText  wordExtractor=NgramExtractorTransform charExtractor=NgramExtractorTransform{ngram=3} tokens=+}
+xf=TreeFeaturizationTransform{tr=FastTreeRegression feat=FeaturesText}
+xf=Concat{col=FeaturesTreeFeat:Leaves}
+xf=TrainScore{tr=KMeansPlusPlus feat=FeaturesText}
+xf=Concat{col=FeaturesKMeans:Score}
+xf=Concat{col=Features:FeaturesText,FeaturesTreeFeat,FeaturesKMeans}
+tr=SDCA{}
+
+
+loader=TextLoader{col=Sentiment:R4:0 col=SentimentText:TX:1}
+xf=Copy{col=Label:Sentiment}
+xf=Text{col=FeaturesTextNB:SentimentText  wordExtractor=NgramExtractorTransform charExtractor=NgramExtractorTransform{ngram=3}}
+xf=TreeFeaturizationTransform{tr=FastForestRegression{shuffleLabels+ nl=80} feat=FeaturesTextNB}
+xf=Concat{col=Features:Leaves}
+tr=MultiClassNaiveBayes{}

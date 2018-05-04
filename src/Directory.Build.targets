@@ -1,0 +1,23 @@
+<Project>
+
+  <Import Project="..\Directory.Build.targets" />
+
+  <Target Name="PreparePackageAssets"
+          AfterTargets="Build"
+          Condition="'$(IncludeInPackage)' != ''">
+
+    <ItemGroup>
+      <PackageAsset Include="$(TargetPath)"
+                    RelativePath="$(IncludeInPackage)\lib\$(TargetFramework)" />
+      <PackageAsset Include="@(DebugSymbolsProjectOutputGroupOutput)"
+                    RelativePath="$(IncludeInPackage)\lib\$(TargetFramework)" />
+      <PackageAsset Include="@(DocumentationProjectOutputGroupOutput)"
+                    RelativePath="$(IncludeInPackage)\lib\$(TargetFramework)" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(PackageAsset)"
+          DestinationFolder="$(PackageAssetsPath)%(PackageAsset.RelativePath)" />
+
+  </Target>
+
+</Project>

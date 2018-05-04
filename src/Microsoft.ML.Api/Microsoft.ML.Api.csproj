@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeInPackage>Microsoft.ML</IncludeInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="GeneratedCodeTemplate.csresource" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="GeneratedCodeTemplate.csresource" />
+  </ItemGroup>
+
+  <ItemGroup>
+     <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
+     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+  </ItemGroup>
+
+</Project>

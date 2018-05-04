@@ -1,0 +1,17 @@
+<Project>
+  <Import Project="..\Directory.Build.props" />
+
+  <PropertyGroup>
+    <NoBuild>true</NoBuild>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+  </PropertyGroup>
+
+  <!-- Work around https://github.com/NuGet/Home/issues/6091 -->
+  <ItemDefinitionGroup>
+    <PackageReference>
+      <PrivateAssets>None</PrivateAssets>
+    </PackageReference>
+  </ItemDefinitionGroup>
+
+</Project>

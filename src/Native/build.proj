@@ -1,0 +1,91 @@
+<Project>
+  <PropertyGroup>
+    <!-- versioning.targets will import this file, so don't import it again -->
+    <DisableImportVersioningProps>true</DisableImportVersioningProps>
+
+    <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x64</TargetArchitecture>
+    <StripNativeSymbols Condition="'$(StripNativeSymbols)' == '' and '$(Configuration)' == 'Release'">True</StripNativeSymbols>
+  </PropertyGroup>
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
+
+  <!-- Target that builds all the native binaries in the Native folder -->
+  <Target Name="Build" DependsOnTargets="BuildNativeUnix;BuildNativeWindows;PreparePackageAssets" /> 
+
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <GenerateVersionSourceFile>true</GenerateVersionSourceFile>
+    <NativeVersionSourceFile>$(BaseIntermediateOutputPath)version.c</NativeVersionSourceFile>
+  </PropertyGroup>
+ 
+  <PropertyGroup  Condition="'$(OS)' == 'Windows_NT'">
+    <GenerateNativeVersionInfo>true</GenerateNativeVersionInfo>
+  </PropertyGroup>
+
+  <Target Name="BuildNativeUnix"
+          Condition="'$(OS)' != 'Windows_NT'"
+          DependsOnTargets="GenerateVersionSourceFile">
+    <PropertyGroup>
+      <StripArgs Condition="'$(StripNativeSymbols)' == 'True'">--stripSymbols</StripArgs>
+      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs)</BuildArgs>
+    </PropertyGroup>
+
+    <Message Text="$(MSBuildProjectDirectory)\build.sh $(BuildArgs)" Importance="High"/>
+    <Exec Command="$(MSBuildProjectDirectory)\build.sh $(BuildArgs)" />
+
+  </Target>
+
+  <Target Name="BuildNativeWindows"
+          Condition="'$(OS)' == 'Windows_NT'"
+          DependsOnTargets="GenerateVersionHeader">
+
+    <PropertyGroup>
+      <BuildArgs>$(Configuration) $(TargetArchitecture)</BuildArgs>
+    </PropertyGroup>
+
+    <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
+    <Message Text="$(MSBuildProjectDirectory)\build.cmd $(BuildArgs)" Importance="High"/>
+    <Exec Command="$(MSBuildProjectDirectory)\build.cmd $(BuildArgs)" />
+
+  </Target>
+
+  <Target Name="PreparePackageAssets">
+
+    <PropertyGroup>
+      <NativeAssetsBuiltPath>$(BaseOutputPath)$(TargetArchitecture).$(Configuration)\Native</NativeAssetsBuiltPath>
+
+      <NativeLibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</NativeLibPrefix>
+      <NativeLibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</NativeLibExtension>
+      <NativeLibExtension Condition="'$(OS)' != 'Windows_NT'">.so</NativeLibExtension>
+      <NativeLibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</NativeLibExtension>
+
+      <NativeLibSymbolExtension Condition="'$(OS)' == 'Windows_NT'">.pdb</NativeLibSymbolExtension>
+      <NativeLibSymbolExtension Condition="'$(OS)' != 'Windows_NT'">.so.dbg</NativeLibSymbolExtension>
+      <NativeLibSymbolExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib.dwarf</NativeLibSymbolExtension>
+
+      <PackageRid Condition="'$(OS)' == 'Windows_NT'">win</PackageRid>
+      <PackageRid Condition="'$(OS)' != 'Windows_NT'">linux</PackageRid>
+      <PackageRid Condition="$([MSBuild]::IsOSPlatform('osx'))">osx</PackageRid>
+      <PackageRid>$(PackageRid)-$(TargetArchitecture)</PackageRid>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
+
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FastTreeNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <NativePackageAsset Condition="'$(OS)' == 'Windows_NT' OR '$(StripNativeSymbols)' == 'True'"
+                          Include="@(NativePackageAsset->'%(RootDir)%(Directory)%(Filename)$(NativeLibSymbolExtension)')" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(NativePackageAsset)"
+          DestinationFolder="$(PackageAssetsPath)%(NativePackageAsset.RelativePath)" />
+
+  </Target>
+
+  <Import Project="$(ToolsDir)/versioning.targets" />
+
+</Project>

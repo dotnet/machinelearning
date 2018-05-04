@@ -1,0 +1,40 @@
+maml.exe TrainTest test="F:\da ta\adult.test" tr=AveragedPerceptron{lr=0.5 initwts=1} loader=TextLoader{sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K:R4:14 header=+} data="F:\da ta\adult.train" xf=CopyColumns{col=Label:label_IsOver50K} xf=CategoricalTransform{col=workclass col=education col=marital_status col=occupation col=relationship col=ethnicity col=sex col=native_country} xf=Concat{col=Features:Features,workclass,education,marital_status,occupation,relationship,ethnicity,sex,native_country}
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+
+Training calibrator.
+
+
+*** Predictor did not carry a train prior...
+TEST POSITIVE RATIO:	0.2362 (3846/(3846+12435))
+
+Confusion table:
+         ||===============================|
+         ||            PREDICTED          |
+  TRUTH  ||    positive    |   negative   | RECALL
+         ||===============================|
+ positive||   2443         |    1403      | 0.6352 (2443/3846)
+ negative||   1143         |    11292     | 0.9081 (11292/12435)
+         ||===============================|
+ PRECISION 0.6813 (2443/3586)  0.8895(11292/12695)
+
+OVERALL 0/1 ACCURACY:		0.8436 (13735/16281)
+LOG LOSS/instance:		0.47609628
+TEST-SET ENTROPY (prior LL/in):	0.78870818
+LOG-LOSS REDUCTION (RIG):	39.6359%
+AUC:				0.8985
+
+
+OVERALL RESULTS
+---------------------------------------
+ACCURACY:            0.8436 (0.0000)
+POS. PRECISION:      0.6813 (0.0000)
+POS. RECALL:         0.6352 (0.0000)
+NEG. PRECISION:      0.8895 (0.0000)
+NEG. RECALL:         0.9081 (0.0000)
+LOG-LOSS:            0.4761 (0.0000)
+LOG-LOSS REDUCTION: 39.6359 (0.0000)
+AUC:                 0.8985 (0.0000)
+
+---------------------------------------
+2/1/2016 4:29:32 PM	 Time elapsed(s): 0.87
+

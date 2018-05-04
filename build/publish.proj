@@ -1,0 +1,33 @@
+<Project DefaultTargets="Publish" >
+  <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
+
+  <PropertyGroup>
+    <PublishSymbolsPackage>Microsoft.SymbolUploader.Build.Task</PublishSymbolsPackage>
+    <EnablePublishSymbols>false</EnablePublishSymbols>
+  </PropertyGroup>
+
+  <Import Project="$(PackagesDir)\$(PublishSymbolsPackage.ToLower())\$(PublishSymbolsPackageVersion)\build\PublishSymbols.targets" />
+
+  <Target Name="Publish" Condition="'$(EnablePublishSymbols)'=='true'" DependsOnTargets="SetupPublishSymbols">
+    <Message Text="Attempting to Publish Symbols" />
+    <Error Condition="!Exists('$(PackageOutputPath)')" Text="'PackageOutputPath' folder '$(PackageOutputPath)' does not exist."/>
+    <Error Condition="'$(SymbolServerPath)'==''" Text="Missing property SymbolServerPath" />
+    <Error Condition="'$(SymbolServerPAT)'==''" Text="Missing property SymbolServerPAT" />
+    <CallTarget Targets="PublishSymbols" />
+  </Target>
+
+  <Target Name="SetupPublishSymbols">
+    <PropertyGroup>
+      <SymbolExpirationInDays Condition="'$(SymbolExpirationInDays)'=='' and '$(SymbolExpirationDate)'==''">1</SymbolExpirationInDays>
+      <ConvertPortablePdbsToWindowsPdbs>true</ConvertPortablePdbsToWindowsPdbs>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <SymbolPackagesToPublish Include="$(PackageOutputPath)**\*.symbols.*nupkg" />
+    </ItemGroup>
+
+    <Message Importance="High" Text="Publishing @(SymbolPackagesToPublish) to $(SymbolServerPath)"/>
+    <Error Condition="'@(SymbolPackagesToPublish)'==''" Text="There are no symbol nuget packages to publish" />
+  </Target>
+
+</Project>

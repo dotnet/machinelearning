@@ -1,0 +1,95 @@
+maml.exe TrainTest test=F:\data\housing.txt tr=PoissonRegression{l2=0.1 initwts=1} loader=TextLoader{col=Label:R4:0 col=Features:R4:1-13} data=F:\data\housing.txt
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Beginning optimization
+   num vars: 14
+   term criterion: Mean rel impr over 5 iter'ns < tol: 1.000e-7
+
+Iter n: new_value (term_crit)
+-------------------------------------------------
+Iter 0: 6.4196e1 (**********) 
+Iter 1: 3.5965e1 (...) ..
+Iter 2: 1.8065e1 (...) .
+Iter 3: 5.5997e0 (...) 
+Iter 4: 5.3341e0 (...) 
+Iter 5: 4.7630e0 (...) 
+Iter 6: 4.6779e0 (1.3377e0) 
+Iter 7: 4.1478e0 (6.7107e-1) 
+Iter 8: 3.9858e0 (8.0980e-2) 
+Iter 9: 3.6510e0 (9.2204e-2) 
+Iter 10: 3.1877e0 (9.8835e-2) 
+Iter 11: 2.9522e0 (1.1691e-1) 
+Iter 12: 2.9404e0 (8.2124e-2) 
+Iter 13: 2.9333e0 (7.1765e-2) 
+Iter 14: 2.9250e0 (4.9637e-2) 
+Iter 15: 2.9214e0 (1.8233e-2) 
+Iter 16: 2.9181e0 (2.3357e-3) 
+Iter 17: 2.9156e0 (1.7018e-3) 
+Iter 18: 2.9128e0 (1.4046e-3) 
+Iter 19: 2.9090e0 (1.1032e-3) 
+Iter 20: 2.9001e0 (1.4706e-3) 
+Iter 21: 2.8754e0 (2.9700e-3) 
+Iter 22: 2.8577e0 (4.0486e-3) 
+Iter 23: 2.8539e0 (4.1316e-3) 
+Iter 24: 2.8465e0 (4.3862e-3) 
+Iter 25: 2.8442e0 (3.9280e-3) 
+Iter 26: 2.8384e0 (2.6033e-3) 
+Iter 27: 2.8289e0 (2.0362e-3) 
+Iter 28: 2.8244e0 (2.0881e-3) 
+Iter 29: 2.8229e0 (1.6721e-3) 
+Iter 30: 2.8226e0 (1.5336e-3) 
+Iter 31: 2.8213e0 (1.2127e-3) 
+Iter 32: 2.8197e0 (6.5318e-4) 
+Iter 33: 2.8180e0 (4.5040e-4) 
+Iter 34: 2.8168e0 (4.3984e-4) 
+Iter 35: 2.8156e0 (4.9652e-4) 
+Iter 36: 2.8150e0 (4.4882e-4) 
+Iter 37: 2.8135e0 (4.4094e-4) .
+Iter 38: 2.8130e0 (3.6071e-4) 
+Iter 39: 2.8123e0 (3.1968e-4) 
+Iter 40: 2.8109e0 (3.3638e-4) 
+Iter 41: 2.8103e0 (3.3410e-4) 
+Iter 42: 2.8097e0 (2.7336e-4) ..
+Iter 43: 2.8096e0 (2.3573e-4) 
+Iter 44: 2.8091e0 (2.2757e-4) 
+Iter 45: 2.8090e0 (1.3467e-4) 
+Iter 46: 2.8089e0 (1.0024e-4) 
+Iter 47: 2.8089e0 (5.5036e-5) 
+Iter 48: 2.8088e0 (5.9706e-5) 
+Iter 49: 2.8087e0 (2.4311e-5) .
+Iter 50: 2.8087e0 (1.9710e-5) 
+Iter 51: 2.8086e0 (2.0848e-5) 
+Iter 52: 2.8086e0 (2.0968e-5) .
+Iter 53: 2.8086e0 (1.5127e-5) 
+Iter 54: 2.8086e0 (9.4906e-6) 
+Iter 55: 2.8086e0 (8.0475e-6) 
+Iter 56: 2.8086e0 (3.1749e-6) ..
+Iter 57: 2.8086e0 (1.3582e-6) ..
+Iter 58: 2.8086e0 (4.7538e-7) .
+Iter 59: 2.8086e0 (5.9423e-7) ....
+Iter 60: 2.8086e0 (4.5840e-7) ...
+Iter 61: 2.8086e0 (3.9049e-7) 
+Iter 62: 2.8086e0 (4.0747e-7) ....
+Iter 63: 2.8086e0 (3.9049e-7) .
+Iter 64: 2.8086e0 (1.8676e-7) ...
+Iter 65: 2.8086e0 (2.0373e-7) ....... ......
+Iter 66: 2.8086e0 (1.8676e-7) .
+Iter 67: 2.8086e0 (1.6978e-7) ....
+Iter 68: 2.8086e0 (1.6978e-7) ..
+Iter 69: 2.8086e0 (1.6978e-8)
+L1 regularization selected 14 of 14 weights.
+Not training a calibrator because it is not needed.
+L1(avg):           2.81431289
+L2(avg):           16.77239427
+RMS(avg):          4.09541137
+LOSS-FN(avg):      16.77239424
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):             2.8143 (0.0000)
+L2(avg):            16.7724 (0.0000)
+RMS(avg):            4.0954 (0.0000)
+LOSS-FN(avg):       16.7724 (0.0000)
+
+---------------------------------------
+2/2/2016 11:08:06 AM	 Time elapsed(s): 0.512
+

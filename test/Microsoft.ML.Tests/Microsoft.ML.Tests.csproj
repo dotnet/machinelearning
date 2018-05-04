@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <NativeAssemblyReference Include="CpuMathNative" />
+	<NativeAssemblyReference Include="FastTreeNative" />
+  </ItemGroup>
+</Project>

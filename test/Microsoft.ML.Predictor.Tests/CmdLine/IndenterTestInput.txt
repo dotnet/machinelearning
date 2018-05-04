@@ -1,0 +1,52 @@
+﻿/required 1
+$
+
+$
+/required:2
+$
+/required = 3
+$
+/required= 4
+$
+/required =5
+$
+/required=6
+$
+required:7
+$
+required 8
+$
+required = 9
+$
+required= 10
+$
+required =11
+$
+required=12
+$
+r = # comment
+15# another comment
+$
+r:0 /text {hello there}
+$
+r:0 /text {hello there
+$
+r:0 /text hello there}
+$
+r:0 sub = A { B } sub = { C }
+$
+r=1 text={ abc   }
+$
+r=20 subTaggedArray=a subTaggedArray[t1]=b{c} subTaggedArray=d subTaggedArray[t2]=e subTaggedArray[]=f{g}
+$
+r:0 text={\"hello { { there}}\"}
+$
+-r=2
+$
+tr=WeightedEnsemble{bp=LinearSVM bp=AveragedPerceptron{iter=11} bp=AveragedPerceptron bp=WeightedEnsemble{bp=LinearSVM bp=AveragedPerceptron bp=AveragedPerceptron bp=FastTreeBinaryClassification{bagfrac=0.74 lr=0.21 nl=203 mil=102 iter=1004}}}
+$
+data=F:\tlc\test\20newsgroups.txt loader=TextLoader{ col=Label:R4:0 col=Cat:TX:1 col=Cat01:TX:2 col=Text:TX:3} xf=CategoricalTransform{col=Cat} xf=CSharp{in=Cat out=Out:R4 code = {Console.Write(""."");
+for(int i=1;i<10;i++)
+    Console.Write(i);
+O.Out = 4;}}tr=AveragedPerceptron{}
+$

@@ -1,0 +1,172 @@
+{
+  "settings": {
+    "Configuration": {
+      "description": "Sets the optimization level for the Build Configuration you want to build.",
+      "valueType": "property",
+      "values": [ "Debug", "Release" ],
+      "defaultValue": "Debug"
+    },
+    "TargetArchitecture": {
+      "description": "Sets the architecture for the native assets you want to build.",
+      "valueType": "property",
+      "values": [ "x64", "x86" ],
+      "defaultValue": "x64"
+    },
+    "OfficialBuildId": {
+      "description": "Specifies the SeedDate and the revision of the build to generate the version of the libraries.",
+      "valueType": "property",
+      "values": [],
+      "defaultValue": ""
+    },
+    "BuildNumberMajor": {
+      "description": "Product build major number.",
+      "valueType": "property",
+      "values": [],
+      "defaultValue": ""
+    },
+    "BuildNumberMinor": {
+      "description": "Product build minor number.",
+      "valueType": "property",
+      "values": [],
+      "defaultValue": ""
+    },
+    "MsBuildLogging": {
+      "description": "MsBuild logging options.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": "/flp:v=normal"
+    },
+    "MsBuildWarning": {
+      "description": "MsBuild warning logging.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": "/flp2:warningsonly;logfile=msbuild.wrn"
+    },
+    "MsBuildError": {
+      "description": "MsBuild error logging.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": "/flp3:errorsonly;logfile=msbuild.err"
+    },
+    "Project": {
+      "description": "Project where the commands are going to be applied.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": ""
+    },
+    "BuildNative": {
+      "description": "MsBuild target that builds the native assets.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "BuildPackages": {
+      "description": "MsBuild target that builds packages.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "RunTests": {
+      "description": "Run tests after building.",
+      "valueType": "property",
+      "values": [],
+      "defaultValue": ""
+    },
+    "CleanAllProjects": {
+      "description": "MsBuild target that deletes the binary output directory.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    }
+  },
+  "commands": {
+    "build": {
+      "alias": {
+        "debug": {
+          "description": "Sets optimization level to debug for managed build configuration. (/p:Configuration=Debug)",
+          "settings": {
+            "Configuration": "Debug"
+          }
+        },
+        "release": {
+          "description": "Sets optimization level to release for managed build configuration. (/p:Configuration=Release)",
+          "settings": {
+            "Configuration": "Release"
+          }
+        },
+        "buildArch": {
+          "description": "Sets the architecture for the native build. (/p:TargetArchitecture=[value])",
+          "settings": {
+            "TargetArchitecture": "default"
+          }
+        },
+        "buildNative": {
+          "description": "Builds the native assets.",
+          "settings": {
+            "BuildNative": "default"
+          }
+        },
+        "buildPackages": {
+          "description": "Builds the NuGet packages.",
+          "settings": {
+            "BuildPackages": "default"
+          }
+        },
+        "runtests": {
+          "description": "Runs the tests after building.",
+          "settings": {
+            "RunTests": "true"
+          }
+        },
+        "verbose": {
+          "description": "Passes /flp:v=diag to the msbuild command or the value passed by the user.",
+          "settings": {
+            "MsBuildLogging": "/flp:v=diag;LogFile=build-managed.log"
+          }
+        }
+      },
+      "defaultValues": {
+        "toolName": "msbuild",
+        "settings": {
+          "Project": "build.proj",
+          "Configuration": "default",
+          "MsBuildLogging": "default",
+          "MsBuildWarning": "default",
+          "MsBuildError": "default"
+        }
+      }
+    }
+  },
+  "tools": {
+    "msbuild": {
+      "osSpecific": {
+        "windows": {
+          "defaultParameters": "msbuild /nologo /verbosity:minimal /clp:Summary /maxcpucount /l:BinClashLogger,Tools\\Microsoft.DotNet.Build.Tasks.dll;LogFile=binclash.log",
+          "path": "Tools/dotnetcli/dotnet"
+        },
+        "unix": {
+          "defaultParameters": "msbuild /nologo /verbosity:minimal /clp:Summary /maxcpucount /l:BinClashLogger,Tools/Microsoft.DotNet.Build.Tasks.dll;LogFile=binclash.log",
+          "path": "Tools/dotnetcli/dotnet"
+        }
+      },
+      "valueTypes": {
+        "property": "/p:{name}={value}",
+        "target": "/t:{name}",
+        "internal": "/{name}"
+      }
+    },
+    "terminal": {
+      "osSpecific": {
+        "windows": {
+          "filesExtension": "cmd"
+        },
+        "unix": {
+          "filesExtension": "sh"
+        }
+      },
+      "valueTypes": {
+        "property": "--{name}={value}"
+      }
+    }
+  }
+}

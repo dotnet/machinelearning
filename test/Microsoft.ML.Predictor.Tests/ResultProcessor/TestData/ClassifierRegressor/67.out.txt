@@ -1,0 +1,90 @@
+maml.exe TrainTest test=F:\data\housing.txt tr=RegressionNeuralNetwork{iter=45 initwts=1} loader=TextLoader{col=Label:R4:0 col=Features:R4:1-13} data=F:\data\housing.txt
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Using: AVX Math
+
+***** Net definition *****
+  input Data [13];
+  hidden H [100] sigmoid { // Depth 1
+    from Data all;
+  }
+  output Result [1] linear { // Depth 0
+    from H all;
+  }
+***** End net definition *****
+Input count: 13
+Output count: 1
+Output Function: Linear
+Loss Function: SquaredError
+PreTrainer: NoPreTrainer
+___________________________________________________________________
+Starting training...
+Learning rate: 0.001000
+Momentum: 0.000000
+InitWtsDiameter: 1.000000
+___________________________________________________________________
+Initializing 1 Hidden Layers, 1501 Weights...
+Estimated Pre-training MeanError = 610.251406
+Iter:1/45, MeanErr=87.521494(-85.66%), 66.62M WeightUpdates/sec
+Iter:2/45, MeanErr=61.423919(-29.82%), 782.99M WeightUpdates/sec
+Iter:3/45, MeanErr=53.155917(-13.46%), 798.48M WeightUpdates/sec
+Iter:4/45, MeanErr=48.088570(-9.53%), 807.19M WeightUpdates/sec
+Iter:5/45, MeanErr=43.675764(-9.18%), 817.34M WeightUpdates/sec
+Iter:6/45, MeanErr=40.207822(-7.94%), 815.34M WeightUpdates/sec
+Iter:7/45, MeanErr=36.675761(-8.78%), 812.61M WeightUpdates/sec
+Iter:8/45, MeanErr=33.070796(-9.83%), 816.09M WeightUpdates/sec
+Iter:9/45, MeanErr=31.122044(-5.89%), 815.84M WeightUpdates/sec
+Iter:10/45, MeanErr=28.759702(-7.59%), 813.35M WeightUpdates/sec
+Iter:11/45, MeanErr=27.308473(-5.05%), 805.24M WeightUpdates/sec
+Iter:12/45, MeanErr=26.178409(-4.14%), 814.84M WeightUpdates/sec
+Iter:13/45, MeanErr=25.080589(-4.19%), 810.63M WeightUpdates/sec
+Iter:14/45, MeanErr=24.404920(-2.69%), 810.13M WeightUpdates/sec
+Iter:15/45, MeanErr=23.808278(-2.44%), 809.15M WeightUpdates/sec
+Iter:16/45, MeanErr=23.398212(-1.72%), 807.68M WeightUpdates/sec
+Iter:17/45, MeanErr=22.718588(-2.90%), 804.75M WeightUpdates/sec
+Iter:18/45, MeanErr=22.456434(-1.15%), 806.45M WeightUpdates/sec
+Iter:19/45, MeanErr=22.141696(-1.40%), 808.90M WeightUpdates/sec
+Iter:20/45, MeanErr=22.079939(-0.28%), 808.17M WeightUpdates/sec
+Iter:21/45, MeanErr=21.678844(-1.82%), 808.41M WeightUpdates/sec
+Iter:22/45, MeanErr=21.047420(-2.91%), 810.87M WeightUpdates/sec
+Iter:23/45, MeanErr=21.230050(0.87%), 806.70M WeightUpdates/sec
+Iter:24/45, MeanErr=21.049515(-0.85%), 812.36M WeightUpdates/sec
+Iter:25/45, MeanErr=21.123466(0.35%), 806.21M WeightUpdates/sec
+Iter:26/45, MeanErr=20.582983(-2.56%), 804.99M WeightUpdates/sec
+Iter:27/45, MeanErr=20.466074(-0.57%), 801.12M WeightUpdates/sec
+Iter:28/45, MeanErr=19.917138(-2.68%), 807.19M WeightUpdates/sec
+Iter:29/45, MeanErr=20.077461(0.80%), 809.15M WeightUpdates/sec
+Iter:30/45, MeanErr=19.914666(-0.81%), 810.13M WeightUpdates/sec
+Iter:31/45, MeanErr=20.106449(0.96%), 811.62M WeightUpdates/sec
+Iter:32/45, MeanErr=19.576847(-2.63%), 799.68M WeightUpdates/sec
+Iter:33/45, MeanErr=19.863403(1.46%), 805.24M WeightUpdates/sec
+Iter:34/45, MeanErr=19.050290(-4.09%), 802.33M WeightUpdates/sec
+Iter:35/45, MeanErr=19.480173(2.26%), 809.89M WeightUpdates/sec
+Iter:36/45, MeanErr=19.041775(-2.25%), 812.11M WeightUpdates/sec
+Iter:37/45, MeanErr=18.698330(-1.80%), 806.21M WeightUpdates/sec
+Iter:38/45, MeanErr=18.546846(-0.81%), 810.13M WeightUpdates/sec
+Iter:39/45, MeanErr=18.882593(1.81%), 808.66M WeightUpdates/sec
+Iter:40/45, MeanErr=18.802090(-0.43%), 804.75M WeightUpdates/sec
+Iter:41/45, MeanErr=18.303839(-2.65%), 808.17M WeightUpdates/sec
+Iter:42/45, MeanErr=18.285649(-0.10%), 807.68M WeightUpdates/sec
+Iter:43/45, MeanErr=18.593287(1.68%), 800.16M WeightUpdates/sec
+Iter:44/45, MeanErr=18.002455(-3.18%), 816.34M WeightUpdates/sec
+Iter:45/45, MeanErr=18.264445(1.46%), 805.48M WeightUpdates/sec
+Done!
+Estimated Post-training MeanError = 17.118025
+___________________________________________________________________
+Not training a calibrator because it is not needed.
+L1(avg):           2.97834552
+L2(avg):           17.11802475
+RMS(avg):          4.13739347
+LOSS-FN(avg):      17.11802484
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):             2.9783 (0.0000)
+L2(avg):            17.1180 (0.0000)
+RMS(avg):            4.1374 (0.0000)
+LOSS-FN(avg):       17.1180 (0.0000)
+
+---------------------------------------
+2/2/2016 11:08:14 AM	 Time elapsed(s): 0.654
+

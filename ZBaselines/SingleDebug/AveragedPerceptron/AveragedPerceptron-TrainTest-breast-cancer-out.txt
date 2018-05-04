@@ -1,0 +1,38 @@
+maml.exe TrainTest test=%Data% tr=AveragedPerceptron{lr=0.01 iter=100 lazy+} dout=%Output% data=%Data% out=%Output% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Warning: Skipped 1600 instances with missing features during training (over 100 iterations; 16 inst/iter)
+Training calibrator.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      232 |        7 | 0.9707
+ negative ||       12 |      432 | 0.9730
+          ||======================
+Precision ||   0.9508 |   0.9841 |
+OVERALL 0/1 ACCURACY: 0.972182
+LOG LOSS/instance:  0.115962
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): 87.584375
+AUC:                0.995995
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.995995 (0.0000)
+Accuracy:           0.972182 (0.0000)
+Positive precision: 0.950820 (0.0000)
+Positive recall:    0.970711 (0.0000)
+Negative precision: 0.984055 (0.0000)
+Negative recall:    0.972973 (0.0000)
+Log-loss:           0.115962 (0.0000)
+Log-loss reduction: 87.584375 (0.0000)
+F1 Score:           0.960663 (0.0000)
+AUPRC:              0.991840 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

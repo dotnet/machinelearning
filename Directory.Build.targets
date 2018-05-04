@@ -1,0 +1,9 @@
+<Project InitialTargets="CheckForBuildTools">
+  
+  <Target Name="CheckForBuildTools">
+    <Error Condition="!Exists('$(ToolsDir)')"
+           Text="The tools directory [$(ToolsDir)] does not exist. Please run build in the root of the repo to ensure the tools are installed before attempting to build an individual project." />
+  </Target>
+
+  <Import Project="$(ToolsDir)/versioning.targets" Condition="Exists('$(ToolsDir)/versioning.targets')" />
+</Project>

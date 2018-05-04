@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeInPackage>Microsoft.ML</IncludeInPackage>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>CORECLR</DefineConstants>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Folder Include="CodeGeneration\" />
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+</Project>

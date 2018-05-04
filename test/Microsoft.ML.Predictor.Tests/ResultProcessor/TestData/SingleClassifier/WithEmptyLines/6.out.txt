@@ -1,0 +1,80 @@
+maml.exe TrainTest test=F:\data\adult.test tr=AveragedPerceptron{lr=0.01 iter=10 initwts=1} loader=TextLoader{sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K:R4:14 header=+} data=F:\data\adult.train xf=CopyColumns{col=Label:label_IsOver50K} xf=CategoricalTransform{col=workclass col=education col=marital_status col=occupation col=relationship col=ethnicity col=sex col=native_country} xf=Concat{col=Features:Features,workclass,education,marital_status,occupation,relationship,ethnicity,sex,native_country}
+
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+
+
+
+Training calibrator.
+
+
+
+
+
+*** Predictor did not carry a train prior...
+
+TEST POSITIVE RATIO:	0.2362 (3846/(3846+12435))
+
+
+
+Confusion table:
+
+         ||===============================|
+
+         ||            PREDICTED          |
+
+  TRUTH  ||    positive    |   negative   | RECALL
+
+         ||===============================|
+
+ positive||   2136         |    1710      | 0.5554 (2136/3846)
+
+ negative||   797          |    11638     | 0.9359 (11638/12435)
+
+         ||===============================|
+
+ PRECISION 0.7283 (2136/2933)  0.8719(11638/13348)
+
+
+
+OVERALL 0/1 ACCURACY:		0.8460 (13774/16281)
+
+LOG LOSS/instance:		0.48337297
+
+TEST-SET ENTROPY (prior LL/in):	0.78870818
+
+LOG-LOSS REDUCTION (RIG):	38.7133%
+
+AUC:				0.8955
+
+
+
+
+
+OVERALL RESULTS
+
+---------------------------------------
+
+ACCURACY:            0.8460 (0.0000)
+
+POS. PRECISION:      0.7283 (0.0000)
+
+POS. RECALL:         0.5554 (0.0000)
+
+NEG. PRECISION:      0.8719 (0.0000)
+
+NEG. RECALL:         0.9359 (0.0000)
+
+LOG-LOSS:            0.4834 (0.0000)
+
+LOG-LOSS REDUCTION: 38.7133 (0.0000)
+
+AUC:                 0.8955 (0.0000)
+
+
+
+---------------------------------------
+
+2/1/2016 4:29:40 PM	 Time elapsed(s): 0.915
+
+
+

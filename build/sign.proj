@@ -1,0 +1,49 @@
+<Project InitialTargets="SetSigningProperties" DefaultTargets="SignBinaries">
+  <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
+
+  <!-- This will be overridden if we're building with MicroBuild. -->
+  <Target Name="SignFiles">
+    <Message Text="Attempting to sign %(FilesToSign.Identity) with authenticode='%(FilesToSign.Authenticode)'" />
+  </Target>
+
+  <Import Project="$(ToolsDir)MicroBuild.Core.props" />
+  <Import Project="$(ToolsDir)MicroBuild.Core.targets" />
+
+  <Target Name="SetSigningProperties">
+    <PropertyGroup>
+      <!-- The OutDir and IntermediateOutputPath properties are required by MicroBuild. MicroBuild only
+           signs files that are under these paths. -->
+      <OutDir Condition="'$(OutDir)' == '' AND '$(SignNugetPackages)' != 'true'">$(PackageAssetsPath)</OutDir>
+      <OutDir Condition="'$(OutDir)' == '' AND '$(SignNugetPackages)' == 'true'">$(PackageOutputPath)</OutDir>
+      <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">$(IntermediateOutputRootPath)</IntermediateOutputPath>
+
+    </PropertyGroup>
+
+    <Error Condition="!Exists('$(OutDir)')" Text="'OutDir' folder '$(OutDir)' does not exist."/>
+  </Target>
+
+  <Target Name="SignBinaries" Condition="'$(SignType)' == 'real'" DependsOnTargets="GetFilesToSign">
+    <CallTarget Targets="SignFiles" />
+  </Target>
+
+  <Target Name="GetFilesToSign">
+
+    <!-- If we are not signing nuget packages we default to sign binaries -->
+    <ItemGroup Condition="'$(SignNugetPackages)' != 'true'">
+      <FilesToSign Include="$(OutDir)**/*.dll">
+        <Authenticode>Microsoft</Authenticode>
+      </FilesToSign>
+    </ItemGroup>
+
+    <!-- Get nuget packages for signing -->
+    <ItemGroup Condition="'$(SignNugetPackages)' == 'true'">
+      <FilesToSign Include="$(OutDir)*.nupkg" Exclude="$(OutDir)*.symbols.nupkg">
+        <Authenticode>NuGet</Authenticode>
+      </FilesToSign>
+
+    </ItemGroup>
+
+    <Error Condition="'@(FilesToSign)' == ''" Text="There are no files to sign. FilesToSign group is empty."/>
+  </Target>
+  
+</Project>

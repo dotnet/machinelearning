@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeInPackage>Microsoft.ML</IncludeInPackage>
+    <DefineConstants>CORECLR</DefineConstants>
+    <DefineConstants>TRACE;USE_FASTTREENATIVE;NO_STORE;CORECLR;DEBUG;NETSTANDARD2_0</DefineConstants>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>1591,1572,1573</NoWarn>
+    <AssemblyName>Microsoft.ML.InternalStreams</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,111 @@
+<Project>
+  <!-- Directory.Build.props contains the common build settings for all projects in the repo. -->
+
+  <Import Project="build/BranchInfo.props" />
+  <Import Project="build/Dependencies.props" />
+
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
+    <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
+    <NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">x64</NativeTargetArchitecture>
+    <PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RestoreSources>
+      https://api.nuget.org/v3/index.json;
+    </RestoreSources>
+  </PropertyGroup>
+
+  <!-- Common repo directories -->
+  <PropertyGroup>
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+    <SourceDir>$(RepoRoot)src/</SourceDir>
+
+    <!-- Output directories -->
+    <BinDir Condition="'$(BinDir)'==''">$(RepoRoot)bin/</BinDir>
+    <BaseOutputPath Condition="'$(BaseOutputPath)'==''">$(BinDir)</BaseOutputPath>
+    <ObjDir Condition="'$(ObjDir)'==''">$(BinDir)obj/</ObjDir>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'==''">$(ObjDir)</BaseIntermediateOutputPath>
+
+    <IntermediateOutputRootPath Condition="'$(IntermediateOutputRootPath)' == ''">$(BaseIntermediateOutputPath)$(PlatformConfig)\</IntermediateOutputRootPath>
+    <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">$(IntermediateOutputRootPath)$(MSBuildProjectName)\</IntermediateOutputPath>
+
+    <OutputPath Condition="'$(OutputPath)'==''">$(BaseOutputPath)$(PlatformConfig)\$(MSBuildProjectName)\</OutputPath>
+
+    <PackageAssetsPath>$(ObjDir)/packages/</PackageAssetsPath>
+    
+    <PackageOutputPath Condition="'$(PackageOutputPath)'=='' and '$(NonShippingPackage)' == 'true'">$(BinDir)packages_noship/</PackageOutputPath>
+    <PackageOutputPath Condition="'$(PackageOutputPath)'==''">$(BinDir)packages/</PackageOutputPath>
+
+    <NativeOutputPath>$(BaseOutputPath)$(NativeTargetArchitecture).$(Configuration)\Native\</NativeOutputPath>
+
+    <!-- Input Directories -->
+    <PackagesDir>$(DotNetRestorePackagesPath)</PackagesDir>
+    <PackagesDir Condition="'$(PackagesDir)'==''">$(RepoRoot)packages/</PackagesDir>
+    <RestorePackagesPath>$(PackagesDir)</RestorePackagesPath>
+    <ToolsDir Condition="'$(ToolsDir)'==''">$(RepoRoot)Tools/</ToolsDir>
+  </PropertyGroup>
+
+  <Import Project="$(ToolsDir)BuildVersion.targets" 
+          Condition="Exists('$(ToolsDir)BuildVersion.targets')" />
+
+  <!-- Version properties -->
+  <PropertyGroup>
+    <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
+    <AssemblyFileVersion Condition="'$(AssemblyFileVersion)'==''">$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)</AssemblyFileVersion>
+
+    <StabilizePackageVersion Condition="'$(StabilizePackageVersion)' == ''">false</StabilizePackageVersion>
+    <IncludeBuildNumberInPackageVersion Condition="'$(StabilizePackageVersion)' != 'true'">true</IncludeBuildNumberInPackageVersion>
+
+    <VersionSuffix></VersionSuffix>
+    <VersionSuffix Condition="'$(StabilizePackageVersion)' != 'true'">$(PreReleaseLabel)</VersionSuffix>
+    <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor)-$(BuildNumberMinor)</VersionSuffix>
+  </PropertyGroup>
+
+  <!--
+  Ensure to import versioning.props before overwriting BaseIntermediateOutputPath since
+  the source link file exists in the root bin/obj folder.
+   -->
+  <Import Project="$(ToolsDir)versioning.props" 
+          Condition="Exists('$(ToolsDir)versioning.props') and '$(DisableImportVersioningProps)' != 'true'" />
+
+  <!-- NuGet package properties -->
+  <PropertyGroup>
+    <Authors>Microsoft</Authors>
+    <IncludeSymbols>true</IncludeSymbols>
+  </PropertyGroup>
+
+  <!-- SourceLink properties -->
+  <PropertyGroup>
+    <UseSourceLink>true</UseSourceLink>
+    <GitHubRepositoryName>machinelearning</GitHubRepositoryName>
+  </PropertyGroup>
+  
+  <!-- Language configuration -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion> <!-- default to allowing all language features -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <RunningOnUnix Condition="'$(OS)'!='Windows_NT'">true</RunningOnUnix>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(UsingMicrosoftNETSdk)' == 'true'">
+    <!--
+    The Microsoft.NET.Sdk changed the definition of what it assumes $(BaseIntermediateOutputPath) is.
+    In the "old" .csproj files, BaseIntermediateOutputPath could be shared with many projects.
+    In the SDK-based .csproj files, BaseIntermediateOutputPath is assumed to be project-specific.
+    -->
+    <BaseIntermediateOutputPath>$(IntermediateOutputPath)</BaseIntermediateOutputPath>
+  </PropertyGroup>
+
+  <!-- Signing properties -->
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile Condition="'$(AssemblyOriginatorKeyFile)' == ''">$(ToolsDir)Open.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
+  </PropertyGroup>
+
+</Project>

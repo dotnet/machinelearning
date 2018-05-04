@@ -1,0 +1,4 @@
+LogisticRegression
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/l2	/ot	/nt	/nn	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.996287	0.969253	0.957983	0.953975	0.975281	0.977477	0.109007	88.32906	0.955975	0.992293	0.1	0.0001	1	+	LogisticRegression	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=LogisticRegression{l1=1.0 l2=0.1 ot=1e-4 nt=1 nn=+} norm=No dout=%Output% data=%Data% out=%Output% seed=1	/l2:0.1;/ot:0.0001;/nt:1;/nn:+	
+

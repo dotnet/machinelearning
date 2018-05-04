@@ -1,0 +1,51 @@
+maml.exe TrainTest test=F:\data\housing.txt tr=PoissonRegression{l1=0 ot=0.0001 m=50 initwts=1} loader=TextLoader{col=Label:R4:0 col=Features:R4:1-13} data=F:\data\housing.txt
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Beginning optimization
+   num vars: 14
+   term criterion: Mean rel impr over 5 iter'ns < tol: 1.000e-4
+
+Iter n: new_value (term_crit)
+-------------------------------------------------
+Iter 0: 3.3872e1 (**********) 
+Iter 1: 5.4857e0 (...) 
+Iter 2: 5.0908e0 (...) 
+Iter 3: 3.7867e0 (...) 
+Iter 4: 3.5573e0 (...) 
+Iter 5: 3.4715e0 (...) 
+Iter 6: 3.2445e0 (1.3815e-1) 
+Iter 7: 3.0909e0 (1.2941e-1) 
+Iter 8: 2.9500e0 (5.6724e-2) 
+Iter 9: 2.9213e0 (4.3544e-2) 
+Iter 10: 2.9120e0 (3.8427e-2) 
+Iter 11: 2.9005e0 (2.3722e-2) 
+Iter 12: 2.8759e0 (1.4947e-2) 
+Iter 13: 2.8523e0 (6.8488e-3) 
+Iter 14: 2.8402e0 (5.7103e-3) 
+Iter 15: 2.8325e0 (5.6117e-3) 
+Iter 16: 2.8264e0 (5.2385e-3) 
+Iter 17: 2.8215e0 (3.8578e-3) 
+Iter 18: 2.8172e0 (2.4931e-3) 
+Iter 19: 2.8084e0 (2.2681e-3) 
+Iter 20: 2.8026e0 (2.1354e-3) 
+Iter 21: 2.8016e0 (1.7725e-3) 
+Iter 22: 2.8013e0 (1.4413e-3) 
+Iter 23: 2.8011e0 (1.1494e-3) 
+Iter 24: 2.8008e0 (5.4372e-4) 
+Iter 25: 2.8006e0 (1.4139e-4) 
+Iter 26: 2.8006e0 (7.4916e-5)
+Not training a calibrator because it is not needed.
+L1(avg):           2.81741766
+L2(avg):           16.78328449
+RMS(avg):          4.09674072
+LOSS-FN(avg):      16.78328451
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):             2.8174 (0.0000)
+L2(avg):            16.7833 (0.0000)
+RMS(avg):            4.0967 (0.0000)
+LOSS-FN(avg):       16.7833 (0.0000)
+
+---------------------------------------
+2/2/2016 11:08:47 AM	 Time elapsed(s): 0.503
+
