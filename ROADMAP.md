@@ -1,7 +1,9 @@
 # The ML.NET Roadmap
 
-The goal of ML.NET project is to provide an easy to use, .NET-friendly ML platform. This document describes the tentative plan for the project in the short, medium and long-term. ML.NET is a community effort and we welcome community feedback on our plans! The best way to give feedback is to open an issue in this repo. It's always a good idea to have a discussion before embarking on a large code change to make sure there is not duplicated effort.
-Many of the short-term and medium-term features already exist in the internal version of the code-base.  They are marked with (*).  We plan to release more and more internal features to Github over time.
+The goal of ML.NET project is to provide an easy to use, .NET-friendly ML platform. This document describes the tentative plan for the project in the short and long-term. 
+
+ML.NET is a community effort and we welcome community feedback on our plans. The best way to give feedback is to open an issue in this repo. It's always a good idea to have a discussion before embarking on a large code change to make sure there is not duplicated effort.
+Many of the features listed on the roadmap already exist in the internal version of the code-base.  They are marked with (*).  We plan to release more and more internal features to Github over time.
 
 In the meanwhile, we are looking for contributions.  An easy place to start is to look at _up-for-grabs_ issues on [Github](https://github.com/dotnet/machinelearning/issues?q=is%3Aopen+is%3Aissue+label%3Aup-for-grabs)
 
@@ -23,7 +25,7 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
 ### Featurization Improvements
 * Text  (*)
   * Natural language text preprocessing such as tokenization, part-of-speech tagging, and sentence breaking
-  * Pre-trained text models that can be used for extracting of semantic, sentiment features from text
+  * Pre-trained text models that can be used for extracting of semantic or sentiment features from text
 * Image  (*)
   * Image preprocessing such as loading, resizing, and normalization if images
   * Image featurization, including industry-standard pre-trained ImageNet neural models, such as ResNet and AlexNet
@@ -89,5 +91,5 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
 
 ### Other
 * Support for additional languages
-* Published reproducible benchmarks against industry-leading MK toolkits on a variety of tasks and datasets
+* Published reproducible benchmarks against industry-leading ML toolkits on a variety of tasks and datasets
 
