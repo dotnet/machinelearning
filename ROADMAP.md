@@ -8,8 +8,9 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
 ## Short Term
 ### Training Improvements
 * Improved public API for training and inference
+* Enhanced tests and scenarios
 * Additional Learners
-	* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) for anomaly detection  (*)
+    * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) for anomaly detection  (*)
 	* [LightGBM](https://github.com/Microsoft/LightGBM) - a high-performance boosted decision tree  (*)
 * Additional Learning Tasks  (*)
 	* _Ranking_ - problem where the goal is to automatically sort (rank) instances within a group based on ranked examples in training data
@@ -21,11 +22,11 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
 
 ### Featurization Improvements
 * Text  (*)
-	  * Natural language text preprocessing such as tokenization, part-of-speech tagging, and sentence breaking
-	  * Pre-trained text models that can be used for extracting of semantic, sentiment features from text
+  * Natural language text preprocessing such as tokenization, part-of-speech tagging, and sentence breaking
+  * Pre-trained text models that can be used for extracting of semantic, sentiment features from text
 * Image  (*)
-	* Image preprocessing such as loading, resizing, and normalization if images
-	* Image featurization, including industry-standard pre-trained ImageNet neural models, such as ResNet and AlexNet
+  * Image preprocessing such as loading, resizing, and normalization if images
+  * Image featurization, including industry-standard pre-trained ImageNet neural models, such as ResNet and AlexNet
 
 ### Trained Model Management
 * Export models to [ONNX](https://github.com/onnx/models)  (*)
@@ -40,26 +41,26 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
 
 ### Training Improvements
 * Add more learners, perhaps, including:  (*)
-	* Generative Additive Models
-	* [SymSGD](https://arxiv.org/pdf/1705.08030.pdf) -a fast linear SGD learner
-	* Factorization Machines
-	* [ProtoNN and Bonsaii](https://www.microsoft.com/en-us/research/project/resource-efficient-ml-for-the-edge-and-endpoint-iot-devices/) for compact and effecient models
+  * Generative Additive Models
+  * [SymSGD](https://arxiv.org/pdf/1705.08030.pdf) -a fast linear SGD learner
+  * Factorization Machines
+  * [ProtoNN and Bonsaii](https://www.microsoft.com/en-us/research/project/resource-efficient-ml-for-the-edge-and-endpoint-iot-devices/) for compact and effecient models
 * Integration with other ML packages
-    * Accord.NET
-    * etc.
+  * Accord.NET
+  * etc.
 * Deep Learning Support
-	* Integrate with leading DNN package(s)
-	* Support for transfer learning
-	* Hybrid training of pipelines containing both DNN and non-DNN predictors
+  * Integrate with leading DNN package(s)
+  * Support for transfer learning
+  * Hybrid training of pipelines containing both DNN and non-DNN predictors
 * Additional ML tasks  (*)
-	* _Recommendation_ - Is a problem that can be phrased a: "For a given user, predict the ratings this user would give to the items that they have not explicitly rated yet"
-	* _Anomaly Detection_, also known as _outlier detection_. It is a task to identify items, events or observations which do not conform to an expected pattern in the dataset. Typical examples are: detecting credit card fraud, medical problems or errors in text. Anomalies are also referred to as outliers,  novelties, noise, deviations and exceptions
-	* _Sequence Classification_ - learns from a series of examples in a sequence, and each item is assigned a distinct label, akin to a multiclass classification task
+  * _Recommendation_ - Is a problem that can be phrased a: "For a given user, predict the ratings this user would give to the items that they have not explicitly rated yet"
+  * _Anomaly Detection_, also known as _outlier detection_. It is a task to identify items, events or observations which do not conform to an expected pattern in the dataset. Typical examples are: detecting credit card fraud, medical problems or errors in text. Anomalies are also referred to as outliers,  novelties, noise, deviations and exceptions
+  * _Sequence Classification_ - learns from a series of examples in a sequence, and each item is assigned a distinct label, akin to a multiclass classification task
 * Additional Data source support
-	* Data from SQL Databases, such as SQL Server
-	* Data located on the cloud
+  * Data from SQL Databases, such as SQL Server
+  * Data located on the cloud
 * Distributed Training
-	* Easily train models on the cloud
+  * Easily train models on the cloud
 * Whole-pipeline optimizations for both training and inference
 * Automation of more data science tasks
 * Additional Trainers
