@@ -26,11 +26,10 @@ To build ML.NET from source go to [developers guide](https://github.com/dotnet/m
 
 Simple snippet to train a model for sentiment classification (See the complete sample [here](https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/Scenarios/Scenario3_SentimentPrediction.cs)):
 ```C#
-var pipeline = new LearningPipeline()
-    .Add(new TextLoader<SentimentData>(dataPath, separator: ",")
-    .Add(new TextFeaturizer("Features", "SentimentText")
-    .Add(new FastTreeBinaryClassifier()
-     Add(new PredictedLabelColumnOriginalValueConverter(PredictedLabelColumn = "PredictedLabel"});
+var pipeline = new LearningPipeline();
+pipeline.Add(new TextLoader<SentimentData>(dataPath, separator: ","));
+pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
+pipeline.Add(new FastTreeBinaryClassifier());
 var model = pipeline.Train<SentimentData, SentimentPrediction>();
 ```
 
