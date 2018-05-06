@@ -38,8 +38,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Tests", "test\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "data", "data", "{FDA2FD2C-A708-43AC-A941-4D941B0853BF}"
 	ProjectSection(SolutionItems) = preProject
-		test\data\kc_house_data.csv = test\data\kc_house_data.csv
-		test\data\kc_house_test.csv = test\data\kc_house_test.csv
 		test\data\sentiment_data.tsv = test\data\sentiment_data.tsv
 		test\data\sentiment_test.tsv = test\data\sentiment_test.tsv
 	EndProjectSection
@@ -57,6 +55,35 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Parquet", "src\Microsoft.ML.Parquet\Microsoft.ML.Parquet.csproj", "{16BB1454-2108-40E5-B3A6-594654005303}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Sweeper", "src\Microsoft.ML.Sweeper\Microsoft.ML.Sweeper.csproj", "{55C8122D-79EA-48AB-85D0-EB551FC1C427}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E20AF96D-3F66-4065-8A89-BEE479D74536}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation\README.md = Documentation\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project-docs", "project-docs", "{52794B40-AB8A-41AF-9EF7-799C80D6E0BC}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation\project-docs\contributing.md = Documentation\project-docs\contributing.md
+		Documentation\project-docs\developer-guide.md = Documentation\project-docs\developer-guide.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{76F579E4-B9D2-4A0C-A511-EEFA4B2B829F}"
+	ProjectSection(SolutionItems) = preProject
+		CONTRIBUTING.md = CONTRIBUTING.md
+		README.md = README.md
+		ROADMAP.md = ROADMAP.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "building", "building", "{DB751004-5D49-4B88-B78F-29CA9887087D}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation\building\unix-instructions.md = Documentation\building\unix-instructions.md
+		Documentation\building\windows-instructions.md = Documentation\building\windows-instructions.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "specs", "specs", "{2DEFC784-F2B5-44EA-ABBB-0DCF3E689DAC}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation\specs\mvp.md = Documentation\specs\mvp.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -180,6 +207,9 @@ Global
 		{B7B593C5-FB8C-4ADA-A638-5B53B47D087E} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{16BB1454-2108-40E5-B3A6-594654005303} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{55C8122D-79EA-48AB-85D0-EB551FC1C427} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{52794B40-AB8A-41AF-9EF7-799C80D6E0BC} = {E20AF96D-3F66-4065-8A89-BEE479D74536}
+		{DB751004-5D49-4B88-B78F-29CA9887087D} = {E20AF96D-3F66-4065-8A89-BEE479D74536}
+		{2DEFC784-F2B5-44EA-ABBB-0DCF3E689DAC} = {E20AF96D-3F66-4065-8A89-BEE479D74536}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
