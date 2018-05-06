@@ -86,7 +86,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(predictions.ElementAt(1).Sentiment);
 
             string testDataPath = GetDataPath(SentimentTestPath);
-            var testData = new TextLoader(dataPath)
+            var testData = new TextLoader(testDataPath)
             {
                 Arguments = new TextLoaderArguments
                 {
@@ -110,21 +110,20 @@ namespace Microsoft.ML.Scenarios
                     }
                 }
             };
-
             var evaluator = new BinaryClassificationEvaluator();
             BinaryClassificationMetrics metrics = evaluator.Evaluate(model, testData);
 
-            Assert.Equal(0.872, metrics.Accuracy, 4);
-            Assert.Equal(0.9339, metrics.Auc, 1);
-            Assert.Equal(0.949, metrics.Auprc, 2);
-            Assert.Equal(0.9521, metrics.Entropy, 3);
-            Assert.Equal(0.9030, metrics.F1Score, 4);
-            Assert.Equal(0.6961, metrics.LogLoss, 3);
-            Assert.Equal(26.8935, metrics.LogLossReduction, 3);
-            Assert.Equal(0.8961, metrics.NegativePrecision, 3);
-            Assert.Equal(0.7419, metrics.NegativeRecall, 3);
-            Assert.Equal(0.8612, metrics.PositivePrecision, 3);
-            Assert.Equal(0.9490, metrics.PositiveRecall, 3);
+            Assert.Equal(.7222, metrics.Accuracy, 4);
+            Assert.Equal(.9643, metrics.Auc, 1);
+            Assert.Equal(.96, metrics.Auprc, 2);
+            Assert.Equal(1, metrics.Entropy, 3);
+            Assert.Equal(.7826, metrics.F1Score, 4);
+            Assert.Equal(.812, metrics.LogLoss, 3);
+            Assert.Equal(18.831, metrics.LogLossReduction, 3);
+            Assert.Equal(1, metrics.NegativePrecision, 3);
+            Assert.Equal(.444, metrics.NegativeRecall, 3);
+            Assert.Equal(.643, metrics.PositivePrecision, 3);
+            Assert.Equal(1, metrics.PositiveRecall);
 
             ConfusionMatrix matrix = metrics.ConfusionMatrix;
             Assert.Equal(2, matrix.Order);
@@ -132,15 +131,15 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal("positive", matrix.ClassNames[0]);
             Assert.Equal("negative", matrix.ClassNames[1]);
 
-            Assert.Equal(149, matrix[0, 0]);
-            Assert.Equal(149, matrix["positive", "positive"]);
-            Assert.Equal(8, matrix[0, 1]);
-            Assert.Equal(8, matrix["positive", "negative"]);
+            Assert.Equal(9, matrix[0, 0]);
+            Assert.Equal(9, matrix["positive", "positive"]);
+            Assert.Equal(0, matrix[0, 1]);
+            Assert.Equal(0, matrix["positive", "negative"]);
 
-            Assert.Equal(24, matrix[1, 0]);
-            Assert.Equal(24, matrix["negative", "positive"]);
-            Assert.Equal(69, matrix[1, 1]);
-            Assert.Equal(69, matrix["negative", "negative"]);
+            Assert.Equal(5, matrix[1, 0]);
+            Assert.Equal(5, matrix["negative", "positive"]);
+            Assert.Equal(4, matrix[1, 1]);
+            Assert.Equal(4, matrix["negative", "negative"]);
         }
 
         public class SentimentData
