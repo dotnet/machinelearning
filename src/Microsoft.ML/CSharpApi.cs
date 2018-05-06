@@ -1514,7 +1514,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Arguments
             /// </summary>
-            public Data.TextLoaderArguments Arguments { get; set; } = new TextLoaderArguments();
+            public Data.TextLoaderArguments Arguments { get; set; } = new Data.TextLoaderArguments();
 
 
             public sealed class Output

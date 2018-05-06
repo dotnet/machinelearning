@@ -850,7 +850,9 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             foreach (var line in entryPointInfo.Description.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                 writer.WriteLine($"/// {line}");
             writer.WriteLine("/// </summary>");
-            writer.WriteLine($"public sealed partial class {classAndMethod.Item2}{classBase}");
+
+            string seal = entryPointInfo.NoSeal ? "" : "sealed ";
+            writer.WriteLine($"public {seal}partial class {classAndMethod.Item2}{classBase}");
             writer.WriteLine("{");
             writer.Indent();
             writer.WriteLine();

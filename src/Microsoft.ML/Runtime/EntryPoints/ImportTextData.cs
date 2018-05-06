@@ -33,8 +33,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Required, ShortName = "data", HelpText = "Location of the input file", SortOrder = 1)]
             public IFileHandle InputFile;
 
-            [Argument(ArgumentType.AtMostOnce, ShortName = "args", HelpText = "Arguments", SortOrder = 2)]
-            public TextLoader.Arguments Arguments;
+            [Argument(ArgumentType.Required, ShortName = "args", HelpText = "Arguments", SortOrder = 1)]
+            public TextLoader.Arguments Arguments = new TextLoader.Arguments();
         }
 
         public sealed class Output
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new Output { Data = loader };
         }
 
-        [TlcModule.EntryPoint(Name = "Data.TextLoader", Desc = "Import a dataset from a text file")]
+        [TlcModule.EntryPoint(Name = "Data.TextLoader", Desc = "Import a dataset from a text file", NoSeal = true)]
         public static Output TextLoader(IHostEnvironment env, LoaderInput input)
         {
             Contracts.CheckValue(env, nameof(env));

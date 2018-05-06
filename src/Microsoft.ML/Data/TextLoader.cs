@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Data
 {
@@ -43,14 +44,29 @@ namespace Microsoft.ML.Data
                 var field = fields[index];
                 var mappingAttr = field.GetCustomAttribute<ColumnAttribute>();
                 if (mappingAttr == null)
-                    throw Contracts.ExceptParam(nameof(field.Name), " is missing ColumnAttribute");
+                    throw Contracts.Except($"{field.Name} is missing ColumnAttribute");
+
+                if (Regex.Match(mappingAttr.Ordinal, @"[^(0-9,\*\-~)]+").Success)
+                    throw Contracts.Except($"{mappingAttr.Ordinal} contains invalid characters. " +
+                        $"Valid characters are 0-9, *, - and ~");
+
+                var name = mappingAttr.Name ?? field.Name;
+                if (name.Any(c => !Char.IsLetterOrDigit(c)))
+                    throw Contracts.Except($"{name} is not alphanumeric.");
+
+                if(separator != null)
+                {
+                    if(separator != "space" && separator != "tab" && separator != "comma" && separator.Length > 1)
+                        throw Contracts.Except($"{nameof(separator)} can only be one of the following: space, tab, comma" +
+                            $" or a single character.");
+                }
 
                 var col = Runtime.Data.TextLoader.Column.Parse(
-                    $"{mappingAttr.Name ?? field.Name}:" +
+                    $"{name}:" +
                     $"{TypeToName(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType)}:" +
                     $"{mappingAttr.Ordinal}"
                     );
-
+                
                 TextLoaderColumn tlc = new TextLoaderColumn();
                 if (col.KeyRange != null)
                 {

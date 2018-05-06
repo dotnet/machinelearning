@@ -40,6 +40,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// </summary>
         public sealed class EntryPointInfo
         {
+            public readonly bool NoSeal;
             public readonly string Name;
             public readonly string Description;
             public readonly string ShortName;
@@ -57,6 +58,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 ectx.AssertValue(attribute);
 
                 Name = attribute.Name ?? string.Join(".", method.DeclaringType.Name, method.Name);
+                NoSeal = attribute.NoSeal;
                 Description = attribute.Desc;
                 Method = method;
                 ShortName = attribute.ShortName;
