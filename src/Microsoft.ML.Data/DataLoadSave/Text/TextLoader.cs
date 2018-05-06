@@ -317,7 +317,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public sealed class Arguments : ArgumentsCore
+        public class Arguments : ArgumentsCore
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use separate parsing threads?", ShortName = "threads", Hide = true)]
             public bool UseThreads = true;

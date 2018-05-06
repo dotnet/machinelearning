@@ -191,6 +191,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
     /// </summary>
     public static class CommonInputs
     {
+
         /// <summary>
         /// Interface that all API transform input classes will implement.
         /// </summary>

@@ -54,9 +54,9 @@ namespace Microsoft.ML.TestFramework
 
             Experiment experiment = s_environment.CreateExperiment();
 
-            var importData = new Data.TextLoader();
+            var importData = new Data.CustomTextLoader();
             importData.CustomSchema = dataSchema;
-            Data.TextLoader.Output imported = experiment.Add(importData);
+            Data.CustomTextLoader.Output imported = experiment.Add(importData);
 
             var numericalConcatenate = new Transforms.ColumnConcatenator();
             numericalConcatenate.Data = imported.Data;

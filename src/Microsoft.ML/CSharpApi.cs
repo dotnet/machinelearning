@@ -22,6 +22,18 @@ namespace Microsoft.ML
     {
         public sealed partial class Experiment
         {
+            public Microsoft.ML.Data.CustomTextLoader.Output Add(Microsoft.ML.Data.CustomTextLoader input)
+            {
+                var output = new Microsoft.ML.Data.CustomTextLoader.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Data.CustomTextLoader input, Microsoft.ML.Data.CustomTextLoader.Output output)
+            {
+                _jsonNodes.Add(Serialize("Data.CustomTextLoader", input, output));
+            }
+
             public Microsoft.ML.Data.IDataViewArrayConverter.Output Add(Microsoft.ML.Data.IDataViewArrayConverter input)
             {
                 var output = new Microsoft.ML.Data.IDataViewArrayConverter.Output();
@@ -1240,6 +1252,38 @@ namespace Microsoft.ML
     {
 
         /// <summary>
+        /// Import a dataset from a text file
+        /// </summary>
+        public sealed partial class CustomTextLoader
+        {
+
+
+            /// <summary>
+            /// Location of the input file
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.IFileHandle> InputFile { get; set; } = new Var<Microsoft.ML.Runtime.IFileHandle>();
+
+            /// <summary>
+            /// Custom schema to use for parsing
+            /// </summary>
+            public string CustomSchema { get; set; }
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// The resulting data view
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Data
+    {
+
+        /// <summary>
         /// Create and array variable
         /// </summary>
         public sealed partial class IDataViewArrayConverter
@@ -1293,12 +1337,174 @@ namespace Microsoft.ML
     namespace Data
     {
 
+        public sealed class TextLoaderArguments
+        {
+            /// <summary>
+            /// Use separate parsing threads?
+            /// </summary>
+            public bool UseThreads { get; set; } = true;
+
+            /// <summary>
+            /// File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.
+            /// </summary>
+            public string HeaderFile { get; set; }
+
+            /// <summary>
+            /// Maximum number of rows to produce
+            /// </summary>
+            public long? MaxRows { get; set; }
+
+            /// <summary>
+            /// Whether the input may include quoted values, which can contain separator characters, colons, and distinguish empty values from missing values. When true, consecutive separators denote a missing value and an empty value is denoted by "". When false, consecutive separators denote an empty value.
+            /// </summary>
+            public bool AllowQuoting { get; set; } = true;
+
+            /// <summary>
+            /// Whether the input may include sparse representations
+            /// </summary>
+            public bool AllowSparse { get; set; } = true;
+
+            /// <summary>
+            /// Number of source columns in the text data. Default is that sparse rows contain their size information.
+            /// </summary>
+            public int? InputSize { get; set; }
+
+            /// <summary>
+            /// Source column separator. Options: tab, space, comma, single character
+            /// </summary>
+            public string Separator { get; set; } = "tab";
+
+            /// <summary>
+            /// Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40
+            /// </summary>
+            public TextLoaderColumn[] Column { get; set; }
+
+            /// <summary>
+            /// Remove trailing whitespace from lines
+            /// </summary>
+            public bool TrimWhitespace { get; set; } = false;
+
+            /// <summary>
+            /// Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.
+            /// </summary>
+            public bool HasHeader { get; set; } = false;
+
+        }
+
+        public sealed class TextLoaderColumn
+        {
+            /// <summary>
+            /// Name of the column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Type of the items in the column
+            /// </summary>
+            public DataKind? Type { get; set; }
+
+            /// <summary>
+            /// Source index range(s) of the column
+            /// </summary>
+            public TextLoaderRange[] Source { get; set; }
+
+            /// <summary>
+            /// For a key column, this defines the range of values
+            /// </summary>
+            public KeyRange KeyRange { get; set; }
+
+        }
+
+        public sealed class TextLoaderRange
+        {
+            /// <summary>
+            /// First index in the range
+            /// </summary>
+            public int Min { get; set; }
+
+            /// <summary>
+            /// Last index in the range
+            /// </summary>
+            public int? Max { get; set; }
+
+            /// <summary>
+            /// This range extends to the end of the line, but should be a fixed number of items
+            /// </summary>
+            public bool AutoEnd { get; set; } = false;
+
+            /// <summary>
+            /// This range extends to the end of the line, which can vary from line to line
+            /// </summary>
+            public bool VariableEnd { get; set; } = false;
+
+            /// <summary>
+            /// This range includes only other indices not specified
+            /// </summary>
+            public bool AllOther { get; set; } = false;
+
+            /// <summary>
+            /// Force scalar columns to be treated as vectors of length one
+            /// </summary>
+            public bool ForceVector { get; set; } = false;
+
+        }
+
+        public sealed class KeyRange
+        {
+            /// <summary>
+            /// First index in the range
+            /// </summary>
+            public ulong Min { get; set; } = 0;
+
+            /// <summary>
+            /// Last index in the range
+            /// </summary>
+            public ulong? Max { get; set; }
+
+            /// <summary>
+            /// Whether the key is contiguous
+            /// </summary>
+            public bool Contiguous { get; set; } = true;
+
+        }
+
         /// <summary>
         /// Import a dataset from a text file
         /// </summary>
-        public sealed partial class TextLoader
+        public partial class TextLoader : Microsoft.ML.ILearningPipelineLoader
         {
 
+            [JsonIgnore]
+            private string _inputFilePath = null;
+            public TextLoader(string filePath)
+            {
+                _inputFilePath = filePath;
+            }
+            
+            public void SetInput(IHostEnvironment env, Experiment experiment)
+            {
+                IFileHandle inputFile = new SimpleFileHandle(env, _inputFilePath, false, false);
+                experiment.SetInput(InputFile, inputFile);
+            }
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                Contracts.Assert(previousStep == null);
+                
+                return new TextLoaderPipelineStep(experiment.Add(this));
+            }
+            
+            private class TextLoaderPipelineStep : ILearningPipelineDataStep
+            {
+                public TextLoaderPipelineStep (Output output)
+                {
+                    Data = output.Data;
+                    Model = null;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
 
             /// <summary>
             /// Location of the input file
@@ -1306,9 +1512,9 @@ namespace Microsoft.ML
             public Var<Microsoft.ML.Runtime.IFileHandle> InputFile { get; set; } = new Var<Microsoft.ML.Runtime.IFileHandle>();
 
             /// <summary>
-            /// Custom schema to use for parsing
+            /// Arguments
             /// </summary>
-            public string CustomSchema { get; set; }
+            public Data.TextLoaderArguments Arguments { get; set; } = new TextLoaderArguments();
 
 
             public sealed class Output

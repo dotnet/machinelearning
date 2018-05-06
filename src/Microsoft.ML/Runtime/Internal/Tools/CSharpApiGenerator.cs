@@ -640,6 +640,58 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
         }
 
+        private void GenerateLoaderAddInputMethod(IndentingTextWriter writer, string className)
+        {
+            //Constructor.
+            writer.WriteLine("[JsonIgnore]");
+            writer.WriteLine("private string _inputFilePath = null;");
+            writer.WriteLine($"public {className}(string filePath)");
+            writer.WriteLine("{");
+            writer.Indent();
+            writer.WriteLine("_inputFilePath = filePath;");
+            writer.Outdent();
+            writer.WriteLine("}");
+            writer.WriteLine("");
+
+            //SetInput.
+            writer.WriteLine($"public void SetInput(IHostEnvironment env, Experiment experiment)");
+            writer.WriteLine("{");
+            writer.Indent();
+            writer.WriteLine("IFileHandle inputFile = new SimpleFileHandle(env, _inputFilePath, false, false);");
+            writer.WriteLine("experiment.SetInput(InputFile, inputFile);");
+            writer.Outdent();
+            writer.WriteLine("}");
+            writer.WriteLine("");
+
+            //Apply.
+            writer.WriteLine($"public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)");
+            writer.WriteLine("{");
+            writer.Indent();
+            writer.WriteLine("Contracts.Assert(previousStep == null);");
+            writer.WriteLine("");
+            writer.WriteLine($"return new {className}PipelineStep(experiment.Add(this));");
+            writer.Outdent();
+            writer.WriteLine("}");
+            writer.WriteLine("");
+
+            //Pipelinestep class.
+            writer.WriteLine($"private class {className}PipelineStep : ILearningPipelineDataStep");
+            writer.WriteLine("{");
+            writer.Indent();
+            writer.WriteLine($"public {className}PipelineStep (Output output)");
+            writer.WriteLine("{");
+            writer.Indent();
+            writer.WriteLine("Data = output.Data;");
+            writer.WriteLine("Model = null;");
+            writer.Outdent();
+            writer.WriteLine("}");
+            writer.WriteLine();
+            writer.WriteLine("public Var<IDataView> Data { get; }");
+            writer.WriteLine("public Var<ITransformModel> Model { get; }");
+            writer.Outdent();
+            writer.WriteLine("}");
+        }
+
         private void GenerateColumnAddMethods(IndentingTextWriter writer,
             Type inputType,
             ModuleCatalog catalog,
@@ -802,6 +854,9 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("{");
             writer.Indent();
             writer.WriteLine();
+            if (classBase.Contains("ILearningPipelineLoader"))
+                GenerateLoaderAddInputMethod(writer, classAndMethod.Item2);
+
             GenerateColumnAddMethods(writer, entryPointInfo.InputType, catalog, classAndMethod.Item2, out Type transformType);
             writer.WriteLine();
             GenerateInputFields(writer, entryPointInfo.InputType, catalog, _typesSymbolTable);

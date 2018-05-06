@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file1'
                       },
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1'
                       }},
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1'
                       }},
@@ -562,7 +562,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1'
                       }},
@@ -607,7 +607,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1'
                       }},
@@ -653,7 +653,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1',
                         'CustomSchema': 'sep=comma col=Cat:TX:4'
@@ -735,7 +735,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file'
                       }},
@@ -1214,7 +1214,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1',
                         'CustomSchema': '{schema}'
@@ -1287,7 +1287,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1'
                         {3}
@@ -1459,7 +1459,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -1522,7 +1522,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -1630,7 +1630,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -1744,7 +1744,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -1843,7 +1843,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -2019,7 +2019,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -2214,7 +2214,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -2302,7 +2302,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -2368,7 +2368,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'StageId': '5063dee8f19c4dd89a1fc3a9da5351a7',
                       'Inputs': {
                         'InputFile': '$file'
@@ -2437,7 +2437,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1',
                         'CustomSchema': 'sep=comma col=Label:TX:4 col=Features:Num:0-3'
