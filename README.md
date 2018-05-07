@@ -6,13 +6,13 @@
 
 ML.NET allows .NET developers to develop their own models and infuse custom ML into their applications without prior expertise in developing or tuning machine learning models.
 
-ML.NET was originally developed in Microsoft Research and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, Power Point, Excel and more.
+ML.NET was originally developed in Microsoft Research and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
 
-With this first preview release ML.NET enables ML tasks like classification (e.g. support text classification, sentiment analysis) and regression (e.g. forecasting, price-prediction). 
+With this first preview release ML.NET enables ML tasks like classification (e.g. support text classification, sentiment analysis) and regression (e.g. price-prediction). 
 
-Along with these ML capabilities this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and core ML data structures. 
+Along with these ML capabilities this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures. 
 
-ML.NET is first and foremost a  framework which means it can be extended to add popular ML Libraries like TensorFlow, Accord.NET and CNTK. The design of the framework will prioritize usability, extensibility, and toolability, without sacrificing performance.
+ML.NET is first and foremost a framework which means it will be extensible to integrate popular ML libraries like TensorFlow, Accord.NET and CNTK. The design of the framework will prioritize usability, extensibility, and toolability, without sacrificing performance.
 
 ## Installation
 
@@ -36,13 +36,13 @@ Or alternatively you can add the Microsoft.ML package from within Visual Studio'
 
 ## Building
 
-To build ML.NET from source please visit our [developers guide.](https://github.com/dotnet/machinelearning/blob/master/Documentation/project-docs/developer-guide.md)
+To build ML.NET from source please visit our [developers guide.](Documentation/project-docs/developer-guide.md)
 
 Live build status is coming soon.
 
 ## Contributing
 
-We welcome contributions! Please review our [contribution guide](https://github.com/dotnet/machinelearning/blob/master/CONTRIBUTING.md).
+We welcome contributions! Please review our [contribution guide](CONTRIBUTING.md).
 
 ## Community
 
@@ -53,9 +53,7 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 
 ## Examples
 
-Imagine you want to predict the sale price of a house. Given a large dataset of information about other houses, including their sale prices, you can use ML.NET to create and evaluate a model. Then, you can deploy the model with your app.
-
-Here's a different example, with code, to train a model to predict sentiment from text samples. (You can see the complete sample [here](https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/Scenarios/Scenario3_SentimentPrediction.cs)):
+Here's an example of code to train a model to predict sentiment from text samples. (You can see the complete sample [here](https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/Scenarios/Scenario3_SentimentPrediction.cs)):
 
 ```C#
 var pipeline = new LearningPipeline();
