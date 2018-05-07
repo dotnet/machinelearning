@@ -52,6 +52,9 @@ def branch = GithubBranchName
             if (isPR) {
                 Utilities.addGithubPRTriggerForBranch(newJob, branch, "$os $config")
             }
+            else {
+                Utilities.addGithubPushTrigger(newJob)
+            }
 
             Utilities.addMSTestResults(newJob, 'bin/**/*.trx')
 
