@@ -2,7 +2,6 @@
 
 import jobs.generation.ArchivalSettings;
 import jobs.generation.Utilities;
-import jobs.generation.InternalUtilities;
 
 def project = GithubProject
 def branch = GithubBranchName
@@ -26,7 +25,7 @@ def branch = GithubBranchName
             def buildCommand = buildFile + " -$config -runtests"
             def packCommand = buildFile + " -buildPackages"
 
-            def newJob = job(InternalUtilities.getFullJobName(project, jobName, isPR)) {
+            def newJob = job(Utilities.getFullJobName(project, jobName, isPR)) {
                 steps {
                     if (os == 'Windows_NT') {
                         batchFile(buildCommand)
@@ -47,10 +46,13 @@ def branch = GithubBranchName
             }
 
             Utilities.setMachineAffinity(newJob, osImageName, machineAffinity)
-            InternalUtilities.standardJobSetup(newJob, project, isPR, "*/${branch}")
+            Utilities.standardJobSetup(newJob, project, isPR, "*/${branch}")
 
             if (isPR) {
                 Utilities.addGithubPRTriggerForBranch(newJob, branch, "$os $config")
+            }
+            else {
+                Utilities.addGithubPushTrigger(newJob)
             }
 
             Utilities.addMSTestResults(newJob, 'bin/**/*.trx')
