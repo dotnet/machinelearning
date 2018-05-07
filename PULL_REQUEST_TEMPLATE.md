@@ -1,15 +1,10 @@
-Please ensure that the title for the pull request is meaningful and includes exactly what was done. Your pull request needs to reference a filed issue. Only pull requests adressing small typos can have no issues associated with them. Please use the following template:
+We welcome your PR! You'll want to look at this checklist before hitting Create:
 
-```
-Issue #ISSUE_NUMBER THE_TITLE_OF_THE_PULL_REQUEST
- 
-This addressed the issue by 
-  * INSERT_DESCRIPTION_OF_SOMETHING
-  * INSERT_DESCRIPTION_OF_SOMETHING_ELSE
-  * ...
- 
-Issues:
-  If your PR is addressing multiple issues, then list them all here.
-  This closes #ISSUE_NUMBER
-  This fixes #ISSUE_NUMBER
-```
+[ ] There's a descriptive title that will make sense to other developers some time from now. 
+
+[ ] There's associated issues. All PR's should have issue(s) associated - unless a trivial self-evident change such as fixing a typo. You can use the format `Fixes #nnnn` in your description to cause GitHub to automatically close the issue(s) when your PR is merged.
+
+[ ] Your change description explains what the change does, why you chose your approach, and anything else that reviewers should know.
+
+[ ] You have tests, if at all possible.
+
