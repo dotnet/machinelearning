@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
@@ -23,7 +24,32 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath(SentimentDataPath);
             var pipeline = new LearningPipeline();
-            pipeline.Add(new TextLoader<SentimentData>(dataPath, useHeader: true, separator: "tab"));
+
+            pipeline.Add(new TextLoader(dataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = "tab",
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoaderRange() { Min = 0, Max = 0} },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SentimentText",
+                            Source = new [] { new TextLoaderRange() { Min = 1, Max = 1} },
+                            Type = Runtime.Data.DataKind.Text
+                        }
+                    }
+                }
+            });
+
             pipeline.Add(new TextFeaturizer("Features", "SentimentText")
             {
                 KeepDiacritics = false,
@@ -60,8 +86,30 @@ namespace Microsoft.ML.Scenarios
             Assert.True(predictions.ElementAt(1).Sentiment);
 
             string testDataPath = GetDataPath(SentimentTestPath);
-            var testData = new TextLoader<SentimentData>(testDataPath, useHeader: true, separator: "tab");
+            var testData = new TextLoader(testDataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = "tab",
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoaderRange() { Min = 0, Max = 0} },
+                            Type = Runtime.Data.DataKind.Num
+                        },
 
+                        new TextLoaderColumn()
+                        {
+                            Name = "SentimentText",
+                            Source = new [] { new TextLoaderRange() { Min = 1, Max = 1} },
+                            Type = Runtime.Data.DataKind.Text
+                        }
+                    }
+                }
+            };
             var evaluator = new BinaryClassificationEvaluator();
             BinaryClassificationMetrics metrics = evaluator.Evaluate(model, testData);
 

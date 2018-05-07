@@ -527,6 +527,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// Short name of the Entry Point
             /// </summary>
             public string ShortName { get; set; }
+
+            /// <summary>
+            /// Indicates if the code generated should not be sealed.
+            /// By default all classes are sealed.
+            /// </summary>
+            public bool NoSeal { get; set; }
         }
 
         /// <summary>
