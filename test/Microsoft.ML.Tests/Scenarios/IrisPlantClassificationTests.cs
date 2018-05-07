@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
-    public partial class Top5Scenarios
+    public partial class ScenariosTests
     {
         [Fact]
         public void TrainAndPredictIrisModelTest()
