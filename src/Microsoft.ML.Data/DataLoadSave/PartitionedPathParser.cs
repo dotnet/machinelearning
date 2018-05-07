@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Data
             public Microsoft.ML.Runtime.Data.PartitionedFileLoader.Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Data type of each column.")]
-            public DataKind? Type = DataKind.Text;
+            public DataKind Type = DataKind.Text;
 
             public IPartitionedPathParser CreateComponent(IHostEnvironment env) => new SimplePartitionedPathParser(env, this);
         }
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!col.Type.HasValue)
                 {
-                    col.Type = args.Type.HasValue ? args.Type : DataKind.Text;
+                    col.Type = args.Type;
                 }
             }
         }
