@@ -30,11 +30,24 @@ On Linux, the following components are needed:
 
 e.g. for Ubuntu 14.04, follow the steps below:
 
-`sudo apt-get update`
+```sh
+sudo apt-get update
+sudo apt-get install git clang-3.9 cmake libunwind8 curl
+```
 
-`sudo apt-get install git clang-3.9 cmake libunwind8 curl`
+Follow instructions on how to [install .NET Core SDK 2.0+ on Ubuntu](https://www.microsoft.com/net/learn/get-started/linux/ubuntu14-04):
 
-Follow instructions on how to [install .NET Core SDK 2.0+ on Ubuntu](https://www.microsoft.com/net/learn/get-started/linux/ubuntu14-04).
+```sh
+#Register Microsoft key and feed
+wget -q packages-microsoft-prod.deb https://packages.microsoft.com/config/ubuntu/14.04/packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+#Install the SDK
+sudo apt-get install apt-transport-https
+sudo apt-get update
+sudo apt-get install dotnet-sdk-2.1.105
+```
+
+For more detailed info click [here](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x).
 
 ### macOS
 
