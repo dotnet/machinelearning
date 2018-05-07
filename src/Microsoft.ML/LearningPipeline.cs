@@ -26,25 +26,115 @@ namespace Microsoft.ML
         public Var<ITransformModel> Model { get; }
     }
 
+
+    /// <summary>
+    /// LearningPipeline class is used to define the steps needed to perform desired machine learning task.<para/>
+    /// The steps are defined by adding a data loader (e.g. <see cref="TextLoader"/>) followed by zero or more transforms (e.g. <see cref="Microsoft.ML.Transforms.TextFeaturizer"/>) 
+    /// and atmost one trainer/learner (e.g. <see cref="Microsoft.ML.Trainers.FastTreeBinaryClassifier"/>) in the pipeline.
+    /// 
+    /// Data can be analyzed at every step by inspecting the LearningPipeline object in VS.Net debugger.
+    /// <example>
+    /// <para/>
+    /// For example,<para/>
+    /// <code>
+    /// var pipeline = new LearningPipeline();
+    /// pipeline.Add(new TextLoader &lt;SentimentData&gt; (dataPath, separator: ","));
+    /// pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
+    /// pipeline.Add(new FastTreeBinaryClassifier());
+    /// 
+    /// var model = pipeline.Train&lt;SentimentData, SentimentPrediction&gt;();
+    /// </code>
+    /// </example>
+    /// </summary>
     [DebuggerTypeProxy(typeof(LearningPipelineDebugProxy))]
     public class LearningPipeline : ICollection<ILearningPipelineItem>
     {
         private List<ILearningPipelineItem> Items { get; } = new List<ILearningPipelineItem>();
 
+        /// <summary>
+        /// Construct an empty LearningPipeline object.
+        /// </summary>
         public LearningPipeline()
         {
         }
 
+        /// <summary>
+        /// Get the count of ML components in the LearningPipeline object
+        /// </summary>
         public int Count => Items.Count;
         public bool IsReadOnly => false;
+
+        /// <summary>
+        /// Add a data loader, transform or trainer into the pipeline. 
+        /// Possible data loader(s), transforms and trainers options are
+        /// <para>
+        /// Data Loader:
+        ///     <see cref="Microsoft.ML.TextLoader{TInput}" />
+        ///     etc.
+        /// </para>
+        /// <para>
+        /// Transforms:
+        ///     <see cref="Microsoft.ML.Transforms.Dictionarizer"/>,
+        ///     <see cref="Microsoft.ML.Transforms.CategoricalOneHotVectorizer"/>
+        ///     <see cref="Microsoft.ML.Transforms.MinMaxNormalizer"/>,
+        ///     <see cref="Microsoft.ML.Transforms.ColumnCopier"/>,
+        ///     <see cref="Microsoft.ML.Transforms.ColumnConcatenator"/>,
+        ///     <see cref="Microsoft.ML.Transforms.TextFeaturizer"/>,
+        ///     etc.
+        /// </para>
+        /// <para>
+        /// Trainers:
+        ///     <see cref="Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier"/>,
+        ///     <see cref="Microsoft.ML.Trainers.LogisticRegressor"/>,
+        ///     <see cref="Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier"/>,
+        ///     <see cref="Microsoft.ML.Trainers.FastTreeRegressor"/>,
+        ///     etc.
+        /// </para>
+        /// For a complete list of transforms and trainers, please see "Microsoft.ML.Transforms" and "Microsoft.ML.Trainers" namespaces.
+        /// </summary>
+        /// <param name="item"></param>
         public void Add(ILearningPipelineItem item) => Items.Add(item);
+
+        /// <summary>
+        /// Remove all the transforms/trainers from the pipeline.
+        /// </summary>
         public void Clear() => Items.Clear();
+
+        /// <summary>
+        /// Check if a specific loader/transform/trainer is in the pipeline?
+        /// </summary>
+        /// <param name="item">Any ML component (data loader, transform or trainer) defined as ILearningPipelineItem.</param>
+        /// <returns>true/false</returns>
         public bool Contains(ILearningPipelineItem item) => Items.Contains(item);
+
+        /// <summary>
+        /// Copy the pipeline items into an array.
+        /// </summary>
+        /// <param name="array">Array the items are copied to.</param>
+        /// <param name="arrayIndex">Index to start copying from.</param>
         public void CopyTo(ILearningPipelineItem[] array, int arrayIndex) => Items.CopyTo(array, arrayIndex);
         public IEnumerator<ILearningPipelineItem> GetEnumerator() => Items.GetEnumerator();
+
+        /// <summary>
+        /// Remove an item from the pipeline.
+        /// </summary>
+        /// <param name="item">ILearningPipelineItem to remove.</param>
+        /// <returns>true/false</returns>
         public bool Remove(ILearningPipelineItem item) => Items.Remove(item);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>
+        /// Train the model using the ML components in the pipeline.
+        /// </summary>
+        /// <typeparam name="TInput">Type of data instances the model will be trained on. It's a custom type defined by the user according to the structure of data.
+        /// <para/>
+        /// E.g. please see "Microsoft.ML.Scenarios.ScenarioTests.SentimentData" in "Microsoft.ML.Tests.csproj" for input type definition for sentiment classification task.
+        /// The type is defined for a .csv file that contains sentiment classification data with Sentiment and SentimentText as two columns in the .csv file.
+        /// </typeparam>
+        /// <typeparam name="TOutput">Ouput type. The prediction will be return based on this type.
+        /// E.g. for sentiment classifcation scenario, the prediction type is defined at "Microsoft.ML.Scenarios.ScenarioTests.SentimentPrediction" in "Microsoft.ML.Tests.csproj".
+        /// </typeparam>
+        /// <returns>PredictionModel object. This is the model object used for prediction on new instances. </returns>
         public PredictionModel<TInput, TOutput> Train<TInput, TOutput>()
             where TInput : class
             where TOutput : class, new()
