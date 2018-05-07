@@ -1,0 +1,14 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=L0:TX:0
+#@   col=Year:TX:1
+#@   col=Month:TX:2
+#@ }
+L0	Year	Month
+0	2017	01
+4	2017	01
+6	2017	01
+21	2017	02
+23	2017	02
+25	2017	02

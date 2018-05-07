@@ -1,0 +1,16 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=L0:I4:0
+#@   col=Month:I4:1
+#@   col=Path:TX:2
+#@ }
+L0	Month	Path
+1	1	2017\01\data1.csv
+5	1	2017\01\data2.csv
+7	1	2017\01\data2.csv
+0	1	2017\01\dataBadSchema.csv
+0	1	2017\01\dataBadSchema.csv
+22	2	2017\02\data1.csv
+24	2	2017\02\data1.csv
+26	2	2017\02\data1.csv

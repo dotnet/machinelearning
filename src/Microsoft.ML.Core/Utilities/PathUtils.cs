@@ -1,9 +1,11 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
@@ -67,13 +69,13 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // 1. Search in customSearchDir.
             if (!string.IsNullOrWhiteSpace(customSearchDir)
                 && TryFindFile(fileName, folderPrefix, customSearchDir, out candidate))
-                    return candidate;
+                return candidate;
 
             // 2. Search in the path specified by the environment variable.
             var envDir = Environment.GetEnvironmentVariable(CustomSearchDirEnvVariable);
             if (!string.IsNullOrWhiteSpace(envDir)
                 && TryFindFile(fileName, folderPrefix, envDir, out candidate))
-                    return candidate;
+                return candidate;
 
             // 3. Search in the path specified by the assemblyForBasePath.
             if (assemblyForBasePath != null)
@@ -138,6 +140,64 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Make a full path realtive to a base path.
+        /// </summary>
+        /// <param name="basepath">The base path, assumed to be a directory.</param>
+        /// <param name="path">The full path.</param>
+        /// <returns>The relative path.</returns>
+        /// <exception cref="ArgumentException">If the paths are not relative.</exception>
+        public static string MakePathRelative(string basepath, string path)
+        {
+            Contracts.AssertNonEmpty(basepath);
+            Contracts.AssertNonEmpty(path);
+
+            Uri baseUri = new Uri(basepath);
+            Uri uri = new Uri(path);
+
+            if (baseUri.Scheme != uri.Scheme)
+            {
+                throw new ArgumentException("Paths cannot be made relative as they are of different schemas.");
+            }
+
+            string relativePath;
+            try
+            {
+                if (!baseUri.AbsoluteUri.EndsWith("/"))
+                {
+                    baseUri = new Uri(baseUri.AbsoluteUri + "/");
+                }
+
+                relativePath = baseUri.MakeRelativeUri(uri).ToString();
+            }
+            catch (ArgumentNullException e)
+            {
+                throw new ArgumentException("Paths could not be made relative.", e);
+            }
+            catch (InvalidOperationException e)
+            {
+                throw new ArgumentException("Paths could not be made relative.", e);
+            }
+
+            if (uri.Scheme.Equals("file", StringComparison.InvariantCultureIgnoreCase))
+            {
+                relativePath = relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            }
+
+            return relativePath;
+        }
+
+        /// <summary>
+        /// Split a path string into an enumerable list of the directories.
+        /// </summary>
+        /// <param name="path">The path string to split.</param>
+        /// <returns>An enumerable list of all non-empty directories.</returns>
+        public static IEnumerable<string> SplitDirectories(string path)
+        {
+            var cleanPath = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            return cleanPath.Split(Path.DirectorySeparatorChar).Where(dir => !String.IsNullOrEmpty(dir));
         }
     }
 }
