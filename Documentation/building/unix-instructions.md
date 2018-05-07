@@ -14,21 +14,18 @@ For more information about the different options when building, run `build.sh -?
 ## Minimum Hardware Requirements
 - 2GB RAM
 
-## Prerequisites (native build)
+## Prerequisites
 
 ### Linux
 
-First, the package lists might need to be updated
-
-`sudo apt-get update`
-
 On Linux, the following components are needed
 
-* CMake on the PATH
-* Clang 3.5+ (same requirements as coreclr/corefx)
-* All the requirements necessary to run .NET Core 2.0 applications
-* libunwind
+* git
+* clang-3.9
+* cmake
+* libunwind8
 * curl
+* All the requirements necessary to run .NET Core 2.0 applications
 
 ### macOS
 
