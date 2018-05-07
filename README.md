@@ -36,7 +36,11 @@ Or alternatively you can add the Microsoft.ML package from within Visual Studio'
 
 To build ML.NET from source please visit our [developers guide](Documentation/project-docs/developer-guide.md).
 
-Live build status is coming soon.
+|    | x64 Debug | x64 Release |
+|:---|----------------:|------------------:|
+|**Linux**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_release/lastCompletedBuild)|
+|**macOS**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_release/lastCompletedBuild)|
+|**Windows**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_release/lastCompletedBuild)|
 
 ## Contributing
 
