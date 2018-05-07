@@ -6,7 +6,7 @@ ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core]
 
 With ML.NET you can use the latest ML algorithms to create and evaluate a model from training data. Once you have a model, you can add to your app just a few lines of .NET code to make predictions from the model. 
 
-### Installation
+## Installation
 
 The current release is 0.1. Check out the [release notes](https://github.com/dotnet/machinelearning/blob/master/Documentation/release-notes/0.1/release-0.1.md).
 
@@ -24,13 +24,13 @@ Install-Package Microsoft.ML
 
 Or alternatively you can add the Microsoft.ML package from within Visual Studio's NuGet package manager.
 
-### Building
+## Building
 
 To build ML.NET from source please visit our [developers guide.](https://github.com/dotnet/machinelearning/blob/master/Documentation/project-docs/developer-guide.md)
 
 Live build status is coming soon.
 
-### Contributing
+## Contributing
 
 We welcome contributions! Please review our [contribution guide](https://github.com/dotnet/machinelearning/blob/master/CONTRIBUTING.md).
 
@@ -41,7 +41,7 @@ Please join our community on Gitter [![Join the chat at https://gitter.im/dotnet
 This project has adopted the code of conduct defined by the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behavior in our community.
 For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
-### Examples
+## Examples
 
 Imagine you want to predict the sale price of a house. Given a large dataset of information about other houses, including their sale prices, you can use ML.NET to create and evaluate a model. Then, you can deploy the model with your app.
 
