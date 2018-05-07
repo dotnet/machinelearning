@@ -29,3 +29,11 @@ Redistributing the dataset "breast-cancer.txt" with attribution:
 > MNIST data originally from [NIST](https://www.nist.gov) and modified by Chris Burges, Corinna Cortes, and Yann LeCun. http://yann.lecun.com/exdb/mnist/
 >
 > More information: https://en.wikipedia.org/wiki/MNIST_database 
+
+### NYC Taxi Fare
+
+Redistributing the dataset "taxi-fare-test.csv", "taxi-fare-train.csv" with attribution:
+
+Original source: http://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml
+
+The dataset is provided under terms provided by City of New York: https://opendata.cityofnewyork.us/overview/#termsofuse.
