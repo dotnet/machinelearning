@@ -8,7 +8,7 @@ If you are here, it means you are interested in helping us out. A hearty welcome
 
 ## Getting started:
 
-Please join the community on [gitter](https://gitter.im/dotnet). Also please make sure to take a look at the project [roadmap](ROADMAP.md).
+Please join the community on [gitter](https://gitter.im/mlnet). Also please make sure to take a look at the project [roadmap](ROADMAP.md).
 
 ### Pull requests
 
