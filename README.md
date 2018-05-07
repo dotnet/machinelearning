@@ -6,33 +6,6 @@ ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core]
 
 With ML.NET you can use the latest ML algorithms to create and evaluate a model from training data. Once you have a model, you can add to your app just a few lines of .NET code to make predictions from the model. 
 
-### Examples
-
-Imagine you want to predict the sale price of a house. Given a large dataset of information about other houses, including their sale prices, you can use ML.NET to create and evaluate a model. Then, you can deploy the model with your app.
-
-Here's a different example, with code, to train a model to predict sentiment from text samples. (You can see the complete sample [here](https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/Scenarios/Scenario3_SentimentPrediction.cs)):
-
-```C#
-var pipeline = new LearningPipeline();
-pipeline.Add(new TextLoader<SentimentData>(dataPath, separator: ","));
-pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
-pipeline.Add(new FastTreeBinaryClassifier());
-var model = pipeline.Train<SentimentData, SentimentPrediction>();
-```
-
-Now from the model we can make inferences (predictions):
-
-```C#
-SentimentData data = new SentimentData
-{
-    SentimentText = "Today is a great day!"
-};
-
-SentimentPrediction prediction = model.Predict(data);
-
-Console.WriteLine("prediction: " + prediction.Sentiment);
-```
-
 ### Installation
 
 The current release is 0.1. Check out the [release notes](https://github.com/dotnet/machinelearning/blob/master/Documentation/release-notes/0.1/release-0.1.md).
@@ -67,6 +40,33 @@ Please join our community on Gitter [![Join the chat at https://gitter.im/dotnet
 
 This project has adopted the code of conduct defined by the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behavior in our community.
 For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
+
+### Examples
+
+Imagine you want to predict the sale price of a house. Given a large dataset of information about other houses, including their sale prices, you can use ML.NET to create and evaluate a model. Then, you can deploy the model with your app.
+
+Here's a different example, with code, to train a model to predict sentiment from text samples. (You can see the complete sample [here](https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/Scenarios/Scenario3_SentimentPrediction.cs)):
+
+```C#
+var pipeline = new LearningPipeline();
+pipeline.Add(new TextLoader<SentimentData>(dataPath, separator: ","));
+pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
+pipeline.Add(new FastTreeBinaryClassifier());
+var model = pipeline.Train<SentimentData, SentimentPrediction>();
+```
+
+Now from the model we can make inferences (predictions):
+
+```C#
+SentimentData data = new SentimentData
+{
+    SentimentText = "Today is a great day!"
+};
+
+SentimentPrediction prediction = model.Predict(data);
+
+Console.WriteLine("prediction: " + prediction.Sentiment);
+```
 
 ## License
 
