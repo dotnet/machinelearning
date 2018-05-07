@@ -46,7 +46,7 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
   * Generative Additive Models
   * [SymSGD](https://arxiv.org/pdf/1705.08030.pdf) -a fast linear SGD learner
   * Factorization Machines
-  * [ProtoNN and Bonsaii](https://www.microsoft.com/en-us/research/project/resource-efficient-ml-for-the-edge-and-endpoint-iot-devices/) for compact and effecient models
+  * [ProtoNN and Bonsaii](https://www.microsoft.com/en-us/research/project/resource-efficient-ml-for-the-edge-and-endpoint-iot-devices/) for compact and efficient models
 * Integration with other ML packages
   * Accord.NET
   * etc.
