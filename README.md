@@ -12,8 +12,6 @@ With this first preview release ML.NET enables ML tasks like classification (e.g
 
 Along with these ML capabilities this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures. 
 
-ML.NET is first and foremost a framework which means it will be extensible to integrate popular ML libraries like TensorFlow, Accord.NET and CNTK. The design of the framework will prioritize usability, extensibility, and toolability, without sacrificing performance.
-
 ## Installation
 
 ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
