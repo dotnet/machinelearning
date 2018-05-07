@@ -35,6 +35,8 @@ Console.WriteLine("prediction: " + prediction.Sentiment);
 
 ### Installation
 
+The current release is 0.1. Check out the [release notes](https://github.com/dotnet/machinelearning/blob/master/Documentation/release-notes/0.1/release-0.1.md).
+
 First ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64 bit process.
 
 Once you have an app, you can install ML.NET NuGet from the .NET Core CLI using:
@@ -49,19 +51,17 @@ Install-Package Microsoft.ML
 
 Or alternatively you can add the Microsoft.ML package from within Visual Studio's NuGet package manager.
 
-### Releases
-
-The current release is 0.1. Check out the [release notes](https://github.com/dotnet/machinelearning/blob/master/Documentation/release-notes/0.1/release-0.1.md).
-
 ### Building
 
 To build ML.NET from source please visit our [developers guide.](https://github.com/dotnet/machinelearning/blob/master/Documentation/project-docs/developer-guide.md)
+
+Live build status is coming soon.
 
 ### Contributing
 
 We welcome contributions! Please review our [contribution guide](https://github.com/dotnet/machinelearning/blob/master/CONTRIBUTING.md).
 
-### Community
+## Community
 
 Please join our community on Gitter [![Join the chat at https://gitter.im/dotnet/corefx](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -80,6 +80,3 @@ There are many .NET related projects on GitHub.
 
 - [.NET home repo](https://github.com/Microsoft/dotnet) - links to 100s of .NET projects, from Microsoft and the community.
 
-### Build Status
-
-Coming soon
