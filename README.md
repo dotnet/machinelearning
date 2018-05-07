@@ -1,12 +1,22 @@
+
+
 # Machine Learning for .NET
 
-[ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) provides state-of-the-art machine learning (ML) algorithms, transforms, and components, and powers ML pipelines in many Microsoft products.  Developed and used internally at Microsoft for over 5 years, the goal is to make ML.NET useful for all developers, data scientists, and information workers and helpful in all products, services, and devices.
+[ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.
 
-ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
+ML.NET allows .NET developers to develop their own models and infuse custom ML into their applications without prior expertise in developing or tuning machine learning models.
 
-With ML.NET you can use the latest ML algorithms to create and evaluate a model from training data. Once you have a model, you can add to your app just a few lines of .NET code to make predictions from the model. 
+ML.NET was originally developed in Microsoft Research and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, Power Point, Excel and more.
+
+With this first preview release ML.NET enables ML tasks like classification (e.g. support text classification, sentiment analysis) and regression (e.g. forecasting, price-prediction). 
+
+Along with these ML capabilities this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and core ML data structures. 
+
+ML.NET is first and foremost a  framework which means it can be extended to add popular ML Libraries like TensorFlow, Accord.NET and CNTK. The design of the framework will prioritize usability, extensibility, and toolability, without sacrificing performance.
 
 ## Installation
+
+ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
 
 The current release is 0.1. Check out the [release notes](https://github.com/dotnet/machinelearning/blob/master/Documentation/release-notes/0.1/release-0.1.md).
 
