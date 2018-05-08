@@ -106,7 +106,7 @@ EXPORT_API(void) C_GetDerivatives(
 
             bool sameLabel = labelHigh == pLabels[low];
 
-            // calculate the lambdaP for this pair by looking it up in the lambdaTable (computed in LambdaMart.FillLambdaTable)
+            // calculate the lambdaP for this pair by looking it up in the sigmoidTable (e.g. computed in FastTreeRanking.FillSigmoidTable)
             double lambdaP;
             if (scoreHighMinusLow <= minScore) lambdaP = sigmoidTable[0];
             else if (scoreHighMinusLow >= maxScore) lambdaP = sigmoidTable[sigmoidTableLength - 1];
