@@ -103,13 +103,14 @@ namespace Microsoft.ML
         /// Check if a specific loader/transform/trainer is in the pipeline?
         /// </summary>
         /// <param name="item">Any ML component (data loader, transform or trainer) defined as <see cref="ILearningPipelineItem"/>.</param>
+        /// <returns>true if item is found in the pipeline; otherwise, false.</returns>
         public bool Contains(ILearningPipelineItem item) => Items.Contains(item);
 
         /// <summary>
         /// Copy the pipeline items into an array.
         /// </summary>
-        /// <param name="array">Array the items are copied to.</param>
-        /// <param name="arrayIndex">Index in the specified <paramref name="array" /> to start copying into. </param>
+        /// <param name="array">The one-dimensional Array that is the destination of the elements copied from.</param>
+        /// <param name="arrayIndex">The zero-based index in <paramref name="array" /> at which copying begins.</param>
         public void CopyTo(ILearningPipelineItem[] array, int arrayIndex) => Items.CopyTo(array, arrayIndex);
         public IEnumerator<ILearningPipelineItem> GetEnumerator() => Items.GetEnumerator();
 
@@ -117,6 +118,7 @@ namespace Microsoft.ML
         /// Remove an item from the pipeline.
         /// </summary>
         /// <param name="item"><see cref="ILearningPipelineItem"/> to remove.</param>
+        /// <returns>true if item was removed from the pipeline; otherwise, false.</returns>
         public bool Remove(ILearningPipelineItem item) => Items.Remove(item);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
