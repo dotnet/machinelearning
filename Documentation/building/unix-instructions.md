@@ -44,6 +44,7 @@ macOS 10.12 or higher is needed to build dotnet/machinelearning.
 
 On macOS a few components are needed which are not provided by a default developer setup:
 * cmake 3.10.3
+* All the requirements necessary to run .NET Core 2.0 applications. To view macOS prerequisites click [here](https://docs.microsoft.com/en-us/dotnet/core/macos-prerequisites?tabs=netcore2x)
 
 One way of obtaining CMake is via [Homebrew](http://brew.sh):
 ```sh
