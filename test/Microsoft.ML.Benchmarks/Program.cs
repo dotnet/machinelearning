@@ -6,9 +6,17 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Toolchains.InProcess;
+using System;
 using System.IO;
+using Microsoft.ML.Models;
+using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Benchmarks;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -30,6 +38,7 @@ namespace Microsoft.ML.Benchmarks
             var config = DefaultConfig.Instance.With(
                 Job.ShortRun.
                 With(InProcessToolchain.Instance)).
+                With(new ClassificationMetricsColumn("AccuracyMacro", "Macro-average accuracy of the model")).
                 With(MemoryDiagnoser.Default);
             return config;
         }
@@ -44,5 +53,38 @@ namespace Microsoft.ML.Benchmarks
             var rootDir = currentAssemblyLocation.Directory.Parent.Parent.Parent.Parent.FullName;
             _dataRoot = Path.Combine(rootDir, "test", "data");
         }
+    }
+
+
+    public class ClassificationMetricsColumn : IColumn
+    {
+        string _metricName;
+        string _legend;
+
+        public ClassificationMetricsColumn(string metricName, string legend)
+        {
+            _metricName = metricName;
+            _legend = legend;
+        }
+
+        public string ColumnName => _metricName;
+        public string Id => _metricName;
+        public string Legend => _legend;
+        public bool IsNumeric => true;
+        public bool IsDefault(Summary summary, Benchmark benchmark) => true;
+        public bool IsAvailable(Summary summary) => true;
+        public bool AlwaysShow => true;
+        public ColumnCategory Category => ColumnCategory.Custom;
+        public int PriorityInCategory => 1;
+        public UnitType UnitType => UnitType.Dimensionless;
+
+        public string GetValue(Summary summary, Benchmark benchmark, ISummaryStyle style)
+        {
+            var property = typeof(ClassificationMetrics).GetProperty(_metricName);
+            return property.GetValue(TrainPredictionBench.s_metrics).ToString();
+        }
+        public string GetValue(Summary summary, Benchmark benchmark) => GetValue(summary, benchmark, null);
+
+        public override string ToString() => ColumnName;
     }
 }

@@ -3,16 +3,28 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
+using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
-
 namespace Microsoft.ML.Benchmarks
 {
-    [KeepBenchmarkFiles]
     public class TrainPredictionBench
     {
+        internal static ClassificationMetrics s_metrics;
+        static PredictionModel<IrisData, IrisPrediction> s_trainedModel;
+
+        [GlobalCleanup]
+        public void Accuracy()
+        {
+            var dataPath = Program.GetDataPath("iris.txt");
+            var testData = new TextLoader<IrisData>(dataPath, useHeader: true, separator: "tab");
+            var evaluator = new ClassificationEvaluator();
+            s_metrics = evaluator.Evaluate(s_trainedModel, testData);
+        }
+
         [Benchmark]
         public void Iris()
         {
@@ -50,6 +62,8 @@ namespace Microsoft.ML.Benchmarks
                 PetalLength = 1.2f,
                 PetalWidth = 4.4f,
             });
+
+            s_trainedModel = model;
         }
 
         public class IrisData
