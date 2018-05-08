@@ -396,14 +396,9 @@ namespace Microsoft.ML.Runtime.Data
                     int[] blockOrder = _rand == null ? Utils.GetIdentityPermutation(numBlocks) : Utils.GetRandomPermutation(rand, numBlocks);
                     _blockEnumerator = blockOrder.GetEnumerator();
                 }
-                catch (Exception e)
+                catch (Exception e) when (e is OutOfMemoryException || e is OverflowException)
                 {
-                    if (e is OutOfMemoryException || e is OverflowException)
-                    {
-                        throw new InvalidDataException("Error due to too many blocks. Try increasing block size.", e);
-                    }
-
-                    throw;
+                    parent._host.Except(e, "Error due to too many blocks. Try increasing block size.");
                 }
 
                 _dataSetEnumerator = new int[0].GetEnumerator(); // Initialize an empty enumerator to get started
@@ -504,14 +499,9 @@ namespace Microsoft.ML.Runtime.Data
                         _dataSetEnumerator = dataSetOrder.GetEnumerator();
                         _curDataSetRow = dataSetOrder[0];
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (e is OutOfMemoryException)
                     {
-                        if (e is OutOfMemoryException)
-                        {
-                            throw new InvalidDataException("Error caused because block size too big. Try decreasing block size.", e);
-                        }
-
-                        throw;
+                        throw new InvalidDataException("Error caused because block size is too big. Try decreasing block size.", e);
                     }
 
                     // Cache list for each active column
