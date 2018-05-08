@@ -10,10 +10,10 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [KeepBenchmarkFiles]
     public class TrainPredictionBench
     {
         [Benchmark]
-        [MemoryDiagnoser]
         public void Iris()
         {
             var dataPath = Program.GetDataPath("iris.txt");
