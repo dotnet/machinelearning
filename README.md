@@ -55,7 +55,8 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 
 ## Examples
 
-Here's an example of code to train a model to predict sentiment from text samples. (You can see the complete sample [here](https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/Scenarios/Scenario3_SentimentPrediction.cs)):
+Here's an example of code to train a model to predict sentiment from text samples. 
+(You can see the complete sample [here](https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs)):
 
 ```C#
 var pipeline = new LearningPipeline();
