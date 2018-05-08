@@ -55,7 +55,7 @@ namespace Microsoft.ML
             {
                 var mappingAttr = field.GetCustomAttribute<ColumnAttribute>();
                 if(mappingAttr == null)
-                    throw Contracts.ExceptParam(nameof(field.Name), " is missing ColumnAttribute");
+                    throw Contracts.ExceptParam(field.Name, $"{field.Name} is missing ColumnAttribute");
                 
                 schemaBuilder.AppendFormat("col={0}:{1}:{2} ",
                     mappingAttr.Name ?? field.Name, 
