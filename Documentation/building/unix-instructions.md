@@ -19,35 +19,40 @@ For more information about the different options when building, run `build.sh -?
 
 ### Linux
 
-On Linux, the following components are needed:
+For Ubuntu, the following components are needed:
 
 * git
 * clang-3.9
 * cmake 2.8.12
 * libunwind8
 * curl
-* All the requirements necessary to run .NET Core 2.0 applications
-
-e.g. for Ubuntu 14.04, follow the steps below:
 
 ```sh
 sudo apt-get update
 sudo apt-get install git clang-3.9 cmake libunwind8 curl
 ```
 
-Follow instructions on how to [install .NET Core SDK 2.0+ on Ubuntu](https://www.microsoft.com/net/learn/get-started/linux/ubuntu14-04):
+And all the requirements necessary to run .NET Core 2.0 applications: libssl and libcu5x:
+
+* For 14.x
 
 ```sh
-#Register Microsoft key and feed
-wget -q packages-microsoft-prod.deb https://packages.microsoft.com/config/ubuntu/14.04/packages-microsoft-prod.deb
-sudo dpkg -i packages-microsoft-prod.deb
-#Install the SDK
-sudo apt-get install apt-transport-https
-sudo apt-get update
-sudo apt-get install dotnet-sdk-2.1.105
+sudo apt-get install libssl1.0.0 libcu52
 ```
 
-For more detailed info click [here](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x).
+* For 16.x
+
+```sh
+sudo apt-get install libssl1.0.0 libcu55
+```
+
+* For 17.x
+
+```sh
+sudo apt-get install libssl1.0.0 libcu57
+```
+
+For more info on prerequisites for .NET Core on Linux click [here](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x).
 
 ### macOS
 
