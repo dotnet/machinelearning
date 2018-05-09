@@ -342,8 +342,8 @@ namespace Microsoft.ML.Runtime
             case "libiomp5md.dll":
             case "libvw.dll":
             case "matrixinterf.dll":
-            case "Microsoft.ML.neuralnetworks.gpucuda.dll":
-            case "Microsoft.ML.mklimports.dll":
+            case "Microsoft.MachineLearning.neuralnetworks.gpucuda.dll":
+            case "Microsoft.MachineLearning.mklimports.dll":
             case "microsoft.research.controls.decisiontrees.dll":
             case "Microsoft.ML.neuralnetworks.sse.dll":
             case "neuraltreeevaluator.dll":

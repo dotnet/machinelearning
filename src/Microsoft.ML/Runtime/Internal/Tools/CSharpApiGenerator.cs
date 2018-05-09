@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 return $"Var<{GetCSharpTypeName(outputType)}>";
             }
 
-            public static string GetInputType(ModuleCatalog catalog, Type inputType, 
+            public static string GetInputType(ModuleCatalog catalog, Type inputType,
                 Dictionary<string, string> typesSymbolTable, string rootNameSpace = "")
             {
                 if (inputType.IsGenericType && inputType.GetGenericTypeDefinition() == typeof(Var<>))
@@ -136,13 +136,13 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                         return $"{enumName}";
                     default:
                         if (isNullable)
-                            return rootNameSpace+typesSymbolTable[type.FullName];
+                            return rootNameSpace + typesSymbolTable[type.FullName];
                         if (isOptional)
-                            return $"Optional<{rootNameSpace+typesSymbolTable[type.FullName]}>";
+                            return $"Optional<{rootNameSpace + typesSymbolTable[type.FullName]}>";
                         if (typesSymbolTable.ContainsKey(type.FullName))
                             return rootNameSpace + typesSymbolTable[type.FullName];
                         else
-                            return GetSymbolFromType(typesSymbolTable, type.FullName, rootNameSpace);
+                            return GetSymbolFromType(typesSymbolTable, type, rootNameSpace);
                 }
             }
 
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 return char.ToUpperInvariant(s[0]) + s.Substring(1);
             }
 
-            public static string GetValue(ModuleCatalog catalog, Type fieldType, object fieldValue, 
+            public static string GetValue(ModuleCatalog catalog, Type fieldType, object fieldValue,
                 Dictionary<string, string> typesSymbolTable, string rootNameSpace = "")
             {
                 if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Var<>))
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                         var properties = propertyBag.Count > 0 ? $" {{ {string.Join(", ", propertyBag)} }}" : "";
                         return $"new {GetComponentName(componentInfo)}(){properties}";
                     case TlcModule.DataKind.Unknown:
-                        return $"new {rootNameSpace+typesSymbolTable[fieldType.FullName]}()";
+                        return $"new {rootNameSpace + typesSymbolTable[fieldType.FullName]}()";
                     default:
                         return fieldValue.ToString();
                 }
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 if (typesSymbolTable.ContainsKey(type.FullName))
                     return rootNamespace + typesSymbolTable[type.FullName];
                 else
-                    return GetSymbolFromType(typesSymbolTable, type.FullName, rootNamespace);
+                    return GetSymbolFromType(typesSymbolTable, type, rootNamespace);
             }
 
             public static string GetJsonFromField(string fieldName, Type fieldType)
@@ -495,16 +495,59 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine();
         }
 
-        static string GetSymbolFromType(Dictionary<string, string> typesSymbolTable, string fullTypeName, string currentNamespace)
+        static string GetSymbolFromType(Dictionary<string, string> typesSymbolTable, Type type, string currentNamespace)
         {
+            var fullTypeName = type.FullName;
             var names = typesSymbolTable.Select(kvp => kvp.Value);
             char dim = fullTypeName.Contains('+') ? '+' : '.';
             string name = currentNamespace != "" ? currentNamespace + '.' : "";
 
-            if (fullTypeName.Contains('+'))
-                name += fullTypeName.Substring(0, fullTypeName.LastIndexOf('+')).Substring(fullTypeName.LastIndexOf('.') + 1);
+            Type[] genericTypes = null;
+            if (type.IsGenericType)
+                genericTypes = type.GetGenericArguments();
 
-            name += fullTypeName.Substring(fullTypeName.LastIndexOf(dim) + 1); ;
+            if (fullTypeName.Contains('+'))
+            {
+                int bracketIndex = fullTypeName.IndexOf('[');
+                if (bracketIndex > 0)
+                {
+                    Contracts.AssertValue(genericTypes);
+                    fullTypeName = fullTypeName.Substring(0, bracketIndex);
+                }
+
+                var nestedNames = fullTypeName.Split('+');
+                var baseName = nestedNames[0];
+                //nestedNames = nestedNames.Select(n => n.IndexOf('`') < 0 ? n : n.Substring(0, n.IndexOf('`'))).ToArray();
+
+                //var substr = baseName.Substring(0, fullTypeName.LastIndexOf('+'));
+                int backTickIndex = baseName.LastIndexOf('`');
+                int dotIndex = baseName.LastIndexOf('.');
+                if (backTickIndex < 0)
+                    name += baseName.Substring(dotIndex + 1);
+                else
+                {
+                    name += baseName.Substring(dotIndex + 1, backTickIndex - dotIndex - 1);
+                    Contracts.AssertValue(genericTypes);
+                    if (genericTypes != null)
+                    {
+                        foreach (var genType in genericTypes)
+                        {
+                            var splitNames = genType.FullName.Split('+');
+                            if (splitNames[0].LastIndexOf('.') >= 0)
+                                splitNames[0] = splitNames[0].Substring(splitNames[0].LastIndexOf('.') + 1);
+                            name += string.Join("", splitNames);
+                        }
+                    }
+                }
+
+                for (int i = 1; i < nestedNames.Length; i++)
+                    name += nestedNames[i];
+            }
+            else
+            {
+                int dimIndex = fullTypeName.LastIndexOf(dim);
+                name += fullTypeName.Substring(dimIndex + 1);
+            }
 
             Contracts.Assert(typesSymbolTable.Select(kvp => kvp.Value).All(str => string.Compare(str, name) != 0));
 
@@ -538,7 +581,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
                 var enumType = Enum.GetUnderlyingType(type);
 
-                _typesSymbolTable[type.FullName] = GetSymbolFromType(_typesSymbolTable, type.FullName, currentNamespace);
+                _typesSymbolTable[type.FullName] = GetSymbolFromType(_typesSymbolTable, type, currentNamespace);
                 if (enumType == typeof(int))
                     writer.WriteLine($"public enum {_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}");
                 else
@@ -623,7 +666,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 if (_typesSymbolTable.ContainsKey(type.FullName))
                     continue;
 
-                _typesSymbolTable[type.FullName] = GetSymbolFromType(_typesSymbolTable, type.FullName, currentNamespace);
+                _typesSymbolTable[type.FullName] = GetSymbolFromType(_typesSymbolTable, type, currentNamespace);
                 string classBase = "";
                 if (type.IsSubclassOf(typeof(OneToOneColumn)))
                     classBase = $" : OneToOneColumn<{_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}>, IOneToOneColumn";
@@ -889,7 +932,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("}");
         }
 
-        private static void GenerateInputFields(IndentingTextWriter writer, 
+        private static void GenerateInputFields(IndentingTextWriter writer,
             Type inputType, ModuleCatalog catalog, Dictionary<string, string> typesSymbolTable, string rootNameSpace = "")
         {
             var defaults = Activator.CreateInstance(inputType);
@@ -936,7 +979,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                         sweepableParamAttr.Name = fieldInfo.Name;
                     writer.WriteLine(sweepableParamAttr.ToString());
                 }
-                
+
                 writer.Write($"public {inputTypeString} {GeneratorUtils.Capitalize(inputAttr.Name ?? fieldInfo.Name)} {{ get; set; }}");
                 var defaultValue = GeneratorUtils.GetValue(catalog, fieldInfo.FieldType, fieldInfo.GetValue(defaults), typesSymbolTable, rootNameSpace);
                 if (defaultValue != null)
@@ -1013,16 +1056,16 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
         private void GenerateComponent(IndentingTextWriter writer, ModuleCatalog.ComponentInfo component, ModuleCatalog catalog)
         {
+            GenerateEnums(writer, component.ArgumentType, "");
+            writer.WriteLine();
+            GenerateStructs(writer, component.ArgumentType, catalog, "");
+            writer.WriteLine();
             writer.WriteLine("/// <summary>");
             writer.WriteLine($"/// {component.Description}");
             writer.WriteLine("/// </summary>");
             writer.WriteLine($"public sealed class {GeneratorUtils.GetComponentName(component)} : {component.Kind}");
             writer.WriteLine("{");
             writer.Indent();
-            GenerateEnums(writer, component.ArgumentType, "");
-            writer.WriteLine();
-            GenerateStructs(writer, component.ArgumentType, catalog, "");
-            writer.WriteLine();
             GenerateInputFields(writer, component.ArgumentType, catalog, _typesSymbolTable, "Microsoft.ML.");
             writer.WriteLine($"internal override string ComponentName => \"{component.Name}\";");
             writer.Outdent();
