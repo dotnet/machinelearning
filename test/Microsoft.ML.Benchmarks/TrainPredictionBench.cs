@@ -11,35 +11,16 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Benchmarks
 {
-    public class TrainPredictionBench
+    public class StochasticDualCoordinateAscentClassifierBench
     {
         internal static ClassificationMetrics s_metrics;
-        static PredictionModel<IrisData, IrisPrediction> s_trainedModel;
-
-        [GlobalCleanup]
-        public void Accuracy()
-        {
-            var dataPath = Program.GetDataPath("iris.txt");
-            var testData = new TextLoader<IrisData>(dataPath, useHeader: true, separator: "tab");
-            var evaluator = new ClassificationEvaluator();
-            s_metrics = evaluator.Evaluate(s_trainedModel, testData);
-        }
+        private static PredictionModel<IrisData, IrisPrediction> s_trainedModel;
+        private static string s_dataPath;
 
         [Benchmark]
-        public void Iris()
+        public void PredictIris()
         {
-            var dataPath = Program.GetDataPath("iris.txt");
-            var pipeline = new LearningPipeline();
-
-            pipeline.Add(new TextLoader<IrisData>(dataPath, useHeader: true, separator: "tab"));
-            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
-                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
-
-            pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-
-            PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
-
-            IrisPrediction prediction = model.Predict(new IrisData()
+            IrisPrediction prediction = s_trainedModel.Predict(new IrisData()
             {
                 SepalLength = 3.3f,
                 SepalWidth = 1.6f,
@@ -47,7 +28,7 @@ namespace Microsoft.ML.Benchmarks
                 PetalWidth = 5.1f,
             });
 
-            prediction = model.Predict(new IrisData()
+            prediction = s_trainedModel.Predict(new IrisData()
             {
                 SepalLength = 3.1f,
                 SepalWidth = 5.5f,
@@ -55,15 +36,54 @@ namespace Microsoft.ML.Benchmarks
                 PetalWidth = 6.4f,
             });
 
-            prediction = model.Predict(new IrisData()
+            prediction = s_trainedModel.Predict(new IrisData()
             {
                 SepalLength = 3.1f,
                 SepalWidth = 2.5f,
                 PetalLength = 1.2f,
                 PetalWidth = 4.4f,
             });
+        }
+
+        [Benchmark]
+        public void TrainIris()
+        {
+            var pipeline = new LearningPipeline();
+
+            pipeline.Add(new TextLoader<IrisData>(s_dataPath, useHeader: true, separator: "tab"));
+            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
+                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
+
+            pipeline.Add(new StochasticDualCoordinateAscentClassifier());
+
+            PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
 
             s_trainedModel = model;
+        }
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            s_dataPath = Program.GetDataPath("iris.txt");
+            s_trainedModel = TrainCore();
+
+            var testData = new TextLoader<IrisData>(s_dataPath, useHeader: true, separator: "tab");
+            var evaluator = new ClassificationEvaluator();
+            s_metrics = evaluator.Evaluate(s_trainedModel, testData);
+        }
+
+        private static PredictionModel<IrisData, IrisPrediction> TrainCore()
+        {
+            var pipeline = new LearningPipeline();
+
+            pipeline.Add(new TextLoader<IrisData>(s_dataPath, useHeader: true, separator: "tab"));
+            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
+                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
+
+            pipeline.Add(new StochasticDualCoordinateAscentClassifier());
+
+            PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
+            return model;
         }
 
         public class IrisData

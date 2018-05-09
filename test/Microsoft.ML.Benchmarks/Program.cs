@@ -81,7 +81,7 @@ namespace Microsoft.ML.Benchmarks
         public string GetValue(Summary summary, Benchmark benchmark, ISummaryStyle style)
         {
             var property = typeof(ClassificationMetrics).GetProperty(_metricName);
-            return property.GetValue(TrainPredictionBench.s_metrics).ToString();
+            return property.GetValue(StochasticDualCoordinateAscentClassifierBench.s_metrics).ToString();
         }
         public string GetValue(Summary summary, Benchmark benchmark) => GetValue(summary, benchmark, null);
 
