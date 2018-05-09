@@ -14,23 +14,25 @@ Along with these ML capabilities this first release of ML.NET also brings the fi
 
 ## Installation
 
+[![NuGet Status](https://img.shields.io/nuget/v/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/)
+
 ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
 
-The current release is 0.1. Check out the [release notes](https://github.com/dotnet/machinelearning/blob/master/Documentation/release-notes/0.1/release-0.1.md).
+The current release is 0.1. Check out the [release notes](Documentation/release-notes/0.1/release-0.1.md).
 
 First ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64 bit process.
 
-Once you have an app, you can install ML.NET NuGet from the .NET Core CLI using:
+Once you have an app, you can install the ML.NET NuGet package from the .NET Core CLI using:
 ```
 dotnet add package Microsoft.ML
 ```
 
-or from the package manager:
+or from the NuGet package manager:
 ```
 Install-Package Microsoft.ML
 ```
 
-Or alternatively you can add the Microsoft.ML package from within Visual Studio's NuGet package manager.
+Or alternatively you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
 
 ## Building
 
@@ -55,7 +57,8 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 
 ## Examples
 
-Here's an example of code to train a model to predict sentiment from text samples. (You can see the complete sample [here](https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/Scenarios/Scenario3_SentimentPrediction.cs)):
+Here's an example of code to train a model to predict sentiment from text samples. 
+(You can see the complete sample [here](test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs)):
 
 ```C#
 var pipeline = new LearningPipeline();

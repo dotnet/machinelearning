@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Scenarios
 {
-    public partial class Top5Scenarios : BaseTestClass
+    public partial class ScenariosTests : BaseTestClass
     {
         /*
          A real-estate firm Contoso wants to add a house price prediction to their ASP.NET/Xamarin application.
@@ -121,7 +124,7 @@ namespace Microsoft.ML.Scenarios
             public float Price;
         }
 
-        public Top5Scenarios(ITestOutputHelper output) : base(output)
+        public ScenariosTests(ITestOutputHelper output) : base(output)
         {
         }
     }
