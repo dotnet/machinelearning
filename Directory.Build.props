@@ -63,25 +63,19 @@
     <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor)-$(BuildNumberMinor)</VersionSuffix>
   </PropertyGroup>
 
+  <!-- SourceLink properties - need to be set before importing $(ToolsDir)versioning.props -->
+  <PropertyGroup>
+    <UseSourceLink>true</UseSourceLink>
+    <GitHubRepositoryName>machinelearning</GitHubRepositoryName>
+  </PropertyGroup>
+
   <!--
   Ensure to import versioning.props before overwriting BaseIntermediateOutputPath since
   the source link file exists in the root bin/obj folder.
    -->
   <Import Project="$(ToolsDir)versioning.props" 
           Condition="Exists('$(ToolsDir)versioning.props') and '$(DisableImportVersioningProps)' != 'true'" />
-
-  <!-- NuGet package properties -->
-  <PropertyGroup>
-    <Authors>Microsoft</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-  </PropertyGroup>
-
-  <!-- SourceLink properties -->
-  <PropertyGroup>
-    <UseSourceLink>true</UseSourceLink>
-    <GitHubRepositoryName>machinelearning</GitHubRepositoryName>
-  </PropertyGroup>
-  
+ 
   <!-- Language configuration -->
   <PropertyGroup>
     <LangVersion>latest</LangVersion> <!-- default to allowing all language features -->

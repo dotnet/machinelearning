@@ -7,6 +7,15 @@
     <IncludeSymbols>false</IncludeSymbols>
   </PropertyGroup>
 
+  <!-- nuspec properties -->
+  <PropertyGroup>
+    <Authors>Microsoft</Authors>
+    <PackageLicenseUrl>https://github.com/dotnet/machinelearning/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>http://dot.net/ml</PackageProjectUrl>
+    <PackageIconUrl></PackageIconUrl>
+    <PackageReleaseNotes>https://github.com/dotnet/machinelearning/tree/master/Documentation/release-notes</PackageReleaseNotes>
+  </PropertyGroup>
+
   <!-- Work around https://github.com/NuGet/Home/issues/6091 -->
   <ItemDefinitionGroup>
     <PackageReference>
