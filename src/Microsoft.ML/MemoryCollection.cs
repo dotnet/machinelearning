@@ -1,10 +1,13 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML
 {
@@ -27,26 +30,22 @@ namespace Microsoft.ML
 
         public MemoryCollection(IList<TInput> collection)
         {
-            //need validation at some point
+            Contracts.CheckParamValue(Utils.Size(collection) > 0, collection, nameof(collection), "Must be non-empty");
             _listCollection = collection;
         }
 
         public MemoryCollection(IEnumerable<TInput> collection)
         {
-            //need validation at some point
+            Contracts.CheckParamValue(collection != null, collection, nameof(collection), "Must be non-null");
             _enumerableCollection = collection;
         }
 
         public void SetInput(IHostEnvironment env, Experiment experiment)
         {
-            if (_listCollection!=null)
-            {
-                _dataView = DataViewConstructionUtils.CreateFromList(env, _listCollection);
-            }
-            if (_enumerableCollection!=null)
-            {
-                _dataView = DataViewConstructionUtils.CreateFromEnumerable(env, _listCollection);
-            }
+            if (_listCollection != null)
+                _dataView = ComponentCreation.CreateDataView(env, _listCollection);
+            if (_enumerableCollection != null)
+                _dataView = ComponentCreation.CreateStreamingDataView(env, _listCollection);
             env.CheckValue(_dataView, nameof(_dataView));
             experiment.SetInput(_dataViewEntryPoint.Data, _dataView);
         }

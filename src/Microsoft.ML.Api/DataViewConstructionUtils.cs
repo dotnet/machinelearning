@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Api
     /// <summary>
     /// A helper class to create data views based on the user-provided types.
     /// </summary>
-    public static class DataViewConstructionUtils
+    internal static class DataViewConstructionUtils
     {
         public static IDataView CreateFromList<TRow>(IHostEnvironment env, IList<TRow> data,
             SchemaDefinition schemaDefinition = null)
