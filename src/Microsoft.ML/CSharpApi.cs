@@ -53,11 +53,22 @@ namespace Microsoft.ML
                 return output;
             }
 
+            public Microsoft.ML.Data.DataViewReference.Output Add(Microsoft.ML.Data.DataViewReference input)
+            {
+                var output = new Microsoft.ML.Data.DataViewReference.Output();
+                Add(input, output);
+                return output;
+            }
+
             public void Add(Microsoft.ML.Data.TextLoader input, Microsoft.ML.Data.TextLoader.Output output)
             {
                 _jsonNodes.Add(Serialize("Data.TextLoader", input, output));
             }
 
+            public void Add(Microsoft.ML.Data.DataViewReference input, Microsoft.ML.Data.DataViewReference.Output output)
+            {
+                _jsonNodes.Add(Serialize("Data.DataViewReference", input, output));
+            }
             public Microsoft.ML.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Models.AnomalyDetectionEvaluator input)
             {
                 var output = new Microsoft.ML.Models.AnomalyDetectionEvaluator.Output();
@@ -1310,6 +1321,23 @@ namespace Microsoft.ML
             /// </summary>
             public string CustomSchema { get; set; }
 
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// The resulting data view
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+
+        public sealed partial class DataViewReference
+        {
+            /// <summary>
+            /// Location of the input file
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             public sealed class Output
             {
