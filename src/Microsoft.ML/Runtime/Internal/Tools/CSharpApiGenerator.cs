@@ -517,9 +517,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
                 var nestedNames = fullTypeName.Split('+');
                 var baseName = nestedNames[0];
-                //nestedNames = nestedNames.Select(n => n.IndexOf('`') < 0 ? n : n.Substring(0, n.IndexOf('`'))).ToArray();
-
-                //var substr = baseName.Substring(0, fullTypeName.LastIndexOf('+'));
                 int backTickIndex = baseName.LastIndexOf('`');
                 int dotIndex = baseName.LastIndexOf('.');
                 if (backTickIndex < 0)
