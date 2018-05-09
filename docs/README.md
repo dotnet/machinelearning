@@ -11,10 +11,11 @@ Project Docs
 
 - [Developer Guide](project-docs/developer-guide.md)
 - [Contributing to ML.NET](project-docs/contributing.md)
-- [Strong Name Signing](https://github.com/dotnet/corefx/blob/master/Documentation/project-docs/strong-name-signing.md)
+- [Strong Name Signing](https://github.com/dotnet/corefx/blob/master/
+/project-docs/strong-name-signing.md)
 - [Public Signing](https://github.com/dotnet/corefx/blob/master/Documentation/project-docs/public-signing.md)
 - [Project NuGet Dependencies](https://github.com/dotnet/buildtools/blob/master/Documentation/project-nuget-dependencies.md)
-
+=
 Building from Source
 ====================
 
