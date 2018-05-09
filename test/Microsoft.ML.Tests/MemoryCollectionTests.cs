@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using System;
 using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
@@ -25,20 +23,47 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
         [Fact]
-        public void ConstructorDoesntThrow()
+        public void CheckConstructor()
         {
-            Assert.NotNull(new MemoryCollection<Input>(new List<Input>()));
             Assert.NotNull(new MemoryCollection<Input>(new List<Input>() { new Input { Number1 = 1, String1 = "1" } }));
-            Assert.NotNull(new MemoryCollection<Input>(new Input[0]));
             Assert.NotNull(new MemoryCollection<Input>(new Input[1] { new Input { Number1 = 1, String1 = "1" } }));
-            Assert.NotNull(new MemoryCollection<Input>(null));
+            bool thrown = false;
+            try
+            {
+                new MemoryCollection<Input>(null);
+            }
+            catch
+            {
+                thrown = true;
+            }
+            Assert.True(thrown);
+            thrown = false;
+            try
+            {
+                new MemoryCollection<Input>(new List<Input>());
+            }
+            catch
+            {
+                thrown = true;
+            }
+            Assert.True(thrown);
+
+            thrown = false;
+            try
+            {
+                new MemoryCollection<Input>(new Input[0]);
+            }
+            catch
+            {
+                thrown = true;
+            }
+            Assert.True(thrown);
         }
 
         [Fact]
         public void CanSuccessfullyApplyATransform()
         {
             var collection = new MemoryCollection<Input>(new List<Input>() { new Input { Number1 = 1, String1 = "1" } });
-
             using (var environment = new TlcEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
