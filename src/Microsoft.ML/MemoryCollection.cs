@@ -54,7 +54,6 @@ namespace Microsoft.ML
         /// <summary>
         /// Creates IDataview on top of collection
         /// </summary>
-        /// <param name="collection"></param>
         public MemoryCollectionLoader(IList<TInput> collection)
         {
             Contracts.CheckParamValue(Utils.Size(collection) > 0, collection, nameof(collection), "Must be non-empty");
