@@ -499,6 +499,18 @@ namespace Microsoft.ML.Runtime.Internal.Tools
         /// This methods creates a unique name for a class/struct/enum, given a type and a namespace.
         /// It generates the name based on the <see cref="Type.FullName"/> property of the type
         /// (see description here https://msdn.microsoft.com/en-us/library/system.type.fullname(v=vs.110).aspx).
+        /// Example: Assume we have the following structure in namespace X.Y:
+        /// class A {
+        ///   class B {
+        ///     enum C {
+        ///       Value1,
+        ///       Value2
+        ///     }
+        ///   }
+        /// }
+        /// The full name of C would be X.Y.A+B+C. This method will generate the name "ABC" from it. In case
+        /// A is generic with one generic type, then the full name of typeof(A&lt;float&gt;.B.C) would be X.Y.A`1+B+C[[System.Single]].
+        /// In this case, this method will generate the name "ASingleBC".
         /// </summary>
         /// <param name="typesSymbolTable">A dictionary containing the names of the classes already generated.
         /// This parameter is only used to ensure that the newly generated name is unique.</param>
