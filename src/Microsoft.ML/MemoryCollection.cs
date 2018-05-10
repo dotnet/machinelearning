@@ -11,7 +11,30 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML
 {
-    public class MemoryCollection<TInput> : ILearningPipelineLoader
+    public class MemoryCollection
+    {
+        /// <summary>
+        /// Creates memory collection loader.
+        /// </summary>
+        public static MemoryCollectionLoader<T> Create<T>(IList<T> data) where T:class
+        {
+            return new MemoryCollectionLoader<T>(data);
+        }
+
+        /// <summary>
+        /// Creates memory collection loader.
+        /// </summary>
+        public static MemoryCollectionLoader<T> Create<T>(IEnumerable<T> data) where T : class
+        {
+            return new MemoryCollectionLoader<T>(data);
+        }
+    }
+
+    /// <summary>
+    /// Allows you to convert your memory collection into IDataview.
+    /// </summary>
+    /// <typeparam name="TInput"></typeparam>
+    public class MemoryCollectionLoader<TInput> : ILearningPipelineLoader
         where TInput : class
     {
         public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
@@ -28,16 +51,24 @@ namespace Microsoft.ML
         private Data.DataViewReference _dataViewEntryPoint;
         private IDataView _dataView;
 
-        public MemoryCollection(IList<TInput> collection)
+        /// <summary>
+        /// Creates IDataview on top of collection
+        /// </summary>
+        /// <param name="collection"></param>
+        public MemoryCollectionLoader(IList<TInput> collection)
         {
             Contracts.CheckParamValue(Utils.Size(collection) > 0, collection, nameof(collection), "Must be non-empty");
             _listCollection = collection;
         }
 
-        public MemoryCollection(IEnumerable<TInput> collection)
+        /// <summary>
+        /// Creates IDataview on top of collection
+        /// </summary>
+        public MemoryCollectionLoader(IEnumerable<TInput> collection)
         {
-            Contracts.CheckParamValue(collection != null, collection, nameof(collection), "Must be non-null");
+            Contracts.CheckValue(collection,nameof(collection), "Must be non-null");
             _enumerableCollection = collection;
+            
         }
 
         public void SetInput(IHostEnvironment env, Experiment experiment)
@@ -55,11 +86,10 @@ namespace Microsoft.ML
             public MemoryCollectionPipelineStep(Var<IDataView> data)
             {
                 Data = data;
-                Model = null;
             }
 
             public Var<IDataView> Data { get; }
-            public Var<ITransformModel> Model { get; }
+            public Var<ITransformModel> Model  => null;
         }
     }
 }

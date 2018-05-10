@@ -9,6 +9,7 @@ using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,22 +26,14 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CheckConstructor()
         {
-            Assert.NotNull(new MemoryCollection<Input>(new List<Input>() { new Input { Number1 = 1, String1 = "1" } }));
-            Assert.NotNull(new MemoryCollection<Input>(new Input[1] { new Input { Number1 = 1, String1 = "1" } }));
+            Assert.NotNull(MemoryCollection.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } }));
+            Assert.NotNull(MemoryCollection.Create(new Input[1] { new Input { Number1 = 1, String1 = "1" } }));
+            Assert.NotNull(MemoryCollection.Create(new Input[1] { new Input { Number1 = 1, String1 = "1" } }.AsEnumerable()));
+
             bool thrown = false;
             try
             {
-                new MemoryCollection<Input>(null);
-            }
-            catch
-            {
-                thrown = true;
-            }
-            Assert.True(thrown);
-            thrown = false;
-            try
-            {
-                new MemoryCollection<Input>(new List<Input>());
+                MemoryCollection.Create(new List<Input>());
             }
             catch
             {
@@ -51,7 +44,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             thrown = false;
             try
             {
-                new MemoryCollection<Input>(new Input[0]);
+                MemoryCollection.Create(new Input[0]);
             }
             catch
             {
@@ -63,11 +56,11 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanSuccessfullyApplyATransform()
         {
-            var collection = new MemoryCollection<Input>(new List<Input>() { new Input { Number1 = 1, String1 = "1" } });
+            var collection = MemoryCollection.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } });
             using (var environment = new TlcEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
-                ILearningPipelineDataStep output = collection.ApplyStep(null, experiment) as ILearningPipelineDataStep;
+                ILearningPipelineDataStep output = (ILearningPipelineDataStep)collection.ApplyStep(null, experiment);
 
                 Assert.NotNull(output.Data);
                 Assert.NotNull(output.Data.VarName);
@@ -78,7 +71,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanSuccessfullyEnumerated()
         {
-            var collection = new MemoryCollection<Input>(new List<Input>() {
+            var collection = MemoryCollection.Create(new List<Input>() {
                 new Input { Number1 = 1, String1 = "1" },
                 new Input { Number1 = 2, String1 = "2" },
                 new Input { Number1 = 3, String1 = "3" }
@@ -140,7 +133,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanTrain()
         {
             var pipeline = new LearningPipeline();
-            var collection = new MemoryCollection<IrisData>(new List<IrisData>() {
+            var collection = MemoryCollection.Create(new List<IrisData>() {
                 new IrisData { SepalLength = 1f, SepalWidth = 1f ,PetalLength=0.3f, PetalWidth=5.1f, Label=1},
                 new IrisData { SepalLength = 1f, SepalWidth = 1f ,PetalLength=0.3f, PetalWidth=5.1f, Label=1},
                 new IrisData { SepalLength = 1.2f, SepalWidth = 0.5f ,PetalLength=0.3f, PetalWidth=5.1f, Label=0}
