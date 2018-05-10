@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageDescription>A set of Apache Parquet components for ML.NET.</PackageDescription>
+    <PackageDescription>ML.NET components for Apache Parquet support.</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
