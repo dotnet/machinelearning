@@ -14,7 +14,7 @@ namespace Microsoft.ML
     public class MemoryCollection
     {
         /// <summary>
-        /// Creates memory collection loader.
+        /// Creates pipeline loader. Support shuffle.
         /// </summary>
         public static ILearningPipelineLoader Create<T>(IList<T> data) where T : class
         {
@@ -22,7 +22,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates memory collection loader.
+        /// Creates pipeline loader which can't be shuffled.
         /// </summary>
         public static ILearningPipelineLoader Create<T>(IEnumerable<T> data) where T : class
         {
