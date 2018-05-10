@@ -94,7 +94,5 @@ namespace Microsoft.ML
             public Var<IDataView> Data { get; }
             public Var<ITransformModel> Model => null;
         }
-
-
     }
 }
