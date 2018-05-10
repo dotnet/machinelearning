@@ -18,7 +18,7 @@ namespace Microsoft.ML
         /// </summary>
         public static ILearningPipelineLoader Create<T>(IList<T> data) where T : class
         {
-            return new MemoryCollectionLoader<T>(data);
+            return new ListCollectionLoader<T>(data);
         }
 
         /// <summary>
@@ -26,17 +26,14 @@ namespace Microsoft.ML
         /// </summary>
         public static ILearningPipelineLoader Create<T>(IEnumerable<T> data) where T : class
         {
-            return new MemoryCollectionLoader<T>(data);
+            return new EnumerableCollectionLoader<T>(data);
         }
 
-
-        /// <summary>
-        /// Allows you to convert your memory collection into IDataview.
-        /// </summary>
-        /// <typeparam name="TInput"></typeparam>
-        private class MemoryCollectionLoader<TInput> : ILearningPipelineLoader
-           where TInput : class
+        private abstract class CollectionLoader<TInput> : ILearningPipelineLoader where TInput : class
         {
+            private Data.DataViewReference _dataViewEntryPoint;
+            private IDataView _dataView;
+
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
                 Contracts.Assert(previousStep == null);
@@ -45,51 +42,59 @@ namespace Microsoft.ML
                 return new MemoryCollectionPipelineStep(importOutput.Data);
             }
 
-            private readonly IList<TInput> _listCollection;
+            public void SetInput(IHostEnvironment environment, Experiment experiment)
+            {
+                _dataView = GetDataView(environment);
+                environment.CheckValue(_dataView, nameof(_dataView));
+                experiment.SetInput(_dataViewEntryPoint.Data, _dataView);
+            }
+
+            public abstract IDataView GetDataView(IHostEnvironment environment);
+        }
+
+        private class EnumerableCollectionLoader<TInput> : CollectionLoader<TInput> where TInput : class
+        {
             private readonly IEnumerable<TInput> _enumerableCollection;
 
-            private Data.DataViewReference _dataViewEntryPoint;
-            private IDataView _dataView;
+            public EnumerableCollectionLoader(IEnumerable<TInput> collection)
+            {
+                Contracts.CheckValue(collection, nameof(collection));
+                _enumerableCollection = collection;
+            }
 
-            /// <summary>
-            /// Creates IDataview on top of collection
-            /// </summary>
-            public MemoryCollectionLoader(IList<TInput> collection)
+            public override IDataView GetDataView(IHostEnvironment environment)
+            {
+                return ComponentCreation.CreateStreamingDataView(environment, _enumerableCollection);
+            }
+        }
+
+        private class ListCollectionLoader<TInput> : CollectionLoader<TInput> where TInput : class
+        {
+            private readonly IList<TInput> _listCollection;
+
+            public ListCollectionLoader(IList<TInput> collection)
             {
                 Contracts.CheckParamValue(Utils.Size(collection) > 0, collection, nameof(collection), "Must be non-empty");
                 _listCollection = collection;
             }
 
-            /// <summary>
-            /// Creates IDataview on top of collection
-            /// </summary>
-            public MemoryCollectionLoader(IEnumerable<TInput> collection)
+            public override IDataView GetDataView(IHostEnvironment environment)
             {
-                Contracts.CheckValue(collection, nameof(collection));
-                _enumerableCollection = collection;
-
-            }
-
-            public void SetInput(IHostEnvironment env, Experiment experiment)
-            {
-                if (_listCollection != null)
-                    _dataView = ComponentCreation.CreateDataView(env, _listCollection);
-                if (_enumerableCollection != null)
-                    _dataView = ComponentCreation.CreateStreamingDataView(env, _enumerableCollection);
-                env.CheckValue(_dataView, nameof(_dataView));
-                experiment.SetInput(_dataViewEntryPoint.Data, _dataView);
-            }
-
-            private class MemoryCollectionPipelineStep : ILearningPipelineDataStep
-            {
-                public MemoryCollectionPipelineStep(Var<IDataView> data)
-                {
-                    Data = data;
-                }
-
-                public Var<IDataView> Data { get; }
-                public Var<ITransformModel> Model => null;
+                return ComponentCreation.CreateDataView(environment, _listCollection);
             }
         }
+
+        private class MemoryCollectionPipelineStep : ILearningPipelineDataStep
+        {
+            public MemoryCollectionPipelineStep(Var<IDataView> data)
+            {
+                Data = data;
+            }
+
+            public Var<IDataView> Data { get; }
+            public Var<ITransformModel> Model => null;
+        }
+
+
     }
 }
