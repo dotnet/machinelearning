@@ -300,7 +300,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
             catch (DllNotFoundException)
             {
-                throw ch.ExceptNotSupp("The MKL library (Microsoft.MachineLearning.MklImports.dll) or one of its dependencies is missing.");
+                throw ch.ExceptNotSupp("The MKL library (Microsoft.ML.MklImports.dll) or one of its dependencies is missing.");
             }
 
             Float[] stdErrorValues = new Float[numParams];

@@ -495,56 +495,58 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine();
         }
 
-        static string GetSymbolFromType(Dictionary<string, string> typesSymbolTable, Type type, string currentNamespace)
+        /// <summary>
+        /// This methods creates a unique name for a class/struct/enum, given a type and a namespace.
+        /// It generates the name based on the <see cref="Type.FullName"/> property of the type
+        /// (see description here https://msdn.microsoft.com/en-us/library/system.type.fullname(v=vs.110).aspx).
+        /// </summary>
+        /// <param name="typesSymbolTable">A dictionary containing the names of the classes already generated.
+        /// This parameter is only used to ensure that the newly generated name is unique.</param>
+        /// <param name="type">The type for which to generate the new name.</param>
+        /// <param name="currentNamespace">The namespace prefix to the new name.</param>
+        /// <returns>A unique name derived from the given type and namespace.</returns>
+        private static string GetSymbolFromType(Dictionary<string, string> typesSymbolTable, Type type, string currentNamespace)
         {
             var fullTypeName = type.FullName;
-            var names = typesSymbolTable.Select(kvp => kvp.Value);
-            char dim = fullTypeName.Contains('+') ? '+' : '.';
             string name = currentNamespace != "" ? currentNamespace + '.' : "";
 
+            int bracketIndex = fullTypeName.IndexOf('[');
             Type[] genericTypes = null;
             if (type.IsGenericType)
                 genericTypes = type.GetGenericArguments();
-
-            if (fullTypeName.Contains('+'))
+            if (bracketIndex > 0)
             {
-                int bracketIndex = fullTypeName.IndexOf('[');
-                if (bracketIndex > 0)
-                {
-                    Contracts.AssertValue(genericTypes);
-                    fullTypeName = fullTypeName.Substring(0, bracketIndex);
-                }
-
-                var nestedNames = fullTypeName.Split('+');
-                var baseName = nestedNames[0];
-                int backTickIndex = baseName.LastIndexOf('`');
-                int dotIndex = baseName.LastIndexOf('.');
-                if (backTickIndex < 0)
-                    name += baseName.Substring(dotIndex + 1);
-                else
-                {
-                    name += baseName.Substring(dotIndex + 1, backTickIndex - dotIndex - 1);
-                    Contracts.AssertValue(genericTypes);
-                    if (genericTypes != null)
-                    {
-                        foreach (var genType in genericTypes)
-                        {
-                            var splitNames = genType.FullName.Split('+');
-                            if (splitNames[0].LastIndexOf('.') >= 0)
-                                splitNames[0] = splitNames[0].Substring(splitNames[0].LastIndexOf('.') + 1);
-                            name += string.Join("", splitNames);
-                        }
-                    }
-                }
-
-                for (int i = 1; i < nestedNames.Length; i++)
-                    name += nestedNames[i];
+                Contracts.AssertValue(genericTypes);
+                fullTypeName = fullTypeName.Substring(0, bracketIndex);
             }
+
+            // When the type is nested, the names of the outer types are concatenated with a '+'.
+            var nestedNames = fullTypeName.Split('+');
+            var baseName = nestedNames[0];
+            // We currently only handle generic types in the outer most class, support for generic inner classes
+            // can be added if needed.
+            int backTickIndex = baseName.LastIndexOf('`');
+            int dotIndex = baseName.LastIndexOf('.');
+            if (backTickIndex < 0)
+                name += baseName.Substring(dotIndex + 1);
             else
             {
-                int dimIndex = fullTypeName.LastIndexOf(dim);
-                name += fullTypeName.Substring(dimIndex + 1);
+                name += baseName.Substring(dotIndex + 1, backTickIndex - dotIndex - 1);
+                Contracts.AssertValue(genericTypes);
+                if (genericTypes != null)
+                {
+                    foreach (var genType in genericTypes)
+                    {
+                        var splitNames = genType.FullName.Split('+');
+                        if (splitNames[0].LastIndexOf('.') >= 0)
+                            splitNames[0] = splitNames[0].Substring(splitNames[0].LastIndexOf('.') + 1);
+                        name += string.Join("", splitNames);
+                    }
+                }
             }
+
+            for (int i = 1; i < nestedNames.Length; i++)
+                name += nestedNames[i];
 
             Contracts.Assert(typesSymbolTable.Select(kvp => kvp.Value).All(str => string.Compare(str, name) != 0));
 
@@ -1053,9 +1055,9 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
         private void GenerateComponent(IndentingTextWriter writer, ModuleCatalog.ComponentInfo component, ModuleCatalog catalog)
         {
-            GenerateEnums(writer, component.ArgumentType, "");
+            GenerateEnums(writer, component.ArgumentType, "Runtime");
             writer.WriteLine();
-            GenerateStructs(writer, component.ArgumentType, catalog, "");
+            GenerateStructs(writer, component.ArgumentType, catalog, "Runtime");
             writer.WriteLine();
             writer.WriteLine("/// <summary>");
             writer.WriteLine($"/// {component.Description}");
