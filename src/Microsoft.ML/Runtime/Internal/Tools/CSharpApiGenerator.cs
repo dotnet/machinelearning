@@ -539,6 +539,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             // can be added if needed.
             int backTickIndex = baseName.LastIndexOf('`');
             int dotIndex = baseName.LastIndexOf('.');
+            Contracts.Assert(dotIndex >= 0);
             if (backTickIndex < 0)
                 name += baseName.Substring(dotIndex + 1);
             else
