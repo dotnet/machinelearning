@@ -1331,7 +1331,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 using (var ch = Host.Start("Conversion"))
                 {
                     // Add a missing value filter on the features.
-                    // REVIEW tfinley: Possibly filter out missing labels, but we don't do this in current FastTree conversion.
+                    // REVIEW: Possibly filter out missing labels, but we don't do this in current FastTree conversion.
                     //var missingArgs = new MissingValueFilter.Arguments();
                     //missingArgs.column = new string[] { examples.Schema.Feature.Name };
                     //IDataView data = new MissingValueFilter(missingArgs, Host, examples.Data);
