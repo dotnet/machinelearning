@@ -11,25 +11,25 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
-    public static class CollectionLoader
+    public static class CollectionDataSource
     {
         /// <summary>
-        /// Creates pipeline loader. Support shuffle.
+        /// Creates pipeline data source. Support shuffle.
         /// </summary>
         public static ILearningPipelineLoader Create<T>(IList<T> data) where T : class
         {
-            return new ListCollectionLoader<T>(data);
+            return new ListDataSource<T>(data);
         }
 
         /// <summary>
-        /// Creates pipeline loader which can't be shuffled.
+        /// Creates pipeline data source which can't be shuffled.
         /// </summary>
         public static ILearningPipelineLoader Create<T>(IEnumerable<T> data) where T : class
         {
-            return new EnumerableCollectionLoader<T>(data);
+            return new EnumerableDataSource<T>(data);
         }
 
-        private abstract class BaseCollectionLoader<TInput> : ILearningPipelineLoader where TInput : class
+        private abstract class BaseDataSource<TInput> : ILearningPipelineLoader where TInput : class
         {
             private Data.DataViewReference _dataViewEntryPoint;
             private IDataView _dataView;
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(previousStep == null);
                 _dataViewEntryPoint = new Data.DataViewReference();
                 var importOutput = experiment.Add(_dataViewEntryPoint);
-                return new CollectionLoaderPipelineStep(importOutput.Data);
+                return new CollectionDataSourcePipelineStep(importOutput.Data);
             }
 
             public void SetInput(IHostEnvironment environment, Experiment experiment)
@@ -52,11 +52,11 @@ namespace Microsoft.ML.Data
             public abstract IDataView GetDataView(IHostEnvironment environment);
         }
 
-        private class EnumerableCollectionLoader<TInput> : BaseCollectionLoader<TInput> where TInput : class
+        private class EnumerableDataSource<TInput> : BaseDataSource<TInput> where TInput : class
         {
             private readonly IEnumerable<TInput> _enumerableCollection;
 
-            public EnumerableCollectionLoader(IEnumerable<TInput> collection)
+            public EnumerableDataSource(IEnumerable<TInput> collection)
             {
                 Contracts.CheckValue(collection, nameof(collection));
                 _enumerableCollection = collection;
@@ -68,11 +68,11 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private class ListCollectionLoader<TInput> : BaseCollectionLoader<TInput> where TInput : class
+        private class ListDataSource<TInput> : BaseDataSource<TInput> where TInput : class
         {
             private readonly IList<TInput> _listCollection;
 
-            public ListCollectionLoader(IList<TInput> collection)
+            public ListDataSource(IList<TInput> collection)
             {
                 Contracts.CheckParamValue(Utils.Size(collection) > 0, collection, nameof(collection), "Must be non-empty");
                 _listCollection = collection;
@@ -84,9 +84,9 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private class CollectionLoaderPipelineStep : ILearningPipelineDataStep
+        private class CollectionDataSourcePipelineStep : ILearningPipelineDataStep
         {
-            public CollectionLoaderPipelineStep(Var<IDataView> data)
+            public CollectionDataSourcePipelineStep(Var<IDataView> data)
             {
                 Data = data;
             }

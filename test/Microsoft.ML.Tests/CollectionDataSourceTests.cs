@@ -16,9 +16,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
-    public class CollectionLoaderTests : BaseTestClass
+    public class CollectionDataSourceTests : BaseTestClass
     {
-        public CollectionLoaderTests(ITestOutputHelper output)
+        public CollectionDataSourceTests(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -26,14 +26,14 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CheckConstructor()
         {
-            Assert.NotNull(CollectionLoader.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } }));
-            Assert.NotNull(CollectionLoader.Create(new Input[1] { new Input { Number1 = 1, String1 = "1" } }));
-            Assert.NotNull(CollectionLoader.Create(new Input[1] { new Input { Number1 = 1, String1 = "1" } }.AsEnumerable()));
+            Assert.NotNull(CollectionDataSource.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } }));
+            Assert.NotNull(CollectionDataSource.Create(new Input[1] { new Input { Number1 = 1, String1 = "1" } }));
+            Assert.NotNull(CollectionDataSource.Create(new Input[1] { new Input { Number1 = 1, String1 = "1" } }.AsEnumerable()));
 
             bool thrown = false;
             try
             {
-                CollectionLoader.Create(new List<Input>());
+                CollectionDataSource.Create(new List<Input>());
             }
             catch
             {
@@ -44,7 +44,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             thrown = false;
             try
             {
-                CollectionLoader.Create(new Input[0]);
+                CollectionDataSource.Create(new Input[0]);
             }
             catch
             {
@@ -56,7 +56,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanSuccessfullyApplyATransform()
         {
-            var collection = CollectionLoader.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } });
+            var collection = CollectionDataSource.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } });
             using (var environment = new TlcEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
@@ -71,7 +71,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanSuccessfullyEnumerated()
         {
-            var collection = CollectionLoader.Create(new List<Input>() {
+            var collection = CollectionDataSource.Create(new List<Input>() {
                 new Input { Number1 = 1, String1 = "1" },
                 new Input { Number1 = 2, String1 = "2" },
                 new Input { Number1 = 3, String1 = "3" }
@@ -138,7 +138,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new IrisData { SepalLength = 1f, SepalWidth = 1f ,PetalLength=0.3f, PetalWidth=5.1f, Label=1},
                 new IrisData { SepalLength = 1.2f, SepalWidth = 0.5f ,PetalLength=0.3f, PetalWidth=5.1f, Label=0}
             };
-            var collection = CollectionLoader.Create(data);
+            var collection = CollectionDataSource.Create(data);
 
             pipeline.Add(collection);
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
@@ -155,7 +155,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             });
 
             pipeline = new LearningPipeline();
-            collection = CollectionLoader.Create(data.AsEnumerable());
+            collection = CollectionDataSource.Create(data.AsEnumerable());
             pipeline.Add(collection);
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
