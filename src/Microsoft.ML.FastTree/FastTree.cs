@@ -1552,13 +1552,12 @@ namespace Microsoft.ML.Runtime.FastTree
                                         else
                                         {
                                             GetFeatureValues(cursor, iFeature, getter, ref temp, ref doubleTemp, copier);
-                                            double[] upperBounds = BinUpperBounds[iFeature];
+                                            double[] upperBounds = BinUpperBounds[iFeature++];
                                             Host.AssertValue(upperBounds);
                                             if (upperBounds.Length == 1)
                                                 continue; //trivial feature, skip it.
 
                                             flocks.Add(CreateSingletonFlock(ch, ref doubleTemp, binnedValues, upperBounds));
-                                            iFeature++;
                                         }
                                     }
 
