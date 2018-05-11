@@ -164,7 +164,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         private LassoFit GetLassoFit(IChannel ch, int maxAllowedFeaturesPerModel)
         {
-            DateTime startTime = DateTime.Now;
+            DateTime startTime = DateTime.UtcNow;
 
             if (maxAllowedFeaturesPerModel < 0)
             {
@@ -450,7 +450,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             // First lambda was infinity; fixing it
             fit.Lambdas[0] = Math.Exp(2 * Math.Log(fit.Lambdas[1]) - Math.Log(fit.Lambdas[2]));
 
-            TimeSpan duration = DateTime.Now - startTime;
+            TimeSpan duration = DateTime.UtcNow - startTime;
             ch.Info("Elapsed time for compression: {0}", duration);
 
             return fit;
