@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using static Microsoft.ML.Runtime.DefaultEnvironment;
 
 namespace Microsoft.ML
 {
@@ -48,15 +49,26 @@ namespace Microsoft.ML
     [DebuggerTypeProxy(typeof(LearningPipelineDebugProxy))]
     public class LearningPipeline : ICollection<ILearningPipelineItem>
     {
+        readonly internal IHostEnvironment Env;
         private List<ILearningPipelineItem> Items { get; } = new List<ILearningPipelineItem>();
 
         /// <summary>
         /// Construct an empty <see cref="LearningPipeline"/> object.
         /// </summary>
-        public LearningPipeline()
+        public LearningPipeline(int? seed = null, int concurrency = 0)
         {
+
+            var env = new DefaultEnvironment(seed: seed, conc: concurrency);
+            env.MessageRecieved += Env_MessageRecieved;
+            Env = env;
         }
 
+        private void Env_MessageRecieved(object sender, ChannelMessageEventArgs e)
+        {
+            MessageOccured?.Invoke(this, e);
+        }
+
+        public event EventHandler<ChannelMessageEventArgs> MessageOccured;
         /// <summary>
         /// Get the count of ML components in the <see cref="LearningPipeline"/> object
         /// </summary>
@@ -137,80 +149,76 @@ namespace Microsoft.ML
             where TInput : class
             where TOutput : class, new()
         {
+            Experiment experiment = Env.CreateExperiment();
+            ILearningPipelineStep step = null;
+            List<ILearningPipelineLoader> loaders = new List<ILearningPipelineLoader>();
+            List<Var<ITransformModel>> transformModels = new List<Var<ITransformModel>>();
+            Var<ITransformModel> lastTransformModel = null;
 
-            using (var environment = new TlcEnvironment())
+            foreach (ILearningPipelineItem currentItem in this)
             {
-                Experiment experiment = environment.CreateExperiment();
-                ILearningPipelineStep step = null;
-                List<ILearningPipelineLoader> loaders = new List<ILearningPipelineLoader>();
-                List<Var<ITransformModel>> transformModels = new List<Var<ITransformModel>>();
-                Var<ITransformModel> lastTransformModel = null;
+                if (currentItem is ILearningPipelineLoader loader)
+                    loaders.Add(loader);
 
-                foreach (ILearningPipelineItem currentItem in this)
+                step = currentItem.ApplyStep(step, experiment);
+                if (step is ILearningPipelineDataStep dataStep && dataStep.Model != null)
+                    transformModels.Add(dataStep.Model);
+
+                else if (step is ILearningPipelinePredictorStep predictorDataStep)
                 {
-                    if (currentItem is ILearningPipelineLoader loader)
-                        loaders.Add(loader);
+                    if (lastTransformModel != null)
+                        transformModels.Insert(0, lastTransformModel);
 
-                    step = currentItem.ApplyStep(step, experiment);
-                    if (step is ILearningPipelineDataStep dataStep && dataStep.Model != null)
-                        transformModels.Add(dataStep.Model);
-                     
-                    else if (step is ILearningPipelinePredictorStep predictorDataStep)
+                    var localModelInput = new Transforms.ManyHeterogeneousModelCombiner
                     {
-                        if (lastTransformModel != null)
-                            transformModels.Insert(0, lastTransformModel);
-
-                        var localModelInput = new Transforms.ManyHeterogeneousModelCombiner
-                        {
-                            PredictorModel = predictorDataStep.Model,
-                            TransformModels = new ArrayVar<ITransformModel>(transformModels.ToArray())
-                        };
-
-                        var localModelOutput = experiment.Add(localModelInput);
-
-                        var scorer = new Transforms.Scorer
-                        {
-                            PredictorModel = localModelOutput.PredictorModel
-                        };
-
-                        var scorerOutput = experiment.Add(scorer);
-                        lastTransformModel = scorerOutput.ScoringTransform;
-                        step = new ScorerPipelineStep(scorerOutput.ScoredData, scorerOutput.ScoringTransform);
-                        transformModels.Clear();
-                    }
-                }
-
-                if (transformModels.Count > 0)
-                {
-                    transformModels.Insert(0,lastTransformModel);
-                    var modelInput = new Transforms.ModelCombiner
-                    {
-                        Models = new ArrayVar<ITransformModel>(transformModels.ToArray())
+                        PredictorModel = predictorDataStep.Model,
+                        TransformModels = new ArrayVar<ITransformModel>(transformModels.ToArray())
                     };
 
-                    var modelOutput = experiment.Add(modelInput);
-                    lastTransformModel = modelOutput.OutputModel;
-                }
+                    var localModelOutput = experiment.Add(localModelInput);
 
-                experiment.Compile();
-                foreach (ILearningPipelineLoader loader in loaders)
+                    var scorer = new Transforms.Scorer
+                    {
+                        PredictorModel = localModelOutput.PredictorModel
+                    };
+
+                    var scorerOutput = experiment.Add(scorer);
+                    lastTransformModel = scorerOutput.ScoringTransform;
+                    step = new ScorerPipelineStep(scorerOutput.ScoredData, scorerOutput.ScoringTransform);
+                    transformModels.Clear();
+                }
+            }
+
+            if (transformModels.Count > 0)
+            {
+                transformModels.Insert(0, lastTransformModel);
+                var modelInput = new Transforms.ModelCombiner
                 {
-                    loader.SetInput(environment, experiment);
-                }
-                experiment.Run();
+                    Models = new ArrayVar<ITransformModel>(transformModels.ToArray())
+                };
 
-                ITransformModel model = experiment.GetOutput(lastTransformModel);
-                BatchPredictionEngine<TInput, TOutput> predictor;
-                using (var memoryStream = new MemoryStream())
-                {
-                    model.Save(environment, memoryStream);
+                var modelOutput = experiment.Add(modelInput);
+                lastTransformModel = modelOutput.OutputModel;
+            }
 
-                    memoryStream.Position = 0;
+            experiment.Compile();
+            foreach (ILearningPipelineLoader loader in loaders)
+            {
+                loader.SetInput(Env, experiment);
+            }
+            experiment.Run();
 
-                    predictor = environment.CreateBatchPredictionEngine<TInput, TOutput>(memoryStream);
+            ITransformModel model = experiment.GetOutput(lastTransformModel);
+            BatchPredictionEngine<TInput, TOutput> predictor;
+            using (var memoryStream = new MemoryStream())
+            {
+                model.Save(Env, memoryStream);
 
-                    return new PredictionModel<TInput, TOutput>(predictor, memoryStream);
-                }
+                memoryStream.Position = 0;
+
+                predictor = Env.CreateBatchPredictionEngine<TInput, TOutput>(memoryStream);
+
+                return new PredictionModel<TInput, TOutput>(predictor, memoryStream);
             }
         }
 
@@ -220,9 +228,9 @@ namespace Microsoft.ML
         /// <returns>
         /// The IDataView that was returned by the pipeline.
         /// </returns>
-        internal IDataView Execute(IHostEnvironment environment)
+        internal IDataView Execute()
         {
-            Experiment experiment = environment.CreateExperiment();
+            Experiment experiment = Env.CreateExperiment();
             ILearningPipelineStep step = null;
             List<ILearningPipelineLoader> loaders = new List<ILearningPipelineLoader>();
             foreach (ILearningPipelineItem currentItem in this)
@@ -241,7 +249,7 @@ namespace Microsoft.ML
             experiment.Compile();
             foreach (ILearningPipelineLoader loader in loaders)
             {
-                loader.SetInput(environment, experiment);
+                loader.SetInput(Env, experiment);
             }
             experiment.Run();
 

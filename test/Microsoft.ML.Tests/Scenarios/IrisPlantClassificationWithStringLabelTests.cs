@@ -17,7 +17,7 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath("iris.data");
 
-            var pipeline = new LearningPipeline();
+            var pipeline = new LearningPipeline(seed: 42, concurrency: 1);
 
             pipeline.Add(new TextLoader<IrisDataWithStringLabel>(dataPath, useHeader: false, separator: ","));
 

@@ -4,6 +4,7 @@
 
 using Microsoft.ML;
 using Microsoft.ML.TestFramework;
+using System;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -22,12 +23,15 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void ConstructorDoesntThrow()
         {
             Assert.NotNull(new LearningPipeline());
+            Assert.NotNull(new LearningPipeline(seed:42));
+            Assert.NotNull(new LearningPipeline(concurrency: 1));
+            Assert.NotNull(new LearningPipeline(seed:42, concurrency: 1));
         }
 
         [Fact]
         public void CanAddAndRemoveFromPipeline()
         {
-            var pipeline = new LearningPipeline()
+            var pipeline = new LearningPipeline(seed:42, concurrency: 1)
             {
                 new Transforms.CategoricalOneHotVectorizer("String1", "String2"),
                 new Transforms.ColumnConcatenator(outputColumn: "Features", "String1", "String2", "Number1", "Number2"),
@@ -42,5 +46,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Add(new Trainers.StochasticDualCoordinateAscentRegressor());
             Assert.Equal(3, pipeline.Count);
         }
+
+       
     }
 }

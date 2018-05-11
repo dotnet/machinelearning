@@ -6,6 +6,7 @@ using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -17,8 +18,8 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath("iris.txt");
 
-            var pipeline = new LearningPipeline();
-
+            var pipeline = new LearningPipeline(seed: 42, concurrency: 1);
+            pipeline.MessageOccured += Pipeline_MessageOccured;
             pipeline.Add(new TextLoader<IrisData>(dataPath, useHeader: true, separator: "tab"));
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
@@ -32,7 +33,7 @@ namespace Microsoft.ML.Scenarios
                 SepalLength = 3.3f,
                 SepalWidth = 1.6f,
                 PetalLength = 0.2f,
-                PetalWidth= 5.1f,
+                PetalWidth = 5.1f,
             });
 
             Assert.Equal(1, prediction.PredictedLabels[0], 2);
@@ -110,6 +111,12 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(1, matrix["2", "1"]);
             Assert.Equal(49, matrix[2, 2]);
             Assert.Equal(49, matrix["2", "2"]);
+        }
+
+
+        private void Pipeline_MessageOccured(object sender, Runtime.DefaultEnvironment.ChannelMessageEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine(e.Message.Message);
         }
 
         public class IrisData

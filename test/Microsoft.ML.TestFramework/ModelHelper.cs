@@ -12,7 +12,7 @@ namespace Microsoft.ML.TestFramework
 {
     public static class ModelHelper
     {
-        private static TlcEnvironment s_environment = new TlcEnvironment(seed: 1);
+        private static TlcEnvironment s_environment = new TlcEnvironment(seed: 1, conc: 1);
         private static ITransformModel s_housePriceModel;
 
         public static void WriteKcHousePriceModel(string dataPath, string outputModelPath)

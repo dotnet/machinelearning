@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
 using System;
@@ -25,7 +26,7 @@ namespace Microsoft.ML
         private const int MaxSlotNamesToDisplay = 100;
 
         private readonly LearningPipeline _pipeline;
-        private readonly TlcEnvironment _environment;
+        private readonly IHostEnvironment _environment;
         private IDataView _preview;
         private Exception _pipelineExecutionException;
         private PipelineItemDebugColumn[] _columns;
@@ -36,10 +37,9 @@ namespace Microsoft.ML
             if (pipeline == null)
                 throw new ArgumentNullException(nameof(pipeline));
 
-            _pipeline = new LearningPipeline();
+            _pipeline = new LearningPipeline(seed:42, concurrency:1);
 
-            // use a ConcurrencyFactor of 1 so other threads don't need to run in the debugger
-            _environment = new TlcEnvironment(conc: 1);
+            _environment = _pipeline.Env;
 
             foreach (ILearningPipelineItem item in pipeline)
             {
@@ -139,7 +139,7 @@ namespace Microsoft.ML
                 {
                     try
                     {
-                        _preview = _pipeline.Execute(_environment);
+                        _preview = _pipeline.Execute();
                     }
                     catch (Exception e)
                     {

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Scenarios
         public void TrainAndPredictSentimentModelTest()
         {
             string dataPath = GetDataPath(SentimentDataPath);
-            var pipeline = new LearningPipeline();
+            var pipeline = new LearningPipeline(seed:42, concurrency:1);
             pipeline.Add(new TextLoader<SentimentData>(dataPath, useHeader: true, separator: "tab"));
             pipeline.Add(new TextFeaturizer("Features", "SentimentText")
             {
