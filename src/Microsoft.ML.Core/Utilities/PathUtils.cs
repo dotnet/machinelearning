@@ -197,7 +197,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public static IEnumerable<string> SplitDirectories(string path)
         {
             var cleanPath = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-            return cleanPath.Split(Path.DirectorySeparatorChar).Where(dir => !String.IsNullOrEmpty(dir));
+            return cleanPath.Split(new char[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

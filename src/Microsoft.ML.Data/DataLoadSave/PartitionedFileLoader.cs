@@ -164,6 +164,8 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IPartitionedPathParser _pathParser;
 
         private const string RegistrationName = LoadName;
+        private const string FilePathSpecName = "FilePathSpec";
+        private const int FilePathColIndex = -1;
 
         public PartitionedFileLoader(IHostEnvironment env, Arguments args, IMultiStreamSource files)
         {
@@ -187,7 +189,7 @@ namespace Microsoft.ML.Runtime.Data
                 var pathCol = new Column()
                 {
                     Name = "Path",
-                    Source = -1,
+                    Source = FilePathColIndex,
                     Type = DataKind.Text
                 };
 
@@ -228,7 +230,7 @@ namespace Microsoft.ML.Runtime.Data
             var loader = SubComponent.Parse(ctx.LoadString());
             _subLoader = new SubComponent<IDataLoader, SignatureDataLoader>(loader.Kind, loader.Settings);
 
-            ctx.LoadModel<IPartitionedPathParser, SignatureLoadModel>(_host, out _pathParser, "FilePathSpec");
+            ctx.LoadModel<IPartitionedPathParser, SignatureLoadModel>(_host, out _pathParser, FilePathSpecName);
 
             _files = files;
             Schema = CreateSchema(_host, _columns, _subLoader);
@@ -273,7 +275,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             ctx.SaveString(_subLoader.ToString());
-            ctx.SaveModel(_pathParser, "FilePathSpec");
+            ctx.SaveModel(_pathParser, FilePathSpecName);
         }
 
         public bool CanShuffle => true;
@@ -511,7 +513,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         _colValues[i] = new DvText(values[source]);
                     }
-                    else if (source == -1)
+                    else if (source == FilePathColIndex)
                     {
                         _colValues[i] = new DvText(path);
                     }
@@ -679,7 +681,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 catch (FormatException e)
                 {
-                    Ch.Warning($"Could not parse column values from the path {path}.", e);
+                    Ch.Warning($"Could not parse column values from the path {path}. Ex: {e.Message}");
                     results = null;
                     return false;
                 }
