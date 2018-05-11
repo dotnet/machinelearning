@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
             _host.CheckValue(files, nameof(files));
 
             _pathParser = args.PathParserFactory.CreateComponent(_host);
-            _host.CheckValue(_pathParser, nameof(_pathParser), "Factory failed to create a FilePathSpec");
+            _host.CheckValue(_pathParser, nameof(_pathParser), "Failed to create the FilePathSpec.");
 
             _subLoader = args.Loader;
             _files = files;

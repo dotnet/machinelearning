@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             if (baseUri.Scheme != uri.Scheme)
             {
-                throw new ArgumentException("Paths cannot be made relative as they are of different schemas.");
+                throw new ArgumentException("Paths cannot be made relative as they are of different schemes.");
             }
 
             string relativePath;
@@ -196,8 +196,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <returns>An enumerable list of all non-empty directories.</returns>
         public static IEnumerable<string> SplitDirectories(string path)
         {
+            char [] separators = { Path.DirectorySeparatorChar };
+
             var cleanPath = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-            return cleanPath.Split(new char[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+            return cleanPath.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }
