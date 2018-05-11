@@ -91,7 +91,7 @@ namespace Microsoft.ML
             else if (type == typeof(bool))
                 return "BL";
             else
-                throw new Exception("Type not implemented or supported."); //Add more types.
+                throw new System.NotSupportedException("Type ${type.FullName} is not implemented or supported."); //Add more types.
         }
 
         public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
