@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
-    public class CollectionLoader
+    public static class CollectionLoader
     {
         /// <summary>
         /// Creates pipeline loader. Support shuffle.
