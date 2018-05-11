@@ -1331,7 +1331,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 using (var ch = Host.Start("Conversion"))
                 {
                     // Add a missing value filter on the features.
-                    // REVIEW: Possibly filter out missing labels, but we don't do this in current FastTree conversion.
+                    // REVIEW tfinley: Possibly filter out missing labels, but we don't do this in current FastTree conversion.
                     //var missingArgs = new MissingValueFilter.Arguments();
                     //missingArgs.column = new string[] { examples.Schema.Feature.Name };
                     //IDataView data = new MissingValueFilter(missingArgs, Host, examples.Data);
@@ -1545,10 +1545,6 @@ namespace Microsoft.ML.Runtime.FastTree
                                             {
                                                 flocks.Add(CreateOneHotFlockCategorical(ch, pending, binnedValues,
                                                     lastOn, true));
-
-                                                if (FeatureMap == null)
-                                                    FeatureMap = Enumerable.Range(0, NumFeatures)
-                                                        .Where(f => BinUpperBounds[f].Length > 1).ToArray();
                                             }
                                             iFeature = CategoricalFeatureIndices[catRangeIndex + 1] + 1;
                                             catRangeIndex += 2;
@@ -1556,13 +1552,18 @@ namespace Microsoft.ML.Runtime.FastTree
                                         else
                                         {
                                             GetFeatureValues(cursor, iFeature, getter, ref temp, ref doubleTemp, copier);
-
                                             double[] upperBounds = BinUpperBounds[iFeature];
                                             Host.AssertValue(upperBounds);
+                                            if (upperBounds.Length == 1)
+                                                continue; //trivial feature, skip it.
+
                                             flocks.Add(CreateSingletonFlock(ch, ref doubleTemp, binnedValues, upperBounds));
                                             iFeature++;
                                         }
                                     }
+
+                                    if (FeatureMap == null)
+                                        FeatureMap = Enumerable.Range(0, NumFeatures).Where(f => BinUpperBounds[f].Length > 1).ToArray();
                                 }
                                 else
                                 {
@@ -1571,8 +1572,15 @@ namespace Microsoft.ML.Runtime.FastTree
                                         GetFeatureValues(cursor, i, getter, ref temp, ref doubleTemp, copier);
                                         double[] upperBounds = BinUpperBounds[i];
                                         Host.AssertValue(upperBounds);
+                                        if (upperBounds.Length == 1)
+                                            continue; //trivial feature, skip it.
+
                                         flocks.Add(CreateSingletonFlock(ch, ref doubleTemp, binnedValues, upperBounds));
                                     }
+
+                                    Contracts.Assert(FeatureMap == null);
+
+                                    FeatureMap = Enumerable.Range(0, NumFeatures).Where(f => BinUpperBounds[f].Length > 1).ToArray();
                                 }
 
                                 features = flocks.ToArray();

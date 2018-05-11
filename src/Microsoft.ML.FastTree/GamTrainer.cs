@@ -574,8 +574,7 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             Host.CheckValue(trainSet, nameof(trainSet));
             Host.CheckParam(trainSet.NumFeatures <= inputLength, nameof(inputLength), "Must be at least as large as dataset number of features");
-            Host.CheckValue(featureMap, nameof(featureMap));
-            Host.CheckParam(featureMap.Length == trainSet.NumFeatures, nameof(featureMap), "Not of right size");
+            Host.CheckParam(featureMap == null || featureMap.Length == trainSet.NumFeatures, nameof(featureMap), "Not of right size");
             Host.CheckValue(binEffects, nameof(binEffects));
             Host.CheckParam(binEffects.Length == trainSet.NumFeatures, nameof(binEffects), "Not of right size");
 
@@ -584,12 +583,17 @@ namespace Microsoft.ML.Runtime.FastTree
             _numFeatures = binEffects.Length;
             _inputType = new VectorType(NumberType.Float, _inputLength);
             _featureMap = featureMap;
-            _inputFeatureToDatasetFeatureMap = new Dictionary<int, int>(featureMap.Length);
-            for (int i = 0; i < featureMap.Length; i++)
+
+            //No features were filtered.
+            if (_featureMap == null)
+                _featureMap = Enumerable.Range(0, trainSet.NumFeatures).ToArray();
+
+            _inputFeatureToDatasetFeatureMap = new Dictionary<int, int>(_featureMap.Length);
+            for (int i = 0; i < _featureMap.Length; i++)
             {
-                Host.CheckParam(0 <= featureMap[i] && featureMap[i] < inputLength, nameof(featureMap), "Contains out of range feature vaule");
-                Host.CheckParam(!_inputFeatureToDatasetFeatureMap.ContainsValue(featureMap[i]), nameof(featureMap), "Contains duplicate mappings");
-                _inputFeatureToDatasetFeatureMap[featureMap[i]] = i;
+                Host.CheckParam(0 <= _featureMap[i] && _featureMap[i] < inputLength, nameof(_featureMap), "Contains out of range feature vaule");
+                Host.CheckParam(!_inputFeatureToDatasetFeatureMap.ContainsValue(_featureMap[i]), nameof(_featureMap), "Contains duplicate mappings");
+                _inputFeatureToDatasetFeatureMap[_featureMap[i]] = i;
             }
 
             //keep only bin effect and upperbounds where the effect changes.
