@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
@@ -15,25 +16,24 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
-    public class MemoryCollectionTests : BaseTestClass
+    public class CollectionLoaderTests : BaseTestClass
     {
-        public MemoryCollectionTests(ITestOutputHelper output)
+        public CollectionLoaderTests(ITestOutputHelper output)
             : base(output)
         {
-
         }
 
         [Fact]
         public void CheckConstructor()
         {
-            Assert.NotNull(MemoryCollection.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } }));
-            Assert.NotNull(MemoryCollection.Create(new Input[1] { new Input { Number1 = 1, String1 = "1" } }));
-            Assert.NotNull(MemoryCollection.Create(new Input[1] { new Input { Number1 = 1, String1 = "1" } }.AsEnumerable()));
+            Assert.NotNull(CollectionLoader.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } }));
+            Assert.NotNull(CollectionLoader.Create(new Input[1] { new Input { Number1 = 1, String1 = "1" } }));
+            Assert.NotNull(CollectionLoader.Create(new Input[1] { new Input { Number1 = 1, String1 = "1" } }.AsEnumerable()));
 
             bool thrown = false;
             try
             {
-                MemoryCollection.Create(new List<Input>());
+                CollectionLoader.Create(new List<Input>());
             }
             catch
             {
@@ -44,7 +44,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             thrown = false;
             try
             {
-                MemoryCollection.Create(new Input[0]);
+                CollectionLoader.Create(new Input[0]);
             }
             catch
             {
@@ -56,7 +56,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanSuccessfullyApplyATransform()
         {
-            var collection = MemoryCollection.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } });
+            var collection = CollectionLoader.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } });
             using (var environment = new TlcEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
@@ -71,7 +71,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanSuccessfullyEnumerated()
         {
-            var collection = MemoryCollection.Create(new List<Input>() {
+            var collection = CollectionLoader.Create(new List<Input>() {
                 new Input { Number1 = 1, String1 = "1" },
                 new Input { Number1 = 2, String1 = "2" },
                 new Input { Number1 = 3, String1 = "3" }
@@ -138,7 +138,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new IrisData { SepalLength = 1f, SepalWidth = 1f ,PetalLength=0.3f, PetalWidth=5.1f, Label=1},
                 new IrisData { SepalLength = 1.2f, SepalWidth = 0.5f ,PetalLength=0.3f, PetalWidth=5.1f, Label=0}
             };
-            var collection = MemoryCollection.Create(data);
+            var collection = CollectionLoader.Create(data);
 
             pipeline.Add(collection);
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
@@ -155,7 +155,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             });
 
             pipeline = new LearningPipeline();
-            collection = MemoryCollection.Create(data.AsEnumerable());
+            collection = CollectionLoader.Create(data.AsEnumerable());
             pipeline.Add(collection);
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));

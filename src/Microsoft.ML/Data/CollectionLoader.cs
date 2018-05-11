@@ -9,9 +9,9 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Data
 {
-    public class MemoryCollection
+    public class CollectionLoader
     {
         /// <summary>
         /// Creates pipeline loader. Support shuffle.
@@ -29,7 +29,7 @@ namespace Microsoft.ML
             return new EnumerableCollectionLoader<T>(data);
         }
 
-        private abstract class CollectionLoader<TInput> : ILearningPipelineLoader where TInput : class
+        private abstract class BaseCollectionLoader<TInput> : ILearningPipelineLoader where TInput : class
         {
             private Data.DataViewReference _dataViewEntryPoint;
             private IDataView _dataView;
@@ -39,7 +39,7 @@ namespace Microsoft.ML
                 Contracts.Assert(previousStep == null);
                 _dataViewEntryPoint = new Data.DataViewReference();
                 var importOutput = experiment.Add(_dataViewEntryPoint);
-                return new MemoryCollectionPipelineStep(importOutput.Data);
+                return new CollectionLoaderPipelineStep(importOutput.Data);
             }
 
             public void SetInput(IHostEnvironment environment, Experiment experiment)
@@ -52,7 +52,7 @@ namespace Microsoft.ML
             public abstract IDataView GetDataView(IHostEnvironment environment);
         }
 
-        private class EnumerableCollectionLoader<TInput> : CollectionLoader<TInput> where TInput : class
+        private class EnumerableCollectionLoader<TInput> : BaseCollectionLoader<TInput> where TInput : class
         {
             private readonly IEnumerable<TInput> _enumerableCollection;
 
@@ -68,7 +68,7 @@ namespace Microsoft.ML
             }
         }
 
-        private class ListCollectionLoader<TInput> : CollectionLoader<TInput> where TInput : class
+        private class ListCollectionLoader<TInput> : BaseCollectionLoader<TInput> where TInput : class
         {
             private readonly IList<TInput> _listCollection;
 
@@ -84,9 +84,9 @@ namespace Microsoft.ML
             }
         }
 
-        private class MemoryCollectionPipelineStep : ILearningPipelineDataStep
+        private class CollectionLoaderPipelineStep : ILearningPipelineDataStep
         {
-            public MemoryCollectionPipelineStep(Var<IDataView> data)
+            public CollectionLoaderPipelineStep(Var<IDataView> data)
             {
                 Data = data;
             }
