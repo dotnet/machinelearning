@@ -90,8 +90,8 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal("1", matrix.ClassNames[1]);
             Assert.Equal("2", matrix.ClassNames[2]);
 
-            Assert.Equal(49, matrix[0, 0]);
-            Assert.Equal(49, matrix["0", "0"]);
+            Assert.Equal(50, matrix[0, 0]);
+            Assert.Equal(50, matrix["0", "0"]);
             Assert.Equal(0, matrix[0, 1]);
             Assert.Equal(0, matrix["0", "1"]);
             Assert.Equal(0, matrix[0, 2]);
