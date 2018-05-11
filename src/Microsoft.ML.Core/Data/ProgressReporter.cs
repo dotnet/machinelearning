@@ -359,7 +359,7 @@ namespace Microsoft.ML.Runtime.Data
                     Index = index;
                     Name = name;
                     PendingCheckpoints = new ConcurrentQueue<KeyValuePair<DateTime, ProgressEntry>>();
-                    StartTime = DateTimeOffset.Now.UtcDateTime;
+                    StartTime = DateTime.UtcNow;
                     Channel = channel;
                 }
             }
@@ -584,7 +584,7 @@ namespace Microsoft.ML.Runtime.Data
                 Index = index;
                 Name = name;
                 StartTime = startTime;
-                EventTime = DateTimeOffset.Now.UtcDateTime;
+                EventTime = DateTime.UtcNow;
                 Kind = EventKind.Progress;
                 ProgressEntry = entry;
             }
@@ -597,7 +597,7 @@ namespace Microsoft.ML.Runtime.Data
                 Index = index;
                 Name = name;
                 StartTime = startTime;
-                EventTime = DateTimeOffset.Now.UtcDateTime;
+                EventTime = DateTime.UtcNow;
                 Kind = kind;
                 ProgressEntry = null;
             }
