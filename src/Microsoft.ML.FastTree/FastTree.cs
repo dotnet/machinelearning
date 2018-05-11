@@ -1561,8 +1561,9 @@ namespace Microsoft.ML.Runtime.FastTree
                                         }
                                     }
 
-                                    if (FeatureMap == null)
-                                        FeatureMap = Enumerable.Range(0, NumFeatures).Where(f => BinUpperBounds[f].Length > 1).ToArray();
+                                    Contracts.Assert(FeatureMap == null);
+
+                                    FeatureMap = Enumerable.Range(0, NumFeatures).Where(f => BinUpperBounds[f].Length > 1).ToArray();
                                 }
                                 else
                                 {
