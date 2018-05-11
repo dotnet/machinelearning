@@ -418,8 +418,17 @@ namespace Microsoft.ML.Runtime.Data
                         return false;
                     }
 
-                    // Load the sub cursor and reset the data.
-                    var loader = _parent._subLoader.CreateInstance(_parent._host, new MultiFileSource(path));
+                    IDataLoader loader = null;
+                    try
+                    {
+                        // Load the sub cursor and reset the data.
+                        loader = _parent._subLoader.CreateInstance(_parent._host, new MultiFileSource(path));
+                    }
+                    catch (Exception e)
+                    {
+                        Ch.Warning($"Failed to load file {path} due to a loader exception. Moving on to the next file. Ex: {e.Message}");
+                        continue;
+                    }
 
                     if (!SchemasMatch(_parent.SubSchema, loader.Schema))
                     {
