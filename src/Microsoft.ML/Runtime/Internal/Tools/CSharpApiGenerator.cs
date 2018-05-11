@@ -535,6 +535,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             // When the type is nested, the names of the outer types are concatenated with a '+'.
             var nestedNames = fullTypeName.Split('+');
             var baseName = nestedNames[0];
+
             // We currently only handle generic types in the outer most class, support for generic inner classes
             // can be added if needed.
             int backTickIndex = baseName.LastIndexOf('`');
