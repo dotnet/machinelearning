@@ -12300,13 +12300,13 @@ namespace Microsoft.ML
     {
         public abstract class CalibratorTrainer : ComponentKind {}
 
+
+
         /// <summary>
         /// 
         /// </summary>
         public sealed class FixedPlattCalibratorCalibratorTrainer : CalibratorTrainer
         {
-
-
             /// <summary>
             /// The slope parameter of f(x) = 1 / (1 + exp(-slope * x + offset)
             /// </summary>
@@ -12320,45 +12320,45 @@ namespace Microsoft.ML
             internal override string ComponentName => "FixedPlattCalibrator";
         }
 
+
+
         /// <summary>
         /// 
         /// </summary>
         public sealed class NaiveCalibratorCalibratorTrainer : CalibratorTrainer
         {
-
-
             internal override string ComponentName => "NaiveCalibrator";
         }
+
+
 
         /// <summary>
         /// 
         /// </summary>
         public sealed class PavCalibratorCalibratorTrainer : CalibratorTrainer
         {
-
-
             internal override string ComponentName => "PavCalibrator";
         }
+
+
 
         /// <summary>
         /// Platt calibration.
         /// </summary>
         public sealed class PlattCalibratorCalibratorTrainer : CalibratorTrainer
         {
-
-
             internal override string ComponentName => "PlattCalibrator";
         }
 
         public abstract class ClassificationLossFunction : ComponentKind {}
+
+
 
         /// <summary>
         /// Exponential loss.
         /// </summary>
         public sealed class ExpLossClassificationLossFunction : ClassificationLossFunction
         {
-
-
             /// <summary>
             /// Beta (dilation)
             /// </summary>
@@ -12367,13 +12367,13 @@ namespace Microsoft.ML
             internal override string ComponentName => "ExpLoss";
         }
 
+
+
         /// <summary>
         /// Hinge loss.
         /// </summary>
         public sealed class HingeLossClassificationLossFunction : ClassificationLossFunction
         {
-
-
             /// <summary>
             /// Margin value
             /// </summary>
@@ -12382,23 +12382,23 @@ namespace Microsoft.ML
             internal override string ComponentName => "HingeLoss";
         }
 
+
+
         /// <summary>
         /// Log loss.
         /// </summary>
         public sealed class LogLossClassificationLossFunction : ClassificationLossFunction
         {
-
-
             internal override string ComponentName => "LogLoss";
         }
+
+
 
         /// <summary>
         /// Smoothed Hinge loss.
         /// </summary>
         public sealed class SmoothedHingeLossClassificationLossFunction : ClassificationLossFunction
         {
-
-
             /// <summary>
             /// Smoothing constant
             /// </summary>
@@ -12409,13 +12409,13 @@ namespace Microsoft.ML
 
         public abstract class EarlyStoppingCriterion : ComponentKind {}
 
+
+
         /// <summary>
         /// Stop in case of loss of generality.
         /// </summary>
         public sealed class GLEarlyStoppingCriterion : EarlyStoppingCriterion
         {
-
-
             /// <summary>
             /// Threshold in range [0,1].
             /// </summary>
@@ -12425,13 +12425,13 @@ namespace Microsoft.ML
             internal override string ComponentName => "GL";
         }
 
+
+
         /// <summary>
         /// Stops in case of low progress.
         /// </summary>
         public sealed class LPEarlyStoppingCriterion : EarlyStoppingCriterion
         {
-
-
             /// <summary>
             /// Threshold in range [0,1].
             /// </summary>
@@ -12447,13 +12447,13 @@ namespace Microsoft.ML
             internal override string ComponentName => "LP";
         }
 
+
+
         /// <summary>
         /// Stops in case of generality to progress ration exceeds threshold.
         /// </summary>
         public sealed class PQEarlyStoppingCriterion : EarlyStoppingCriterion
         {
-
-
             /// <summary>
             /// Threshold in range [0,1].
             /// </summary>
@@ -12469,13 +12469,13 @@ namespace Microsoft.ML
             internal override string ComponentName => "PQ";
         }
 
+
+
         /// <summary>
         /// Stop if validation score exceeds threshold value.
         /// </summary>
         public sealed class TREarlyStoppingCriterion : EarlyStoppingCriterion
         {
-
-
             /// <summary>
             /// Tolerance threshold. (Non negative value)
             /// </summary>
@@ -12485,13 +12485,13 @@ namespace Microsoft.ML
             internal override string ComponentName => "TR";
         }
 
+
+
         /// <summary>
         /// Stops in case of consecutive loss in generality.
         /// </summary>
         public sealed class UPEarlyStoppingCriterion : EarlyStoppingCriterion
         {
-
-
             /// <summary>
             /// The window size.
             /// </summary>
@@ -12503,13 +12503,13 @@ namespace Microsoft.ML
 
         public abstract class FastTreeTrainer : ComponentKind {}
 
+
+
         /// <summary>
         /// Uses a logit-boost boosted tree learner to perform binary classification.
         /// </summary>
         public sealed class FastTreeBinaryClassificationFastTreeTrainer : FastTreeTrainer
         {
-
-
             /// <summary>
             /// Should we use derivatives optimized for unbalanced sets
             /// </summary>
@@ -12856,13 +12856,13 @@ namespace Microsoft.ML
             internal override string ComponentName => "FastTreeBinaryClassification";
         }
 
+
+
         /// <summary>
         /// Trains gradient boosted decision trees to the LambdaRank quasi-gradient.
         /// </summary>
         public sealed class FastTreeRankingFastTreeTrainer : FastTreeTrainer
         {
-
-
             /// <summary>
             /// Comma seperated list of gains associated to each relevance label.
             /// </summary>
@@ -13244,13 +13244,13 @@ namespace Microsoft.ML
             internal override string ComponentName => "FastTreeRanking";
         }
 
+
+
         /// <summary>
         /// Trains gradient boosted decision trees to fit target values using least-squares.
         /// </summary>
         public sealed class FastTreeRegressionFastTreeTrainer : FastTreeTrainer
         {
-
-
             /// <summary>
             /// Use best regression step trees?
             /// </summary>
@@ -13592,13 +13592,13 @@ namespace Microsoft.ML
             internal override string ComponentName => "FastTreeRegression";
         }
 
+
+
         /// <summary>
         /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.
         /// </summary>
         public sealed class FastTreeTweedieRegressionFastTreeTrainer : FastTreeTrainer
         {
-
-
             /// <summary>
             /// Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.
             /// </summary>
@@ -13947,13 +13947,13 @@ namespace Microsoft.ML
 
         public abstract class NgramExtractor : ComponentKind {}
 
+
+
         /// <summary>
         /// Extracts NGrams from text and convert them to vector using dictionary.
         /// </summary>
         public sealed class NGramNgramExtractor : NgramExtractor
         {
-
-
             /// <summary>
             /// Ngram length
             /// </summary>
@@ -13982,13 +13982,13 @@ namespace Microsoft.ML
             internal override string ComponentName => "NGram";
         }
 
+
+
         /// <summary>
         /// Extracts NGrams from text and convert them to vector using hashing trick.
         /// </summary>
         public sealed class NGramHashNgramExtractor : NgramExtractor
         {
-
-
             /// <summary>
             /// Ngram length
             /// </summary>
@@ -14029,45 +14029,45 @@ namespace Microsoft.ML
 
         public abstract class ParallelTraining : ComponentKind {}
 
+
+
         /// <summary>
         /// Single node machine learning process.
         /// </summary>
         public sealed class SingleParallelTraining : ParallelTraining
         {
-
-
             internal override string ComponentName => "Single";
         }
 
         public abstract class RegressionLossFunction : ComponentKind {}
+
+
 
         /// <summary>
         /// Poisson loss.
         /// </summary>
         public sealed class PoissonLossRegressionLossFunction : RegressionLossFunction
         {
-
-
             internal override string ComponentName => "PoissonLoss";
         }
+
+
 
         /// <summary>
         /// Squared loss.
         /// </summary>
         public sealed class SquaredLossRegressionLossFunction : RegressionLossFunction
         {
-
-
             internal override string ComponentName => "SquaredLoss";
         }
+
+
 
         /// <summary>
         /// Tweedie loss.
         /// </summary>
         public sealed class TweedieLossRegressionLossFunction : RegressionLossFunction
         {
-
-
             /// <summary>
             /// Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.
             /// </summary>
@@ -14078,13 +14078,13 @@ namespace Microsoft.ML
 
         public abstract class SDCAClassificationLossFunction : ComponentKind {}
 
+
+
         /// <summary>
         /// Hinge loss.
         /// </summary>
         public sealed class HingeLossSDCAClassificationLossFunction : SDCAClassificationLossFunction
         {
-
-
             /// <summary>
             /// Margin value
             /// </summary>
@@ -14093,23 +14093,23 @@ namespace Microsoft.ML
             internal override string ComponentName => "HingeLoss";
         }
 
+
+
         /// <summary>
         /// Log loss.
         /// </summary>
         public sealed class LogLossSDCAClassificationLossFunction : SDCAClassificationLossFunction
         {
-
-
             internal override string ComponentName => "LogLoss";
         }
+
+
 
         /// <summary>
         /// Smoothed Hinge loss.
         /// </summary>
         public sealed class SmoothedHingeLossSDCAClassificationLossFunction : SDCAClassificationLossFunction
         {
-
-
             /// <summary>
             /// Smoothing constant
             /// </summary>
@@ -14120,25 +14120,25 @@ namespace Microsoft.ML
 
         public abstract class SDCARegressionLossFunction : ComponentKind {}
 
+
+
         /// <summary>
         /// Squared loss.
         /// </summary>
         public sealed class SquaredLossSDCARegressionLossFunction : SDCARegressionLossFunction
         {
-
-
             internal override string ComponentName => "SquaredLoss";
         }
 
         public abstract class StopWordsRemover : ComponentKind {}
+
+
 
         /// <summary>
         /// Remover with list of stopwords specified by the user.
         /// </summary>
         public sealed class CustomStopWordsRemover : StopWordsRemover
         {
-
-
             /// <summary>
             /// List of stopwords
             /// </summary>
@@ -14147,13 +14147,13 @@ namespace Microsoft.ML
             internal override string ComponentName => "Custom";
         }
 
+
+
         /// <summary>
         /// Remover with predefined list of stop words.
         /// </summary>
         public sealed class PredefinedStopWordsRemover : StopWordsRemover
         {
-
-
             internal override string ComponentName => "Predefined";
         }
 
