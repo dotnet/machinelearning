@@ -564,7 +564,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
             Contracts.Assert(typesSymbolTable.Select(kvp => kvp.Value).All(str => string.Compare(str, name) != 0));
 
-            return name;
+            return "Microsoft.ML." + name;
         }
 
         private void GenerateEnums(IndentingTextWriter writer, Type inputType, string currentNamespace)
@@ -1079,7 +1079,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine($"public sealed class {GeneratorUtils.GetComponentName(component)} : {component.Kind}");
             writer.WriteLine("{");
             writer.Indent();
-            GenerateInputFields(writer, component.ArgumentType, catalog, _typesSymbolTable, "Microsoft.ML.");
+            GenerateInputFields(writer, component.ArgumentType, catalog, _typesSymbolTable);
             writer.WriteLine($"internal override string ComponentName => \"{component.Name}\";");
             writer.Outdent();
             writer.WriteLine("}");
