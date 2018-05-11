@@ -10,9 +10,6 @@
           "Name": "Data",
           "Type": "DataView",
           "Desc": "Pointer to IDataView in memory",
-          "Aliases": [
-            "data"
-          ],
           "Required": true,
           "SortOrder": 1.0,
           "IsNullable": false

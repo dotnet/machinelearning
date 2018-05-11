@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
     {
         public sealed class Input
         {
-            [Argument(ArgumentType.Required, ShortName = "data", HelpText = "Pointer to IDataView in memory", SortOrder = 1)]
+            [Argument(ArgumentType.Required, HelpText = "Pointer to IDataView in memory", SortOrder = 1)]
             public IDataView Data;
         }
 
