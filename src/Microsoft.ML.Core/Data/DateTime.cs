@@ -201,7 +201,7 @@ namespace Microsoft.ML.Runtime.Data
             // Since it is constructed from a SysDateTimeOffset, all the validations should work.
             var success = TryValidateOffset(dto.Offset.Ticks, out _offset);
             Contracts.Assert(success);
-            _dateTime = ValidateDate(new DvDateTime(dto.UtcDateTime), ref _offset);
+            _dateTime = ValidateDate(new DvDateTime(dto.DateTime), ref _offset);
             Contracts.Assert(!_dateTime.IsNA);
             Contracts.Assert(!_offset.IsNA);
             AssertValid();
