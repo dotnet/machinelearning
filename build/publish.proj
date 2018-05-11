@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <PublishSymbolsPackage>Microsoft.SymbolUploader.Build.Task</PublishSymbolsPackage>
-    <EnablePublishSymbols>false</EnablePublishSymbols>
+    <EnablePublishSymbols Condition="'$(EnablePublishSymbols)'==''" >true</EnablePublishSymbols>
   </PropertyGroup>
 
   <Import Project="$(PackagesDir)\$(PublishSymbolsPackage.ToLower())\$(PublishSymbolsPackageVersion)\build\PublishSymbols.targets" />

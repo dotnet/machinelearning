@@ -1,15 +1,18 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Models;
+using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Scenarios
 {
-    public partial class Top5Scenarios
+    public partial class ScenariosTests
     {
         [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
         public void TrainAndPredictHousePriceModelTest()
@@ -70,4 +73,3 @@ namespace Microsoft.ML.Scenarios
         }
     }
 }
-
