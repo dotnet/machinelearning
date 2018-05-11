@@ -586,7 +586,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
             //No features were filtered.
             if (_featureMap == null)
-                _featureMap = Enumerable.Range(0, trainSet.NumFeatures).ToArray();
+                _featureMap = Utils.GetIdentityPermutation(trainSet.NumFeatures);
 
             _inputFeatureToDatasetFeatureMap = new Dictionary<int, int>(_featureMap.Length);
             for (int i = 0; i < _featureMap.Length; i++)

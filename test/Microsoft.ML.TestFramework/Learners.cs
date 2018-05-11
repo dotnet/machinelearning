@@ -374,6 +374,13 @@ namespace Microsoft.ML.Runtime.RunTests
             BaselineProgress = true,
         };
 
+        public static PredictorAndArgs BinaryClassificationGamTrainerDiskTranspose = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("BinaryClassificationGamTrainer", "dt+"),
+            Tag = "BinaryClassificationGamTrainerDiskTranspose",
+            BaselineProgress = true,
+        };
+
         // New.
         public static PredictorAndArgs QuantileRegressionScorer = new PredictorAndArgs
         {
