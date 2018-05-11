@@ -6,13 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Core.Tests.UnitTests;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
+using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Newtonsoft.Json;
@@ -2518,6 +2518,57 @@ namespace Microsoft.ML.Runtime.RunTests
                             || predictedLabel.EqualsStr("Iris-versicolor")
                             || predictedLabel.EqualsStr("Iris-virginica"));
                     }
+                }
+            }
+        }
+
+        [Fact]
+        public void EntryPointTreeLeafFeaturizer()
+        {
+            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
+            var cat = Categorical.CatTransformDict(Env, new CategoricalTransform.Arguments()
+            {
+                Data = dataView,
+                Column = new[] { new CategoricalTransform.Column { Name = "Categories", Source = "Categories" } }
+            });
+            var concat = SchemaManipulation.ConcatColumns(Env, new ConcatTransform.Arguments()
+            {
+                Data = cat.OutputData,
+                Column = new[] { new ConcatTransform.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
+            });
+
+            var fastTree = FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+            {
+                FeatureColumn = "Features",
+                NumLeaves = 80,
+                LabelColumn = DefaultColumnNames.Label,
+                TrainingData = concat.OutputData
+            });
+
+            var combine = ModelOperations.CombineModels(Env, new ModelOperations.PredictorModelInput()
+            {
+                PredictorModel = fastTree.PredictorModel,
+                TransformModels = new[] { cat.Model, concat.Model }
+            });
+
+            var treeLeaf = TreeFeaturize.Featurizer(Env, new TreeEnsembleFeaturizerTransform.ArgumentsForEntryPoint
+            {
+                Data = dataView,
+                PredictorModel = combine.PredictorModel
+            });
+
+            var view = treeLeaf.OutputData;
+            Assert.True(view.Schema.TryGetColumnIndex("Trees", out int col));
+            VBuffer<float> features = default(VBuffer<float>);
+            using (var curs = view.GetRowCursor(c => c == col))
+            {
+                var getter = curs.GetGetter<VBuffer<float>>(col);
+                while (curs.MoveNext())
+                {
+                    getter(ref features);
+                    Assert.True(features.Count > 0);
                 }
             }
         }
