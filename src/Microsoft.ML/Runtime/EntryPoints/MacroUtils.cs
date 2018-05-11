@@ -199,6 +199,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             if (type == typeof(Trainers.BinaryLogisticRegressor))
                 return trainerKind == TrainerKinds.SignatureBinaryClassifierTrainer;
+
             if (type == typeof(Trainers.LogisticRegressor))
                 return trainerKind == TrainerKinds.SignatureMultiClassClassifierTrainer;
 
