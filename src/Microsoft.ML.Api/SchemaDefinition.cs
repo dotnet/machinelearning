@@ -333,17 +333,8 @@ namespace Microsoft.ML.Runtime.Api
                 if (fieldInfo.GetCustomAttribute<NoColumnAttribute>() != null)
                     continue;
                 var mappingAttr = fieldInfo.GetCustomAttribute<ColumnAttribute>();
-                string attrName = null;
-                if (mappingAttr != null)
-                {
-                    attrName = mappingAttr.Name;
-                }
-                else
-                { 
-                    var mappingNameAttr = fieldInfo.GetCustomAttribute<ColumnNameAttribute>();
-                    attrName = mappingNameAttr != null ? mappingNameAttr.Name : null;
-                }
-                var name = attrName == null ? fieldInfo.Name : attrName;
+                var mappingNameAttr = fieldInfo.GetCustomAttribute<ColumnNameAttribute>();
+                string name = mappingAttr?.Name ?? mappingNameAttr?.Name ?? fieldInfo.Name;
                 // Disallow duplicate names, because the field enumeration order is not actually
                 // well defined, so we are not gauranteed to have consistent "hiding" from run to
                 // run, across different .NET versions.
