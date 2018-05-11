@@ -15,7 +15,6 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.PipelineInference;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -2521,77 +2520,6 @@ namespace Microsoft.ML.Runtime.RunTests
                     }
                 }
             }
-        }
-
-        [Fact]
-        public void EntryPointPipelineSweep()
-        {
-            // Get datasets
-            var pathData = GetDataPath(@"adult.tiny.with-schema.txt");
-            var pathDataTest = GetDataPath(@"adult.tiny.with-schema.txt");
-            const int numOfSampleRows = 1000;
-            int numIterations = 10;
-            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
-            var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain }).Data.Take(numOfSampleRows);
-            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
-            var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest }).Data.Take(numOfSampleRows);
-
-            // Define entrypoint graph
-            string inputGraph = @"
-                {
-                  'Nodes': [                                
-                    {
-                      'Name': 'Models.PipelineSweeper',
-                      'Inputs': {
-                        'TrainingData': '$TrainingData',
-                        'TestingData': '$TestingData',
-                        'StateArguments': {
-                            'Name': 'AutoMlState',
-                            'Settings': {
-                                'Metric': 'Auc',
-                                'Engine': {
-                                    'Name': 'UniformRandom'
-                                },
-                                'TerminatorArgs': {
-                                    'Name': 'IterationLimited',
-                                    'Settings': {
-                                        'FinalHistoryLength': 10
-                                    }
-                                },
-                                'TrainerKind': 'SignatureBinaryClassifierTrainer'
-                            }
-                        },
-                        'BatchSize': 5
-                      },
-                      'Outputs': {
-                        'State': '$StateOut',
-                        'Results': '$ResultsOut'
-                      }
-                    },
-                  ]
-                }";
-
-            JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
-            runner.SetInput("TrainingData", datasetTrain);
-            runner.SetInput("TestingData", datasetTest);
-            runner.RunAll();
-
-            var autoMlState = runner.GetOutput<AutoInference.AutoMlMlState>("StateOut");
-            Assert.NotNull(autoMlState);
-            var allPipelines = autoMlState.GetAllEvaluatedPipelines();
-            var bestPipeline = autoMlState.GetBestPipeline();
-            Assert.Equal(allPipelines.Length, numIterations);
-            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.1);
-
-            var results = runner.GetOutput<IDataView>("ResultsOut");
-            Assert.NotNull(results);
-            var rows = PipelinePattern.ExtractResults(Env, results, "Graph", "MetricValue", "PipelineId");
-            Assert.True(rows.Length == numIterations);
         }
     }
 }
