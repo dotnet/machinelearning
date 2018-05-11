@@ -873,11 +873,11 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 {
                     // read into buffer:
                     int readBytes;
-                    //long t = DateTime.UtcNow.Ticks;
+                    //long t = DateTimeOffset.Now.UtcDateTime.Ticks;
                     //long startPos = IOUtil.Win32.Raw.GetFilePos(handle);
                     bool readres = IOUtil.Win32.Raw.ReadFile(_handle, _alignedBuffer[_bufferFillIndex],
                         (int)Math.Min(_blockSize, _alignedLimit - _totalRead), out readBytes);
-                    //t = DateTime.UtcNow.Ticks - t;
+                    //t = DateTimeOffset.Now.UtcDateTime.Ticks - t;
                     //Console.WriteLine("core time: " + (t / (double)TimeSpan.TicksPerSecond).ToString("0.000"));
                     if (!readres)
                     {

@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Gets a DvDateTime object representing the current UTC date and time.
         /// </summary>
-        public static DvDateTime UtcNow { get { return new DvDateTime(SysDateTime.UtcNow); } }
+        public static DvDateTime UtcNow { get { return new DvDateTime(SysDateTimeOffset.Now.UtcDateTime); } }
 
         public bool IsNA
         {

@@ -145,7 +145,7 @@ namespace Microsoft.ML.Runtime.Tools
                         Path.GetTempPath(),
                         "TLC");
                     var dumpFilePath = Path.Combine(dumpFileDir,
-                        string.Format(CultureInfo.InvariantCulture, "Error_{0:yyyyMMdd_HHmmss}_{1}.log", DateTime.UtcNow, Guid.NewGuid()));
+                        string.Format(CultureInfo.InvariantCulture, "Error_{0:yyyyMMdd_HHmmss}_{1}.log", DateTimeOffset.Now.UtcDateTime, Guid.NewGuid()));
                     bool isDumpSaved = false;
                     try
                     {

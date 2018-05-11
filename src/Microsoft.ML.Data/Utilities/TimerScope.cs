@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             // REVIEW: This is \n\n is to prevent changes across bunch of baseline files.
             // Ideally we should change our comparison method to ignore empty lines.
-            _ch.Info("{0}\t Time elapsed(s): {1}\n\n", DateTime.UtcNow, elapsedSeconds);
+            _ch.Info("{0}\t Time elapsed(s): {1}\n\n", DateTimeOffset.Now.UtcDateTime, elapsedSeconds);
 
             using (var pipe = _host.StartPipe<TelemetryMessage>("TelemetryPipe"))
             {
