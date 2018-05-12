@@ -165,8 +165,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         private LassoFit GetLassoFit(IChannel ch, int maxAllowedFeaturesPerModel)
         {
-            Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();
+            Stopwatch stopWatch = Stopwatch.StartNew();
 
             if (maxAllowedFeaturesPerModel < 0)
             {
