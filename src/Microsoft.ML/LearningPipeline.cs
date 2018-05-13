@@ -84,7 +84,7 @@ namespace Microsoft.ML
         /// <para>
         /// Trainers:
         ///     <see cref="Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier"/>,
-        ///     <see cref="Microsoft.ML.Trainers.LogisticRegressor"/>,
+        ///     <see cref="Microsoft.ML.Trainers.LogisticRegressionClassifier"/>,
         ///     <see cref="Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier"/>,
         ///     <see cref="Microsoft.ML.Trainers.FastTreeRegressor"/>,
         ///     etc.

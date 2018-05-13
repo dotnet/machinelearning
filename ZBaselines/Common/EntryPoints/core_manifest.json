@@ -2840,318 +2840,6 @@
       ]
     },
     {
-      "Name": "Trainers.BinaryLogisticRegressor",
-      "Desc": "Train a logistic regression binary model",
-      "FriendlyName": "Logistic Regression",
-      "ShortName": "lr",
-      "Inputs": [
-        {
-          "Name": "TrainingData",
-          "Type": "DataView",
-          "Desc": "The data to be used for training",
-          "Aliases": [
-            "data"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "FeatureColumn",
-          "Type": "String",
-          "Desc": "Column to use for features",
-          "Aliases": [
-            "feat"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Features"
-        },
-        {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "Column to use for labels",
-          "Aliases": [
-            "lab"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
-          "Name": "WeightColumn",
-          "Type": "String",
-          "Desc": "Column to use for example weight",
-          "Aliases": [
-            "weight"
-          ],
-          "Required": false,
-          "SortOrder": 4.0,
-          "IsNullable": false,
-          "Default": "Weight"
-        },
-        {
-          "Name": "NormalizeFeatures",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "No",
-              "Warn",
-              "Auto",
-              "Yes"
-            ]
-          },
-          "Desc": "Normalize option for the feature column",
-          "Aliases": [
-            "norm"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "Caching",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Auto",
-              "Memory",
-              "Disk",
-              "None"
-            ]
-          },
-          "Desc": "Whether learner should cache input training data",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "ShowTrainingStats",
-          "Type": "Bool",
-          "Desc": "Show statistics of training examples.",
-          "Aliases": [
-            "stat"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": false
-        },
-        {
-          "Name": "L2Weight",
-          "Type": "Float",
-          "Desc": "L2 regularization weight",
-          "Aliases": [
-            "l2"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": 1.0,
-          "SweepRange": {
-            "RangeType": "Float",
-            "Min": 0.0,
-            "Max": 1.0,
-            "NumSteps": 4
-          }
-        },
-        {
-          "Name": "L1Weight",
-          "Type": "Float",
-          "Desc": "L1 regularization weight",
-          "Aliases": [
-            "l1"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": 1.0,
-          "SweepRange": {
-            "RangeType": "Float",
-            "Min": 0.0,
-            "Max": 1.0,
-            "NumSteps": 4
-          }
-        },
-        {
-          "Name": "OptTol",
-          "Type": "Float",
-          "Desc": "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
-          "Aliases": [
-            "ot"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": 1E-07,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              0.0001,
-              1E-07
-            ]
-          }
-        },
-        {
-          "Name": "MemorySize",
-          "Type": "Int",
-          "Desc": "Memory size for L-BFGS. Lower=faster, less accurate",
-          "Aliases": [
-            "m"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": 20,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              5,
-              20,
-              50
-            ]
-          }
-        },
-        {
-          "Name": "EnforceNonNegativity",
-          "Type": "Bool",
-          "Desc": "Enforce non-negative weights",
-          "Aliases": [
-            "nn"
-          ],
-          "Required": false,
-          "SortOrder": 90.0,
-          "IsNullable": false,
-          "Default": false
-        },
-        {
-          "Name": "InitWtsDiameter",
-          "Type": "Float",
-          "Desc": "Init weights diameter",
-          "Aliases": [
-            "initwts"
-          ],
-          "Required": false,
-          "SortOrder": 140.0,
-          "IsNullable": false,
-          "Default": 0.0,
-          "SweepRange": {
-            "RangeType": "Float",
-            "Min": 0.0,
-            "Max": 1.0,
-            "NumSteps": 5
-          }
-        },
-        {
-          "Name": "MaxIterations",
-          "Type": "Int",
-          "Desc": "Maximum iterations.",
-          "Aliases": [
-            "maxiter"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 2147483647,
-          "SweepRange": {
-            "RangeType": "Long",
-            "Min": 1,
-            "Max": 2147483647
-          }
-        },
-        {
-          "Name": "SgdInitializationTolerance",
-          "Type": "Float",
-          "Desc": "Run SGD to initialize LR weights, converging to this tolerance",
-          "Aliases": [
-            "sgd"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.0
-        },
-        {
-          "Name": "Quiet",
-          "Type": "Bool",
-          "Desc": "If set to true, produce no output during training.",
-          "Aliases": [
-            "q"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": false
-        },
-        {
-          "Name": "UseThreads",
-          "Type": "Bool",
-          "Desc": "Whether or not to use threads. Default is true",
-          "Aliases": [
-            "t"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": true
-        },
-        {
-          "Name": "NumThreads",
-          "Type": "Int",
-          "Desc": "Number of threads",
-          "Aliases": [
-            "nt"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null
-        },
-        {
-          "Name": "DenseOptimizer",
-          "Type": "Bool",
-          "Desc": "Force densification of the internal optimization vectors",
-          "Aliases": [
-            "do"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": false,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              false,
-              true
-            ]
-          }
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "InputKind": [
-        "ITrainerInputWithWeight",
-        "ITrainerInputWithLabel",
-        "ITrainerInput"
-      ],
-      "OutputKind": [
-        "IBinaryClassificationOutput",
-        "ITrainerOutput"
-      ]
-    },
-    {
       "Name": "Trainers.FastForestBinaryClassifier",
       "Desc": "Uses a random forest learner to perform binary classification.",
       "FriendlyName": "Fast Forest Classification",
@@ -9170,7 +8858,319 @@
       ]
     },
     {
-      "Name": "Trainers.LogisticRegressor",
+      "Name": "Trainers.LogisticRegressionBinaryClassifier",
+      "Desc": "Train a logistic regression binary model",
+      "FriendlyName": "Logistic Regression",
+      "ShortName": "lr",
+      "Inputs": [
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training",
+          "Aliases": [
+            "data"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String",
+          "Desc": "Column to use for features",
+          "Aliases": [
+            "feat"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "NormalizeFeatures",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "No",
+              "Warn",
+              "Auto",
+              "Yes"
+            ]
+          },
+          "Desc": "Normalize option for the feature column",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "Caching",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Auto",
+              "Memory",
+              "Disk",
+              "None"
+            ]
+          },
+          "Desc": "Whether learner should cache input training data",
+          "Aliases": [
+            "cache"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "ShowTrainingStats",
+          "Type": "Bool",
+          "Desc": "Show statistics of training examples.",
+          "Aliases": [
+            "stat"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "L2Weight",
+          "Type": "Float",
+          "Desc": "L2 regularization weight",
+          "Aliases": [
+            "l2"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 1.0,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.0,
+            "Max": 1.0,
+            "NumSteps": 4
+          }
+        },
+        {
+          "Name": "L1Weight",
+          "Type": "Float",
+          "Desc": "L1 regularization weight",
+          "Aliases": [
+            "l1"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 1.0,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.0,
+            "Max": 1.0,
+            "NumSteps": 4
+          }
+        },
+        {
+          "Name": "OptTol",
+          "Type": "Float",
+          "Desc": "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
+          "Aliases": [
+            "ot"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 1E-07,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              0.0001,
+              1E-07
+            ]
+          }
+        },
+        {
+          "Name": "MemorySize",
+          "Type": "Int",
+          "Desc": "Memory size for L-BFGS. Lower=faster, less accurate",
+          "Aliases": [
+            "m"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 20,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              5,
+              20,
+              50
+            ]
+          }
+        },
+        {
+          "Name": "EnforceNonNegativity",
+          "Type": "Bool",
+          "Desc": "Enforce non-negative weights",
+          "Aliases": [
+            "nn"
+          ],
+          "Required": false,
+          "SortOrder": 90.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "InitWtsDiameter",
+          "Type": "Float",
+          "Desc": "Init weights diameter",
+          "Aliases": [
+            "initwts"
+          ],
+          "Required": false,
+          "SortOrder": 140.0,
+          "IsNullable": false,
+          "Default": 0.0,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.0,
+            "Max": 1.0,
+            "NumSteps": 5
+          }
+        },
+        {
+          "Name": "MaxIterations",
+          "Type": "Int",
+          "Desc": "Maximum iterations.",
+          "Aliases": [
+            "maxiter"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 2147483647,
+          "SweepRange": {
+            "RangeType": "Long",
+            "Min": 1,
+            "Max": 2147483647
+          }
+        },
+        {
+          "Name": "SgdInitializationTolerance",
+          "Type": "Float",
+          "Desc": "Run SGD to initialize LR weights, converging to this tolerance",
+          "Aliases": [
+            "sgd"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.0
+        },
+        {
+          "Name": "Quiet",
+          "Type": "Bool",
+          "Desc": "If set to true, produce no output during training.",
+          "Aliases": [
+            "q"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "UseThreads",
+          "Type": "Bool",
+          "Desc": "Whether or not to use threads. Default is true",
+          "Aliases": [
+            "t"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "NumThreads",
+          "Type": "Int",
+          "Desc": "Number of threads",
+          "Aliases": [
+            "nt"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "DenseOptimizer",
+          "Type": "Bool",
+          "Desc": "Force densification of the internal optimization vectors",
+          "Aliases": [
+            "do"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              false,
+              true
+            ]
+          }
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "InputKind": [
+        "ITrainerInputWithWeight",
+        "ITrainerInputWithLabel",
+        "ITrainerInput"
+      ],
+      "OutputKind": [
+        "IBinaryClassificationOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
+      "Name": "Trainers.LogisticRegressionClassifier",
       "Desc": "Train a logistic regression multi class model",
       "FriendlyName": "Multi-class Logistic Regression",
       "ShortName": "mlr",
