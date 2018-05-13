@@ -13,7 +13,7 @@ dotnet add package Microsoft.ML
 
 From package manager:
 ```
-Install-Package Microsoft.ML
+Install-Package Microsoft.ML	
 ```
 
 Or from within Visual Studio's NuGet package manager.
