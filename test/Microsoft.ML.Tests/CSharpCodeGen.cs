@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]//(Skip = "Temporary solution(Windows ONLY) to regenerate codegenerated CSharpAPI.cs")]
+        [Fact(Skip = "Temporary solution(Windows ONLY) to regenerate codegenerated CSharpAPI.cs")]
         public void GenerateCSharpAPI()
         {
             var cSharpAPIPath = Path.Combine(RootDir, @"src\\Microsoft.ML\\CSharpApi.cs");
