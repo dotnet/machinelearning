@@ -95,7 +95,6 @@ namespace Microsoft.ML.Runtime.Data
         private readonly Column[] _columnsLoaded;
         private readonly DataSet _schemaDataSet;
         private const int _defaultColumnChunkReadSize = 1000000;
-        private const string _chunkSizeShortName = "chunkSize";
 
         private bool _disposed;
 
@@ -394,29 +393,25 @@ namespace Microsoft.ML.Runtime.Data
                 // The number of blocks is calculated based on the specified rows in a block (defaults to 1M).
                 // Since we want to shuffle the blocks in addition to shuffling the rows in each block, checks
                 // are put in place to ensure we can produce a shuffle order for the blocks.
-                int numBlocks;
-                int[] blockOrder;
-                try
+                long numBlocks;
+                IEnumerable<int> blockOrder;
+                numBlocks = MathUtils.DivisionCeiling((long)parent.GetRowCount(), _readerOptions.Count);
+                if (numBlocks > int.MaxValue)
                 {
-                    numBlocks = checked((int)Math.Ceiling(((decimal)parent.GetRowCount() / _readerOptions.Count)));
-                }
-                catch (OverflowException)
-                {
-                    // this exception is thrown when number of blocks exceeds int.MaxValue
-                    throw _loader._host.ExceptParam("ColumnChunkReadSize", "Error due to too many blocks. Try increasing block size.");
+                    throw _loader._host.ExceptParam(nameof(Arguments.ColumnChunkReadSize), "Error due to too many blocks. Try increasing block size.");
                 }
                 try
                 {
-                    blockOrder = _rand == null ? Utils.GetIdentityPermutation(numBlocks) : Utils.GetRandomPermutation(rand, numBlocks);
+                    blockOrder = _rand == null ? Enumerable.Range(0, (int)numBlocks) : Utils.GetRandomPermutation(rand, (int)numBlocks);
                 }
                 catch (OutOfMemoryException)
                 {
-                    // This exception is thrown when attempting to create an array of more than ~300M elements
-                    throw _loader._host.ExceptParam(_chunkSizeShortName, "Error due to too many blocks. Try increasing block size.");
+                    // if unable to create a shuffled sequence, default to sequential reading.
+                    blockOrder = Enumerable.Range(0, (int)numBlocks);
                 }
-                _blockEnumerator = blockOrder.Cast<int>().GetEnumerator();
+                _blockEnumerator = blockOrder.GetEnumerator();
 
-                _dataSetEnumerator = new int[0].Cast<int>().GetEnumerator(); // Initialize an empty enumerator to get started
+                _dataSetEnumerator = Enumerable.Empty<int>().GetEnumerator();
                 _columnValues = new IList[_actives.Length];
                 _getters = new Delegate[_actives.Length];
                 for (int i = 0; i < _actives.Length; ++i)
@@ -508,18 +503,18 @@ namespace Microsoft.ML.Runtime.Data
                         ds = ParquetReader.Read(_loader._parquetStream, _loader._parquetOptions, _readerOptions);
                     }
 
-                    int[] dataSetOrder;
+                    IEnumerable<int> dataSetOrder;
                     try
                     {
-                        dataSetOrder = _rand == null ? Utils.GetIdentityPermutation(ds.RowCount) : Utils.GetRandomPermutation(_rand, ds.RowCount);
+                        dataSetOrder = _rand == null ? Enumerable.Range(0, ds.RowCount) : Utils.GetRandomPermutation(_rand, ds.RowCount);
                     }
                     catch (OutOfMemoryException)
                     {
-                        // This exception will be thrown when trying to create an array that is too big.
-                        throw _loader._host.ExceptParam(_chunkSizeShortName, "Error caused because block size is too big. Try decreasing block size.");
+                        // if unable to create a shuffled sequence, default to sequential reading.
+                        dataSetOrder = Enumerable.Range(0, ds.RowCount);
                     }
-                    _dataSetEnumerator = dataSetOrder.Cast<int>().GetEnumerator();
-                    _curDataSetRow = dataSetOrder[0];
+                    _dataSetEnumerator = dataSetOrder.GetEnumerator();
+                    _curDataSetRow = dataSetOrder.ElementAt(0);
 
                     // Cache list for each active column
                     for (int i = 0; i < _actives.Length; i++)
