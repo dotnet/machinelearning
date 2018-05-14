@@ -65,11 +65,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var col1 = new KeyValuePair<string, ColumnType>("Graph", TextType.Instance);
             var col2 = new KeyValuePair<string, ColumnType>("MetricValue", PrimitiveType.FromKind(DataKind.R8));
             var col3 = new KeyValuePair<string, ColumnType>("PipelineId", TextType.Instance);
+            var col4 = new KeyValuePair<string, ColumnType>("TrainingMetricValue", PrimitiveType.FromKind(DataKind.R8));
+            var col5 = new KeyValuePair<string, ColumnType>("FirstInput", TextType.Instance);
+            var col6 = new KeyValuePair<string, ColumnType>("PredictorModel", TextType.Instance);
 
             if (rows.Count == 0)
             {
                 var host = env.Register("ExtractSweepResult");
-                outputView = new EmptyDataView(host, new SimpleSchema(host, col1, col2, col3));
+                outputView = new EmptyDataView(host, new SimpleSchema(host, col1, col2, col3, col4, col5, col6));
             }
             else
             {
@@ -77,6 +80,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 builder.AddColumn(col1.Key, (PrimitiveType)col1.Value, rows.Select(r => new DvText(r.GraphJson)).ToArray());
                 builder.AddColumn(col2.Key, (PrimitiveType)col2.Value, rows.Select(r => r.MetricValue).ToArray());
                 builder.AddColumn(col3.Key, (PrimitiveType)col3.Value, rows.Select(r => new DvText(r.PipelineId)).ToArray());
+                builder.AddColumn(col4.Key, (PrimitiveType)col4.Value, rows.Select(r => r.TrainingMetricValue).ToArray());
+                builder.AddColumn(col5.Key, (PrimitiveType)col5.Value, rows.Select(r => new DvText(r.FirstInput)).ToArray());
+                builder.AddColumn(col6.Key, (PrimitiveType)col6.Value, rows.Select(r => new DvText(r.PredictorModel)).ToArray());
                 outputView = builder.GetDataView();
             }
             return new Output { Results = outputView, State = autoMlState };
@@ -132,11 +138,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Extract performance summaries and assign to previous candidate pipelines.
             foreach (var pipeline in autoMlState.BatchCandidates)
             {
-                if (node.Context.TryGetVariable(ExperimentUtils.GenerateOverallMetricVarName(pipeline.UniqueId),
-                    out var v))
+                if (node.Context.TryGetVariable(ExperimentUtils.GenerateOverallMetricVarName(pipeline.UniqueId), out var v) &&
+                    node.Context.TryGetVariable(AutoMlUtils.GenerateOverallTrainingMetricVarName(pipeline.UniqueId), out var v2))
                 {
                     pipeline.PerformanceSummary =
-                        AutoMlUtils.ExtractRunSummary(env, (IDataView)v.Value, autoMlState.Metric.Name);
+                        AutoMlUtils.ExtractRunSummary(env, (IDataView)v.Value, autoMlState.Metric.Name, (IDataView)v2.Value);
                     autoMlState.AddEvaluated(pipeline);
                 }
             }
@@ -168,14 +174,17 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 // Add train test experiments to current graph for candidate pipeline
                 var subgraph = new Experiment(env);
-                var trainTestOutput = p.AddAsTrainTest(training, testing, autoMlState.TrainerKind, subgraph);
+                var trainTestOutput = p.AddAsTrainTest(training, testing, autoMlState.TrainerKind, subgraph, true);
 
                 // Change variable name to reference pipeline ID in output map, context and entrypoint output.
                 var uniqueName = ExperimentUtils.GenerateOverallMetricVarName(p.UniqueId);
+                var uniqueNameTraining = AutoMlUtils.GenerateOverallTrainingMetricVarName(p.UniqueId);
                 var sgNode = EntryPointNode.ValidateNodes(env, node.Context,
                     new JArray(subgraph.GetNodes().Last()), node.Catalog).Last();
                 sgNode.RenameOutputVariable(trainTestOutput.OverallMetrics.VarName, uniqueName, cascadeChanges: true);
+                sgNode.RenameOutputVariable(trainTestOutput.TrainingOverallMetrics.VarName, uniqueNameTraining, cascadeChanges: true);
                 trainTestOutput.OverallMetrics.VarName = uniqueName;
+                trainTestOutput.TrainingOverallMetrics.VarName = uniqueNameTraining;
                 expNodes.Add(sgNode);
 
                 // Store indicators, to pass to next iteration of macro.
