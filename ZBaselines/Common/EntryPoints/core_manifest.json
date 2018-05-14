@@ -384,16 +384,16 @@
                 "Default": null
               },
               {
-                "Name": "Separator",
-                "Type": "String",
-                "Desc": "Source column separator. Options: tab, space, comma, single character",
+                "Name": "Delimiter",
+                "Type": "Char",
+                "Desc": "Source column separator. Option: single character ONLY",
                 "Aliases": [
-                  "sep"
+                  "del"
                 ],
                 "Required": false,
                 "SortOrder": 150.0,
                 "IsNullable": false,
-                "Default": "tab"
+                "Default": "\t"
               },
               {
                 "Name": "TrimWhitespace",

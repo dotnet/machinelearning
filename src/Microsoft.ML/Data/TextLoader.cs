@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,9 +22,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="inputFilePath">Data file path</param>
         /// <param name="useHeader">Does the file contains header?</param>
-        /// <param name="separator">How the columns are seperated? 
-        /// Options: separator="tab", separator="space", separator="comma" or separator=[single character]. 
-        /// By default separator=null means "tab"</param>
+        /// <param name="delimeter">Column delimter. Default is '\t' or tab.</param>
         /// <param name="allowQuotedStrings">Whether the input may include quoted values, 
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators 
@@ -34,7 +33,7 @@ namespace Microsoft.ML.Data
         /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         public TextLoader(string inputFilePath, bool useHeader = false,
-            string separator = null, bool allowQuotedStrings = true,
+            char delimeter = '\t', bool allowQuotedStrings = true,
             bool supportSparse = true, bool trimWhitespace = false) : base(inputFilePath)
         {
             var fields = typeof(TInput).GetFields();
@@ -54,19 +53,17 @@ namespace Microsoft.ML.Data
                 if (name.Any(c => !Char.IsLetterOrDigit(c)))
                     throw Contracts.Except($"{name} is not alphanumeric.");
 
-                if(separator != null)
-                {
-                    if(separator != "space" && separator != "tab" && separator != "comma" && separator.Length > 1)
-                        throw Contracts.Except($"{nameof(separator)} can only be one of the following: space, tab, comma" +
-                            $" or a single character.");
-                }
-
+                DataKind dk;
+                (field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType).TryGetDataKind(out dk);
                 var col = Runtime.Data.TextLoader.Column.Parse(
                     $"{name}:" +
-                    $"{TypeToName(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType)}:" +
+                    $"{dk.ToString()}:" +
                     $"{mappingAttr.Ordinal}"
                     );
-                
+
+                if(col == null)
+                    throw Contracts.Except($"Could not generate column for {name}");
+
                 TextLoaderColumn tlc = new TextLoaderColumn();
                 if (col.KeyRange != null)
                 {
@@ -95,22 +92,10 @@ namespace Microsoft.ML.Data
             }
 
             Arguments.HasHeader = useHeader;
-            Arguments.Separator = separator;
+            Arguments.Delimiter = delimeter;
             Arguments.AllowQuoting = allowQuotedStrings;
             Arguments.AllowSparse = supportSparse;
             Arguments.TrimWhitespace = trimWhitespace;
-        }
-
-        private string TypeToName(Type type)
-        {
-            if (type == typeof(string))
-                return "TX";
-            else if (type == typeof(float) || type == typeof(double))
-                return "R4";
-            else if (type == typeof(bool))
-                return "BL";
-            else
-                throw new Exception("Type not implemented or supported."); //Add more types.
         }
     }
 }

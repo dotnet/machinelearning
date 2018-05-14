@@ -894,10 +894,11 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             var classAndMethod = GeneratorUtils.GetClassAndMethodNames(entryPointInfo);
             string classBase = "";
             if (entryPointInfo.InputKinds != null)
+            {
                 classBase += $" : {string.Join(", ", entryPointInfo.InputKinds.Select(GeneratorUtils.GetCSharpTypeName))}";
-
-            if (classBase.Contains("ITransformInput") || classBase.Contains("ITrainerInput"))
-                classBase += ", Microsoft.ML.ILearningPipelineItem";
+                if (entryPointInfo.InputKinds.Any(t => typeof(ITrainerInput).IsAssignableFrom(t) || typeof(ITransformInput).IsAssignableFrom(t)))
+                    classBase += ", Microsoft.ML.ILearningPipelineItem";
+            }
 
             GenerateEnums(writer, entryPointInfo.InputType, classAndMethod.Item1);
             writer.WriteLine();
@@ -906,13 +907,16 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             foreach (var line in entryPointInfo.Description.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                 writer.WriteLine($"/// {line}");
             writer.WriteLine("/// </summary>");
+            
+            if(entryPointInfo.ObsoleteAttribute != null)
+                writer.WriteLine($"[Obsolete(\"{entryPointInfo.ObsoleteAttribute.Message}\")]");
 
             string seal = entryPointInfo.NoSeal ? "" : "sealed ";
             writer.WriteLine($"public {seal}partial class {classAndMethod.Item2}{classBase}");
             writer.WriteLine("{");
             writer.Indent();
             writer.WriteLine();
-            if (classBase.Contains("ILearningPipelineLoader"))
+            if (entryPointInfo.InputKinds != null && entryPointInfo.InputKinds.Any(t => typeof(ILearningPipelineLoader).IsAssignableFrom(t)))
                 GenerateLoaderAddInputMethod(writer, classAndMethod.Item2);
 
             GenerateColumnAddMethods(writer, entryPointInfo.InputType, catalog, classAndMethod.Item2, out Type transformType);

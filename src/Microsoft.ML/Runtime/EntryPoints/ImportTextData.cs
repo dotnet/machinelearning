@@ -43,6 +43,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView Data;
         }
 
+#pragma warning disable 0618
+        [Obsolete("Use TextLoader instead.", false)]
         [TlcModule.EntryPoint(Name = "Data.CustomTextLoader", Desc = "Import a dataset from a text file")]
         public static Output ImportText(IHostEnvironment env, Input input)
         {

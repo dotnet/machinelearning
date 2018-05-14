@@ -29,7 +29,7 @@ namespace Microsoft.ML.Scenarios
             {
                 Arguments = new TextLoaderArguments
                 {
-                    Separator = "tab",
+                    Delimiter = '\t',
                     HasHeader = true,
                     Column = new[]
                     {
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Scenarios
             {
                 Arguments = new TextLoaderArguments
                 {
-                    Separator = "tab",
+                    Delimiter = '\t',
                     HasHeader = true,
                     Column = new[]
                     {

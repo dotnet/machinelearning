@@ -294,8 +294,11 @@ namespace Microsoft.ML.Runtime.Data
                 ShortName = "size")]
             public int? InputSize;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
             public string Separator = "tab";
+
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator. Option: single character ONLY", ShortName = "del")]
+            public char Delimiter = '\t';
 
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
                 ShortName = "col", SortOrder = 1)]
@@ -317,7 +320,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public class Arguments : ArgumentsCore
+        public sealed class Arguments : ArgumentsCore
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use separate parsing threads?", ShortName = "threads", Hide = true)]
             public bool UseThreads = true;
@@ -1005,26 +1008,32 @@ namespace Microsoft.ML.Runtime.Data
                 _inputSize = SrcLim - 1;
 
             _host.CheckNonEmpty(args.Separator, nameof(args.Separator), "Must specify a separator");
-            string sep = args.Separator.ToLowerInvariant();
+            _host.CheckNonEmpty(args.Delimiter.ToString(), nameof(args.Delimiter), "Must specify a delimeter");
 
-            if (sep == ",")
-                _separators = new char[] { ',' };
+            if (args.Delimiter != '\t')
+                _separators = new char[] { args.Delimiter };
             else
             {
-                var separators = new HashSet<char>();
-                foreach (string s in sep.Split(','))
-                {
-                    if (string.IsNullOrEmpty(s))
-                        continue;
-
-                    char c = NormalizeSeparator(s);
-                    separators.Add(c);
-                }
-                _separators = separators.ToArray();
-
-                // Handling ",,,," case, that .Split() returns empty strings.
-                if (_separators.Length == 0)
+                string sep = args.Separator.ToLowerInvariant();
+                if (sep == ",")
                     _separators = new char[] { ',' };
+                else
+                {
+                    var separators = new HashSet<char>();
+                    foreach (string s in sep.Split(','))
+                    {
+                        if (string.IsNullOrEmpty(s))
+                            continue;
+
+                        char c = NormalizeSeparator(s);
+                        separators.Add(c);
+                    }
+                    _separators = separators.ToArray();
+
+                    // Handling ",,,," case, that .Split() returns empty strings.
+                    if (_separators.Length == 0)
+                        _separators = new char[] { ',' };
+                }
             }
 
             _bindings = new Bindings(this, cols, headerFile);
