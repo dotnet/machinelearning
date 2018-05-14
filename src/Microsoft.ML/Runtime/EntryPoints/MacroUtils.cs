@@ -197,10 +197,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         public static bool IsTrainerOfKind(Type type, TrainerKinds trainerKind)
         {
-            if (type == typeof(Trainers.BinaryLogisticRegressor))
+            if (type == typeof(Trainers.LogisticRegressionBinaryClassifier))
                 return trainerKind == TrainerKinds.SignatureBinaryClassifierTrainer;
 
-            if (type == typeof(Trainers.LogisticRegressor))
+            if (type == typeof(Trainers.LogisticRegressionClassifier))
                 return trainerKind == TrainerKinds.SignatureMultiClassClassifierTrainer;
 
             if (trainerKind != TrainerKinds.SignatureMultiClassClassifierTrainer && trainerKind != TrainerKinds.SignatureMultiOutputRegressorTrainer)
