@@ -21,16 +21,24 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             public string GraphJson { get; }
             public double MetricValue { get; }
+            public double TrainingMetricValue { get; }
             public string PipelineId { get; }
+            public string FirstInput { get; }
+            public string PredictorModel { get; }
 
             public PipelineResultRow()
             { }
 
-            public PipelineResultRow(string graphJson, double metricValue, string pipelineId)
+            public PipelineResultRow(string graphJson, double metricValue,
+                string pipelineId, double trainingMetricValue, string firstInput,
+                string predictorModel)
             {
                 GraphJson = graphJson;
                 MetricValue = metricValue;
                 PipelineId = pipelineId;
+                TrainingMetricValue = trainingMetricValue;
+                FirstInput = firstInput;
+                PredictorModel = predictorModel;
             }
         }
 
@@ -111,7 +119,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public bool Equals(PipelinePattern obj) => obj != null && UniqueId == obj.UniqueId;
 
         // REVIEW: We may want to allow for sweeping with CV in the future, so we will need to add new methods like this, or refactor these in that case.
-        public Experiment CreateTrainTestExperiment(IDataView trainData, IDataView testData, MacroUtils.TrainerKinds trainerKind, out Models.TrainTestEvaluator.Output resultsOutput)
+        public Experiment CreateTrainTestExperiment(IDataView trainData, IDataView testData, MacroUtils.TrainerKinds trainerKind,
+                bool includeTrainingMetrics, out Models.TrainTestEvaluator.Output resultsOutput)
         {
             var graphDef = ToEntryPointGraph();
             var subGraph = graphDef.Graph;
@@ -136,7 +145,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         Model = finalOutput
                     },
                 PipelineId = UniqueId.ToString("N"),
-                Kind = MacroUtils.TrainerKindApiValue<Models.MacroUtilsTrainerKinds>(trainerKind)
+                Kind = MacroUtils.TrainerKindApiValue<Models.MacroUtilsTrainerKinds>(trainerKind),
+                IncludeTrainingMetrics = includeTrainingMetrics
             };
 
             var experiment = _env.CreateExperiment();
@@ -150,7 +160,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         }
 
         public Models.TrainTestEvaluator.Output AddAsTrainTest(Var<IDataView> trainData, Var<IDataView> testData,
-            MacroUtils.TrainerKinds trainerKind, Experiment experiment = null)
+            MacroUtils.TrainerKinds trainerKind, Experiment experiment = null, bool includeTrainingMetrics = false)
         {
             experiment = experiment ?? _env.CreateExperiment();
             var graphDef = ToEntryPointGraph(experiment);
@@ -174,7 +184,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 TrainingData = trainData,
                 TestingData = testData,
                 Kind = MacroUtils.TrainerKindApiValue<Models.MacroUtilsTrainerKinds>(trainerKind),
-                PipelineId = UniqueId.ToString("N")
+                PipelineId = UniqueId.ToString("N"),
+                IncludeTrainingMetrics = includeTrainingMetrics
             };
             var trainTestOutput = experiment.Add(trainTestInput);
             return trainTestOutput;
@@ -183,25 +194,40 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// <summary>
         /// Runs a train-test experiment on the current pipeline, through entrypoints.
         /// </summary>
-        public double RunTrainTestExperiment(IDataView trainData, IDataView testData, AutoInference.SupportedMetric metric, MacroUtils.TrainerKinds trainerKind)
+        public Tuple<double, double> RunTrainTestExperiment(IDataView trainData, IDataView testData, AutoInference.SupportedMetric metric, MacroUtils.TrainerKinds trainerKind)
         {
-            var experiment = CreateTrainTestExperiment(trainData, testData, trainerKind, out var trainTestOutput);
+            var experiment = CreateTrainTestExperiment(trainData, testData, trainerKind, true, out var trainTestOutput);
             experiment.Run();
+
             var dataOut = experiment.GetOutput(trainTestOutput.OverallMetrics);
             var schema = dataOut.Schema;
             schema.TryGetColumnIndex(metric.Name, out var metricCol);
+            double metricValue = 0;
+            double trainingMetricValue = 0;
 
             using (var cursor = dataOut.GetRowCursor(col => col == metricCol))
             {
                 var getter = cursor.GetGetter<double>(metricCol);
-                double metricValue = 0;
                 cursor.MoveNext();
                 getter(ref metricValue);
-                return metricValue;
+            }
+
+            dataOut = experiment.GetOutput(trainTestOutput.TrainingOverallMetrics);
+            schema = dataOut.Schema;
+            schema.TryGetColumnIndex(metric.Name, out metricCol);
+
+            using (var cursor = dataOut.GetRowCursor(col => col == metricCol))
+            {
+                var getter = cursor.GetGetter<double>(metricCol);
+                cursor.MoveNext();
+                getter(ref trainingMetricValue);
+                return new Tuple<double, double>(metricValue, trainingMetricValue);
             }
         }
 
-        public static PipelineResultRow[] ExtractResults(IHostEnvironment env, IDataView data, string graphColName, string metricColName, string idColName)
+        public static PipelineResultRow[] ExtractResults(IHostEnvironment env, IDataView data,
+            string graphColName, string metricColName, string idColName, string trainingMetricColName,
+            string firstInputColName, string predictorModelColName)
         {
             var results = new List<PipelineResultRow>();
             var schema = data.Schema;
@@ -209,8 +235,14 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 throw env.ExceptNotSupp($"Column name {graphColName} not found");
             if (!schema.TryGetColumnIndex(metricColName, out var metricCol))
                 throw env.ExceptNotSupp($"Column name {metricColName} not found");
+            if (!schema.TryGetColumnIndex(trainingMetricColName, out var trainingMetricCol))
+                throw env.ExceptNotSupp($"Column name {trainingMetricColName} not found");
             if (!schema.TryGetColumnIndex(idColName, out var pipelineIdCol))
                 throw env.ExceptNotSupp($"Column name {idColName} not found");
+            if (!schema.TryGetColumnIndex(firstInputColName, out var firstInputCol))
+                throw env.ExceptNotSupp($"Column name {firstInputColName} not found");
+            if (!schema.TryGetColumnIndex(predictorModelColName, out var predictorModelCol))
+                throw env.ExceptNotSupp($"Column name {predictorModelColName} not found");
 
             using (var cursor = data.GetRowCursor(col => true))
             {
@@ -225,15 +257,33 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     var getter3 = cursor.GetGetter<DvText>(pipelineIdCol);
                     DvText pipelineId = new DvText();
                     getter3(ref pipelineId);
-                    results.Add(new PipelineResultRow(graphJson.ToString(), metricValue, pipelineId.ToString()));
+                    var getter4 = cursor.GetGetter<double>(trainingMetricCol);
+                    double trainingMetricValue = 0;
+                    getter4(ref trainingMetricValue);
+                    var getter5 = cursor.GetGetter<DvText>(firstInputCol);
+                    DvText firstInput = new DvText();
+                    getter5(ref firstInput);
+                    var getter6 = cursor.GetGetter<DvText>(predictorModelCol);
+                    DvText predictorModel = new DvText();
+                    getter6(ref predictorModel);
+
+                    results.Add(new PipelineResultRow(graphJson.ToString(),
+                        metricValue, pipelineId.ToString(), trainingMetricValue,
+                        firstInput.ToString(), predictorModel.ToString()));
                 }
             }
 
             return results.ToArray();
         }
 
-        public PipelineResultRow ToResultRow() =>
-            new PipelineResultRow(ToEntryPointGraph().Graph.ToJsonString(),
-                PerformanceSummary?.MetricValue ?? -1d, UniqueId.ToString("N"));
+        public PipelineResultRow ToResultRow() {
+            var graphDef = ToEntryPointGraph();
+
+            return new PipelineResultRow($"{{'Nodes' : [{graphDef.Graph.ToJsonString()}]}}",
+                PerformanceSummary?.MetricValue ?? -1d, UniqueId.ToString("N"),
+                PerformanceSummary?.TrainingMetricValue ?? -1d,
+                graphDef.GetSubgraphFirstNodeDataVarName(_env),
+                graphDef.ModelOutput.VarName);
+        }
     }
 }

@@ -172,12 +172,14 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public sealed class RunSummary
         {
             public double MetricValue { get; }
+            public double TrainingMetricValue { get; }
             public int NumRowsInTraining { get; }
             public long RunTimeMilliseconds { get; }
 
-            public RunSummary(double metricValue, int numRows, long runTimeMilliseconds)
+            public RunSummary(double metricValue, int numRows, long runTimeMilliseconds, double trainingMetricValue)
             {
                 MetricValue = metricValue;
+                TrainingMetricValue = trainingMetricValue;
                 NumRowsInTraining = numRows;
                 RunTimeMilliseconds = runTimeMilliseconds;
             }
@@ -303,7 +305,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 var stopwatch = new Stopwatch();
                 var probabilityUtils = new Sweeper.Algorithms.SweeperProbabilityUtils(_host);
 
-                 while (!_terminator.ShouldTerminate(_history))
+                while (!_terminator.ShouldTerminate(_history))
                 {
                     // Get next set of candidates
                     var currentBatchSize = batchSize;
@@ -341,16 +343,18 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 // Run pipeline, and time how long it takes
                 stopwatch.Restart();
-                double d = candidate.RunTrainTestExperiment(_trainData.Take(randomizedNumberOfRows),
+                Tuple<double, double> result = candidate.RunTrainTestExperiment(_trainData.Take(randomizedNumberOfRows),
                     _testData, Metric, TrainerKind);
                 stopwatch.Stop();
+                double d = result.Item1;
+                double d2 = result.Item2;
 
                 // Handle key collisions on sorted list
                 while (_sortedSampledElements.ContainsKey(d))
                     d += 1e-10;
 
                 // Save performance score
-                candidate.PerformanceSummary = new RunSummary(d, randomizedNumberOfRows, stopwatch.ElapsedMilliseconds);
+                candidate.PerformanceSummary = new RunSummary(d, randomizedNumberOfRows, stopwatch.ElapsedMilliseconds, d2);
                 _sortedSampledElements.Add(candidate.PerformanceSummary.MetricValue, candidate);
                 _history.Add(candidate);
             }

@@ -15,21 +15,35 @@ namespace Microsoft.ML.Runtime.PipelineInference
 {
     public static class AutoMlUtils
     {
-        public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView data, string metricColumnName)
+        public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
         {
             double metricValue = 0;
+            double trainingMetricValue = -1d;
             int numRows = 0;
-            var schema = data.Schema;
+            var schema = result.Schema;
             schema.TryGetColumnIndex(metricColumnName, out var metricCol);
 
-            using (var cursor = data.GetRowCursor(col => col == metricCol))
+            using (var cursor = result.GetRowCursor(col => col == metricCol))
             {
                 var getter = cursor.GetGetter<double>(metricCol);
                 cursor.MoveNext();
                 getter(ref metricValue);
             }
 
-            return new AutoInference.RunSummary(metricValue, numRows, 0);
+            if (trainResult != null)
+            {
+                var trainSchema = trainResult.Schema;
+                trainSchema.TryGetColumnIndex(metricColumnName, out var trainingMetricCol);
+
+                using (var cursor = trainResult.GetRowCursor(col => col == trainingMetricCol))
+                {
+                    var getter = cursor.GetGetter<double>(trainingMetricCol);
+                    cursor.MoveNext();
+                    getter(ref trainingMetricValue);
+                }
+            }
+
+            return new AutoInference.RunSummary(metricValue, numRows, 0, trainingMetricValue);
         }
 
         public static CommonInputs.IEvaluatorInput CloneEvaluatorInstance(CommonInputs.IEvaluatorInput evalInput) =>
@@ -618,5 +632,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
             return results;
         }
+
+        public static string GenerateOverallTrainingMetricVarName(Guid id) => $"Var_Training_OM_{id:N}";
     }
 }
