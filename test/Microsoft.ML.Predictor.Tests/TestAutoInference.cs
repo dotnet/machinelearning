@@ -291,21 +291,21 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             //using (var env = new TlcEnvironment())
             //{
-                //string pathData = GetDataPath(@"../UnitTest/tweets_labeled_10k_test_validation.tsv");
-                //int batchSize = 5;
-                //int numIterations = 35;
-                //int numTransformLevels = 1;
-                //int numSampleRows = 100;
-                //AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.AccuracyMicro;
+            //string pathData = GetDataPath(@"../UnitTest/tweets_labeled_10k_test_validation.tsv");
+            //int batchSize = 5;
+            //int numIterations = 35;
+            //int numTransformLevels = 1;
+            //int numSampleRows = 100;
+            //AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.AccuracyMicro;
 
-                //// Using the simple, uniform random sampling (with replacement) engine
-                //PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(env);
+            //// Using the simple, uniform random sampling (with replacement) engine
+            //PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(env);
 
-                //// Test initial learning
-                //var amls = AutoInference.InferPipelines(env, autoMlEngine, pathData, "", out var _, numTransformLevels, batchSize,
-                    //metric, out var _, numSampleRows, new IterationTerminator(numIterations),
-                    //MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer);
-                //env.Check(amls.GetAllEvaluatedPipelines().Length == numIterations);
+            //// Test initial learning
+            //var amls = AutoInference.InferPipelines(env, autoMlEngine, pathData, "", out var _, numTransformLevels, batchSize,
+            //metric, out var _, numSampleRows, new IterationTerminator(numIterations),
+            //MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer);
+            //env.Check(amls.GetAllEvaluatedPipelines().Length == numIterations);
             //}
             //Done();
         }
@@ -351,12 +351,12 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestSupportedMetricsByName()
         {
             //var fields =
-                    //typeof(AutoInference.SupportedMetric).GetMembers(BindingFlags.Static | BindingFlags.Public)
-                    //.Where(s => s.MemberType == MemberTypes.Field);
+            //typeof(AutoInference.SupportedMetric).GetMembers(BindingFlags.Static | BindingFlags.Public)
+            //.Where(s => s.MemberType == MemberTypes.Field);
             //foreach (var field in fields)
             //{
-                //var metric = AutoInference.SupportedMetric.ByName(field.Name);
-                //Assert.IsTrue(metric?.Name == field.Name);
+            //var metric = AutoInference.SupportedMetric.ByName(field.Name);
+            //Assert.IsTrue(metric?.Name == field.Name);
             //}
 
         }
@@ -421,8 +421,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
             //// Run initial experiments
             //var amls = AutoInference.InferPipelines(Env, autoMlBrain, pathData, "", out var _, numTransformLevels, batchSize,
-                //metric, out var bestPipeline, numOfSampleRows, new IterationTerminator(numIterations),
-                //MacroUtils.TrainerKinds.SignatureRegressorTrainer);
+            //metric, out var bestPipeline, numOfSampleRows, new IterationTerminator(numIterations),
+            //MacroUtils.TrainerKinds.SignatureRegressorTrainer);
 
             //// Allow for one more iteration
             //amls.UpdateTerminator(new IterationTerminator(numIterations + 1));
@@ -433,7 +433,7 @@ namespace Microsoft.ML.Runtime.RunTests
             //// Make sure hyperparameter value did not change
             //Assert.IsNotNull(bestPipeline);
             //Assert.IsTrue(amls.GetAllEvaluatedPipelines().All(
-                //p => p.PerformanceSummary.MetricValue >= bestPipeline.PerformanceSummary.MetricValue));
+            //p => p.PerformanceSummary.MetricValue >= bestPipeline.PerformanceSummary.MetricValue));
         }
 
         [Fact(Skip = "Need CoreTLC specific baseline update")]
@@ -453,8 +453,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
             //// Run initial experiment.
             //var amls = AutoInference.InferPipelines(Env, autoMlBrain, pathData, "", out var _,
-                //numTransformLevels, batchSize, metric, out var _, numOfSampleRows,
-                //new IterationTerminator(numIterations), MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer);
+            //numTransformLevels, batchSize, metric, out var _, numOfSampleRows,
+            //new IterationTerminator(numIterations), MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer);
 
             //// Keep only logistic regression and FastTree.
             //amls.KeepSelectedLearners(retainedLearnerNames);
@@ -473,59 +473,59 @@ namespace Microsoft.ML.Runtime.RunTests
             //var pathDataTest = GetDataPath(@"../UCI", "adult.test");
             //const int numOfSampleRows = 100;
             //const string schema =
-                //"sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
-                //"col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
+            //"sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
+            //"col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
             //var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
             //var datasetTrain = ImportTextData.ImportText(Env,
-                //new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
+            //new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
             //var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
             //var datasetTest = ImportTextData.ImportText(Env,
-                //new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
+            //new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
             //var prefix = "Microsoft.ML.Api.Experiment";
             //var requestedLearners = new[] { $"{prefix}.LogisticRegression", $"{prefix}.FastTree" };
 
             //// Define entrypoint graph
             //string inputGraph = @"
-                //{
-                  //'Nodes': [                                
-                    //{
-                      //'Name': 'Commands.PipelineSweep',
-                      //'Inputs': {
-                        //'TrainingData': '$TrainingData',
-                        //'TestingData': '$TestingData',
-                        //'StateArguments': {
-                            //'Name': 'AutoMlState',
-                            //'Settings': {
-                                //'Metric': 'Auc',
-                                //'Engine': {
-                                    //'Name': 'Rocket',
-                                    //'Settings' : {
-                                        //'TopKLearners' : 2,
-                                        //'SecondRoundTrialsPerLearner' : 0
-                                    //},
-                                //},
-                                //'TerminatorArgs': {
-                                    //'Name': 'IterationLimited',
-                                    //'Settings': {
-                                        //'FinalHistoryLength': 35
-                                    //}
-                                //},
-                                //'TrainerKind': 'SignatureBinaryClassifierTrainer',
-                                //'RequestedLearners' : [
-                                    //'Microsoft.ML.Api.Experiment.LogisticRegression',
-                                    //'Microsoft.ML.Api.Experiment.FastTree'
-                                //]
-                            //}
-                        //},
-                        //'BatchSize': 5
-                      //},
-                      //'Outputs': {
-                        //'State': '$StateOut',
-                        //'Results': '$ResultsOut'
-                      //}
-                    //},
-                  //]
-                //}";
+            //{
+            //'Nodes': [                                
+            //{
+            //'Name': 'Commands.PipelineSweep',
+            //'Inputs': {
+            //'TrainingData': '$TrainingData',
+            //'TestingData': '$TestingData',
+            //'StateArguments': {
+            //'Name': 'AutoMlState',
+            //'Settings': {
+            //'Metric': 'Auc',
+            //'Engine': {
+            //'Name': 'Rocket',
+            //'Settings' : {
+            //'TopKLearners' : 2,
+            //'SecondRoundTrialsPerLearner' : 0
+            //},
+            //},
+            //'TerminatorArgs': {
+            //'Name': 'IterationLimited',
+            //'Settings': {
+            //'FinalHistoryLength': 35
+            //}
+            //},
+            //'TrainerKind': 'SignatureBinaryClassifierTrainer',
+            //'RequestedLearners' : [
+            //'Microsoft.ML.Api.Experiment.LogisticRegression',
+            //'Microsoft.ML.Api.Experiment.FastTree'
+            //]
+            //}
+            //},
+            //'BatchSize': 5
+            //},
+            //'Outputs': {
+            //'State': '$StateOut',
+            //'Results': '$ResultsOut'
+            //}
+            //},
+            //]
+            //}";
 
             //JObject graph = JObject.Parse(inputGraph);
             //var catalog = ModuleCatalog.CreateInstance(Env);
