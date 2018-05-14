@@ -68,7 +68,7 @@ namespace Microsoft.ML
         /// Possible data loader(s), transforms and trainers options are
         /// <para>
         /// Data Loader:
-        ///     <see cref="Microsoft.ML.TextLoader{TInput}" />
+        ///     <see cref="Microsoft.ML.Data.TextLoader{TInput}" />
         ///     etc.
         /// </para>
         /// <para>

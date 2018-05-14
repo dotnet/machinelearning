@@ -224,7 +224,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ThrowsExceptionWithPropertyName()
         {
-            Exception ex = Assert.Throws<ArgumentOutOfRangeException>( () => new TextLoader<ModelWithoutColumnAttribute>("fakefile.txt") );
+            Exception ex = Assert.Throws<InvalidOperationException>( () => new TextLoader<ModelWithoutColumnAttribute>("fakefile.txt") );
             Assert.StartsWith("String1 is missing ColumnAttribute", ex.Message);
         }
 
