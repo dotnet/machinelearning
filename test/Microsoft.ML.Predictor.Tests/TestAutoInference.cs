@@ -26,8 +26,8 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             using (var env = new TlcEnvironment())
             {
-                string pathData = GetDataPath(@"../data/adult.train");
-                string pathDataTest = GetDataPath(@"../data/adult.test");
+                string pathData = GetDataPath(@"../../Samples/UCI/adult.train");
+                string pathDataTest = GetDataPath(@"../../Samples/UCI/adult.test");
                 int numOfSampleRows = 1000;
                 int batchSize = 5;
                 int numIterations = 10;
@@ -58,8 +58,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 // REVIEW: Theoretically, it could be the case that a new, very bad learner is introduced and 
                 // we get unlucky and only select it every time, such that this test fails. Not
                 // likely at all, but a non-zero probability. Should be ok, since all current learners are returning d > .80.
-                //double d = bestPipeline.RunTrainTestExperiment(datasetTrain, datasetTest, metric, MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer);
-                //env.Check(d > 0.2);
+                bestPipeline.RunTrainTestExperiment(datasetTrain, datasetTest, metric, MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer,
+                    out var testMetricValue, out var trainMtericValue);
+                env.Check(testMetricValue > 0.2);
             }
             Done();
         }
@@ -69,8 +70,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public void EntryPointPipelineSweepSerialization()
         {
             // Get datasets
-            var pathData = GetDataPath(@"../data/adult.train");
-            var pathDataTest = GetDataPath(@"../data/adult.test");
+            var pathData = GetDataPath(@"../../Samples/UCI/adult.train");
+            var pathDataTest = GetDataPath(@"../../Samples/UCI/adult.test");
             const int numOfSampleRows = 1000;
             //int numIterations = 10;
             const string schema =
@@ -211,8 +212,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestRocketPipelineEngine()
         {
             // Get datasets
-            var pathData = GetDataPath(@"../data", "adult.train");
-            var pathDataTest = GetDataPath(@"../data", "adult.test");
+            var pathData = GetDataPath(@"../../Samples/UCI", "adult.train");
+            var pathDataTest = GetDataPath(@"../../Samples/UCI", "adult.test");
             const int numOfSampleRows = 1000;
             int numIterations = 35;
             const string schema =
@@ -364,7 +365,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestHyperparameterFreezing()
         {
-            string pathData = GetDataPath(@"../data", "adult.train");
+            string pathData = GetDataPath(@"../../Samples/UCI", "adult.train");
             int numOfSampleRows = 1000;
             int batchSize = 1;
             int numIterations = 10;
@@ -439,7 +440,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void TestLearnerConstrainingByName()
         {
-            //string pathData = GetDataPath(@"../UCI", "adult.train");
+            //string pathData = GetDataPath(@"../../Samples/UCI", "adult.train");
             //int numOfSampleRows = 1000;
             //int batchSize = 1;
             //int numIterations = 1;
@@ -469,8 +470,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestRequestedLearners()
         {
             //// Get datasets
-            //var pathData = GetDataPath(@"../UCI", "adult.train");
-            //var pathDataTest = GetDataPath(@"../UCI", "adult.test");
+            //var pathData = GetDataPath(@"../../Samples/UCI", "adult.train");
+            //var pathDataTest = GetDataPath(@"../../Samples/UCI", "adult.test");
             //const int numOfSampleRows = 100;
             //const string schema =
             //"sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +

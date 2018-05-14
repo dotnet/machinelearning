@@ -20,7 +20,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public sealed class PipelineResultRow
         {
             public string GraphJson { get; }
+            // The metric value of the test dataset result (always needed).
             public double MetricValue { get; }
+            // The metric value of the training dataset result (not always used or set).
             public double TrainingMetricValue { get; }
             public string PipelineId { get; }
             public string FirstInput { get; }

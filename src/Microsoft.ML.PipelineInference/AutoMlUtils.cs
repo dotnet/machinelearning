@@ -17,33 +17,36 @@ namespace Microsoft.ML.Runtime.PipelineInference
     {
         public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
         {
-            double metricValue = 0;
+            double testingMetricValue = 0;
             double trainingMetricValue = -1d;
             int numRows = 0;
             var schema = result.Schema;
-            schema.TryGetColumnIndex(metricColumnName, out var metricCol);
+            bool hasIndex = schema.TryGetColumnIndex(metricColumnName, out var metricCol);
+            env.Check(hasIndex);
 
             using (var cursor = result.GetRowCursor(col => col == metricCol))
             {
                 var getter = cursor.GetGetter<double>(metricCol);
-                cursor.MoveNext();
-                getter(ref metricValue);
+                bool moved = cursor.MoveNext();
+                env.Check(moved);
+                getter(ref testingMetricValue);
             }
 
             if (trainResult != null)
             {
                 var trainSchema = trainResult.Schema;
-                trainSchema.TryGetColumnIndex(metricColumnName, out var trainingMetricCol);
+                env.Check(trainSchema.TryGetColumnIndex(metricColumnName, out var trainingMetricCol));
 
                 using (var cursor = trainResult.GetRowCursor(col => col == trainingMetricCol))
                 {
                     var getter = cursor.GetGetter<double>(trainingMetricCol);
-                    cursor.MoveNext();
+                    bool moved = cursor.MoveNext();
+                    env.Check(moved);
                     getter(ref trainingMetricValue);
                 }
             }
 
-            return new AutoInference.RunSummary(metricValue, numRows, 0, trainingMetricValue);
+            return new AutoInference.RunSummary(testingMetricValue, numRows, 0, trainingMetricValue);
         }
 
         public static CommonInputs.IEvaluatorInput CloneEvaluatorInstance(CommonInputs.IEvaluatorInput evalInput) =>
