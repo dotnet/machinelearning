@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <NoBuild>true</NoBuild>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <PackageDescription>ML.NET components for Apache Parquet support.</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
