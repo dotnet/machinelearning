@@ -469,80 +469,80 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void TestRequestedLearners()
         {
-            //// Get datasets
-            //var pathData = GetDataPath(@"../../Samples/UCI", "adult.train");
-            //var pathDataTest = GetDataPath(@"../../Samples/UCI", "adult.test");
-            //const int numOfSampleRows = 100;
-            //const string schema =
-            //"sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
-            //"col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
-            //var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
-            //var datasetTrain = ImportTextData.ImportText(Env,
-            //new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
-            //var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
-            //var datasetTest = ImportTextData.ImportText(Env,
-            //new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
-            //var prefix = "Microsoft.ML.Api.Experiment";
-            //var requestedLearners = new[] { $"{prefix}.LogisticRegression", $"{prefix}.FastTree" };
+            // Get datasets
+            var pathData = GetDataPath(@"../../Samples/UCI", "adult.train");
+            var pathDataTest = GetDataPath(@"../../Samples/UCI", "adult.test");
+            const int numOfSampleRows = 100;
+            const string schema =
+            "sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
+            "col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
+            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
+            var datasetTrain = ImportTextData.ImportText(Env,
+            new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
+            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
+            var datasetTest = ImportTextData.ImportText(Env,
+            new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
+            var prefix = "Microsoft.ML.Api.Experiment";
+            var requestedLearners = new[] { $"{prefix}.LogisticRegression", $"{prefix}.FastTree" };
 
-            //// Define entrypoint graph
-            //string inputGraph = @"
-            //{
-            //'Nodes': [                                
-            //{
-            //'Name': 'Commands.PipelineSweep',
-            //'Inputs': {
-            //'TrainingData': '$TrainingData',
-            //'TestingData': '$TestingData',
-            //'StateArguments': {
-            //'Name': 'AutoMlState',
-            //'Settings': {
-            //'Metric': 'Auc',
-            //'Engine': {
-            //'Name': 'Rocket',
-            //'Settings' : {
-            //'TopKLearners' : 2,
-            //'SecondRoundTrialsPerLearner' : 0
-            //},
-            //},
-            //'TerminatorArgs': {
-            //'Name': 'IterationLimited',
-            //'Settings': {
-            //'FinalHistoryLength': 35
-            //}
-            //},
-            //'TrainerKind': 'SignatureBinaryClassifierTrainer',
-            //'RequestedLearners' : [
-            //'Microsoft.ML.Api.Experiment.LogisticRegression',
-            //'Microsoft.ML.Api.Experiment.FastTree'
-            //]
-            //}
-            //},
-            //'BatchSize': 5
-            //},
-            //'Outputs': {
-            //'State': '$StateOut',
-            //'Results': '$ResultsOut'
-            //}
-            //},
-            //]
-            //}";
+            // Define entrypoint graph
+            string inputGraph = @"
+            {
+            'Nodes': [                                
+            {
+            'Name': 'Commands.PipelineSweep',
+            'Inputs': {
+            'TrainingData': '$TrainingData',
+            'TestingData': '$TestingData',
+            'StateArguments': {
+            'Name': 'AutoMlState',
+            'Settings': {
+            'Metric': 'Auc',
+            'Engine': {
+            'Name': 'Rocket',
+            'Settings' : {
+            'TopKLearners' : 2,
+            'SecondRoundTrialsPerLearner' : 0
+            },
+            },
+            'TerminatorArgs': {
+            'Name': 'IterationLimited',
+            'Settings': {
+            'FinalHistoryLength': 35
+            }
+            },
+            'TrainerKind': 'SignatureBinaryClassifierTrainer',
+            'RequestedLearners' : [
+            'Microsoft.ML.Api.Experiment.LogisticRegression',
+            'Microsoft.ML.Api.Experiment.FastTree'
+            ]
+            }
+            },
+            'BatchSize': 5
+            },
+            'Outputs': {
+            'State': '$StateOut',
+            'Results': '$ResultsOut'
+            }
+            },
+            ]
+            }";
 
-            //JObject graph = JObject.Parse(inputGraph);
-            //var catalog = ModuleCatalog.CreateInstance(Env);
+            JObject graph = JObject.Parse(inputGraph);
+            var catalog = ModuleCatalog.CreateInstance(Env);
 
-            //var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
-            //runner.SetInput("TrainingData", datasetTrain);
-            //runner.SetInput("TestingData", datasetTest);
-            //runner.RunAll();
+            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            runner.SetInput("TrainingData", datasetTrain);
+            runner.SetInput("TestingData", datasetTest);
+            runner.RunAll();
 
-            //var autoMlState = runner.GetOutput<AutoInference.AutoMlMlState>("StateOut");
-            //Assert.IsNotNull(autoMlState);
-            //var space = autoMlState.GetSearchSpace();
+            var autoMlState = runner.GetOutput<AutoInference.AutoMlMlState>("StateOut");
+            Assert.NotNull(autoMlState);
+            var space = autoMlState.GetSearchSpace();
 
-            //// Make sure only learners left are those retained.
-            //Assert.AreEqual(requestedLearners.Length, space.Item2.Length);
-            //Assert.IsTrue(space.Item2.All(l => requestedLearners.Any(r => r == l.LearnerName)));
+            // Make sure only learners left are those retained.
+            Assert.Equal(requestedLearners.Length, space.Item2.Length);
+            Assert.True(space.Item2.All(l => requestedLearners.Any(r => r == l.LearnerName)));
         }
 
         [Fact]

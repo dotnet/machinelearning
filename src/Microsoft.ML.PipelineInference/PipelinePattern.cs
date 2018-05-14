@@ -196,7 +196,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// <summary>
         /// Runs a train-test experiment on the current pipeline, through entrypoints.
         /// </summary>
-        public void RunTrainTestExperiment(IDataView trainData, IDataView testData, 
+        public void RunTrainTestExperiment(IDataView trainData, IDataView testData,
             AutoInference.SupportedMetric metric, MacroUtils.TrainerKinds trainerKind, out double testMetricValue,
             out double trainMetricValue)
         {
@@ -205,26 +205,32 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             var dataOut = experiment.GetOutput(trainTestOutput.OverallMetrics);
             var schema = dataOut.Schema;
-            schema.TryGetColumnIndex(metric.Name, out var metricCol);
+            _env.Check(schema.TryGetColumnIndex(metric.Name, out var metricCol),
+                $"Schema does not contain metric column: {metricCol}");
             double metricValue = 0;
             double trainingMetricValue = 0;
 
             using (var cursor = dataOut.GetRowCursor(col => col == metricCol))
             {
                 var getter = cursor.GetGetter<double>(metricCol);
-                cursor.MoveNext();
+                bool moved = cursor.MoveNext();
+                _env.Check(moved, "Could not move cursor forward. (No rows to extract.)");
                 getter(ref metricValue);
+                _env.Check(!cursor.MoveNext(), "Encountered additional, unexpected row.");
             }
 
             dataOut = experiment.GetOutput(trainTestOutput.TrainingOverallMetrics);
             schema = dataOut.Schema;
-            schema.TryGetColumnIndex(metric.Name, out metricCol);
+            _env.Check(schema.TryGetColumnIndex(metric.Name, out metricCol),
+                $"Schema does not contain metric column: {metricCol}");
 
             using (var cursor = dataOut.GetRowCursor(col => col == metricCol))
             {
                 var getter = cursor.GetGetter<double>(metricCol);
-                cursor.MoveNext();
+                bool moved = cursor.MoveNext();
+                _env.Check(moved, "Could not move cursor forward. (No rows to extract.)");
                 getter(ref trainingMetricValue);
+                _env.Check(!cursor.MoveNext(), "Encountered additional, unexpected row.");
                 testMetricValue = metricValue;
                 trainMetricValue = trainingMetricValue;
             }
@@ -237,39 +243,40 @@ namespace Microsoft.ML.Runtime.PipelineInference
             var results = new List<PipelineResultRow>();
             var schema = data.Schema;
             if (!schema.TryGetColumnIndex(graphColName, out var graphCol))
-                throw env.ExceptNotSupp($"Column name {graphColName} not found");
+                throw env.ExceptParam(graphColName, $"Column name {graphColName} not found");
             if (!schema.TryGetColumnIndex(metricColName, out var metricCol))
-                throw env.ExceptNotSupp($"Column name {metricColName} not found");
+                throw env.ExceptParam(metricColName, $"Column name {metricColName} not found");
             if (!schema.TryGetColumnIndex(trainingMetricColName, out var trainingMetricCol))
-                throw env.ExceptNotSupp($"Column name {trainingMetricColName} not found");
+                throw env.ExceptParam(trainingMetricColName, $"Column name {trainingMetricColName} not found");
             if (!schema.TryGetColumnIndex(idColName, out var pipelineIdCol))
-                throw env.ExceptNotSupp($"Column name {idColName} not found");
+                throw env.ExceptParam(idColName, $"Column name {idColName} not found");
             if (!schema.TryGetColumnIndex(firstInputColName, out var firstInputCol))
-                throw env.ExceptNotSupp($"Column name {firstInputColName} not found");
+                throw env.ExceptParam(firstInputColName, $"Column name {firstInputColName} not found");
             if (!schema.TryGetColumnIndex(predictorModelColName, out var predictorModelCol))
-                throw env.ExceptNotSupp($"Column name {predictorModelColName} not found");
+                throw env.ExceptParam(predictorModelColName, $"Column name {predictorModelColName} not found");
 
             using (var cursor = data.GetRowCursor(col => true))
             {
+                var getter1 = cursor.GetGetter<double>(metricCol);
+                var getter2 = cursor.GetGetter<DvText>(graphCol);
+                var getter3 = cursor.GetGetter<DvText>(pipelineIdCol);
+                var getter4 = cursor.GetGetter<double>(trainingMetricCol);
+                var getter5 = cursor.GetGetter<DvText>(firstInputCol);
+                var getter6 = cursor.GetGetter<DvText>(predictorModelCol);
+                double metricValue = 0;
+                double trainingMetricValue = 0;
+                DvText graphJson = new DvText();
+                DvText pipelineId = new DvText();
+                DvText firstInput = new DvText();
+                DvText predictorModel = new DvText();
+
                 while (cursor.MoveNext())
                 {
-                    var getter1 = cursor.GetGetter<double>(metricCol);
-                    double metricValue = 0;
                     getter1(ref metricValue);
-                    var getter2 = cursor.GetGetter<DvText>(graphCol);
-                    DvText graphJson = new DvText();
                     getter2(ref graphJson);
-                    var getter3 = cursor.GetGetter<DvText>(pipelineIdCol);
-                    DvText pipelineId = new DvText();
                     getter3(ref pipelineId);
-                    var getter4 = cursor.GetGetter<double>(trainingMetricCol);
-                    double trainingMetricValue = 0;
                     getter4(ref trainingMetricValue);
-                    var getter5 = cursor.GetGetter<DvText>(firstInputCol);
-                    DvText firstInput = new DvText();
                     getter5(ref firstInput);
-                    var getter6 = cursor.GetGetter<DvText>(predictorModelCol);
-                    DvText predictorModel = new DvText();
                     getter6(ref predictorModel);
 
                     results.Add(new PipelineResultRow(graphJson.ToString(),
@@ -281,7 +288,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return results.ToArray();
         }
 
-        public PipelineResultRow ToResultRow() {
+        public PipelineResultRow ToResultRow()
+        {
             var graphDef = ToEntryPointGraph();
 
             return new PipelineResultRow($"{{'Nodes' : [{graphDef.Graph.ToJsonString()}]}}",

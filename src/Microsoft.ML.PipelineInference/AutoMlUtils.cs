@@ -22,27 +22,30 @@ namespace Microsoft.ML.Runtime.PipelineInference
             int numRows = 0;
             var schema = result.Schema;
             bool hasIndex = schema.TryGetColumnIndex(metricColumnName, out var metricCol);
-            env.Check(hasIndex);
+            env.Check(hasIndex, $"Schema does not contain metric column: {metricColumnName}");
 
             using (var cursor = result.GetRowCursor(col => col == metricCol))
             {
                 var getter = cursor.GetGetter<double>(metricCol);
                 bool moved = cursor.MoveNext();
-                env.Check(moved);
+                env.Check(moved, "Could not move cursor forward. (Results dataset has no rows to extract.)");
                 getter(ref testingMetricValue);
+                env.Check(!cursor.MoveNext(), "Encountered additonal, unexpected results row.");
             }
 
             if (trainResult != null)
             {
                 var trainSchema = trainResult.Schema;
-                env.Check(trainSchema.TryGetColumnIndex(metricColumnName, out var trainingMetricCol));
+                env.Check(trainSchema.TryGetColumnIndex(metricColumnName, out var trainingMetricCol),
+                    $"Schema does not contain metric column: {metricColumnName}");
 
                 using (var cursor = trainResult.GetRowCursor(col => col == trainingMetricCol))
                 {
                     var getter = cursor.GetGetter<double>(trainingMetricCol);
                     bool moved = cursor.MoveNext();
-                    env.Check(moved);
+                    env.Check(moved, "Could not move cursor forward. (Training results dataset has no rows to extract.)");
                     getter(ref trainingMetricValue);
+                    env.Check(!cursor.MoveNext(), "Encountered additonal, unexpected results row.");
                 }
             }
 
