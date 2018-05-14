@@ -297,8 +297,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
             public string Separator = "tab";
 
-            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator. Option: single character ONLY", ShortName = "del")]
-            public char Delimiter = '\t';
+            [Argument(ArgumentType.AtMostOnce, Name = nameof(Separator), Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator.", ShortName = "sep")]
+            public char[] SeparatorChars = new[] { '\t' };
 
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
                 ShortName = "col", SortOrder = 1)]
@@ -1008,10 +1008,18 @@ namespace Microsoft.ML.Runtime.Data
                 _inputSize = SrcLim - 1;
 
             _host.CheckNonEmpty(args.Separator, nameof(args.Separator), "Must specify a separator");
-            _host.CheckNonEmpty(args.Delimiter.ToString(), nameof(args.Delimiter), "Must specify a delimeter");
 
-            if (args.Delimiter != '\t')
-                _separators = new char[] { args.Delimiter };
+            //Default arg.Separator is tab and default args.SeparatorChars is also a '\t'.
+            //At a time only one default can be different and whichever is different that will 
+            //be used.
+            if (args.SeparatorChars.Length > 1 || args.SeparatorChars[0] != '\t')
+            {
+                var separators = new HashSet<char>();
+                foreach (char c in args.SeparatorChars)
+                    separators.Add(NormalizeSeparator(c.ToString()));
+
+                _separators = separators.ToArray();
+            }
             else
             {
                 string sep = args.Separator.ToLowerInvariant();

@@ -63,7 +63,7 @@ namespace Microsoft.ML.TestFramework
             {
                 Arguments = new TextLoaderArguments
                 {
-                    Delimiter = ',',
+                    Separator = new[] { ',' },
                     HasHeader = true,
                     Column = new[]
                     {

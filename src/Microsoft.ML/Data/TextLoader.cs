@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,7 +55,7 @@ namespace Microsoft.ML.Data
                     throw Contracts.Except($"{name} is not alphanumeric.");
 
                 DataKind dk;
-                (field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType).TryGetDataKind(out dk);
+                Utils.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk);
                 var col = Runtime.Data.TextLoader.Column.Parse(
                     $"{name}:" +
                     $"{dk.ToString()}:" +
@@ -92,7 +93,7 @@ namespace Microsoft.ML.Data
             }
 
             Arguments.HasHeader = useHeader;
-            Arguments.Delimiter = delimeter;
+            Arguments.Separator = new[] { delimeter };
             Arguments.AllowQuoting = allowQuotedStrings;
             Arguments.AllowSparse = supportSparse;
             Arguments.TrimWhitespace = trimWhitespace;

@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Required, ShortName = "data", HelpText = "Location of the input file", SortOrder = 1)]
             public IFileHandle InputFile;
 
-            [Argument(ArgumentType.Required, ShortName = "args", HelpText = "Arguments", SortOrder = 1)]
+            [Argument(ArgumentType.Required, ShortName = "args", HelpText = "Arguments", SortOrder = 2)]
             public TextLoader.Arguments Arguments = new TextLoader.Arguments();
         }
 
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
 #pragma warning disable 0618
-        [Obsolete("Use TextLoader instead.", false)]
+        [Obsolete("Use TextLoader instead.")]
         [TlcModule.EntryPoint(Name = "Data.CustomTextLoader", Desc = "Import a dataset from a text file")]
         public static Output ImportText(IHostEnvironment env, Input input)
         {

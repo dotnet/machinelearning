@@ -27,11 +27,11 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             Assert.NotNull(new TextLoader<Input>("fakeFile.txt"));
             Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: true));
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", delimeter: ','));
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false, delimeter: ','));
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false, delimeter: ',', false, false));
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false, delimeter: ',', supportSparse: false));
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false, delimeter: ',', allowQuotedStrings: false));
+            Assert.NotNull(new TextLoader<Input>("fakeFile.txt"));
+            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false));
+            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false, supportSparse: false, trimWhitespace: false));
+            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false, supportSparse: false));
+            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false, allowQuotedStrings: false));
         }
 
         [Fact]

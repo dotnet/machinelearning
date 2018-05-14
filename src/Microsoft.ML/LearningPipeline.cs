@@ -183,6 +183,7 @@ namespace Microsoft.ML
                 if (transformModels.Count > 0)
                 {
                     transformModels.Insert(0, lastTransformModel);
+
                     var modelInput = new Transforms.ModelCombiner
                     {
                         Models = new ArrayVar<ITransformModel>(transformModels.ToArray())

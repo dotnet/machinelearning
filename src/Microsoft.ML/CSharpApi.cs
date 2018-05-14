@@ -1371,9 +1371,9 @@ namespace Microsoft.ML
             public int? InputSize { get; set; }
 
             /// <summary>
-            /// Source column separator. Option: single character ONLY
+            /// Source column separator.
             /// </summary>
-            public char Delimiter { get; set; } = '	';
+            public char[] Separator { get; set; } = { '	' };
 
             /// <summary>
             /// Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40

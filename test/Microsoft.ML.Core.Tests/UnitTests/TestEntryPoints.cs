@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 Arguments =
                 {
-                    Delimiter = ',',
+                    SeparatorChars = new []{',' },
                     HasHeader = true,
                     Column = new[]
                     {
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 Arguments =
                 {
-                    Delimiter = ',',
+                    SeparatorChars = new []{',' },
                     HasHeader = true,
                     Column = new[]
                     {

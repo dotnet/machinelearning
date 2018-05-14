@@ -5,7 +5,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <NoWarn>1701;1702;1705;0618</NoWarn>
+    <NoWarn>1701;1702;1705</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
