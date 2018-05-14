@@ -8,6 +8,9 @@ using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -16,37 +19,19 @@ namespace Microsoft.ML.Benchmarks
         internal static ClassificationMetrics s_metrics;
         private static PredictionModel<IrisData, IrisPrediction> s_trainedModel;
         private static string s_dataPath;
-
-        [Benchmark]
-        public void PredictIris()
+        private static IrisData[][] s_batches;
+        private static readonly int[] s_batchSizes = new int[] { 1, 2, 5 };
+        private readonly Random r = new Random(0);
+        private readonly static IrisData s_example = new IrisData()
         {
-            IrisPrediction prediction = s_trainedModel.Predict(new IrisData()
-            {
-                SepalLength = 3.3f,
-                SepalWidth = 1.6f,
-                PetalLength = 0.2f,
-                PetalWidth = 5.1f,
-            });
-
-            prediction = s_trainedModel.Predict(new IrisData()
-            {
-                SepalLength = 3.1f,
-                SepalWidth = 5.5f,
-                PetalLength = 2.2f,
-                PetalWidth = 6.4f,
-            });
-
-            prediction = s_trainedModel.Predict(new IrisData()
-            {
-                SepalLength = 3.1f,
-                SepalWidth = 2.5f,
-                PetalLength = 1.2f,
-                PetalWidth = 4.4f,
-            });
-        }
+            SepalLength = 3.3f,
+            SepalWidth = 1.6f,
+            PetalLength = 0.2f,
+            PetalWidth = 5.1f,
+        };
 
         [Benchmark]
-        public void TrainIris()
+        public PredictionModel<IrisData, IrisPrediction> TrainIris()
         {
             var pipeline = new LearningPipeline();
 
@@ -57,19 +42,40 @@ namespace Microsoft.ML.Benchmarks
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
             PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
-
-            s_trainedModel = model;
+            return model;
         }
+
+        [Benchmark]
+        public float[] PredictIris() => s_trainedModel.Predict(s_example).PredictedLabels;
+
+        [Benchmark]
+        public IEnumerable<IrisPrediction> PredictIrisBatchOf1() => s_trainedModel.Predict(s_batches[0]);
+        [Benchmark]
+        public IEnumerable<IrisPrediction> PredictIrisBatchOf2() => s_trainedModel.Predict(s_batches[1]);
+        [Benchmark]
+        public IEnumerable<IrisPrediction> PredictIrisBatchOf5() => s_trainedModel.Predict(s_batches[2]);
 
         [GlobalSetup]
         public void Setup()
         {
             s_dataPath = Program.GetDataPath("iris.txt");
             s_trainedModel = TrainCore();
+            IrisPrediction prediction = s_trainedModel.Predict(s_example);
 
             var testData = new TextLoader<IrisData>(s_dataPath, useHeader: true, separator: "tab");
             var evaluator = new ClassificationEvaluator();
             s_metrics = evaluator.Evaluate(s_trainedModel, testData);
+
+            s_batches = new IrisData[s_batchSizes.Length][];
+            for (int i = 0; i < s_batches.Length; i++)
+            {
+                var batch = new IrisData[s_batchSizes[i]];
+                s_batches[i] = batch;
+                for (int bi = 0; bi < batch.Length; bi++)
+                {
+                    batch[bi] = s_example;
+                }
+            }
         }
 
         private static PredictionModel<IrisData, IrisPrediction> TrainCore()
