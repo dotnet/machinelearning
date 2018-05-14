@@ -55,7 +55,6 @@ namespace Microsoft.ML.Benchmarks
         }
     }
 
-
     public class ClassificationMetricsColumn : IColumn
     {
         string _metricName;

@@ -31,19 +31,7 @@ namespace Microsoft.ML.Benchmarks
         };
 
         [Benchmark]
-        public PredictionModel<IrisData, IrisPrediction> TrainIris()
-        {
-            var pipeline = new LearningPipeline();
-
-            pipeline.Add(new TextLoader<IrisData>(s_dataPath, useHeader: true, separator: "tab"));
-            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
-                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
-
-            pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-
-            PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
-            return model;
-        }
+        public PredictionModel<IrisData, IrisPrediction> TrainIris() => TrainCore();
 
         [Benchmark]
         public float[] PredictIris() => s_trainedModel.Predict(s_example).PredictedLabels;
