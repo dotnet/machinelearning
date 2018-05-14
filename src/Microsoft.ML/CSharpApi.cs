@@ -226,6 +226,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Models.PAVCalibrator", input, output));
             }
 
+            public Microsoft.ML.Models.PipelineSweeper.Output Add(Microsoft.ML.Models.PipelineSweeper input)
+            {
+                var output = new Microsoft.ML.Models.PipelineSweeper.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.PipelineSweeper input, Microsoft.ML.Models.PipelineSweeper.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.PipelineSweeper", input, output));
+            }
+
             public Microsoft.ML.Models.PlattCalibrator.Output Add(Microsoft.ML.Models.PlattCalibrator input)
             {
                 var output = new Microsoft.ML.Models.PlattCalibrator.Output();
@@ -284,6 +296,18 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Models.Summarizer input, Microsoft.ML.Models.Summarizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.Summarizer", input, output));
+            }
+
+            public Microsoft.ML.Models.SweepResultExtractor.Output Add(Microsoft.ML.Models.SweepResultExtractor input)
+            {
+                var output = new Microsoft.ML.Models.SweepResultExtractor.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.SweepResultExtractor input, Microsoft.ML.Models.SweepResultExtractor.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.SweepResultExtractor", input, output));
             }
 
             public Microsoft.ML.Models.TrainTestBinaryEvaluator.Output Add(Microsoft.ML.Models.TrainTestBinaryEvaluator input)
@@ -2427,6 +2451,64 @@ namespace Microsoft.ML
     {
 
         /// <summary>
+        /// AutoML pipeline sweeping optimzation macro.
+        /// </summary>
+        public sealed partial class PipelineSweeper
+        {
+
+
+            /// <summary>
+            /// The data to be used for training.
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// The data to be used for testing.
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// The arguments for creating an AutoMlState component.
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public AutoMlStateBase StateArguments { get; set; }
+
+            /// <summary>
+            /// The stateful object conducting of the autoML search.
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
+
+            /// <summary>
+            /// Number of candidate pipelines to retrieve each round.
+            /// </summary>
+            public int BatchSize { get; set; }
+
+            /// <summary>
+            /// Output datasets from previous iteration of sweep.
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> CandidateOutputs { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// Stateful autoML object, keeps track of where the search in progress.
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
+
+                /// <summary>
+                /// Results of the sweep, including pipelines (as graph strings), IDs, and metric values.
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Results { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
+
+        /// <summary>
         /// Apply a Platt calibrator to an input model
         /// </summary>
         public sealed partial class PlattCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
@@ -2727,6 +2809,38 @@ namespace Microsoft.ML
                 /// The training set statistics. Note that this output can be null.
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.Data.IDataView> Stats { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
+
+        /// <summary>
+        /// Extracts the sweep result.
+        /// </summary>
+        public sealed partial class SweepResultExtractor
+        {
+
+
+            /// <summary>
+            /// The stateful object conducting of the autoML search.
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// Stateful autoML object, keeps track of where the search in progress.
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
+
+                /// <summary>
+                /// Results of the sweep, including pipelines (as graph strings), IDs, and metric values.
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Results { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             }
         }
@@ -12298,6 +12412,129 @@ namespace Microsoft.ML
 
     namespace Runtime
     {
+        public abstract class AutoMlEngine : ComponentKind {}
+
+
+
+        /// <summary>
+        /// AutoML engine that returns learners with default settings.
+        /// </summary>
+        public sealed class DefaultsAutoMlEngine : AutoMlEngine
+        {
+            internal override string ComponentName => "Defaults";
+        }
+
+
+
+        /// <summary>
+        /// AutoML engine that consists of distinct, hierarchical stages of operation.
+        /// </summary>
+        public sealed class RocketAutoMlEngine : AutoMlEngine
+        {
+            /// <summary>
+            /// Number of learners to retain for second stage.
+            /// </summary>
+            public int TopKLearners { get; set; } = 2;
+
+            /// <summary>
+            /// Number of trials for retained second stage learners.
+            /// </summary>
+            public int SecondRoundTrialsPerLearner { get; set; } = 5;
+
+            /// <summary>
+            /// Use random initialization only.
+            /// </summary>
+            public bool RandomInitialization { get; set; } = false;
+
+            /// <summary>
+            /// Number of initilization pipelines, used for random initialization only.
+            /// </summary>
+            public int NumInitializationPipelines { get; set; } = 20;
+
+            internal override string ComponentName => "Rocket";
+        }
+
+
+
+        /// <summary>
+        /// AutoML engine using uniform random sampling.
+        /// </summary>
+        public sealed class UniformRandomAutoMlEngine : AutoMlEngine
+        {
+            internal override string ComponentName => "UniformRandom";
+        }
+
+        public abstract class AutoMlStateBase : ComponentKind {}
+
+        public enum AutoInferenceAutoMlMlStateArgumentsMetrics
+        {
+            Auc = 0,
+            AccuracyMicro = 1,
+            AccuracyMacro = 2,
+            L2 = 3,
+            F1 = 4,
+            AuPrc = 5,
+            TopKAccuracy = 6,
+            Rms = 7,
+            LossFn = 8,
+            RSquared = 9,
+            LogLoss = 10,
+            LogLossReduction = 11,
+            Ndcg = 12,
+            Dcg = 13,
+            PositivePrecision = 14,
+            PositiveRecall = 15,
+            NegativePrecision = 16,
+            NegativeRecall = 17,
+            DrAtK = 18,
+            DrAtPFpr = 19,
+            DrAtNumPos = 20,
+            NumAnomalies = 21,
+            ThreshAtK = 22,
+            ThreshAtP = 23,
+            ThreshAtNumPos = 24,
+            Nmi = 25,
+            AvgMinScore = 26,
+            Dbi = 27
+        }
+
+
+
+        /// <summary>
+        /// State of an AutoML search and search space.
+        /// </summary>
+        public sealed class AutoMlStateAutoMlStateBase : AutoMlStateBase
+        {
+            /// <summary>
+            /// Supported metric for evaluator.
+            /// </summary>
+            public Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } = Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
+
+            /// <summary>
+            /// AutoML engine (pipeline optimizer) that generates next candidates.
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public AutoMlEngine Engine { get; set; }
+
+            /// <summary>
+            /// Kind of trainer for task, such as binary classification trainer, multiclass trainer, etc.
+            /// </summary>
+            public Microsoft.ML.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } = Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+
+            /// <summary>
+            /// Arguments for creating terminator, which determines when to stop search.
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public SearchTerminator TerminatorArgs { get; set; }
+
+            /// <summary>
+            /// Learner set to sweep over (if available).
+            /// </summary>
+            public string[] RequestedLearners { get; set; }
+
+            internal override string ComponentName => "AutoMlState";
+        }
+
         public abstract class CalibratorTrainer : ComponentKind {}
 
 
@@ -14128,6 +14365,23 @@ namespace Microsoft.ML
         public sealed class SquaredLossSDCARegressionLossFunction : SDCARegressionLossFunction
         {
             internal override string ComponentName => "SquaredLoss";
+        }
+
+        public abstract class SearchTerminator : ComponentKind {}
+
+
+
+        /// <summary>
+        /// Terminators a sweep based on total number of iterations.
+        /// </summary>
+        public sealed class IterationLimitedSearchTerminator : SearchTerminator
+        {
+            /// <summary>
+            /// Total number of iterations.
+            /// </summary>
+            public int FinalHistoryLength { get; set; }
+
+            internal override string ComponentName => "IterationLimited";
         }
 
         public abstract class StopWordsRemover : ComponentKind {}

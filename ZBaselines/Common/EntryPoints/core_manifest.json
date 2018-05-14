@@ -1724,6 +1724,105 @@
       ]
     },
     {
+      "Name": "Models.PipelineSweeper",
+      "Desc": "AutoML pipeline sweeping optimzation macro.",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training.",
+          "Aliases": [
+            "train"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "TestingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for testing.",
+          "Aliases": [
+            "test"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "StateArguments",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "AutoMlStateBase"
+          },
+          "Desc": "The arguments for creating an AutoMlState component.",
+          "Aliases": [
+            "args"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "State",
+          "Type": {
+            "Kind": "C# Object",
+            "ItemType": "Microsoft.ML.Runtime.EntryPoints.IMlState"
+          },
+          "Desc": "The stateful object conducting of the autoML search.",
+          "Aliases": [
+            "state"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "BatchSize",
+          "Type": "Int",
+          "Desc": "Number of candidate pipelines to retrieve each round.",
+          "Aliases": [
+            "bsize"
+          ],
+          "Required": true,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "CandidateOutputs",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "Output datasets from previous iteration of sweep.",
+          "Required": false,
+          "SortOrder": 7.0,
+          "IsNullable": false,
+          "Default": null
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "State",
+          "Type": {
+            "Kind": "C# Object",
+            "ItemType": "Microsoft.ML.Runtime.EntryPoints.IMlState"
+          },
+          "Desc": "Stateful autoML object, keeps track of where the search in progress."
+        },
+        {
+          "Name": "Results",
+          "Type": "DataView",
+          "Desc": "Results of the sweep, including pipelines (as graph strings), IDs, and metric values."
+        }
+      ]
+    },
+    {
       "Name": "Models.PlattCalibrator",
       "Desc": "Apply a Platt calibrator to an input model",
       "FriendlyName": "Sigmoid Calibration",
@@ -2206,6 +2305,44 @@
           "Name": "Stats",
           "Type": "DataView",
           "Desc": "The training set statistics. Note that this output can be null."
+        }
+      ]
+    },
+    {
+      "Name": "Models.SweepResultExtractor",
+      "Desc": "Extracts the sweep result.",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "State",
+          "Type": {
+            "Kind": "C# Object",
+            "ItemType": "Microsoft.ML.Runtime.EntryPoints.IMlState"
+          },
+          "Desc": "The stateful object conducting of the autoML search.",
+          "Aliases": [
+            "state"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": null
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "State",
+          "Type": {
+            "Kind": "C# Object",
+            "ItemType": "Microsoft.ML.Runtime.EntryPoints.IMlState"
+          },
+          "Desc": "Stateful autoML object, keeps track of where the search in progress."
+        },
+        {
+          "Name": "Results",
+          "Type": "DataView",
+          "Desc": "Results of the sweep, including pipelines (as graph strings), IDs, and metric values."
         }
       ]
     },
@@ -17201,6 +17338,203 @@
   ],
   "Components": [
     {
+      "Kind": "AutoMlEngine",
+      "Components": [
+        {
+          "Name": "Defaults",
+          "Desc": "AutoML engine that returns learners with default settings.",
+          "FriendlyName": "Defaults Engine",
+          "Settings": []
+        },
+        {
+          "Name": "Rocket",
+          "Desc": "AutoML engine that consists of distinct, hierarchical stages of operation.",
+          "FriendlyName": "Rocket Engine",
+          "Settings": [
+            {
+              "Name": "TopKLearners",
+              "Type": "Int",
+              "Desc": "Number of learners to retain for second stage.",
+              "Aliases": [
+                "topk"
+              ],
+              "Required": false,
+              "SortOrder": 1.0,
+              "IsNullable": false,
+              "Default": 2
+            },
+            {
+              "Name": "SecondRoundTrialsPerLearner",
+              "Type": "Int",
+              "Desc": "Number of trials for retained second stage learners.",
+              "Aliases": [
+                "stage2num"
+              ],
+              "Required": false,
+              "SortOrder": 2.0,
+              "IsNullable": false,
+              "Default": 5
+            },
+            {
+              "Name": "RandomInitialization",
+              "Type": "Bool",
+              "Desc": "Use random initialization only.",
+              "Aliases": [
+                "randinit"
+              ],
+              "Required": false,
+              "SortOrder": 3.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "NumInitializationPipelines",
+              "Type": "Int",
+              "Desc": "Number of initilization pipelines, used for random initialization only.",
+              "Aliases": [
+                "numinitseeds"
+              ],
+              "Required": false,
+              "SortOrder": 4.0,
+              "IsNullable": false,
+              "Default": 20
+            }
+          ]
+        },
+        {
+          "Name": "UniformRandom",
+          "Desc": "AutoML engine using uniform random sampling.",
+          "FriendlyName": "Uniform Random Engine",
+          "Settings": []
+        }
+      ]
+    },
+    {
+      "Kind": "AutoMlStateBase",
+      "Components": [
+        {
+          "Name": "AutoMlState",
+          "Desc": "State of an AutoML search and search space.",
+          "FriendlyName": "AutoML State",
+          "Aliases": [
+            "automlst"
+          ],
+          "Settings": [
+            {
+              "Name": "Metric",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "Auc",
+                  "AccuracyMicro",
+                  "AccuracyMacro",
+                  "L2",
+                  "F1",
+                  "AuPrc",
+                  "TopKAccuracy",
+                  "Rms",
+                  "LossFn",
+                  "RSquared",
+                  "LogLoss",
+                  "LogLossReduction",
+                  "Ndcg",
+                  "Dcg",
+                  "PositivePrecision",
+                  "PositiveRecall",
+                  "NegativePrecision",
+                  "NegativeRecall",
+                  "DrAtK",
+                  "DrAtPFpr",
+                  "DrAtNumPos",
+                  "NumAnomalies",
+                  "ThreshAtK",
+                  "ThreshAtP",
+                  "ThreshAtNumPos",
+                  "Nmi",
+                  "AvgMinScore",
+                  "Dbi"
+                ]
+              },
+              "Desc": "Supported metric for evaluator.",
+              "Aliases": [
+                "metric"
+              ],
+              "Required": true,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": "Auc"
+            },
+            {
+              "Name": "Engine",
+              "Type": {
+                "Kind": "Component",
+                "ComponentKind": "AutoMlEngine"
+              },
+              "Desc": "AutoML engine (pipeline optimizer) that generates next candidates.",
+              "Aliases": [
+                "engine"
+              ],
+              "Required": true,
+              "SortOrder": 150.0,
+              "IsNullable": false
+            },
+            {
+              "Name": "TrainerKind",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "SignatureBinaryClassifierTrainer",
+                  "SignatureMultiClassClassifierTrainer",
+                  "SignatureRankerTrainer",
+                  "SignatureRegressorTrainer",
+                  "SignatureMultiOutputRegressorTrainer",
+                  "SignatureAnomalyDetectorTrainer",
+                  "SignatureClusteringTrainer"
+                ]
+              },
+              "Desc": "Kind of trainer for task, such as binary classification trainer, multiclass trainer, etc.",
+              "Aliases": [
+                "tk"
+              ],
+              "Required": true,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": "SignatureBinaryClassifierTrainer"
+            },
+            {
+              "Name": "TerminatorArgs",
+              "Type": {
+                "Kind": "Component",
+                "ComponentKind": "SearchTerminator"
+              },
+              "Desc": "Arguments for creating terminator, which determines when to stop search.",
+              "Aliases": [
+                "term"
+              ],
+              "Required": true,
+              "SortOrder": 150.0,
+              "IsNullable": false
+            },
+            {
+              "Name": "RequestedLearners",
+              "Type": {
+                "Kind": "Array",
+                "ItemType": "String"
+              },
+              "Desc": "Learner set to sweep over (if available).",
+              "Aliases": [
+                "learners"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": null
+            }
+          ]
+        }
+      ]
+    },
+    {
       "Kind": "CalibratorTrainer",
       "Components": [
         {
@@ -21438,6 +21772,30 @@
             "L2"
           ],
           "Settings": []
+        }
+      ]
+    },
+    {
+      "Kind": "SearchTerminator",
+      "Components": [
+        {
+          "Name": "IterationLimited",
+          "Desc": "Terminators a sweep based on total number of iterations.",
+          "FriendlyName": "Pipeline Sweep Iteration Terminator",
+          "Settings": [
+            {
+              "Name": "FinalHistoryLength",
+              "Type": "Int",
+              "Desc": "Total number of iterations.",
+              "Aliases": [
+                "length"
+              ],
+              "Required": true,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0
+            }
+          ]
         }
       ]
     },

@@ -154,6 +154,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (candidatePipelines == null || candidatePipelines.Length == 0)
             {
                 // Add a node to extract the sweep result.
+                var resultSubgraph = new Experiment(env);
+                var resultNode = new Microsoft.ML.Models.SweepResultExtractor() { State = amlsVarObj };
+                var resultOutput = new Models.SweepResultExtractor.Output() { State = outStateVar, Results = outDvVar };
+                resultSubgraph.Add(resultNode, resultOutput);
+                var resultSubgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, resultSubgraph.GetNodes(), node.Catalog);
+                expNodes.AddRange(resultSubgraphNodes);
                 return new CommonOutputs.MacroOutput<Output>() { Nodes = expNodes };
             }
 
@@ -175,6 +181,22 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 // Store indicators, to pass to next iteration of macro.
                 pipelineIndicators.Add(trainTestOutput.OverallMetrics);
             }
+
+            // Add recursive macro node
+            var macroSubgraph = new Experiment(env);
+            var macroNode = new Models.PipelineSweeper()
+            {
+                BatchSize = input.BatchSize,
+                CandidateOutputs = new ArrayVar<IDataView>(pipelineIndicators.ToArray()),
+                TrainingData = training,
+                TestingData = testing,
+                State = amlsVarObj
+            };
+            var output = new Models.PipelineSweeper.Output() { Results = outDvVar, State = outStateVar };
+            macroSubgraph.Add(macroNode, output);
+
+            var subgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, macroSubgraph.GetNodes(), node.Catalog);
+            expNodes.AddRange(subgraphNodes);
 
             return new CommonOutputs.MacroOutput<Output>() { Nodes = expNodes };
         }
