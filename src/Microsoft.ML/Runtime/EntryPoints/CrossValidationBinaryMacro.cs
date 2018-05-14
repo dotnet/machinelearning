@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         public sealed class Arguments
         {
-            // This is the data used in the cross validataion. It will be split into k folds
+            // This is the data used in the cross validation. It will be split into k folds
             // and a model will be trained and evaluated for each fold.
             [TlcModule.OptionalInput]
             [Argument(ArgumentType.Required, HelpText = "The data set", SortOrder = 1)]

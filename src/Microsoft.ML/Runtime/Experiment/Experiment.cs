@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
 using Newtonsoft.Json;
@@ -165,7 +164,7 @@ namespace Microsoft.ML.Runtime
             {
                 using (var jw = new JsonTextWriter(sw))
                 {
-                    jw.Formatting = Formatting.Indented;
+                    jw.Formatting = Newtonsoft.Json.Formatting.Indented;
                     _serializer.Serialize(jw, _helper);
                 }
                 return sw.ToString();

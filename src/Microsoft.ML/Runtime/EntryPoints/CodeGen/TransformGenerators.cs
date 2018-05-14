@@ -200,7 +200,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
         {
             writer.WriteLine("[Module(");
             _compName = prefix + component.LoadNames[0];
-            var name = Name ?? PrettyPrintDiaplayName(component.LoadNames[0]);
+            var name = Name ?? PrettyPrintDisplayName(component.LoadNames[0]);
             using (writer.Nest())
             {
                 writer.WriteLine("Name = \"{0}\",", name);
@@ -460,7 +460,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
         private void GenerateParameterAttribute(IndentingTextWriter w, string displayName, object defaultValue, string description,
             string parent = null, string parentType = null, string parentValue = null)
         {
-            w.WriteLine("[Help(Display = @\"{0}\", ToolTip = \"{1}\")]", PrettyPrintDiaplayName(displayName), description);
+            w.WriteLine("[Help(Display = @\"{0}\", ToolTip = \"{1}\")]", PrettyPrintDisplayName(displayName), description);
             if (parent != null)
                 w.WriteLine("[Relevancy(Key = \"{0}\", Values = new object[] {{ {1}.{2} }})]", parent, parentType, parentValue);
             if (defaultValue != null)
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             w.WriteLine("[ModuleParameter]");
         }
 
-        private string PrettyPrintDiaplayName(string displayName)
+        private string PrettyPrintDisplayName(string displayName)
         {
             var sb = new StringBuilder();
             bool first = true;

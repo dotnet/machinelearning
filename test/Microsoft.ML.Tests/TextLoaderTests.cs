@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
+using System;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -220,6 +221,13 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
+        [Fact]
+        public void ThrowsExceptionWithPropertyName()
+        {
+            Exception ex = Assert.Throws<ArgumentOutOfRangeException>( () => new TextLoader<ModelWithoutColumnAttribute>("fakefile.txt") );
+            Assert.StartsWith("String1 is missing ColumnAttribute", ex.Message);
+        }
+
         public class QuoteInput
         {
             [Column("0")]
@@ -254,6 +262,11 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             [Column("1")]
             public float Number1;
+        }
+
+        public class ModelWithoutColumnAttribute
+        {
+            public string String1;
         }
     }
 }

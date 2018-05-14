@@ -390,7 +390,8 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             RunMTAThread(() =>
             {
-                var learners = new[] { TestLearners.FastTreeClassfier, TestLearners.FastTreeDropoutClassfier, TestLearners.FastTreeBsrClassfier };
+                var learners = new[] { TestLearners.FastTreeClassfier, TestLearners.FastTreeDropoutClassfier,
+                    TestLearners.FastTreeBsrClassfier, TestLearners.FastTreeClassfierDisk };
                 var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe};
                 foreach (var learner in learners)
                 {
@@ -535,13 +536,13 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("FastTree")]
         public void GamBinaryClassificationTest()
         {
             RunMTAThread(() =>
             {
-                var learners = new[] { TestLearners.BinaryClassificationGamTrainer };
+                var learners = new[] { TestLearners.BinaryClassificationGamTrainer, TestLearners.BinaryClassificationGamTrainerDiskTranspose };
                 var datasets = GetDatasetsForBinaryClassifierBaseTest();
 
                 foreach (var learner in learners)
