@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>ML.NET is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>

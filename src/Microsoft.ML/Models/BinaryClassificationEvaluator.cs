@@ -18,7 +18,7 @@ namespace Microsoft.ML.Models
         /// The trained PredictionModel to be evaluated.
         /// </param>
         /// <param name="testData">
-        /// The test data that will be predicted and used to evaulate the model.
+        /// The test data that will be predicted and used to evaluate the model.
         /// </param>
         /// <returns>
         /// A BinaryClassificationMetrics instance that describes how well the model performed against the test data.
