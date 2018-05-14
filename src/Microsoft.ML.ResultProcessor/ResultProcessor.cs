@@ -584,7 +584,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
                 Results = runResults,
                 PerFoldResults = foldResults,
                 Time = 0,
-                ExecutionDate = DateTime.Now.ToString()
+                ExecutionDate = DateTime.UtcNow.ToString()
             };
         }
 

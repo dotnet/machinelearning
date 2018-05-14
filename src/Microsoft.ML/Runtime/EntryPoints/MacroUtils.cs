@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     TrainerKinds.SignatureBinaryClassifierTrainer,
                     new TaskInformationBundle {
-                        TrainerFunctionName = "TrainBinary",
+                        TrainerFunctionName = "BinaryClassifier",
                         TrainerSignatureType = typeof(SignatureBinaryClassifierTrainer),
                         EvaluatorInput = settings => new Models.BinaryClassificationEvaluator
                         {
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     TrainerKinds.SignatureMultiClassClassifierTrainer,
                     new TaskInformationBundle{
-                        TrainerFunctionName = "TrainMultiClass",
+                        TrainerFunctionName = "Classifier",
                         TrainerSignatureType = typeof(SignatureMultiClassClassifierTrainer),
                         EvaluatorInput = settings => new Models.ClassificationEvaluator
                         {
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     TrainerKinds.SignatureRankerTrainer,
                     new TaskInformationBundle {
-                        TrainerFunctionName = "TrainRanking",
+                        TrainerFunctionName = "Ranker",
                         TrainerSignatureType = typeof(SignatureRankerTrainer),
                         EvaluatorInput = settings => new Models.RankerEvaluator
                         {
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     TrainerKinds.SignatureRegressorTrainer,
                     new TaskInformationBundle{
-                        TrainerFunctionName = "TrainRegression",
+                        TrainerFunctionName = "Regressor",
                         TrainerSignatureType = typeof(SignatureRegressorTrainer),
                         EvaluatorInput = settings => new Models.RegressionEvaluator
                         {
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     TrainerKinds.SignatureMultiOutputRegressorTrainer,
                     new TaskInformationBundle {
-                        TrainerFunctionName = "TrainMultiRegression",
+                        TrainerFunctionName = "MultiOutputRegressor",
                         TrainerSignatureType = typeof(SignatureMultiOutputRegressorTrainer),
                         EvaluatorInput = settings => new Models.MultiOutputRegressionEvaluator
                         {
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     TrainerKinds.SignatureAnomalyDetectorTrainer,
                     new TaskInformationBundle {
-                        TrainerFunctionName = "TrainAnomalyDetection",
+                        TrainerFunctionName = "AnomalyDetector",
                         TrainerSignatureType = typeof(SignatureAnomalyDetectorTrainer),
                         EvaluatorInput = settings => new Models.AnomalyDetectionEvaluator
                         {
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     TrainerKinds.SignatureClusteringTrainer,
                     new TaskInformationBundle {
-                        TrainerFunctionName = "TrainClustering",
+                        TrainerFunctionName = "Clusterer",
                         TrainerSignatureType = typeof(SignatureClusteringTrainer),
                         EvaluatorInput = settings => new Models.ClusterEvaluator
                         {
@@ -186,13 +186,30 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public static TrainerKinds[] SignatureTypesToTrainerKinds(IEnumerable<Type> sigTypes) =>
             sigTypes.Select(SignatureTypeToTrainerKind).ToArray();
 
-        public static string GetTrainerName(TrainerKinds kind) => TrainerKindDict[kind].TrainerFunctionName;
+        private static string GetTrainerName(TrainerKinds kind) => TrainerKindDict[kind].TrainerFunctionName;
 
         public static T TrainerKindApiValue<T>(TrainerKinds trainerKind)
         {
             if (Enum.GetName(typeof(TrainerKinds), trainerKind) is string name)
                 return (T)Enum.Parse(typeof(T), name);
             throw new Exception($"Could not interpret enum value: {trainerKind}");
+        }
+
+        public static bool IsTrainerOfKind(Type type, TrainerKinds trainerKind)
+        {
+            if (type == typeof(Trainers.LogisticRegressionBinaryClassifier))
+                return trainerKind == TrainerKinds.SignatureBinaryClassifierTrainer;
+
+            if (type == typeof(Trainers.LogisticRegressionClassifier))
+                return trainerKind == TrainerKinds.SignatureMultiClassClassifierTrainer;
+
+            if (trainerKind != TrainerKinds.SignatureMultiClassClassifierTrainer && trainerKind != TrainerKinds.SignatureMultiOutputRegressorTrainer)
+                return type.Name.EndsWith(GetTrainerName(trainerKind));
+
+            if (trainerKind == TrainerKinds.SignatureMultiClassClassifierTrainer)
+                return type.Name.EndsWith(GetTrainerName(trainerKind)) && !type.Name.EndsWith(GetTrainerName(TrainerKinds.SignatureBinaryClassifierTrainer));
+
+            return type.Name.EndsWith(GetTrainerName(trainerKind)) && !type.Name.EndsWith(GetTrainerName(TrainerKinds.SignatureRegressorTrainer));
         }
     }
 }

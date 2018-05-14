@@ -5,6 +5,23 @@
     <NoBuild>true</NoBuild>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeSymbols>false</IncludeSymbols>
+
+    <!--
+    Our .nupkgproj files have conflicting names with src projects, which puts their intermediate
+    output in the same folder (like project.assets.json). Override the intermediate output to
+    make it unique for the .nupkgprojs.
+    -->
+    <IntermediateOutputPath>$(IntermediateOutputRootPath)$(MSBuildProjectName).NupkgProj\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>$(IntermediateOutputPath)</BaseIntermediateOutputPath>
+  </PropertyGroup>
+
+  <!-- nuspec properties -->
+  <PropertyGroup>
+    <Authors>Microsoft</Authors>
+    <PackageLicenseUrl>https://github.com/dotnet/machinelearning/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://dot.net/ml</PackageProjectUrl>
+    <PackageIconUrl>https://aka.ms/mlnetlogo</PackageIconUrl>
+    <PackageReleaseNotes>https://github.com/dotnet/machinelearning/tree/master/Documentation/release-notes</PackageReleaseNotes>
   </PropertyGroup>
 
   <!-- Work around https://github.com/NuGet/Home/issues/6091 -->
