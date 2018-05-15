@@ -1,6 +1,29 @@
 {
   "EntryPoints": [
     {
+      "Name": "Data.DataViewReference",
+      "Desc": "Pass dataview from memory to experiment",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Pointer to IDataView in memory",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "The resulting data view"
+        }
+      ]
+    },
+    {
       "Name": "Data.IDataViewArrayConverter",
       "Desc": "Create and array variable",
       "FriendlyName": null,

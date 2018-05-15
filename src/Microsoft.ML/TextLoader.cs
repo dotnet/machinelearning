@@ -115,11 +115,10 @@ namespace Microsoft.ML
             public TextLoaderPipelineStep(Var<IDataView> data)
             {
                 Data = data;
-                Model = null;
             }
 
             public Var<IDataView> Data { get; }
-            public Var<ITransformModel> Model { get; }
+            public Var<ITransformModel> Model => null;
         }
     }
 }
