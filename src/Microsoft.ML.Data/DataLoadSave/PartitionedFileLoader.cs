@@ -85,7 +85,7 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Data type of the column.")]
             public DataKind? Type;
 
-            [Argument(ArgumentType.Required, HelpText = "Source index of the column.")]
+            [Argument(ArgumentType.Required, HelpText = "Index of the directory representing this column.")]
             public int Source;
 
             public static Column Parse(string str)
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IHost _host;
         private readonly IMultiStreamSource _files;
-        private readonly int[] _srcColumns;
+        private readonly int[] _srcDirIndex;
         private readonly byte[] _subLoaderBytes;
 
         // Number of tailing directories to include.
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Runtime.Data
                 columns = columns.Concat(new[] { pathCol }).ToArray();
             }
 
-            _srcColumns = columns.Select(c => c.Source).ToArray();
+            _srcDirIndex = columns.Select(c => c.Source).ToArray();
             Schema = CreateSchema(_host, columns, subLoader);
         }
 
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Runtime.Data
             loader = new BinaryLoader(_host, new BinaryLoader.Arguments(), strm);
             Schema = loader.Schema;
 
-            _srcColumns = ctx.Reader.ReadIntArray();
+            _srcDirIndex = ctx.Reader.ReadIntArray();
             _subLoaderBytes = ctx.Reader.ReadByteArray();
 
             ctx.LoadModel<IPartitionedPathParser, SignatureLoadModel>(_host, out _pathParser, FilePathSpecCtxName);
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.Data
                 saver.SaveData(strm, noRows, allColumns);
                 ctx.SaveBinaryStream(SchemaCtxName, w => w.WriteByteArray(strm.ToArray()));
             }
-            ctx.Writer.WriteIntArray(_srcColumns);
+            ctx.Writer.WriteIntArray(_srcDirIndex);
 
             ctx.Writer.WriteByteArray(_subLoaderBytes);
             ctx.SaveModel(_pathParser, FilePathSpecCtxName);
@@ -532,7 +532,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Cache the column values for future Getter calls.
                 for (int i = 0; i < _colValues.Length; i++)
                 {
-                    var source = _parent._srcColumns[i];
+                    var source = _parent._srcDirIndex[i];
                     if (source >= 0 && source < values.Count)
                     {
                         _colValues[i] = new DvText(values[source]);
@@ -615,7 +615,7 @@ namespace Microsoft.ML.Runtime.Data
                 return col < SubColumnCount;
             }
 
-            private int SubColumnCount => Schema.ColumnCount - _parent._srcColumns.Length;
+            private int SubColumnCount => Schema.ColumnCount - _parent._srcDirIndex.Length;
 
             private IEnumerable<int> CreateFileOrder(IRandom rand)
             {
