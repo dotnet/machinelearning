@@ -396,6 +396,20 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckParam(file.CanWrite, nameof(file), "Must be writable");
 
             using (var stream = file.CreateWriteStream())
+            {
+                SaveLoader(loader, stream);
+            }
+        }
+
+        /// <summary>
+        /// Saves <paramref name="loader"/> to the specified <paramref name="stream"/>.
+        /// </summary>
+        public static void SaveLoader(IDataLoader loader, Stream stream)
+        {
+            Contracts.CheckValue(loader, nameof(loader));
+            Contracts.CheckValue(stream, nameof(stream));
+            Contracts.CheckParam(stream.CanWrite, nameof(stream), "Must be writable");
+
             using (var rep = RepositoryWriter.CreateNew(stream))
             {
                 ModelSaveContext.SaveModel(rep, loader, ModelFileUtils.DirDataLoaderModel);

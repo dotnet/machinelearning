@@ -154,12 +154,10 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private readonly IMultiStreamSource _files;
         private readonly Column[] _columns;
+        private readonly byte[] _subLoaderBytes;
 
         // Number of tailing directories to include.
         private readonly int _tailingDirCount;
-
-        // An underlying loader used on each individual loader.
-        private readonly SubComponent<IDataLoader, SignatureDataLoader> _subLoader;
 
         private readonly IPartitionedPathParser _pathParser;
 
@@ -177,8 +175,10 @@ namespace Microsoft.ML.Runtime.Data
             _pathParser = args.PathParserFactory.CreateComponent(_host);
             _host.CheckValue(_pathParser, nameof(_pathParser), "Failed to create the FilePathSpec.");
 
-            _subLoader = args.Loader;
             _files = files;
+
+            var subLoader = args.Loader.CreateInstance(_host, _files);
+            _subLoaderBytes = SaveLoaderToBytes(subLoader);
 
             string relativePath = GetRelativePath(args.BasePath, files);
             _columns = ParseColumns(relativePath).ToArray();
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Runtime.Data
                 _columns = _columns.Concat(new[] { pathCol }).ToArray();
             }
 
-            Schema = CreateSchema(_host, _columns, _subLoader);
+            Schema = CreateSchema(_host, _columns, subLoader);
         }
 
         private PartitionedFileLoader(IHost host, ModelLoadContext ctx, IMultiStreamSource files)
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Runtime.Data
             // int: number of columns
             // foreach column:
             //   string: column representation
-            // string: subloader
+            // byte[]: subloader
             // model: file path spec
 
             _tailingDirCount = ctx.Reader.ReadInt32();
@@ -227,13 +227,13 @@ namespace Microsoft.ML.Runtime.Data
                 _columns[i] = column;
             }
 
-            var loader = SubComponent.Parse(ctx.LoadString());
-            _subLoader = new SubComponent<IDataLoader, SignatureDataLoader>(loader.Kind, loader.Settings);
+            _subLoaderBytes = ctx.Reader.ReadByteArray();
 
             ctx.LoadModel<IPartitionedPathParser, SignatureLoadModel>(_host, out _pathParser, FilePathSpecName);
 
             _files = files;
-            Schema = CreateSchema(_host, _columns, _subLoader);
+            var loader = CreateLoaderFromBytes(_subLoaderBytes, files);
+            Schema = CreateSchema(_host, _columns, loader);
         }
 
         public static PartitionedFileLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Runtime.Data
             // int: number of columns
             // foreach column:
             //   string: column representation
-            // string: subloader
+            // byte[]: subloader
             // model: file path spec
 
             ctx.Writer.Write(_tailingDirCount);
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.SaveString(sb.ToString());
             }
 
-            ctx.SaveString(_subLoader.ToString());
+            ctx.Writer.WriteByteArray(_subLoaderBytes);
             ctx.SaveModel(_pathParser, FilePathSpecName);
         }
 
@@ -306,17 +306,17 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="ectx">The exception context.</param>
         /// <param name="cols">The partitioned columns.</param>
-        /// <param name="subComponent">The sub loader.</param>
+        /// <param name="subLoader">The sub loader.</param>
         /// <returns>The resulting schema.</returns>
-        private ISchema CreateSchema(IExceptionContext ectx, Column[] cols, SubComponent<IDataLoader, SignatureDataLoader> subComponent)
+        private ISchema CreateSchema(IExceptionContext ectx, Column[] cols, IDataLoader subLoader)
         {
             Contracts.AssertValue(cols);
-            Contracts.AssertValue(subComponent);
+            Contracts.AssertValue(subLoader);
 
             var columnNameTypes = cols.Select((col) => new KeyValuePair<string, ColumnType>(col.Name, PrimitiveType.FromKind(col.Type.Value)));
             var colSchema = new SimpleSchema(ectx, columnNameTypes.ToArray());
 
-            SubSchema = subComponent.CreateInstance(_host, _files).Schema;
+            SubSchema = subLoader.Schema;
 
             if (SubSchema.ColumnCount == 0)
             {
@@ -331,6 +331,29 @@ namespace Microsoft.ML.Runtime.Data
                 };
 
                 return new CompositeSchema(schemas);
+            }
+        }
+
+        private byte [] SaveLoaderToBytes(IDataLoader loader)
+        {
+            Contracts.CheckValue(loader, nameof(loader));
+
+            using (var stream = new MemoryStream())
+            {
+                LoaderUtils.SaveLoader(loader, stream);
+                return stream.GetBuffer();
+            }
+        }
+
+        private IDataLoader CreateLoaderFromBytes(byte [] loaderBytes, IMultiStreamSource files)
+        {
+            Contracts.CheckValue(loaderBytes, nameof(loaderBytes));
+            Contracts.CheckValue(files, nameof(files));
+
+            using (var stream = new MemoryStream(loaderBytes))
+            using (var rep = RepositoryReader.Open(stream, _host))
+            {
+                return ModelFileUtils.LoadLoader(_host, rep, files, false);
             }
         }
 
@@ -422,7 +445,7 @@ namespace Microsoft.ML.Runtime.Data
                     try
                     {
                         // Load the sub cursor and reset the data.
-                        loader = _parent._subLoader.CreateInstance(_parent._host, new MultiFileSource(path));
+                        loader = _parent.CreateLoaderFromBytes(_parent._subLoaderBytes, new MultiFileSource(path));
                     }
                     catch (Exception e)
                     {
