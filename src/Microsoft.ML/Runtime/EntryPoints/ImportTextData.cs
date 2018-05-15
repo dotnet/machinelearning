@@ -55,8 +55,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var loader = host.CreateLoader(string.Format("Text{{{0}}}", input.CustomSchema), new FileHandleSource(input.InputFile));
             return new Output { Data = loader };
         }
+#pragma warning restore 0618
 
-        [TlcModule.EntryPoint(Name = "Data.TextLoader", Desc = "Import a dataset from a text file", NoSeal = true)]
+        [TlcModule.EntryPoint(Name = "Data.TextLoader", Desc = "Import a dataset from a text file")]
         public static Output TextLoader(IHostEnvironment env, LoaderInput input)
         {
             Contracts.CheckValue(env, nameof(env));

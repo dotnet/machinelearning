@@ -146,12 +146,13 @@ namespace Microsoft.ML.Runtime.RunTests
             const int numOfSampleRows = 1000;
             int numIterations = 4;
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
+#pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
                 new ImportTextData.Input { InputFile = inputFileTrain }).Data.Take(numOfSampleRows);
             var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
             var datasetTest = ImportTextData.ImportText(Env,
                 new ImportTextData.Input { InputFile = inputFileTest }).Data.Take(numOfSampleRows);
-
+#pragma warning restore 0618
             // Define entrypoint graph
             string inputGraph = @"
                 {

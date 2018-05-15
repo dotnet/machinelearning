@@ -20,7 +20,7 @@ namespace Microsoft.ML.Scenarios
 
             var pipeline = new LearningPipeline();
 
-            pipeline.Add(new TextLoader<IrisDataWithStringLabel>(dataPath, useHeader: false, delimeter: ','));
+            pipeline.Add(new TextLoader(dataPath).CreateFrom<IrisDataWithStringLabel>(useHeader: false, separator: ','));
 
             pipeline.Add(new Dictionarizer("Label"));  // "IrisPlantType" is used as "Label" because of column attribute name on the field.
 
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Scenarios
             // Note: Testing against the same data set as a simple way to test evaluation.
             // This isn't appropriate in real-world scenarios.
             string testDataPath = GetDataPath("iris.data");
-            var testData = new TextLoader<IrisDataWithStringLabel>(testDataPath, useHeader: false, delimeter: ',');
+            var testData = new TextLoader(testDataPath).CreateFrom<IrisDataWithStringLabel>(useHeader: false, separator: ',');
 
             var evaluator = new ClassificationEvaluator();
             evaluator.OutputTopKAcc = 3;

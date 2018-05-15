@@ -685,7 +685,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     classBase = $" : OneToOneColumn<{_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}>, IOneToOneColumn";
                 else if (type.IsSubclassOf(typeof(ManyToOneColumn)))
                     classBase = $" : ManyToOneColumn<{_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}>, IManyToOneColumn";
-                writer.WriteLine($"public sealed class {_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}{classBase}");
+                writer.WriteLine($"public sealed partial class {_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}{classBase}");
                 writer.WriteLine("{");
                 writer.Indent();
                 GenerateInputFields(writer, type, catalog, _typesSymbolTable);
@@ -910,9 +910,8 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             
             if(entryPointInfo.ObsoleteAttribute != null)
                 writer.WriteLine($"[Obsolete(\"{entryPointInfo.ObsoleteAttribute.Message}\")]");
-
-            string seal = entryPointInfo.NoSeal ? "" : "sealed ";
-            writer.WriteLine($"public {seal}partial class {classAndMethod.Item2}{classBase}");
+            
+            writer.WriteLine($"public sealed partial class {classAndMethod.Item2}{classBase}");
             writer.WriteLine("{");
             writer.Indent();
             writer.WriteLine();

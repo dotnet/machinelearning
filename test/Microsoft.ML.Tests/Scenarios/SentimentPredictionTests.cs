@@ -6,6 +6,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ namespace Microsoft.ML.Scenarios
             string dataPath = GetDataPath(SentimentDataPath);
             var pipeline = new LearningPipeline();
 
-            pipeline.Add(new TextLoader(dataPath)
+            pipeline.Add(new Data.TextLoader(dataPath)
             {
                 Arguments = new TextLoaderArguments
                 {
@@ -36,14 +37,14 @@ namespace Microsoft.ML.Scenarios
                         new TextLoaderColumn()
                         {
                             Name = "Label",
-                            Source = new [] { new TextLoaderRange() { Min = 0, Max = 0} },
+                            Source = new [] { new TextLoaderRange() { Ordinal = 0 } },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SentimentText",
-                            Source = new [] { new TextLoaderRange() { Min = 1, Max = 1} },
+                            Source = new [] { new TextLoaderRange() { Ordinal = 1 } },
                             Type = Runtime.Data.DataKind.Text
                         }
                     }
@@ -82,11 +83,11 @@ namespace Microsoft.ML.Scenarios
             IEnumerable<SentimentPrediction> predictions = model.Predict(sentiments);
 
             Assert.Equal(2, predictions.Count());
-            Assert.False(predictions.ElementAt(0).Sentiment);
-            Assert.True(predictions.ElementAt(1).Sentiment);
+            Assert.True(predictions.ElementAt(0).Sentiment.IsFalse);
+            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
 
             string testDataPath = GetDataPath(SentimentTestPath);
-            var testData = new TextLoader(testDataPath)
+            var testData = new Data.TextLoader(testDataPath)
             {
                 Arguments = new TextLoaderArguments
                 {
@@ -97,14 +98,14 @@ namespace Microsoft.ML.Scenarios
                         new TextLoaderColumn()
                         {
                             Name = "Label",
-                            Source = new [] { new TextLoaderRange() { Min = 0, Max = 0} },
+                            Source = new [] { new TextLoaderRange() { Ordinal = 0 } },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SentimentText",
-                            Source = new [] { new TextLoaderRange() { Min = 1, Max = 1} },
+                            Source = new [] { new TextLoaderRange() { Ordinal = 1 } },
                             Type = Runtime.Data.DataKind.Text
                         }
                     }
@@ -153,7 +154,7 @@ namespace Microsoft.ML.Scenarios
         public class SentimentPrediction
         {
             [ColumnName("PredictedLabel")]
-            public bool Sentiment;
+            public DvBool Sentiment;
         }
     }
 }

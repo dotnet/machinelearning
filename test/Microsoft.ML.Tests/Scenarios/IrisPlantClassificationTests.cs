@@ -20,7 +20,7 @@ namespace Microsoft.ML.Scenarios
 
             var pipeline = new LearningPipeline();
 
-            pipeline.Add(new TextLoader<IrisData>(dataPath, useHeader: false));
+            pipeline.Add(new TextLoader(dataPath).CreateFrom<IrisData>(useHeader: false));
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
 
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Scenarios
             // Note: Testing against the same data set as a simple way to test evaluation.
             // This isn't appropriate in real-world scenarios.
             string testDataPath = GetDataPath("iris.txt");
-            var testData = new TextLoader<IrisData>(testDataPath, useHeader: false);
+            var testData = new TextLoader(testDataPath).CreateFrom<IrisData>(useHeader: false);
 
             var evaluator = new ClassificationEvaluator();
             evaluator.OutputTopKAcc = 3;

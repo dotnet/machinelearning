@@ -85,15 +85,19 @@ namespace Microsoft.ML.Runtime.Data
                 return TryParseSource(rgstr[istr++]);
             }
 
-            private bool TryParseSource(string str)
+            private bool TryParseSource(string str) => TryParseSourceEx(str, out Source);
+
+            public static bool TryParseSourceEx(string str, out Range[] ranges)
             {
+                ranges = null;
                 var strs = str.Split(',');
                 if (str.Length == 0)
                     return false;
-                Source = new Range[strs.Length];
+
+                ranges = new Range[strs.Length];
                 for (int i = 0; i < strs.Length; i++)
                 {
-                    if ((Source[i] = Range.Parse(strs[i])) == null)
+                    if ((ranges[i] = Range.Parse(strs[i])) == null)
                         return false;
                 }
                 return true;

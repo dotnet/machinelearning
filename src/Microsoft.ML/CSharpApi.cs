@@ -34,6 +34,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Data.CustomTextLoader", input, output));
             }
 
+            public Microsoft.ML.Data.DataViewReference.Output Add(Microsoft.ML.Data.DataViewReference input)
+            {
+                var output = new Microsoft.ML.Data.DataViewReference.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Data.DataViewReference input, Microsoft.ML.Data.DataViewReference.Output output)
+            {
+                _jsonNodes.Add(Serialize("Data.DataViewReference", input, output));
+            }
+
             public Microsoft.ML.Data.IDataViewArrayConverter.Output Add(Microsoft.ML.Data.IDataViewArrayConverter input)
             {
                 var output = new Microsoft.ML.Data.IDataViewArrayConverter.Output();
@@ -65,22 +77,11 @@ namespace Microsoft.ML
                 return output;
             }
 
-            public Microsoft.ML.Data.DataViewReference.Output Add(Microsoft.ML.Data.DataViewReference input)
-            {
-                var output = new Microsoft.ML.Data.DataViewReference.Output();
-                Add(input, output);
-                return output;
-            }
-
             public void Add(Microsoft.ML.Data.TextLoader input, Microsoft.ML.Data.TextLoader.Output output)
             {
                 _jsonNodes.Add(Serialize("Data.TextLoader", input, output));
             }
 
-            public void Add(Microsoft.ML.Data.DataViewReference input, Microsoft.ML.Data.DataViewReference.Output output)
-            {
-                _jsonNodes.Add(Serialize("Data.DataViewReference", input, output));
-            }
             public Microsoft.ML.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Models.AnomalyDetectionEvaluator input)
             {
                 var output = new Microsoft.ML.Models.AnomalyDetectionEvaluator.Output();
@@ -463,6 +464,18 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Trainers.GeneralizedAdditiveModelRegressor input, Microsoft.ML.Trainers.GeneralizedAdditiveModelRegressor.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.GeneralizedAdditiveModelRegressor", input, output));
+            }
+
+            public Microsoft.ML.Trainers.KMeansPlusPlusClusterer.Output Add(Microsoft.ML.Trainers.KMeansPlusPlusClusterer input)
+            {
+                var output = new Microsoft.ML.Trainers.KMeansPlusPlusClusterer.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainers.KMeansPlusPlusClusterer input, Microsoft.ML.Trainers.KMeansPlusPlusClusterer.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainers.KMeansPlusPlusClusterer", input, output));
             }
 
             public Microsoft.ML.Trainers.LinearSvmBinaryClassifier.Output Add(Microsoft.ML.Trainers.LinearSvmBinaryClassifier input)
@@ -1320,6 +1333,33 @@ namespace Microsoft.ML
     {
 
         /// <summary>
+        /// Pass dataview from memory to experiment
+        /// </summary>
+        public sealed partial class DataViewReference
+        {
+
+
+            /// <summary>
+            /// Pointer to IDataView in memory
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// The resulting data view
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Data
+    {
+
+        /// <summary>
         /// Create and array variable
         /// </summary>
         public sealed partial class IDataViewArrayConverter
@@ -1373,7 +1413,7 @@ namespace Microsoft.ML
     namespace Data
     {
 
-        public sealed class TextLoaderArguments
+        public sealed partial class TextLoaderArguments
         {
             /// <summary>
             /// Use separate parsing threads?
@@ -1427,7 +1467,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class TextLoaderColumn
+        public sealed partial class TextLoaderColumn
         {
             /// <summary>
             /// Name of the column
@@ -1451,7 +1491,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class TextLoaderRange
+        public sealed partial class TextLoaderRange
         {
             /// <summary>
             /// First index in the range
@@ -1485,7 +1525,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class KeyRange
+        public sealed partial class KeyRange
         {
             /// <summary>
             /// First index in the range
@@ -1507,7 +1547,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Import a dataset from a text file
         /// </summary>
-        public partial class TextLoader : Microsoft.ML.ILearningPipelineLoader
+        public sealed partial class TextLoader : Microsoft.ML.ILearningPipelineLoader
         {
 
             [JsonIgnore]
@@ -1552,23 +1592,6 @@ namespace Microsoft.ML
             /// </summary>
             public Data.TextLoaderArguments Arguments { get; set; } = new Data.TextLoaderArguments();
 
-
-            public sealed class Output
-            {
-                /// <summary>
-                /// The resulting data view
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            }
-        }
-
-        public sealed partial class DataViewReference
-        {
-            /// <summary>
-            /// Location of the input file
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             public sealed class Output
             {
@@ -1768,7 +1791,7 @@ namespace Microsoft.ML
     namespace Models
     {
 
-        public sealed class CrossValidationBinaryMacroSubGraphInput
+        public sealed partial class CrossValidationBinaryMacroSubGraphInput
         {
             /// <summary>
             /// The data to be used for training
@@ -1777,7 +1800,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class CrossValidationBinaryMacroSubGraphOutput
+        public sealed partial class CrossValidationBinaryMacroSubGraphOutput
         {
             /// <summary>
             /// The model
@@ -2033,7 +2056,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class CrossValidationMacroSubGraphInput
+        public sealed partial class CrossValidationMacroSubGraphInput
         {
             /// <summary>
             /// The data to be used for training
@@ -2042,7 +2065,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class CrossValidationMacroSubGraphOutput
+        public sealed partial class CrossValidationMacroSubGraphOutput
         {
             /// <summary>
             /// The model
@@ -2446,7 +2469,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class OneVersusAllMacroSubGraphOutput
+        public sealed partial class OneVersusAllMacroSubGraphOutput
         {
             /// <summary>
             /// The predictor model for the subgraph exemplar.
@@ -3084,7 +3107,7 @@ namespace Microsoft.ML
     namespace Models
     {
 
-        public sealed class TrainTestBinaryMacroSubGraphInput
+        public sealed partial class TrainTestBinaryMacroSubGraphInput
         {
             /// <summary>
             /// The data to be used for training
@@ -3093,7 +3116,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class TrainTestBinaryMacroSubGraphOutput
+        public sealed partial class TrainTestBinaryMacroSubGraphOutput
         {
             /// <summary>
             /// The model
@@ -3169,7 +3192,7 @@ namespace Microsoft.ML
     namespace Models
     {
 
-        public sealed class TrainTestMacroSubGraphInput
+        public sealed partial class TrainTestMacroSubGraphInput
         {
             /// <summary>
             /// The data to be used for training
@@ -3178,7 +3201,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class TrainTestMacroSubGraphOutput
+        public sealed partial class TrainTestMacroSubGraphOutput
         {
             /// <summary>
             /// The model
@@ -5895,6 +5918,107 @@ namespace Microsoft.ML
 
     namespace Trainers
     {
+        public enum KMeansPlusPlusTrainerInitAlgorithm
+        {
+            KMeansPlusPlus = 0,
+            Random = 1,
+            KMeansParallel = 2
+        }
+
+
+        /// <summary>
+        /// K-means is a popular clustering algorithm. With K-means, the data is clustered into a specified number of clusters in order to minimize the within-cluster sum of squares. K-means++ improves upon K-means by using a better method for choosing the initial cluster centers.
+        /// </summary>
+        public sealed partial class KMeansPlusPlusClusterer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The number of clusters
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("K", new object[]{5, 10, 20, 40})]
+            public int K { get; set; } = 5;
+
+            /// <summary>
+            /// Cluster initialization algorithm
+            /// </summary>
+            public Trainers.KMeansPlusPlusTrainerInitAlgorithm InitAlgorithm { get; set; } = Trainers.KMeansPlusPlusTrainerInitAlgorithm.KMeansParallel;
+
+            /// <summary>
+            /// Tolerance parameter for trainer convergence. Lower = slower, more accurate
+            /// </summary>
+            public float OptTol { get; set; } = 1E-07f;
+
+            /// <summary>
+            /// Maximum number of iterations.
+            /// </summary>
+            public int MaxIterations { get; set; } = 1000;
+
+            /// <summary>
+            /// Memory budget (in MBs) to use for KMeans acceleration
+            /// </summary>
+            public int AccelMemBudgetMb { get; set; } = 4096;
+
+            /// <summary>
+            /// Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.
+            /// </summary>
+            public int? NumThreads { get; set; }
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IClusteringOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                {
+                    throw new InvalidOperationException($"{ nameof(KMeansPlusPlusClusterer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                }
+
+                TrainingData = dataStep.Data;
+                Output output = experiment.Add(this);
+                return new KMeansPlusPlusClustererPipelineStep(output);
+            }
+
+            private class KMeansPlusPlusClustererPipelineStep : ILearningPipelinePredictorStep
+            {
+                public KMeansPlusPlusClustererPipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainers
+    {
 
         /// <summary>
         /// Train a linear SVM.
@@ -7403,7 +7527,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class NormalizeTransformBinColumn : OneToOneColumn<NormalizeTransformBinColumn>, IOneToOneColumn
+        public sealed partial class NormalizeTransformBinColumn : OneToOneColumn<NormalizeTransformBinColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Max number of bins, power of 2 recommended
@@ -7555,7 +7679,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class CategoricalHashTransformColumn : OneToOneColumn<CategoricalHashTransformColumn>, IOneToOneColumn
+        public sealed partial class CategoricalHashTransformColumn : OneToOneColumn<CategoricalHashTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The number of bits to hash into. Must be between 1 and 30, inclusive.
@@ -7725,7 +7849,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class CategoricalTransformColumn : OneToOneColumn<CategoricalTransformColumn>, IOneToOneColumn
+        public sealed partial class CategoricalTransformColumn : OneToOneColumn<CategoricalTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector
@@ -7889,7 +8013,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class CharTokenizeTransformColumn : OneToOneColumn<CharTokenizeTransformColumn>, IOneToOneColumn
+        public sealed partial class CharTokenizeTransformColumn : OneToOneColumn<CharTokenizeTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -8008,7 +8132,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class ConcatTransformColumn : ManyToOneColumn<ConcatTransformColumn>, IManyToOneColumn
+        public sealed partial class ConcatTransformColumn : ManyToOneColumn<ConcatTransformColumn>, IManyToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -8098,7 +8222,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class CopyColumnsTransformColumn : OneToOneColumn<CopyColumnsTransformColumn>, IOneToOneColumn
+        public sealed partial class CopyColumnsTransformColumn : OneToOneColumn<CopyColumnsTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -8360,7 +8484,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class ConvertTransformColumn : OneToOneColumn<ConvertTransformColumn>, IOneToOneColumn
+        public sealed partial class ConvertTransformColumn : OneToOneColumn<ConvertTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The result type
@@ -8559,7 +8683,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class NormalizeTransformAffineColumn : OneToOneColumn<NormalizeTransformAffineColumn>, IOneToOneColumn
+        public sealed partial class NormalizeTransformAffineColumn : OneToOneColumn<NormalizeTransformAffineColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Whether to map zero to zero, preserving sparsity
@@ -8832,7 +8956,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class TermTransformColumn : OneToOneColumn<TermTransformColumn>, IOneToOneColumn
+        public sealed partial class TermTransformColumn : OneToOneColumn<TermTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Maximum number of terms to keep when auto-training
@@ -9186,7 +9310,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class LpNormNormalizerTransformGcnColumn : OneToOneColumn<LpNormNormalizerTransformGcnColumn>, IOneToOneColumn
+        public sealed partial class LpNormNormalizerTransformGcnColumn : OneToOneColumn<LpNormNormalizerTransformGcnColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Normalize by standard deviation rather than L2 norm
@@ -9330,7 +9454,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class HashJoinTransformColumn : OneToOneColumn<HashJoinTransformColumn>, IOneToOneColumn
+        public sealed partial class HashJoinTransformColumn : OneToOneColumn<HashJoinTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Whether the values need to be combined for a single hash
@@ -9489,7 +9613,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class KeyToValueTransformColumn : OneToOneColumn<KeyToValueTransformColumn>, IOneToOneColumn
+        public sealed partial class KeyToValueTransformColumn : OneToOneColumn<KeyToValueTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -9668,7 +9792,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class LabelIndicatorTransformColumn : OneToOneColumn<LabelIndicatorTransformColumn>, IOneToOneColumn
+        public sealed partial class LabelIndicatorTransformColumn : OneToOneColumn<LabelIndicatorTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The positive example class for binary classification.
@@ -9852,7 +9976,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class NormalizeTransformLogNormalColumn : OneToOneColumn<NormalizeTransformLogNormalColumn>, IOneToOneColumn
+        public sealed partial class NormalizeTransformLogNormalColumn : OneToOneColumn<NormalizeTransformLogNormalColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Max number of examples used to train the normalizer
@@ -9989,7 +10113,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class LpNormNormalizerTransformColumn : OneToOneColumn<LpNormNormalizerTransformColumn>, IOneToOneColumn
+        public sealed partial class LpNormNormalizerTransformColumn : OneToOneColumn<LpNormNormalizerTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The norm to use to normalize each sample
@@ -10392,7 +10516,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class NAHandleTransformColumn : OneToOneColumn<NAHandleTransformColumn>, IOneToOneColumn
+        public sealed partial class NAHandleTransformColumn : OneToOneColumn<NAHandleTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The replacement method to utilize
@@ -10536,7 +10660,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class NAIndicatorTransformColumn : OneToOneColumn<NAIndicatorTransformColumn>, IOneToOneColumn
+        public sealed partial class NAIndicatorTransformColumn : OneToOneColumn<NAIndicatorTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -10650,7 +10774,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class NADropTransformColumn : OneToOneColumn<NADropTransformColumn>, IOneToOneColumn
+        public sealed partial class NADropTransformColumn : OneToOneColumn<NADropTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -10844,7 +10968,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class NAReplaceTransformColumn : OneToOneColumn<NAReplaceTransformColumn>, IOneToOneColumn
+        public sealed partial class NAReplaceTransformColumn : OneToOneColumn<NAReplaceTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Replacement value for NAs (uses default value if not given)
@@ -11017,7 +11141,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class NgramTransformColumn : OneToOneColumn<NgramTransformColumn>, IOneToOneColumn
+        public sealed partial class NgramTransformColumn : OneToOneColumn<NgramTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Maximum ngram length
@@ -11356,7 +11480,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class GenerateNumberTransformColumn
+        public sealed partial class GenerateNumberTransformColumn
         {
             /// <summary>
             /// Name of the new column
@@ -12095,7 +12219,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class TextTransformColumn : ManyToOneColumn<TextTransformColumn>, IManyToOneColumn
+        public sealed partial class TextTransformColumn : ManyToOneColumn<TextTransformColumn>, IManyToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -12109,7 +12233,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class TermLoaderArguments
+        public sealed partial class TermLoaderArguments
         {
             /// <summary>
             /// List of terms
@@ -12524,7 +12648,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class DelimitedTokenizeTransformColumn : OneToOneColumn<DelimitedTokenizeTransformColumn>, IOneToOneColumn
+        public sealed partial class DelimitedTokenizeTransformColumn : OneToOneColumn<DelimitedTokenizeTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.
