@@ -2542,7 +2542,8 @@ namespace Microsoft.ML.Runtime.RunTests
             var fastTree = FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
             {
                 FeatureColumn = "Features",
-                NumLeaves = 80,
+                NumTrees = 5,
+                NumLeaves = 4,
                 LabelColumn = DefaultColumnNames.Label,
                 TrainingData = concat.OutputData
             });
@@ -2576,11 +2577,11 @@ namespace Microsoft.ML.Runtime.RunTests
                     treesGetter(ref treeValues);
                     leavesGetter(ref leafIndicators);
                     pathsGetter(ref pathIndicators);
-                    Assert.Equal(100, treeValues.Length);
-                    Assert.Equal(100, treeValues.Count);
-                    Assert.Equal(3955, leafIndicators.Length);
-                    Assert.Equal(100, leafIndicators.Count);
-                    Assert.Equal(3855, pathIndicators.Length);
+                    Assert.Equal(5, treeValues.Length);
+                    Assert.Equal(5, treeValues.Count);
+                    Assert.Equal(20, leafIndicators.Length);
+                    Assert.Equal(5, leafIndicators.Count);
+                    Assert.Equal(15, pathIndicators.Length);
                 }
             }
         }
