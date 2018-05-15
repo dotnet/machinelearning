@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Transforms;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -41,6 +43,41 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             pipeline.Add(new Trainers.StochasticDualCoordinateAscentRegressor());
             Assert.Equal(3, pipeline.Count);
+        }
+
+        class InputData
+        {
+            [Column(ordinal: "1")]
+            public string F1;
+        }
+
+        class TransformedData
+        {
+            [ColumnName("F1")]
+            public float[] TransformedF1;
+        }
+
+        [Fact]
+        public void TransformOnlyPipeline()
+        {
+            const string _dataPath = @"..\..\Data\breast-cancer.txt";
+            var pipeline = new LearningPipeline();
+            pipeline.Add(new TextLoader<InputData>(_dataPath, useHeader: false));
+            pipeline.Add(new CategoricalHashOneHotVectorizer("F1") { HashBits = 10, Seed = 314489979, OutputKind = CategoricalTransformOutputKind.Bag });
+            var model = pipeline.Train<InputData, TransformedData>();
+            var predictionModel = model.Predict(new InputData() { F1 = "5" });
+
+            Assert.NotNull(predictionModel);
+            Assert.NotNull(predictionModel.TransformedF1);
+            Assert.Equal(1024, predictionModel.TransformedF1.Length);
+
+            for (int index = 0; index < 1024; index++)
+                if (index == 265)
+                    Assert.Equal(1, predictionModel.TransformedF1[index]);
+                else
+                    Assert.Equal(0, predictionModel.TransformedF1[index]);
+
+            predictionModel.TransformedF1 = null;
         }
     }
 }
