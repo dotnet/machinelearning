@@ -1,14 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+<Project DefaultTargets="Pack">
 
   <Import Project="Microsoft.ML.nupkgproj" />
-
-  <PropertyGroup>
-    <MSBuildProjectNameWithoutSymbols>$(MSBuildProjectName.Replace('.symbols', ''))</MSBuildProjectNameWithoutSymbols>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="$(PackageAssetsPath)$(MSBuildProjectNameWithoutSymbols)\lib\**\*" Pack="true" PackagePath="lib" />
-    <Content Include="$(PackageAssetsPath)$(MSBuildProjectNameWithoutSymbols)\runtimes\**\*" Pack="true" PackagePath="runtimes" />
-  </ItemGroup>
 
 </Project>

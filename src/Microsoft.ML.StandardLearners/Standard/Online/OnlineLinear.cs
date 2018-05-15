@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Assert(Iteration == 0);
             Contracts.Assert(Bias == 0);
 
-            ch.Trace("{0} Initializing {1} on {2} features", DateTime.Now, Name, numFeatures);
+            ch.Trace("{0} Initializing {1} on {2} features", DateTime.UtcNow, Name, numFeatures);
             NumFeatures = numFeatures;
 
             // We want a dense vector, to prevent memory creation during training
@@ -253,13 +253,13 @@ namespace Microsoft.ML.Runtime.Learners
             Iteration++;
             NumIterExamples = 0;
 
-            ch.Trace("{0} Starting training iteration {1}", DateTime.Now, Iteration);
+            ch.Trace("{0} Starting training iteration {1}", DateTime.UtcNow, Iteration);
             // #if OLD_TRACING // REVIEW: How should this be ported?
             if (Iteration % 20 == 0)
             {
                 Console.Write('.');
                 if (Iteration % 1000 == 0)
-                    Console.WriteLine(" {0}  \t{1}", Iteration, DateTime.Now);
+                    Console.WriteLine(" {0}  \t{1}", Iteration, DateTime.UtcNow);
             }
             // #endif
         }
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Check(NumIterExamples > 0, NoTrainingInstancesMessage);
 
             ch.Trace("{0} Finished training iteration {1}; iterated over {2} examples.",
-                DateTime.Now, Iteration, NumIterExamples);
+                DateTime.UtcNow, Iteration, NumIterExamples);
 
             ScaleWeights();
 #if OLD_TRACING // REVIEW: How should this be ported?
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Runtime.Learners
                         if (_numIterExamples % 5000000 == 0)
                         {
                             Host.StdOut.Write(" ");
-                            Host.StdOut.Write(DateTime.Now);
+                            Host.StdOut.Write(DateTime.UtcNow);
                         }
                         Host.StdOut.WriteLine();
                     }
