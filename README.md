@@ -34,6 +34,10 @@ Install-Package Microsoft.ML
 
 Or alternatively you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
 
+Daily NuGet builds of the project are also available in our MyGet feed:
+
+> [https://dotnet.myget.org/F/dotnet-core/api/v3/index.json](https://dotnet.myget.org/F/dotnet-core/api/v3/index.json)
+
 ## Building
 
 To build ML.NET from source please visit our [developers guide](Documentation/project-docs/developer-guide.md).

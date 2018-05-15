@@ -1,33 +1,18 @@
 {
   "EntryPoints": [
     {
-      "Name": "Data.CustomTextLoader",
-      "Desc": "Import a dataset from a text file",
+      "Name": "Data.DataViewReference",
+      "Desc": "Pass dataview from memory to experiment",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
         {
-          "Name": "InputFile",
-          "Type": "FileHandle",
-          "Desc": "Location of the input file",
-          "Aliases": [
-            "data"
-          ],
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Pointer to IDataView in memory",
           "Required": true,
           "SortOrder": 1.0,
           "IsNullable": false
-        },
-        {
-          "Name": "CustomSchema",
-          "Type": "String",
-          "Desc": "Custom schema to use for parsing",
-          "Aliases": [
-            "schema"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": null
         }
       ],
       "Outputs": [
@@ -114,320 +99,16 @@
           "IsNullable": false
         },
         {
-          "Name": "Arguments",
-          "Type": {
-            "Kind": "Struct",
-            "Fields": [
-              {
-                "Name": "Column",
-                "Type": {
-                  "Kind": "Array",
-                  "ItemType": {
-                    "Kind": "Struct",
-                    "Fields": [
-                      {
-                        "Name": "Name",
-                        "Type": "String",
-                        "Desc": "Name of the column",
-                        "Required": false,
-                        "SortOrder": 150.0,
-                        "IsNullable": false,
-                        "Default": null
-                      },
-                      {
-                        "Name": "Type",
-                        "Type": {
-                          "Kind": "Enum",
-                          "Values": [
-                            "I1",
-                            "U1",
-                            "I2",
-                            "U2",
-                            "I4",
-                            "U4",
-                            "I8",
-                            "U8",
-                            "R4",
-                            "Num",
-                            "R8",
-                            "TX",
-                            "Text",
-                            "TXT",
-                            "BL",
-                            "Bool",
-                            "TimeSpan",
-                            "TS",
-                            "DT",
-                            "DateTime",
-                            "DZ",
-                            "DateTimeZone",
-                            "UG",
-                            "U16"
-                          ]
-                        },
-                        "Desc": "Type of the items in the column",
-                        "Required": false,
-                        "SortOrder": 150.0,
-                        "IsNullable": true,
-                        "Default": null
-                      },
-                      {
-                        "Name": "Source",
-                        "Type": {
-                          "Kind": "Array",
-                          "ItemType": {
-                            "Kind": "Struct",
-                            "Fields": [
-                              {
-                                "Name": "Min",
-                                "Type": "Int",
-                                "Desc": "First index in the range",
-                                "Required": true,
-                                "SortOrder": 150.0,
-                                "IsNullable": false,
-                                "Default": 0
-                              },
-                              {
-                                "Name": "Max",
-                                "Type": "Int",
-                                "Desc": "Last index in the range",
-                                "Required": false,
-                                "SortOrder": 150.0,
-                                "IsNullable": true,
-                                "Default": null
-                              },
-                              {
-                                "Name": "AutoEnd",
-                                "Type": "Bool",
-                                "Desc": "This range extends to the end of the line, but should be a fixed number of items",
-                                "Aliases": [
-                                  "auto"
-                                ],
-                                "Required": false,
-                                "SortOrder": 150.0,
-                                "IsNullable": false,
-                                "Default": false
-                              },
-                              {
-                                "Name": "VariableEnd",
-                                "Type": "Bool",
-                                "Desc": "This range extends to the end of the line, which can vary from line to line",
-                                "Aliases": [
-                                  "var"
-                                ],
-                                "Required": false,
-                                "SortOrder": 150.0,
-                                "IsNullable": false,
-                                "Default": false
-                              },
-                              {
-                                "Name": "AllOther",
-                                "Type": "Bool",
-                                "Desc": "This range includes only other indices not specified",
-                                "Aliases": [
-                                  "other"
-                                ],
-                                "Required": false,
-                                "SortOrder": 150.0,
-                                "IsNullable": false,
-                                "Default": false
-                              },
-                              {
-                                "Name": "ForceVector",
-                                "Type": "Bool",
-                                "Desc": "Force scalar columns to be treated as vectors of length one",
-                                "Aliases": [
-                                  "vector"
-                                ],
-                                "Required": false,
-                                "SortOrder": 150.0,
-                                "IsNullable": false,
-                                "Default": false
-                              }
-                            ]
-                          }
-                        },
-                        "Desc": "Source index range(s) of the column",
-                        "Aliases": [
-                          "src"
-                        ],
-                        "Required": false,
-                        "SortOrder": 150.0,
-                        "IsNullable": false,
-                        "Default": null
-                      },
-                      {
-                        "Name": "KeyRange",
-                        "Type": {
-                          "Kind": "Struct",
-                          "Fields": [
-                            {
-                              "Name": "Min",
-                              "Type": "UInt",
-                              "Desc": "First index in the range",
-                              "Required": false,
-                              "SortOrder": 150.0,
-                              "IsNullable": false,
-                              "Default": 0
-                            },
-                            {
-                              "Name": "Max",
-                              "Type": "UInt",
-                              "Desc": "Last index in the range",
-                              "Required": false,
-                              "SortOrder": 150.0,
-                              "IsNullable": true,
-                              "Default": null
-                            },
-                            {
-                              "Name": "Contiguous",
-                              "Type": "Bool",
-                              "Desc": "Whether the key is contiguous",
-                              "Required": false,
-                              "SortOrder": 150.0,
-                              "IsNullable": false,
-                              "Default": true
-                            }
-                          ]
-                        },
-                        "Desc": "For a key column, this defines the range of values",
-                        "Aliases": [
-                          "key"
-                        ],
-                        "Required": false,
-                        "SortOrder": 150.0,
-                        "IsNullable": false,
-                        "Default": null
-                      }
-                    ]
-                  }
-                },
-                "Desc": "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
-                "Aliases": [
-                  "col"
-                ],
-                "Required": false,
-                "SortOrder": 1.0,
-                "IsNullable": false,
-                "Default": null
-              },
-              {
-                "Name": "UseThreads",
-                "Type": "Bool",
-                "Desc": "Use separate parsing threads?",
-                "Aliases": [
-                  "threads"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": false,
-                "Default": true
-              },
-              {
-                "Name": "HeaderFile",
-                "Type": "String",
-                "Desc": "File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.",
-                "Aliases": [
-                  "hf"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": false,
-                "Default": null
-              },
-              {
-                "Name": "MaxRows",
-                "Type": "Int",
-                "Desc": "Maximum number of rows to produce",
-                "Aliases": [
-                  "rows"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": true,
-                "Default": null
-              },
-              {
-                "Name": "AllowQuoting",
-                "Type": "Bool",
-                "Desc": "Whether the input may include quoted values, which can contain separator characters, colons, and distinguish empty values from missing values. When true, consecutive separators denote a missing value and an empty value is denoted by \"\". When false, consecutive separators denote an empty value.",
-                "Aliases": [
-                  "quote"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": false,
-                "Default": true
-              },
-              {
-                "Name": "AllowSparse",
-                "Type": "Bool",
-                "Desc": "Whether the input may include sparse representations",
-                "Aliases": [
-                  "sparse"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": false,
-                "Default": true
-              },
-              {
-                "Name": "InputSize",
-                "Type": "Int",
-                "Desc": "Number of source columns in the text data. Default is that sparse rows contain their size information.",
-                "Aliases": [
-                  "size"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": true,
-                "Default": null
-              },
-              {
-                "Name": "Delimiter",
-                "Type": "Char",
-                "Desc": "Source column separator. Option: single character ONLY",
-                "Aliases": [
-                  "del"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": false,
-                "Default": "\t"
-              },
-              {
-                "Name": "TrimWhitespace",
-                "Type": "Bool",
-                "Desc": "Remove trailing whitespace from lines",
-                "Aliases": [
-                  "trim"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": false,
-                "Default": false
-              },
-              {
-                "Name": "HasHeader",
-                "Type": "Bool",
-                "Desc": "Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.",
-                "Aliases": [
-                  "header"
-                ],
-                "Required": false,
-                "SortOrder": 150.0,
-                "IsNullable": false,
-                "Default": false
-              }
-            ]
-          },
-          "Desc": "Arguments",
+          "Name": "CustomSchema",
+          "Type": "String",
+          "Desc": "Custom schema to use for parsing",
           "Aliases": [
-            "args"
+            "schema"
           ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": null
         }
       ],
       "Outputs": [
@@ -436,9 +117,6 @@
           "Type": "DataView",
           "Desc": "The resulting data view"
         }
-      ],
-      "InputKind": [
-        "ILearningPipelineLoader"
       ]
     },
     {
@@ -2069,6 +1747,105 @@
       ]
     },
     {
+      "Name": "Models.PipelineSweeper",
+      "Desc": "AutoML pipeline sweeping optimzation macro.",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training.",
+          "Aliases": [
+            "train"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "TestingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for testing.",
+          "Aliases": [
+            "test"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "StateArguments",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "AutoMlStateBase"
+          },
+          "Desc": "The arguments for creating an AutoMlState component.",
+          "Aliases": [
+            "args"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "State",
+          "Type": {
+            "Kind": "C# Object",
+            "ItemType": "Microsoft.ML.Runtime.EntryPoints.IMlState"
+          },
+          "Desc": "The stateful object conducting of the autoML search.",
+          "Aliases": [
+            "state"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "BatchSize",
+          "Type": "Int",
+          "Desc": "Number of candidate pipelines to retrieve each round.",
+          "Aliases": [
+            "bsize"
+          ],
+          "Required": true,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "CandidateOutputs",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "Output datasets from previous iteration of sweep.",
+          "Required": false,
+          "SortOrder": 7.0,
+          "IsNullable": false,
+          "Default": null
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "State",
+          "Type": {
+            "Kind": "C# Object",
+            "ItemType": "Microsoft.ML.Runtime.EntryPoints.IMlState"
+          },
+          "Desc": "Stateful autoML object, keeps track of where the search in progress."
+        },
+        {
+          "Name": "Results",
+          "Type": "DataView",
+          "Desc": "Results of the sweep, including pipelines (as graph strings), IDs, and metric values."
+        }
+      ]
+    },
+    {
       "Name": "Models.PlattCalibrator",
       "Desc": "Apply a Platt calibrator to an input model",
       "FriendlyName": "Sigmoid Calibration",
@@ -2551,6 +2328,44 @@
           "Name": "Stats",
           "Type": "DataView",
           "Desc": "The training set statistics. Note that this output can be null."
+        }
+      ]
+    },
+    {
+      "Name": "Models.SweepResultExtractor",
+      "Desc": "Extracts the sweep result.",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "State",
+          "Type": {
+            "Kind": "C# Object",
+            "ItemType": "Microsoft.ML.Runtime.EntryPoints.IMlState"
+          },
+          "Desc": "The stateful object conducting of the autoML search.",
+          "Aliases": [
+            "state"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": null
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "State",
+          "Type": {
+            "Kind": "C# Object",
+            "ItemType": "Microsoft.ML.Runtime.EntryPoints.IMlState"
+          },
+          "Desc": "Stateful autoML object, keeps track of where the search in progress."
+        },
+        {
+          "Name": "Results",
+          "Type": "DataView",
+          "Desc": "Results of the sweep, including pipelines (as graph strings), IDs, and metric values."
         }
       ]
     },
@@ -3176,318 +2991,6 @@
         }
       ],
       "InputKind": [
-        "ITrainerInputWithLabel",
-        "ITrainerInput"
-      ],
-      "OutputKind": [
-        "IBinaryClassificationOutput",
-        "ITrainerOutput"
-      ]
-    },
-    {
-      "Name": "Trainers.BinaryLogisticRegressor",
-      "Desc": "Train a logistic regression binary model",
-      "FriendlyName": "Logistic Regression",
-      "ShortName": "lr",
-      "Inputs": [
-        {
-          "Name": "TrainingData",
-          "Type": "DataView",
-          "Desc": "The data to be used for training",
-          "Aliases": [
-            "data"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "FeatureColumn",
-          "Type": "String",
-          "Desc": "Column to use for features",
-          "Aliases": [
-            "feat"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Features"
-        },
-        {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "Column to use for labels",
-          "Aliases": [
-            "lab"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
-          "Name": "WeightColumn",
-          "Type": "String",
-          "Desc": "Column to use for example weight",
-          "Aliases": [
-            "weight"
-          ],
-          "Required": false,
-          "SortOrder": 4.0,
-          "IsNullable": false,
-          "Default": "Weight"
-        },
-        {
-          "Name": "NormalizeFeatures",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "No",
-              "Warn",
-              "Auto",
-              "Yes"
-            ]
-          },
-          "Desc": "Normalize option for the feature column",
-          "Aliases": [
-            "norm"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "Caching",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Auto",
-              "Memory",
-              "Disk",
-              "None"
-            ]
-          },
-          "Desc": "Whether learner should cache input training data",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "ShowTrainingStats",
-          "Type": "Bool",
-          "Desc": "Show statistics of training examples.",
-          "Aliases": [
-            "stat"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": false
-        },
-        {
-          "Name": "L2Weight",
-          "Type": "Float",
-          "Desc": "L2 regularization weight",
-          "Aliases": [
-            "l2"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": 1.0,
-          "SweepRange": {
-            "RangeType": "Float",
-            "Min": 0.0,
-            "Max": 1.0,
-            "NumSteps": 4
-          }
-        },
-        {
-          "Name": "L1Weight",
-          "Type": "Float",
-          "Desc": "L1 regularization weight",
-          "Aliases": [
-            "l1"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": 1.0,
-          "SweepRange": {
-            "RangeType": "Float",
-            "Min": 0.0,
-            "Max": 1.0,
-            "NumSteps": 4
-          }
-        },
-        {
-          "Name": "OptTol",
-          "Type": "Float",
-          "Desc": "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
-          "Aliases": [
-            "ot"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": 1E-07,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              0.0001,
-              1E-07
-            ]
-          }
-        },
-        {
-          "Name": "MemorySize",
-          "Type": "Int",
-          "Desc": "Memory size for L-BFGS. Lower=faster, less accurate",
-          "Aliases": [
-            "m"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": 20,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              5,
-              20,
-              50
-            ]
-          }
-        },
-        {
-          "Name": "EnforceNonNegativity",
-          "Type": "Bool",
-          "Desc": "Enforce non-negative weights",
-          "Aliases": [
-            "nn"
-          ],
-          "Required": false,
-          "SortOrder": 90.0,
-          "IsNullable": false,
-          "Default": false
-        },
-        {
-          "Name": "InitWtsDiameter",
-          "Type": "Float",
-          "Desc": "Init weights diameter",
-          "Aliases": [
-            "initwts"
-          ],
-          "Required": false,
-          "SortOrder": 140.0,
-          "IsNullable": false,
-          "Default": 0.0,
-          "SweepRange": {
-            "RangeType": "Float",
-            "Min": 0.0,
-            "Max": 1.0,
-            "NumSteps": 5
-          }
-        },
-        {
-          "Name": "MaxIterations",
-          "Type": "Int",
-          "Desc": "Maximum iterations.",
-          "Aliases": [
-            "maxiter"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 2147483647,
-          "SweepRange": {
-            "RangeType": "Long",
-            "Min": 1,
-            "Max": 2147483647
-          }
-        },
-        {
-          "Name": "SgdInitializationTolerance",
-          "Type": "Float",
-          "Desc": "Run SGD to initialize LR weights, converging to this tolerance",
-          "Aliases": [
-            "sgd"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.0
-        },
-        {
-          "Name": "Quiet",
-          "Type": "Bool",
-          "Desc": "If set to true, produce no output during training.",
-          "Aliases": [
-            "q"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": false
-        },
-        {
-          "Name": "UseThreads",
-          "Type": "Bool",
-          "Desc": "Whether or not to use threads. Default is true",
-          "Aliases": [
-            "t"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": true
-        },
-        {
-          "Name": "NumThreads",
-          "Type": "Int",
-          "Desc": "Number of threads",
-          "Aliases": [
-            "nt"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null
-        },
-        {
-          "Name": "DenseOptimizer",
-          "Type": "Bool",
-          "Desc": "Force densification of the internal optimization vectors",
-          "Aliases": [
-            "do"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": false,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              false,
-              true
-            ]
-          }
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "InputKind": [
-        "ITrainerInputWithWeight",
         "ITrainerInputWithLabel",
         "ITrainerInput"
       ],
@@ -9515,7 +9018,319 @@
       ]
     },
     {
-      "Name": "Trainers.LogisticRegressor",
+      "Name": "Trainers.LogisticRegressionBinaryClassifier",
+      "Desc": "Train a logistic regression binary model",
+      "FriendlyName": "Logistic Regression",
+      "ShortName": "lr",
+      "Inputs": [
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training",
+          "Aliases": [
+            "data"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String",
+          "Desc": "Column to use for features",
+          "Aliases": [
+            "feat"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "NormalizeFeatures",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "No",
+              "Warn",
+              "Auto",
+              "Yes"
+            ]
+          },
+          "Desc": "Normalize option for the feature column",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "Caching",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Auto",
+              "Memory",
+              "Disk",
+              "None"
+            ]
+          },
+          "Desc": "Whether learner should cache input training data",
+          "Aliases": [
+            "cache"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "ShowTrainingStats",
+          "Type": "Bool",
+          "Desc": "Show statistics of training examples.",
+          "Aliases": [
+            "stat"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "L2Weight",
+          "Type": "Float",
+          "Desc": "L2 regularization weight",
+          "Aliases": [
+            "l2"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 1.0,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.0,
+            "Max": 1.0,
+            "NumSteps": 4
+          }
+        },
+        {
+          "Name": "L1Weight",
+          "Type": "Float",
+          "Desc": "L1 regularization weight",
+          "Aliases": [
+            "l1"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 1.0,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.0,
+            "Max": 1.0,
+            "NumSteps": 4
+          }
+        },
+        {
+          "Name": "OptTol",
+          "Type": "Float",
+          "Desc": "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
+          "Aliases": [
+            "ot"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 1E-07,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              0.0001,
+              1E-07
+            ]
+          }
+        },
+        {
+          "Name": "MemorySize",
+          "Type": "Int",
+          "Desc": "Memory size for L-BFGS. Lower=faster, less accurate",
+          "Aliases": [
+            "m"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 20,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              5,
+              20,
+              50
+            ]
+          }
+        },
+        {
+          "Name": "EnforceNonNegativity",
+          "Type": "Bool",
+          "Desc": "Enforce non-negative weights",
+          "Aliases": [
+            "nn"
+          ],
+          "Required": false,
+          "SortOrder": 90.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "InitWtsDiameter",
+          "Type": "Float",
+          "Desc": "Init weights diameter",
+          "Aliases": [
+            "initwts"
+          ],
+          "Required": false,
+          "SortOrder": 140.0,
+          "IsNullable": false,
+          "Default": 0.0,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.0,
+            "Max": 1.0,
+            "NumSteps": 5
+          }
+        },
+        {
+          "Name": "MaxIterations",
+          "Type": "Int",
+          "Desc": "Maximum iterations.",
+          "Aliases": [
+            "maxiter"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 2147483647,
+          "SweepRange": {
+            "RangeType": "Long",
+            "Min": 1,
+            "Max": 2147483647
+          }
+        },
+        {
+          "Name": "SgdInitializationTolerance",
+          "Type": "Float",
+          "Desc": "Run SGD to initialize LR weights, converging to this tolerance",
+          "Aliases": [
+            "sgd"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.0
+        },
+        {
+          "Name": "Quiet",
+          "Type": "Bool",
+          "Desc": "If set to true, produce no output during training.",
+          "Aliases": [
+            "q"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "UseThreads",
+          "Type": "Bool",
+          "Desc": "Whether or not to use threads. Default is true",
+          "Aliases": [
+            "t"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "NumThreads",
+          "Type": "Int",
+          "Desc": "Number of threads",
+          "Aliases": [
+            "nt"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "DenseOptimizer",
+          "Type": "Bool",
+          "Desc": "Force densification of the internal optimization vectors",
+          "Aliases": [
+            "do"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              false,
+              true
+            ]
+          }
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "InputKind": [
+        "ITrainerInputWithWeight",
+        "ITrainerInputWithLabel",
+        "ITrainerInput"
+      ],
+      "OutputKind": [
+        "IBinaryClassificationOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
+      "Name": "Trainers.LogisticRegressionClassifier",
       "Desc": "Train a logistic regression multi class model",
       "FriendlyName": "Multi-class Logistic Regression",
       "ShortName": "mlr",
@@ -17546,6 +17361,203 @@
   ],
   "Components": [
     {
+      "Kind": "AutoMlEngine",
+      "Components": [
+        {
+          "Name": "Defaults",
+          "Desc": "AutoML engine that returns learners with default settings.",
+          "FriendlyName": "Defaults Engine",
+          "Settings": []
+        },
+        {
+          "Name": "Rocket",
+          "Desc": "AutoML engine that consists of distinct, hierarchical stages of operation.",
+          "FriendlyName": "Rocket Engine",
+          "Settings": [
+            {
+              "Name": "TopKLearners",
+              "Type": "Int",
+              "Desc": "Number of learners to retain for second stage.",
+              "Aliases": [
+                "topk"
+              ],
+              "Required": false,
+              "SortOrder": 1.0,
+              "IsNullable": false,
+              "Default": 2
+            },
+            {
+              "Name": "SecondRoundTrialsPerLearner",
+              "Type": "Int",
+              "Desc": "Number of trials for retained second stage learners.",
+              "Aliases": [
+                "stage2num"
+              ],
+              "Required": false,
+              "SortOrder": 2.0,
+              "IsNullable": false,
+              "Default": 5
+            },
+            {
+              "Name": "RandomInitialization",
+              "Type": "Bool",
+              "Desc": "Use random initialization only.",
+              "Aliases": [
+                "randinit"
+              ],
+              "Required": false,
+              "SortOrder": 3.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "NumInitializationPipelines",
+              "Type": "Int",
+              "Desc": "Number of initilization pipelines, used for random initialization only.",
+              "Aliases": [
+                "numinitseeds"
+              ],
+              "Required": false,
+              "SortOrder": 4.0,
+              "IsNullable": false,
+              "Default": 20
+            }
+          ]
+        },
+        {
+          "Name": "UniformRandom",
+          "Desc": "AutoML engine using uniform random sampling.",
+          "FriendlyName": "Uniform Random Engine",
+          "Settings": []
+        }
+      ]
+    },
+    {
+      "Kind": "AutoMlStateBase",
+      "Components": [
+        {
+          "Name": "AutoMlState",
+          "Desc": "State of an AutoML search and search space.",
+          "FriendlyName": "AutoML State",
+          "Aliases": [
+            "automlst"
+          ],
+          "Settings": [
+            {
+              "Name": "Metric",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "Auc",
+                  "AccuracyMicro",
+                  "AccuracyMacro",
+                  "L2",
+                  "F1",
+                  "AuPrc",
+                  "TopKAccuracy",
+                  "Rms",
+                  "LossFn",
+                  "RSquared",
+                  "LogLoss",
+                  "LogLossReduction",
+                  "Ndcg",
+                  "Dcg",
+                  "PositivePrecision",
+                  "PositiveRecall",
+                  "NegativePrecision",
+                  "NegativeRecall",
+                  "DrAtK",
+                  "DrAtPFpr",
+                  "DrAtNumPos",
+                  "NumAnomalies",
+                  "ThreshAtK",
+                  "ThreshAtP",
+                  "ThreshAtNumPos",
+                  "Nmi",
+                  "AvgMinScore",
+                  "Dbi"
+                ]
+              },
+              "Desc": "Supported metric for evaluator.",
+              "Aliases": [
+                "metric"
+              ],
+              "Required": true,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": "Auc"
+            },
+            {
+              "Name": "Engine",
+              "Type": {
+                "Kind": "Component",
+                "ComponentKind": "AutoMlEngine"
+              },
+              "Desc": "AutoML engine (pipeline optimizer) that generates next candidates.",
+              "Aliases": [
+                "engine"
+              ],
+              "Required": true,
+              "SortOrder": 150.0,
+              "IsNullable": false
+            },
+            {
+              "Name": "TrainerKind",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "SignatureBinaryClassifierTrainer",
+                  "SignatureMultiClassClassifierTrainer",
+                  "SignatureRankerTrainer",
+                  "SignatureRegressorTrainer",
+                  "SignatureMultiOutputRegressorTrainer",
+                  "SignatureAnomalyDetectorTrainer",
+                  "SignatureClusteringTrainer"
+                ]
+              },
+              "Desc": "Kind of trainer for task, such as binary classification trainer, multiclass trainer, etc.",
+              "Aliases": [
+                "tk"
+              ],
+              "Required": true,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": "SignatureBinaryClassifierTrainer"
+            },
+            {
+              "Name": "TerminatorArgs",
+              "Type": {
+                "Kind": "Component",
+                "ComponentKind": "SearchTerminator"
+              },
+              "Desc": "Arguments for creating terminator, which determines when to stop search.",
+              "Aliases": [
+                "term"
+              ],
+              "Required": true,
+              "SortOrder": 150.0,
+              "IsNullable": false
+            },
+            {
+              "Name": "RequestedLearners",
+              "Type": {
+                "Kind": "Array",
+                "ItemType": "String"
+              },
+              "Desc": "Learner set to sweep over (if available).",
+              "Aliases": [
+                "learners"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": null
+            }
+          ]
+        }
+      ]
+    },
+    {
       "Kind": "CalibratorTrainer",
       "Components": [
         {
@@ -21787,6 +21799,30 @@
       ]
     },
     {
+      "Kind": "SearchTerminator",
+      "Components": [
+        {
+          "Name": "IterationLimited",
+          "Desc": "Terminators a sweep based on total number of iterations.",
+          "FriendlyName": "Pipeline Sweep Iteration Terminator",
+          "Settings": [
+            {
+              "Name": "FinalHistoryLength",
+              "Type": "Int",
+              "Desc": "Total number of iterations.",
+              "Aliases": [
+                "length"
+              ],
+              "Required": true,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
       "Kind": "StopWordsRemover",
       "Components": [
         {
@@ -21922,10 +21958,6 @@
           "Type": "DataView"
         }
       ]
-    },
-    {
-      "Kind": "ILearningPipelineLoader",
-      "Settings": []
     },
     {
       "Kind": "IMulticlassClassificationOutput",

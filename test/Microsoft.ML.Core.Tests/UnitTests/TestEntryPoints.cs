@@ -495,7 +495,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       }
                     },
                     {
-                      'Name': 'Trainers.BinaryLogisticRegressor',
+                      'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                       'Inputs': {
                         'TrainingData': '$data1',
                         'NumThreads': 1
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       }}
                     }},
                     {{
-                      'Name': 'Trainers.BinaryLogisticRegressor',
+                      'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                       'Inputs': {{
                         'TrainingData': '$data1',
                         'NumThreads': 1
@@ -997,7 +997,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var instanceMetricsPath = DeleteOutputPath("instance.idv");
             var confusionMatrixPath = DeleteOutputPath("confusion.idv");
 
-            RunTrainScoreEvaluate("Trainers.BinaryLogisticRegressor", "Models.BinaryClassificationEvaluator", dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, confusionMatrixPath);
+            RunTrainScoreEvaluate("Trainers.LogisticRegressionBinaryClassifier", "Models.BinaryClassificationEvaluator", dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, confusionMatrixPath);
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), warningsPath))
                 Assert.Equal(1, CountRows(loader));
@@ -1021,7 +1021,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var instanceMetricsPath = DeleteOutputPath("instance.idv");
             var confusionMatrixPath = DeleteOutputPath("confusion.idv");
 
-            RunTrainScoreEvaluate("Trainers.LogisticRegressor", "Models.ClassificationEvaluator", dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, confusionMatrixPath);
+            RunTrainScoreEvaluate("Trainers.LogisticRegressionClassifier", "Models.ClassificationEvaluator", dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, confusionMatrixPath);
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), warningsPath))
                 Assert.Equal(0, CountRows(loader));
@@ -1077,7 +1077,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointLogisticRegressionMultiClass()
         {
-            TestEntryPointRoutine("iris.txt", "Trainers.LogisticRegressor");
+            TestEntryPointRoutine("iris.txt", "Trainers.LogisticRegressionClassifier");
         }
 
         [Fact]
@@ -1660,7 +1660,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       }
                     },
                     {
-                      'Name': 'Trainers.BinaryLogisticRegressor',
+                      'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                       'Inputs': {
                         'TrainingData': '$data2',
                         'NumThreads': 1
@@ -1740,7 +1740,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             }
                           },
                           {
-                            'Name': 'Trainers.BinaryLogisticRegressor',
+                            'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                             'Inputs': {
                               'TrainingData': '$data2',
                               'NumThreads': 1
@@ -1848,7 +1848,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             }
                           },
                           {
-                            'Name': 'Trainers.BinaryLogisticRegressor',
+                            'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                             'Inputs': {
                               'TrainingData': '$data2',
                               'NumThreads': 1
@@ -1963,7 +1963,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         'TransformModel': '$transform',
                         'Nodes': [                          
                           {
-                            'Name': 'Trainers.BinaryLogisticRegressor',
+                            'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                             'Inputs': {
                               'TrainingData': '$data1',
                               'NumThreads': 1
@@ -2091,7 +2091,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         'TransformModel': '$CombinedModel',
                         'Nodes': [                          
                           {
-                            'Name': 'Trainers.BinaryLogisticRegressor',
+                            'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                             'Inputs': {
                               'TrainingData': '$data1',
                               'NumThreads': 1
@@ -2257,7 +2257,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         'NumFolds': 3,
                         'Nodes': [                          
                           {
-                            'Name': 'Trainers.BinaryLogisticRegressor',
+                            'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                             'Inputs': {
                               'TrainingData': '$data6',
                               'NumThreads': 1
@@ -2432,7 +2432,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             }
                           },
                           {
-                            'Name': 'Trainers.BinaryLogisticRegressor',
+                            'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                             'Inputs': {
                               'TrainingData': '$data2',
                               'NumThreads': 1
@@ -2503,7 +2503,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       }
                     },
                     {
-                      'Name': 'Trainers.BinaryLogisticRegressor',
+                      'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                       'Inputs': {
                         'TrainingData': '$data2',
                         'NumThreads': 1
@@ -2572,7 +2572,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       }
                     },
                     {
-                      'Name': 'Trainers.BinaryLogisticRegressor',
+                      'Name': 'Trainers.LogisticRegressionBinaryClassifier',
                       'Checkpoint': true,
                       'Cost': 3.14159,
                       'Inputs': {
@@ -2638,7 +2638,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       }}
                     }},
                     {{
-                      'Name': 'Trainers.LogisticRegressor',
+                      'Name': 'Trainers.LogisticRegressionClassifier',
                       'Inputs': {{
                         'Data': '$data2'
                       }},

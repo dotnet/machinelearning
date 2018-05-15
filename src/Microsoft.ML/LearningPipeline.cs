@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -84,7 +84,7 @@ namespace Microsoft.ML
         /// <para>
         /// Trainers:
         ///     <see cref="Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier"/>,
-        ///     <see cref="Microsoft.ML.Trainers.LogisticRegressor"/>,
+        ///     <see cref="Microsoft.ML.Trainers.LogisticRegressionClassifier"/>,
         ///     <see cref="Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier"/>,
         ///     <see cref="Microsoft.ML.Trainers.FastTreeRegressor"/>,
         ///     etc.
@@ -182,8 +182,9 @@ namespace Microsoft.ML
 
                 if (transformModels.Count > 0)
                 {
-                    transformModels.Insert(0, lastTransformModel);
-
+                    if (lastTransformModel != null)
+                        transformModels.Insert(0, lastTransformModel);
+                        
                     var modelInput = new Transforms.ModelCombiner
                     {
                         Models = new ArrayVar<ITransformModel>(transformModels.ToArray())
