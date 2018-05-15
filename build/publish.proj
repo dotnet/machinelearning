@@ -6,7 +6,7 @@
   <PropertyGroup>
     <PublishSymbolsPackage>Microsoft.SymbolUploader.Build.Task</PublishSymbolsPackage>
     <EnablePublishSymbols Condition="'$(EnablePublishSymbols)'==''" >true</EnablePublishSymbols>
-    <NuGetPushTimeoutSeconds Condition="'$(NuGetPushTimeoutSeconds)' == ''">3600</NuGetPushTimeoutSeconds>
+    <NuGetPushTimeoutSeconds Condition="'$(NuGetPushTimeoutSeconds)' == ''">600</NuGetPushTimeoutSeconds>
   </PropertyGroup>
 
   <Import Project="$(PackagesDir)\$(PublishSymbolsPackage.ToLower())\$(PublishSymbolsPackageVersion)\build\PublishSymbols.targets" />
