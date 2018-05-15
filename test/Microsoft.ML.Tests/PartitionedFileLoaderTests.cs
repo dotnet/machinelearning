@@ -20,8 +20,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void PartitionedNamedDirectories()
         {
-            string basePath = Path.Combine(SamplesDir, @"Partitioned\Named");
-            string pathData = Path.Combine(basePath, @"...\*.csv");
+            string basePath = Path.Combine(SamplesDir, "Partitioned", "Named");
+            string pathData = Path.Combine(basePath, "...", "*.csv");
 
             TestCore(pathData, false,
                 new[] {
@@ -34,8 +34,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void PartitionedUnnamedDirectories()
         {
-            string basePath = Path.Combine(SamplesDir, @"Partitioned\Unnamed");
-            string pathData = Path.Combine(basePath, @"...\*.csv");
+            string basePath = Path.Combine(SamplesDir, "Partitioned", "Unnamed");
+            string pathData = Path.Combine(basePath, "...", "*.csv");
 
             TestCore(pathData, false,
                 new[] {

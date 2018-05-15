@@ -21330,6 +21330,140 @@
       ]
     },
     {
+      "Kind": "PartitionedPathParser",
+      "Components": [
+        {
+          "Name": "ParquetPathParser",
+          "Desc": "Extract name/value pairs from Parquet formatted directory names. Example path: Year=2018/Month=12/data1.parquet",
+          "FriendlyName": "Parquet Partitioned Path Parser",
+          "Aliases": [
+            "ParqPP"
+          ],
+          "Settings": []
+        },
+        {
+          "Name": "SimplePathParser",
+          "Desc": "A simple parser that extracts directory names as column values. Column names are defined as arguments.",
+          "FriendlyName": "Simple Partitioned Path Parser",
+          "Aliases": [
+            "SmplPP"
+          ],
+          "Settings": [
+            {
+              "Name": "Columns",
+              "Type": {
+                "Kind": "Array",
+                "ItemType": {
+                  "Kind": "Struct",
+                  "Fields": [
+                    {
+                      "Name": "Name",
+                      "Type": "String",
+                      "Desc": "Name of the column.",
+                      "Required": true,
+                      "SortOrder": 150.0,
+                      "IsNullable": false
+                    },
+                    {
+                      "Name": "Type",
+                      "Type": {
+                        "Kind": "Enum",
+                        "Values": [
+                          "I1",
+                          "U1",
+                          "I2",
+                          "U2",
+                          "I4",
+                          "U4",
+                          "I8",
+                          "U8",
+                          "R4",
+                          "Num",
+                          "R8",
+                          "TX",
+                          "Text",
+                          "TXT",
+                          "BL",
+                          "Bool",
+                          "TimeSpan",
+                          "TS",
+                          "DT",
+                          "DateTime",
+                          "DZ",
+                          "DateTimeZone",
+                          "UG",
+                          "U16"
+                        ]
+                      },
+                      "Desc": "Data type of the column.",
+                      "Required": false,
+                      "SortOrder": 150.0,
+                      "IsNullable": true,
+                      "Default": null
+                    },
+                    {
+                      "Name": "Source",
+                      "Type": "Int",
+                      "Desc": "Index of the directory representing this column.",
+                      "Required": true,
+                      "SortOrder": 150.0,
+                      "IsNullable": false,
+                      "Default": 0
+                    }
+                  ]
+                }
+              },
+              "Desc": "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1",
+              "Aliases": [
+                "col"
+              ],
+              "Required": false,
+              "SortOrder": 1.0,
+              "IsNullable": false,
+              "Default": null
+            },
+            {
+              "Name": "Type",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "I1",
+                  "U1",
+                  "I2",
+                  "U2",
+                  "I4",
+                  "U4",
+                  "I8",
+                  "U8",
+                  "R4",
+                  "Num",
+                  "R8",
+                  "TX",
+                  "Text",
+                  "TXT",
+                  "BL",
+                  "Bool",
+                  "TimeSpan",
+                  "TS",
+                  "DT",
+                  "DateTime",
+                  "DZ",
+                  "DateTimeZone",
+                  "UG",
+                  "U16"
+                ]
+              },
+              "Desc": "Data type of each column.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": "TX"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "Kind": "RegressionLossFunction",
       "Components": [
         {
