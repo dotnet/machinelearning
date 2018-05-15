@@ -2576,11 +2576,11 @@ namespace Microsoft.ML.Runtime.RunTests
                     treesGetter(ref treeValues);
                     leavesGetter(ref leafIndicators);
                     pathsGetter(ref pathIndicators);
-                    Assert.True(treeValues.Length == 100);
-                    Assert.True(treeValues.Count == 100);
-                    Assert.True(leafIndicators.Length == 3955);
-                    Assert.True(leafIndicators.Count == 100);
-                    Assert.True(pathIndicators.Length == 3855);
+                    Assert.Equal(100, treeValues.Length);
+                    Assert.Equal(100, treeValues.Count);
+                    Assert.Equal(3955, leafIndicators.Length);
+                    Assert.Equal(100, leafIndicators.Count);
+                    Assert.Equal(3855, pathIndicators.Length);
                 }
             }
         }
