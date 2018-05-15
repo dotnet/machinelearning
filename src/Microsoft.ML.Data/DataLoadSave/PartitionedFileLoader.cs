@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -153,7 +154,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IHost _host;
         private readonly IMultiStreamSource _files;
-        private readonly Column[] _columns;
+        private readonly int[] _srcColumns;
         private readonly byte[] _subLoaderBytes;
 
         // Number of tailing directories to include.
@@ -162,7 +163,8 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IPartitionedPathParser _pathParser;
 
         private const string RegistrationName = LoadName;
-        private const string FilePathSpecName = "FilePathSpec";
+        private const string FilePathSpecCtxName = "FilePathSpec";
+        private const string SchemaCtxName = "Schema.idv";
         private const int FilePathColIndex = -1;
 
         public PartitionedFileLoader(IHostEnvironment env, Arguments args, IMultiStreamSource files)
@@ -181,7 +183,7 @@ namespace Microsoft.ML.Runtime.Data
             _subLoaderBytes = SaveLoaderToBytes(subLoader);
 
             string relativePath = GetRelativePath(args.BasePath, files);
-            _columns = ParseColumns(relativePath).ToArray();
+            var columns = ParseColumns(relativePath).ToArray();
             _tailingDirCount = GetDirectoryCount(relativePath);
 
             if (args.IncludePathColumn)
@@ -193,10 +195,11 @@ namespace Microsoft.ML.Runtime.Data
                     Type = DataKind.Text
                 };
 
-                _columns = _columns.Concat(new[] { pathCol }).ToArray();
+                columns = columns.Concat(new[] { pathCol }).ToArray();
             }
 
-            Schema = CreateSchema(_host, _columns, subLoader);
+            _srcColumns = columns.Select(c => c.Source).ToArray();
+            Schema = CreateSchema(_host, columns, subLoader);
         }
 
         private PartitionedFileLoader(IHost host, ModelLoadContext ctx, IMultiStreamSource files)
@@ -208,32 +211,28 @@ namespace Microsoft.ML.Runtime.Data
 
             // ** Binary format **
             // int: tailing directory count
-            // int: number of columns
-            // foreach column:
-            //   string: column representation
+            // Schema of the loader
+            // int[]: srcColumns
             // byte[]: subloader
             // model: file path spec
 
             _tailingDirCount = ctx.Reader.ReadInt32();
 
-            int numColumns = ctx.Reader.ReadInt32();
-            _host.CheckDecode(numColumns >= 0);
+            // Load the schema
+            byte[] buffer = null;
+            if (!ctx.TryLoadBinaryStream(SchemaCtxName, r => buffer = r.ReadByteArray()))
+                throw _host.ExceptDecode();
+            BinaryLoader loader = null;
+            var strm = new MemoryStream(buffer, writable: false);
+            loader = new BinaryLoader(_host, new BinaryLoader.Arguments(), strm);
+            Schema = loader.Schema;
 
-            _columns = new Column[numColumns];
-            for (int i = 0; i < numColumns; i++)
-            {
-                var column = Column.Parse(ctx.LoadString());
-                _host.CheckDecode(column != null);
-                _columns[i] = column;
-            }
-
+            _srcColumns = ctx.Reader.ReadIntArray();
             _subLoaderBytes = ctx.Reader.ReadByteArray();
 
-            ctx.LoadModel<IPartitionedPathParser, SignatureLoadModel>(_host, out _pathParser, FilePathSpecName);
+            ctx.LoadModel<IPartitionedPathParser, SignatureLoadModel>(_host, out _pathParser, FilePathSpecCtxName);
 
             _files = files;
-            var loader = CreateLoaderFromBytes(_subLoaderBytes, files);
-            Schema = CreateSchema(_host, _columns, loader);
         }
 
         public static PartitionedFileLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
@@ -257,32 +256,33 @@ namespace Microsoft.ML.Runtime.Data
 
             // ** Binary format **
             // int: tailing directory count
-            // int: number of columns
-            // foreach column:
-            //   string: column representation
+            // Schema of the loader
+            // int[]: srcColumns
             // byte[]: subloader
             // model: file path spec
 
             ctx.Writer.Write(_tailingDirCount);
 
-            ctx.Writer.Write(_columns.Length);
-            StringBuilder sb = new StringBuilder();
-            foreach (var col in _columns)
+            // Save the schema
+            var noRows = new EmptyDataView(_host, Schema);
+            var saverArgs = new BinarySaver.Arguments();
+            saverArgs.Silent = true;
+            var saver = new BinarySaver(_host, saverArgs);
+            using (var strm = new MemoryStream())
             {
-                sb.Clear();
-                _host.Check(col.TryUnparse(sb));
-                ctx.SaveString(sb.ToString());
+                var allColumns = Enumerable.Range(0, Schema.ColumnCount).ToArray();
+                saver.SaveData(strm, noRows, allColumns);
+                ctx.SaveBinaryStream(SchemaCtxName, w => w.WriteByteArray(strm.ToArray()));
             }
+            ctx.Writer.WriteIntArray(_srcColumns);
 
             ctx.Writer.WriteByteArray(_subLoaderBytes);
-            ctx.SaveModel(_pathParser, FilePathSpecName);
+            ctx.SaveModel(_pathParser, FilePathSpecCtxName);
         }
 
         public bool CanShuffle => true;
 
         public ISchema Schema { get; }
-
-        private ISchema SubSchema { get; set; }
 
         public long? GetRowCount(bool lazy = true)
         {
@@ -316,9 +316,9 @@ namespace Microsoft.ML.Runtime.Data
             var columnNameTypes = cols.Select((col) => new KeyValuePair<string, ColumnType>(col.Name, PrimitiveType.FromKind(col.Type.Value)));
             var colSchema = new SimpleSchema(ectx, columnNameTypes.ToArray());
 
-            SubSchema = subLoader.Schema;
+            var subSchema = subLoader.Schema;
 
-            if (SubSchema.ColumnCount == 0)
+            if (subSchema.ColumnCount == 0)
             {
                 return colSchema;
             }
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var schemas = new ISchema[]
                 {
-                    SubSchema,
+                    subSchema,
                     colSchema
                 };
 
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 _active = Utils.BuildArray(Schema.ColumnCount, predicate);
                 _subActive = _active.Take(SubColumnCount).ToArray();
-                _colValues = new DvText[_parent._columns.Length];
+                _colValues = new DvText[Schema.ColumnCount - SubColumnCount];
 
                 _subGetters = new Delegate[SubColumnCount];
                 _getters = CreateGetters();
@@ -450,12 +450,6 @@ namespace Microsoft.ML.Runtime.Data
                     catch (Exception e)
                     {
                         Ch.Warning($"Failed to load file {path} due to a loader exception. Moving on to the next file. Ex: {e.Message}");
-                        continue;
-                    }
-
-                    if (!SchemasMatch(_parent.SubSchema, loader.Schema))
-                    {
-                        Ch.Warning($"Schema of file {path} does not match.");
                         continue;
                     }
 
@@ -527,7 +521,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     if (_subActive[i])
                     {
-                        var type = _parent.SubSchema.GetColumnType(i);
+                        var type = _subCursor.Schema.GetColumnType(i);
                         _subGetters[i] = MarshalGetter(_subCursor.GetGetter<int>, type.RawType, i);
                     }
                 }
@@ -538,9 +532,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Cache the column values for future Getter calls.
                 for (int i = 0; i < _colValues.Length; i++)
                 {
-                    var col = _parent._columns[i];
-
-                    var source = col.Source;
+                    var source = _parent._srcColumns[i];
                     if (source >= 0 && source < values.Count)
                     {
                         _colValues[i] = new DvText(values[source]);
@@ -623,7 +615,7 @@ namespace Microsoft.ML.Runtime.Data
                 return col < SubColumnCount;
             }
 
-            private int SubColumnCount => Schema.ColumnCount - _parent._columns.Length;
+            private int SubColumnCount => Schema.ColumnCount - _parent._srcColumns.Length;
 
             private IEnumerable<int> CreateFileOrder(IRandom rand)
             {
