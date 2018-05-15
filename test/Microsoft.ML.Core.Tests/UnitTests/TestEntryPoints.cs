@@ -2560,15 +2560,27 @@ namespace Microsoft.ML.Runtime.RunTests
             });
 
             var view = treeLeaf.OutputData;
-            Assert.True(view.Schema.TryGetColumnIndex("Trees", out int col));
-            VBuffer<float> features = default(VBuffer<float>);
-            using (var curs = view.GetRowCursor(c => c == col))
+            Assert.True(view.Schema.TryGetColumnIndex("Trees", out int treesCol));
+            Assert.True(view.Schema.TryGetColumnIndex("Leaves", out int leavesCol));
+            Assert.True(view.Schema.TryGetColumnIndex("Paths", out int pathsCol));
+            VBuffer<float> treeValues = default(VBuffer<float>);
+            VBuffer<float> leafIndicators = default(VBuffer<float>);
+            VBuffer<float> pathIndicators = default(VBuffer<float>);
+            using (var curs = view.GetRowCursor(c => c == treesCol || c == leavesCol || c == pathsCol))
             {
-                var getter = curs.GetGetter<VBuffer<float>>(col);
+                var treesGetter = curs.GetGetter<VBuffer<float>>(treesCol);
+                var leavesGetter = curs.GetGetter<VBuffer<float>>(leavesCol);
+                var pathsGetter = curs.GetGetter<VBuffer<float>>(pathsCol);
                 while (curs.MoveNext())
                 {
-                    getter(ref features);
-                    Assert.True(features.Count > 0);
+                    treesGetter(ref treeValues);
+                    leavesGetter(ref leafIndicators);
+                    pathsGetter(ref pathIndicators);
+                    Assert.True(treeValues.Length == 100);
+                    Assert.True(treeValues.Count == 100);
+                    Assert.True(leafIndicators.Length == 3955);
+                    Assert.True(leafIndicators.Count == 100);
+                    Assert.True(pathIndicators.Length == 3855);
                 }
             }
         }
