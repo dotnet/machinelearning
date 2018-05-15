@@ -7,10 +7,10 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 
-[assembly: LoadableClass(typeof(void), typeof(InMemoryDataView), null, typeof(SignatureEntryPointModule), "InMemoryDataView")]
+[assembly: LoadableClass(typeof(void), typeof(DataViewReference), null, typeof(SignatureEntryPointModule), "DataViewReference")]
 namespace Microsoft.ML.Runtime.EntryPoints
 {
-    public class InMemoryDataView
+    public class DataViewReference
     {
         public sealed class Input
         {

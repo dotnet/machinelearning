@@ -11,6 +11,9 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
+    /// <summary>
+    /// Creates data source for pipeline based on provided collection of data.
+    /// </summary>
     public static class CollectionDataSource
     {
         /// <summary>
