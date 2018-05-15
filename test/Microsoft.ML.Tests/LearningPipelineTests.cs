@@ -45,16 +45,18 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal(3, pipeline.Count);
         }
 
-        class InputData
+        private class InputData
         {
             [Column(ordinal: "1")]
             public string F1;
         }
 
-        class TransformedData
+        private class TransformedData
         {
+#pragma warning disable 649
             [ColumnName("F1")]
             public float[] TransformedF1;
+#pragma warning restore 649
         }
 
         [Fact]
@@ -76,8 +78,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                     Assert.Equal(1, predictionModel.TransformedF1[index]);
                 else
                     Assert.Equal(0, predictionModel.TransformedF1[index]);
-
-            predictionModel.TransformedF1 = null;
         }
     }
 }
