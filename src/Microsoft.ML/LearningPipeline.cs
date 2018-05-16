@@ -154,23 +154,29 @@ namespace Microsoft.ML
                     step = currentItem.ApplyStep(step, experiment);
                     if (step is ILearningPipelineDataStep dataStep && dataStep.Model != null)
                         transformModels.Add(dataStep.Model);
-                     
+
                     else if (step is ILearningPipelinePredictorStep predictorDataStep)
                     {
                         if (lastTransformModel != null)
                             transformModels.Insert(0, lastTransformModel);
 
-                        var localModelInput = new Transforms.ManyHeterogeneousModelCombiner
+                        Var<IPredictorModel> predictorModel;
+                        if (transformModels.Count != 0)
                         {
-                            PredictorModel = predictorDataStep.Model,
-                            TransformModels = new ArrayVar<ITransformModel>(transformModels.ToArray())
-                        };
-
-                        var localModelOutput = experiment.Add(localModelInput);
+                            var localModelInput = new Transforms.ManyHeterogeneousModelCombiner
+                            {
+                                PredictorModel = predictorDataStep.Model,
+                                TransformModels = new ArrayVar<ITransformModel>(transformModels.ToArray())
+                            };
+                            var localModelOutput = experiment.Add(localModelInput);
+                            predictorModel = localModelOutput.PredictorModel;
+                        }
+                        else
+                            predictorModel = predictorDataStep.Model;
 
                         var scorer = new Transforms.Scorer
                         {
-                            PredictorModel = localModelOutput.PredictorModel
+                            PredictorModel = predictorModel
                         };
 
                         var scorerOutput = experiment.Add(scorer);
