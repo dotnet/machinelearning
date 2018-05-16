@@ -5,26 +5,34 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Data
 {
     public sealed partial class TextLoaderRange
     {
-        [JsonIgnore]
-        public int Ordinal { get { return Ordinal; } set { Min = value; Max = value; } }
+        public TextLoaderRange()
+        {
+        }
+
+        public TextLoaderRange(int ordinal)
+        {
+            Min = ordinal;
+            Max = ordinal;
+        }
+
+        public TextLoaderRange(int min, int max)
+        {
+            Min = min;
+            Max = max;
+        }
     }
 
     public sealed partial class TextLoader
     {
-
         /// <summary>
         /// Construct a TextLoader object by inferencing the dataset schema from a type.
         /// </summary>
@@ -105,7 +113,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         private static bool TryGetDataKind(Type type, out DataKind kind)
         {
-            Contracts.CheckValueOrNull(type);
+            Contracts.Assert(type != null);
 
             // REVIEW: Make this more efficient. Should we have a global dictionary?
             if (type == typeof(DvInt1) || type == typeof(sbyte))

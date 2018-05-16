@@ -70,147 +70,147 @@ namespace Microsoft.ML.TestFramework
                         new TextLoaderColumn()
                         {
                             Name = "Id",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 0 } },
+                            Source = new [] { new TextLoaderRange(0) },
                             Type = Runtime.Data.DataKind.Text
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Date",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 1 } },
+                            Source = new [] { new TextLoaderRange(1) },
                             Type = Runtime.Data.DataKind.Text
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Label",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 2 } },
+                            Source = new [] { new TextLoaderRange(2) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Bedrooms",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 3 } },
+                            Source = new [] { new TextLoaderRange(3) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Bathrooms",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 4 } },
+                            Source = new [] { new TextLoaderRange(4) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftLiving",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 5 } },
+                            Source = new [] { new TextLoaderRange(5) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftLot",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 6 } },
+                            Source = new [] { new TextLoaderRange(6) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Floors",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 7 } },
+                            Source = new [] { new TextLoaderRange(7) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Waterfront",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 8 } },
+                            Source = new [] { new TextLoaderRange(8) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "View",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 9 } },
+                            Source = new [] { new TextLoaderRange(9) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Condition",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 10 } },
+                            Source = new [] { new TextLoaderRange(10) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Grade",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 11 } },
+                            Source = new [] { new TextLoaderRange(11) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftAbove",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 12 } },
+                            Source = new [] { new TextLoaderRange(12) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftBasement",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 13 } },
+                            Source = new [] { new TextLoaderRange(13) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "YearBuilt",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 14 } },
+                            Source = new [] { new TextLoaderRange(14) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "YearRenovated",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 15 } },
+                            Source = new [] { new TextLoaderRange(15) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Zipcode",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 16 } },
+                            Source = new [] { new TextLoaderRange(16) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Lat",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 17 } },
+                            Source = new [] { new TextLoaderRange(17) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Long",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 18 } },
+                            Source = new [] { new TextLoaderRange(18) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftLiving15",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 19 } },
+                            Source = new [] { new TextLoaderRange(19) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftLot15",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 20 } },
+                            Source = new [] { new TextLoaderRange(20) },
                             Type = Runtime.Data.DataKind.Num
                         },
                     }

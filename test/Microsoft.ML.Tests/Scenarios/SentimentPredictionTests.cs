@@ -37,14 +37,14 @@ namespace Microsoft.ML.Scenarios
                         new TextLoaderColumn()
                         {
                             Name = "Label",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 0 } },
+                            Source = new [] { new TextLoaderRange(0) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SentimentText",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 1 } },
+                            Source = new [] { new TextLoaderRange(1) },
                             Type = Runtime.Data.DataKind.Text
                         }
                     }
@@ -98,14 +98,14 @@ namespace Microsoft.ML.Scenarios
                         new TextLoaderColumn()
                         {
                             Name = "Label",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 0 } },
+                            Source = new [] { new TextLoaderRange(0) },
                             Type = Runtime.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SentimentText",
-                            Source = new [] { new TextLoaderRange() { Ordinal = 1 } },
+                            Source = new [] { new TextLoaderRange(1) },
                             Type = Runtime.Data.DataKind.Text
                         }
                     }
