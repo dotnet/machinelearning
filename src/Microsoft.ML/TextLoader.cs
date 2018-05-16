@@ -55,7 +55,7 @@ namespace Microsoft.ML
             {
                 var mappingAttr = field.GetCustomAttribute<ColumnAttribute>();
                 if(mappingAttr == null)
-                    throw Contracts.ExceptParam(nameof(field.Name), " is missing ColumnAttribute");
+                    throw Contracts.ExceptParam(field.Name, $"{field.Name} is missing ColumnAttribute");
                 
                 schemaBuilder.AppendFormat("col={0}:{1}:{2} ",
                     mappingAttr.Name ?? field.Name, 
@@ -91,7 +91,7 @@ namespace Microsoft.ML
             else if (type == typeof(bool))
                 return "BL";
             else
-                throw new Exception("Type not implemented or supported."); //Add more types.
+                throw new System.NotSupportedException("Type ${type.FullName} is not implemented or supported."); //Add more types.
         }
 
         public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
@@ -115,11 +115,10 @@ namespace Microsoft.ML
             public TextLoaderPipelineStep(Var<IDataView> data)
             {
                 Data = data;
-                Model = null;
             }
 
             public Var<IDataView> Data { get; }
-            public Var<ITransformModel> Model { get; }
+            public Var<ITransformModel> Model => null;
         }
     }
 }

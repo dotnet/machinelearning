@@ -1,0 +1,4 @@
+BinaryClassificationGamTrainer
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/dt	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.991198	0.961373	0.945833	0.941909	0.969499	0.971616	0.145652	84.32696	0.943867	0.971819	+	BinaryClassificationGamTrainer	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=BinaryClassificationGamTrainer{dt+} dout=%Output% data=%Data% out=%Output% seed=1	/dt:+	
+

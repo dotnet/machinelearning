@@ -219,7 +219,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 concatInput.AddColumn("Features", "Categories", "NumericFeatures");
                 var concatOutput = subGraph.Add(concatInput);
 
-                var lrInput = new ML.Trainers.BinaryLogisticRegressor
+                var lrInput = new ML.Trainers.LogisticRegressionBinaryClassifier
                 {
                     TrainingData = concatOutput.OutputData,
                     NumThreads = 1
