@@ -103,7 +103,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Try to map a System.Type to a corresponding DataKind value.
         /// </summary>
-        public static bool TryGetDataKind(Type type, out DataKind kind)
+        private static bool TryGetDataKind(Type type, out DataKind kind)
         {
             Contracts.CheckValueOrNull(type);
 
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Data
                 kind = DataKind.I1;
             else if (type == typeof(byte) || type == typeof(char))
                 kind = DataKind.U1;
-            else if (type == typeof(DvInt2) || type == typeof(Int16))
+            else if (type == typeof(DvInt2) || type == typeof(short))
                 kind = DataKind.I2;
             else if (type == typeof(ushort))
                 kind = DataKind.U2;
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Data
                 kind = DataKind.I4;
             else if (type == typeof(uint))
                 kind = DataKind.U4;
-            else if (type == typeof(DvInt8) || type == typeof(Int16) || type == typeof(long))
+            else if (type == typeof(DvInt8) || type == typeof(long))
                 kind = DataKind.I8;
             else if (type == typeof(ulong))
                 kind = DataKind.U8;
@@ -132,11 +132,11 @@ namespace Microsoft.ML.Data
                 kind = DataKind.TX;
             else if (type == typeof(DvBool) || type == typeof(bool))
                 kind = DataKind.BL;
-            else if (type == typeof(DvTimeSpan))
+            else if (type == typeof(DvTimeSpan) || type == typeof(TimeSpan))
                 kind = DataKind.TS;
-            else if (type == typeof(DvDateTime))
+            else if (type == typeof(DvDateTime) || type == typeof(DateTime))
                 kind = DataKind.DT;
-            else if (type == typeof(DvDateTimeZone))
+            else if (type == typeof(DvDateTimeZone) || type == typeof(TimeZoneInfo))
                 kind = DataKind.DZ;
             else if (type == typeof(UInt128))
                 kind = DataKind.UG;

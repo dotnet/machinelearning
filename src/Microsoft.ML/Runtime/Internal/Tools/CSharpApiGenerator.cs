@@ -177,7 +177,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 return char.ToUpperInvariant(s[0]) + s.Substring(1);
             }
 
-            public static string GetCharValue(char value)
+            private static string GetCharValue(char value)
             {
                 switch (value)
                 {
@@ -204,7 +204,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     case '\v':
                         return "\\v";
                     default:
-                        Contracts.Assert(!Char.IsWhiteSpace(value));
                         return value.ToString();
                 }
             }
