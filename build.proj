@@ -65,13 +65,13 @@
   </Target>
   
   <ItemGroup>
-  <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/winequality-white.csv" Url="https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv">
-         <Result>$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv</Result>
-     </TestFile>
+    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/winequality-white.csv" Url="https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv">
+         <DestinationFile>$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv</DestinationFile>
+    </TestFile>
   </ItemGroup>
   
-  <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.Result)">
-    <Message Importance="High" Text="Downloading external test files... %(TestFile.Result)" />
+  <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading external test files... %(TestFile.DestinationFile)" />
       <DownloadFilesFromUrl Items="@(TestFile)"
                            DestinationDir="test/data/external"
                            TreatErrorsAsWarnings="true"/>
