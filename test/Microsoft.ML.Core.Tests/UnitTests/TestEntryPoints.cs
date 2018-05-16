@@ -857,7 +857,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.Equal(3, CountRows(loader));
         }
 
-        [Fact()]
+        [Fact)]
         public void EntryPointEvaluateRegression()
         {
             var dataPath = GetDataPath(@"external/winequality-white.csv");
