@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime
         {
             // Note that, according to the documentation for System.Random,
             // this won't ever achieve int.MaxValue, but oh well.
-            return _rnd.Next(int.MinValue, int.MinValue);
+            return _rnd.Next(int.MinValue, int.MaxValue);
         }
     }
 
