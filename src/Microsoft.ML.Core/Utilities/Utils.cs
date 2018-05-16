@@ -1070,54 +1070,5 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
             return null;
         }
-
-        /// <summary>
-        /// Try to map a System.Type to a corresponding DataKind value.
-        /// </summary>
-        public static bool TryGetDataKind(Type type, out DataKind kind)
-        {
-            Contracts.CheckValueOrNull(type);
-
-            // REVIEW: Make this more efficient. Should we have a global dictionary?
-            if (type == typeof(DvInt1))
-                kind = DataKind.I1;
-            else if (type == typeof(byte))
-                kind = DataKind.U1;
-            else if (type == typeof(DvInt2))
-                kind = DataKind.I2;
-            else if (type == typeof(ushort))
-                kind = DataKind.U2;
-            else if (type == typeof(DvInt4))
-                kind = DataKind.I4;
-            else if (type == typeof(uint))
-                kind = DataKind.U4;
-            else if (type == typeof(DvInt8))
-                kind = DataKind.I8;
-            else if (type == typeof(ulong))
-                kind = DataKind.U8;
-            else if (type == typeof(Single))
-                kind = DataKind.R4;
-            else if (type == typeof(Double))
-                kind = DataKind.R8;
-            else if (type == typeof(DvText) || type == typeof(string))
-                kind = DataKind.TX;
-            else if (type == typeof(DvBool) || type == typeof(bool))
-                kind = DataKind.BL;
-            else if (type == typeof(DvTimeSpan))
-                kind = DataKind.TS;
-            else if (type == typeof(DvDateTime))
-                kind = DataKind.DT;
-            else if (type == typeof(DvDateTimeZone))
-                kind = DataKind.DZ;
-            else if (type == typeof(UInt128))
-                kind = DataKind.UG;
-            else
-            {
-                kind = default(DataKind);
-                return false;
-            }
-
-            return true;
-        }
     }
 }

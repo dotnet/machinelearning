@@ -60,8 +60,6 @@ namespace Microsoft.ML.Data
                 if (name.Any(c => !Char.IsLetterOrDigit(c)))
                     throw Contracts.Except($"{name} is not alphanumeric.");
 
-                DataKind dk;
-                Utils.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk);
                 Runtime.Data.TextLoader.Range[] sources;
                 if (!Runtime.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Ordinal, out sources))
                     throw Contracts.Except($"{mappingAttr.Ordinal} could not be parsed.");
@@ -71,6 +69,12 @@ namespace Microsoft.ML.Data
                 TextLoaderColumn tlc = new TextLoaderColumn();
                 tlc.Name = name;
                 tlc.Source = new TextLoaderRange[sources.Length];
+                DataKind dk;
+                if (!TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                    throw Contracts.Except($"{name} is of unsupported type.");
+
+                tlc.Type = dk;
+
                 for (int indexLocal = 0; indexLocal < tlc.Source.Length; indexLocal++)
                 {
                     tlc.Source[indexLocal] = new TextLoaderRange
@@ -84,7 +88,6 @@ namespace Microsoft.ML.Data
                     };
                 }
 
-                tlc.Type = dk;
                 Arguments.Column[index] = tlc;
             }
 
@@ -95,6 +98,55 @@ namespace Microsoft.ML.Data
             Arguments.TrimWhitespace = trimWhitespace;
 
             return this;
+        }
+
+        /// <summary>
+        /// Try to map a System.Type to a corresponding DataKind value.
+        /// </summary>
+        public static bool TryGetDataKind(Type type, out DataKind kind)
+        {
+            Contracts.CheckValueOrNull(type);
+
+            // REVIEW: Make this more efficient. Should we have a global dictionary?
+            if (type == typeof(DvInt1) || type == typeof(sbyte))
+                kind = DataKind.I1;
+            else if (type == typeof(byte) || type == typeof(char))
+                kind = DataKind.U1;
+            else if (type == typeof(DvInt2) || type == typeof(Int16))
+                kind = DataKind.I2;
+            else if (type == typeof(ushort))
+                kind = DataKind.U2;
+            else if (type == typeof(DvInt4) || type == typeof(int))
+                kind = DataKind.I4;
+            else if (type == typeof(uint))
+                kind = DataKind.U4;
+            else if (type == typeof(DvInt8) || type == typeof(Int16) || type == typeof(long))
+                kind = DataKind.I8;
+            else if (type == typeof(ulong))
+                kind = DataKind.U8;
+            else if (type == typeof(Single))
+                kind = DataKind.R4;
+            else if (type == typeof(Double))
+                kind = DataKind.R8;
+            else if (type == typeof(DvText) || type == typeof(string))
+                kind = DataKind.TX;
+            else if (type == typeof(DvBool) || type == typeof(bool))
+                kind = DataKind.BL;
+            else if (type == typeof(DvTimeSpan))
+                kind = DataKind.TS;
+            else if (type == typeof(DvDateTime))
+                kind = DataKind.DT;
+            else if (type == typeof(DvDateTimeZone))
+                kind = DataKind.DZ;
+            else if (type == typeof(UInt128))
+                kind = DataKind.UG;
+            else
+            {
+                kind = default(DataKind);
+                return false;
+            }
+
+            return true;
         }
     }
 }

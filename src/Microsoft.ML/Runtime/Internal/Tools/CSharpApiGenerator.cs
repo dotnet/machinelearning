@@ -177,6 +177,38 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 return char.ToUpperInvariant(s[0]) + s.Substring(1);
             }
 
+            public static string GetCharValue(char value)
+            {
+                switch (value)
+                {
+                    case '\t':
+                        return "\\t";
+                    case '\n':
+                        return "\\n";
+                    case '\r':
+                        return "\\r";
+                    case '\\':
+                        return "\\";
+                    case '\"':
+                        return "\"";
+                    case '\'':
+                        return "\\'";
+                    case '\0':
+                        return "\\0";
+                    case '\a':
+                        return "\\a";
+                    case '\b':
+                        return "\\b";
+                    case '\f':
+                        return "\\f";
+                    case '\v':
+                        return "\\v";
+                    default:
+                        Contracts.Assert(!Char.IsWhiteSpace(value));
+                        return value.ToString();
+                }
+            }
+
             public static string GetValue(ModuleCatalog catalog, Type fieldType, object fieldValue,
                 Dictionary<string, string> typesSymbolTable, string rootNameSpace = "")
             {
@@ -264,7 +296,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     case TlcModule.DataKind.Enum:
                         return GetEnumName(fieldType, typesSymbolTable, rootNameSpace) + "." + fieldValue;
                     case TlcModule.DataKind.Char:
-                        return $"'{(char)fieldValue}'";
+                        return $"'{GetCharValue((char)fieldValue)}'";
                     case TlcModule.DataKind.Component:
                         var type = fieldValue.GetType();
                         ModuleCatalog.ComponentInfo componentInfo;

@@ -1448,7 +1448,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Source column separator.
             /// </summary>
-            public char[] Separator { get; set; } = { '	' };
+            public char[] Separator { get; set; } = { '\t' };
 
             /// <summary>
             /// Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40

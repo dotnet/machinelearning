@@ -154,7 +154,6 @@ namespace Microsoft.ML
                     step = currentItem.ApplyStep(step, experiment);
                     if (step is ILearningPipelineDataStep dataStep && dataStep.Model != null)
                         transformModels.Add(dataStep.Model);
-
                     else if (step is ILearningPipelinePredictorStep predictorDataStep)
                     {
                         if (lastTransformModel != null)
@@ -184,7 +183,7 @@ namespace Microsoft.ML
                 {
                     if (lastTransformModel != null)
                         transformModels.Insert(0, lastTransformModel);
-                        
+
                     var modelInput = new Transforms.ModelCombiner
                     {
                         Models = new ArrayVar<ITransformModel>(transformModels.ToArray())
