@@ -53,11 +53,22 @@ namespace Microsoft.ML
                 return output;
             }
 
+            public Microsoft.ML.Data.DataViewReference.Output Add(Microsoft.ML.Data.DataViewReference input)
+            {
+                var output = new Microsoft.ML.Data.DataViewReference.Output();
+                Add(input, output);
+                return output;
+            }
+
             public void Add(Microsoft.ML.Data.TextLoader input, Microsoft.ML.Data.TextLoader.Output output)
             {
                 _jsonNodes.Add(Serialize("Data.TextLoader", input, output));
             }
 
+            public void Add(Microsoft.ML.Data.DataViewReference input, Microsoft.ML.Data.DataViewReference.Output output)
+            {
+                _jsonNodes.Add(Serialize("Data.DataViewReference", input, output));
+            }
             public Microsoft.ML.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Models.AnomalyDetectionEvaluator input)
             {
                 var output = new Microsoft.ML.Models.AnomalyDetectionEvaluator.Output();
@@ -226,6 +237,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Models.PAVCalibrator", input, output));
             }
 
+            public Microsoft.ML.Models.PipelineSweeper.Output Add(Microsoft.ML.Models.PipelineSweeper input)
+            {
+                var output = new Microsoft.ML.Models.PipelineSweeper.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.PipelineSweeper input, Microsoft.ML.Models.PipelineSweeper.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.PipelineSweeper", input, output));
+            }
+
             public Microsoft.ML.Models.PlattCalibrator.Output Add(Microsoft.ML.Models.PlattCalibrator input)
             {
                 var output = new Microsoft.ML.Models.PlattCalibrator.Output();
@@ -286,6 +309,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Models.Summarizer", input, output));
             }
 
+            public Microsoft.ML.Models.SweepResultExtractor.Output Add(Microsoft.ML.Models.SweepResultExtractor input)
+            {
+                var output = new Microsoft.ML.Models.SweepResultExtractor.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.SweepResultExtractor input, Microsoft.ML.Models.SweepResultExtractor.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.SweepResultExtractor", input, output));
+            }
+
             public Microsoft.ML.Models.TrainTestBinaryEvaluator.Output Add(Microsoft.ML.Models.TrainTestBinaryEvaluator input)
             {
                 var output = new Microsoft.ML.Models.TrainTestBinaryEvaluator.Output();
@@ -320,18 +355,6 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier input, Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.AveragedPerceptronBinaryClassifier", input, output));
-            }
-
-            public Microsoft.ML.Trainers.BinaryLogisticRegressor.Output Add(Microsoft.ML.Trainers.BinaryLogisticRegressor input)
-            {
-                var output = new Microsoft.ML.Trainers.BinaryLogisticRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            public void Add(Microsoft.ML.Trainers.BinaryLogisticRegressor input, Microsoft.ML.Trainers.BinaryLogisticRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.BinaryLogisticRegressor", input, output));
             }
 
             public Microsoft.ML.Trainers.FastForestBinaryClassifier.Output Add(Microsoft.ML.Trainers.FastForestBinaryClassifier input)
@@ -442,16 +465,28 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Trainers.LinearSvmBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.LogisticRegressor.Output Add(Microsoft.ML.Trainers.LogisticRegressor input)
+            public Microsoft.ML.Trainers.LogisticRegressionBinaryClassifier.Output Add(Microsoft.ML.Trainers.LogisticRegressionBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.LogisticRegressor.Output();
+                var output = new Microsoft.ML.Trainers.LogisticRegressionBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.LogisticRegressor input, Microsoft.ML.Trainers.LogisticRegressor.Output output)
+            public void Add(Microsoft.ML.Trainers.LogisticRegressionBinaryClassifier input, Microsoft.ML.Trainers.LogisticRegressionBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.LogisticRegressor", input, output));
+                _jsonNodes.Add(Serialize("Trainers.LogisticRegressionBinaryClassifier", input, output));
+            }
+
+            public Microsoft.ML.Trainers.LogisticRegressionClassifier.Output Add(Microsoft.ML.Trainers.LogisticRegressionClassifier input)
+            {
+                var output = new Microsoft.ML.Trainers.LogisticRegressionClassifier.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainers.LogisticRegressionClassifier input, Microsoft.ML.Trainers.LogisticRegressionClassifier.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainers.LogisticRegressionClassifier", input, output));
             }
 
             public Microsoft.ML.Trainers.NaiveBayesClassifier.Output Add(Microsoft.ML.Trainers.NaiveBayesClassifier input)
@@ -1310,6 +1345,23 @@ namespace Microsoft.ML
             /// </summary>
             public string CustomSchema { get; set; }
 
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// The resulting data view
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+
+        public sealed partial class DataViewReference
+        {
+            /// <summary>
+            /// Location of the input file
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             public sealed class Output
             {
@@ -2427,6 +2479,64 @@ namespace Microsoft.ML
     {
 
         /// <summary>
+        /// AutoML pipeline sweeping optimzation macro.
+        /// </summary>
+        public sealed partial class PipelineSweeper
+        {
+
+
+            /// <summary>
+            /// The data to be used for training.
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// The data to be used for testing.
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// The arguments for creating an AutoMlState component.
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public AutoMlStateBase StateArguments { get; set; }
+
+            /// <summary>
+            /// The stateful object conducting of the autoML search.
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
+
+            /// <summary>
+            /// Number of candidate pipelines to retrieve each round.
+            /// </summary>
+            public int BatchSize { get; set; }
+
+            /// <summary>
+            /// Output datasets from previous iteration of sweep.
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> CandidateOutputs { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// Stateful autoML object, keeps track of where the search in progress.
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
+
+                /// <summary>
+                /// Results of the sweep, including pipelines (as graph strings), IDs, and metric values.
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Results { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
+
+        /// <summary>
         /// Apply a Platt calibrator to an input model
         /// </summary>
         public sealed partial class PlattCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
@@ -2727,6 +2837,38 @@ namespace Microsoft.ML
                 /// The training set statistics. Note that this output can be null.
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.Data.IDataView> Stats { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
+
+        /// <summary>
+        /// Extracts the sweep result.
+        /// </summary>
+        public sealed partial class SweepResultExtractor
+        {
+
+
+            /// <summary>
+            /// The stateful object conducting of the autoML search.
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// Stateful autoML object, keeps track of where the search in progress.
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
+
+                /// <summary>
+                /// Results of the sweep, including pipelines (as graph strings), IDs, and metric values.
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Results { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             }
         }
@@ -3094,151 +3236,6 @@ namespace Microsoft.ML
             private class AveragedPerceptronBinaryClassifierPipelineStep : ILearningPipelinePredictorStep
             {
                 public AveragedPerceptronBinaryClassifierPipelineStep(Output output)
-                {
-                    Model = output.PredictorModel;
-                }
-
-                public Var<IPredictorModel> Model { get; }
-            }
-        }
-    }
-
-    namespace Trainers
-    {
-
-        /// <summary>
-        /// Train a logistic regression binary model
-        /// </summary>
-        public sealed partial class BinaryLogisticRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
-        {
-
-
-            /// <summary>
-            /// Show statistics of training examples.
-            /// </summary>
-            public bool ShowTrainingStats { get; set; } = false;
-
-            /// <summary>
-            /// L2 regularization weight
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("L2Weight", 0f, 1f, numSteps:4)]
-            public float L2Weight { get; set; } = 1f;
-
-            /// <summary>
-            /// L1 regularization weight
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("L1Weight", 0f, 1f, numSteps:4)]
-            public float L1Weight { get; set; } = 1f;
-
-            /// <summary>
-            /// Tolerance parameter for optimization convergence. Lower = slower, more accurate
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("OptTol", new object[]{0.0001f, 1E-07f})]
-            public float OptTol { get; set; } = 1E-07f;
-
-            /// <summary>
-            /// Memory size for L-BFGS. Lower=faster, less accurate
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[]{5, 20, 50})]
-            public int MemorySize { get; set; } = 20;
-
-            /// <summary>
-            /// Maximum iterations.
-            /// </summary>
-            [TlcModule.SweepableLongParamAttribute("MaxIterations", 1, 2147483647)]
-            public int MaxIterations { get; set; } = 2147483647;
-
-            /// <summary>
-            /// Run SGD to initialize LR weights, converging to this tolerance
-            /// </summary>
-            public float SgdInitializationTolerance { get; set; }
-
-            /// <summary>
-            /// If set to true, produce no output during training.
-            /// </summary>
-            public bool Quiet { get; set; } = false;
-
-            /// <summary>
-            /// Init weights diameter
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps:5)]
-            public float InitWtsDiameter { get; set; }
-
-            /// <summary>
-            /// Whether or not to use threads. Default is true
-            /// </summary>
-            public bool UseThreads { get; set; } = true;
-
-            /// <summary>
-            /// Number of threads
-            /// </summary>
-            public int? NumThreads { get; set; }
-
-            /// <summary>
-            /// Force densification of the internal optimization vectors
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DenseOptimizer", new object[]{false, true})]
-            public bool DenseOptimizer { get; set; } = false;
-
-            /// <summary>
-            /// Enforce non-negative weights
-            /// </summary>
-            public bool EnforceNonNegativity { get; set; } = false;
-
-            /// <summary>
-            /// Column to use for example weight
-            /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for labels
-            /// </summary>
-            public string LabelColumn { get; set; } = "Label";
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// Column to use for features
-            /// </summary>
-            public string FeatureColumn { get; set; } = "Features";
-
-            /// <summary>
-            /// Normalize option for the feature column
-            /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
-
-            /// <summary>
-            /// Whether learner should cache input training data
-            /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
-
-
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
-            {
-                /// <summary>
-                /// The trained model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
-
-            }
-            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
-            {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
-                {
-                    throw new InvalidOperationException($"{ nameof(BinaryLogisticRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
-
-                TrainingData = dataStep.Data;
-                Output output = experiment.Add(this);
-                return new BinaryLogisticRegressorPipelineStep(output);
-            }
-
-            private class BinaryLogisticRegressorPipelineStep : ILearningPipelinePredictorStep
-            {
-                public BinaryLogisticRegressorPipelineStep(Output output)
                 {
                     Model = output.PredictorModel;
                 }
@@ -5823,9 +5820,154 @@ namespace Microsoft.ML
     {
 
         /// <summary>
+        /// Train a logistic regression binary model
+        /// </summary>
+        public sealed partial class LogisticRegressionBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// Show statistics of training examples.
+            /// </summary>
+            public bool ShowTrainingStats { get; set; } = false;
+
+            /// <summary>
+            /// L2 regularization weight
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("L2Weight", 0f, 1f, numSteps:4)]
+            public float L2Weight { get; set; } = 1f;
+
+            /// <summary>
+            /// L1 regularization weight
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("L1Weight", 0f, 1f, numSteps:4)]
+            public float L1Weight { get; set; } = 1f;
+
+            /// <summary>
+            /// Tolerance parameter for optimization convergence. Lower = slower, more accurate
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("OptTol", new object[]{0.0001f, 1E-07f})]
+            public float OptTol { get; set; } = 1E-07f;
+
+            /// <summary>
+            /// Memory size for L-BFGS. Lower=faster, less accurate
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[]{5, 20, 50})]
+            public int MemorySize { get; set; } = 20;
+
+            /// <summary>
+            /// Maximum iterations.
+            /// </summary>
+            [TlcModule.SweepableLongParamAttribute("MaxIterations", 1, 2147483647)]
+            public int MaxIterations { get; set; } = 2147483647;
+
+            /// <summary>
+            /// Run SGD to initialize LR weights, converging to this tolerance
+            /// </summary>
+            public float SgdInitializationTolerance { get; set; }
+
+            /// <summary>
+            /// If set to true, produce no output during training.
+            /// </summary>
+            public bool Quiet { get; set; } = false;
+
+            /// <summary>
+            /// Init weights diameter
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps:5)]
+            public float InitWtsDiameter { get; set; }
+
+            /// <summary>
+            /// Whether or not to use threads. Default is true
+            /// </summary>
+            public bool UseThreads { get; set; } = true;
+
+            /// <summary>
+            /// Number of threads
+            /// </summary>
+            public int? NumThreads { get; set; }
+
+            /// <summary>
+            /// Force densification of the internal optimization vectors
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("DenseOptimizer", new object[]{false, true})]
+            public bool DenseOptimizer { get; set; } = false;
+
+            /// <summary>
+            /// Enforce non-negative weights
+            /// </summary>
+            public bool EnforceNonNegativity { get; set; } = false;
+
+            /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                {
+                    throw new InvalidOperationException($"{ nameof(LogisticRegressionBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                }
+
+                TrainingData = dataStep.Data;
+                Output output = experiment.Add(this);
+                return new LogisticRegressionBinaryClassifierPipelineStep(output);
+            }
+
+            private class LogisticRegressionBinaryClassifierPipelineStep : ILearningPipelinePredictorStep
+            {
+                public LogisticRegressionBinaryClassifierPipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainers
+    {
+
+        /// <summary>
         /// Train a logistic regression multi class model
         /// </summary>
-        public sealed partial class LogisticRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LogisticRegressionClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
 
@@ -5944,17 +6086,17 @@ namespace Microsoft.ML
             {
                 if (!(previousStep is ILearningPipelineDataStep dataStep))
                 {
-                    throw new InvalidOperationException($"{ nameof(LogisticRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    throw new InvalidOperationException($"{ nameof(LogisticRegressionClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
                 }
 
                 TrainingData = dataStep.Data;
                 Output output = experiment.Add(this);
-                return new LogisticRegressorPipelineStep(output);
+                return new LogisticRegressionClassifierPipelineStep(output);
             }
 
-            private class LogisticRegressorPipelineStep : ILearningPipelinePredictorStep
+            private class LogisticRegressionClassifierPipelineStep : ILearningPipelinePredictorStep
             {
-                public LogisticRegressorPipelineStep(Output output)
+                public LogisticRegressionClassifierPipelineStep(Output output)
                 {
                     Model = output.PredictorModel;
                 }
@@ -12298,6 +12440,129 @@ namespace Microsoft.ML
 
     namespace Runtime
     {
+        public abstract class AutoMlEngine : ComponentKind {}
+
+
+
+        /// <summary>
+        /// AutoML engine that returns learners with default settings.
+        /// </summary>
+        public sealed class DefaultsAutoMlEngine : AutoMlEngine
+        {
+            internal override string ComponentName => "Defaults";
+        }
+
+
+
+        /// <summary>
+        /// AutoML engine that consists of distinct, hierarchical stages of operation.
+        /// </summary>
+        public sealed class RocketAutoMlEngine : AutoMlEngine
+        {
+            /// <summary>
+            /// Number of learners to retain for second stage.
+            /// </summary>
+            public int TopKLearners { get; set; } = 2;
+
+            /// <summary>
+            /// Number of trials for retained second stage learners.
+            /// </summary>
+            public int SecondRoundTrialsPerLearner { get; set; } = 5;
+
+            /// <summary>
+            /// Use random initialization only.
+            /// </summary>
+            public bool RandomInitialization { get; set; } = false;
+
+            /// <summary>
+            /// Number of initilization pipelines, used for random initialization only.
+            /// </summary>
+            public int NumInitializationPipelines { get; set; } = 20;
+
+            internal override string ComponentName => "Rocket";
+        }
+
+
+
+        /// <summary>
+        /// AutoML engine using uniform random sampling.
+        /// </summary>
+        public sealed class UniformRandomAutoMlEngine : AutoMlEngine
+        {
+            internal override string ComponentName => "UniformRandom";
+        }
+
+        public abstract class AutoMlStateBase : ComponentKind {}
+
+        public enum AutoInferenceAutoMlMlStateArgumentsMetrics
+        {
+            Auc = 0,
+            AccuracyMicro = 1,
+            AccuracyMacro = 2,
+            L2 = 3,
+            F1 = 4,
+            AuPrc = 5,
+            TopKAccuracy = 6,
+            Rms = 7,
+            LossFn = 8,
+            RSquared = 9,
+            LogLoss = 10,
+            LogLossReduction = 11,
+            Ndcg = 12,
+            Dcg = 13,
+            PositivePrecision = 14,
+            PositiveRecall = 15,
+            NegativePrecision = 16,
+            NegativeRecall = 17,
+            DrAtK = 18,
+            DrAtPFpr = 19,
+            DrAtNumPos = 20,
+            NumAnomalies = 21,
+            ThreshAtK = 22,
+            ThreshAtP = 23,
+            ThreshAtNumPos = 24,
+            Nmi = 25,
+            AvgMinScore = 26,
+            Dbi = 27
+        }
+
+
+
+        /// <summary>
+        /// State of an AutoML search and search space.
+        /// </summary>
+        public sealed class AutoMlStateAutoMlStateBase : AutoMlStateBase
+        {
+            /// <summary>
+            /// Supported metric for evaluator.
+            /// </summary>
+            public Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } = Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
+
+            /// <summary>
+            /// AutoML engine (pipeline optimizer) that generates next candidates.
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public AutoMlEngine Engine { get; set; }
+
+            /// <summary>
+            /// Kind of trainer for task, such as binary classification trainer, multiclass trainer, etc.
+            /// </summary>
+            public Microsoft.ML.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } = Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+
+            /// <summary>
+            /// Arguments for creating terminator, which determines when to stop search.
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public SearchTerminator TerminatorArgs { get; set; }
+
+            /// <summary>
+            /// Learner set to sweep over (if available).
+            /// </summary>
+            public string[] RequestedLearners { get; set; }
+
+            internal override string ComponentName => "AutoMlState";
+        }
+
         public abstract class CalibratorTrainer : ComponentKind {}
 
 
@@ -14179,6 +14444,23 @@ namespace Microsoft.ML
         public sealed class SquaredLossSDCARegressionLossFunction : SDCARegressionLossFunction
         {
             internal override string ComponentName => "SquaredLoss";
+        }
+
+        public abstract class SearchTerminator : ComponentKind {}
+
+
+
+        /// <summary>
+        /// Terminators a sweep based on total number of iterations.
+        /// </summary>
+        public sealed class IterationLimitedSearchTerminator : SearchTerminator
+        {
+            /// <summary>
+            /// Total number of iterations.
+            /// </summary>
+            public int FinalHistoryLength { get; set; }
+
+            internal override string ComponentName => "IterationLimited";
         }
 
         public abstract class StopWordsRemover : ComponentKind {}
