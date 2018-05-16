@@ -539,7 +539,9 @@ namespace Microsoft.ML.Runtime.Data
                     }
                     else if (source == FilePathColIndex)
                     {
-                        _colValues[i] = new DvText(path);
+                        // Force Unix path for consistency.
+                        var cleanPath = path.Replace(@"\", @"/");
+                        _colValues[i] = new DvText(cleanPath);
                     }
                 }
             }
