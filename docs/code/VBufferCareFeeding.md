@@ -238,7 +238,7 @@ detail here, but:
 * `Microsoft.ML.Runtime.Data.BufferBuilder<T>` is an abstract class whose
   concrete implementations are used throughout ML.NET to build up `VBuffer<T>`
   instances. Note that if one *can* simply build a `VBuffer` oneself easily
-  and do not need the nicities provided by the buffer builder, you should
+  and do not need the niceties provided by the buffer builder, you should
   probably just do it yourself.
 
 * `Microsoft.MachineLearning.Internal.Utilities.EnsureSize` is often useful to

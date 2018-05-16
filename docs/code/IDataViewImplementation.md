@@ -72,7 +72,7 @@ forget to check that the input data actually *does* conform to that, with the
 result that if a pipeline was composed in some other fashion, there would be
 some error.
 
-The only thing you can really asume is that an `IDataView` behaves "sanely"
+The only thing you can really assume is that an `IDataView` behaves "sanely"
 according to the contracts of the `IDataView` interface, so that future TLC
 developers can form some reasonable expectations of how your code behaves, and
 also have a prayer of knowing how to maintain the code. It is hard enough to
@@ -310,7 +310,7 @@ Label | Features                     | PredictedLabel | Score  | Probability  | 
 One could argue it's not *really* identically constructed, exactly, since both
 of those transforms (including the underlying averaged perceptron learner!)
 are initialized using the pseudo-random number generator in an `IHost` that
-changes from one to another. But, that's a bit nitpicky.
+changes from one to another. But, that's a bit nit-picky.
 
 Note also: when we say functionally identical we include everything about it:
 not just the data, but the schema, its metadata, the implementation of
@@ -357,8 +357,8 @@ this interface. So let's imagine your type should be `float`, because the
 corresponding column's type's `RawType` is `typeof(float)`. Now: if you
 *happen* to call `GetGetter<double>(col)` instead of `GetGetter<float>(col)`,
 it would actually be a fairly easy matter for `GetGetter` to actually
-accomodate it, by doing the necessary transformations under the hood, and
-*not* fail. This type of thinking is actually insideously and massively
+accommodate it, by doing the necessary transformations under the hood, and
+*not* fail. This type of thinking is actually insidiously and massively
 harmful to the codebase, as I will remark.
 
 The danger of writing code is that there's a chance someone might find it
@@ -412,7 +412,7 @@ selected, the cursoring would *succeed*, because it would not look at that
 
 If we were to throw, the effect is that *sometimes* the cursoring will succeed
 (if the column is not selected), and *sometimes* will fail (if not selected).
-These failures are explainable, ultimatley, of course, in the sense that
+These failures are explainable, ultimately, of course, in the sense that
 anything is explainable, but a user knows nothing about lazy evaluation or
 anything like this: correspondingly this is enormously confusing.
 
@@ -460,7 +460,7 @@ We have `IRowCursor` which descends from both `IRow` and `ICursor`. Why do
 these other interfaces exist?
 
 Firstly, there are implementations of `IRow` or `ICursor` that are not
-`IRowCursor`s. We have occassionally found it useful to have something
+`IRowCursor`s. We have occasionally found it useful to have something
 resembling a key-value store, but that is strongly, dynamically typed in some
 fashion. Why not simply represent this using the same idioms of `IDataView`?
 So we put them in an `IRow`. Similarly: we have several things that behave

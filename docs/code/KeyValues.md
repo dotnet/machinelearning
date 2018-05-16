@@ -49,7 +49,7 @@ both the n-gram featurization of words, as well as n-char grams.
 Now, much of this complexity is hidden from the user: most users will just use
 the `text` transform, select some options for n-grams, and n-char grams, and
 not be aware of these internal invisible keys. Similarly, use the categorical
-or categorical hash transforms, without knowing that internall it is just the
+or categorical hash transforms, without knowing that internally it is just the
 term or hash transform followed by a `KeyToVector` transform. But, keys are
 still there, and it would be impossible to really understand ML.NET's
 featurization pipeline without understanding keys. Any user that wants to
