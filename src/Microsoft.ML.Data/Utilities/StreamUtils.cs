@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
@@ -94,7 +95,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                             try
                             {
                                 // this is actually incorrect, for 3-char extensions: ***
-                                var files = Directory.GetFiles(dir, right);
+                                var files = Directory.GetFiles(dir, right).OrderBy(f => f).ToArray();
                                 if (pathEmpty)
                                 {
                                     for (int i = 0; i < files.Length; i++)
@@ -104,7 +105,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                                     }
                                 }
                                 matchList.AddRange(files);
-                                var subs = Directory.GetDirectories(dir);
+                                var subs = Directory.GetDirectories(dir).OrderBy(f => f).ToArray();
                                 for (var i = subs.Length - 1; i >= 0; i--)
                                     dirsLeft.Push(subs[i]);
                             }
@@ -125,7 +126,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                             // watch for lack of access:
                             try
                             {
-                                var files = Directory.GetFiles(path, Path.GetFileName(currentPattern));
+                                var files = Directory.GetFiles(path, Path.GetFileName(currentPattern)).OrderBy(f => f).ToArray();
                                 if (pathEmpty)
                                 {
                                     for (int i = 0; i < files.Length; i++)
@@ -169,6 +170,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     }
                 }
             }
+
             return matchList.ToArray();
         }
 #endif
