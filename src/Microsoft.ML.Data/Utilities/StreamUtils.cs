@@ -170,7 +170,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     }
                 }
             }
-
             return matchList.ToArray();
         }
 #endif
