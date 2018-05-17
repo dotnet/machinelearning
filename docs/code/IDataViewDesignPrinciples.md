@@ -64,10 +64,9 @@ The IDataView design fulfills the following design requirements:
   kinds, and supports composing multiple primitive components to achieve
   higher-level semantics. See [here](#components).
 
-* **Open component system**: While the AzureML Algorithms team has developed,
-  and continues to develop, a large library of IDataView components,
-  additional components that interoperate with these may be implemented in
-  other code bases. See [here](#components).
+* **Open component system**: While the ML.NET code has a growing large library
+  of IDataView components, additional components that interoperate with these
+  may be implemented in other code bases. See [here](#components).
 
 * **Cursoring**: The rows of a view are accessed sequentially via a row
   cursor. Multiple cursors can be active on the same view, both sequentially
@@ -136,11 +135,8 @@ The IDataView system design does *not* include the following:
 
 * **Data file formats**: The IDataView system does not dictate storage or
   transport formats. It *does* include interfaces for loader and saver
-  components. The AzureML Algorithms team has implemented loaders and savers
-  for some binary and text file formats, but additional loaders and savers can
-  (and will) be implemented. In particular, implementing a loader from XDF
-  will be straightforward. Implementing a saver to XDF will likely require the
-  XDF format to be extended to support vector-valued columns.
+  components. The ML.NET code has implementations of loaders and savers for
+  some binary and text file formats.
 
 * **Multi-node computation over multiple data partitions**: The IDataView
   design is focused on single node computation. We expect that in multi-node
@@ -197,16 +193,16 @@ experience and performance.
 
 Machine learning and advanced analytics applications often involve high-
 dimensional data. For example, a common technique for learning from text,
-known as bag-of-words, represents each word in the text as a numeric feature
-containing the number of occurrences of that word. Another technique is
-indicator or one-hot encoding of categorical values, where, for example, a
-text-valued column containing a person's last name is expanded to a set of
-features, one for each possible name (Tesla, Lincoln, Gandhi, Zhang, etc.),
-with a value of one for the feature corresponding to the name, and the
-remaining features having value zero. Variations of these techniques use
-hashing in place of dictionary lookup. With hashing, it is common to use 20
-bits or more for the hash value, producing $2^20$ (about a million) features
-or more.
+known as [bag-of-words](https://en.wikipedia.org/wiki/Bag-of-words_model),
+represents each word in the text as a numeric feature containing the number of
+occurrences of that word. Another technique is indicator or one-hot encoding
+of categorical values, where, for example, a text-valued column containing a
+person's last name is expanded to a set of features, one for each possible
+name (Tesla, Lincoln, Gandhi, Zhang, etc.), with a value of one for the
+feature corresponding to the name, and the remaining features having value
+zero. Variations of these techniques use hashing in place of dictionary
+lookup. With hashing, it is common to use 20 bits or more for the hash value,
+producing `2^^20` (about a million) features or more.
 
 These techniques typically generate an enormous number of features.
 Representing each feature as an individual column is far from ideal, both from
@@ -225,8 +221,8 @@ corresponding vector values may have any length. A tokenization transform,
 that maps a text value to the sequence of individual terms in that text,
 naturally produces variable-length vectors of text. Then, a hashing ngram
 transform may map the variable-length vectors of text to a bag-of-ngrams
-representation, which naturally produces numeric vectors of length $2^k$, where
-$k$ is the number of bits used in the hash function.
+representation, which naturally produces numeric vectors of length `2^^k`,
+where `k` is the number of bits used in the hash function.
 
 ### Key Types
 
@@ -408,10 +404,6 @@ Note that when the data is small, and repeated passes over the data are
 needed, the operating system disk cache transparently enhances performance.
 Further, when the data is known to fit in memory, caching, as described above,
 provides even better performance.
-
-Note: Implementing a loader for XDF files should be straightforward. To
-implement a saver, the XDF format will likely need to be extended to support
-vector-valued columns, and perhaps metadata encoding.
 
 ### Randomization
 

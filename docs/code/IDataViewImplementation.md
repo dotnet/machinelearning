@@ -73,7 +73,7 @@ result that if a pipeline was composed in some other fashion, there would be
 some error.
 
 The only thing you can really assume is that an `IDataView` behaves "sanely"
-according to the contracts of the `IDataView` interface, so that future TLC
+according to the contracts of the `IDataView` interface, so that future ML.NET
 developers can form some reasonable expectations of how your code behaves, and
 also have a prayer of knowing how to maintain the code. It is hard enough to
 write software correctly even when the code you're working with actually does
@@ -166,8 +166,8 @@ has the following problems:
 * **Every** call had to verify that the column was active,
 * **Every** call had to verify that `TValue` was of the right type,
 * When these were part of, say, a transform in a chain (as they often are,
-  considering how common transforms are used by TLC's users) each access would
-  be accompanied by a virtual method call to the upstream cursor's
+  considering how common transforms are used by ML.NET's users) each access
+  would be accompanied by a virtual method call to the upstream cursor's
   `GetColumnValue`.
 
 In contrast, consider the situation with these getter delegates. The
@@ -211,14 +211,14 @@ consuming different data from the contemporaneous cursor? There are many
 examples of this throughout the codebase.
 
 Nevertheless: in very specific circumstances we have relaxed this. For
-example, the TLC API serves up corrupt `IDataView` implementations that have
-their underlying data change, since reconstituting a data pipeline on fresh
-data is at the present moment too resource intensive. Nonetheless, this is
-wrong: for example, the `TrainingCursorBase` and related subclasses rely upon
-the data not changing. Since, however, that is used for *training* and the
-prediction engines of the API as used for *scoring*, we accept these. However
-this is not, strictly speaking, correct, and this sort of corruption of
-`IDataView` should only be considered as a last resort, and only when some
+example, some ML.NET API code serves up corrupt `IDataView` implementations
+that have their underlying data change, since reconstituting a data pipeline
+on fresh data is at the present moment too resource intensive. Nonetheless,
+this is wrong: for example, the `TrainingCursorBase` and related subclasses
+rely upon the data not changing. Since, however, that is used for *training*
+and the prediction engines of the API as used for *scoring*, we accept these.
+However this is not, strictly speaking, correct, and this sort of corruption
+of `IDataView` should only be considered as a last resort, and only when some
 great good can be accomplished through this. We certainly did not accept this
 corruption lightly!
 
@@ -265,19 +265,19 @@ same data view.) So some rules:
 ## Versioning
 
 This requirement for consistency of a data model often has implications across
-versions of TLC, and our requirements for data model backwards compatibility.
-As time has passed, we often feel like it would make sense if a transform
-behaved *differently*, that is, if it organized or calculated its output in a
-different way than it currently does. For example, suppose we wanted to switch
-the hash transform to something a bit more efficient than murmur hashes, for
-example. If we did so, presumably the same input values would map to different
-outputs. We are free to do so, of course, yet: when we deserialize a hash
-transform from before we made this change, that hash transform should continue
-to output values as it did, before we made that change. (This, of course,
-assuming that the transform was released as part of a "blessed" non-preview
-point release of TLC. We can, and have, broken backwards compatibility for
-something that has not yet been incorporated in any sort of blessed release,
-though we prefer to not.)
+versions of ML.NET, and our requirements for data model backwards
+compatibility. As time has passed, we often feel like it would make sense if a
+transform behaved *differently*, that is, if it organized or calculated its
+output in a different way than it currently does. For example, suppose we
+wanted to switch the hash transform to something a bit more efficient than
+murmur hashes, for example. If we did so, presumably the same input values
+would map to different outputs. We are free to do so, of course, yet: when we
+deserialize a hash transform from before we made this change, that hash
+transform should continue to output values as it did, before we made that
+change. (This, of course, assuming that the transform was released as part of
+a "blessed" non-preview point release of ML.NET. We can, and have, broken
+backwards compatibility for something that has not yet been incorporated in
+any sort of blessed release, though we prefer to not.)
 
 ## What is Not Functionally Identical
 
@@ -334,10 +334,9 @@ aside (which we can hardly help), we expect the models to be the same.
 
 # On Loaders, Data Models, and Empty `IMultiStreamSource`s
 
-When you run TLC you have the option of specifying not only *one* data input,
-but any number of data input files, including zero. :) This is how [the
-examples here](../public/command/DataCommands.md#look-ma-no-files) work. But
-there's also a more general principle at work here: when deserializing a data
+When you create a loader you have the option of specifying not only *one* data
+input, but any number of data input files, including zero. But there's also a
+more general principle at work here with zero files: when deserializing a data
 loader from a data model with an `IMultiStreamSource` with `Count == 0` (e.g.,
 as would be constructed with `new MultiFileSource(null)`), we have a protocol
 that *every* `IDataLoader` should work in that circumstance, and merely be a
@@ -472,7 +471,34 @@ indication that this function will not move the cursor (in which case `IRow`
 is helpful), or that will not access any values (in which case `ICursor` is
 helpful).
 
-# Metadata
+# Schema
+
+The schema contains information about the columns. As we see in [the design
+principles](IDataViewDesignPrinciples.md), it has index, data type, and
+optional metadata.
+
+While *programmatically* accesses to an `IDataView` are by index, from a
+user's perspective the indices are by name; most training algorithms
+conceptually train on the `Features` column (under default settings). For this
+reason nearly all usages of an `IDataView` will be prefixed with a call to the
+schema's `TryGetColumnIndex`.
+
+Regarding name hiding, the principles mention that when multiple columns have
+the same name, other columns are "hidden." The convention all implementations
+of `ISchema` obey is that the column with the *largest* index. Note however
+that this is merely convention, not part of the definition of `ISchema`.
+
+Implementations of `TryGetColumnIndex` should be O(1), that is, practically,
+this mapping ought to be backed with a dictionary in most cases. (There are
+obvious exceptions like, say, things like `LineLoader` which produce exactly
+one column. There, a simple equality test suffices.)
+
+It is best if `GetColumnType` returns the *same* object every time. That is,
+things like key-types and vector-types, when returned, should not be created
+in the function itself (thereby creating a new object every time), but rather
+stored somewhere and returned.
+
+## Metadata
 
 Since metadata is *optional*, one is not obligated to necessarily produce it,
 or conform to any particular schemas for any particular kinds (beyond, say,

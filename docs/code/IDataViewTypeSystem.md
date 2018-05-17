@@ -16,8 +16,7 @@ the specific interface is written using fixed pitch font as `IDataView`.
 
 IDataView is the data pipeline machinery for ML.NET. The ML.NET codebase has
 an extensive library of IDataView related components (loaders, transforms,
-savers, trainers, predictors, etc.). The team is actively working on many
-more.
+savers, trainers, predictors, etc.). More are being worked on.
 
 The name IDataView was inspired from the database world, where the term table
 typically indicates a mutable body of data, while a view is the result of a
