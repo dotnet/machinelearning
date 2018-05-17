@@ -880,7 +880,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <returns></returns>
         public static long DivisionCeiling(long numerator, long denomenator)
         {
-            return (numerator + denomenator - 1) / denomenator;
+            return (checked(numerator + denomenator) - 1) / denomenator;
         }
     }
 }

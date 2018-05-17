@@ -393,22 +393,12 @@ namespace Microsoft.ML.Runtime.Data
                 // The number of blocks is calculated based on the specified rows in a block (defaults to 1M).
                 // Since we want to shuffle the blocks in addition to shuffling the rows in each block, checks
                 // are put in place to ensure we can produce a shuffle order for the blocks.
-                long numBlocks;
-                IEnumerable<int> blockOrder;
-                numBlocks = MathUtils.DivisionCeiling((long)parent.GetRowCount(), _readerOptions.Count);
+                var numBlocks = MathUtils.DivisionCeiling((long)parent.GetRowCount(), _readerOptions.Count);
                 if (numBlocks > int.MaxValue)
                 {
                     throw _loader._host.ExceptParam(nameof(Arguments.ColumnChunkReadSize), "Error due to too many blocks. Try increasing block size.");
                 }
-                try
-                {
-                    blockOrder = _rand == null ? Enumerable.Range(0, (int)numBlocks) : Utils.GetRandomPermutation(rand, (int)numBlocks);
-                }
-                catch (OutOfMemoryException)
-                {
-                    // if unable to create a shuffled sequence, default to sequential reading.
-                    blockOrder = Enumerable.Range(0, (int)numBlocks);
-                }
+                var blockOrder = CreateOrderSequence((int)numBlocks);
                 _blockEnumerator = blockOrder.GetEnumerator();
 
                 _dataSetEnumerator = Enumerable.Empty<int>().GetEnumerator();
@@ -503,16 +493,7 @@ namespace Microsoft.ML.Runtime.Data
                         ds = ParquetReader.Read(_loader._parquetStream, _loader._parquetOptions, _readerOptions);
                     }
 
-                    IEnumerable<int> dataSetOrder;
-                    try
-                    {
-                        dataSetOrder = _rand == null ? Enumerable.Range(0, ds.RowCount) : Utils.GetRandomPermutation(_rand, ds.RowCount);
-                    }
-                    catch (OutOfMemoryException)
-                    {
-                        // if unable to create a shuffled sequence, default to sequential reading.
-                        dataSetOrder = Enumerable.Range(0, ds.RowCount);
-                    }
+                    var dataSetOrder = CreateOrderSequence(ds.RowCount);
                     _dataSetEnumerator = dataSetOrder.GetEnumerator();
                     _curDataSetRow = dataSetOrder.ElementAt(0);
 
@@ -558,6 +539,26 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 return _colToActivesIndex[col] >= 0;
+            }
+
+            /// <summary>
+            /// Creates a in-order or shuffled sequence, based on whether _rand is specified.
+            /// If unable to create a shuffle sequence, will default to sequential.
+            /// </summary>
+            /// <param name="size">Number of elements in the sequence.</param>
+            /// <returns></returns>
+            private IEnumerable<int> CreateOrderSequence(int size)
+            {
+                IEnumerable<int> order;
+                try
+                {
+                    order = _rand == null ? Enumerable.Range(0, size) : Utils.GetRandomPermutation(_rand, size);
+                }
+                catch (OutOfMemoryException)
+                {
+                    order = Enumerable.Range(0, size);
+                }
+                return order;
             }
         }
 
