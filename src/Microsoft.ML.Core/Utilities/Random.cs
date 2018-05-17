@@ -11,9 +11,9 @@ namespace Microsoft.ML.Runtime
     public interface IRandom
     {
         /// <summary>
-        /// Generates a Float (single precision floating point) in the range [0, 1).
+        /// Generates a Single in the range [0, 1).
         /// </summary>
-        Single NextFloat();
+        Single NextSingle();
 
         /// <summary>
         /// Generates a Double in the range [0, 1).
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime
             _rnd = rnd;
         }
 
-        public Single NextFloat()
+        public Single NextSingle()
         {
             // Since the largest value that NextDouble() can return rounds to 1 when cast to Single,
             // we need to protect against returning 1.
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Runtime
             }
         }
 
-        public Single NextFloat()
+        public Single NextSingle()
         {
             NextState();
             return GetSingle();
