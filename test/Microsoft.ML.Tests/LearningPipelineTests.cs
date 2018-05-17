@@ -6,6 +6,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System.Linq;
 using Xunit;
@@ -79,6 +80,35 @@ namespace Microsoft.ML.EntryPoints.Tests
                     Assert.Equal(1, predictionModel.TransformedF1[index]);
                 else
                     Assert.Equal(0, predictionModel.TransformedF1[index]);
+        }
+
+        public class Data
+        {
+            [ColumnName("Features")]
+            [VectorType(2)]
+            public float[] Features;
+
+            [ColumnName("Label")]
+            public float Label;
+        }
+
+        public class Prediction
+        {
+            [ColumnName("PredictedLabel")]
+            public bool PredictedLabel;
+        }
+
+        [Fact]
+        public void NoTransformPipeline()
+        {
+            var data = new Data[1];
+            data[0] = new Data();
+            data[0].Features = new float[] { 0.0f, 1.0f };
+            data[0].Label = 0f;
+            var pipeline = new LearningPipeline();
+            pipeline.Add(CollectionDataSource.Create(data));
+            pipeline.Add(new FastForestBinaryClassifier());
+            var model = pipeline.Train<Data, Prediction>();
         }
     }
 }
