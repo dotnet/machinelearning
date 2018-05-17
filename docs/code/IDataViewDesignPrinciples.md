@@ -13,7 +13,7 @@ node processing of data partitions belonging to larger distributed data sets.
 
 IDataView is the data pipeline machinery for ML.NET. Microsoft teams consuming
 this library have implemented libraries of IDataView related components
-(loaders, transforms, savers, trainers, predictors, etc.) and has validated
+(loaders, transforms, savers, trainers, predictors, etc.) and have validated
 the performance, scalability and task flexibility benefits.
 
 The name IDataView was inspired from the database world, where the term table
@@ -24,12 +24,12 @@ rows conforming to the column types. Views differ from tables in several ways:
 
 * Views are *composable*. New views are formed by applying transformations
   (queries) to other views. In contrast, forming a new table from an existing
-  table involves  copying data, making the tables decoupled; the new table is
+  table involves copying data, making the tables decoupled; the new table is
   not linked to the original table in any way.
 
 * Views are *virtual*; tables are fully realized/persisted. In other words, a
   table contains the values in the rows while a view computes values from
-  other views or  tables, so does not contain or own the values.
+  other views or tables, so does not contain or own the values.
 
 * Views are *immutable*; tables are mutable. Since a view does not contain
   values, but merely computes values from its source views, there is no
@@ -38,9 +38,9 @@ rows conforming to the column types. Views differ from tables in several ways:
 Note that immutability and compositionality are critical enablers of
 technologies that require reasoning over transformation, like query
 optimization and remoting. Immutability is also key for concurrency and thread
-safety. Views being virtual minimizes I/O, memory allocation, and
-computation—information is accessed, memory is allocated, and computation is
-performed, only when needed to satisfy a local request for information.
+safety. Views being virtual minimizes I/O, memory allocation, and computation.
+Information is accessed, memory is allocated, and computation is performed,
+only when needed to satisfy a local request for information.
 
 ### Design Requirements
 
@@ -48,21 +48,21 @@ The IDataView design fulfills the following design requirements:
 
 * **General schema**: Each view carries schema information, which specifies
   the names and types of the view's columns, together with metadata associated
-  with the  columns. The system is optimized for a reasonably small number of
+  with the columns. The system is optimized for a reasonably small number of
   columns (hundreds). See [here](#basics).
 
 * **Open type system**: The column type system is open, in the sense that new
   data types can be introduced at any time and in any assembly. There is a set
-  of  standard types (which may grow over time), but there is no registry of
+  of standard types (which may grow over time), but there is no registry of
   all supported types. See [here](#basics).
 
 * **High dimensional data support**: The type system for columns includes
   homogeneous vector types, so a set of related primitive values can be
-  grouped into a single  vector-valued column. See [here](#vector-types).
+  grouped into a single vector-valued column. See [here](#vector-types).
 
 * **Compositional**: The IDataView design supports components of various
   kinds, and supports composing multiple primitive components to achieve
-  higher- level semantics. See [here](#components).
+  higher-level semantics. See [here](#components).
 
 * **Open component system**: While the AzureML Algorithms team has developed,
   and continues to develop, a large library of IDataView components,
@@ -71,30 +71,30 @@ The IDataView design fulfills the following design requirements:
 
 * **Cursoring**: The rows of a view are accessed sequentially via a row
   cursor. Multiple cursors can be active on the same view, both sequentially
-  and in parallel.  In particular, views support multiple iterations through
+  and in parallel. In particular, views support multiple iterations through
   the rows. Each cursor has a set of active columns, specified at cursor
   construction time. Shuffling is supported via an optional random number
   generator passed at cursor construction time. See [here](#cursoring).
 
 * **Lazy computation**: When only a subset of columns or a subset of rows is
   requested, computation for other columns and rows can be, and generally is,
-  avoided.  Certain transforms, loaders, and caching scenarios may be
+  avoided. Certain transforms, loaders, and caching scenarios may be
   speculative or eager in their computation, but the default is to perform
   only computation needed for the requested columns and rows. See
   [here](#lazy-computation-and-active-columns).
 
 * **Immutability and repeatability**: The data served by a view is immutable
   and any computations performed are repeatable. In particular, multiple
-  cursors on the  view produce the same row values in the same order (when
+  cursors on the view produce the same row values in the same order (when
   using the same shuffling). See [here](#immutability-and-repeatability).
 
 * **Memory efficiency**: The IDataView design includes cooperative buffer
   sharing patterns that eliminate the need to allocate objects or buffers for
-  each row when  cursoring through a view. See [here](#memory-efficiency).
+  each row when cursoring through a view. See [here](#memory-efficiency).
 
 * **Batch-parallel computation**: The IDataView system includes the ability to
   get a set of cursors that can be executed in parallel, with each individual
-  cursor  serving up a subset of the rows. Splitting into multiple cursors can
+  cursor serving up a subset of the rows. Splitting into multiple cursors can
   be done either at the loader level or at an arbitrary point in a pipeline.
   The component that performs splitting also provides the consolidation logic.
   This enables computation heavy pipelines to leverage multiple cores without
@@ -103,7 +103,7 @@ The IDataView design fulfills the following design requirements:
 
 * **Large data support**: Constructing views on data files and cursoring
   through the rows of a view does not require the entire data to fit in
-  memory. Conversely,  when the entire data fits, there is nothing preventing
+  memory. Conversely, when the entire data fits, there is nothing preventing
   it from being loaded entirely in memory. See [here](#data-size).
 
 ### Design Non-requirements
@@ -112,20 +112,20 @@ The IDataView system design does *not* include the following:
 
 * **Multi-view schema information**: There is no direct support for specifying
   cross-view schema information, for example, that certain columns are primary
-  keys,  and that there are foreign key relationships among tables. However,
+  keys, and that there are foreign key relationships among tables. However,
   the column metadata support, together with conventions, may be used to
   represent such information.
 
 * **Standard ML schema**: The IDataView system does not define, nor prescribe,
   standard ML schema representation. For example, it does not dictate
-  representation of  nor distinction between different semantic
-  interpretations of columns, such as label, feature, score, weight, etc.
-  However, the column metadata support, together with conventions, may be used
-  to represent such interpretations.
+  representation of nor distinction between different semantic interpretations
+  of columns, such as label, feature, score, weight, etc. However, the column
+  metadata support, together with conventions, may be used to represent such
+  interpretations.
 
 * **Row count**: A view is not required to provide its row count. The
   `IDataView` interface has a `GetRowCount` method with type `Nullable<long>`.
-  When this returns  `null`, the row count is not available directly from the
+  When this returns `null`, the row count is not available directly from the
   view.
 
 * **Efficient indexed row access**: There is no standard way in the IDataView
@@ -136,7 +136,7 @@ The IDataView system design does *not* include the following:
 
 * **Data file formats**: The IDataView system does not dictate storage or
   transport formats. It *does* include interfaces for loader and saver
-  components. The  AzureML Algorithms team has implemented loaders and savers
+  components. The AzureML Algorithms team has implemented loaders and savers
   for some binary and text file formats, but additional loaders and savers can
   (and will) be implemented. In particular, implementing a loader from XDF
   will be straightforward. Implementing a saver to XDF will likely require the
@@ -144,7 +144,7 @@ The IDataView system design does *not* include the following:
 
 * **Multi-node computation over multiple data partitions**: The IDataView
   design is focused on single node computation. We expect that in multi-node
-  applications,  each node will be given its own data partition(s) to operate
+  applications, each node will be given its own data partition(s) to operate
   on, with aggregation happening outside an IDataView pipeline.
 
 ## Schema and Type System
@@ -271,7 +271,7 @@ determined automatically from some training data. For example, normalizers and
 dictionary-based mappers, such as the TermTransform, build their state from
 training data. Training occurs when the transform is instantiated from user-
 provided parameters. Typically, the transform behavior is later serialized.
-When deserialized, the transform is not retrained—its behavior is entirely
+When deserialized, the transform is not retrained; its behavior is entirely
 determined by the serialized information.
 
 ### Composition Examples
@@ -391,8 +391,8 @@ allocation while iterating, client code only need allocate sufficiently large
 buffers up front, outside the iteration loop.
 
 Note that IDataView allows algorithms that need to materialize data in memory
-to do so—nothing in the system prevents a component from cursoring through the
-source data and building a complete in-memory representation of the
+to do so. Nothing in the system prevents a component from cursoring through
+the source data and building a complete in-memory representation of the
 information needed, subject, of course, to available memory.
 
 ### Data Size
@@ -462,9 +462,9 @@ information is much richer and contained in the schema, rather than in the
 In both worlds, many different classes implement the core interface. In the
 IEnumerable world, developers explicitly write some of these classes, but many
 more implementing classes are automatically generated by the C# compiler, and
-returned from methods written using the C# iterator functionality
-(`yield return`). In the IDataView world, developers explicitly write all of
-the implementing classes, including all loaders and transforms—unfortunately,
+returned from methods written using the C# iterator functionality (`yield
+return`). In the IDataView world, developers explicitly write all of the
+implementing classes, including all loaders and transforms. Unfortunately,
 there is no equivalent `yield return` magic.
 
 In both worlds, multiple cursors can be created and used.

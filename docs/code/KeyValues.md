@@ -32,7 +32,7 @@ values, is sometimes helpful. However, given that most trainers expect the
 feature vector to be a vector of floating point values and *not* keys, in
 typical usage the majority of usages of keys is as some sort of intermediate
 value on the way to that final feature vector. (Unless, say, doing something
-like preparing labels for a multiclass learner or somesuch.)
+like preparing labels for a multiclass learner.)
 
 So why not go directly to the feature vector, and forget this key stuff?
 Actually, to take text as the canonical example, we used to. However, by
@@ -41,15 +41,15 @@ to vector *directly*, we are able to simplify a lot of code on the
 implementation side, which is both less for us to maintain, and also for users
 gives consistency in behavior.
 
-So for example, the `charTokenize` above might appear to be a strange choice:
-*why* represent characters as keys? The reason is that the N-gram transform is
+So for example, the `CharTokenize` above might appear to be a strange choice:
+*why* represent characters as keys? The reason is that the ngram transform is
 written to ingest keys, not text, and so we can use the same transform for
 both the n-gram featurization of words, as well as n-char grams.
 
 Now, much of this complexity is hidden from the user: most users will just use
-the `text` transform, select some options for n-grams, and n-char grams, and
-not be aware of these internal invisible keys. Similarly, use the categorical
-or categorical hash transforms, without knowing that internally it is just the
+the `text` transform, select some options for n-grams, and chargrams, and not
+be aware of these internal invisible keys. Similarly, use the categorical or
+categorical hash transforms, without knowing that internally it is just the
 term or hash transform followed by a `KeyToVector` transform. But, keys are
 still there, and it would be impossible to really understand ML.NET's
 featurization pipeline without understanding keys. Any user that wants to
@@ -137,14 +137,13 @@ the source level. To a regular non-API user of ML.NET, key values appear
 and so forth.
 
 There is another implication: a hypothetical type `U1<4000-4002>` is actually
-a sensible type in this scheme. The `U1` indicates that is is stored in one
-byte, which would on first glance seem to conflict with values like `4000`,
-but remember that the first valid key-value is stored as `1`, and we've
-identified the valid range as spanning the three values 4000 through 4002.
-That is, `4000` would be represented physically as `1`.
+a sensible type in this scheme. The `U1` indicates that is stored in one byte,
+which would on first glance seem to conflict with values like `4000`, but
+remember that the first valid key-value is stored as `1`, and we've identified
+the valid range as spanning the three values 4000 through 4002. That is,
+`4000` would be represented physically as `1`.
 
 The reality cannot be seen by any conventional means I am aware of, save for
 viewing ML.NET's workings in the debugger or using the API and inspecting
 these raw values yourself: that `4000` you would see is really stored as the
-`byte` `1`, `4001` as `2`, `4002` as `3`, and the missing `�` stored as `0`.
-`4001` as `2`.
+`byte` `1`, `4001` as `2`, `4002` as `3`, and a missing value stored as `0`.

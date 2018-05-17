@@ -122,7 +122,7 @@ IDs, so long as the IDs are done according to the following operations that
 operate on acceptable sets.
 
 1. The simple enumeration of `UInt128` numeric values from any number is an
-   acceptable set. (This covers how most loaders generate IDs. Typically we
+   acceptable set. (This covers how most loaders generate IDs. Typically, we
    start from 0, but other choices, like -1, are acceptable.)
 
 2. The subset of any acceptable set is an acceptable set. (For example, all
@@ -137,9 +137,9 @@ operate on acceptable sets.
    followed by the set of any number of application of `Next`, the union of
    all such sets would itself be an acceptable set. (This is useful, for
    example, for operations that produce multiple items per input item. So, if
-   you produced two entries based on every single input entry, if the input ID
-   were _id_, then, the first could be `Fork` of _id_, and the second could be
-   `Fork` then `Next` of the same _id_.)
+   you produced two rows based on every single input row, if the input ID were
+   _id_, then, the ID of the first row could be `Fork` of _id_, and the second
+   row could have ID of `Fork` then `Next` of the same _id_.)
 
 5. If you have potentially multiple acceptable sets, while the union of them
    obviously might not be acceptable, if you were to form a mapping from each
@@ -147,7 +147,8 @@ operate on acceptable sets.
    different), and then for each such set/ID pairing, create the set created
    from `Combine` of the items of that set with that ID, and then union of
    those sets will be acceptable. (This is useful, for example, if you had
-   something like a join, or a Cartesian product transform, or somesuch.)
+   something like a join, or a Cartesian product transform, or something like
+   that.)
 
 6. Moreover, similar to the note about the use of `Fork`, and `Next`, if
    during the creation of one of those sets describe above, you were to form

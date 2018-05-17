@@ -153,7 +153,7 @@ bytes
 * `U1`, `U2`, `U4`, `U8`: unsigned integer types with the indicated number of
 bytes
 
-* `UG`: unsigned type with 16-bytes, typically used as an unique ID
+* `UG`: unsigned type with 16-bytes, typically used as a unique ID
 
 * `TS`: timespan, a period of time
 
@@ -539,43 +539,43 @@ document.
 Notes:
 
 * `VBuffer<T>` contains four public readonly fields: `Length`, `Count`,
-`Values`, and `Indices`.
+  `Values`, and `Indices`.
 
 * `Length` is the logical length of the vector, and must be non-negative.
 
-* `Count` is the number of items explicitly represented in the vector.
-`Count` is non-negative and less than or equal to Length.
+* `Count` is the number of items explicitly represented in the vector. `Count`
+  is non-negative and less than or equal to Length.
 
 * When `Count` is equal to Length, the vector is dense. Otherwise, the vector
-is sparse.
+  is sparse.
 
 * The `Values` array contains the explicitly represented item values. The
-length of the `Values` array is at least `Count`, but not necessarily equal to
-`Count`. Only the first `Count` items in `Values` are part of the vector; any
-remaining items are garbage and should be ignored. Note that when `Count` is
-zero, `Values` may be null.
+  length of the `Values` array is at least `Count`, but not necessarily equal
+  to `Count`. Only the first `Count` items in `Values` are part of the vector;
+  any remaining items are garbage and should be ignored. Note that when
+  `Count` is zero, `Values` may be null.
 
 * The `Indices` array is only relevant when the vector is sparse. In the
-sparse case, `Indices` is parallel to `Values`, only the first `Count` items
-are meaningful,  the indices must be non-negative and less than `Length`, and
-the indices must be strictly increasing. Note that when `Count` is zero,
-`Indices` may be null. In the dense case, `Indices` is not meaningful and may
-or may not be null.
+  sparse case, `Indices` is parallel to `Values`, only the first `Count` items
+  are meaningful,  the indices must be non-negative and less than `Length`,
+  and the indices must be strictly increasing. Note that when `Count` is zero,
+  `Indices` may be null. In the dense case, `Indices` is not meaningful and
+  may or may not be null.
 
 * It is very common for the arrays in a `VBuffer<T>` to be larger than needed
-for their current value. A special case of this is when a dense `VBuffer<T>`
-has a  non-null `Indices` array. The extra items in the arrays are not
-meaningful and should be ignored. Allowing these buffers to be larger than
-currently needed reduces the need to reallocate buffers for different values.
-For example, when cursoring through a vector valued column with `VectorSize`
-of 100, client code could pre-allocate values and indices arrays and seed a
-`VBuffer<T>` with those arrays. When fetching values, the client code passes
-the `VBuffer<T>` by reference. The called code can re-use those arrays,
-filling them with the current values.
+  for their current value. A special case of this is when a dense `VBuffer<T>`
+  has a  non-null `Indices` array. The extra items in the arrays are not
+  meaningful and should be ignored. Allowing these buffers to be larger than
+  currently needed reduces the need to reallocate buffers for different
+  values. For example, when cursoring through a vector valued column with
+  `VectorSize` of 100, client code could pre-allocate values and indices
+  arrays and seed a `VBuffer<T>` with those arrays. When fetching values, the
+  client code passes the `VBuffer<T>` by reference. The called code can re-use
+  those arrays, filling them with the current values.
 
 * Generally, vectors should use a sparse representation only when the number
-of non-default items is at most half the value of Length. However, this
-guideline is not a  mandate.
+  of non-default items is at most half the value of Length. However, this
+  guideline is not a  mandate.
 
 See the full `IDataView` technical specification for additional details on
 `VBuffer<T>`, including complete discussion of programming idioms, and
@@ -671,7 +671,7 @@ There are standard conversions from one key type to another, provided:
   than the number of bytes in the source's underlying type, or the `Count`
   value is positive.  In the latter case, the `Count` is necessarily less than
   `2^^k`, where `k` is the number of bits in the destination type's underlying
-  type. For example, `U1[1-*] `can be converted to `U2[1-*]`, but `U2[1-*]`
+  type. For example, `U1[1-*]` can be converted to `U2[1-*]`, but `U2[1-*]`
   cannot be converted to `U1[1-*]`. Also, `U1[1-100]` and `U2[1-100]` can be
   converted in both directions.
 
@@ -702,64 +702,64 @@ properties that simplify testing for common patterns. For example, the
 In the following notes, the symbol `type` is a variable of type `ColumnType`.
 
 * The `type.RawType` property indicates the representation type of the column
-type. Its use should generally be restricted to constructing generic type and
-method instantiations. In particular, testing whether
-`type.RawType == typeof(int)` is not sufficient to test for the standard `U4`
-type. The proper test is `type == NumberType.I4`, since there is a single
-universal instance of the `I4` type.
+  type. Its use should generally be restricted to constructing generic type
+  and method instantiations. In particular, testing whether `type.RawType ==
+  typeof(int)` is not sufficient to test for the standard `U4` type. The
+  proper test is `type == NumberType.I4`, since there is a single universal
+  instance of the `I4` type.
 
 * Certain .Net types have a corresponding `DataKind` `enum` value. The value
-of the `type.RawKind` property is consistent with `type.RawType`. For .Net
-types that do  not have a corresponding `DataKind` value, the `type.RawKind`
-property returns zero. The `type.RawKind` property is particularly useful when
-switching over raw type possibilities, but only after testing for the broader
-kind of the type (key type, numeric type, etc.).
+  of the `type.RawKind` property is consistent with `type.RawType`. For .Net
+  types that do  not have a corresponding `DataKind` value, the `type.RawKind`
+  property returns zero. The `type.RawKind` property is particularly useful
+  when switching over raw type possibilities, but only after testing for the
+  broader kind of the type (key type, numeric type, etc.).
 
 * The `type.IsVector` property is equivalent to `type is VectorType`.
 
 * The `type.IsNumber` property is equivalent to `type is NumberType`.
 
 * The `type.IsText` property is equivalent to `type is TextType`. There is a
-single instance of the `TextType`, so this is also equivalent to
-`type == TextType.Instance`.
+  single instance of the `TextType`, so this is also equivalent to `type ==
+  TextType.Instance`.
 
 * The `type.IsBool` property is equivalent to `type is BoolType`. There is a
-single instance of the `BoolType`, so this is also equivalent to
-`type == BoolType.Instance`.
+  single instance of the `BoolType`, so this is also equivalent to `type ==
+  BoolType.Instance`.
 
 * Type `type.IsKey` property is equivalent to `type is KeyType`.
 
 * If `type` is a key type, then `type.KeyCount` is the same as
-`((KeyType)type).Count`. If `type` is not a key type, then `type.KeyCount` is
-zero. Note that a key type  can have a `Count` value of zero, indicating that
-the count is unknown, so `type.KeyCount` being zero does not imply that `type`
-is not a key type. In summary, `type.KeyCount` is equivalent to:
-`type is KeyType ? ((KeyType)type).Count : 0`.
+  `((KeyType)type).Count`. If `type` is not a key type, then `type.KeyCount`
+  is zero. Note that a key type  can have a `Count` value of zero, indicating
+  that the count is unknown, so `type.KeyCount` being zero does not imply that
+  `type` is not a key type. In summary, `type.KeyCount` is equivalent to:
+  `type is KeyType ? ((KeyType)type).Count : 0`.
 
 * The `type.ItemType` property is the item type of the vector type, if `type`
-is a vector type, and is the same as `type` otherwise. For example, to test
-for a type  that is either `TX` or a vector of `TX`, one can use
-`type.ItemType.IsText`.
+  is a vector type, and is the same as `type` otherwise. For example, to test
+  for a type  that is either `TX` or a vector of `TX`, one can use
+  `type.ItemType.IsText`.
 
-* The `type.IsKnownSizeVector` property is equivalent to
-`type.VectorSize > 0`.
+* The `type.IsKnownSizeVector` property is equivalent to `type.VectorSize >
+  0`.
 
 * The `type.VectorSize` property is zero if either `type` is not a vector type
-or if `type` is a vector type of unknown/variable length. Otherwise, it is the
-length of  vectors belonging to the type.
+  or if `type` is a vector type of unknown/variable length. Otherwise, it is
+  the length of  vectors belonging to the type.
 
 * The `type.ValueCount` property is one if `type` is not a vector type and the
-* same as `type.VectorSize` if `type` is a vector type.
+  same as `type.VectorSize` if `type` is a vector type.
 
 * The `Equals` method returns whether the types are semantically equivalent.
-* Note that for vector types, this requires the dimensionality information to
-* be identical.
+  Note that for vector types, this requires the dimensionality information to
+  be identical.
 
 * The `SameSizeAndItemType` method is the same as `Equals` for non-vector
-types. For vector types, it returns true iff the two types have the same item
-type and have  the same `VectorSize` values. For example, for the two vector
-types `V<R4,3,2>` and `V<R4,6>`, `Equals` returns false but
-`SameSizeAndItemType` returns true.
+  types. For vector types, it returns true iff the two types have the same
+  item type and have  the same `VectorSize` values. For example, for the two
+  vector types `V<R4,3,2>` and `V<R4,6>`, `Equals` returns false but
+  `SameSizeAndItemType` returns true.
 
 ### `PrimitiveType` Abstract Class
 
@@ -810,13 +810,13 @@ represent key types.
 Notes:
 
 * Two key types are considered equal iff their kind, min, count, and
-contiguous values are the same.
+  contiguous values are the same.
 
 * The static `IsValidDataKind` method returns true iff kind is `U1`, `U2`,
-`U4`, or `U8`. These are the only valid underlying data kinds for key types.
+  `U4`, or `U8`. These are the only valid underlying data kinds for key types.
 
 * The inherited `KeyCount` property returns the same value as the `Count`
-property.
+  property.
 
 ### `VectorType` Sealed Class
 
@@ -826,19 +826,19 @@ each constructor and the dimension information is inferred from the additional
 parameters.
 
 * The `DimCount` property indicates the number of dimensions and the `GetDim`
-method returns a particular dimension value. All dimension values are non-
-negative integers. A zero dimension value indicates unknown (or variable) in
-that dimension.
+  method returns a particular dimension value. All dimension values are non-
+  negative integers. A dimension value of zero indicates unknown (or variable)
+  in that dimension.
 
 * The `VectorSize` property returns the product of the dimensions.
 
 * The `IsSubtypeOf(VectorType other)` method returns true if this is a subtype
-of `other`, in the sense that they have the same item type, and either have
-the same `VectorSize` or `other.VectorSize` is zero.
+  of `other`, in the sense that they have the same item type, and either have
+  the same `VectorSize` or `other.VectorSize` is zero.
 
 * The inherited `Equals` method returns true if the two types have the same
-item type and the same dimension information.
+  item type and the same dimension information.
 
 * The inherited `SameSizeAndItemType(ColumnType other)` method returns true if
-`other` is a vector type with the same item type and the same `VectorSize`
-value.
+  `other` is a vector type with the same item type and the same `VectorSize`
+  value.

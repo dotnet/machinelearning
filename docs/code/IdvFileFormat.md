@@ -14,8 +14,8 @@ in one vector valued column.)
 The actual values are stored in blocks. A block holds values for a single
 column across multiple rows. Block format is dictated by a codec. There is a
 table-of-contents and lookup table to facilitate quasi-random access to
-particular blocks. (Quasi in the sense that looking up the value for a column
-and particular row may require .)
+particular blocks. (Quasi in the sense that you can only seek to a block, not
+to a particular within a block.)
 
 ## General Data Format
 
@@ -42,7 +42,7 @@ bits. LEB128 is used one or two places in this format. (I might tend to prefer
 use of LEB128 in places where we are writing values that, on balance, we
 expect to be relatively small, and only in cases where there is no potential
 for benefit for random access to the associated stream, since LEB128 is
-incompatible with random access. However this is not formulated into anything
+incompatible with random access. However, this is not formulated into anything
 approaching a definite policy.)
 
 ## Header
@@ -60,7 +60,7 @@ Offsets | Type  | Name and Description
 8       | ulong | **Version**: Indicates the version of the data file.
 16      | ulong | **CompatibleVersion**: Indicates the minimum reader version that can interpret this file, possibly with some data loss.
 24      | long  | **TableOfContentsOffset**: The offset to the column table of contents structure.
-32      | long  | **TailOffset**: The eight-byte tail signature starts at this offset. So, the entire dataset stream should be considered to have eight plus this value bytes.
+32      | long  | **TailOffset**: The eight-byte tail signature starts at this offset. So, the entire dataset stream should be considered to have byte length of eight plus this value.
 40      | long  | **RowCount**: The number of rows in this data file.
 48      | int   | **ColumnCount**: The number of columns in this data file.
 
@@ -113,16 +113,16 @@ algorithm used to compress blocks.
 
 The enum for compression kind is one byte, and follows this scheme:
 
-Compresion Kind                                                | Code
+Compression Kind                                               | Code
 ---------------------------------------------------------------|-----
 None                                                           | 0
 DEFLATE (i.e., [RFC1951](http://www.ietf.org/rfc/rfc1951.txt)) | 1
-Zlib (i.e., [RFC1950](http://www.ietf.org/rfc/rfc1950.txt))    | 2
+zlib (i.e., [RFC1950](http://www.ietf.org/rfc/rfc1950.txt))    | 2
 
 None means no compression. DEFLATE is the default scheme. There is a tendency
-to conflate Zlib and DEFLATE, so to be clear: Zlib can be (somewhat inexactly)
+to conflate zlib and DEFLATE, so to be clear: zlib can be (somewhat inexactly)
 considered a wrapped version of DEFLATE, but it is still a distinct (but
-closely related) format. However both are implemented by the Zlib library,
+closely related) format. However, both are implemented by the zlib library,
 which is probably the source of the confusion.
 
 ## Metadata Table of Contents Format

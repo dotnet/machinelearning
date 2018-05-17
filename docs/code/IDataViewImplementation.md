@@ -20,7 +20,7 @@ covered in the specification or XML code documentation, but that is
 nonetheless quite valuable to know. That is, not the `IDataView` spec itself,
 but many of the logical implications of that spec.
 
-We will here starts with the idioms and practices for `IDataView` generally,
+We will here start with the idioms and practices for `IDataView` generally,
 before launching into specific *types* of data views: right now there are two
 types of data views that have risen to the dignity of being "general": loaders
 and transforms. (There are many "specific" non-general data views: "array"
@@ -85,9 +85,9 @@ the point: hidden undocumented implicit requirements on the usage
 Presumably you are motivated to read this document because you have some
 problem of how to get some data into ML.NET, or process data using ML.NET, or
 something along these lines. There is a decision to be made about how to even
-engineer a solution. Sometimes its quite obvious: text featurization obviously
-belongs as a transform. But other cases are *less* obvious. We will talk here
-about how we think about these things.
+engineer a solution. Sometimes it's quite obvious: text featurization
+obviously belongs as a transform. But other cases are *less* obvious. We will
+talk here about how we think about these things.
 
 One crucial question is whether something should be a data view at all: Often
 there is ambiguity. To give some examples of previously contentious points:
@@ -366,17 +366,17 @@ useful. Imagine a consumer of your dataview actually relies on your
 "tolerance." What that means, of course, is that this consuming code cannot
 function effectively on any *other* dataview. The consuming code is by
 definition *buggy*: it is requesting data of a type we've explicitly claimed,
-through the schema, that we do not support. And the developer, through your
-misguided good intentions, has allowed buggy code to pass a test it should
-have failed, thus making the codebase more fragile when, if you had done your
-job properly, you would have otherwise detected the bug.
+through the schema, that we do not support. And the developer, through a well
+intentioned but misguided design decision, has allowed buggy code to pass a
+test it should have failed, thus making the codebase more fragile when, if we
+had simply maintained requirements, would have otherwise detected the bug.
 
 Moreover: it is a solution to a problem that does not exist. `IDataView`s are
 fundamentally composable structures already, and one of the most fundamental
 operations you can do is transform columns into different types. So, there is
-no need for you to do the conversion yourself. Indeed it is harmful for you to
-try: if we have the conversion capability in one place, including the logic of
-what can be converted and *how* these things are to be converted, is it
+no need for you to do the conversion yourself. Indeed, it is harmful for you
+to try: if we have the conversion capability in one place, including the logic
+of what can be converted and *how* these things are to be converted, is it
 reasonable to suppose we should have it in *every implementation of
 `IDataView`?* Certainly not. At best the situation will be needless complexity
 in the code: more realistically it will lead to inconsistency, and from

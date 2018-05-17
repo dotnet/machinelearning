@@ -74,7 +74,7 @@ As a corollary to the above note about equivalence of sparse and dense
 representations, since they are equivalent it follows that any code consuming
 `VBuffer`s must work equally well with *both*. That is, there must never be a
 condition where data is read and assumed to be either sparse, or dense, since
-implementors of `IDataView` and related interfaces are perfectly free to
+implementers of `IDataView` and related interfaces are perfectly free to
 produce either.
 
 The only "exception" to this rule is a necessary acknowledgment of the reality
@@ -212,7 +212,7 @@ value seen by `c`.
 One possible alternate (wrong) implementation of this would be to just say
 `dst=src` then scale all contents of `dst.Values` by `c`. But, then `dst` and
 `src` would share references to their internal arrays, completely compromising
-the callers ability to do anything useful with them: if the caller were to
+the caller's ability to do anything useful with them: if the caller were to
 pass `dst` into some other method that modified it, this could easily
 (silently!) modify the contents of `src`. The point is: if you are writing
 code *anywhere* whose end result is that two distinct `VBuffer` structs share
