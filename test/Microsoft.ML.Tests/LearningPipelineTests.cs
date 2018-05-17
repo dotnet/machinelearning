@@ -110,5 +110,28 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Add(new FastForestBinaryClassifier());
             var model = pipeline.Train<Data, Prediction>();
         }
+
+        public class BooleanLabelData
+        {
+            [ColumnName("Features")]
+            [VectorType(2)]
+            public float[] Features;
+
+            [ColumnName("Label")]
+            public bool Label;
+        }
+
+        [Fact]
+        public void BooleanLabelPipeline()
+        {
+            var data = new BooleanLabelData[1];
+            data[0] = new BooleanLabelData();
+            data[0].Features = new float[] { 0.0f, 1.0f };
+            data[0].Label = false;
+            var pipeline = new LearningPipeline();
+            pipeline.Add(CollectionDataSource.Create(data));
+            pipeline.Add(new FastForestBinaryClassifier());
+            var model = pipeline.Train<Data, Prediction>();
+        }
     }
 }
