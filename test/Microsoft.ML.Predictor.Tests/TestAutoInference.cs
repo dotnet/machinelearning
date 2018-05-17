@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var pathData = GetDataPath(@"../../Samples/UCI/adult.train");
             var pathDataTest = GetDataPath(@"../../Samples/UCI/adult.test");
             const int numOfSampleRows = 1000;
-            //int numIterations = 10;
+            int numIterations = 10;
             const string schema =
                 "sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
                 "col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
@@ -131,8 +131,9 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var results = runner.GetOutput<IDataView>("ResultsOut");
             Assert.NotNull(results);
-            //var rows = PipelinePattern.ExtractResults(Env, results, "Graph", "MetricValue", "PipelineId");
-            //Assert.True(rows.Length == numIterations);
+            var rows = PipelinePattern.ExtractResults(Env, results, 
+                "Graph", "MetricValue", "PipelineId", "TrainingMetricValue", "FirstInput", "PredictorModel");
+            Assert.True(rows.Length == numIterations);
         }
 
         [Fact]
