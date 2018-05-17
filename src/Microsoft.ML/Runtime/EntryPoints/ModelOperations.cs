@@ -101,6 +101,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             EntryPointUtils.CheckInputArgs(host, input);
             host.CheckNonEmpty(input.TransformModels, nameof(input.TransformModels));
 
+            if (input.TransformModels.Length == 0)
+                return new PredictorModelOutput() { PredictorModel = input.PredictorModel };
+
             ITransformModel model = input.TransformModels[input.TransformModels.Length - 1];
             for (int i = input.TransformModels.Length - 2; i >= 0; i--)
                 model = model.Apply(env, input.TransformModels[i]);
