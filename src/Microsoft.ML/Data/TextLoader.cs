@@ -18,14 +18,34 @@ namespace Microsoft.ML.Data
         {
         }
 
+        /// <summary>
+        /// Convenience constructor for the scalar case.
+        /// Min and Max are set to the single value ordinal.
+        /// When a given column spans only a single column in the
+        /// dataset.
+        /// <see cref="ML.Runtime.Data.TextLoader.Range"/>
+        /// </summary>
         public TextLoaderRange(int ordinal)
         {
+
+            Contracts.Assert(ordinal >= 0);
+
             Min = ordinal;
             Max = ordinal;
         }
 
+        /// <summary>
+        /// Convenience constructor for the vector case.
+        /// When a given column spans multiple contiguous 
+        /// column in the dataset.
+        /// <see cref="ML.Runtime.Data.TextLoader.Range"/>
+        /// </summary>
         public TextLoaderRange(int min, int max)
         {
+
+            Contracts.Assert(min <= max);
+            Contracts.Assert(min >= 0);
+
             Min = min;
             Max = max;
         }
@@ -113,7 +133,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         private static bool TryGetDataKind(Type type, out DataKind kind)
         {
-            Contracts.Assert(type != null);
+            Contracts.AssertValue(type);
 
             // REVIEW: Make this more efficient. Should we have a global dictionary?
             if (type == typeof(DvInt1) || type == typeof(sbyte))
