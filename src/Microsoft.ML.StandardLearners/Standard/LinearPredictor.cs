@@ -44,6 +44,7 @@ namespace Microsoft.ML.Runtime.Learners
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
         ICanSaveModel,
+        ICanGetSummaryAsIDataView,
         ICanSaveSummary,
         IPredictorWithFeatureWeights<Float>,
         IWhatTheFeatureValueMapper,
@@ -342,6 +343,20 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         public abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
+
+        public override IDataView GetSummaryDataView(RoleMappedSchema schema)
+        {
+            var bldr = new ArrayDataViewBuilder(Host);
+
+            ValueGetter<VBuffer<DvText>> getSlotNames =
+                (ref VBuffer<DvText> dst) =>
+                    MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Count, ref dst);
+
+            // Add the bias and the weight columns.
+            bldr.AddColumn("Bias", NumberType.R4, Bias);
+            bldr.AddColumn("Weights", getSlotNames, NumberType.R4, Weight);
+            return bldr.GetDataView();
+        }
 
         public abstract void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
 

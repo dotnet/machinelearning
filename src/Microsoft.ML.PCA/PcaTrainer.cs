@@ -308,6 +308,7 @@ namespace Microsoft.ML.Runtime.PCA
     // REVIEW: move the predictor to a different file and fold EigenUtils.cs to this file.
     public sealed class PcaPredictor : PredictorBase<Float>,
         IValueMapper,
+        ICanGetSummaryAsIDataView,
         ICanSaveInTextFormat, ICanSaveModel, ICanSaveSummary
     {
         public const string LoaderSignature = "pcaAnomExec";
@@ -467,6 +468,20 @@ namespace Microsoft.ML.Runtime.PCA
                     (ind, val) => { if (val != 0) writer.Write(" {0}:{1}", ind, val); });
                 writer.WriteLine();
             }
+        }
+
+        public IDataView GetSummaryDataView(RoleMappedSchema schema)
+        {
+            var bldr = new ArrayDataViewBuilder(Host);
+
+            bldr.AddColumn("Mean vector", NumberType.R4, _mean);
+            bldr.AddColumn("Projected mean vector", NumberType.R4, _meanProjected);
+            for (var i = 0; i < _rank; ++i)
+            {
+                bldr.AddColumn("V" + i, NumberType.R4, _eigenVectors[i]);
+            }
+
+            return bldr.GetDataView();
         }
 
         public ColumnType InputType
