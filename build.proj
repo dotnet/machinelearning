@@ -57,27 +57,27 @@
     <ItemGroup>
       <PkgProject Include="pkg\**\*.nupkgproj" />
     </ItemGroup>
-    
+
     <MSBuild Projects="@(PkgProject)"
              Targets="Restore" />
     <MSBuild Projects="@(PkgProject)"
              Targets="Pack" />
   </Target>
-  
+
   <ItemGroup>
     <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/winequality-white.csv">
       <Url>https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv</Url>
       <DestinationFile>$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv</DestinationFile>
     </TestFile>
   </ItemGroup>
-  
+
   <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external test files... %(TestFile.DestinationFile)" />
-      <DownloadFilesFromUrl Items="@(TestFile)"
-                           DestinationDir="test/data/external"
-                           TreatErrorsAsWarnings="true"/>
+    <DownloadFilesFromUrl Items="@(TestFile)"
+                         DestinationDir="test/data/external"
+                         TreatErrorsAsWarnings="true"/>
   </Target>
-  
+
   <Target Name="RunTests" Condition="'$(RunTests)'=='true'">
     <MSBuild Projects="test\run-tests.proj"
              Targets="RunTests" />
