@@ -177,7 +177,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 return char.ToUpperInvariant(s[0]) + s.Substring(1);
             }
 
-            private static string GetCharValue(char value)
+            private static string GetCharAsString(char value)
             {
                 switch (value)
                 {
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     case TlcModule.DataKind.Enum:
                         return GetEnumName(fieldType, typesSymbolTable, rootNameSpace) + "." + fieldValue;
                     case TlcModule.DataKind.Char:
-                        return $"'{GetCharValue((char)fieldValue)}'";
+                        return $"'{GetCharAsString((char)fieldValue)}'";
                     case TlcModule.DataKind.Component:
                         var type = fieldValue.GetType();
                         ModuleCatalog.ComponentInfo componentInfo;

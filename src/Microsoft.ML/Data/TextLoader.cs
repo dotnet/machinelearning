@@ -20,15 +20,14 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Convenience constructor for the scalar case.
-        /// Min and Max are set to the single value ordinal.
-        /// When a given column spans only a single column in the
-        /// dataset.
+        /// Min and Max are set to the single value <paramref name="ordinal"/>.
+        /// When a given column in the schema spans only a single column in the dataset,
         /// <see cref="ML.Runtime.Data.TextLoader.Range"/>
         /// </summary>
         public TextLoaderRange(int ordinal)
         {
 
-            Contracts.Assert(ordinal >= 0);
+            Contracts.CheckParam(ordinal >= 0, nameof(ordinal));
 
             Min = ordinal;
             Max = ordinal;
@@ -36,15 +35,14 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Convenience constructor for the vector case.
-        /// When a given column spans multiple contiguous 
-        /// column in the dataset.
+        /// When a given column in the schema spans contiguous columns in the dataset,
         /// <see cref="ML.Runtime.Data.TextLoader.Range"/>
         /// </summary>
         public TextLoaderRange(int min, int max)
         {
 
-            Contracts.Assert(min <= max);
-            Contracts.Assert(min >= 0);
+            Contracts.CheckParam(min >= 0, nameof(min));
+            Contracts.CheckParam(max >= 0, nameof(max));
 
             Min = min;
             Max = max;
