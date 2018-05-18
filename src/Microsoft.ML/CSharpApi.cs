@@ -12028,10 +12028,10 @@ namespace Microsoft.ML
             {
                 if (!(previousStep is ILearningPipelineDataStep dataStep))
                 {
-                    throw new InvalidOperationException($"{ nameof(TextFeaturizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                   // throw new InvalidOperationException($"{ nameof(TextFeaturizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
                 }
 
-                Data = dataStep.Data;
+                //Data = dataStep.Data;
                 Output output = experiment.Add(this);
                 return new TextFeaturizerPipelineStep(output);
             }

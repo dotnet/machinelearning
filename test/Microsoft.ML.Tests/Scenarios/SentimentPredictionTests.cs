@@ -37,8 +37,9 @@ namespace Microsoft.ML.Scenarios
             });
 
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
-            pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
-
+            //pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
+            BinaryCrossValidator bcv = new BinaryCrossValidator();
+            bcv.CrossValidate<SentimentData, SentimentPrediction>(pipeline);
             PredictionModel<SentimentData, SentimentPrediction> model = pipeline.Train<SentimentData, SentimentPrediction>();
 
             IEnumerable<SentimentData> sentiments = new[]
