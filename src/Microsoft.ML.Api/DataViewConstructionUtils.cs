@@ -154,10 +154,17 @@ namespace Microsoft.ML.Runtime.Api
                         }
                         else if (outputType == typeof(bool))
                         {
+                            // Bool -> DvBool
                             Ch.Assert(colType.IsBool);
                             return CreateBooleanToDvBoolGetter(index);
                         }
-                      
+                        else if (outputType == typeof(bool?))
+                        {
+                            // Bool -> DvBool
+                            Ch.Assert(colType.IsBool);
+                            return CreateNullableBooleanToDvBoolGetter(index);
+                        }
+
                         // T -> T
                         Ch.Assert(colType.RawType == outputType);
                         del = CreateDirectGetter<int>;
@@ -211,7 +218,19 @@ namespace Microsoft.ML.Runtime.Api
                     return (ValueGetter<DvBool>)((ref DvBool dst) =>
                     {
                         peek(GetCurrentRowObject(), Position, ref buf);
-                        dst = buf ? DvBool.True : DvBool.False;
+                        dst =  (DvBool)buf;
+                    });
+                }
+
+                private Delegate CreateNullableBooleanToDvBoolGetter(int index)
+                {
+                    var peek = DataView._peeks[index] as Peek<TRow, bool?>;
+                    Ch.AssertValue(peek);
+                    bool? buf = null;
+                    return (ValueGetter<DvBool>)((ref DvBool dst) =>
+                    {
+                        peek(GetCurrentRowObject(), Position, ref buf);
+                        dst = buf.HasValue ? (DvBool)buf.Value : DvBool.NA;
                     });
                 }
 
