@@ -344,7 +344,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
 
-        public override IDataView GetSummaryDataView(RoleMappedSchema schema)
+        public IDataView GetSummaryDataView(RoleMappedSchema schema)
         {
             var bldr = new ArrayDataViewBuilder(Host);
 
