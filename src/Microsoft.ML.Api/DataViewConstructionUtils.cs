@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Api
                         }
                         else if (outputType == typeof(bool?))
                         {
-                            // Bool -> DvBool
+                            // Bool? -> DvBool
                             Ch.Assert(colType.IsBool);
                             return CreateNullableBooleanToDvBoolGetter(index);
                         }
