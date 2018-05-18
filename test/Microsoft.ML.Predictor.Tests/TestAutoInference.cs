@@ -291,25 +291,25 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void TestTextDatasetLearn()
         {
-            //using (var env = new TlcEnvironment())
-            //{
-            //string pathData = GetDataPath(@"../UnitTest/tweets_labeled_10k_test_validation.tsv");
-            //int batchSize = 5;
-            //int numIterations = 35;
-            //int numTransformLevels = 1;
-            //int numSampleRows = 100;
-            //AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.AccuracyMicro;
+            using (var env = new TlcEnvironment())
+            {
+                string pathData = GetDataPath(@"../UnitTest/tweets_labeled_10k_test_validation.tsv");
+                int batchSize = 5;
+                int numIterations = 35;
+                int numTransformLevels = 1;
+                int numSampleRows = 100;
+                AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.AccuracyMicro;
 
-            //// Using the simple, uniform random sampling (with replacement) engine
-            //PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(env);
+                // Using the simple, uniform random sampling (with replacement) engine
+                PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(env);
 
-            //// Test initial learning
-            //var amls = AutoInference.InferPipelines(env, autoMlEngine, pathData, "", out var _, numTransformLevels, batchSize,
-            //metric, out var _, numSampleRows, new IterationTerminator(numIterations),
-            //MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer);
-            //env.Check(amls.GetAllEvaluatedPipelines().Length == numIterations);
-            //}
-            //Done();
+                // Test initial learning
+                var amls = AutoInference.InferPipelines(env, autoMlEngine, pathData, "", out var _, numTransformLevels, batchSize,
+                metric, out var _, numSampleRows, new IterationTerminator(numIterations),
+                MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer);
+                env.Check(amls.GetAllEvaluatedPipelines().Length == numIterations);
+            }
+            Done();
         }
 
         [Fact(Skip = "Need CoreTLC specific baseline update")]
