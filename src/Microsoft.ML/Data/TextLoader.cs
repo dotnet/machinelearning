@@ -19,30 +19,31 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Convenience constructor for the scalar case.
-        /// Min and Max are set to the single value <paramref name="ordinal"/>.
-        /// When a given column in the schema spans only a single column in the dataset,
-        /// <see cref="ML.Runtime.Data.TextLoader.Range"/>
+        /// Convenience constructor for the scalar case, when a given column 
+        /// in the schema spans only a single column in the dataset.
+        /// <see cref="Min"/> and <see cref="Max"/> are set to the single value <paramref name="ordinal"/>.
         /// </summary>
+        /// <param name="ordinal">Column index in the dataset.</param>
         public TextLoaderRange(int ordinal)
         {
 
-            Contracts.CheckParam(ordinal >= 0, nameof(ordinal));
+            Contracts.CheckParam(ordinal >= 0, nameof(ordinal), "Cannot be a negative number");
 
             Min = ordinal;
             Max = ordinal;
         }
 
         /// <summary>
-        /// Convenience constructor for the vector case.
-        /// When a given column in the schema spans contiguous columns in the dataset,
-        /// <see cref="ML.Runtime.Data.TextLoader.Range"/>
+        /// Convenience constructor for the vector case, when a given column 
+        /// in the schema spans contiguous columns in the dataset.
         /// </summary>
+        /// <param name="min">Starting column index in the dataset.</param>
+        /// <param name="max">Ending column index in the dataset.</param>
         public TextLoaderRange(int min, int max)
         {
 
-            Contracts.CheckParam(min >= 0, nameof(min));
-            Contracts.CheckParam(max >= 0, nameof(max));
+            Contracts.CheckParam(min >= 0, nameof(min), "Cannot be negative number.");
+            Contracts.CheckParam(max >= min, nameof(max), $"Cannot be less than {nameof(min)}.");
 
             Min = min;
             Max = max;
