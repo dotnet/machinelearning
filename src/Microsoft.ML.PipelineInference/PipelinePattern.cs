@@ -18,16 +18,19 @@ namespace Microsoft.ML.Runtime.PipelineInference
     public sealed class PipelinePattern : IEquatable<PipelinePattern>
     {
         /// <summary>
-        /// Class for encapsulating the information returned in the output IDV for a pipeline
+        /// Class for encapsulating the information returned in the output IDataView for a pipeline
         /// that has been run through the TrainTest macro.
-        /// GraphJson - contains a string representation of the pipeline, runnable through GraphRunner.
-        /// MetricValue - The metric value of the test dataset result (always needed).
-        /// TrainingMetricValue - The metric value of the training dataset result (not always used or set).
         /// </summary>
         public sealed class PipelineResultRow
         {
             public string GraphJson { get; }
+            ///<summary>
+            /// The metric value of the test dataset result (always needed).
+            ///</summary>
             public double MetricValue { get; }
+            ///<summary>
+            /// The metric value of the training dataset result (not always used or set).
+            ///</summary>
             public double TrainingMetricValue { get; }
             public string PipelineId { get; }
             public string FirstInput { get; }
