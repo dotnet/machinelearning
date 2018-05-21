@@ -15,41 +15,34 @@ namespace Microsoft.ML.Runtime.PipelineInference
 {
     public static class AutoMlUtils
     {
-        public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
+        public static double ExtractValueFromIDV(IHostEnvironment env, IDataView result, string columnName)
         {
-            double testingMetricValue = 0;
-            double trainingMetricValue = -1d;
-            int numRows = 0;
+            Contracts.AssertValue(env, nameof(env));
+            env.CheckParam(result != null, "Must have non-null result IDataView from which to extract values.");
+            env.CheckNonEmpty(columnName, nameof(columnName));
+
+            double outputValue = 0;
             var schema = result.Schema;
-            bool hasIndex = schema.TryGetColumnIndex(metricColumnName, out var metricCol);
-            env.Check(hasIndex, $"Schema does not contain metric column: {metricColumnName}");
+            if (!schema.TryGetColumnIndex(columnName, out var metricCol))
+                throw env.ExceptParam($"Schema does not contain column: {columnName}");
 
             using (var cursor = result.GetRowCursor(col => col == metricCol))
             {
                 var getter = cursor.GetGetter<double>(metricCol);
                 bool moved = cursor.MoveNext();
-                env.Check(moved, "Could not move cursor forward. (Results dataset has no rows to extract.)");
-                getter(ref testingMetricValue);
+                env.Check(moved, "Expected an IDataView with a single row. Results dataset has no rows to extract.");
+                getter(ref outputValue);
                 env.Check(!cursor.MoveNext(), "Encountered additonal, unexpected results row.");
             }
 
-            if (trainResult != null)
-            {
-                var trainSchema = trainResult.Schema;
-                env.Check(trainSchema.TryGetColumnIndex(metricColumnName, out var trainingMetricCol),
-                    $"Schema does not contain metric column: {metricColumnName}");
+            return outputValue;
+        }
 
-                using (var cursor = trainResult.GetRowCursor(col => col == trainingMetricCol))
-                {
-                    var getter = cursor.GetGetter<double>(trainingMetricCol);
-                    bool moved = cursor.MoveNext();
-                    env.Check(moved, "Could not move cursor forward. (Training results dataset has no rows to extract.)");
-                    getter(ref trainingMetricValue);
-                    env.Check(!cursor.MoveNext(), "Encountered additonal, unexpected results row.");
-                }
-            }
-
-            return new AutoInference.RunSummary(testingMetricValue, numRows, 0, trainingMetricValue);
+        public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
+        {
+            double testingMetricValue = ExtractValueFromIDV(env, result, metricColumnName);
+            double trainingMetricValue = trainResult != null ? ExtractValueFromIDV(env, trainResult, metricColumnName)  : -112358d;
+            return new AutoInference.RunSummary(testingMetricValue, 0, 0, trainingMetricValue);
         }
 
         public static CommonInputs.IEvaluatorInput CloneEvaluatorInstance(CommonInputs.IEvaluatorInput evalInput) =>

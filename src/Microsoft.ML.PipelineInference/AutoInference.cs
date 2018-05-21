@@ -56,13 +56,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// </summary>
         public sealed class SupportedMetric
         {
-            public static readonly SupportedMetric Auc = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Auc.ToUpper(), true);
+            public static readonly SupportedMetric Auc = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Auc, true);
             public static readonly SupportedMetric AccuracyMicro = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AccuracyMicro, true);
             public static readonly SupportedMetric AccuracyMacro = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AccuracyMacro, true);
             public static readonly SupportedMetric L1 = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.L1, false);
             public static readonly SupportedMetric L2 = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.L2, false);
             public static readonly SupportedMetric F1 = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.F1, true);
-            public static readonly SupportedMetric AuPrc = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AuPrc.ToUpper(), true);
+            public static readonly SupportedMetric AuPrc = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AuPrc, true);
             public static readonly SupportedMetric TopKAccuracy = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.TopKAccuracy, true);
             public static readonly SupportedMetric Rms = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Rms, false);
             public static readonly SupportedMetric LossFn = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LossFn, false);
@@ -158,7 +158,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     return false;
 
                 string dataVar = firstNodeInputs.Value<String>(nameOfData);
-                ectx.Check(VariableBinding.IsValidVariableName(ectx, dataVar), $"Invalid variable name {dataVar}.");
+                if (!VariableBinding.IsValidVariableName(ectx, dataVar))
+                    throw ectx.ExceptParam($"Invalid variable name {dataVar}.");
 
                 variableName = dataVar.Substring(1);
                 return true;

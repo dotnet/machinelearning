@@ -17,12 +17,17 @@ namespace Microsoft.ML.Runtime.PipelineInference
     /// </summary>
     public sealed class PipelinePattern : IEquatable<PipelinePattern>
     {
+        /// <summary>
+        /// Class for encapsulating the information returned in the output IDV for a pipeline
+        /// that has been run through the TrainTest macro.
+        /// GraphJson - contains a string representation of the pipeline, runnable through GraphRunner.
+        /// MetricValue - The metric value of the test dataset result (always needed).
+        /// TrainingMetricValue - The metric value of the training dataset result (not always used or set).
+        /// </summary>
         public sealed class PipelineResultRow
         {
             public string GraphJson { get; }
-            // The metric value of the test dataset result (always needed).
             public double MetricValue { get; }
-            // The metric value of the training dataset result (not always used or set).
             public double TrainingMetricValue { get; }
             public string PipelineId { get; }
             public string FirstInput { get; }
@@ -204,36 +209,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
             experiment.Run();
 
             var dataOut = experiment.GetOutput(trainTestOutput.OverallMetrics);
-            var schema = dataOut.Schema;
-            _env.Check(schema.TryGetColumnIndex(metric.Name, out var metricCol),
-                $"Schema does not contain metric column: {metricCol}");
-            double metricValue = 0;
-            double trainingMetricValue = 0;
-
-            using (var cursor = dataOut.GetRowCursor(col => col == metricCol))
-            {
-                var getter = cursor.GetGetter<double>(metricCol);
-                bool moved = cursor.MoveNext();
-                _env.Check(moved, "Could not move cursor forward. (No rows to extract.)");
-                getter(ref metricValue);
-                _env.Check(!cursor.MoveNext(), "Encountered additional, unexpected row.");
-            }
-
-            dataOut = experiment.GetOutput(trainTestOutput.TrainingOverallMetrics);
-            schema = dataOut.Schema;
-            _env.Check(schema.TryGetColumnIndex(metric.Name, out metricCol),
-                $"Schema does not contain metric column: {metricCol}");
-
-            using (var cursor = dataOut.GetRowCursor(col => col == metricCol))
-            {
-                var getter = cursor.GetGetter<double>(metricCol);
-                bool moved = cursor.MoveNext();
-                _env.Check(moved, "Could not move cursor forward. (No rows to extract.)");
-                getter(ref trainingMetricValue);
-                _env.Check(!cursor.MoveNext(), "Encountered additional, unexpected row.");
-                testMetricValue = metricValue;
-                trainMetricValue = trainingMetricValue;
-            }
+            var dataOutTraining = experiment.GetOutput(trainTestOutput.TrainingOverallMetrics);
+            testMetricValue = AutoMlUtils.ExtractValueFromIDV(_env, dataOut, metric.Name);
+            trainMetricValue = AutoMlUtils.ExtractValueFromIDV(_env, dataOutTraining, metric.Name);
         }
 
         public static PipelineResultRow[] ExtractResults(IHostEnvironment env, IDataView data,
