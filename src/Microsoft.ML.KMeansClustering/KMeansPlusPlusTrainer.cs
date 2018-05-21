@@ -328,7 +328,7 @@ namespace Microsoft.ML.Runtime.KMeans
                                 cumulativeWeight += probabilityWeight;
 
                                 if (probabilityWeight > Epsilon &&
-                                    host.Rand.NextFloat() < probabilityWeight / cumulativeWeight)
+                                    host.Rand.NextSingle() < probabilityWeight / cumulativeWeight)
                                 {
                                     // again, numerical error may cause selection of the same candidate twice, so ensure that the distance is non-trivially positive
                                     Utils.Swap(ref cursor.Features, ref candidate);

@@ -238,8 +238,8 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 Weights = VBufferUtils.CreateDense<Float>(NumFeatures);
                 for (int i = 0; i < NumFeatures; i++)
-                    Weights.Values[i] = Args.InitWtsDiameter * (Host.Rand.NextFloat() - (Float)0.5);
-                Bias = Args.InitWtsDiameter * (Host.Rand.NextFloat() - (Float)0.5);
+                    Weights.Values[i] = Args.InitWtsDiameter * (Host.Rand.NextSingle() - (Float)0.5);
+                Bias = Args.InitWtsDiameter * (Host.Rand.NextSingle() - (Float)0.5);
             }
             else if (NumFeatures <= 1000)
                 Weights = VBufferUtils.CreateDense<Float>(NumFeatures);
