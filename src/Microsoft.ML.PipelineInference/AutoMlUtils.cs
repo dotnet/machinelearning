@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 bool moved = cursor.MoveNext();
                 env.Check(moved, "Expected an IDataView with a single row. Results dataset has no rows to extract.");
                 getter(ref outputValue);
-                env.Check(!cursor.MoveNext(), "Encountered additonal, unexpected results row.");
+                env.Check(!cursor.MoveNext(), "Expected an IDataView with a single row. Results dataset has too many rows.");
             }
 
             return outputValue;
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
         {
             double testingMetricValue = ExtractValueFromIDV(env, result, metricColumnName);
-            double trainingMetricValue = trainResult != null ? ExtractValueFromIDV(env, trainResult, metricColumnName)  : -112358d;
+            double trainingMetricValue = trainResult != null ? ExtractValueFromIDV(env, trainResult, metricColumnName)  : double.MinValue;
             return new AutoInference.RunSummary(testingMetricValue, 0, 0, trainingMetricValue);
         }
 
