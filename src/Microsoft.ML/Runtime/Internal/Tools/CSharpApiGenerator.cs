@@ -750,6 +750,10 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("}");
             writer.WriteLine("");
 
+            //GetInputData
+            writer.WriteLine("public Var<IDataView> GetInputData() => null;");
+            writer.WriteLine("");
+
             //Apply.
             writer.WriteLine($"public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)");
             writer.WriteLine("{");
@@ -955,22 +959,26 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine();
 
             GenerateOutput(writer, entryPointInfo, out HashSet<string> outputVariableNames);
-            GenerateApplyFunction(writer, entryPointInfo, transformType, classBase, outputVariableNames);
+            GenerateApplyFunction(writer, entryPointInfo, transformType, outputVariableNames, entryPointInfo.InputKinds);
             writer.Outdent();
             writer.WriteLine("}");
         }
 
         private static void GenerateApplyFunction(IndentingTextWriter writer, ModuleCatalog.EntryPointInfo entryPointInfo,
-            Type type, string classBase, HashSet<string> outputVariableNames)
+            Type type, HashSet<string> outputVariableNames, Type[] inputKinds)
         {
-            bool isTransform = false;
-            bool isCalibrator = false;
-            if (classBase.Contains("ITransformInput"))
-                isTransform = true;
-            else if (!classBase.Contains("ITrainerInput"))
+            if (inputKinds == null)
                 return;
 
-            if (classBase.Contains("ICalibratorInput"))
+            bool isTransform = false;
+            bool isCalibrator = false;
+
+            if (inputKinds.Any(t => typeof(ITransformInput).IsAssignableFrom(t)))
+                isTransform = true;
+            else if (!inputKinds.Any(t => typeof(ITrainerInput).IsAssignableFrom(t)))
+                return;
+
+            if (inputKinds.Any(t => typeof(ICalibratorInput).IsAssignableFrom(t)))
                 isCalibrator = true;
 
             if (isTransform)

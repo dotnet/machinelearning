@@ -21,7 +21,6 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Convenience constructor for the scalar case, when a given column 
         /// in the schema spans only a single column in the dataset.
-        /// <see cref="Min"/> and <see cref="Max"/> are set to the single value <paramref name="ordinal"/>.
         /// </summary>
         /// <param name="ordinal">Column index in the dataset.</param>
         public TextLoaderRange(int ordinal)

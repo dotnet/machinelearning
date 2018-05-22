@@ -22,6 +22,18 @@ namespace Microsoft.ML
     {
         public sealed partial class Experiment
         {
+            public Microsoft.ML.Data.CustomTextLoader.Output Add(Microsoft.ML.Data.CustomTextLoader input)
+            {
+                var output = new Microsoft.ML.Data.CustomTextLoader.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Data.CustomTextLoader input, Microsoft.ML.Data.CustomTextLoader.Output output)
+            {
+                _jsonNodes.Add(Serialize("Data.CustomTextLoader", input, output));
+            }
+
             public Microsoft.ML.Data.DataViewReference.Output Add(Microsoft.ML.Data.DataViewReference input)
             {
                 var output = new Microsoft.ML.Data.DataViewReference.Output();
@@ -1300,6 +1312,39 @@ namespace Microsoft.ML
     {
 
         /// <summary>
+        /// Import a dataset from a text file
+        /// </summary>
+        [Obsolete("Use TextLoader instead.")]
+        public sealed partial class CustomTextLoader
+        {
+
+
+            /// <summary>
+            /// Location of the input file
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.IFileHandle> InputFile { get; set; } = new Var<Microsoft.ML.Runtime.IFileHandle>();
+
+            /// <summary>
+            /// Custom schema to use for parsing
+            /// </summary>
+            public string CustomSchema { get; set; }
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// The resulting data view
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Data
+    {
+
+        /// <summary>
         /// Pass dataview from memory to experiment
         /// </summary>
         public sealed partial class DataViewReference
@@ -1380,12 +1425,176 @@ namespace Microsoft.ML
     namespace Data
     {
 
+        public sealed partial class TextLoaderArguments
+        {
+            /// <summary>
+            /// Use separate parsing threads?
+            /// </summary>
+            public bool UseThreads { get; set; } = true;
+
+            /// <summary>
+            /// File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.
+            /// </summary>
+            public string HeaderFile { get; set; }
+
+            /// <summary>
+            /// Maximum number of rows to produce
+            /// </summary>
+            public long? MaxRows { get; set; }
+
+            /// <summary>
+            /// Whether the input may include quoted values, which can contain separator characters, colons, and distinguish empty values from missing values. When true, consecutive separators denote a missing value and an empty value is denoted by "". When false, consecutive separators denote an empty value.
+            /// </summary>
+            public bool AllowQuoting { get; set; } = true;
+
+            /// <summary>
+            /// Whether the input may include sparse representations
+            /// </summary>
+            public bool AllowSparse { get; set; } = true;
+
+            /// <summary>
+            /// Number of source columns in the text data. Default is that sparse rows contain their size information.
+            /// </summary>
+            public int? InputSize { get; set; }
+
+            /// <summary>
+            /// Source column separator.
+            /// </summary>
+            public char[] Separator { get; set; } = { '\t' };
+
+            /// <summary>
+            /// Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40
+            /// </summary>
+            public TextLoaderColumn[] Column { get; set; }
+
+            /// <summary>
+            /// Remove trailing whitespace from lines
+            /// </summary>
+            public bool TrimWhitespace { get; set; } = false;
+
+            /// <summary>
+            /// Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.
+            /// </summary>
+            public bool HasHeader { get; set; } = false;
+
+        }
+
+        public sealed partial class TextLoaderColumn
+        {
+            /// <summary>
+            /// Name of the column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Type of the items in the column
+            /// </summary>
+            public DataKind? Type { get; set; }
+
+            /// <summary>
+            /// Source index range(s) of the column
+            /// </summary>
+            public TextLoaderRange[] Source { get; set; }
+
+            /// <summary>
+            /// For a key column, this defines the range of values
+            /// </summary>
+            public KeyRange KeyRange { get; set; }
+
+        }
+
+        public sealed partial class TextLoaderRange
+        {
+            /// <summary>
+            /// First index in the range
+            /// </summary>
+            public int Min { get; set; }
+
+            /// <summary>
+            /// Last index in the range
+            /// </summary>
+            public int? Max { get; set; }
+
+            /// <summary>
+            /// This range extends to the end of the line, but should be a fixed number of items
+            /// </summary>
+            public bool AutoEnd { get; set; } = false;
+
+            /// <summary>
+            /// This range extends to the end of the line, which can vary from line to line
+            /// </summary>
+            public bool VariableEnd { get; set; } = false;
+
+            /// <summary>
+            /// This range includes only other indices not specified
+            /// </summary>
+            public bool AllOther { get; set; } = false;
+
+            /// <summary>
+            /// Force scalar columns to be treated as vectors of length one
+            /// </summary>
+            public bool ForceVector { get; set; } = false;
+
+        }
+
+        public sealed partial class KeyRange
+        {
+            /// <summary>
+            /// First index in the range
+            /// </summary>
+            public ulong Min { get; set; } = 0;
+
+            /// <summary>
+            /// Last index in the range
+            /// </summary>
+            public ulong? Max { get; set; }
+
+            /// <summary>
+            /// Whether the key is contiguous
+            /// </summary>
+            public bool Contiguous { get; set; } = true;
+
+        }
+
         /// <summary>
         /// Import a dataset from a text file
         /// </summary>
-        public sealed partial class TextLoader
+        public sealed partial class TextLoader : Microsoft.ML.ILearningPipelineLoader
         {
 
+            [JsonIgnore]
+            private string _inputFilePath = null;
+            public TextLoader(string filePath)
+            {
+                _inputFilePath = filePath;
+            }
+            
+            public void SetInput(IHostEnvironment env, Experiment experiment)
+            {
+                IFileHandle inputFile = new SimpleFileHandle(env, _inputFilePath, false, false);
+                experiment.SetInput(InputFile, inputFile);
+            }
+            
+            public Var<IDataView> GetInputData() => null;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                Contracts.Assert(previousStep == null);
+                
+                return new TextLoaderPipelineStep(experiment.Add(this));
+            }
+            
+            private class TextLoaderPipelineStep : ILearningPipelineDataStep
+            {
+                public TextLoaderPipelineStep (Output output)
+                {
+                    Data = output.Data;
+                    Model = null;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
 
             /// <summary>
             /// Location of the input file
@@ -1393,9 +1602,9 @@ namespace Microsoft.ML
             public Var<Microsoft.ML.Runtime.IFileHandle> InputFile { get; set; } = new Var<Microsoft.ML.Runtime.IFileHandle>();
 
             /// <summary>
-            /// Custom schema to use for parsing
+            /// Arguments
             /// </summary>
-            public string CustomSchema { get; set; }
+            public Data.TextLoaderArguments Arguments { get; set; } = new Data.TextLoaderArguments();
 
 
             public sealed class Output
@@ -1623,7 +1832,7 @@ namespace Microsoft.ML
     namespace Models
     {
 
-        public sealed class CrossValidationBinaryMacroSubGraphInput
+        public sealed partial class CrossValidationBinaryMacroSubGraphInput
         {
             /// <summary>
             /// The data to be used for training
@@ -1632,7 +1841,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class CrossValidationBinaryMacroSubGraphOutput
+        public sealed partial class CrossValidationBinaryMacroSubGraphOutput
         {
             /// <summary>
             /// The model
@@ -1888,7 +2097,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class CrossValidationMacroSubGraphInput
+        public sealed partial class CrossValidationMacroSubGraphInput
         {
             /// <summary>
             /// The data to be used for training
@@ -1897,7 +2106,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class CrossValidationMacroSubGraphOutput
+        public sealed partial class CrossValidationMacroSubGraphOutput
         {
             /// <summary>
             /// The model
@@ -2336,7 +2545,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class OneVersusAllMacroSubGraphOutput
+        public sealed partial class OneVersusAllMacroSubGraphOutput
         {
             /// <summary>
             /// The predictor model for the subgraph exemplar.
@@ -2994,7 +3203,7 @@ namespace Microsoft.ML
     namespace Models
     {
 
-        public sealed class TrainTestBinaryMacroSubGraphInput
+        public sealed partial class TrainTestBinaryMacroSubGraphInput
         {
             /// <summary>
             /// The data to be used for training
@@ -3003,7 +3212,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class TrainTestBinaryMacroSubGraphOutput
+        public sealed partial class TrainTestBinaryMacroSubGraphOutput
         {
             /// <summary>
             /// The model
@@ -3079,7 +3288,7 @@ namespace Microsoft.ML
     namespace Models
     {
 
-        public sealed class TrainTestMacroSubGraphInput
+        public sealed partial class TrainTestMacroSubGraphInput
         {
             /// <summary>
             /// The data to be used for training
@@ -3088,7 +3297,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class TrainTestMacroSubGraphOutput
+        public sealed partial class TrainTestMacroSubGraphOutput
         {
             /// <summary>
             /// The model
@@ -7549,7 +7758,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class NormalizeTransformBinColumn : OneToOneColumn<NormalizeTransformBinColumn>, IOneToOneColumn
+        public sealed partial class NormalizeTransformBinColumn : OneToOneColumn<NormalizeTransformBinColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Max number of bins, power of 2 recommended
@@ -7706,7 +7915,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class CategoricalHashTransformColumn : OneToOneColumn<CategoricalHashTransformColumn>, IOneToOneColumn
+        public sealed partial class CategoricalHashTransformColumn : OneToOneColumn<CategoricalHashTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The number of bits to hash into. Must be between 1 and 30, inclusive.
@@ -7881,7 +8090,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class CategoricalTransformColumn : OneToOneColumn<CategoricalTransformColumn>, IOneToOneColumn
+        public sealed partial class CategoricalTransformColumn : OneToOneColumn<CategoricalTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector
@@ -8050,7 +8259,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class CharTokenizeTransformColumn : OneToOneColumn<CharTokenizeTransformColumn>, IOneToOneColumn
+        public sealed partial class CharTokenizeTransformColumn : OneToOneColumn<CharTokenizeTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -8174,7 +8383,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class ConcatTransformColumn : ManyToOneColumn<ConcatTransformColumn>, IManyToOneColumn
+        public sealed partial class ConcatTransformColumn : ManyToOneColumn<ConcatTransformColumn>, IManyToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -8269,7 +8478,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class CopyColumnsTransformColumn : OneToOneColumn<CopyColumnsTransformColumn>, IOneToOneColumn
+        public sealed partial class CopyColumnsTransformColumn : OneToOneColumn<CopyColumnsTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -8546,7 +8755,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class ConvertTransformColumn : OneToOneColumn<ConvertTransformColumn>, IOneToOneColumn
+        public sealed partial class ConvertTransformColumn : OneToOneColumn<ConvertTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The result type
@@ -8755,7 +8964,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class NormalizeTransformAffineColumn : OneToOneColumn<NormalizeTransformAffineColumn>, IOneToOneColumn
+        public sealed partial class NormalizeTransformAffineColumn : OneToOneColumn<NormalizeTransformAffineColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Whether to map zero to zero, preserving sparsity
@@ -9038,7 +9247,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class TermTransformColumn : OneToOneColumn<TermTransformColumn>, IOneToOneColumn
+        public sealed partial class TermTransformColumn : OneToOneColumn<TermTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Maximum number of terms to keep when auto-training
@@ -9412,7 +9621,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class LpNormNormalizerTransformGcnColumn : OneToOneColumn<LpNormNormalizerTransformGcnColumn>, IOneToOneColumn
+        public sealed partial class LpNormNormalizerTransformGcnColumn : OneToOneColumn<LpNormNormalizerTransformGcnColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Normalize by standard deviation rather than L2 norm
@@ -9561,7 +9770,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class HashJoinTransformColumn : OneToOneColumn<HashJoinTransformColumn>, IOneToOneColumn
+        public sealed partial class HashJoinTransformColumn : OneToOneColumn<HashJoinTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Whether the values need to be combined for a single hash
@@ -9725,7 +9934,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class KeyToValueTransformColumn : OneToOneColumn<KeyToValueTransformColumn>, IOneToOneColumn
+        public sealed partial class KeyToValueTransformColumn : OneToOneColumn<KeyToValueTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -9914,7 +10123,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class LabelIndicatorTransformColumn : OneToOneColumn<LabelIndicatorTransformColumn>, IOneToOneColumn
+        public sealed partial class LabelIndicatorTransformColumn : OneToOneColumn<LabelIndicatorTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The positive example class for binary classification.
@@ -10108,7 +10317,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class NormalizeTransformLogNormalColumn : OneToOneColumn<NormalizeTransformLogNormalColumn>, IOneToOneColumn
+        public sealed partial class NormalizeTransformLogNormalColumn : OneToOneColumn<NormalizeTransformLogNormalColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Max number of examples used to train the normalizer
@@ -10250,7 +10459,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class LpNormNormalizerTransformColumn : OneToOneColumn<LpNormNormalizerTransformColumn>, IOneToOneColumn
+        public sealed partial class LpNormNormalizerTransformColumn : OneToOneColumn<LpNormNormalizerTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The norm to use to normalize each sample
@@ -10668,7 +10877,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class NAHandleTransformColumn : OneToOneColumn<NAHandleTransformColumn>, IOneToOneColumn
+        public sealed partial class NAHandleTransformColumn : OneToOneColumn<NAHandleTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The replacement method to utilize
@@ -10817,7 +11026,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class NAIndicatorTransformColumn : OneToOneColumn<NAIndicatorTransformColumn>, IOneToOneColumn
+        public sealed partial class NAIndicatorTransformColumn : OneToOneColumn<NAIndicatorTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -10936,7 +11145,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class NADropTransformColumn : OneToOneColumn<NADropTransformColumn>, IOneToOneColumn
+        public sealed partial class NADropTransformColumn : OneToOneColumn<NADropTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -11140,7 +11349,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class NAReplaceTransformColumn : OneToOneColumn<NAReplaceTransformColumn>, IOneToOneColumn
+        public sealed partial class NAReplaceTransformColumn : OneToOneColumn<NAReplaceTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Replacement value for NAs (uses default value if not given)
@@ -11323,7 +11532,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class NgramTransformColumn : OneToOneColumn<NgramTransformColumn>, IOneToOneColumn
+        public sealed partial class NgramTransformColumn : OneToOneColumn<NgramTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Maximum ngram length
@@ -11682,7 +11891,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class GenerateNumberTransformColumn
+        public sealed partial class GenerateNumberTransformColumn
         {
             /// <summary>
             /// Name of the new column
@@ -12466,7 +12675,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class TextTransformColumn : ManyToOneColumn<TextTransformColumn>, IManyToOneColumn
+        public sealed partial class TextTransformColumn : ManyToOneColumn<TextTransformColumn>, IManyToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -12480,7 +12689,7 @@ namespace Microsoft.ML
 
         }
 
-        public sealed class TermLoaderArguments
+        public sealed partial class TermLoaderArguments
         {
             /// <summary>
             /// List of terms
@@ -12910,7 +13119,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed class DelimitedTokenizeTransformColumn : OneToOneColumn<DelimitedTokenizeTransformColumn>, IOneToOneColumn
+        public sealed partial class DelimitedTokenizeTransformColumn : OneToOneColumn<DelimitedTokenizeTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.
