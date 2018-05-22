@@ -4,12 +4,12 @@
 
 using ML = Microsoft.ML;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Data;
 /*using Categorical = Microsoft.ML.Transforms;
 using Commands = Microsoft.ML.Transforms;
 using Evaluate = Microsoft.ML;
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestCrossValidationMacro()
         {
-            var dataPath = GetDataPath(@"external/winequality-white.csv");
+            var dataPath = GetDataPath(TestDatasets.winequality.trainFilename);
             using (var env = new TlcEnvironment())
             {
                 var subGraph = env.CreateExperiment();
