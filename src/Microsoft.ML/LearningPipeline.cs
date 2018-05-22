@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -68,7 +68,7 @@ namespace Microsoft.ML
         /// Possible data loader(s), transforms and trainers options are
         /// <para>
         /// Data Loader:
-        ///     <see cref="Microsoft.ML.TextLoader{TInput}" />
+        ///     <see cref="Microsoft.ML.Data.TextLoader" />
         ///     etc.
         /// </para>
         /// <para>
@@ -154,23 +154,28 @@ namespace Microsoft.ML
                     step = currentItem.ApplyStep(step, experiment);
                     if (step is ILearningPipelineDataStep dataStep && dataStep.Model != null)
                         transformModels.Add(dataStep.Model);
-                     
                     else if (step is ILearningPipelinePredictorStep predictorDataStep)
                     {
                         if (lastTransformModel != null)
                             transformModels.Insert(0, lastTransformModel);
 
-                        var localModelInput = new Transforms.ManyHeterogeneousModelCombiner
+                        Var<IPredictorModel> predictorModel;
+                        if (transformModels.Count != 0)
                         {
-                            PredictorModel = predictorDataStep.Model,
-                            TransformModels = new ArrayVar<ITransformModel>(transformModels.ToArray())
-                        };
-
-                        var localModelOutput = experiment.Add(localModelInput);
+                            var localModelInput = new Transforms.ManyHeterogeneousModelCombiner
+                            {
+                                PredictorModel = predictorDataStep.Model,
+                                TransformModels = new ArrayVar<ITransformModel>(transformModels.ToArray())
+                            };
+                            var localModelOutput = experiment.Add(localModelInput);
+                            predictorModel = localModelOutput.PredictorModel;
+                        }
+                        else
+                            predictorModel = predictorDataStep.Model;
 
                         var scorer = new Transforms.Scorer
                         {
-                            PredictorModel = localModelOutput.PredictorModel
+                            PredictorModel = predictorModel
                         };
 
                         var scorerOutput = experiment.Add(scorer);
@@ -182,7 +187,9 @@ namespace Microsoft.ML
 
                 if (transformModels.Count > 0)
                 {
-                    transformModels.Insert(0,lastTransformModel);
+                    if (lastTransformModel != null)
+                        transformModels.Insert(0, lastTransformModel);
+
                     var modelInput = new Transforms.ModelCombiner
                     {
                         Models = new ArrayVar<ITransformModel>(transformModels.ToArray())
