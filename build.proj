@@ -65,10 +65,9 @@
   </Target>
 
   <ItemGroup>
-    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/winequality-white.csv">
-      <Url>https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv</Url>
-      <DestinationFile>$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv</DestinationFile>
-    </TestFile>
+    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/winequality-white.csv"
+      Url="https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv"
+      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv" />
   </ItemGroup>
 
   <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
