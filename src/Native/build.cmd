@@ -27,7 +27,6 @@ shift
 goto :Arg_Loop
 
 :ToolsVersion
-
 if defined VisualStudioVersion goto :RunVCVars
 
 set _VSWHERE="%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
@@ -37,7 +36,8 @@ if exist %_VSWHERE% (
 if not exist "%_VSCOMNTOOLS%" set _VSCOMNTOOLS=%VS140COMNTOOLS%
 if not exist "%_VSCOMNTOOLS%" goto :MissingVersion
 
-set VSCMD_START_DIR="%__currentScriptDir%"
+
+set "VSCMD_START_DIR=%__currentScriptDir%"
 call "%_VSCOMNTOOLS%\VsDevCmd.bat"
 
 :RunVCVars
@@ -92,8 +92,8 @@ if not exist "%__IntermediatesDir%" md "%__IntermediatesDir%"
 
 :: Regenerate the VS solution
 
-set __gen-buildsys-win-path=%__currentScriptDir%\gen-buildsys-win.bat
-set __source-code-path=%__currentScriptDir%
+set "__gen-buildsys-win-path=%__currentScriptDir%\gen-buildsys-win.bat"
+set "__source-code-path=%__currentScriptDir%"
 
 echo Calling "%__gen-buildsys-win-path%" "%__source-code-path%" "%__VSVersion%" %__BuildArch%
 pushd "%__IntermediatesDir%"
