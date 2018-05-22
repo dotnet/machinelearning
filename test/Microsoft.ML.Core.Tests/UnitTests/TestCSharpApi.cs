@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var crossValidateOutput = experiment.Add(crossValidateBinary);
 
                 experiment.Compile();
-                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                importInput.SetInput(env, experiment);
                 experiment.Run();
                 var data = experiment.GetOutput(crossValidateOutput.OverallMetrics[0]);
 
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var crossValidateOutput = experiment.Add(crossValidate);
 
                 experiment.Compile();
-                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                importInput.SetInput(env, experiment);
                 experiment.Run();
                 var data = experiment.GetOutput(crossValidateOutput.OverallMetrics);
 
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var modelCombineOutput = subGraph.Add(modelCombine);
 
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var crossValidate = new ML.Models.CrossValidator
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var crossValidateOutput = experiment.Add(crossValidate);
 
                 experiment.Compile();
-                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                importInput.SetInput(env, experiment);
                 experiment.Run();
                 var data = experiment.GetOutput(crossValidateOutput.OverallMetrics);
 
