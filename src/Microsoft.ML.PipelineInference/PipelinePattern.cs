@@ -224,17 +224,17 @@ namespace Microsoft.ML.Runtime.PipelineInference
             var results = new List<PipelineResultRow>();
             var schema = data.Schema;
             if (!schema.TryGetColumnIndex(graphColName, out var graphCol))
-                throw env.ExceptParam(graphColName, $"Column name {graphColName} not found");
+                throw env.ExceptParam(nameof(graphColName), $"Column name {graphColName} not found");
             if (!schema.TryGetColumnIndex(metricColName, out var metricCol))
-                throw env.ExceptParam(metricColName, $"Column name {metricColName} not found");
+                throw env.ExceptParam(nameof(metricColName), $"Column name {metricColName} not found");
             if (!schema.TryGetColumnIndex(trainingMetricColName, out var trainingMetricCol))
-                throw env.ExceptParam(trainingMetricColName, $"Column name {trainingMetricColName} not found");
+                throw env.ExceptParam(nameof(trainingMetricColName), $"Column name {trainingMetricColName} not found");
             if (!schema.TryGetColumnIndex(idColName, out var pipelineIdCol))
-                throw env.ExceptParam(idColName, $"Column name {idColName} not found");
+                throw env.ExceptParam(nameof(idColName), $"Column name {idColName} not found");
             if (!schema.TryGetColumnIndex(firstInputColName, out var firstInputCol))
-                throw env.ExceptParam(firstInputColName, $"Column name {firstInputColName} not found");
+                throw env.ExceptParam(nameof(firstInputColName), $"Column name {firstInputColName} not found");
             if (!schema.TryGetColumnIndex(predictorModelColName, out var predictorModelCol))
-                throw env.ExceptParam(predictorModelColName, $"Column name {predictorModelColName} not found");
+                throw env.ExceptParam(nameof(predictorModelColName), $"Column name {predictorModelColName} not found");
 
             using (var cursor = data.GetRowCursor(col => true))
             {
