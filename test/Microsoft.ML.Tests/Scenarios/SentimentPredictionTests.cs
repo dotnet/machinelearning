@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System.Collections.Generic;
@@ -23,8 +25,32 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath(SentimentDataPath);
             var pipeline = new LearningPipeline();
-            pipeline.Add(new TextLoader<SentimentData>(dataPath, useHeader: true, separator: "tab"));
-            pipeline.Add(new Dictionarizer("Label"));
+
+            pipeline.Add(new Data.TextLoader(dataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = new[] { '\t' },
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoaderRange(0) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SentimentText",
+                            Source = new [] { new TextLoaderRange(1) },
+                            Type = Runtime.Data.DataKind.Text
+                        }
+                    }
+                }
+            });
+
             pipeline.Add(new TextFeaturizer("Features", "SentimentText")
             {
                 KeepDiacritics = false,
@@ -39,9 +65,8 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
-            CrossValidator bcv = new CrossValidator();
-            PredictionModel<SentimentData, SentimentPrediction> model = bcv.CrossValidate<SentimentData, SentimentPrediction>(pipeline);
-           // PredictionModel<SentimentData, SentimentPrediction> model = pipeline.Train<SentimentData, SentimentPrediction>();
+
+            PredictionModel<SentimentData, SentimentPrediction> model = pipeline.Train<SentimentData, SentimentPrediction>();
 
             IEnumerable<SentimentData> sentiments = new[]
             {
@@ -58,12 +83,34 @@ namespace Microsoft.ML.Scenarios
             IEnumerable<SentimentPrediction> predictions = model.Predict(sentiments);
 
             Assert.Equal(2, predictions.Count());
-            //Assert.False(predictions.ElementAt(0).Sentiment);
-            //Assert.True(predictions.ElementAt(1).Sentiment);
+            Assert.True(predictions.ElementAt(0).Sentiment.IsFalse);
+            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
 
             string testDataPath = GetDataPath(SentimentTestPath);
-            var testData = new TextLoader<SentimentData>(testDataPath, useHeader: true, separator: "tab");
+            var testData = new Data.TextLoader(testDataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = new[] { '\t' },
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoaderRange(0) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
 
+                        new TextLoaderColumn()
+                        {
+                            Name = "SentimentText",
+                            Source = new [] { new TextLoaderRange(1) },
+                            Type = Runtime.Data.DataKind.Text
+                        }
+                    }
+                }
+            };
             var evaluator = new BinaryClassificationEvaluator();
             BinaryClassificationMetrics metrics = evaluator.Evaluate(model, testData);
 
@@ -107,7 +154,7 @@ namespace Microsoft.ML.Scenarios
         public class SentimentPrediction
         {
             [ColumnName("PredictedLabel")]
-            public float Sentiment;
+            public DvBool Sentiment;
         }
     }
 }

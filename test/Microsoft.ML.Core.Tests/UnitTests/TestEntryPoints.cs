@@ -33,7 +33,35 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile, CustomSchema = "col=Label:0 col=Features:TX:1-9" }).Data;
+            /*var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input
+            { InputFile = inputFile, CustomSchema = "col=Label:0 col=Features:TX:1-9" }).Data;*/
+
+            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            {
+                Arguments =
+                {
+                    SeparatorChars = new []{',' },
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
+                            Type = Runtime.Data.DataKind.Text
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "Features",
+                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 9} },
+                            Type = Runtime.Data.DataKind.Text
+                        }
+                    }
+                },
+
+                InputFile = inputFile
+            }).Data;
 
             var splitOutput = TrainTestSplit.Split(Env, new TrainTestSplit.Input { Data = dataView, Fraction = 0.9f });
 
@@ -62,7 +90,44 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile, CustomSchema = "col=Label:0 col=F1:TX:1 col=F2:I4:2 col=Rest:3-9" }).Data;
+            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            {
+                Arguments =
+                {
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} }
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "F1",
+                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 1} },
+                            Type = Runtime.Data.DataKind.Text
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "F2",
+                            Source = new [] { new TextLoader.Range() { Min = 2, Max = 2} },
+                            Type = Runtime.Data.DataKind.I4
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "Rest",
+                            Source = new [] { new TextLoader.Range() { Min = 3, Max = 9} }
+                        }
+                    }
+                },
+
+                InputFile = inputFile
+            }).Data;
+
             dataView = Env.CreateTransform("Term{col=F1}", dataView);
             var result = FeatureCombiner.PrepareFeatures(Env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } }).OutputData;
             var expected = Env.CreateTransform("Convert{col=F2 type=R4}", dataView);
@@ -82,7 +147,44 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile, CustomSchema = "col=Label:0 col=F1:TX:1 col=F2:I4:2 col=Rest:3-9" }).Data;
+            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            {
+                Arguments =
+                {
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} }
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "F1",
+                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 1} },
+                            Type = Runtime.Data.DataKind.Text
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "F2",
+                            Source = new [] { new TextLoader.Range() { Min = 2, Max = 2} },
+                            Type = Runtime.Data.DataKind.I4
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "Rest",
+                            Source = new [] { new TextLoader.Range() { Min = 3, Max = 9} }
+                        }
+                    }
+                },
+
+                InputFile = inputFile
+            }).Data;
+
             dataView = Env.CreateTransform("Term{col=F1}", dataView);
 
             var trainData = FeatureCombiner.PrepareFeatures(Env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } });
@@ -105,7 +207,44 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile, CustomSchema = "col=Label:0 col=F1:TX:1 col=F2:I4:2 col=Rest:3-9" }).Data;
+            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            {
+                Arguments =
+                {
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "F1",
+                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 1} },
+                            Type = Runtime.Data.DataKind.Text
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "F2",
+                            Source = new [] { new TextLoader.Range() { Min = 2, Max = 2} },
+                            Type = Runtime.Data.DataKind.I4
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "Rest",
+                            Source = new [] { new TextLoader.Range() { Min = 3, Max = 9} }
+                        }
+                    }
+                },
+
+                InputFile = inputFile
+            }).Data;
+
             dataView = Env.CreateTransform("Term{col=F1}", dataView);
 
             var data1 = FeatureCombiner.PrepareFeatures(Env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } });
@@ -120,7 +259,49 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile, CustomSchema = "col=Label:0 col=F1:TX:1 col=F2:I4:2 col=Rest:3-9" }).Data;
+            /*var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile,
+                CustomSchema = "col=Label:0 col=F1:TX:1 col=F2:I4:2 col=Rest:3-9" }).Data;
+                */
+
+            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            {
+                Arguments =
+                {
+                    SeparatorChars = new []{',' },
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} }
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "F1",
+                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 1} },
+                            Type = Runtime.Data.DataKind.Text
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "F2",
+                            Source = new [] { new TextLoader.Range() { Min = 2, Max = 2} },
+                            Type = Runtime.Data.DataKind.I4
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "Rest",
+                            Source = new [] { new TextLoader.Range() { Min = 3, Max = 9} }
+                        }
+                    }
+                },
+
+                InputFile = inputFile
+            }).Data;
+
             dataView = Env.CreateTransform("Term{col=F1}", dataView);
 
             var cached1 = Cache.CacheData(Env, new Cache.CacheInput() { Data = dataView, Caching = Cache.CachingType.Memory });
@@ -305,7 +486,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file1'
                       },
@@ -355,7 +536,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1'
                       }},
@@ -512,7 +693,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1'
                       }},
@@ -562,7 +743,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1'
                       }},
@@ -607,7 +788,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1'
                       }},
@@ -653,7 +834,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1',
                         'CustomSchema': 'sep=comma col=Cat:TX:4'
@@ -735,7 +916,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file'
                       }},
@@ -1214,7 +1395,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1',
                         'CustomSchema': '{schema}'
@@ -1287,7 +1468,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1'
                         {3}
@@ -1459,7 +1640,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -1522,7 +1703,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -1630,7 +1811,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -1744,7 +1925,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -1843,7 +2024,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -2019,7 +2200,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -2214,7 +2395,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -2302,7 +2483,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {
                         'InputFile': '$file'
                       },
@@ -2368,7 +2549,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                   'Nodes': [
                     {
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'StageId': '5063dee8f19c4dd89a1fc3a9da5351a7',
                       'Inputs': {
                         'InputFile': '$file'
@@ -2437,7 +2618,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {{
                   'Nodes': [
                     {{
-                      'Name': 'Data.TextLoader',
+                      'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file1',
                         'CustomSchema': 'sep=comma col=Label:TX:4 col=Features:Num:0-3'
@@ -2527,7 +2708,9 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+#pragma warning disable 0618
             var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
+#pragma warning restore 0618
             var cat = Categorical.CatTransformDict(Env, new CategoricalTransform.Arguments()
             {
                 Data = dataView,
