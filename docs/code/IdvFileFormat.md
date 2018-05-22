@@ -28,22 +28,22 @@ being:
 * All numbers are stored as little-endian, using their natural fix-length
   binary encoding.
 
-* Strings are stored using an unsigned LEB128 number describing the number of
-  bytes, followed by that many bytes containing the UTF-8 encoded string.
+* Strings are stored using an unsigned
+  [LEB128](https://en.wikipedia.org/wiki/LEB128) number describing the number
+  of bytes, followed by that many bytes containing the UTF-8 encoded string.
 
-A note about this: [LEB128](https://en.wikipedia.org/wiki/LEB128) is a simple
-encoding to encode arbitrarily large integers. Each byte of 8-bits follows
-this convention. The most significant bit is 0 if and only if this is the end
-of the LEB128 encoding. The remaining 7 bits are a part of the number being
-encoded. The bytes are stored little-endian, that is, the first byte holds the
-7 least significant bits, the second byte (if applicable) holds the next 7
-least significant bits, etc., and the last byte holds the 7 most significant
-bits. LEB128 is used one or two places in this format. (I might tend to prefer
-use of LEB128 in places where we are writing values that, on balance, we
-expect to be relatively small, and only in cases where there is no potential
-for benefit for random access to the associated stream, since LEB128 is
-incompatible with random access. However, this is not formulated into anything
-approaching a definite policy.)
+A note about this: LEB128 is a simple encoding to encode arbitrarily large
+integers. Each byte of 8-bits follows this convention. The most significant
+bit is 0 if and only if this is the end of the LEB128 encoding. The remaining
+7 bits are a part of the number being encoded. The bytes are stored
+little-endian, that is, the first byte holds the 7 least significant bits, the
+second byte (if applicable) holds the next 7 least significant bits, etc., and
+the last byte holds the 7 most significant bits. LEB128 is used one or two
+places in this format. (I might tend to prefer use of LEB128 in places where
+we are writing values that, on balance, we expect to be relatively small, and
+only in cases where there is no potential for benefit for random access to the
+associated stream, since LEB128 is incompatible with random access. However,
+this is not formulated into anything approaching a definite policy.)
 
 ## Header
 

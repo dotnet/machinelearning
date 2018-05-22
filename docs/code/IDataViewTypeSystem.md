@@ -147,10 +147,10 @@ This document uses convenient shorthand for standard types:
 * `R4`, `R8`: single and double precision floating-point
 
 * `I1`, `I2`, `I4`, `I8`: signed integer types with the indicated number of
-bytes
+  bytes
 
 * `U1`, `U2`, `U4`, `U8`: unsigned integer types with the indicated number of
-bytes
+  bytes
 
 * `UG`: unsigned type with 16-bytes, typically used as a unique ID
 
@@ -161,10 +161,10 @@ bytes
 * `DZ`: datetime zone, a date and time with a timezone
 
 * `U4[100-199]`: A key type based on `U4` representing legal values from 100
-to 199, inclusive
+  to 199, inclusive
 
 * `V<R4,3,2>`: A vector type with item type `R4` and dimensionality
-information [3,2]
+  information [3,2]
 
 See the sections on the specific types for more detail.
 
@@ -233,18 +233,18 @@ type, which is a compatible column type.
 
 For example:
 
-* A column may have a `BL` valued piece of metadata associated with the string
-`IsNormalized` indicating whether the column can be interpreted as a label.
+* A column may indicate that it is normalized, by providing a `BL` valued
+  piece of metadata named `IsNormalized`.
 
 * A column whose type is `V<R4,17>`, meaning a vector of length 17 whose items
-are single-precision floating-point values, might have `SlotNames` metadata of
-type `V<TX,17>`, meaning a vector of length 17 whose items are text.
+  are single-precision floating-point values, might have `SlotNames` metadata
+  of type `V<TX,17>`, meaning a vector of length 17 whose items are text.
 
 * A column produced by a scorer may have several pieces of associated
-metadata, indicating the "scoring column group id" that it belongs to, what
-kind of scorer  produced the column (e.g., binary classification), and the
-precise semantics of the column (e.g., predicted label, raw score,
-probability).
+  metadata, indicating the "scoring column group id" that it belongs to, what
+  kind of scorer produced the column (e.g., binary classification), and the
+  precise semantics of the column (e.g., predicted label, raw score,
+  probability).
 
 The `ISchema` interface, including the metadata API, is fully specified in
 another document.
@@ -401,7 +401,7 @@ Notes:
   representation values are from one up to and including `Count`. The `Count`
   is required to be representable in the underlying type, so, for example, the
   `Count` value of a key type based on `System.Byte` must not exceed `255`. As
-  an example of the usefulness of the `Count` property, consider  the
+  an example of the usefulness of the `Count` property, consider the
   `KeyToVector` transform implemented as part of ML.NET. It maps from a key
   type value to an indicator vector. The length of the vector is the `Count`
   of the key type, which is required to be positive. For a key value of `k`,
@@ -416,7 +416,7 @@ Notes:
 
 * The `Min` property returns the minimum semantic value of the key type. This
   is used exclusively for transforming from a representation value, where the
-  valid values  start at one, to user facing values, which might start at any
+  valid values start at one, to user facing values, which might start at any
   non-negative value. The most common values for `Min` are zero and one.
 
 * The boolean `Contiguous` property indicates whether values of the key type
@@ -428,13 +428,13 @@ Notes:
 
 * A key type can be non-`Contiguous` only if `Count` is zero. The converse
   however is not true. A key type that is contiguous but has `Count` equal to
-  zero is one where  there is a reasonably small maximum, but that maximum is
+  zero is one where there is a reasonably small maximum, but that maximum is
   unknown. In this case, an array might be a good choice for a map from the
   key type.
 
 * The shorthand for a key type with representation type `U1`, and semantic
   values from `1000` to `1099`, inclusive, is `U1[1000-1099]`. Note that the
-  `Min` value of  this key type is outside the range of the underlying type,
+  `Min` value of this key type is outside the range of the underlying type,
   `System.Byte`, but the `Count` value is only `100`, which is representable
   in a `System.Byte`. Recall that the representation values always start at 1
   and extend up to `Count`, in this case `100`.
@@ -454,7 +454,7 @@ There are standard conversions from one key type to another, provided:
 
 * Either the number of bytes in the destination's underlying type is greater
   than the number of bytes in the source's underlying type, or the `Count`
-  value is positive.  In the latter case, the `Count` is necessarily less than
+  value is positive. In the latter case, the `Count` is necessarily less than
   2k, where k is the number of bits in the destination type's underlying type.
   For example, `U1[1-*]` can be converted to `U2[1-*]`, but `U2[1-*]` cannot
   be converted to `U1[1-*]`. Also, `U1[1-100]` and `U2[1-100]` can be
@@ -502,17 +502,17 @@ partitioned into an unknown number of runs of consecutive slots each of length
 `64`.
 
 As another example, consider an image data set. The data starts with a `TX`
-column containing URLs for images. Applying a BitmapLoader transform generates
-a column of a custom (non-standard) type, `Picture<*,*,4>`, where the
-asterisks indicate that the picture dimensions are unknown. The last dimension
-of `4` indicates that there are four channels in each pixel: the three color
-components, plus the alpha channel. Applying a `BitmapScaler` transform scales
-and crops the images to a specified size, for example, `100x100`, producing a
-type of `Picture<100,100,4>`. Finally, applying a `PixelExtractor` transform
-(and specifying that the alpha channel should be dropped), produces the vector
-type `V<R4,3,100,100>`. In this example, the `PixelExtractor` re-organized the
-color information into separate planes, and divided each pixel value by 256 to
-get pixel values between zero and one.
+column containing URLs for images. Applying an `ImageLoader` transform
+generates a column of a custom (non-standard) type, `Picture<*,*,4>`, where
+the asterisks indicate that the picture dimensions are unknown. The last
+dimension of `4` indicates that there are four channels in each pixel: the
+three color components, plus the alpha channel. Applying an `ImageResizer`
+transform scales and crops the images to a specified size, for example,
+`100x100`, producing a type of `Picture<100,100,4>`. Finally, applying a
+`ImagePixelExtractor` transform (and specifying that the alpha channel should
+be dropped), produces the vector type `V<R4,3,100,100>`. In this example, the
+`ImagePixelExtractor` re-organized the color information into separate planes,
+and divided each pixel value by 256 to get pixel values between zero and one.
 
 ### Equivalence
 
@@ -556,14 +556,14 @@ Notes:
 
 * The `Indices` array is only relevant when the vector is sparse. In the
   sparse case, `Indices` is parallel to `Values`, only the first `Count` items
-  are meaningful,  the indices must be non-negative and less than `Length`,
-  and the indices must be strictly increasing. Note that when `Count` is zero,
+  are meaningful, the indices must be non-negative and less than `Length`, and
+  the indices must be strictly increasing. Note that when `Count` is zero,
   `Indices` may be null. In the dense case, `Indices` is not meaningful and
   may or may not be null.
 
 * It is very common for the arrays in a `VBuffer<T>` to be larger than needed
   for their current value. A special case of this is when a dense `VBuffer<T>`
-  has a  non-null `Indices` array. The extra items in the arrays are not
+  has a non-null `Indices` array. The extra items in the arrays are not
   meaningful and should be ignored. Allowing these buffers to be larger than
   currently needed reduces the need to reallocate buffers for different
   values. For example, when cursoring through a vector valued column with
@@ -574,7 +574,7 @@ Notes:
 
 * Generally, vectors should use a sparse representation only when the number
   of non-default items is at most half the value of Length. However, this
-  guideline is not a  mandate.
+  guideline is not a mandate.
 
 See the full `IDataView` technical specification for additional details on
 `VBuffer<T>`, including complete discussion of programming idioms, and
@@ -668,7 +668,7 @@ There are standard conversions from one key type to another, provided:
 
 * Either the number of bytes in the destination's underlying type is greater
   than the number of bytes in the source's underlying type, or the `Count`
-  value is positive.  In the latter case, the `Count` is necessarily less than
+  value is positive. In the latter case, the `Count` is necessarily less than
   `2^^k`, where `k` is the number of bits in the destination type's underlying
   type. For example, `U1[1-*]` can be converted to `U2[1-*]`, but `U2[1-*]`
   cannot be converted to `U1[1-*]`. Also, `U1[1-100]` and `U2[1-100]` can be
@@ -709,7 +709,7 @@ In the following notes, the symbol `type` is a variable of type `ColumnType`.
 
 * Certain .Net types have a corresponding `DataKind` `enum` value. The value
   of the `type.RawKind` property is consistent with `type.RawType`. For .Net
-  types that do  not have a corresponding `DataKind` value, the `type.RawKind`
+  types that do not have a corresponding `DataKind` value, the `type.RawKind`
   property returns zero. The `type.RawKind` property is particularly useful
   when switching over raw type possibilities, but only after testing for the
   broader kind of the type (key type, numeric type, etc.).
@@ -730,14 +730,14 @@ In the following notes, the symbol `type` is a variable of type `ColumnType`.
 
 * If `type` is a key type, then `type.KeyCount` is the same as
   `((KeyType)type).Count`. If `type` is not a key type, then `type.KeyCount`
-  is zero. Note that a key type  can have a `Count` value of zero, indicating
+  is zero. Note that a key type can have a `Count` value of zero, indicating
   that the count is unknown, so `type.KeyCount` being zero does not imply that
   `type` is not a key type. In summary, `type.KeyCount` is equivalent to:
   `type is KeyType ? ((KeyType)type).Count : 0`.
 
 * The `type.ItemType` property is the item type of the vector type, if `type`
   is a vector type, and is the same as `type` otherwise. For example, to test
-  for a type  that is either `TX` or a vector of `TX`, one can use
+  for a type that is either `TX` or a vector of `TX`, one can use
   `type.ItemType.IsText`.
 
 * The `type.IsKnownSizeVector` property is equivalent to `type.VectorSize >
@@ -745,7 +745,7 @@ In the following notes, the symbol `type` is a variable of type `ColumnType`.
 
 * The `type.VectorSize` property is zero if either `type` is not a vector type
   or if `type` is a vector type of unknown/variable length. Otherwise, it is
-  the length of  vectors belonging to the type.
+  the length of vectors belonging to the type.
 
 * The `type.ValueCount` property is one if `type` is not a vector type and the
   same as `type.VectorSize` if `type` is a vector type.
@@ -756,7 +756,7 @@ In the following notes, the symbol `type` is a variable of type `ColumnType`.
 
 * The `SameSizeAndItemType` method is the same as `Equals` for non-vector
   types. For vector types, it returns true iff the two types have the same
-  item type and have  the same `VectorSize` values. For example, for the two
+  item type and have the same `VectorSize` values. For example, for the two
   vector types `V<R4,3,2>` and `V<R4,6>`, `Equals` returns false but
   `SameSizeAndItemType` returns true.
 

@@ -8,10 +8,10 @@ nearly all trainers accept feature vectors as `VBuffer<float>`.
 
 A `VBuffer<T>` is a generic type that supports both dense and sparse vectors
 over items of type `T`. This is the representation type for all
-[`VectorType`](../public/IDataViewTypeSystem.md#vector-representations)
-instances in the `IDataView` ecosystem. When an instance of this is passed to
-a row cursor getter, the callee is free to take ownership of and re-use the
-arrays (`Values` and `Indices`).
+[`VectorType`](IDataViewTypeSystem.md#vector-representations) instances in the
+`IDataView` ecosystem. When an instance of this is passed to a row cursor
+getter, the callee is free to take ownership of and re-use the arrays
+(`Values` and `Indices`).
 
 A `VBuffer<T>` is a struct, and has the following `readonly` fields:
 
@@ -43,11 +43,10 @@ inclusive and `Length` exclusive.
 
 Regarding the generic type parameter `T`, the only real assumption made about
 this type is that assignment (that is, using `=`) is sufficient to create an
-*independent* copy of that item. All representation types of the
-[primitive types](../public/IDataViewTypeSystem.md#standard-column-types) have
-this property (e.g., `DvText`, `DvInt4`, `Single`, `Double`, etc.), but for
-example, `VBuffer<>` itself does not have this property. So, no `VBuffer` of
-`VBuffer`s for you.
+*independent* copy of that item. All representation types of the [primitive
+types](IDataViewTypeSystem.md#standard-column-types) have this property (e.g.,
+`DvText`, `DvInt4`, `Single`, `Double`, etc.), but for example, `VBuffer<>`
+itself does not have this property. So, no `VBuffer` of `VBuffer`s for you.
 
 ## Sparse Values as `default(T)`
 
