@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -40,24 +41,187 @@ namespace Microsoft.ML.TestFramework
 
         public static IDataView GetKcHouseDataView(string dataPath)
         {
-            var dataSchema = "col=Id:TX:0 col=Date:TX:1 col=Label:R4:2 col=Bedrooms:R4:3 col=Bathrooms:R4:4 col=SqftLiving:R4:5 col=SqftLot:R4:6 col=Floors:R4:7 col=Waterfront:R4:8 col=View:R4:9 col=Condition:R4:10 col=Grade:R4:11 col=SqftAbove:R4:12 col=SqftBasement:R4:13 col=YearBuilt:R4:14 col=YearRenovated:R4:15 col=Zipcode:R4:16 col=Lat:R4:17 col=Long:R4:18 col=SqftLiving15:R4:19 col=SqftLot15:R4:20 header+ sep=,";
-            var txtArgs = new TextLoader.Arguments();
+            var dataSchema = "col=Id:TX:0 col=Date:TX:1 col=Label:R4:2 col=Bedrooms:R4:3 " +
+                "col=Bathrooms:R4:4 col=SqftLiving:R4:5 col=SqftLot:R4:6 col=Floors:R4:7 " +
+                "col=Waterfront:R4:8 col=View:R4:9 col=Condition:R4:10 col=Grade:R4:11 " +
+                "col=SqftAbove:R4:12 col=SqftBasement:R4:13 col=YearBuilt:R4:14 " +
+                "col=YearRenovated:R4:15 col=Zipcode:R4:16 col=Lat:R4:17 col=Long:R4:18 " +
+                "col=SqftLiving15:R4:19 col=SqftLot15:R4:20 header+ sep=,";
+
+            var txtArgs = new Runtime.Data.TextLoader.Arguments();
             bool parsed = CmdParser.ParseArguments(s_environment, dataSchema, txtArgs);
             s_environment.Assert(parsed);
-            var txtLoader = new TextLoader(s_environment, txtArgs, new MultiFileSource(dataPath));
+            var txtLoader = new Runtime.Data.TextLoader(s_environment, txtArgs, new MultiFileSource(dataPath));
             return txtLoader;
         }
 
         private static ITransformModel CreateKcHousePricePredictorModel(string dataPath)
         {
-            var dataSchema = "col=Id:TX:0 col=Date:TX:1 col=Label:R4:2 col=Bedrooms:R4:3 col=Bathrooms:R4:4 col=SqftLiving:R4:5 col=SqftLot:R4:6 col=Floors:R4:7 col=Waterfront:R4:8 col=View:R4:9 col=Condition:R4:10 col=Grade:R4:11 col=SqftAbove:R4:12 col=SqftBasement:R4:13 col=YearBuilt:R4:14 col=YearRenovated:R4:15 col=Zipcode:R4:16 col=Lat:R4:17 col=Long:R4:18 col=SqftLiving15:R4:19 col=SqftLot15:R4:20 header+ sep=,";
-
             Experiment experiment = s_environment.CreateExperiment();
 
-            var importData = new Data.TextLoader();
-            importData.CustomSchema = dataSchema;
-            Data.TextLoader.Output imported = experiment.Add(importData);
+            var importData = new Data.TextLoader(dataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = new[] { ',' },
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Id",
+                            Source = new [] { new TextLoaderRange(0) },
+                            Type = Runtime.Data.DataKind.Text
+                        },
 
+                        new TextLoaderColumn()
+                        {
+                            Name = "Date",
+                            Source = new [] { new TextLoaderRange(1) },
+                            Type = Runtime.Data.DataKind.Text
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoaderRange(2) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Bedrooms",
+                            Source = new [] { new TextLoaderRange(3) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Bathrooms",
+                            Source = new [] { new TextLoaderRange(4) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SqftLiving",
+                            Source = new [] { new TextLoaderRange(5) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SqftLot",
+                            Source = new [] { new TextLoaderRange(6) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Floors",
+                            Source = new [] { new TextLoaderRange(7) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Waterfront",
+                            Source = new [] { new TextLoaderRange(8) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "View",
+                            Source = new [] { new TextLoaderRange(9) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Condition",
+                            Source = new [] { new TextLoaderRange(10) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Grade",
+                            Source = new [] { new TextLoaderRange(11) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SqftAbove",
+                            Source = new [] { new TextLoaderRange(12) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SqftBasement",
+                            Source = new [] { new TextLoaderRange(13) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "YearBuilt",
+                            Source = new [] { new TextLoaderRange(14) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "YearRenovated",
+                            Source = new [] { new TextLoaderRange(15) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Zipcode",
+                            Source = new [] { new TextLoaderRange(16) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Lat",
+                            Source = new [] { new TextLoaderRange(17) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Long",
+                            Source = new [] { new TextLoaderRange(18) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SqftLiving15",
+                            Source = new [] { new TextLoaderRange(19) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SqftLot15",
+                            Source = new [] { new TextLoaderRange(20) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+                    }
+                }
+
+                //new Data.CustomTextLoader();
+                // importData.CustomSchema = dataSchema;
+                //
+            };
+
+            Data.TextLoader.Output imported = experiment.Add(importData);
             var numericalConcatenate = new Transforms.ColumnConcatenator();
             numericalConcatenate.Data = imported.Data;
             numericalConcatenate.AddColumn("NumericalFeatures", "SqftLiving", "SqftLot", "SqftAbove", "SqftBasement", "Lat", "Long", "SqftLiving15", "SqftLot15");

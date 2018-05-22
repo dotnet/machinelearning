@@ -152,6 +152,19 @@ namespace Microsoft.ML.Runtime.Api
                             Ch.Assert(colType.IsText);
                             return CreateStringToTextGetter(index);
                         }
+                        else if (outputType == typeof(bool))
+                        {
+                            // Bool -> DvBool
+                            Ch.Assert(colType.IsBool);
+                            return CreateBooleanToDvBoolGetter(index);
+                        }
+                        else if (outputType == typeof(bool?))
+                        {
+                            // Bool? -> DvBool
+                            Ch.Assert(colType.IsBool);
+                            return CreateNullableBooleanToDvBoolGetter(index);
+                        }
+
                         // T -> T
                         Ch.Assert(colType.RawType == outputType);
                         del = CreateDirectGetter<int>;
@@ -195,6 +208,30 @@ namespace Microsoft.ML.Runtime.Api
                             peek(GetCurrentRowObject(), Position, ref buf);
                             dst = new DvText(buf);
                         });
+                }
+
+                private Delegate CreateBooleanToDvBoolGetter(int index)
+                {
+                    var peek = DataView._peeks[index] as Peek<TRow, bool>;
+                    Ch.AssertValue(peek);
+                    bool buf = false;
+                    return (ValueGetter<DvBool>)((ref DvBool dst) =>
+                    {
+                        peek(GetCurrentRowObject(), Position, ref buf);
+                        dst =  (DvBool)buf;
+                    });
+                }
+
+                private Delegate CreateNullableBooleanToDvBoolGetter(int index)
+                {
+                    var peek = DataView._peeks[index] as Peek<TRow, bool?>;
+                    Ch.AssertValue(peek);
+                    bool? buf = null;
+                    return (ValueGetter<DvBool>)((ref DvBool dst) =>
+                    {
+                        peek(GetCurrentRowObject(), Position, ref buf);
+                        dst = buf.HasValue ? (DvBool)buf.Value : DvBool.NA;
+                    });
                 }
 
                 private Delegate CreateArrayToVBufferGetter<TDst>(int index)

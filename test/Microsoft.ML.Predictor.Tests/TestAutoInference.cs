@@ -143,6 +143,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var datasetTest = ImportTextData.ImportText(Env,
                 new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
 #pragma warning restore 0618
+
             // Define entrypoint graph
             string inputGraph = @"
                 {
