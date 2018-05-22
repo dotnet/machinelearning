@@ -343,7 +343,23 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (Utils.Size(input.ConfusionMatrix) > 0)
             {
                 EvaluateUtils.ReconcileSlotNames<double>(env, input.ConfusionMatrix, MetricKinds.ColumnNames.Count, NumberType.R8);
-                conf = AppendRowsDataView.Create(env, input.ConfusionMatrix[0].Schema, input.ConfusionMatrix);
+
+                for (int i = 0; i < input.ConfusionMatrix.Length; i++)
+                {
+                    var idv = input.ConfusionMatrix[i];
+                    // Find the old Count column and drop it.
+                    for (int col = 0; col < idv.Schema.ColumnCount; col++)
+                    {
+                        if (idv.Schema.IsHidden(col) &&
+                            idv.Schema.GetColumnName(col).Equals(MetricKinds.ColumnNames.Count))
+                        {
+                            input.ConfusionMatrix[i] = new ChooseColumnsByIndexTransform(env,
+                                new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = new[] { col } }, idv);
+                            break;
+                        }
+                    }
+                }
+                conf = EvaluateUtils.CombineOverallMetrics(env, input.ConfusionMatrix);
             }
 
             return new CombinedOutput() { PerInstanceMetrics = perInst[0], OverallMetrics = overall, ConfusionMatrix = conf };

@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
+using System.Linq;
 /*using Categorical = Microsoft.ML.Transforms;
 using Commands = Microsoft.ML.Transforms;
 using Evaluate = Microsoft.ML;
@@ -356,6 +357,131 @@ namespace Microsoft.ML.Runtime.RunTests
                     Assert.Equal(avg, sum / 2);
                     b = cursor.MoveNext();
                     Assert.False(b);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestCrossValidationMacroWithMultiClass()
+        {
+            var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
+            using (var env = new TlcEnvironment(42))
+            {
+                var subGraph = env.CreateExperiment();
+
+                var nop = new ML.Transforms.NoOperation();
+                var nopOutput = subGraph.Add(nop);
+
+                var learnerInput = new ML.Trainers.StochasticDualCoordinateAscentClassifier
+                {
+                    TrainingData = nopOutput.OutputData,
+                    NumThreads = 1
+                };
+                var learnerOutput = subGraph.Add(learnerInput);
+
+                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                {
+                    TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model),
+                    PredictorModel = learnerOutput.PredictorModel
+                };
+                var modelCombineOutput = subGraph.Add(modelCombine);
+
+                var experiment = env.CreateExperiment();
+                var importInput = new ML.Data.TextLoader();
+                var importOutput = experiment.Add(importInput);
+
+                var crossValidate = new ML.Models.CrossValidator
+                {
+                    Data = importOutput.Data,
+                    Nodes = subGraph,
+                    Kind = ML.Models.MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer,
+                    TransformModel = null
+                };
+                crossValidate.Inputs.Data = nop.Data;
+                crossValidate.Outputs.Model = modelCombineOutput.PredictorModel;
+                var crossValidateOutput = experiment.Add(crossValidate);
+
+                experiment.Compile();
+                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                experiment.Run();
+                var data = experiment.GetOutput(crossValidateOutput.OverallMetrics);
+
+                var schema = data.Schema;
+                var b = schema.TryGetColumnIndex("Accuracy(micro-avg)", out int metricCol);
+                Assert.True(b);
+                b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
+                Assert.True(b);
+                using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
+                {
+                    var getter = cursor.GetGetter<double>(metricCol);
+                    var foldGetter = cursor.GetGetter<DvText>(foldCol);
+                    DvText fold = default;
+
+                    // Get the verage.
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    double avg = 0;
+                    getter(ref avg);
+                    foldGetter(ref fold);
+                    Assert.True(fold.EqualsStr("Average"));
+
+                    // Get the standard deviation.
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    double stdev = 0;
+                    getter(ref stdev);
+                    foldGetter(ref fold);
+                    Assert.True(fold.EqualsStr("Standard Deviation"));
+                    Assert.Equal(0.025, stdev, 3);
+
+                    double sum = 0;
+                    double val = 0;
+                    for (int f = 0; f < 2; f++)
+                    {
+                        b = cursor.MoveNext();
+                        Assert.True(b);
+                        getter(ref val);
+                        foldGetter(ref fold);
+                        sum += val;
+                        Assert.True(fold.EqualsStr("Fold " + f));
+                    }
+                    Assert.Equal(avg, sum / 2);
+                    b = cursor.MoveNext();
+                    Assert.False(b);
+                }
+
+                var confusion = experiment.GetOutput(crossValidateOutput.ConfusionMatrix);
+                schema = confusion.Schema;
+                b = schema.TryGetColumnIndex("Count", out int countCol);
+                Assert.True(b);
+                b = schema.TryGetColumnIndex("Fold Index", out foldCol);
+                Assert.True(b);
+                var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, countCol);
+                Assert.True(type != null && type.ItemType.IsText && type.VectorSize == 10);
+                var slotNames = default(VBuffer<DvText>);
+                schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countCol, ref slotNames);
+                Assert.True(slotNames.Values.Select((s, i) => s.EqualsStr(i.ToString())).All(x => x));
+                using (var curs = confusion.GetRowCursor(col => true))
+                {
+                    var countGetter = curs.GetGetter<VBuffer<double>>(countCol);
+                    var foldGetter = curs.GetGetter<DvText>(foldCol);
+                    var confCount = default(VBuffer<double>);
+                    var foldIndex = default(DvText);
+                    int rowCount = 0;
+                    var foldCur = "Fold 0";
+                    while (curs.MoveNext())
+                    {
+                        countGetter(ref confCount);
+                        foldGetter(ref foldIndex);
+                        rowCount++;
+                        Assert.True(foldIndex.EqualsStr(foldCur));
+                        if (rowCount == 10)
+                        {
+                            rowCount = 0;
+                            foldCur = "Fold 1";
+                        }
+                    }
+                    Assert.Equal(0, rowCount);
                 }
             }
         }
