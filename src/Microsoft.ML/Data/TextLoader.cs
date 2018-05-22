@@ -42,8 +42,8 @@ namespace Microsoft.ML.Data
         public TextLoaderRange(int min, int max)
         {
 
-            Contracts.CheckParam(min >= 0, nameof(min), "Cannot be negative number.");
-            Contracts.CheckParam(max >= min, nameof(max), $"Cannot be less than {nameof(min)}.");
+            Contracts.CheckParam(min >= 0, nameof(min), "Cannot be a negative number.");
+            Contracts.CheckParam(max >= min, nameof(max), "Cannot be less than " + nameof(min) +".");
 
             Min = min;
             Max = max;
