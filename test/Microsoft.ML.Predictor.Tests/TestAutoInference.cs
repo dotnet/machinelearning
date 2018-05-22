@@ -67,6 +67,60 @@ namespace Microsoft.ML.Runtime.RunTests
 
         [Fact]
         [TestCategory("EntryPoints")]
+        public void TestPipelineSweeperMacroNoTransforms()
+        {
+            // Set up inputs for experiment
+            string pathData = GetDataPath(@"../../Samples/UCI/adult.train");
+            string pathDataTest = GetDataPath(@"../../Samples/UCI/adult.test");
+            const int numOfSampleRows = 1000;
+            const string schema = "sep=, col=Features:R4:0,2,4,10-12 col=Label:R4:14 header=+";
+
+            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
+            var datasetTrain = ImportTextData.ImportText(Env,
+                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
+            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
+            var datasetTest = ImportTextData.ImportText(Env,
+                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
+            const int batchSize = 5;
+            const int numIterations = 20;
+            const int numTransformLevels = 2;
+            AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.Auc;
+
+            // Using the simple, uniform random sampling (with replacement) engine
+            PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(Env);
+
+            // Create search object
+            var amls = new AutoInference.AutoMlMlState(Env, metric, autoMlEngine, new IterationTerminator(numIterations),
+                MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer, datasetTrain, datasetTest);
+
+            // Infer search space
+            amls.InferSearchSpace(numTransformLevels);
+
+            // Create macro object
+            var pipelineSweepInput = new Microsoft.ML.Models.PipelineSweeper()
+            {
+                BatchSize = batchSize,
+            };
+
+            var exp = new Experiment(Env);
+            var output = exp.Add(pipelineSweepInput);
+            exp.Compile();
+            exp.SetInput(pipelineSweepInput.TrainingData, datasetTrain);
+            exp.SetInput(pipelineSweepInput.TestingData, datasetTest);
+            exp.SetInput(pipelineSweepInput.State, amls);
+            exp.SetInput(pipelineSweepInput.CandidateOutputs, new IDataView[0]);
+            exp.Run();
+
+            // Make sure you get back an AutoMlState, and that it ran for correct number of iterations
+            // with at least minimal performance values (i.e., best should have AUC better than 0.1 on this dataset).
+            AutoInference.AutoMlMlState amlsOut = (AutoInference.AutoMlMlState)exp.GetOutput(output.State);
+            Assert.NotNull(amlsOut);
+            Assert.Equal(amlsOut.GetAllEvaluatedPipelines().Length, numIterations);
+            Assert.True(amlsOut.GetBestPipeline().PerformanceSummary.MetricValue > 0.1);
+        }
+
+        [Fact]
+        [TestCategory("EntryPoints")]
         public void EntryPointPipelineSweepSerialization()
         {
             // Get datasets
