@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 string dataVar = firstNodeInputs.Value<String>(nameOfData);
                 if (!VariableBinding.IsValidVariableName(ectx, dataVar))
-                    throw ectx.ExceptParam($"Invalid variable name {dataVar}.");
+                    throw ectx.ExceptParam(nameof(nameOfData), $"Invalid variable name {dataVar}.");
 
                 variableName = dataVar.Substring(1);
                 return true;

@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             double outputValue = 0;
             var schema = result.Schema;
             if (!schema.TryGetColumnIndex(columnName, out var metricCol))
-                throw env.ExceptParam($"Schema does not contain column: {columnName}");
+                throw env.ExceptParam(nameof(columnName), $"Schema does not contain column: {columnName}");
 
             using (var cursor = result.GetRowCursor(col => col == metricCol))
             {
