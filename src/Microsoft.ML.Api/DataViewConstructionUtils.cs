@@ -432,6 +432,8 @@ namespace Microsoft.ML.Runtime.Api
 
             public override long? GetRowCount(bool lazy = true)
             {
+                if (_data is ICollection<TRow> collection)
+                    return collection.Count;
                 return null;
             }
 
