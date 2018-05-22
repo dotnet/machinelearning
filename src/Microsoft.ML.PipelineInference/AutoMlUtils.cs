@@ -17,8 +17,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
     {
         public static double ExtractValueFromIDV(IHostEnvironment env, IDataView result, string columnName)
         {
-            Contracts.AssertValue(env, nameof(env));
-            env.CheckParam(result != null, "Must have non-null result IDataView from which to extract values.");
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(result, nameof(result));
             env.CheckNonEmpty(columnName, nameof(columnName));
 
             double outputValue = 0;
