@@ -49,12 +49,13 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 // Use best pipeline for another task
                 var inputFileTrain = new SimpleFileHandle(env, pathData, false, false);
+#pragma warning disable 0618
                 var datasetTrain = ImportTextData.ImportText(env,
                     new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data;
                 var inputFileTest = new SimpleFileHandle(env, pathDataTest, false, false);
                 var datasetTest = ImportTextData.ImportText(env,
                     new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data;
-
+#pragma warning restore 0618
                 // REVIEW: Theoretically, it could be the case that a new, very bad learner is introduced and 
                 // we get unlucky and only select it every time, such that this test fails. Not
                 // likely at all, but a non-zero probability. Should be ok, since all current learners are returning d > .80.
@@ -77,11 +78,13 @@ namespace Microsoft.ML.Runtime.RunTests
                 "sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
                 "col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
+#pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
                 new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
             var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
             var datasetTest = ImportTextData.ImportText(Env,
                 new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
+#pragma warning restore 0618
 
             // Define entrypoint graph
             string inputGraph = @"
@@ -143,12 +146,13 @@ namespace Microsoft.ML.Runtime.RunTests
             const int numOfSampleRows = 1000;
             int numIterations = 4;
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
+#pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
                 new ImportTextData.Input { InputFile = inputFileTrain }).Data.Take(numOfSampleRows);
             var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
             var datasetTest = ImportTextData.ImportText(Env,
                 new ImportTextData.Input { InputFile = inputFileTest }).Data.Take(numOfSampleRows);
-
+#pragma warning restore 0618
             // Define entrypoint graph
             string inputGraph = @"
                 {
