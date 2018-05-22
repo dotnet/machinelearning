@@ -854,9 +854,10 @@ namespace Microsoft.ML.Runtime.Data
             return cols.Prepend(RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Group, groupIdCol));
         }
 
-        protected override void PrintOverallResultsCore(IChannel ch, string filename, Dictionary<string, IDataView>[] metrics)
+        protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
         {
-            base.PrintOverallResultsCore(ch, filename, metrics);
+            ch.AssertNonEmpty(metrics);
+
             if (!string.IsNullOrEmpty(_groupSummaryFilename))
             {
                 IDataView gs;
@@ -887,12 +888,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!metrics[i].TryGetValue(RankerEvaluator.GroupSummary, out idv))
                     return false;
 
-                // We use the first column in the data view as an input column to the LambdaColumnMapper, because it must have an input.
-                var inputColName = idv.Schema.GetColumnName(0);
-                var inputColType = idv.Schema.GetColumnType(0);
-                idv = Utils.MarshalInvoke(EvaluateUtils.AddKeyColumn<int>, inputColType.RawType, Host, idv,
-                    inputColName, MetricKinds.ColumnNames.FoldIndex, inputColType, metrics.Length, i + 1, "FoldIndex",
-                    default(ValueGetter<VBuffer<DvText>>));
+                idv = EvaluateUtils.AddFoldIndex(Host, idv, i, metrics.Length);
                 gsList.Add(idv);
             }
             gs = AppendRowsDataView.Create(Host, gsList[0].Schema, gsList.ToArray());

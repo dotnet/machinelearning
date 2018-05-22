@@ -889,6 +889,116 @@
       ]
     },
     {
+      "Name": "Models.CrossValidationResultsCombiner",
+      "Desc": "Combine the metric data views returned from cross validation.",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Kind",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "SignatureBinaryClassifierTrainer",
+              "SignatureMultiClassClassifierTrainer",
+              "SignatureRankerTrainer",
+              "SignatureRegressorTrainer",
+              "SignatureMultiOutputRegressorTrainer",
+              "SignatureAnomalyDetectorTrainer",
+              "SignatureClusteringTrainer"
+            ]
+          },
+          "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
+          "Required": true,
+          "SortOrder": 0.0,
+          "IsNullable": false,
+          "Default": "SignatureBinaryClassifierTrainer"
+        },
+        {
+          "Name": "OverallMetrics",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "Overall metrics datasets",
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "PerInstanceMetrics",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "Per instance metrics datasets",
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "ConfusionMatrix",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "Confusion matrix datasets",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Warnings",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "Warning datasets",
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "The label column name",
+          "Aliases": [
+            "Label"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Label"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "Warnings",
+          "Type": "DataView",
+          "Desc": "Warning dataset"
+        },
+        {
+          "Name": "OverallMetrics",
+          "Type": "DataView",
+          "Desc": "Overall metrics dataset"
+        },
+        {
+          "Name": "PerInstanceMetrics",
+          "Type": "DataView",
+          "Desc": "Per instance metrics dataset"
+        },
+        {
+          "Name": "ConfusionMatrix",
+          "Type": "DataView",
+          "Desc": "Confusion matrix dataset"
+        }
+      ]
+    },
+    {
       "Name": "Models.CrossValidator",
       "Desc": "Cross validation for general learning",
       "FriendlyName": null,
@@ -1018,34 +1128,22 @@
         },
         {
           "Name": "Warnings",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
+          "Type": "DataView",
           "Desc": "Warning dataset"
         },
         {
           "Name": "OverallMetrics",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
+          "Type": "DataView",
           "Desc": "Overall metrics dataset"
         },
         {
           "Name": "PerInstanceMetrics",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
+          "Type": "DataView",
           "Desc": "Per instance metrics dataset"
         },
         {
           "Name": "ConfusionMatrix",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
+          "Type": "DataView",
           "Desc": "Confusion matrix dataset"
         }
       ]

@@ -746,14 +746,8 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(MetricWriter.GetPerFoldResults(Host, fold, out weightedFold));
         }
 
-        protected override void PrintOverallResultsCore(IChannel ch, string filename, Dictionary<string, IDataView>[] metrics)
+        protected override IDataView GetOverallResultsCore(IDataView overall)
         {
-            ch.AssertNonEmpty(metrics);
-
-            IDataView overall;
-            if (!TryGetOverallMetrics(metrics, out overall))
-                throw ch.Except("No overall metrics found");
-
             var args = new DropColumnsTransform.Arguments();
             args.Column = new[]
             {
@@ -762,8 +756,7 @@ namespace Microsoft.ML.Runtime.Data
                 AnomalyDetectionEvaluator.OverallMetrics.ThreshAtP,
                 AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos
             };
-            overall = new DropColumnsTransform(Host, args, overall);
-            MetricWriter.PrintOverallMetrics(Host, ch, filename, overall, metrics.Length);
+            return new DropColumnsTransform(Host, args, overall);
         }
 
         protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)

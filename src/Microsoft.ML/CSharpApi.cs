@@ -22,6 +22,18 @@ namespace Microsoft.ML
     {
         public sealed partial class Experiment
         {
+            public Microsoft.ML.Data.DataViewReference.Output Add(Microsoft.ML.Data.DataViewReference input)
+            {
+                var output = new Microsoft.ML.Data.DataViewReference.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Data.DataViewReference input, Microsoft.ML.Data.DataViewReference.Output output)
+            {
+                _jsonNodes.Add(Serialize("Data.DataViewReference", input, output));
+            }
+
             public Microsoft.ML.Data.IDataViewArrayConverter.Output Add(Microsoft.ML.Data.IDataViewArrayConverter input)
             {
                 var output = new Microsoft.ML.Data.IDataViewArrayConverter.Output();
@@ -53,22 +65,11 @@ namespace Microsoft.ML
                 return output;
             }
 
-            public Microsoft.ML.Data.DataViewReference.Output Add(Microsoft.ML.Data.DataViewReference input)
-            {
-                var output = new Microsoft.ML.Data.DataViewReference.Output();
-                Add(input, output);
-                return output;
-            }
-
             public void Add(Microsoft.ML.Data.TextLoader input, Microsoft.ML.Data.TextLoader.Output output)
             {
                 _jsonNodes.Add(Serialize("Data.TextLoader", input, output));
             }
 
-            public void Add(Microsoft.ML.Data.DataViewReference input, Microsoft.ML.Data.DataViewReference.Output output)
-            {
-                _jsonNodes.Add(Serialize("Data.DataViewReference", input, output));
-            }
             public Microsoft.ML.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Models.AnomalyDetectionEvaluator input)
             {
                 var output = new Microsoft.ML.Models.AnomalyDetectionEvaluator.Output();
@@ -127,6 +128,18 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Models.ClusterEvaluator input, Microsoft.ML.Models.ClusterEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.ClusterEvaluator", input, output));
+            }
+
+            public Microsoft.ML.Models.CrossValidationResultsCombiner.Output Add(Microsoft.ML.Models.CrossValidationResultsCombiner input)
+            {
+                var output = new Microsoft.ML.Models.CrossValidationResultsCombiner.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.CrossValidationResultsCombiner input, Microsoft.ML.Models.CrossValidationResultsCombiner.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.CrossValidationResultsCombiner", input, output));
             }
 
             public Microsoft.ML.Models.CrossValidator.Output Add(Microsoft.ML.Models.CrossValidator input)
@@ -1275,6 +1288,33 @@ namespace Microsoft.ML
     {
 
         /// <summary>
+        /// Pass dataview from memory to experiment
+        /// </summary>
+        public sealed partial class DataViewReference
+        {
+
+
+            /// <summary>
+            /// Pointer to IDataView in memory
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// The resulting data view
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Data
+    {
+
+        /// <summary>
         /// Create and array variable
         /// </summary>
         public sealed partial class IDataViewArrayConverter
@@ -1345,23 +1385,6 @@ namespace Microsoft.ML
             /// </summary>
             public string CustomSchema { get; set; }
 
-
-            public sealed class Output
-            {
-                /// <summary>
-                /// The resulting data view
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            }
-        }
-
-        public sealed partial class DataViewReference
-        {
-            /// <summary>
-            /// Location of the input file
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             public sealed class Output
             {
@@ -1826,6 +1849,73 @@ namespace Microsoft.ML
         }
 
 
+        /// <summary>
+        /// Combine the metric data views returned from cross validation.
+        /// </summary>
+        public sealed partial class CrossValidationResultsCombiner
+        {
+
+
+            /// <summary>
+            /// Overall metrics datasets
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Per instance metrics datasets
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Confusion matrix datasets
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Warning datasets
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// The label column name
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// Specifies the trainer kind, which determines the evaluator to be used.
+            /// </summary>
+            public Models.MacroUtilsTrainerKinds Kind { get; set; } = Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// Warning dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Overall metrics dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Per instance metrics dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Confusion matrix dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
+
         public sealed class CrossValidationMacroSubGraphInput
         {
             /// <summary>
@@ -1902,22 +1992,22 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             }
         }

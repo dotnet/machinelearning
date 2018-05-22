@@ -269,11 +269,11 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
+        [Fact]
         public void TestCrossValidationMacro()
         {
-            var dataPath = GetDataPath(@"housing.txt");
-            using (var env = new TlcEnvironment())
+            var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
+            using (var env = new TlcEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
 
@@ -312,19 +312,48 @@ namespace Microsoft.ML.Runtime.RunTests
                 experiment.Compile();
                 experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
                 experiment.Run();
-                var data = experiment.GetOutput(crossValidateOutput.OverallMetrics[0]);
+                var data = experiment.GetOutput(crossValidateOutput.OverallMetrics);
 
                 var schema = data.Schema;
                 var b = schema.TryGetColumnIndex("L1(avg)", out int metricCol);
                 Assert.True(b);
-                using (var cursor = data.GetRowCursor(col => col == metricCol))
+                b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
+                Assert.True(b);
+                using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
                 {
                     var getter = cursor.GetGetter<double>(metricCol);
+                    var foldGetter = cursor.GetGetter<DvText>(foldCol);
+                    DvText fold = default;
+
+                    // Get the verage.
                     b = cursor.MoveNext();
                     Assert.True(b);
+                    double avg = 0;
+                    getter(ref avg);
+                    foldGetter(ref fold);
+                    Assert.True(fold.EqualsStr("Average"));
+
+                    // Get the standard deviation.
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    double stdev = 0;
+                    getter(ref stdev);
+                    foldGetter(ref fold);
+                    Assert.True(fold.EqualsStr("Standard Deviation"));
+                    Assert.Equal(0.096, stdev, 3);
+
+                    double sum = 0;
                     double val = 0;
-                    getter(ref val);
-                    Assert.Equal(3.32, val, 1);
+                    for (int f = 0; f < 2; f++)
+                    {
+                        b = cursor.MoveNext();
+                        Assert.True(b);
+                        getter(ref val);
+                        foldGetter(ref fold);
+                        sum += val;
+                        Assert.True(fold.EqualsStr("Fold " + f));
+                    }
+                    Assert.Equal(avg, sum / 2);
                     b = cursor.MoveNext();
                     Assert.False(b);
                 }
