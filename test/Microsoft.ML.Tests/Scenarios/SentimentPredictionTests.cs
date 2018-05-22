@@ -50,7 +50,7 @@ namespace Microsoft.ML.Scenarios
                     }
                 }
             });
-
+            
             pipeline.Add(new TextFeaturizer("Features", "SentimentText")
             {
                 KeepDiacritics = false,
@@ -67,9 +67,8 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
 
             PredictionModel<SentimentData, SentimentPrediction> model = pipeline.Train<SentimentData, SentimentPrediction>();
-
             IEnumerable<SentimentData> sentiments = new[]
-            {
+          {
                 new SentimentData
                 {
                     SentimentText = "Please refrain from adding nonsense to Wikipedia."

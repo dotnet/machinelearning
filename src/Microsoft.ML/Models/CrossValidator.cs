@@ -11,7 +11,7 @@ namespace Microsoft.ML.Models
 {
     public sealed partial class CrossValidator
     {
-        public PredictionModel<TInput, TOutput> CrossValidate<TInput, TOutput>(LearningPipeline pipeline) 
+        public CrossValidationOutput<TInput, TOutput>[] CrossValidate<TInput, TOutput>(LearningPipeline pipeline) 
             where TInput : class
             where TOutput : class, new()
         {
@@ -24,7 +24,6 @@ namespace Microsoft.ML.Models
                 Var<ITransformModel> lastTransformModel = null;
                 Var<IDataView> firstPipelineDataStep = null;
                 Var<IPredictorModel> firstModel = null;
-                Var<IDataView> lastData = null;
                 ILearningPipelineItem firstTransform = null;
                 foreach (ILearningPipelineItem currentItem in pipeline)
                 {
@@ -73,7 +72,6 @@ namespace Microsoft.ML.Models
                         
                         var scorerOutput = subGraph.Add(scorer);
                         lastTransformModel = scorerOutput.ScoringTransform;
-                        lastData = scorerOutput.ScoredData;
                         step = new ScorerPipelineStep(scorerOutput.ScoredData, scorerOutput.ScoringTransform);
                         transformModels.Clear();
                     }
@@ -91,7 +89,6 @@ namespace Microsoft.ML.Models
 
                     var modelOutput = subGraph.Add(modelInput);
                     lastTransformModel = modelOutput.OutputModel;
-                    lastData = modelOutput.Data;
                 }
 
                 var experiment = environment.CreateExperiment();
@@ -101,9 +98,7 @@ namespace Microsoft.ML.Models
                 Nodes = subGraph;
                 TransformModel = null;
                 Inputs.Data = firstTransform.GetInputData();
-                Outputs.Model = null;
                 Outputs.TransformModel = lastTransformModel;
-                Outputs.TransformData = lastData;
                 Outputs.UseTransformModel = true;
                 var crossValidateOutput = experiment.Add(this);
                 experiment.Compile();
@@ -113,19 +108,62 @@ namespace Microsoft.ML.Models
                 }
 
                 experiment.Run();
-                ITransformModel model = experiment.GetOutput(crossValidateOutput.TransformModel[0]);
-                BatchPredictionEngine<TInput, TOutput> predictor;
-                using (var memoryStream = new MemoryStream())
+
+                CrossValidationOutput<TInput, TOutput>[] cvo = new CrossValidationOutput<TInput, TOutput>[NumFolds];
+
+                for (int Index = 0; Index < NumFolds; Index++)
                 {
-                    model.Save(environment, memoryStream);
+                    cvo[Index] = new CrossValidationOutput<TInput, TOutput>();
 
-                    memoryStream.Position = 0;
+                    if (Kind == MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer)
+                    {
+                        cvo[Index].BinaryClassificationMetrics = BinaryClassificationMetrics.FromMetrics(
+                            environment,
+                            experiment.GetOutput(crossValidateOutput.OverallMetrics[Index]),
+                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix[Index]));
+                    }
+                    else if(Kind == MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer)
+                    {
+                        cvo[Index].ClassificationMetrics = ClassificationMetrics.FromMetrics(
+                            environment,
+                            experiment.GetOutput(crossValidateOutput.OverallMetrics[Index]),
+                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix[Index]));
+                    }
+                    else if (Kind == MacroUtilsTrainerKinds.SignatureRegressorTrainer)
+                    {
+                        cvo[Index].RegressionMetrics = RegressionMetrics.FromOverallMetrics(
+                            environment,
+                            experiment.GetOutput(crossValidateOutput.OverallMetrics[Index]));
+                    }
 
-                    predictor = environment.CreateBatchPredictionEngine<TInput, TOutput>(memoryStream);
+                    ITransformModel model = experiment.GetOutput(crossValidateOutput.TransformModel[Index]);
+                    BatchPredictionEngine<TInput, TOutput> predictor;
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        model.Save(environment, memoryStream);
 
-                    return new PredictionModel<TInput, TOutput>(predictor, memoryStream);
+                        memoryStream.Position = 0;
+
+                        predictor = environment.CreateBatchPredictionEngine<TInput, TOutput>(memoryStream);
+
+                        cvo[Index].PredictorModel = new PredictionModel<TInput, TOutput>(predictor, memoryStream);
+                    }
                 }
+
+                return cvo;
             }
         }
+    }
+
+    public class CrossValidationOutput<TInput, TOutput>
+            where TInput : class
+            where TOutput : class, new()
+    {
+        public BinaryClassificationMetrics BinaryClassificationMetrics;
+        public ClassificationMetrics ClassificationMetrics;
+        public RegressionMetrics RegressionMetrics;
+        public PredictionModel<TInput, TOutput> PredictorModel;
+        
+        //REVIEW: Add warnings and per instance results.
     }
 }

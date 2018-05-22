@@ -24,16 +24,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         public sealed class SubGraphOutput
         {
-            [Argument(ArgumentType.Required, HelpText = "The model", SortOrder = 1)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The model", SortOrder = 1)]
             public Var<IPredictorModel> Model;
-
-            [Argument(ArgumentType.Required, HelpText = "Transform model", SortOrder = 2)]
+            
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Transform model", SortOrder = 2)]
             public Var<ITransformModel> TransformModel;
 
-            [Argument(ArgumentType.Required, HelpText = "Transform data", SortOrder = 3)]
-            public Var<IDataView> TransformData;
-
-            [Argument(ArgumentType.Required, HelpText = "Indicates to use transform model instead of predictor model.", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to use transform model instead of predictor model.", SortOrder = 3)]
             public bool UseTransformModel = false;
         }
 
@@ -155,6 +152,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var exp = new Experiment(env);
 
             DatasetScorer.Output scoreNodeOutput = null;
+            ML.Models.DatasetTransformer.Output datasetTransformNodeOutput = null;
             if (input.Outputs.UseTransformModel)
             {
                 //combine the predictor model with any potential transfrom model passed from the outer graph
@@ -172,6 +170,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     var modelCombineOutput = exp.Add(modelCombine);
                     outputVarName = modelCombineOutput.OutputModel.VarName;
                 }
+
+                var datasetTransformerNode = new Models.DatasetTransformer
+                {
+                    Data = { VarName = testingVar.ToJson() },
+                    TransformModel = { VarName = outputVarName }
+                };
+
+                datasetTransformNodeOutput = exp.Add(datasetTransformerNode);
             }
             else
             {
@@ -215,7 +221,18 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (input.IncludeTrainingMetrics)
             {
                 DatasetScorer.Output scoreNodeTrainingOutput = null;
-                if (!input.Outputs.UseTransformModel)
+                ML.Models.DatasetTransformer.Output datasetTransformNodeTrainingOutput = null;
+                if (input.Outputs.UseTransformModel)
+                {
+                    var datasetTransformerNode = new Models.DatasetTransformer
+                    {
+                        Data = { VarName = testingVar.ToJson() },
+                        TransformModel = { VarName = outputVarName }
+                    };
+
+                    datasetTransformNodeTrainingOutput = exp.Add(datasetTransformerNode);
+                }
+                else
                 {
                     // Add the scoring node for training.
                     var scoreNodeTraining = new DatasetScorer
@@ -235,7 +252,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var evalInputOutputTraining = MacroUtils.GetEvaluatorInputOutput(input.Kind, settings);
                 var evalNodeTraining = evalInputOutputTraining.Item1;
                 var evalOutputTraining = evalInputOutputTraining.Item2;
-                evalNodeTraining.Data.VarName = input.Outputs.UseTransformModel ? input.Outputs.TransformData.VarName : 
+                evalNodeTraining.Data.VarName = input.Outputs.UseTransformModel ? datasetTransformNodeTrainingOutput.OutputData.VarName : 
                     scoreNodeTrainingOutput.ScoredData.VarName;
 
                 if (node.OutputMap.TryGetValue(nameof(Output.TrainingWarnings), out outVariableName))
@@ -259,7 +276,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var evalInputOutput = MacroUtils.GetEvaluatorInputOutput(input.Kind, settings);
             var evalNode = evalInputOutput.Item1;
             var evalOutput = evalInputOutput.Item2;
-            evalNode.Data.VarName = input.Outputs.UseTransformModel ? input.Outputs.TransformData.VarName : scoreNodeOutput.ScoredData.VarName;
+            evalNode.Data.VarName = input.Outputs.UseTransformModel ? datasetTransformNodeOutput.OutputData.VarName : scoreNodeOutput.ScoredData.VarName;
 
             if (node.OutputMap.TryGetValue(nameof(Output.Warnings), out outVariableName))
                 evalOutput.Warnings.VarName = outVariableName;

@@ -2119,11 +2119,6 @@ namespace Microsoft.ML
             public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             /// <summary>
-            /// Transform data
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TransformData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
             /// Indicates to use transform model instead of predictor model.
             /// </summary>
             public bool UseTransformModel { get; set; } = false;
@@ -3308,11 +3303,6 @@ namespace Microsoft.ML
             /// Transform model
             /// </summary>
             public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
-
-            /// <summary>
-            /// Transform data
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TransformData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             /// <summary>
             /// Indicates to use transform model instead of predictor model.

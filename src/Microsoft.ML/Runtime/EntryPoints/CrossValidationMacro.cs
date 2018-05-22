@@ -29,16 +29,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         public sealed class SubGraphOutput
         {
-            [Argument(ArgumentType.Required, HelpText = "The model", SortOrder = 1)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The model", SortOrder = 1)]
             public Var<IPredictorModel> Model;
-
-            [Argument(ArgumentType.Required, HelpText = "The transform model", SortOrder = 2)]
+            
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model", SortOrder = 2)]
             public Var<ITransformModel> TransformModel;
 
-            [Argument(ArgumentType.Required, HelpText = "Transform data", SortOrder = 3)]
-            public Var<IDataView> TransformData;
-
-            [Argument(ArgumentType.Required, HelpText = "Indicates to use transform model instead of predictor model.", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to use transform model instead of predictor model.", SortOrder = 3)]
             public bool UseTransformModel = false;
         }
 
@@ -169,26 +166,25 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     VarName = mapping[input.Inputs.Data.VarName]
                 };
 
-                if (input.Outputs.Model != null)
+                if (input.Outputs.Model != null && mapping.ContainsKey(input.Outputs.Model.VarName))
                 {
                     args.Outputs.Model = new Var<IPredictorModel>
                     {
                         VarName = mapping[input.Outputs.Model.VarName]
                     };
                 }
+                else
+                    args.Outputs.Model = null;
 
-                if (input.Outputs.TransformModel != null)
+                if (input.Outputs.TransformModel != null && mapping.ContainsKey(input.Outputs.TransformModel.VarName))
                 {
                     args.Outputs.TransformModel = new Var<ITransformModel>
                     {
                         VarName = mapping[input.Outputs.TransformModel.VarName]
                     };
                 }
-
-                args.Outputs.TransformData = new Var<IDataView>
-                {
-                    VarName = mapping[input.Outputs.TransformData.VarName]
-                };
+                else
+                    args.Outputs.TransformModel = null;
 
                 args.Outputs.UseTransformModel = input.Outputs.UseTransformModel;
 
