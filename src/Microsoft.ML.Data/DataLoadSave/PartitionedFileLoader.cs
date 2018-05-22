@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.Data.Utilities;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -673,7 +674,7 @@ namespace Microsoft.ML.Runtime.Data
                 truncPath = null;
 
                 // Remove directories that shouldn't be parsed.
-                var segments = Utils.SplitDirectories(path);
+                var segments = PathUtils.SplitDirectories(path);
                 segments = segments.Skip(segments.Count() - dirCount - 1);
 
                 if (segments.Count() < dirCount - 1)
@@ -727,7 +728,7 @@ namespace Microsoft.ML.Runtime.Data
             string path = files.GetPathOrNull(0);
             _host.CheckNonEmpty(path, nameof(path));
 
-            var relativePath = Utils.MakePathRelative(basepath, path);
+            var relativePath = PathUtils.MakePathRelative(basepath, path);
             return relativePath;
         }
 
@@ -748,7 +749,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <returns>The number of directories</returns>
         private int GetDirectoryCount(string path)
         {
-            return Utils.SplitDirectories(path).Count() - 1;
+            return PathUtils.SplitDirectories(path).Count() - 1;
         }
     }
 }
