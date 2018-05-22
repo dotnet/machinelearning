@@ -579,11 +579,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
             RecipeInference.InferRecipesFromData(env, trainDataPath, schemaDefinitionFile,
                 out var _, out schemaDefinition, out var _, true);
 
+#pragma warning disable 0618
             var data = ImportTextData.ImportText(env, new ImportTextData.Input
             {
                 InputFile = new SimpleFileHandle(env, trainDataPath, false, false),
                 CustomSchema = schemaDefinition
             }).Data;
+#pragma warning restore 0618
             var splitOutput = TrainTestSplit.Split(env, new TrainTestSplit.Input { Data = data, Fraction = 0.8f });
             AutoMlMlState amls = new AutoMlMlState(env, metric, autoMlEngine, terminator, trainerKind,
                 splitOutput.TrainData.Take(numOfSampleRows), splitOutput.TestData.Take(numOfSampleRows));

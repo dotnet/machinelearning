@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var normalizeInput = new ML.Transforms.MinMaxNormalizer
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var catInput = new ML.Transforms.CategoricalOneHotVectorizer
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var trainTestInput = new ML.Models.TrainTestBinaryEvaluator
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var crossValidateBinary = new ML.Models.BinaryCrossValidator
@@ -296,7 +296,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var modelCombineOutput = subGraph.Add(modelCombine);
 
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var crossValidate = new ML.Models.CrossValidator

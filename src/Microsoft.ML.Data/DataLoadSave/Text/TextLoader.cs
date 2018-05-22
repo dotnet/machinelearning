@@ -85,15 +85,19 @@ namespace Microsoft.ML.Runtime.Data
                 return TryParseSource(rgstr[istr++]);
             }
 
-            private bool TryParseSource(string str)
+            private bool TryParseSource(string str) => TryParseSourceEx(str, out Source);
+
+            public static bool TryParseSourceEx(string str, out Range[] ranges)
             {
+                ranges = null;
                 var strs = str.Split(',');
                 if (str.Length == 0)
                     return false;
-                Source = new Range[strs.Length];
+
+                ranges = new Range[strs.Length];
                 for (int i = 0; i < strs.Length; i++)
                 {
-                    if ((Source[i] = Range.Parse(strs[i])) == null)
+                    if ((ranges[i] = Range.Parse(strs[i])) == null)
                         return false;
                 }
                 return true;
@@ -294,8 +298,11 @@ namespace Microsoft.ML.Runtime.Data
                 ShortName = "size")]
             public int? InputSize;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
             public string Separator = "tab";
+
+            [Argument(ArgumentType.AtMostOnce, Name = nameof(Separator), Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator.", ShortName = "sep")]
+            public char[] SeparatorChars = new[] { '\t' };
 
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
                 ShortName = "col", SortOrder = 1)]
@@ -1005,26 +1012,40 @@ namespace Microsoft.ML.Runtime.Data
                 _inputSize = SrcLim - 1;
 
             _host.CheckNonEmpty(args.Separator, nameof(args.Separator), "Must specify a separator");
-            string sep = args.Separator.ToLowerInvariant();
 
-            if (sep == ",")
-                _separators = new char[] { ',' };
-            else
+            //Default arg.Separator is tab and default args.SeparatorChars is also a '\t'.
+            //At a time only one default can be different and whichever is different that will 
+            //be used.
+            if (args.SeparatorChars.Length > 1 || args.SeparatorChars[0] != '\t')
             {
                 var separators = new HashSet<char>();
-                foreach (string s in sep.Split(','))
-                {
-                    if (string.IsNullOrEmpty(s))
-                        continue;
+                foreach (char c in args.SeparatorChars)
+                    separators.Add(NormalizeSeparator(c.ToString()));
 
-                    char c = NormalizeSeparator(s);
-                    separators.Add(c);
-                }
                 _separators = separators.ToArray();
-
-                // Handling ",,,," case, that .Split() returns empty strings.
-                if (_separators.Length == 0)
+            }
+            else
+            {
+                string sep = args.Separator.ToLowerInvariant();
+                if (sep == ",")
                     _separators = new char[] { ',' };
+                else
+                {
+                    var separators = new HashSet<char>();
+                    foreach (string s in sep.Split(','))
+                    {
+                        if (string.IsNullOrEmpty(s))
+                            continue;
+
+                        char c = NormalizeSeparator(s);
+                        separators.Add(c);
+                    }
+                    _separators = separators.ToArray();
+
+                    // Handling ",,,," case, that .Split() returns empty strings.
+                    if (_separators.Length == 0)
+                        _separators = new char[] { ',' };
+                }
             }
 
             _bindings = new Bindings(this, cols, headerFile);
