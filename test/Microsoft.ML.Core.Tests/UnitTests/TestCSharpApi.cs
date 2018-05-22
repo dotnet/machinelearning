@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var normalizeInput = new ML.Transforms.MinMaxNormalizer
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var catInput = new ML.Transforms.CategoricalOneHotVectorizer
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var trainTestInput = new ML.Models.TrainTestBinaryEvaluator
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var crossValidateBinary = new ML.Models.BinaryCrossValidator
@@ -269,10 +269,10 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact()]
+        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
         public void TestCrossValidationMacro()
         {
-            var dataPath = GetDataPath(@"external/winequality-white.csv");
+            var dataPath = GetDataPath(@"housing.txt");
             using (var env = new TlcEnvironment())
             {
                 var subGraph = env.CreateExperiment();
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var modelCombineOutput = subGraph.Add(modelCombine);
 
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader() { CustomSchema = "col=Label:R4:11 col=Features:R4:0-10 sep=; header+" };
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var crossValidate = new ML.Models.CrossValidator
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Assert.True(b);
                     double val = 0;
                     getter(ref val);
-                    Assert.Equal(0.58, val, 1);
+                    Assert.Equal(3.32, val, 1);
                     b = cursor.MoveNext();
                     Assert.False(b);
                 }

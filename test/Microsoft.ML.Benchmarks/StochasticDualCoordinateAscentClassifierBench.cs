@@ -4,6 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using Microsoft.ML.Data;
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Trainers;
@@ -50,7 +51,7 @@ namespace Microsoft.ML.Benchmarks
             s_trainedModel = TrainCore();
             IrisPrediction prediction = s_trainedModel.Predict(s_example);
 
-            var testData = new TextLoader<IrisData>(s_dataPath, useHeader: true, separator: "tab");
+            var testData = new TextLoader(s_dataPath).CreateFrom<IrisData>(useHeader: true);
             var evaluator = new ClassificationEvaluator();
             s_metrics = evaluator.Evaluate(s_trainedModel, testData);
 
@@ -70,7 +71,7 @@ namespace Microsoft.ML.Benchmarks
         {
             var pipeline = new LearningPipeline();
 
-            pipeline.Add(new TextLoader<IrisData>(s_dataPath, useHeader: true, separator: "tab"));
+            pipeline.Add(new TextLoader(s_dataPath).CreateFrom<IrisData>(useHeader: true));
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
 
