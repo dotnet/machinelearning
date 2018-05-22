@@ -14,6 +14,7 @@ namespace Microsoft.ML
     public interface ILearningPipelineItem
     {
         ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment);
+        Var<IDataView> GetInputData();
     }
 
     /// <summary>

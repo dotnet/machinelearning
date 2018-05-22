@@ -44,6 +44,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             get { return _schemaRoot; }
         }
 
+        public IDataView Data
+        {
+            get { return _chain;  }
+        }
+
         /// <summary>
         /// Create a TransformModel containing the transforms from "result" back to "input".
         /// </summary>

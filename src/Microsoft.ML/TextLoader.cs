@@ -43,7 +43,7 @@ namespace Microsoft.ML
             _inputFilePath = inputFilePath;
             SetCustomStringFromType(useHeader, separator, allowQuotedStrings, supportSparse, trimWhitespace);
         }
-
+        
         private IFileHandle GetTextLoaderFileHandle(IHostEnvironment env, string trainFilePath) =>
             new SimpleFileHandle(env, trainFilePath, false, false);
 
@@ -93,6 +93,8 @@ namespace Microsoft.ML
             else
                 throw new System.NotSupportedException("Type ${type.FullName} is not implemented or supported."); //Add more types.
         }
+
+        public Var<IDataView> GetInputData() => null;
 
         public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
         {

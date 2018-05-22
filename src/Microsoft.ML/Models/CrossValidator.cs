@@ -9,9 +9,9 @@ using System.Text;
 
 namespace Microsoft.ML.Models
 {
-    public sealed partial class BinaryCrossValidator
+    public sealed partial class CrossValidator
     {
-        public void CrossValidate<TInput, TOutput>(LearningPipeline pipeline) 
+        public PredictionModel<TInput, TOutput> CrossValidate<TInput, TOutput>(LearningPipeline pipeline) 
             where TInput : class
             where TOutput : class, new()
         {
@@ -22,8 +22,10 @@ namespace Microsoft.ML.Models
                 List<ILearningPipelineLoader> loaders = new List<ILearningPipelineLoader>();
                 List<Var<ITransformModel>> transformModels = new List<Var<ITransformModel>>();
                 Var<ITransformModel> lastTransformModel = null;
-                Var<IDataView> firstInput = null;
+                Var<IDataView> firstPipelineDataStep = null;
                 Var<IPredictorModel> firstModel = null;
+                Var<IDataView> lastData = null;
+                ILearningPipelineItem firstTransform = null;
                 foreach (ILearningPipelineItem currentItem in pipeline)
                 {
                     if (currentItem is ILearningPipelineLoader loader)
@@ -37,8 +39,11 @@ namespace Microsoft.ML.Models
                     if (step is ILearningPipelineDataStep dataStep && dataStep.Model != null)
                     {
                         transformModels.Add(dataStep.Model);
-                        if (firstInput == null)
-                            firstInput = dataStep.Data;
+                        if (firstPipelineDataStep == null)
+                        {
+                            firstPipelineDataStep = dataStep.Data;
+                            firstTransform = currentItem;
+                        }
                     }
 
                     else if (step is ILearningPipelinePredictorStep predictorDataStep)
@@ -59,14 +64,16 @@ namespace Microsoft.ML.Models
                         }
                         else
                             predictorModel = predictorDataStep.Model;
+                        firstModel = predictorModel;
 
                         var scorer = new Transforms.Scorer
                         {
                             PredictorModel = predictorModel
                         };
-                        firstModel = predictorModel;
+                        
                         var scorerOutput = subGraph.Add(scorer);
                         lastTransformModel = scorerOutput.ScoringTransform;
+                        lastData = scorerOutput.ScoredData;
                         step = new ScorerPipelineStep(scorerOutput.ScoredData, scorerOutput.ScoringTransform);
                         transformModels.Clear();
                     }
@@ -84,29 +91,29 @@ namespace Microsoft.ML.Models
 
                     var modelOutput = subGraph.Add(modelInput);
                     lastTransformModel = modelOutput.OutputModel;
+                    lastData = modelOutput.Data;
                 }
 
                 var experiment = environment.CreateExperiment();
-
                 var importTextOutput = loaders[0].ApplyStep(null, experiment);
-                
-                var crossValidateBinary = new ML.Models.BinaryCrossValidator
-                {
-                    Data = (importTextOutput as ILearningPipelineDataStep).Data,
-                    Nodes = subGraph
-                };
-                crossValidateBinary.Inputs.Data = firstInput;
-                crossValidateBinary.Outputs.Model = firstModel;
-                var crossValidateOutput = experiment.Add(crossValidateBinary);
 
+                Data = (importTextOutput as ILearningPipelineDataStep).Data;
+                Nodes = subGraph;
+                TransformModel = null;
+                Inputs.Data = firstTransform.GetInputData();
+                Outputs.Model = null;
+                Outputs.TransformModel = lastTransformModel;
+                Outputs.TransformData = lastData;
+                Outputs.UseTransformModel = true;
+                var crossValidateOutput = experiment.Add(this);
                 experiment.Compile();
                 foreach (ILearningPipelineLoader loader in loaders)
                 {
                     loader.SetInput(environment, experiment);
                 }
+
                 experiment.Run();
-                var data = experiment.GetOutput(crossValidateOutput.OverallMetrics[0]);
-                ITransformModel model = experiment.GetOutput(lastTransformModel);
+                ITransformModel model = experiment.GetOutput(crossValidateOutput.TransformModel[0]);
                 BatchPredictionEngine<TInput, TOutput> predictor;
                 using (var memoryStream = new MemoryStream())
                 {
@@ -116,7 +123,7 @@ namespace Microsoft.ML.Models
 
                     predictor = environment.CreateBatchPredictionEngine<TInput, TOutput>(memoryStream);
 
-                    //return new PredictionModel<TInput, TOutput>(predictor, memoryStream);
+                    return new PredictionModel<TInput, TOutput>(predictor, memoryStream);
                 }
             }
         }

@@ -882,8 +882,18 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             if (classBase.Contains("ICalibratorInput"))
                 isCalibrator = true;
 
+            if (isTransform)
+                writer.WriteLine("public Var<IDataView> GetInputData() => Data;");
+            else
+                writer.WriteLine("public Var<IDataView> GetInputData() => TrainingData;");
+
+            writer.WriteLine("");
             string className = GeneratorUtils.GetClassAndMethodNames(entryPointInfo).Item2;
             writer.WriteLine("public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)");
+            writer.WriteLine("{");
+
+            writer.Indent();
+            writer.WriteLine("if (previousStep != null)");
             writer.WriteLine("{");
             writer.Indent();
             writer.WriteLine("if (!(previousStep is ILearningPipelineDataStep dataStep))");
@@ -900,6 +910,9 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
             else
                 writer.WriteLine("TrainingData = dataStep.Data;");
+
+            writer.Outdent();
+            writer.WriteLine("}");
 
             string pipelineStep = $"{className}PipelineStep";
             writer.WriteLine($"Output output = experiment.Add(this);");

@@ -234,6 +234,29 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return result;
         }
 
+        public sealed class ArrayITransformModelInput
+        {
+            [Argument(ArgumentType.Required, HelpText = "The models", SortOrder = 1)]
+            public ITransformModel[] TransformModel;
+        }
+
+        public sealed class ArrayITransformModelOutput
+        {
+            [TlcModule.Output(Desc = "The model array", SortOrder = 1)]
+            public ITransformModel[] OutputModel;
+        }
+
+        [TlcModule.EntryPoint(Desc = "Create and array variable", Name = "Data.TransformModelArrayConverter")]
+        public static ArrayITransformModelOutput MakeArray(IHostEnvironment env, ArrayITransformModelInput input)
+        {
+            var result = new ArrayITransformModelOutput
+            {
+                OutputModel = input.TransformModel
+            };
+            return result;
+        }
+
+
         public sealed class ArrayIDataViewInput
         {
             [Argument(ArgumentType.Required, HelpText = "The data sets", SortOrder = 1)]
