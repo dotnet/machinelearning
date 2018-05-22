@@ -2135,7 +2135,7 @@ namespace Microsoft.ML
     namespace Models
     {
 
-        public sealed class CrossValidationMacroSubGraphInput
+        public sealed partial class CrossValidationMacroSubGraphInput
         {
             /// <summary>
             /// The data to be used for training
