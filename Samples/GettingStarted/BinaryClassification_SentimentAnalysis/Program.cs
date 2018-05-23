@@ -1,24 +1,26 @@
-﻿using Microsoft.ML;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.ML;
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BinaryClassification_SentimentAnalysis
 {
     internal static class Program
     {
         private static string AppPath => Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]);
-        private static string TrainDataPath => Path.Combine(AppPath, @"..\..\..\..\datasets\", "imdb_labelled.txt");
-        private static string TestDataPath => Path.Combine(AppPath, @"..\..\..\..\datasets\", "yelp_labelled.txt");
+        private static string TrainDataPath => Path.Combine(AppPath, "..", "..", "..", "..",  "datasets", "imdb_labeled.txt");
+        private static string TestDataPath => Path.Combine(AppPath,  "..", "..", "..", "..", "datasets", "yelp_labeled.txt");
         private static string ModelPath => Path.Combine(AppPath, "Models", "SentimentModel.zip");
 
         private static async Task Main(string[] args)
         {
+            // ML task includes 3 steps: training a ML model, evaluating how good it is,
+            // and if the quality is acceptable, using this model for predictions.
             var model = await TrainAsync();
 
             Evaluate(model);
@@ -38,27 +40,25 @@ namespace BinaryClassification_SentimentAnalysis
 
         public static async Task<PredictionModel<SentimentData, SentimentPrediction>> TrainAsync()
         {
-            // LearningPipeline allows us to add steps in order to keep everything together 
-            // during the learning process.  
+            // LearningPipeline holds all steps of the learning process: data, transforms, learners.  
             var pipeline = new LearningPipeline();
 
-            // The TextLoader loads a dataset with comments and corresponding postive or negative sentiment. 
-            // When you create a loader you specify the schema by passing a class to the loader containing
+            // The TextLoader loads a dataset. The schema of the dataset is specified by passing a class containing
             // all the column names and their types. This will be used to create the model, and train it. 
             pipeline.Add(new TextLoader<SentimentData>(TrainDataPath, useHeader: false, separator: "tab"));
 
-            // TextFeaturizer is a transform that will be used to featurize an input column. 
-            // This is used to format and clean the data.
+            // TextFeaturizer is a transform that will be used to featurize an input column to format and clean the data.
             pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
 
-            //add a FastTreeBinaryClassifier, the decision tree learner for this project, and 
-            //three hyperparameters to be used for tuning decision tree performance 
+            // FastTreeBinaryClassifier is an algorithm that will be used to train the model.
+            // It has three hyperparameters for tuning decision tree performance. 
             pipeline.Add(new FastTreeBinaryClassifier() {NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2});
 
             Console.WriteLine("=============== Training model ===============");
-            // We train our pipeline based on the dataset that has been loaded and transformed 
+            // The pipeline is trained on the dataset that has been loaded and transformed.
             var model = pipeline.Train<SentimentData, SentimentPrediction>();
 
+            // Saving the model as a .zip file.
             await model.WriteAsync(ModelPath);
 
             Console.WriteLine("=============== End training ===============");
@@ -69,17 +69,17 @@ namespace BinaryClassification_SentimentAnalysis
 
         private static void Evaluate(PredictionModel<SentimentData, SentimentPrediction> model)
         {
+            // To evaluate how good the model predicts values, the model is ran against new set
+            // of data (test data) that was not involved in training.
             var testData = new TextLoader<SentimentData>(TestDataPath, useHeader: true, separator: "tab");
 
-            // BinaryClassificationEvaluator computes the quality metrics for the PredictionModel
-            //using the specified data set.
+            // BinaryClassificationEvaluator performs evaluation for Binary Classification type of ML problems.
             var evaluator = new BinaryClassificationEvaluator();
 
             Console.WriteLine("=============== Evaluating model ===============");
 
-            // BinaryClassificationMetrics contains the overall metrics computed by binary classification evaluators
             var metrics = evaluator.Evaluate(model, testData);
-
+            // BinaryClassificationMetrics contains the overall metrics computed by binary classification evaluators
             // The Accuracy metric gets the accuracy of a classifier which is the proportion 
             //of correct predictions in the test set.
 

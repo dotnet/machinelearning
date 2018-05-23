@@ -2,7 +2,7 @@
 This is a simple prototype application to demonstrate how to use [ML.NET](https://www.nuget.org/packages/Microsoft.ML/) APIs. The main focus is on creating, training, and using ML (Machine Learning) model that is implemented in Predictor.cs class.
 
 ## Overview
-GitHubLabeler is a .NET Core console application that runs from command-line interface (CLI) and allows to:
+GitHubLabeler is a .NET Core console application that runs from command-line interface (CLI) and allows you to:
 * train ML model on your labeled GitHub issues to teach the model what label should be assigned for a new issue. (As an example, you can use `corefx_issues.tsv` file that contains issues from public [corefx](https://github.com/dotnet/corefx) repository)
 * label a new issue. The application will get all unlabeled open issues from specified in `App.config` GitHub repository and label them using the trained ML model created on the step above.  
 

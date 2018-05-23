@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-
 using Microsoft.ML;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
