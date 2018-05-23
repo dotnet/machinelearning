@@ -334,6 +334,16 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 idv => RoleMappedData.Create(idv, RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, input.LabelColumn))).ToArray(),
                 out var variableSizeVectorColumnNames);
 
+            var warnings = input.Warnings != null ? new List<IDataView>(input.Warnings) : new List<IDataView>();
+            if (variableSizeVectorColumnNames.Length > 0)
+            {
+                var dvBldr = new ArrayDataViewBuilder(env);
+                var warn = $"Detected columns of variable length: {string.Join(", ", variableSizeVectorColumnNames)}." +
+                    $" Consider setting collateMetrics- for meaningful per-Folds results.";
+                dvBldr.AddColumn(MetricKinds.ColumnNames.WarningText, TextType.Instance, new DvText(warn));
+                warnings.Add(dvBldr.GetDataView());
+            }
+
             env.Assert(Utils.Size(perInst) == 1);
 
             var overall = eval.GetOverallResults(input.OverallMetrics);
@@ -362,7 +372,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 conf = EvaluateUtils.CombineOverallMetrics(env, input.ConfusionMatrix);
             }
 
-            return new CombinedOutput() { PerInstanceMetrics = perInst[0], OverallMetrics = overall, ConfusionMatrix = conf };
+            var warningsIdv = warnings.Count > 0 ? AppendRowsDataView.Create(env, warnings[0].Schema, warnings.ToArray()) : null;
+
+            return new CombinedOutput()
+            {
+                PerInstanceMetrics = perInst[0],
+                OverallMetrics = overall,
+                ConfusionMatrix = conf,
+                Warnings = warningsIdv
+            };
         }
 
         private static IMamlEvaluator GetEvaluator(IHostEnvironment env, MacroUtils.TrainerKinds kind)
@@ -384,7 +402,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
                     return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
                 default:
-                    throw env.Except($"Trainer kind {kind} does not have an evaluator");
+                    throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
             }
         }
     }
