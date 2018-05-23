@@ -1,17 +1,14 @@
 ﻿using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
-
     public partial class ScenariosTests
     {
         [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/203")]
@@ -74,7 +71,7 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
             public float[] Distance;
         }
 
-        public class ClusterData
+        public class ClusteringData
         {
             [ColumnName("Features")]
             [VectorType(2)]
@@ -87,19 +84,19 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
             int n = 1000;
             int k = 5;
             var rand = new Random();
-            var clusters = new ClusterData[k];
-            var data = new ClusterData[n];
+            var clusters = new ClusteringData[k];
+            var data = new ClusteringData[n];
             for (int i = 0; i < k; i++)
             {
                 //pick clusters as points on circle with angle to axis X equal to 360*i/k
-                clusters[i] = new ClusterData { Points = new float[2] { (float)Math.Cos(Math.PI * i *2 /  k), (float)Math.Sin(Math.PI * i *2 / k) } };
+                clusters[i] = new ClusteringData { Points = new float[2] { (float)Math.Cos(Math.PI * i * 2 / k), (float)Math.Sin(Math.PI * i * 2 / k) } };
             }
             // create data points by randomly picking cluster and shifting point slightly away from it.
             for (int i = 0; i < n; i++)
             {
                 var index = rand.Next(0, k);
                 var shift = (rand.NextDouble() - 0.5) / k;
-                data[i] = new ClusterData
+                data[i] = new ClusteringData
                 {
                     Points = new float[2]
                     {
@@ -111,7 +108,7 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
             var pipeline = new LearningPipeline();
             pipeline.Add(CollectionDataSource.Create(data));
             pipeline.Add(new KMeansPlusPlusClusterer() { K = k });
-            var model = pipeline.Train<ClusterData, ClusteringPrediction>();
+            var model = pipeline.Train<ClusteringData, ClusteringPrediction>();
             //validate no initial centers of clusters belong to same cluster.
             var labels = new HashSet<uint>();
             for (int i = 0; i < k; i++)
