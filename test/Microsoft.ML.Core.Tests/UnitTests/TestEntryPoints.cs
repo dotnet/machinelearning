@@ -2363,9 +2363,9 @@ namespace Microsoft.ML.Runtime.RunTests
             model = runner.GetOutput<IPredictorModel[]>("model2");
             Assert.NotNull(model[0]);
 
-            var metrics = runner.GetOutput<IDataView[]>("OverallMetrics");
-            Assert.NotNull(metrics[0]);
-            using (var cursor = metrics[0].GetRowCursor(col => true))
+            var metrics = runner.GetOutput<IDataView>("OverallMetrics");
+            Assert.NotNull(metrics);
+            using (var cursor = metrics.GetRowCursor(col => true))
             {
                 Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
                 var aucGetter = cursor.GetGetter<double>(aucCol);
@@ -2375,9 +2375,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(auc > 0.99);
             }
 
-            metrics = runner.GetOutput<IDataView[]>("OverallMetrics2");
-            Assert.NotNull(metrics[0]);
-            using (var cursor = metrics[0].GetRowCursor(col => true))
+            metrics = runner.GetOutput<IDataView>("OverallMetrics2");
+            Assert.NotNull(metrics);
+            using (var cursor = metrics.GetRowCursor(col => true))
             {
                 Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
                 var aucGetter = cursor.GetGetter<double>(aucCol);
