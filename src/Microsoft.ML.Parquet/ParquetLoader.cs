@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly int _columnChunkReadSize;
         private readonly Column[] _columnsLoaded;
         private readonly DataSet _schemaDataSet;
-        private const int _defaultColumnChunkReadSize = 100; // Should ideally be close to Rowgroup size
+        private const int _defaultColumnChunkReadSize = 1000000;
 
         private bool _disposed;
 
@@ -368,8 +368,8 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Delegate[] _getters;
             private readonly ReaderOptions _readerOptions;
             private int _curDataSetRow;
-            private IEnumerator _dataSetEnumerator;
-            private IEnumerator _blockEnumerator;
+            private IEnumerator<int> _dataSetEnumerator;
+            private IEnumerator<int> _blockEnumerator;
             private IList[] _columnValues;
             private IRandom _rand;
 
@@ -390,11 +390,18 @@ namespace Microsoft.ML.Runtime.Data
                     Columns = _loader._columnsLoaded.Select(i => i.Name).ToArray()
                 };
 
-                int numBlocks = (int)Math.Ceiling(((decimal)parent.GetRowCount() / _readerOptions.Count));
-                int[] blockOrder = _rand == null ? Utils.GetIdentityPermutation(numBlocks) : Utils.GetRandomPermutation(rand, numBlocks);
+                // The number of blocks is calculated based on the specified rows in a block (defaults to 1M).
+                // Since we want to shuffle the blocks in addition to shuffling the rows in each block, checks
+                // are put in place to ensure we can produce a shuffle order for the blocks.
+                var numBlocks = MathUtils.DivisionCeiling((long)parent.GetRowCount(), _readerOptions.Count);
+                if (numBlocks > int.MaxValue)
+                {
+                    throw _loader._host.ExceptParam(nameof(Arguments.ColumnChunkReadSize), "Error due to too many blocks. Try increasing block size.");
+                }
+                var blockOrder = CreateOrderSequence((int)numBlocks);
                 _blockEnumerator = blockOrder.GetEnumerator();
 
-                _dataSetEnumerator = new int[0].GetEnumerator(); // Initialize an empty enumerator to get started
+                _dataSetEnumerator = Enumerable.Empty<int>().GetEnumerator();
                 _columnValues = new IList[_actives.Length];
                 _getters = new Delegate[_actives.Length];
                 for (int i = 0; i < _actives.Length; ++i)
@@ -472,12 +479,12 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (_dataSetEnumerator.MoveNext())
                 {
-                    _curDataSetRow = (int)_dataSetEnumerator.Current;
+                    _curDataSetRow = _dataSetEnumerator.Current;
                     return true;
                 }
                 else if (_blockEnumerator.MoveNext())
                 {
-                    _readerOptions.Offset = (int)_blockEnumerator.Current * _readerOptions.Count;
+                    _readerOptions.Offset = (long)_blockEnumerator.Current * _readerOptions.Count;
 
                     // When current dataset runs out, read the next portion of the parquet file.
                     DataSet ds;
@@ -486,9 +493,9 @@ namespace Microsoft.ML.Runtime.Data
                         ds = ParquetReader.Read(_loader._parquetStream, _loader._parquetOptions, _readerOptions);
                     }
 
-                    int[] dataSetOrder = _rand == null ? Utils.GetIdentityPermutation(ds.RowCount) : Utils.GetRandomPermutation(_rand, ds.RowCount);
+                    var dataSetOrder = CreateOrderSequence(ds.RowCount);
                     _dataSetEnumerator = dataSetOrder.GetEnumerator();
-                    _curDataSetRow = dataSetOrder[0];
+                    _curDataSetRow = dataSetOrder.ElementAt(0);
 
                     // Cache list for each active column
                     for (int i = 0; i < _actives.Length; i++)
@@ -532,6 +539,26 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 return _colToActivesIndex[col] >= 0;
+            }
+
+            /// <summary>
+            /// Creates a in-order or shuffled sequence, based on whether _rand is specified.
+            /// If unable to create a shuffle sequence, will default to sequential.
+            /// </summary>
+            /// <param name="size">Number of elements in the sequence.</param>
+            /// <returns></returns>
+            private IEnumerable<int> CreateOrderSequence(int size)
+            {
+                IEnumerable<int> order;
+                try
+                {
+                    order = _rand == null ? Enumerable.Range(0, size) : Utils.GetRandomPermutation(_rand, size);
+                }
+                catch (OutOfMemoryException)
+                {
+                    order = Enumerable.Range(0, size);
+                }
+                return order;
             }
         }
 
