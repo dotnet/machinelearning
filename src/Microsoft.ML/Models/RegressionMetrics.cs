@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Models
 {
@@ -18,7 +19,7 @@ namespace Microsoft.ML.Models
         {
         }
 
-        internal static RegressionMetrics FromOverallMetrics(IHostEnvironment env, IDataView overallMetrics)
+        internal static List<RegressionMetrics> FromOverallMetrics(IHostEnvironment env, IDataView overallMetrics)
         {
             Contracts.AssertValue(env);
             env.AssertValue(overallMetrics);
@@ -30,21 +31,22 @@ namespace Microsoft.ML.Models
                 throw env.Except("The overall RegressionMetrics didn't have any rows.");
             }
 
-            SerializationClass metrics = enumerator.Current;
-
-            if (enumerator.MoveNext())
+            List<RegressionMetrics> metrics = new List<RegressionMetrics>();
+            do
             {
-                throw env.Except("The overall RegressionMetrics contained more than 1 row.");
-            }
+                SerializationClass metric = enumerator.Current;
+                metrics.Add(new RegressionMetrics()
+                {
+                    L1 = metric.L1,
+                    L2 = metric.L2,
+                    Rms = metric.Rms,
+                    LossFn = metric.LossFn,
+                    RSquared = metric.RSquared,
+                });
 
-            return new RegressionMetrics()
-            {
-                L1 = metrics.L1,
-                L2 = metrics.L2,
-                Rms = metrics.Rms,
-                LossFn = metrics.LossFn,
-                RSquared = metrics.RSquared,
-            };
+            } while (enumerator.MoveNext());
+
+            return metrics;
         }
 
         /// <summary>

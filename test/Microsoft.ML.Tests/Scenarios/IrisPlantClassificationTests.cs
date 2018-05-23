@@ -7,6 +7,7 @@ using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Scenarios
 
             var evaluator = new ClassificationEvaluator();
             evaluator.OutputTopKAcc = 3;
-            ClassificationMetrics metrics = evaluator.Evaluate(model, testData);
+            ClassificationMetrics metrics = evaluator.Evaluate(model, testData).FirstOrDefault();
 
             Assert.Equal(.98, metrics.AccuracyMacro);
             Assert.Equal(.98, metrics.AccuracyMicro, 2);

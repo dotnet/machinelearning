@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Models
 {
@@ -23,7 +24,7 @@ namespace Microsoft.ML.Models
         /// <returns>
         /// A BinaryClassificationMetrics instance that describes how well the model performed against the test data.
         /// </returns>
-        public BinaryClassificationMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
+        public List<BinaryClassificationMetrics> Evaluate(PredictionModel model, ILearningPipelineLoader testData)
         {
             using (var environment = new TlcEnvironment())
             {

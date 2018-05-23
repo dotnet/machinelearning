@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Models
 {
@@ -17,7 +18,7 @@ namespace Microsoft.ML.Models
         {
         }
 
-        internal static ClassificationMetrics FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix)
+        internal static List<ClassificationMetrics> FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix)
         {
             Contracts.AssertValue(env);
             env.AssertValue(overallMetrics);
@@ -29,24 +30,32 @@ namespace Microsoft.ML.Models
             {
                 throw env.Except("The overall RegressionMetrics didn't have any rows.");
             }
-
-            SerializationClass metrics = enumerator.Current;
-
-            if (enumerator.MoveNext())
+            
+            List<ClassificationMetrics> metrics = new List<ClassificationMetrics>();
+            var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
+            do
             {
-                throw env.Except("The overall RegressionMetrics contained more than 1 row.");
-            }
+                if (!confusionMatrices.MoveNext())
+                {
+                    throw env.Except("Confusion matrices didn't have enough matrices.");
+                }
 
-            return new ClassificationMetrics()
-            {
-                AccuracyMicro = metrics.AccuracyMicro,
-                AccuracyMacro = metrics.AccuracyMacro,
-                LogLoss = metrics.LogLoss,
-                LogLossReduction = metrics.LogLossReduction,
-                TopKAccuracy = metrics.TopKAccuracy,
-                PerClassLogLoss = metrics.PerClassLogLoss,
-                ConfusionMatrix = ConfusionMatrix.Create(env, confusionMatrix)
-            };
+                SerializationClass metric = enumerator.Current;
+                metrics.Add(
+                    new ClassificationMetrics()
+                    {
+                        AccuracyMicro = metric.AccuracyMicro,
+                        AccuracyMacro = metric.AccuracyMacro,
+                        LogLoss = metric.LogLoss,
+                        LogLossReduction = metric.LogLossReduction,
+                        TopKAccuracy = metric.TopKAccuracy,
+                        PerClassLogLoss = metric.PerClassLogLoss,
+                        ConfusionMatrix = confusionMatrices.Current
+                    });
+
+            } while (enumerator.MoveNext());
+
+            return metrics;
         }
 
         /// <summary>

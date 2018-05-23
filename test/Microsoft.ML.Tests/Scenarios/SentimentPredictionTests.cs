@@ -65,7 +65,7 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
-
+            //var cv = new CrossValidator().CrossValidate<SentimentData, SentimentPrediction>(pipeline);
             PredictionModel<SentimentData, SentimentPrediction> model = pipeline.Train<SentimentData, SentimentPrediction>();
             IEnumerable<SentimentData> sentiments = new[]
           {
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Scenarios
                 }
             };
             var evaluator = new BinaryClassificationEvaluator();
-            BinaryClassificationMetrics metrics = evaluator.Evaluate(model, testData);
+            BinaryClassificationMetrics metrics = evaluator.Evaluate(model, testData).FirstOrDefault();
 
             Assert.Equal(.5556, metrics.Accuracy, 4);
             Assert.Equal(.8, metrics.Auc, 1);

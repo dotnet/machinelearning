@@ -11582,11 +11582,6 @@ namespace Microsoft.ML
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> OutputModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
-                /// <summary>
-                /// Data
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
             }
         }
     }

@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Models
 {
@@ -23,7 +24,7 @@ namespace Microsoft.ML.Models
         /// <returns>
         /// A ClassificationMetrics instance that describes how well the model performed against the test data.
         /// </returns>
-        public ClassificationMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
+        public List<ClassificationMetrics> Evaluate(PredictionModel model, ILearningPipelineLoader testData)
         {
             using (var environment = new TlcEnvironment())
             {

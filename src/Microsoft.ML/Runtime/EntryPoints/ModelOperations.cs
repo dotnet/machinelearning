@@ -23,9 +23,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             [TlcModule.Output(Desc = "Combined model", SortOrder = 1)]
             public ITransformModel OutputModel;
-
-            [TlcModule.Output(Desc = "Data", SortOrder = 2)]
-            public IDataView Data;
         }
 
         public sealed class PredictorModelInput
@@ -92,7 +89,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             for (int i = input.Models.Length - 2; i >= 0; i--)
                 model = model.Apply(env, input.Models[i]);
 
-            return new CombineTransformModelsOutput { OutputModel = model, Data = model.Data };
+            return new CombineTransformModelsOutput { OutputModel = model };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.ManyHeterogeneousModelCombiner", Desc = "Combines a sequence of TransformModels and a PredictorModel into a single PredictorModel.")]

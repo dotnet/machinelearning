@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Models
 {
@@ -18,7 +19,7 @@ namespace Microsoft.ML.Models
         {
         }
 
-        internal static BinaryClassificationMetrics FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix)
+        internal static List<BinaryClassificationMetrics> FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix)
         {
             Contracts.AssertValue(env);
             env.AssertValue(overallMetrics);
@@ -31,28 +32,37 @@ namespace Microsoft.ML.Models
                 throw env.Except("The overall RegressionMetrics didn't have any rows.");
             }
 
-            SerializationClass metrics = enumerator.Current;
-
-            if (enumerator.MoveNext())
+            List<BinaryClassificationMetrics> metrics = new List<BinaryClassificationMetrics>();
+            var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
+            do
             {
-                throw env.Except("The overall RegressionMetrics contained more than 1 row.");
-            }
+                SerializationClass metric = enumerator.Current;
 
-            return new BinaryClassificationMetrics()
-            {
-                Auc = metrics.Auc,
-                Accuracy = metrics.Accuracy,
-                PositivePrecision = metrics.PositivePrecision,
-                PositiveRecall = metrics.PositiveRecall,
-                NegativePrecision = metrics.NegativePrecision,
-                NegativeRecall = metrics.NegativeRecall,
-                LogLoss = metrics.LogLoss,
-                LogLossReduction = metrics.LogLossReduction,
-                Entropy = metrics.Entropy,
-                F1Score = metrics.F1Score,
-                Auprc = metrics.Auprc,
-                ConfusionMatrix = ConfusionMatrix.Create(env, confusionMatrix),
-            };
+                if (!confusionMatrices.MoveNext())
+                {
+                    throw env.Except("Confusion matrices didn't have enough matrices.");
+                }
+
+                metrics.Add( 
+                    new BinaryClassificationMetrics()
+                {
+                    Auc = metric.Auc,
+                    Accuracy = metric.Accuracy,
+                    PositivePrecision = metric.PositivePrecision,
+                    PositiveRecall = metric.PositiveRecall,
+                    NegativePrecision = metric.NegativePrecision,
+                    NegativeRecall = metric.NegativeRecall,
+                    LogLoss = metric.LogLoss,
+                    LogLossReduction = metric.LogLossReduction,
+                    Entropy = metric.Entropy,
+                    F1Score = metric.F1Score,
+                    Auprc = metric.Auprc,
+                    ConfusionMatrix = confusionMatrices.Current,
+                });
+
+            } while (enumerator.MoveNext());
+
+            return metrics;
         }
 
         /// <summary>
