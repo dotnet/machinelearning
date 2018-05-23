@@ -5,6 +5,7 @@
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
@@ -66,7 +67,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             const string _dataPath = @"..\..\Data\breast-cancer.txt";
             var pipeline = new LearningPipeline();
-            pipeline.Add(new TextLoader<InputData>(_dataPath, useHeader: false));
+            pipeline.Add(new ML.Data.TextLoader(_dataPath).CreateFrom<InputData>(useHeader: false));
             pipeline.Add(new CategoricalHashOneHotVectorizer("F1") { HashBits = 10, Seed = 314489979, OutputKind = CategoricalTransformOutputKind.Bag });
             var model = pipeline.Train<InputData, TransformedData>();
             var predictionModel = model.Predict(new InputData() { F1 = "5" });
@@ -95,7 +96,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public class Prediction
         {
             [ColumnName("PredictedLabel")]
-            public bool PredictedLabel;
+            public DvBool PredictedLabel;
         }
 
         [Fact]
