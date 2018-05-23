@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data.Utilities
                     baseUri = new Uri(baseUri.AbsoluteUri + "/");
                 }
 
-                relativePath = baseUri.MakeRelativeUri(uri).ToString();
+                relativePath = Uri.UnescapeDataString(baseUri.MakeRelativeUri(uri).ToString());
             }
             catch (ArgumentNullException e)
             {
