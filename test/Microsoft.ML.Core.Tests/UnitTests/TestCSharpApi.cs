@@ -4,6 +4,7 @@
 
 using ML = Microsoft.ML;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.TestFramework;
@@ -269,10 +270,10 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
+        [Fact]
         public void TestCrossValidationMacro()
         {
-            var dataPath = GetDataPath(@"housing.txt");
+            var dataPath = GetDataPath(TestDatasets.winequality.trainFilename);
             using (var env = new TlcEnvironment())
             {
                 var subGraph = env.CreateExperiment();
@@ -295,7 +296,30 @@ namespace Microsoft.ML.Runtime.RunTests
                 var modelCombineOutput = subGraph.Add(modelCombine);
 
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new ML.Data.TextLoader(dataPath)
+                {
+                    Arguments = new TextLoaderArguments
+                    {
+                        Separator = new[] { ';' },
+                        HasHeader = true,
+                        Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoaderRange(11) },
+                            Type = DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Features",
+                            Source = new [] { new TextLoaderRange(0,10) },
+                            Type = DataKind.Num
+                        }
+                    }
+                    }
+                };
                 var importOutput = experiment.Add(importInput);
 
                 var crossValidate = new ML.Models.CrossValidator
@@ -324,7 +348,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Assert.True(b);
                     double val = 0;
                     getter(ref val);
-                    Assert.Equal(3.32, val, 1);
+                    Assert.Equal(0.58, val, 1);
                     b = cursor.MoveNext();
                     Assert.False(b);
                 }

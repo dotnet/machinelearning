@@ -8,7 +8,7 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
   <Import Project="$(ToolsDir)VersionTools.targets" Condition="Exists('$(ToolsDir)VersionTools.targets')" />
-
+  <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <PropertyGroup>
     <!-- To disable the restoration of packages, set RestoreDuringBuild=false or pass /p:RestoreDuringBuild=false.-->
     <RestoreDuringBuild Condition="'$(RestoreDuringBuild)'==''">true</RestoreDuringBuild>
@@ -33,6 +33,7 @@
       RestoreProjects;
       BuildNative;
       $(TraversalBuildDependsOn);
+      DownloadExternalTestFiles;
       RunTests;
     </TraversalBuildDependsOn>
   </PropertyGroup>
@@ -56,11 +57,24 @@
     <ItemGroup>
       <PkgProject Include="pkg\**\*.nupkgproj" />
     </ItemGroup>
-    
+
     <MSBuild Projects="@(PkgProject)"
              Targets="Restore" />
     <MSBuild Projects="@(PkgProject)"
              Targets="Pack" />
+  </Target>
+
+  <ItemGroup>
+    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/winequality-white.csv"
+      Url="https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv"
+      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv" />
+  </ItemGroup>
+
+  <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading external test files... %(TestFile.DestinationFile)" />
+    <DownloadFilesFromUrl Items="@(TestFile)"
+                         DestinationDir="test/data/external"
+                         TreatErrorsAsWarnings="true"/>
   </Target>
 
   <Target Name="RunTests" Condition="'$(RunTests)'=='true'">
