@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var normalizeInput = new ML.Transforms.MinMaxNormalizer
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var catInput = new ML.Transforms.CategoricalOneHotVectorizer
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var trainTestInput = new ML.Models.TrainTestBinaryEvaluator
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var crossValidateBinary = new ML.Models.BinaryCrossValidator
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var modelCombineOutput = subGraph.Add(modelCombine);
 
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader();
+                var importInput = new ML.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
                 var crossValidate = new ML.Models.CrossValidator
@@ -325,6 +325,74 @@ namespace Microsoft.ML.Runtime.RunTests
                     double val = 0;
                     getter(ref val);
                     Assert.Equal(3.32, val, 1);
+                    b = cursor.MoveNext();
+                    Assert.False(b);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestCrossValidationMacroWithStratification()
+        {
+            var dataPath = GetDataPath(@"breast-cancer.txt");
+            using (var env = new TlcEnvironment())
+            {
+                var subGraph = env.CreateExperiment();
+
+                var nop = new ML.Transforms.NoOperation();
+                var nopOutput = subGraph.Add(nop);
+
+                var learnerInput = new ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier
+                {
+                    TrainingData = nopOutput.OutputData,
+                    NumThreads = 1
+                };
+                var learnerOutput = subGraph.Add(learnerInput);
+
+                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                {
+                    TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model),
+                    PredictorModel = learnerOutput.PredictorModel
+                };
+                var modelCombineOutput = subGraph.Add(modelCombine);
+
+                var experiment = env.CreateExperiment();
+                var importInput = new ML.Data.TextLoader(dataPath);
+                importInput.Arguments.Column = new ML.Data.TextLoaderColumn[]
+                {
+                    new ML.Data.TextLoaderColumn { Name = "Label", Source = new[] { new ML.Data.TextLoaderRange(0) } },
+                    new ML.Data.TextLoaderColumn { Name = "Strat", Source = new[] { new ML.Data.TextLoaderRange(1) } },
+                    new ML.Data.TextLoaderColumn { Name = "Features", Source = new[] { new ML.Data.TextLoaderRange(2, 9) } }
+                };
+                var importOutput = experiment.Add(importInput);
+
+                var crossValidate = new ML.Models.CrossValidator
+                {
+                    Data = importOutput.Data,
+                    Nodes = subGraph,
+                    TransformModel = null,
+                    StratificationColumn = "Strat"
+                };
+                crossValidate.Inputs.Data = nop.Data;
+                crossValidate.Outputs.Model = modelCombineOutput.PredictorModel;
+                var crossValidateOutput = experiment.Add(crossValidate);
+
+                experiment.Compile();
+                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                experiment.Run();
+                var data = experiment.GetOutput(crossValidateOutput.OverallMetrics[0]);
+
+                var schema = data.Schema;
+                var b = schema.TryGetColumnIndex("AUC", out int metricCol);
+                Assert.True(b);
+                using (var cursor = data.GetRowCursor(col => col == metricCol))
+                {
+                    var getter = cursor.GetGetter<double>(metricCol);
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    double val = 0;
+                    getter(ref val);
+                    Assert.Equal(0.99, val, 2);
                     b = cursor.MoveNext();
                     Assert.False(b);
                 }
