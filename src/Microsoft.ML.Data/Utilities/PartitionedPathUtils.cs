@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Data.Utilities
 
             if (baseUri.Scheme != uri.Scheme)
             {
-                throw Contracts.Except("Paths cannot be made relative as they are of different schemes.");
+                throw Contracts.ExceptParam(basepath, "Paths cannot be made relative as they are of different schemes.");
             }
 
             string relativePath;
