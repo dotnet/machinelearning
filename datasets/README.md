@@ -4,7 +4,7 @@ The datasets are provided under the original terms that Microsoft received such 
 
 ### NYC Taxi Fare
 
-Redistributing the dataset "taxi-fare-test.csv", "taxi-fare-train.csv" with attribution:
+Redistributing the dataset "taxifare_test.csv", "taxifare_train.csv" with attribution:
 
 Original source: http://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml
 
