@@ -360,9 +360,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 var importInput = new ML.Data.TextLoader(dataPath);
                 importInput.Arguments.Column = new ML.Data.TextLoaderColumn[]
                 {
-                    new ML.Data.TextLoaderColumn { Name = "Label", Source = new[] { new ML.Data.TextLoaderRange {  Min = 0, Max = 0 } }, Type = DataKind.R4 },
-                    new ML.Data.TextLoaderColumn { Name = "Strat", Source = new[] { new ML.Data.TextLoaderRange {  Min = 1, Max = 1 } }, Type = DataKind.Text },
-                    new ML.Data.TextLoaderColumn { Name = "Features", Source = new[] { new ML.Data.TextLoaderRange {  Min = 2, Max = 9 } }, Type = DataKind.R4 }
+                    new ML.Data.TextLoaderColumn { Name = "Label", Source = new[] { new ML.Data.TextLoaderRange(0) } },
+                    new ML.Data.TextLoaderColumn { Name = "Strat", Source = new[] { new ML.Data.TextLoaderRange(1) } },
+                    new ML.Data.TextLoaderColumn { Name = "Features", Source = new[] { new ML.Data.TextLoaderRange(2, 9) } }
                 };
                 var importOutput = experiment.Add(importInput);
 
