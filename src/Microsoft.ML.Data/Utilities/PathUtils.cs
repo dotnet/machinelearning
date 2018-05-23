@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Data.Utilities
         /// <param name="basepath">The base path, assumed to be a directory.</param>
         /// <param name="path">The full path.</param>
         /// <returns>The relative path.</returns>
-        /// <exception cref="ArgumentException">If the paths are not relative.</exception>
+        /// <exception cref="InvalidOperationException">If the paths are not relative.</exception>
         internal static string MakePathRelative(string basepath, string path)
         {
             Contracts.AssertNonEmpty(basepath);
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Data.Utilities
 
             if (baseUri.Scheme != uri.Scheme)
             {
-                throw new ArgumentException("Paths cannot be made relative as they are of different schemes.");
+                throw Contracts.Except("Paths cannot be made relative as they are of different schemes.");
             }
 
             string relativePath;
@@ -42,11 +42,11 @@ namespace Microsoft.ML.Runtime.Data.Utilities
             }
             catch (ArgumentNullException e)
             {
-                throw new ArgumentException("Paths could not be made relative.", e);
+                throw Contracts.Except(e, "Paths could not be made relative.");
             }
             catch (InvalidOperationException e)
             {
-                throw new ArgumentException("Paths could not be made relative.", e);
+                throw Contracts.Except(e, "Paths could not be made relative.");
             }
 
             if (uri.Scheme.Equals("file", StringComparison.OrdinalIgnoreCase))
