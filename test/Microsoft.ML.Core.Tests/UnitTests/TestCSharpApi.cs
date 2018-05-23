@@ -531,7 +531,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 crossValidate.Inputs.Data = nop.Data;
                 crossValidate.Outputs.Model = modelCombineOutput.PredictorModel;
                 var crossValidateOutput = experiment.Add(crossValidate);
-
                 experiment.Compile();
                 experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
                 experiment.Run();
