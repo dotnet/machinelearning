@@ -674,7 +674,7 @@ namespace Microsoft.ML.Runtime.Data
                 truncPath = null;
 
                 // Remove directories that shouldn't be parsed.
-                var segments = PathUtils.SplitDirectories(path);
+                var segments = PartitionedPathUtils.SplitDirectories(path);
                 segments = segments.Skip(segments.Count() - dirCount - 1);
 
                 if (segments.Count() < dirCount - 1)
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Runtime.Data
             string path = files.GetPathOrNull(0);
             _host.CheckNonEmpty(path, nameof(path));
 
-            var relativePath = PathUtils.MakePathRelative(basepath, path);
+            var relativePath = PartitionedPathUtils.MakePathRelative(basepath, path);
             return relativePath;
         }
 
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <returns>The number of directories</returns>
         private int GetDirectoryCount(string path)
         {
-            return PathUtils.SplitDirectories(path).Count() - 1;
+            return PartitionedPathUtils.SplitDirectories(path).Count() - 1;
         }
     }
 }

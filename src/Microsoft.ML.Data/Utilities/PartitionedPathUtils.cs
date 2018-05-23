@@ -8,7 +8,7 @@ using System.IO;
 
 namespace Microsoft.ML.Runtime.Data.Utilities
 {
-    internal static class PathUtils
+    internal static class PartitionedPathUtils
     {
         /// <summary>
         /// Make a full path realtive to a base path.

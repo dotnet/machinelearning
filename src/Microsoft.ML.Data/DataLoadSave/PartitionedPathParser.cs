@@ -12,7 +12,6 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Utilities;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(SimplePartitionedPathParser.Summary, typeof(SimplePartitionedPathParser), typeof(SimplePartitionedPathParser.Arguments), typeof(PartitionedPathParser),
@@ -186,7 +185,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertNonEmpty(path);
 
-            var dirs = PathUtils.SplitDirectories(path);
+            var dirs = PartitionedPathUtils.SplitDirectories(path);
             return dirs.Take(dirs.Count() - 1); // Ignore last directory which is the file name.
         }
     }
@@ -332,7 +331,7 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            var dirs = PathUtils.SplitDirectories(path);
+            var dirs = PartitionedPathUtils.SplitDirectories(path);
             dirs = dirs.Take(dirs.Count() - 1); // Ignore last directory which is the file name.
 
             names = new List<string>(dirs.Count());
