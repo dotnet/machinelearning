@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.TestFramework;
@@ -262,7 +263,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationMacro()
         {
             var dataPath = GetDataPath(TestDatasets.winequality.trainFilename);
-            using (var env = new TlcEnvironment())
+            using (var env = new TlcEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
 
@@ -352,7 +353,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     getter(ref stdev);
                     foldGetter(ref fold);
                     Assert.True(fold.EqualsStr("Standard Deviation"));
-                    Assert.Equal(0.096, stdev, 3);
+                    Assert.Equal(0.0013, stdev, 4);
 
                     double sum = 0;
                     double val = 0;
