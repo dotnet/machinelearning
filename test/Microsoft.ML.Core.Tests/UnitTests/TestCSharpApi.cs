@@ -261,8 +261,8 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestCrossValidationMacro()
         {
-            var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
-            using (var env = new TlcEnvironment(42))
+            var dataPath = GetDataPath(TestDatasets.winequality.trainFilename);
+            using (var env = new TlcEnvironment())
             {
                 var subGraph = env.CreateExperiment();
 
@@ -284,7 +284,30 @@ namespace Microsoft.ML.Runtime.RunTests
                 var modelCombineOutput = subGraph.Add(modelCombine);
 
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new ML.Data.TextLoader(dataPath)
+                {
+                    Arguments = new TextLoaderArguments
+                    {
+                        Separator = new[] { ';' },
+                        HasHeader = true,
+                        Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoaderRange(11) },
+                            Type = DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "Features",
+                            Source = new [] { new TextLoaderRange(0,10) },
+                            Type = DataKind.Num
+                        }
+                    }
+                    }
+                };
                 var importOutput = experiment.Add(importInput);
 
                 var crossValidate = new ML.Models.CrossValidator

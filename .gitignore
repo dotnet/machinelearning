@@ -328,3 +328,5 @@ ASALocalRun/
 
 # MSBuild Binary and Structured Log
 *.binlog
+# Ignore external test datasets.
+/test/data/external/

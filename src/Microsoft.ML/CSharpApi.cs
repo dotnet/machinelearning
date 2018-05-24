@@ -562,6 +562,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Trainers.OrdinaryLeastSquaresRegressor", input, output));
             }
 
+            public Microsoft.ML.Trainers.PcaAnomalyDetector.Output Add(Microsoft.ML.Trainers.PcaAnomalyDetector input)
+            {
+                var output = new Microsoft.ML.Trainers.PcaAnomalyDetector.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainers.PcaAnomalyDetector input, Microsoft.ML.Trainers.PcaAnomalyDetector.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainers.PcaAnomalyDetector", input, output));
+            }
+
             public Microsoft.ML.Trainers.PoissonRegressor.Output Add(Microsoft.ML.Trainers.PoissonRegressor input)
             {
                 var output = new Microsoft.ML.Trainers.PoissonRegressor.Output();
@@ -1100,6 +1112,18 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Transforms.OptionalColumnCreator input, Microsoft.ML.Transforms.OptionalColumnCreator.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.OptionalColumnCreator", input, output));
+            }
+
+            public Microsoft.ML.Transforms.PcaCalculator.Output Add(Microsoft.ML.Transforms.PcaCalculator input)
+            {
+                var output = new Microsoft.ML.Transforms.PcaCalculator.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Transforms.PcaCalculator input, Microsoft.ML.Transforms.PcaCalculator.Output output)
+            {
+                _jsonNodes.Add(Serialize("Transforms.PcaCalculator", input, output));
             }
 
             public Microsoft.ML.Transforms.PredictedLabelColumnOriginalValueConverter.Output Add(Microsoft.ML.Transforms.PredictedLabelColumnOriginalValueConverter input)
@@ -6822,6 +6846,97 @@ namespace Microsoft.ML
     {
 
         /// <summary>
+        /// Train an PCA Anomaly model.
+        /// </summary>
+        public sealed partial class PcaAnomalyDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The number of components in the PCA
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("Rank", new object[]{10, 20, 40, 80})]
+            public int Rank { get; set; } = 20;
+
+            /// <summary>
+            /// Oversampling parameter for randomized PCA training
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("Oversampling", new object[]{10, 20, 40})]
+            public int Oversampling { get; set; } = 20;
+
+            /// <summary>
+            /// If enabled, data is centered to be zero mean
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("Center", new object[]{false, true})]
+            public bool Center { get; set; } = true;
+
+            /// <summary>
+            /// The seed for random number generation
+            /// </summary>
+            public int? Seed { get; set; }
+
+            /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IAnomalyDetectionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                {
+                    throw new InvalidOperationException($"{ nameof(PcaAnomalyDetector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                }
+
+                TrainingData = dataStep.Data;
+                Output output = experiment.Add(this);
+                return new PcaAnomalyDetectorPipelineStep(output);
+            }
+
+            private class PcaAnomalyDetectorPipelineStep : ILearningPipelinePredictorStep
+            {
+                public PcaAnomalyDetectorPipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainers
+    {
+
+        /// <summary>
         /// Train an Poisson regression model.
         /// </summary>
         public sealed partial class PoissonRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
@@ -11485,6 +11600,170 @@ namespace Microsoft.ML
             private class OptionalColumnCreatorPipelineStep : ILearningPipelineDataStep
             {
                 public OptionalColumnCreatorPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Transforms
+    {
+
+        public sealed partial class PcaTransformColumn : OneToOneColumn<PcaTransformColumn>, IOneToOneColumn
+        {
+            /// <summary>
+            /// The name of the weight column
+            /// </summary>
+            public string WeightColumn { get; set; }
+
+            /// <summary>
+            /// The number of components in the PCA
+            /// </summary>
+            public int? Rank { get; set; }
+
+            /// <summary>
+            /// Oversampling parameter for randomized PCA training
+            /// </summary>
+            public int? Oversampling { get; set; }
+
+            /// <summary>
+            /// If enabled, data is centered to be zero mean
+            /// </summary>
+            public bool? Center { get; set; }
+
+            /// <summary>
+            /// The seed for random number generation
+            /// </summary>
+            public int? Seed { get; set; }
+
+            /// <summary>
+            /// Name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+        }
+
+        /// <summary>
+        /// Train an PCA Anomaly model.
+        /// </summary>
+        public sealed partial class PcaCalculator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+            public PcaCalculator()
+            {
+            }
+            
+            public PcaCalculator(params string[] inputColumns)
+            {
+                if (inputColumns != null)
+                {
+                    foreach (string input in inputColumns)
+                    {
+                        AddColumn(input);
+                    }
+                }
+            }
+            
+            public PcaCalculator(params ValueTuple<string, string>[] inputOutputColumns)
+            {
+                if (inputOutputColumns != null)
+                {
+                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    {
+                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                    }
+                }
+            }
+            
+            public void AddColumn(string source)
+            {
+                var list = Column == null ? new List<Transforms.PcaTransformColumn>() : new List<Transforms.PcaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Transforms.PcaTransformColumn>.Create(source));
+                Column = list.ToArray();
+            }
+
+            public void AddColumn(string name, string source)
+            {
+                var list = Column == null ? new List<Transforms.PcaTransformColumn>() : new List<Transforms.PcaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Transforms.PcaTransformColumn>.Create(name, source));
+                Column = list.ToArray();
+            }
+
+
+            /// <summary>
+            /// New column definition(s) (optional form: name:src)
+            /// </summary>
+            public Transforms.PcaTransformColumn[] Column { get; set; }
+
+            /// <summary>
+            /// The name of the weight column
+            /// </summary>
+            public string WeightColumn { get; set; }
+
+            /// <summary>
+            /// The number of components in the PCA
+            /// </summary>
+            public int Rank { get; set; } = 20;
+
+            /// <summary>
+            /// Oversampling parameter for randomized PCA training
+            /// </summary>
+            public int Oversampling { get; set; } = 20;
+
+            /// <summary>
+            /// If enabled, data is centered to be zero mean
+            /// </summary>
+            public bool Center { get; set; } = true;
+
+            /// <summary>
+            /// The seed for random number generation
+            /// </summary>
+            public int Seed { get; set; }
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                {
+                    throw new InvalidOperationException($"{ nameof(PcaCalculator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                }
+
+                Data = dataStep.Data;
+                Output output = experiment.Add(this);
+                return new PcaCalculatorPipelineStep(output);
+            }
+
+            private class PcaCalculatorPipelineStep : ILearningPipelineDataStep
+            {
+                public PcaCalculatorPipelineStep(Output output)
                 {
                     Data = output.OutputData;
                     Model = output.Model;

@@ -10684,18 +10684,6 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "Column to use for labels",
-          "Aliases": [
-            "lab"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
           "Name": "WeightColumn",
           "Type": "String",
           "Desc": "Column to use for example weight",
@@ -10825,8 +10813,6 @@
         }
       ],
       "InputKind": [
-        "ITrainerInputWithWeight",
-        "ITrainerInputWithLabel",
         "ITrainerInput"
       ],
       "OutputKind": [
