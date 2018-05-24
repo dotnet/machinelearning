@@ -17,9 +17,5 @@ namespace GitHubLabeler
 
         [Column(ordinal: "3")]
         public string Description;
-
-        [Column(ordinal: "4")]
-        [ColumnName("Label")]
-        public string Label;
     }
 }

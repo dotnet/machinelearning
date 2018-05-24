@@ -4,8 +4,10 @@ namespace BinaryClassification_SentimentAnalysis
 {
     public class SentimentData
     {
-        [Column("0")] public string SentimentText;
+        [Column("0")]
+        public string SentimentText;
 
-        [Column("1", name: "Label")] public float Sentiment;
+        [Column("1", name: "Label")]
+        public float Sentiment;
     }
 }

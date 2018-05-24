@@ -4,6 +4,7 @@ namespace Regression_TaxiFarePrediction
 {
     public class TaxiTripFarePrediction
     {
-        [ColumnName("Score")] public float FareAmount;
+        [ColumnName("Score")]
+        public float FareAmount;
     }
 }
