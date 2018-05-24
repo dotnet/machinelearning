@@ -1035,25 +1035,38 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         /// <summary>
-        ///A test for calibrators
+        ///A test for no calibrators
+        ///</summary>
+        [Fact]
+        [TestCategory("Calibrator")]
+        public void DefaultCalibratorPerceptronTest()
+        {
+            var datasets = GetDatasetsForCalibratorTest();
+            RunAllTests( new[] { TestLearners.perceptronDefault }, datasets, new string[] { "cali={}" }, "nocalibration");
+            Done();
+        }
+
+        /// <summary>
+        ///A test for PAV calibrators
+        ///</summary>
+        [Fact]
+        [TestCategory("Calibrator")]
+        public void PAVCalibratorPerceptronTest()
+        {
+            var datasets = GetDatasetsForCalibratorTest();
+            RunAllTests( new[] { TestLearners.perceptronDefault }, datasets, new[] { "cali=PAV" }, "PAVcalibration");
+            Done();
+        }
+
+        /// <summary>
+        ///A test for random calibrators
         ///</summary>
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Calibrator")]
-        public void CalibratorPerceptronTest()
+        public void RandomCalibratorPerceptronTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(
-                new[] { TestLearners.perceptronDefault },
-                datasets,
-                new string[] { "cali={}" }, "nocalibration");
-            RunAllTests(
-                new[] { TestLearners.perceptronDefault },
-                datasets,
-                new[] { "cali=PAV" }, "PAVcalibration");
-            RunAllTests(
-            new[] { TestLearners.perceptronDefault },
-                datasets,
-                new string[] { "numcali=200" }, "calibrateRandom");
+            RunAllTests( new[] { TestLearners.perceptronDefault }, datasets, new string[] { "numcali=200" }, "calibrateRandom");
             Done();
         }
 
