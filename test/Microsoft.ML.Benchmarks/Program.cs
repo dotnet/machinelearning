@@ -51,7 +51,7 @@ namespace Microsoft.ML.Benchmarks
         {
             var currentAssemblyLocation = new FileInfo(typeof(Program).Assembly.Location);
             var rootDir = currentAssemblyLocation.Directory.Parent.Parent.Parent.Parent.FullName;
-            _dataRoot = Path.Combine(rootDir, "test", "data");
+            _dataRoot = Path.Combine(rootDir, "examples", "datasets");
         }
     }
 

@@ -155,8 +155,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset winequality = new TestDataset
         {
             name = "wine",
-            trainFilename = "external/winequality-white.csv",
-            testFilename = "external/winequality-white.csv",
+            trainFilename = "winequality-white.csv",
+            testFilename = "winequality-white.csv",
             loaderSettings = "col=Label:R4:11 col=Features:R4:0-10 sep=; header+"
         };
 
