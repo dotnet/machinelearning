@@ -14,53 +14,41 @@ namespace Microsoft.ML.Scenarios
     public partial class ScenariosTests
     {
         [Fact]
-        public void TrainAndPredictIrisModelWithStringLabelTest()
+        public void TrainAndPredictIrisModelWithFeatureVectorTest()
         {
             string dataPath = GetDataPath("iris.data");
 
             var pipeline = new LearningPipeline();
 
-            pipeline.Add(new TextLoader(dataPath).CreateFrom<IrisDataWithStringLabel>(useHeader: false, separator: ','));
+            pipeline.Add(new TextLoader(dataPath).CreateFrom<IrisDataWithFeatureVector>(useHeader: false, separator: ','));
 
             pipeline.Add(new Dictionarizer("Label"));  // "IrisPlantType" is used as "Label" because of column attribute name on the field.
 
-            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
-                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
-
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
-            PredictionModel<IrisDataWithStringLabel, IrisPrediction> model = pipeline.Train<IrisDataWithStringLabel, IrisPrediction>();
+            PredictionModel<IrisDataWithFeatureVector, IrisPrediction> model = pipeline.Train<IrisDataWithFeatureVector, IrisPrediction>();
 
-            IrisPrediction prediction = model.Predict(new IrisDataWithStringLabel()
+            IrisPrediction prediction = model.Predict(new IrisDataWithFeatureVector()
             {
-                SepalLength = 3.3f,
-                SepalWidth = 1.6f,
-                PetalLength = 0.2f,
-                PetalWidth = 5.1f,
+                Feat = new float[] { 5.1f, 3.3f, 1.6f, 0.2f }
             });
 
             Assert.Equal(1, prediction.PredictedLabels[0], 2);
             Assert.Equal(0, prediction.PredictedLabels[1], 2);
             Assert.Equal(0, prediction.PredictedLabels[2], 2);
 
-            prediction = model.Predict(new IrisDataWithStringLabel()
+            prediction = model.Predict(new IrisDataWithFeatureVector()
             {
-                SepalLength = 3.1f,
-                SepalWidth = 5.5f,
-                PetalLength = 2.2f,
-                PetalWidth = 6.4f,
+                Feat = new float[] { 6.4f, 3.1f, 5.5f, 2.2f }
             });
 
             Assert.Equal(0, prediction.PredictedLabels[0], 2);
             Assert.Equal(0, prediction.PredictedLabels[1], 2);
             Assert.Equal(1, prediction.PredictedLabels[2], 2);
 
-            prediction = model.Predict(new IrisDataWithStringLabel()
+            prediction = model.Predict(new IrisDataWithFeatureVector()
             {
-                SepalLength = 3.1f,
-                SepalWidth = 2.5f,
-                PetalLength = 1.2f,
-                PetalWidth = 4.4f,
+                Feat = new float[] { 4.4f, 3.1f, 2.5f, 1.2f }
             });
 
             Assert.Equal(.2, prediction.PredictedLabels[0], 1);
@@ -70,7 +58,7 @@ namespace Microsoft.ML.Scenarios
             // Note: Testing against the same data set as a simple way to test evaluation.
             // This isn't appropriate in real-world scenarios.
             string testDataPath = GetDataPath("iris.data");
-            var testData = new TextLoader(testDataPath).CreateFrom<IrisDataWithStringLabel>(useHeader: false, separator: ',');
+            var testData = new TextLoader(testDataPath).CreateFrom<IrisDataWithFeatureVector>(useHeader: false, separator: ',');
 
             var evaluator = new ClassificationEvaluator();
             evaluator.OutputTopKAcc = 3;
@@ -116,19 +104,11 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(49, matrix["Iris-virginica", "Iris-virginica"]);
         }
 
-        public class IrisDataWithStringLabel
+        public class IrisDataWithFeatureVector
         {
-            [Column("0")]
-            public float PetalWidth;
-
-            [Column("1")]
-            public float SepalLength;
-
-            [Column("2")]
-            public float SepalWidth;
-
-            [Column("3")]
-            public float PetalLength;
+            [FeaturesColumn("0-3")]
+            [VectorType(4)]
+            public float[] Feat;
 
             [LabelColumn("4")]
             public string IrisPlantType;

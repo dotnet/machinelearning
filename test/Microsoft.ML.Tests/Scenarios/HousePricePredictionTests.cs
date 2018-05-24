@@ -60,7 +60,7 @@ namespace Microsoft.ML.Scenarios
             [Column(ordinal: "1")]
             public string Date;
 
-            [Column(ordinal: "2", name: "Label")]
+            [LabelColumn(ordinal: "2")]
             public float Price;
 
             [Column(ordinal: "3")]
