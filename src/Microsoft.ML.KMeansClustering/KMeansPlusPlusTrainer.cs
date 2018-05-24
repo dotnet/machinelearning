@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.KMeans
             KMeansParallel = 2
         }
 
-        public class Arguments : LearnerInputBase
+        public class Arguments : UnsupervisedLearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of clusters", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "5,10,20,40")]
@@ -234,7 +234,8 @@ namespace Microsoft.ML.Runtime.KMeans
             EntryPointUtils.CheckInputArgs(host, input);
 
             return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.ClusteringOutput>(host, input,
-                () => new KMeansPlusPlusTrainer(host, input));
+                () => new KMeansPlusPlusTrainer(host, input),
+                getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
     }
 
