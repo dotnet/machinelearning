@@ -832,21 +832,21 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         public static class PipelineSweeperSupportedMetrics
         {
             public new static string ToString() => "SupportedMetric";
-            public const string Auc = "Auc";
+            public const string Auc = "AUC";
             public const string AccuracyMicro = "AccuracyMicro";
             public const string AccuracyMacro = "AccuracyMacro";
             public const string F1 = "F1";
-            public const string AuPrc = "AuPrc";
+            public const string AuPrc = "AUPRC";
             public const string TopKAccuracy = "TopKAccuracy";
             public const string L1 = "L1";
             public const string L2 = "L2";
-            public const string Rms = "Rms";
+            public const string Rms = "RMS";
             public const string LossFn = "LossFn";
             public const string RSquared = "RSquared";
             public const string LogLoss = "LogLoss";
             public const string LogLossReduction = "LogLossReduction";
-            public const string Ndcg = "Ndcg";
-            public const string Dcg = "Dcg";
+            public const string Ndcg = "NDCG";
+            public const string Dcg = "DCG";
             public const string PositivePrecision = "PositivePrecision";
             public const string PositiveRecall = "PositiveRecall";
             public const string NegativePrecision = "NegativePrecision";
@@ -858,9 +858,9 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             public const string ThreshAtK = "ThreshAtK";
             public const string ThreshAtP = "ThreshAtP";
             public const string ThreshAtNumPos = "ThreshAtNumPos";
-            public const string Nmi = "Nmi";
+            public const string Nmi = "NMI";
             public const string AvgMinScore = "AvgMinScore";
-            public const string Dbi = "Dbi";
+            public const string Dbi = "DBI";
         }
     }
 }

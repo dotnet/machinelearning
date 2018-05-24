@@ -9,6 +9,6 @@
   
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
-	<NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
   </ItemGroup>
 </Project>

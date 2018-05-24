@@ -15,21 +15,34 @@ namespace Microsoft.ML.Runtime.PipelineInference
 {
     public static class AutoMlUtils
     {
-        public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView data, string metricColumnName)
+        public static double ExtractValueFromIDV(IHostEnvironment env, IDataView result, string columnName)
         {
-            double metricValue = 0;
-            int numRows = 0;
-            var schema = data.Schema;
-            schema.TryGetColumnIndex(metricColumnName, out var metricCol);
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(result, nameof(result));
+            env.CheckNonEmpty(columnName, nameof(columnName));
 
-            using (var cursor = data.GetRowCursor(col => col == metricCol))
+            double outputValue = 0;
+            var schema = result.Schema;
+            if (!schema.TryGetColumnIndex(columnName, out var metricCol))
+                throw env.ExceptParam(nameof(columnName), $"Schema does not contain column: {columnName}");
+
+            using (var cursor = result.GetRowCursor(col => col == metricCol))
             {
                 var getter = cursor.GetGetter<double>(metricCol);
-                cursor.MoveNext();
-                getter(ref metricValue);
+                bool moved = cursor.MoveNext();
+                env.Check(moved, "Expected an IDataView with a single row. Results dataset has no rows to extract.");
+                getter(ref outputValue);
+                env.Check(!cursor.MoveNext(), "Expected an IDataView with a single row. Results dataset has too many rows.");
             }
 
-            return new AutoInference.RunSummary(metricValue, numRows, 0);
+            return outputValue;
+        }
+
+        public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
+        {
+            double testingMetricValue = ExtractValueFromIDV(env, result, metricColumnName);
+            double trainingMetricValue = trainResult != null ? ExtractValueFromIDV(env, trainResult, metricColumnName)  : double.MinValue;
+            return new AutoInference.RunSummary(testingMetricValue, 0, 0, trainingMetricValue);
         }
 
         public static CommonInputs.IEvaluatorInput CloneEvaluatorInstance(CommonInputs.IEvaluatorInput evalInput) =>
@@ -618,5 +631,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
             return results;
         }
+
+        public static string GenerateOverallTrainingMetricVarName(Guid id) => $"Var_Training_OM_{id:N}";
     }
 }
