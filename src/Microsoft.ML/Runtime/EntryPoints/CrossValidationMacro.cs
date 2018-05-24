@@ -94,18 +94,19 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 "provided as the Input.TransformModel.", SortOrder = 2)]
             public ITransformModel[] TransformModel;
 
-            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 3)]
+            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 2)]
             public IDataView Warnings;
 
-            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 4)]
+            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 3)]
             public IDataView OverallMetrics;
 
-            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 5)]
+            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 4)]
             public IDataView PerInstanceMetrics;
 
-            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 6)]
+            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 5)]
             public IDataView ConfusionMatrix;
         }
+
 
         public sealed class CombineMetricsInput
         {
@@ -116,16 +117,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView[] PerInstanceMetrics;
 
             [Argument(ArgumentType.Multiple, HelpText = "Confusion matrix datasets", SortOrder = 3)]
-
             public IDataView[] ConfusionMatrix;
 
             [Argument(ArgumentType.Multiple, HelpText = "Warning datasets", SortOrder = 4)]
             public IDataView[] Warnings;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 6)]
             public string LabelColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 0)]
+            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 7)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
         }
 
@@ -300,6 +300,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             exp.Reset();
 
             // Convert predictors from all folds into an array of predictors.
+
             if (input.Outputs.UseTransformModel)
             {
                 var outModels = new ML.Data.TransformModelArrayConverter
@@ -400,9 +401,20 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public static CombinedOutput CombineMetrics(IHostEnvironment env, CombineMetricsInput input)
         {
             var eval = GetEvaluator(env, input.Kind);
-            var perInst = EvaluateUtils.CombinePerInstanceDataViews(env, eval, true, true, input.PerInstanceMetrics.Select(
+
+            var perInst = EvaluateUtils.ConcatenatePerInstanceDataViews(env, eval, true, true, input.PerInstanceMetrics.Select(
                 idv => RoleMappedData.Create(idv, RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, input.LabelColumn))).ToArray(),
                 out var variableSizeVectorColumnNames);
+
+            var warnings = input.Warnings != null ? new List<IDataView>(input.Warnings) : new List<IDataView>();
+            if (variableSizeVectorColumnNames.Length > 0)
+            {
+                var dvBldr = new ArrayDataViewBuilder(env);
+                var warn = $"Detected columns of variable length: {string.Join(", ", variableSizeVectorColumnNames)}." +
+                    $" Consider setting collateMetrics- for meaningful per-Folds results.";
+                dvBldr.AddColumn(MetricKinds.ColumnNames.WarningText, TextType.Instance, new DvText(warn));
+                warnings.Add(dvBldr.GetDataView());
+            }
 
             env.Assert(Utils.Size(perInst) == 1);
 
@@ -429,10 +441,19 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         }
                     }
                 }
-                conf = EvaluateUtils.CombineOverallMetrics(env, input.ConfusionMatrix);
+
+                conf = EvaluateUtils.ConcatenateOverallMetrics(env, input.ConfusionMatrix);
             }
 
-            return new CombinedOutput() { PerInstanceMetrics = perInst[0], OverallMetrics = overall, ConfusionMatrix = conf };
+            var warningsIdv = warnings.Count > 0 ? AppendRowsDataView.Create(env, warnings[0].Schema, warnings.ToArray()) : null;
+
+            return new CombinedOutput()
+            {
+                PerInstanceMetrics = perInst[0],
+                OverallMetrics = overall,
+                ConfusionMatrix = conf,
+                Warnings = warningsIdv
+            };
         }
 
         private static IMamlEvaluator GetEvaluator(IHostEnvironment env, MacroUtils.TrainerKinds kind)
@@ -454,7 +475,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
                     return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
                 default:
-                    throw env.Except($"Trainer kind {kind} does not have an evaluator");
+                    throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
+
             }
         }
     }

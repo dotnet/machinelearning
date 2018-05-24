@@ -2,25 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using ML = Microsoft.ML;
-using Microsoft.ML.Runtime;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
-using System.Linq;
-/*using Categorical = Microsoft.ML.Transforms;
-using Commands = Microsoft.ML.Transforms;
-using Evaluate = Microsoft.ML;
-using ImportTextData = Microsoft.ML.Data;
-using LogisticRegression = Microsoft.ML.Trainers;
-using ModelOperations = Microsoft.ML.Transforms;
-using Normalize = Microsoft.ML.Transforms;
-using SchemaManipulation = Microsoft.ML.Transforms;
-using ScoreModel = Microsoft.ML.Transforms;
-using Sdca = Microsoft.ML.Trainers;*/
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -274,7 +262,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestCrossValidationMacro()
         {
-            var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
+            var dataPath = GetDataPath(TestDatasets.winequality.trainFilename);
             using (var env = new TlcEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
@@ -365,11 +353,10 @@ namespace Microsoft.ML.Runtime.RunTests
                     getter(ref stdev);
                     foldGetter(ref fold);
                     Assert.True(fold.EqualsStr("Standard Deviation"));
-                    Assert.Equal(0.096, stdev, 3);
+                    Assert.Equal(0.0013, stdev, 4);
 
                     double sum = 0;
                     double val = 0;
-
                     for (int f = 0; f < 2; f++)
                     {
                         b = cursor.MoveNext();
@@ -380,81 +367,10 @@ namespace Microsoft.ML.Runtime.RunTests
                         Assert.True(fold.EqualsStr("Fold " + f));
                     }
                     Assert.Equal(avg, sum / 2);
-
-                    getter(ref val);
-                    Assert.Equal(0.58, val, 1);
                     b = cursor.MoveNext();
                     Assert.False(b);
                 }
             }
-        }
-
-        [Fact]
-        public void TestCrossValidationMacroWithStratification()
-        {
-            /*var dataPath = GetDataPath(@"breast-cancer.txt");
-            using (var env = new TlcEnvironment())
-            {
-                var subGraph = env.CreateExperiment();
-
-                var nop = new ML.Transforms.NoOperation();
-                var nopOutput = subGraph.Add(nop);
-
-                var learnerInput = new ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier
-                {
-                    TrainingData = nopOutput.OutputData,
-                    NumThreads = 1
-                };
-                var learnerOutput = subGraph.Add(learnerInput);
-
-                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
-                {
-                    TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model),
-                    PredictorModel = learnerOutput.PredictorModel
-                };
-                var modelCombineOutput = subGraph.Add(modelCombine);
-
-                var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader(dataPath);
-                importInput.Arguments.Column = new ML.Data.TextLoaderColumn[]
-                {
-                    new ML.Data.TextLoaderColumn { Name = "Label", Source = new[] { new ML.Data.TextLoaderRange(0) } },
-                    new ML.Data.TextLoaderColumn { Name = "Strat", Source = new[] { new ML.Data.TextLoaderRange(1) } },
-                    new ML.Data.TextLoaderColumn { Name = "Features", Source = new[] { new ML.Data.TextLoaderRange(2, 9) } }
-                };
-                var importOutput = experiment.Add(importInput);
-
-                var crossValidate = new ML.Models.CrossValidator
-                {
-                    Data = importOutput.Data,
-                    Nodes = subGraph,
-                    TransformModel = null,
-                    StratificationColumn = "Strat"
-                };
-                crossValidate.Inputs.Data = nop.Data;
-                crossValidate.Outputs.Model = modelCombineOutput.PredictorModel;
-                var crossValidateOutput = experiment.Add(crossValidate);
-
-                experiment.Compile();
-                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
-                experiment.Run();
-                var data = experiment.GetOutput(crossValidateOutput.OverallMetrics[0]);
-
-                var schema = data.Schema;
-                var b = schema.TryGetColumnIndex("AUC", out int metricCol);
-                Assert.True(b);
-                using (var cursor = data.GetRowCursor(col => col == metricCol))
-                {
-                    var getter = cursor.GetGetter<double>(metricCol);
-                    b = cursor.MoveNext();
-                    Assert.True(b);
-                    double val = 0;
-                    getter(ref val);
-                    Assert.Equal(0.99, val, 2);
-                    b = cursor.MoveNext();
-                    Assert.False(b);
-                }
-            }*/
         }
 
         [Fact]
@@ -578,6 +494,102 @@ namespace Microsoft.ML.Runtime.RunTests
                         }
                     }
                     Assert.Equal(0, rowCount);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestCrossValidationMacroWithStratification()
+        {
+            var dataPath = GetDataPath(@"breast-cancer.txt");
+            using (var env = new TlcEnvironment(42))
+            {
+                var subGraph = env.CreateExperiment();
+
+                var nop = new ML.Transforms.NoOperation();
+                var nopOutput = subGraph.Add(nop);
+
+                var learnerInput = new ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier
+                {
+                    TrainingData = nopOutput.OutputData,
+                    NumThreads = 1
+                };
+                var learnerOutput = subGraph.Add(learnerInput);
+
+                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                {
+                    TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model),
+                    PredictorModel = learnerOutput.PredictorModel
+                };
+                var modelCombineOutput = subGraph.Add(modelCombine);
+
+                var experiment = env.CreateExperiment();
+                var importInput = new ML.Data.TextLoader(dataPath);
+                importInput.Arguments.Column = new ML.Data.TextLoaderColumn[]
+                {
+                    new ML.Data.TextLoaderColumn { Name = "Label", Source = new[] { new ML.Data.TextLoaderRange(0) } },
+                    new ML.Data.TextLoaderColumn { Name = "Strat", Source = new[] { new ML.Data.TextLoaderRange(1) } },
+                    new ML.Data.TextLoaderColumn { Name = "Features", Source = new[] { new ML.Data.TextLoaderRange(2, 9) } }
+                };
+                var importOutput = experiment.Add(importInput);
+
+                var crossValidate = new ML.Models.CrossValidator
+                {
+                    Data = importOutput.Data,
+                    Nodes = subGraph,
+                    TransformModel = null,
+                    StratificationColumn = "Strat"
+                };
+                crossValidate.Inputs.Data = nop.Data;
+                crossValidate.Outputs.Model = modelCombineOutput.PredictorModel;
+                var crossValidateOutput = experiment.Add(crossValidate);
+                experiment.Compile();
+                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                experiment.Run();
+                var data = experiment.GetOutput(crossValidateOutput.OverallMetrics);
+
+                var schema = data.Schema;
+                var b = schema.TryGetColumnIndex("AUC", out int metricCol);
+                Assert.True(b);
+                b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
+                Assert.True(b);
+                using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
+                {
+                    var getter = cursor.GetGetter<double>(metricCol);
+                    var foldGetter = cursor.GetGetter<DvText>(foldCol);
+                    DvText fold = default;
+
+                    // Get the verage.
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    double avg = 0;
+                    getter(ref avg);
+                    foldGetter(ref fold);
+                    Assert.True(fold.EqualsStr("Average"));
+
+                    // Get the standard deviation.
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    double stdev = 0;
+                    getter(ref stdev);
+                    foldGetter(ref fold);
+                    Assert.True(fold.EqualsStr("Standard Deviation"));
+                    Assert.Equal(0.00485, stdev, 5);
+
+                    double sum = 0;
+                    double val = 0;
+                    for (int f = 0; f < 2; f++)
+                    {
+                        b = cursor.MoveNext();
+                        Assert.True(b);
+                        getter(ref val);
+                        foldGetter(ref fold);
+                        sum += val;
+                        Assert.True(fold.EqualsStr("Fold " + f));
+                    }
+                    Assert.Equal(avg, sum / 2);
+                    b = cursor.MoveNext();
+                    Assert.False(b);
                 }
             }
         }

@@ -1086,7 +1086,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointPcaAnomaly()
         {
-            TestEntryPointRoutine("MNIST.Train.0-class.tiny.txt", "Trainers.PcaAnomalyDetector");
+            TestEntryPointRoutine("MNIST.Train.0-class.tiny.txt", "Trainers.PcaAnomalyDetector", "col=Features:R4:1-784");
         }
 
         [Fact]

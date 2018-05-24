@@ -470,35 +470,6 @@
       ]
     },
     {
-      "Name": "Data.TransformModelArrayConverter",
-      "Desc": "Create and array variable",
-      "FriendlyName": null,
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "TransformModel",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "TransformModel"
-          },
-          "Desc": "The models",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputModel",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "TransformModel"
-          },
-          "Desc": "The model array"
-        }
-      ]
-    },
-    {
       "Name": "Models.AnomalyDetectionEvaluator",
       "Desc": "Evaluates an anomaly detection scored dataset.",
       "FriendlyName": null,
@@ -1274,26 +1245,6 @@
       "ShortName": null,
       "Inputs": [
         {
-          "Name": "Kind",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "SignatureBinaryClassifierTrainer",
-              "SignatureMultiClassClassifierTrainer",
-              "SignatureRankerTrainer",
-              "SignatureRegressorTrainer",
-              "SignatureMultiOutputRegressorTrainer",
-              "SignatureAnomalyDetectorTrainer",
-              "SignatureClusteringTrainer"
-            ]
-          },
-          "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
-          "Required": true,
-          "SortOrder": 0.0,
-          "IsNullable": false,
-          "Default": "SignatureBinaryClassifierTrainer"
-        },
-        {
           "Name": "OverallMetrics",
           "Type": {
             "Kind": "Array",
@@ -1349,9 +1300,29 @@
             "Label"
           ],
           "Required": false,
-          "SortOrder": 4.0,
+          "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "Label"
+        },
+        {
+          "Name": "Kind",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "SignatureBinaryClassifierTrainer",
+              "SignatureMultiClassClassifierTrainer",
+              "SignatureRankerTrainer",
+              "SignatureRegressorTrainer",
+              "SignatureMultiOutputRegressorTrainer",
+              "SignatureAnomalyDetectorTrainer",
+              "SignatureClusteringTrainer"
+            ]
+          },
+          "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
+          "Required": true,
+          "SortOrder": 7.0,
+          "IsNullable": false,
+          "Default": "SignatureBinaryClassifierTrainer"
         }
       ],
       "Outputs": [
@@ -1440,28 +1411,9 @@
                 "Name": "Model",
                 "Type": "PredictorModel",
                 "Desc": "The model",
-                "Required": false,
+                "Required": true,
                 "SortOrder": 1.0,
-                "IsNullable": false,
-                "Default": null
-              },
-              {
-                "Name": "TransformModel",
-                "Type": "TransformModel",
-                "Desc": "The transform model",
-                "Required": false,
-                "SortOrder": 2.0,
-                "IsNullable": false,
-                "Default": null
-              },
-              {
-                "Name": "UseTransformModel",
-                "Type": "Bool",
-                "Desc": "Indicates to use transform model instead of predictor model.",
-                "Required": false,
-                "SortOrder": 3.0,
-                "IsNullable": false,
-                "Default": false
+                "IsNullable": false
               }
             ]
           },
@@ -1521,14 +1473,6 @@
           "Type": {
             "Kind": "Array",
             "ItemType": "PredictorModel"
-          },
-          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
-        },
-        {
-          "Name": "TransformModel",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "TransformModel"
           },
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
@@ -3058,28 +3002,9 @@
                 "Name": "Model",
                 "Type": "PredictorModel",
                 "Desc": "The model",
-                "Required": false,
+                "Required": true,
                 "SortOrder": 1.0,
-                "IsNullable": false,
-                "Default": null
-              },
-              {
-                "Name": "TransformModel",
-                "Type": "TransformModel",
-                "Desc": "Transform model",
-                "Required": false,
-                "SortOrder": 2.0,
-                "IsNullable": false,
-                "Default": null
-              },
-              {
-                "Name": "UseTransformModel",
-                "Type": "Bool",
-                "Desc": "Indicates to use transform model instead of predictor model.",
-                "Required": false,
-                "SortOrder": 3.0,
-                "IsNullable": false,
-                "Default": false
+                "IsNullable": false
               }
             ]
           },
@@ -3131,11 +3056,6 @@
         {
           "Name": "PredictorModel",
           "Type": "PredictorModel",
-          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
-        },
-        {
-          "Name": "TransformModel",
-          "Type": "TransformModel",
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
         {
@@ -10764,18 +10684,6 @@
           "Default": "Features"
         },
         {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "Column to use for labels",
-          "Aliases": [
-            "lab"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
           "Name": "WeightColumn",
           "Type": "String",
           "Desc": "Column to use for example weight",
@@ -10905,8 +10813,6 @@
         }
       ],
       "InputKind": [
-        "ITrainerInputWithWeight",
-        "ITrainerInputWithLabel",
         "ITrainerInput"
       ],
       "OutputKind": [

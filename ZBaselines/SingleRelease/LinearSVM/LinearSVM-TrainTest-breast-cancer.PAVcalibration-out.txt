@@ -1,0 +1,39 @@
+maml.exe TrainTest test=%Data% tr=LinearSVM{iter=100 lambda=0.03} cali=PAV dout=%Output% data=%Data% out=%Output% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Warning: Skipped 1600 instances with missing features during training (over 100 iterations; 16 inst/iter)
+Training calibrator.
+PAV calibrator:  piecewise function approximation has 8 components.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      226 |       13 | 0.9456
+ negative ||        9 |      435 | 0.9797
+          ||======================
+Precision ||   0.9617 |   0.9710 |
+OVERALL 0/1 ACCURACY: 0.967789
+LOG LOSS/instance:  0.084588
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): 90.943543
+AUC:                0.995797
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.995797 (0.0000)
+Accuracy:           0.967789 (0.0000)
+Positive precision: 0.961702 (0.0000)
+Positive recall:    0.945607 (0.0000)
+Negative precision: 0.970982 (0.0000)
+Negative recall:    0.979730 (0.0000)
+Log-loss:           0.084588 (0.0000)
+Log-loss reduction: 90.943543 (0.0000)
+F1 Score:           0.953586 (0.0000)
+AUPRC:              0.991453 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
