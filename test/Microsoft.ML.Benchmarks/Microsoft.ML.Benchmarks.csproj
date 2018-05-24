@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <LangVersion>7.2</LangVersion>    
+    <LangVersion>7.2</LangVersion>
     <StartupObject>Microsoft.ML.Benchmarks.Program</StartupObject>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>

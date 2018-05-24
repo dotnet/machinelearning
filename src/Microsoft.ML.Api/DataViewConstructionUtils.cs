@@ -432,7 +432,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public override long? GetRowCount(bool lazy = true)
             {
-                return null;
+                return (_data as ICollection<TRow>)?.Count;
             }
 
             public override IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
