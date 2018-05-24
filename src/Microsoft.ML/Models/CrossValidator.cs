@@ -120,24 +120,28 @@ namespace Microsoft.ML.Models
                         cvo.BinaryClassificationMetrics = BinaryClassificationMetrics.FromMetrics(
                             environment,
                             experiment.GetOutput(crossValidateOutput.OverallMetrics),
-                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix));
+                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix),
+                            2);
                     }
                     else if(Kind == MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer)
                     {
                         cvo.ClassificationMetrics = ClassificationMetrics.FromMetrics(
                             environment,
                             experiment.GetOutput(crossValidateOutput.OverallMetrics),
-                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix));
+                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix),
+                            2);
                     }
                     else if (Kind == MacroUtilsTrainerKinds.SignatureRegressorTrainer)
                     {
                         cvo.RegressionMetrics = RegressionMetrics.FromOverallMetrics(
                             environment,
-                            experiment.GetOutput(crossValidateOutput.OverallMetrics));
+                            experiment.GetOutput(crossValidateOutput.OverallMetrics),
+                            2);
                     }
                     else
                     {
                         //Implement metrics for ranking, clustering and anomaly detection.
+                        throw Contracts.Except($"{Kind.ToString()} is not supported at the moment.");
                     }
 
                     ITransformModel model = experiment.GetOutput(crossValidateOutput.TransformModel[Index]);

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Models
         {
         }
 
-        internal static List<BinaryClassificationMetrics> FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix)
+        internal static List<BinaryClassificationMetrics> FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix, int skipRows = 0)
         {
             Contracts.AssertValue(env);
             env.AssertValue(overallMetrics);
@@ -27,9 +27,13 @@ namespace Microsoft.ML.Models
 
             var metricsEnumerable = overallMetrics.AsEnumerable<SerializationClass>(env, true, ignoreMissingColumns: true);
             var enumerator = metricsEnumerable.GetEnumerator();
-            if (!enumerator.MoveNext())
+
+            while (skipRows-- >= 0)
             {
-                throw env.Except("The overall RegressionMetrics didn't have any rows.");
+                if (!enumerator.MoveNext())
+                {
+                    throw env.Except("The overall RegressionMetrics didn't have sufficient rows.");
+                }
             }
 
             List<BinaryClassificationMetrics> metrics = new List<BinaryClassificationMetrics>();

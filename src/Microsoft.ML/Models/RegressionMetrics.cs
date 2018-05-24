@@ -19,16 +19,19 @@ namespace Microsoft.ML.Models
         {
         }
 
-        internal static List<RegressionMetrics> FromOverallMetrics(IHostEnvironment env, IDataView overallMetrics)
+        internal static List<RegressionMetrics> FromOverallMetrics(IHostEnvironment env, IDataView overallMetrics, int skipRows = 0)
         {
             Contracts.AssertValue(env);
             env.AssertValue(overallMetrics);
 
             var metricsEnumerable = overallMetrics.AsEnumerable<SerializationClass>(env, true, ignoreMissingColumns: true);
             var enumerator = metricsEnumerable.GetEnumerator();
-            if (!enumerator.MoveNext())
+            while (skipRows-- >= 0)
             {
-                throw env.Except("The overall RegressionMetrics didn't have any rows.");
+                if (!enumerator.MoveNext())
+                {
+                    throw env.Except("The overall RegressionMetrics didn't have sufficient rows.");
+                }
             }
 
             List<RegressionMetrics> metrics = new List<RegressionMetrics>();

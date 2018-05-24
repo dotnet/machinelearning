@@ -65,7 +65,6 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
-            //var cv = new CrossValidator().CrossValidate<SentimentData, SentimentPrediction>(pipeline);
             PredictionModel<SentimentData, SentimentPrediction> model = pipeline.Train<SentimentData, SentimentPrediction>();
             IEnumerable<SentimentData> sentiments = new[]
           {
@@ -140,6 +139,82 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(8, matrix["negative", "positive"]);
             Assert.Equal(1, matrix[1, 1]);
             Assert.Equal(1, matrix["negative", "negative"]);
+
+            var cv = new CrossValidator().CrossValidate<SentimentData, SentimentPrediction>(pipeline);
+
+            Assert.Equal(2, cv.PredictorModels.Count());
+            Assert.Null(cv.ClassificationMetrics);
+            Assert.Null(cv.RegressionMetrics);
+            Assert.NotNull(cv.BinaryClassificationMetrics);
+            Assert.Equal(2, cv.BinaryClassificationMetrics.Count());
+
+            metrics = cv.BinaryClassificationMetrics[0];
+            Assert.Equal(0.53030303030303028, metrics.Accuracy, 4);
+            Assert.Equal(0.52854072128015284, metrics.Auc, 1);
+            Assert.Equal(0.62464073827546951, metrics.Auprc, 2);
+            Assert.Equal(0, metrics.Entropy, 3);
+            Assert.Equal(0.65934065934065933, metrics.F1Score, 4);
+            Assert.Equal(1.0098658732948276, metrics.LogLoss, 3);
+            Assert.Equal(-3.9138397565662424, metrics.LogLossReduction, 3);
+            Assert.Equal(0.34482758620689657, metrics.NegativePrecision, 3);
+            Assert.Equal(0.18867924528301888, metrics.NegativeRecall, 3);
+            Assert.Equal(0.58252427184466016, metrics.PositivePrecision, 3);
+            Assert.Equal(0.759493670886076, metrics.PositiveRecall);
+
+            matrix = metrics.ConfusionMatrix;
+            Assert.Equal(2, matrix.Order);
+            Assert.Equal(2, matrix.ClassNames.Count);
+            Assert.Equal("positive", matrix.ClassNames[0]);
+            Assert.Equal("negative", matrix.ClassNames[1]);
+
+            Assert.Equal(60, matrix[0, 0]);
+            Assert.Equal(60, matrix["positive", "positive"]);
+            Assert.Equal(19, matrix[0, 1]);
+            Assert.Equal(19, matrix["positive", "negative"]);
+
+            Assert.Equal(43, matrix[1, 0]);
+            Assert.Equal(43, matrix["negative", "positive"]);
+            Assert.Equal(10, matrix[1, 1]);
+            Assert.Equal(10, matrix["negative", "negative"]);
+
+            metrics = cv.BinaryClassificationMetrics[1];
+            Assert.Equal(0.61016949152542377, metrics.Accuracy, 4);
+            Assert.Equal(0.57067307692307689, metrics.Auc, 1);
+            Assert.Equal(0.71632480611861549, metrics.Auprc, 2);
+            Assert.Equal(0, metrics.Entropy, 3);
+            Assert.Equal(0.71951219512195119, metrics.F1Score, 4);
+            Assert.Equal(0.94405231894454111, metrics.LogLoss, 3);
+            Assert.Equal(-2.1876127616628396, metrics.LogLossReduction, 3);
+            Assert.Equal(0.40625, metrics.NegativePrecision, 3);
+            Assert.Equal(0.325, metrics.NegativeRecall, 3);
+            Assert.Equal(0.686046511627907, metrics.PositivePrecision, 3);
+            Assert.Equal(0.75641025641025639, metrics.PositiveRecall);
+
+            matrix = metrics.ConfusionMatrix;
+            Assert.Equal(2, matrix.Order);
+            Assert.Equal(2, matrix.ClassNames.Count);
+            Assert.Equal("positive", matrix.ClassNames[0]);
+            Assert.Equal("negative", matrix.ClassNames[1]);
+
+            Assert.Equal(59, matrix[0, 0]);
+            Assert.Equal(59, matrix["positive", "positive"]);
+            Assert.Equal(19, matrix[0, 1]);
+            Assert.Equal(19, matrix["positive", "negative"]);
+
+            Assert.Equal(27, matrix[1, 0]);
+            Assert.Equal(27, matrix["negative", "positive"]);
+            Assert.Equal(13, matrix[1, 1]);
+            Assert.Equal(13, matrix["negative", "negative"]);
+
+            predictions = cv.PredictorModels[0].Predict(sentiments);
+            Assert.Equal(2, predictions.Count());
+            Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
+            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+
+            predictions = cv.PredictorModels[1].Predict(sentiments);
+            Assert.Equal(2, predictions.Count());
+            Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
+            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
         }
 
         public class SentimentData
