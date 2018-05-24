@@ -108,7 +108,7 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
             pipeline.Add(CollectionDataSource.Create(data));
             pipeline.Add(new KMeansPlusPlusClusterer() { K = k });
             var model = pipeline.Train<ClusteringData, ClusteringPrediction>();
-            //validate no initial centers of clusters belong to same cluster.
+            //validate that initial points we pick up as centers of cluster during data generation belong to different clusters.
             var labels = new HashSet<uint>();
             for (int i = 0; i < k; i++)
             {
