@@ -223,7 +223,7 @@ namespace Microsoft.ML.Runtime.Data
             // Save the per-instance results.
             if (!string.IsNullOrWhiteSpace(Args.OutputDataFile))
             {
-                var perInstance = EvaluateUtils.CombinePerInstanceDataViews(Host, eval, Args.CollateMetrics,
+                var perInstance = EvaluateUtils.ConcatenatePerInstanceDataViews(Host, eval, Args.CollateMetrics,
                     Args.OutputExampleFoldIndex, tasks.Select(t => t.Result.PerInstanceResults).ToArray(), out var variableSizeVectorColumnNames);
                 if (variableSizeVectorColumnNames.Length > 0)
                 {

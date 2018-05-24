@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected virtual IDataView CombineOverallMetricsCore(IDataView[] metrics)
         {
-            return EvaluateUtils.CombineOverallMetrics(Host, metrics);
+            return EvaluateUtils.ConcatenateOverallMetrics(Host, metrics);
         }
 
         protected virtual IDataView GetOverallResultsCore(IDataView overall)

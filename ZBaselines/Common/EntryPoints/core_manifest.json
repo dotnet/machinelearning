@@ -1245,26 +1245,6 @@
       "ShortName": null,
       "Inputs": [
         {
-          "Name": "Kind",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "SignatureBinaryClassifierTrainer",
-              "SignatureMultiClassClassifierTrainer",
-              "SignatureRankerTrainer",
-              "SignatureRegressorTrainer",
-              "SignatureMultiOutputRegressorTrainer",
-              "SignatureAnomalyDetectorTrainer",
-              "SignatureClusteringTrainer"
-            ]
-          },
-          "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
-          "Required": true,
-          "SortOrder": 0.0,
-          "IsNullable": false,
-          "Default": "SignatureBinaryClassifierTrainer"
-        },
-        {
           "Name": "OverallMetrics",
           "Type": {
             "Kind": "Array",
@@ -1320,9 +1300,29 @@
             "Label"
           ],
           "Required": false,
-          "SortOrder": 4.0,
+          "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "Label"
+        },
+        {
+          "Name": "Kind",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "SignatureBinaryClassifierTrainer",
+              "SignatureMultiClassClassifierTrainer",
+              "SignatureRankerTrainer",
+              "SignatureRegressorTrainer",
+              "SignatureMultiOutputRegressorTrainer",
+              "SignatureAnomalyDetectorTrainer",
+              "SignatureClusteringTrainer"
+            ]
+          },
+          "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
+          "Required": true,
+          "SortOrder": 7.0,
+          "IsNullable": false,
+          "Default": "SignatureBinaryClassifierTrainer"
         }
       ],
       "Outputs": [

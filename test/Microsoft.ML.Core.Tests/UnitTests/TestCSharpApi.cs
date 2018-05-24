@@ -2,24 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using ML = Microsoft.ML;
-using Microsoft.ML.Runtime;
+using System.Linq;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
-using System.Linq;
-/*using Categorical = Microsoft.ML.Transforms;
-using Commands = Microsoft.ML.Transforms;
-using Evaluate = Microsoft.ML;
-using ImportTextData = Microsoft.ML.Data;
-using LogisticRegression = Microsoft.ML.Trainers;
-using ModelOperations = Microsoft.ML.Transforms;
-using Normalize = Microsoft.ML.Transforms;
-using SchemaManipulation = Microsoft.ML.Transforms;
-using ScoreModel = Microsoft.ML.Transforms;
-using Sdca = Microsoft.ML.Trainers;*/
 
 namespace Microsoft.ML.Runtime.RunTests
 {

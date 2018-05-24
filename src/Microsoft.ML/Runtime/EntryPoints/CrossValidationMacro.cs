@@ -109,10 +109,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Multiple, HelpText = "Warning datasets", SortOrder = 4)]
             public IDataView[] Warnings;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 6)]
             public string LabelColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 0)]
+            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 7)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
         }
 
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public static CombinedOutput CombineMetrics(IHostEnvironment env, CombineMetricsInput input)
         {
             var eval = GetEvaluator(env, input.Kind);
-            var perInst = EvaluateUtils.CombinePerInstanceDataViews(env, eval, true, true, input.PerInstanceMetrics.Select(
+            var perInst = EvaluateUtils.ConcatenatePerInstanceDataViews(env, eval, true, true, input.PerInstanceMetrics.Select(
                 idv => RoleMappedData.Create(idv, RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, input.LabelColumn))).ToArray(),
                 out var variableSizeVectorColumnNames);
 
@@ -369,7 +369,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         }
                     }
                 }
-                conf = EvaluateUtils.CombineOverallMetrics(env, input.ConfusionMatrix);
+                conf = EvaluateUtils.ConcatenateOverallMetrics(env, input.ConfusionMatrix);
             }
 
             var warningsIdv = warnings.Count > 0 ? AppendRowsDataView.Create(env, warnings[0].Schema, warnings.ToArray()) : null;
