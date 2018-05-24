@@ -1058,21 +1058,26 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         /// <summary>
-        ///A test for calibrators
+        ///A test for default calibrators
+        ///</summary>
+        [Fact]
+        [TestCategory("Calibrator")]
+        public void NoCalibratorLinearSvmTest()
+        {
+            var datasets = GetDatasetsForCalibratorTest();
+            RunAllTests( new[] { TestLearners.linearSVM }, datasets, new string[] { "cali={}" }, "nocalibration");
+            Done();
+        }
+
+        /// <summary>
+        ///A test for PAV calibrators
         ///</summary>
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Calibrator")]
-        public void CalibratorLinearSvmTest()
+        public void PAVCalibratorLinearSvmTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(
-                new[] { TestLearners.linearSVM },
-                datasets,
-                new string[] { "cali={}" }, "nocalibration");
-            RunAllTests(
-                new[] { TestLearners.linearSVM },
-                datasets,
-                new string[] { "cali=PAV" }, "PAVcalibration");
+            RunAllTests( new[] { TestLearners.linearSVM }, datasets, new string[] { "cali=PAV" }, "PAVcalibration");
             Done();
         }
 
