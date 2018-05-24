@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.Data
             var inputs = Source.GetRowCursorSet(out consolidator, predicateInput, n, rand);
             Contracts.AssertNonEmpty(inputs);
 
-            if (inputs.Length == 1 && n > 1 && WantParallelCursors(predicate))
+            if (inputs.Length == 1 && n > 1 && WantParallelCursors(predicate) && (Source.GetRowCount() ?? int.MaxValue) > n)
                 inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
             Contracts.AssertNonEmpty(inputs);
 
@@ -432,14 +432,14 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
             switch (kind)
             {
-            case MetadataUtils.Kinds.ScoreColumnSetId:
-                _getScoreColumnSetId.Marshal(iinfo, ref value);
-                break;
-            default:
-                if (iinfo < DerivedColumnCount)
-                    throw MetadataUtils.ExceptGetMetadata();
-                Mapper.OutputSchema.GetMetadata<TValue>(kind, iinfo - DerivedColumnCount, ref value);
-                break;
+                case MetadataUtils.Kinds.ScoreColumnSetId:
+                    _getScoreColumnSetId.Marshal(iinfo, ref value);
+                    break;
+                default:
+                    if (iinfo < DerivedColumnCount)
+                        throw MetadataUtils.ExceptGetMetadata();
+                    Mapper.OutputSchema.GetMetadata<TValue>(kind, iinfo - DerivedColumnCount, ref value);
+                    break;
             }
         }
 
