@@ -17,8 +17,7 @@ namespace Microsoft.ML.Scenarios
             string dataPath = GetDataPath(@"external/20newsgroups.txt");
 
             var pipeline = new LearningPipeline();
-            pipeline.Add(new TextLoader(dataPath).CreateFrom<NewsData>(useHeader: false));
-            pipeline.Add(new CategoricalOneHotVectorizer("Label"));
+            pipeline.Add(new TextLoader(dataPath).CreateFrom<NewsData>(useHeader: false, allowQuotedStrings:true,  supportSparse:false));
             pipeline.Add(new ColumnConcatenator("AllText", "Subject", "Content"));
             pipeline.Add(new TextFeaturizer("Features", "AllText")
             {
@@ -26,7 +25,7 @@ namespace Microsoft.ML.Scenarios
                 KeepPunctuations = false,
                 TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 StopWordsRemover = new PredefinedStopWordsRemover(),
-                VectorNormalizer = TextTransformTextNormKind.None,
+                VectorNormalizer = TextTransformTextNormKind.L2,
                 CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 1, AllLengths = true }
             });
