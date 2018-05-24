@@ -22,7 +22,7 @@ namespace Microsoft.ML.TestFramework
             _rootDir = currentAssemblyLocation.Directory.Parent.Parent.Parent.Parent.FullName;
             _outDir = Path.Combine(currentAssemblyLocation.Directory.FullName, "TestOutput");
             Directory.CreateDirectory(_outDir);
-            _dataRoot = Path.Combine(_rootDir, "test", "data");
+            _dataRoot = Path.Combine(_rootDir, "examples", "datasets");
             Output = output;
         }
 
