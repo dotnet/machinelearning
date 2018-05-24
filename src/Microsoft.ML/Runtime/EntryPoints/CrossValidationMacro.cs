@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(CrossValidationMacro), null, typeof(SignatureEntryPointModule), "CrossValidationMacro")]
@@ -83,16 +83,52 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IPredictorModel[] PredictorModel;
 
             [TlcModule.Output(Desc = "Warning dataset", SortOrder = 2)]
-            public IDataView[] Warnings;
+            public IDataView Warnings;
 
             [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 3)]
-            public IDataView[] OverallMetrics;
+            public IDataView OverallMetrics;
 
             [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 4)]
-            public IDataView[] PerInstanceMetrics;
+            public IDataView PerInstanceMetrics;
 
             [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 5)]
+            public IDataView ConfusionMatrix;
+        }
+
+        public sealed class CombineMetricsInput
+        {
+            [Argument(ArgumentType.Multiple, HelpText = "Overall metrics datasets", SortOrder = 1)]
+            public IDataView[] OverallMetrics;
+
+            [Argument(ArgumentType.Multiple, HelpText = "Per instance metrics datasets", SortOrder = 2)]
+            public IDataView[] PerInstanceMetrics;
+
+            [Argument(ArgumentType.Multiple, HelpText = "Confusion matrix datasets", SortOrder = 3)]
             public IDataView[] ConfusionMatrix;
+
+            [Argument(ArgumentType.Multiple, HelpText = "Warning datasets", SortOrder = 4)]
+            public IDataView[] Warnings;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 6)]
+            public string LabelColumn = DefaultColumnNames.Label;
+
+            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 7)]
+            public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
+        }
+
+        public sealed class CombinedOutput
+        {
+            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 2)]
+            public IDataView Warnings;
+
+            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 3)]
+            public IDataView OverallMetrics;
+
+            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 4)]
+            public IDataView PerInstanceMetrics;
+
+            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 5)]
+            public IDataView ConfusionMatrix;
         }
 
         [TlcModule.EntryPoint(Desc = "Cross validation for general learning", Name = "Models.CrossValidator")]
@@ -206,6 +242,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             exp.Reset();
 
+            // Convert predictors from all folds into an array of predictors.
             var outModels = new ML.Data.PredictorModelArrayConverter
             {
                 Model = new ArrayVar<IPredictorModel>(predModelVars)
@@ -214,45 +251,159 @@ namespace Microsoft.ML.Runtime.EntryPoints
             outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.PredictorModel));
             exp.Add(outModels, outModelsOutput);
 
+            // Convert warnings data views from all folds into an array of data views.
             var warnings = new ML.Data.IDataViewArrayConverter
             {
                 Data = new ArrayVar<IDataView>(warningsVars)
             };
             var warningsOutput = new ML.Data.IDataViewArrayConverter.Output();
-            warningsOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.Warnings));
             exp.Add(warnings, warningsOutput);
 
+            // Convert overall metrics data views from all folds into an array of data views.
             var overallMetrics = new ML.Data.IDataViewArrayConverter
             {
                 Data = new ArrayVar<IDataView>(overallMetricsVars)
             };
             var overallMetricsOutput = new ML.Data.IDataViewArrayConverter.Output();
-            overallMetricsOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.OverallMetrics));
             exp.Add(overallMetrics, overallMetricsOutput);
 
+            // Convert per instance data views from all folds into an array of data views.
             var instanceMetrics = new ML.Data.IDataViewArrayConverter
             {
                 Data = new ArrayVar<IDataView>(instanceMetricsVars)
             };
             var instanceMetricsOutput = new ML.Data.IDataViewArrayConverter.Output();
-            instanceMetricsOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.PerInstanceMetrics));
             exp.Add(instanceMetrics, instanceMetricsOutput);
 
+            ML.Data.IDataViewArrayConverter.Output confusionMatricesOutput = null;
             if (input.Kind == MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer ||
                 input.Kind == MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer)
             {
+                // Convert confusion matrix data views from all folds into an array of data views.
                 var confusionMatrices = new ML.Data.IDataViewArrayConverter
                 {
                     Data = new ArrayVar<IDataView>(confusionMatrixVars)
                 };
-                var confusionMatricesOutput = new ML.Data.IDataViewArrayConverter.Output();
-                confusionMatricesOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.ConfusionMatrix));
+                confusionMatricesOutput = new ML.Data.IDataViewArrayConverter.Output();
                 exp.Add(confusionMatrices, confusionMatricesOutput);
             }
 
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+            var combineArgs = new CombineMetricsInput();
+            combineArgs.Kind = input.Kind;
 
+            // Set the input bindings for the CombineMetrics entry point.
+            var combineInputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+            var combineInputMap = new Dictionary<ParameterBinding, VariableBinding>();
+            var overallArray = new SimpleParameterBinding(nameof(combineArgs.OverallMetrics));
+            combineInputBindingMap.Add(nameof(combineArgs.OverallMetrics), new List<ParameterBinding> { overallArray });
+            combineInputMap.Add(overallArray, new SimpleVariableBinding(overallMetricsOutput.OutputData.VarName));
+            var combinePerInstArray = new SimpleParameterBinding(nameof(combineArgs.PerInstanceMetrics));
+            combineInputBindingMap.Add(nameof(combineArgs.PerInstanceMetrics), new List<ParameterBinding> { combinePerInstArray });
+            combineInputMap.Add(combinePerInstArray, new SimpleVariableBinding(instanceMetricsOutput.OutputData.VarName));
+            if (confusionMatricesOutput != null)
+            {
+                var combineConfArray = new SimpleParameterBinding(nameof(combineArgs.ConfusionMatrix));
+                combineInputBindingMap.Add(nameof(combineArgs.ConfusionMatrix), new List<ParameterBinding> { combineConfArray });
+                combineInputMap.Add(combineConfArray, new SimpleVariableBinding(confusionMatricesOutput.OutputData.VarName));
+            }
+
+            var combineOutputMap = new Dictionary<string, string>();
+            var combineWarningVar = new Var<IDataView>();
+            combineWarningVar.VarName = node.GetOutputVariableName(nameof(Output.Warnings));
+            combineOutputMap.Add(nameof(Output.Warnings), combineWarningVar.VarName);
+            var combineOverallMetric = new Var<IDataView>();
+            combineOverallMetric.VarName = node.GetOutputVariableName(nameof(Output.OverallMetrics));
+            combineOutputMap.Add(nameof(Output.OverallMetrics), combineOverallMetric.VarName);
+            var combineInstanceMetric = new Var<IDataView>();
+            combineInstanceMetric.VarName = node.GetOutputVariableName(nameof(Output.PerInstanceMetrics));
+            combineOutputMap.Add(nameof(Output.PerInstanceMetrics), combineInstanceMetric.VarName);
+            var combineConfusionMatrix = new Var<IDataView>();
+            combineConfusionMatrix.VarName = node.GetOutputVariableName(nameof(Output.ConfusionMatrix));
+            combineOutputMap.Add(nameof(TrainTestMacro.Output.ConfusionMatrix), combineConfusionMatrix.VarName);
+
+            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+            subGraphNodes.Add(EntryPointNode.Create(env, "Models.CrossValidationResultsCombiner", combineArgs, node.Catalog, node.Context, combineInputBindingMap, combineInputMap, combineOutputMap));
             return new CommonOutputs.MacroOutput<Output>() { Nodes = subGraphNodes };
+        }
+
+        [TlcModule.EntryPoint(Desc = "Combine the metric data views returned from cross validation.", Name = "Models.CrossValidationResultsCombiner")]
+        public static CombinedOutput CombineMetrics(IHostEnvironment env, CombineMetricsInput input)
+        {
+            var eval = GetEvaluator(env, input.Kind);
+            var perInst = EvaluateUtils.ConcatenatePerInstanceDataViews(env, eval, true, true, input.PerInstanceMetrics.Select(
+                idv => RoleMappedData.Create(idv, RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, input.LabelColumn))).ToArray(),
+                out var variableSizeVectorColumnNames);
+
+            var warnings = input.Warnings != null ? new List<IDataView>(input.Warnings) : new List<IDataView>();
+            if (variableSizeVectorColumnNames.Length > 0)
+            {
+                var dvBldr = new ArrayDataViewBuilder(env);
+                var warn = $"Detected columns of variable length: {string.Join(", ", variableSizeVectorColumnNames)}." +
+                    $" Consider setting collateMetrics- for meaningful per-Folds results.";
+                dvBldr.AddColumn(MetricKinds.ColumnNames.WarningText, TextType.Instance, new DvText(warn));
+                warnings.Add(dvBldr.GetDataView());
+            }
+
+            env.Assert(Utils.Size(perInst) == 1);
+
+            var overall = eval.GetOverallResults(input.OverallMetrics);
+            overall = EvaluateUtils.CombineFoldMetricsDataViews(env, overall, input.OverallMetrics.Length);
+
+            IDataView conf = null;
+            if (Utils.Size(input.ConfusionMatrix) > 0)
+            {
+                EvaluateUtils.ReconcileSlotNames<double>(env, input.ConfusionMatrix, MetricKinds.ColumnNames.Count, NumberType.R8);
+
+                for (int i = 0; i < input.ConfusionMatrix.Length; i++)
+                {
+                    var idv = input.ConfusionMatrix[i];
+                    // Find the old Count column and drop it.
+                    for (int col = 0; col < idv.Schema.ColumnCount; col++)
+                    {
+                        if (idv.Schema.IsHidden(col) &&
+                            idv.Schema.GetColumnName(col).Equals(MetricKinds.ColumnNames.Count))
+                        {
+                            input.ConfusionMatrix[i] = new ChooseColumnsByIndexTransform(env,
+                                new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = new[] { col } }, idv);
+                            break;
+                        }
+                    }
+                }
+                conf = EvaluateUtils.ConcatenateOverallMetrics(env, input.ConfusionMatrix);
+            }
+
+            var warningsIdv = warnings.Count > 0 ? AppendRowsDataView.Create(env, warnings[0].Schema, warnings.ToArray()) : null;
+
+            return new CombinedOutput()
+            {
+                PerInstanceMetrics = perInst[0],
+                OverallMetrics = overall,
+                ConfusionMatrix = conf,
+                Warnings = warningsIdv
+            };
+        }
+
+        private static IMamlEvaluator GetEvaluator(IHostEnvironment env, MacroUtils.TrainerKinds kind)
+        {
+            switch (kind)
+            {
+                case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
+                    return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer:
+                    return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
+                    return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureRankerTrainer:
+                    return new RankerMamlEvaluator(env, new RankerMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
+                    return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureClusteringTrainer:
+                    return new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
+                    return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
+                default:
+                    throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
+            }
         }
     }
 }
