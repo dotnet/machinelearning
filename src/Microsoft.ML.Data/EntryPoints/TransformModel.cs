@@ -45,6 +45,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         /// <summary>
+        /// Schema of the transform model.
+        /// </summary>
+        public IDataView Schema
+        {
+            get { return _chain; }
+        }
+
+        /// <summary>
         /// Create a TransformModel containing the transforms from "result" back to "input".
         /// </summary>
         public TransformModel(IHostEnvironment env, IDataView result, IDataView input)

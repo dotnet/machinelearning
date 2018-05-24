@@ -30,6 +30,33 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Returns labels that correspond to indices of the score array in the case of 
+        /// multi-class classification problem.
+        /// </summary>
+        /// <param name="mapping">Label to score mapping</param>
+        /// <param name="scoreColumnName">Name of the score column</param>
+        /// <returns></returns>
+        public bool TryGetScoreLabelMapping(out string[] mapping, string scoreColumnName = "Score")
+        {
+            mapping = null;
+            IDataView idv = _predictorModel.Schema;
+            int colIndex = -1;
+            if (!idv.Schema.TryGetColumnIndex(scoreColumnName, out colIndex))
+                return false;
+
+            VBuffer<DvText> labels = default(VBuffer<DvText>);
+            idv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref labels);
+
+            Contracts.Assert(labels.IsDense);
+
+            mapping = new string[labels.Count];
+            for (int index = 0; index < labels.Count; index++)
+                mapping[index] = labels.Values[index].ToString();
+            
+            return true;
+        }
+
+        /// <summary>
         /// Read model from file asynchronously.
         /// </summary>
         /// <param name="path">Path to the file</param>

@@ -30,6 +30,11 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
             PredictionModel<IrisDataWithStringLabel, IrisPrediction> model = pipeline.Train<IrisDataWithStringLabel, IrisPrediction>();
+            string[] scoreLabels;
+            model.TryGetScoreLabelMapping(out scoreLabels);
+
+            Assert.NotNull(scoreLabels);
+            Assert.Equal(3, scoreLabels.Length);
 
             IrisPrediction prediction = model.Predict(new IrisDataWithStringLabel()
             {

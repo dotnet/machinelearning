@@ -26,6 +26,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
         ISchema InputSchema { get; }
 
         /// <summary>
+        /// Schema of the transform model.
+        /// </summary>
+        IDataView Schema { get; }
+        /// <summary>
         /// Apply the transform(s) in the model to the given input data.
         /// </summary>
         IDataView Apply(IHostEnvironment env, IDataView input);
