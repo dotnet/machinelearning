@@ -35,6 +35,9 @@ namespace Microsoft.ML.Scenarios
 
             Assert.NotNull(scoreLabels);
             Assert.Equal(3, scoreLabels.Length);
+            Assert.True(scoreLabels[0] == "Iris-setosa");
+            Assert.True(scoreLabels[1] == "Iris-versicolor");
+            Assert.True(scoreLabels[2] == "Iris-virginica");
 
             IrisPrediction prediction = model.Predict(new IrisDataWithStringLabel()
             {
