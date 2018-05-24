@@ -1061,7 +1061,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for random calibrators
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Calibrator")]
         public void RandomCalibratorPerceptronTest()
         {
