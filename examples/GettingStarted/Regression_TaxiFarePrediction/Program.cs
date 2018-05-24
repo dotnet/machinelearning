@@ -11,9 +11,9 @@ namespace Regression_TaxiFarePrediction
     internal static class Program
     {
         private static string AppPath => Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]);
-        private static string TrainDataPath => Path.Combine(AppPath, "..", "..", "..", "..",  "datasets", "taxifare_train.csv");
-        private static string TestDataPath => Path.Combine(AppPath,  "..", "..", "..", "..", "datasets", "taxifare_test.csv");
-        private static string ModelPath => Path.Combine(AppPath,  "Models", "TaxiFareModel.zip");
+        private static string TrainDataPath => Path.Combine(AppPath, "datasets", "taxi-fare-train.csv");
+        private static string TestDataPath => Path.Combine(AppPath,  "datasets", "taxi-fare-test.csv");
+        private static string ModelPath => Path.Combine(AppPath, "TaxiFareModel.zip");
 
         private static async Task Main(string[] args)
         {

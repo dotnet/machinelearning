@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\datasets\imdb_labeled.txt" Link="datasets\imdb_labeled.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\datasets\yelp_labeled.txt" Link="datasets\yelp_labeled.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML" Version="0.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="datasets\" />
+  </ItemGroup>
+
+</Project>

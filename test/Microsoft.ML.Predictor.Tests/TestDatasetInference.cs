@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var datasets = new[]
             {
-                GetDataPath(Path.Combine("..", "data", "wikipedia-detox-250-line-data.tsv"))
+                GetDataPath("wikipedia-detox-250-line-data.tsv")
             };
 
             using (var env = new TlcEnvironment())
@@ -124,8 +124,8 @@ namespace Microsoft.ML.Runtime.RunTests
             var datasets = new Tuple<string, string>[] 
             {
                 Tuple.Create(
-                    GetDataPath(Path.Combine("..", "data", "wikipedia-detox-250-line-data.tsv")),
-                    GetDataPath(Path.Combine("..", "data", "wikipedia-detox-250-line-data-schema.txt")))
+                    GetDataPath(Path.Combine("..", "datasets", "wikipedia-detox-250-line-data.tsv")),
+                    GetDataPath(Path.Combine("..", "datasets", "wikipedia-detox-250-line-data-schema.txt")))
             };
 
             using (var env = new TlcEnvironment())

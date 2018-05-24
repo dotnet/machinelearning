@@ -13,9 +13,9 @@ namespace BinaryClassification_SentimentAnalysis
     internal static class Program
     {
         private static string AppPath => Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]);
-        private static string TrainDataPath => Path.Combine(AppPath, "..", "..", "..", "..",  "datasets", "imdb_labeled.txt");
-        private static string TestDataPath => Path.Combine(AppPath,  "..", "..", "..", "..", "datasets", "yelp_labeled.txt");
-        private static string ModelPath => Path.Combine(AppPath, "Models", "SentimentModel.zip");
+        private static string TrainDataPath => Path.Combine(AppPath, "datasets", "imdb_labeled.txt");
+        private static string TestDataPath => Path.Combine(AppPath, "datasets", "yelp_labeled.txt");
+        private static string ModelPath => Path.Combine(AppPath, "SentimentModel.zip");
 
         private static async Task Main(string[] args)
         {

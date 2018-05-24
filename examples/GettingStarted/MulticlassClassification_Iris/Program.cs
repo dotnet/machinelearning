@@ -11,9 +11,9 @@ namespace MulticlassClassification_Iris
     public static partial class Program
     {
         private static string AppPath => Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]);
-        private static string TrainDataPath => Path.Combine(AppPath, "..", "..", "..", "..",  "datasets", "iris_train.txt");
-        private static string TestDataPath => Path.Combine(AppPath,  "..", "..", "..", "..", "datasets", "iris_test.txt");
-        private static string ModelPath => Path.Combine(AppPath,  "Models", "IrisModel.zip");
+        private static string TrainDataPath => Path.Combine(AppPath, "datasets", "iris_train.txt");
+        private static string TestDataPath => Path.Combine(AppPath,  "datasets", "iris_test.txt");
+        private static string ModelPath => Path.Combine(AppPath, "IrisModel.zip");
 
         private static async Task Main(string[] args)
         {
