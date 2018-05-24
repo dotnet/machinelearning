@@ -228,6 +228,79 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.StartsWith("String1 is missing ColumnAttribute", ex.Message);
         }
 
+
+        [Fact]
+        public void CanSuccessfullyNamedColumns()
+        {
+            string dataPath = GetDataPath("SparseData.txt");
+            var loader = new Data.TextLoader(dataPath).CreateFrom<SparseInputWithNamedColumns>(useHeader: true, allowQuotedStrings: false, supportSparse: true);
+
+            using (var environment = new TlcEnvironment())
+            {
+                Experiment experiment = environment.CreateExperiment();
+                ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as ILearningPipelineDataStep;
+
+                experiment.Compile();
+                loader.SetInput(environment, experiment);
+                experiment.Run();
+
+                IDataLoader data = experiment.GetOutput(output.Data) as IDataLoader;
+                Assert.NotNull(data);
+
+                Assert.Equal(5, data.Schema.ColumnCount);
+                Assert.Equal("Name", data.Schema.GetColumnName(0));
+                Assert.Equal("GroupId", data.Schema.GetColumnName(1));
+                Assert.Equal("Weight", data.Schema.GetColumnName(2));
+                Assert.Equal("Features", data.Schema.GetColumnName(3));
+                Assert.Equal("Label", data.Schema.GetColumnName(4));
+
+                using (var cursor = data.GetRowCursor((a => true)))
+                {
+                    var getters = new ValueGetter<float>[]{
+                        cursor.GetGetter<float>(0),
+                        cursor.GetGetter<float>(1),
+                        cursor.GetGetter<float>(2),
+                        cursor.GetGetter<float>(3),
+                        cursor.GetGetter<float>(4)
+                    };
+
+
+                    Assert.True(cursor.MoveNext());
+
+                    float[] targets = new float[] { 1, 2, 3, 4, 5 };
+                    for (int i = 0; i < getters.Length; i++)
+                    {
+                        float value = 0;
+                        getters[i](ref value);
+                        Assert.Equal(targets[i], value);
+                    }
+
+                    Assert.True(cursor.MoveNext());
+
+                    targets = new float[] { 0, 0, 0, 4, 5 };
+                    for (int i = 0; i < getters.Length; i++)
+                    {
+                        float value = 0;
+                        getters[i](ref value);
+                        Assert.Equal(targets[i], value);
+                    }
+
+                    Assert.True(cursor.MoveNext());
+
+                    targets = new float[] { 0, 2, 0, 0, 0 };
+                    for (int i = 0; i < getters.Length; i++)
+                    {
+                        float value = 0;
+                        getters[i](ref value);
+                        Assert.Equal(targets[i], value);
+                    }
+
+                    Assert.False(cursor.MoveNext());
+                }
+            }
+
+        }
+
         public class QuoteInput
         {
             [Column("0")]
@@ -267,6 +340,24 @@ namespace Microsoft.ML.EntryPoints.Tests
         public class ModelWithoutColumnAttribute
         {
             public string String1;
+        }
+
+        public class SparseInputWithNamedColumns
+        {
+            [NameColumn("0")]
+            public float C1;
+
+            [GroupColumn("1")]
+            public float C2;
+
+            [WeightColumn("2")]
+            public float C3;
+
+            [FeaturesColumn("3")]
+            public float C4;
+
+            [LabelColumn("4")]
+            public float C5;
         }
     }
 }

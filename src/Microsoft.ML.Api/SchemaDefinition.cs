@@ -67,8 +67,9 @@ namespace Microsoft.ML.Runtime.Api
     /// column encapsulates.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
-    public sealed class ColumnAttribute : Attribute
+    public class ColumnAttribute : Attribute
     {
+
         public ColumnAttribute(string ordinal, string name = null)
         {
             Name = name;
@@ -91,6 +92,61 @@ namespace Microsoft.ML.Runtime.Api
         /// 1,2-5,10-*
         /// </summary>
         public string Ordinal { get; }
+    }
+
+    /// <summary>
+    /// Describes 'Label' column with indicies.
+    /// </summary>
+    public sealed class LabelColumnAttribute : ColumnAttribute
+    {
+        public LabelColumnAttribute(string ordinal):
+            base(ordinal, "Label")
+        {
+        }
+    }
+
+    /// <summary>
+    /// Describes 'Features' column with indicies.
+    /// </summary>
+    public sealed class FeaturesColumnAttribute : ColumnAttribute
+    {
+        public FeaturesColumnAttribute(string ordinal) :
+            base(ordinal, "Features")
+        {
+        }
+    }
+
+    /// <summary>
+    /// Describes 'Weight' column with indicies.
+    /// </summary>
+    public sealed class WeightColumnAttribute : ColumnAttribute
+    {
+        public WeightColumnAttribute(string ordinal) :
+            base(ordinal, "Weight")
+        {
+        }
+    }
+
+    /// <summary>
+    /// Describes 'GroupId' column with indicies.
+    /// </summary>
+    public sealed class GroupColumnAttribute : ColumnAttribute
+    {
+        public GroupColumnAttribute(string ordinal) :
+            base(ordinal, "GroupId")
+        {
+        }
+    }
+
+    /// <summary>
+    /// Describes 'Name' column with indicies.
+    /// </summary>
+    public sealed class NameColumnAttribute : ColumnAttribute
+    {
+        public NameColumnAttribute(string ordinal) :
+            base(ordinal, "Name")
+        {
+        }
     }
 
     /// <summary>

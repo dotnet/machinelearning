@@ -145,7 +145,7 @@ namespace Microsoft.ML.Scenarios
 
         public class SentimentData
         {
-            [Column(ordinal: "0", name: "Label")]
+            [LabelColumn(ordinal: "0")]
             public float Sentiment;
             [Column(ordinal: "1")]
             public string SentimentText;
