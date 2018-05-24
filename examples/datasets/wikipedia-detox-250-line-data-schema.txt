@@ -1,0 +1,14 @@
+[
+  {
+    "SuggestedName": "Sentiment",
+    "ItemKind": "R4",
+    "Purpose": "Label",
+    "ColumnRangeSelector": "0"
+  },
+  {
+    "SuggestedName": "SentimentText",
+    "ItemKind": "TX",
+    "Purpose": "TextFeature",
+    "ColumnRangeSelector": "1"
+  }
+]
