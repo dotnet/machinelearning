@@ -69,16 +69,16 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // For splitting the data into folds, this column is used for grouping rows and makes sure
             // that a group of rows is not split among folds.
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for stratification", ShortName = "strat", SortOrder = 7)]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for stratification", ShortName = "strat", SortOrder = 6)]
             public string StratificationColumn;
 
             // The number of folds to generate.
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of folds in k-fold cross-validation", ShortName = "k", SortOrder = 8)]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of folds in k-fold cross-validation", ShortName = "k", SortOrder = 7)]
             public int NumFolds = 2;
 
             // REVIEW: suggest moving to subcomponents for evaluators, to allow for different parameters on the evaluators
             // (and the same for the TrainTest macro). I currently do not know how to do this, so this should be revisited in the future.
-            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 9)]
+            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 8)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
         }
 
@@ -94,16 +94,16 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 "provided as the Input.TransformModel.", SortOrder = 2)]
             public ITransformModel[] TransformModel;
 
-            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 2)]
+            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 3)]
             public IDataView Warnings;
 
-            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 3)]
+            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 4)]
             public IDataView OverallMetrics;
 
-            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 4)]
+            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 5)]
             public IDataView PerInstanceMetrics;
 
-            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 5)]
+            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 6)]
             public IDataView ConfusionMatrix;
         }
 
@@ -122,25 +122,25 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Multiple, HelpText = "Warning datasets", SortOrder = 4)]
             public IDataView[] Warnings;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 5)]
             public string LabelColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 7)]
+            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 6)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
         }
 
         public sealed class CombinedOutput
         {
-            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 2)]
+            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 1)]
             public IDataView Warnings;
 
-            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 3)]
+            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 2)]
             public IDataView OverallMetrics;
 
-            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 4)]
+            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 3)]
             public IDataView PerInstanceMetrics;
 
-            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 5)]
+            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 4)]
             public IDataView ConfusionMatrix;
         }
 

@@ -1329,7 +1329,7 @@
             "Label"
           ],
           "Required": false,
-          "SortOrder": 6.0,
+          "SortOrder": 5.0,
           "IsNullable": false,
           "Default": "Label"
         },
@@ -1349,7 +1349,7 @@
           },
           "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
           "Required": true,
-          "SortOrder": 7.0,
+          "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
         }
@@ -1478,7 +1478,7 @@
             "strat"
           ],
           "Required": false,
-          "SortOrder": 7.0,
+          "SortOrder": 6.0,
           "IsNullable": false,
           "Default": null
         },
@@ -1490,7 +1490,7 @@
             "k"
           ],
           "Required": false,
-          "SortOrder": 8.0,
+          "SortOrder": 7.0,
           "IsNullable": false,
           "Default": 2
         },
@@ -1510,7 +1510,7 @@
           },
           "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
           "Required": true,
-          "SortOrder": 9.0,
+          "SortOrder": 8.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
         }

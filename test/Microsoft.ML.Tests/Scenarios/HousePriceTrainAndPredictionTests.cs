@@ -66,7 +66,7 @@ namespace Microsoft.ML.Scenarios
             var testData = new TextLoader(testDataPath).CreateFrom<HousePriceData>(useHeader: true, separator: ',');
 
             var evaluator = new RegressionEvaluator();
-            RegressionMetrics metrics = evaluator.Evaluate(model, testData).FirstOrDefault();
+            RegressionMetrics metrics = evaluator.Evaluate(model, testData);
             Assert.InRange(metrics.L1, 85_000, 89_000);
             Assert.InRange(metrics.L2, 17_000_000_000, 19_000_000_000);
             Assert.InRange(metrics.Rms, 130_500, 135_000);
