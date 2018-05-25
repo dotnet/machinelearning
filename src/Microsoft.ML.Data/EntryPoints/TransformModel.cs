@@ -39,18 +39,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// if transform model A needs column X and model B needs Y, that is NOT produced by A,
         /// then trimming A's input schema would cause composition to fail.
         /// </summary>
-        public ISchema InputSchema
-        {
-            get { return _schemaRoot; }
-        }
+        public ISchema InputSchema => _schemaRoot;
 
         /// <summary>
-        /// Schema of the transform model.
+        /// The resulting schema once applied to this model. The <see cref="InputSchema"/> might have
+        /// columns that are not needed by this transform and these columns will be seen in the 
+        /// <see cref="OutputSchema"/> produced by this transform.
         /// </summary>
-        public IDataView Schema
-        {
-            get { return _chain; }
-        }
+        public ISchema OutputSchema => _chain.Schema;
 
         /// <summary>
         /// Create a TransformModel containing the transforms from "result" back to "input".

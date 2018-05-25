@@ -26,9 +26,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
         ISchema InputSchema { get; }
 
         /// <summary>
-        /// Schema of the transform model.
+        /// The resulting schema once applied to this model. The <see cref="InputSchema"/> might have
+        /// columns that are not needed by this transform and these columns will be seen in the 
+        /// <see cref="OutputSchema"/> produced by this transform.
         /// </summary>
-        IDataView Schema { get; }
+        ISchema OutputSchema { get; }
+
         /// <summary>
         /// Apply the transform(s) in the model to the given input data.
         /// </summary>

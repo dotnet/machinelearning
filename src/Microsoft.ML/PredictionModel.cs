@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,20 +37,26 @@ namespace Microsoft.ML
         /// <param name="mapping">Label to score mapping</param>
         /// <param name="scoreColumnName">Name of the score column</param>
         /// <returns></returns>
-        public bool TryGetScoreLabelMapping(out string[] mapping, string scoreColumnName = "Score")
+        public bool TryGetScoreLabelMapping(out string[] mapping, string scoreColumnName = DefaultColumnNames.Score)
         {
             mapping = null;
-            IDataView idv = _predictorModel.Schema;
+            ISchema schema = _predictorModel.OutputSchema;
             int colIndex = -1;
-            if (!idv.Schema.TryGetColumnIndex(scoreColumnName, out colIndex))
+            if (!schema.TryGetColumnIndex(scoreColumnName, out colIndex))
+                return false;
+            
+            int expectedLabelCount = schema.GetColumnType(colIndex).AsVector.ValueCount;
+            if (!schema.HasSlotNames(colIndex, expectedLabelCount))
                 return false;
 
-            VBuffer<DvText> labels = default(VBuffer<DvText>);
-            idv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref labels);
+            VBuffer<DvText> labels = default;
+            schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref labels);
+            VBufferUtils.Densify(ref labels);
 
-            Contracts.Assert(labels.IsDense);
+            if (labels.Length != expectedLabelCount)
+                return false;
 
-            mapping = new string[labels.Count];
+            mapping = new string[labels.Length];
             for (int index = 0; index < labels.Count; index++)
                 mapping[index] = labels.Values[index].ToString();
             
