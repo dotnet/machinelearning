@@ -1918,7 +1918,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointKMeans()
         {
-            TestEntryPointRoutine("Train-Tiny-28x28.txt", "Trainers.KMeansPlusPlusClusterer");
+            TestEntryPointRoutine("MNIST-Train-Tiny-28x28.txt", "Trainers.KMeansPlusPlusClusterer");
         }
 
         [Fact]
