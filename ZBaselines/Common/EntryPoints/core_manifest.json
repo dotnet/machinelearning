@@ -470,6 +470,35 @@
       ]
     },
     {
+      "Name": "Data.TransformModelArrayConverter",
+      "Desc": "Create and array variable",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "TransformModel",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "TransformModel"
+          },
+          "Desc": "The models",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputModel",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "TransformModel"
+          },
+          "Desc": "The model array"
+        }
+      ]
+    },
+    {
       "Name": "Models.AnomalyDetectionEvaluator",
       "Desc": "Evaluates an anomaly detection scored dataset.",
       "FriendlyName": null,
@@ -1411,9 +1440,28 @@
                 "Name": "Model",
                 "Type": "PredictorModel",
                 "Desc": "The model",
-                "Required": true,
+                "Required": false,
                 "SortOrder": 1.0,
-                "IsNullable": false
+                "IsNullable": false,
+                "Default": null
+              },
+              {
+                "Name": "TransformModel",
+                "Type": "TransformModel",
+                "Desc": "The transform model",
+                "Required": false,
+                "SortOrder": 2.0,
+                "IsNullable": false,
+                "Default": null
+              },
+              {
+                "Name": "UseTransformModel",
+                "Type": "Bool",
+                "Desc": "Indicates to use transform model instead of predictor model.",
+                "Required": false,
+                "SortOrder": 3.0,
+                "IsNullable": false,
+                "Default": false
               }
             ]
           },
@@ -1473,6 +1521,14 @@
           "Type": {
             "Kind": "Array",
             "ItemType": "PredictorModel"
+          },
+          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
+        },
+        {
+          "Name": "TransformModel",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "TransformModel"
           },
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
@@ -3002,9 +3058,28 @@
                 "Name": "Model",
                 "Type": "PredictorModel",
                 "Desc": "The model",
-                "Required": true,
+                "Required": false,
                 "SortOrder": 1.0,
-                "IsNullable": false
+                "IsNullable": false,
+                "Default": null
+              },
+              {
+                "Name": "TransformModel",
+                "Type": "TransformModel",
+                "Desc": "Transform model",
+                "Required": false,
+                "SortOrder": 2.0,
+                "IsNullable": false,
+                "Default": null
+              },
+              {
+                "Name": "UseTransformModel",
+                "Type": "Bool",
+                "Desc": "Indicates to use transform model instead of predictor model.",
+                "Required": false,
+                "SortOrder": 3.0,
+                "IsNullable": false,
+                "Default": false
               }
             ]
           },
@@ -3056,6 +3131,11 @@
         {
           "Name": "PredictorModel",
           "Type": "PredictorModel",
+          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
+        },
+        {
+          "Name": "TransformModel",
+          "Type": "TransformModel",
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
         {

@@ -53,7 +53,7 @@ namespace Microsoft.ML.Benchmarks
 
             var testData = new TextLoader(s_dataPath).CreateFrom<IrisData>(useHeader: true);
             var evaluator = new ClassificationEvaluator();
-            s_metrics = evaluator.Evaluate(s_trainedModel, testData).FirstOrDefault();
+            s_metrics = evaluator.Evaluate(s_trainedModel, testData);
 
             s_batches = new IrisData[s_batchSizes.Length][];
             for (int i = 0; i < s_batches.Length; i++)

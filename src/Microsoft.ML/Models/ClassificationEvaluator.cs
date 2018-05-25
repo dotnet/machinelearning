@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.ML.Models
 {
@@ -24,7 +25,7 @@ namespace Microsoft.ML.Models
         /// <returns>
         /// A ClassificationMetrics instance that describes how well the model performed against the test data.
         /// </returns>
-        public List<ClassificationMetrics> Evaluate(PredictionModel model, ILearningPipelineLoader testData)
+        public ClassificationMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
         {
             using (var environment = new TlcEnvironment())
             {
@@ -67,7 +68,11 @@ namespace Microsoft.ML.Models
                     throw environment.Except($"Could not find ConfusionMatrix in the results returned in {nameof(BinaryClassificationEvaluator)} Evaluate.");
                 }
 
-                return ClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
+                var metric = ClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
+
+                Contracts.Assert(metric.Count == 1);
+
+                return metric.First();
             }
         }
     }

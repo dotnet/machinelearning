@@ -7095,14 +7095,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(PcaAnomalyDetector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(PcaAnomalyDetector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new PcaAnomalyDetectorPipelineStep(output);
             }
@@ -12140,14 +12145,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(PcaCalculator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(PcaCalculator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new PcaCalculatorPipelineStep(output);
             }

@@ -14,6 +14,11 @@ namespace Microsoft.ML
     public interface ILearningPipelineItem
     {
         ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment);
+
+        /// <summary>
+        /// Returns the place holder for input IDataView object for the node in the execution graph.
+        /// </summary>
+        /// <returns></returns>
         Var<IDataView> GetInputData();
     }
 

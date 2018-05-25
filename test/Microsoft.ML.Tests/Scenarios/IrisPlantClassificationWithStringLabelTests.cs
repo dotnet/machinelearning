@@ -75,7 +75,7 @@ namespace Microsoft.ML.Scenarios
 
             var evaluator = new ClassificationEvaluator();
             evaluator.OutputTopKAcc = 3;
-            ClassificationMetrics metrics = evaluator.Evaluate(model, testData).FirstOrDefault(); ;
+            ClassificationMetrics metrics = evaluator.Evaluate(model, testData);
 
             Assert.Equal(.98, metrics.AccuracyMacro);
             Assert.Equal(.98, metrics.AccuracyMicro, 2);

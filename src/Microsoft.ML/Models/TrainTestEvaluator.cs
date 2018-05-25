@@ -4,22 +4,25 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Microsoft.ML.Models
 {
     /// <summary>
-    /// Performs cross-validation on a pipeline.
+    /// Performs Train-Test on a pipeline.
     /// </summary>
-    public sealed partial class CrossValidator
+    public sealed partial class TrainTestEvaluator
     {
         /// <summary>
-        /// Performs cross validation on a pipeline.
+        /// Performs train-test on a pipeline.
         /// </summary>
         /// <typeparam name="TInput">Class type that represents input schema.</typeparam>
         /// <typeparam name="TOutput">Class type that represents prediction schema.</typeparam>
-        /// <param name="pipeline">Machine learning pipeline that contain may contain loader, transforms and at least one trainer.</param>
-        /// <returns>List containning metrics and predictor model for each fold</returns>
-        public CrossValidationOutput<TInput, TOutput> CrossValidate<TInput, TOutput>(LearningPipeline pipeline) 
+        /// <param name="pipeline">Machine learning pipeline that contains <see cref="ILearningPipelineLoader"/>, 
+        /// transforms and at least one trainer.</param>
+        /// <param name="testData"><see cref="ILearningPipelineLoader"/> that represents the test dataset.</param>
+        /// <returns>Metrics and predictor model.</returns>
+        public TrainTestEvaluatorOutput<TInput, TOutput> TrainTestEvaluate<TInput, TOutput>(LearningPipeline pipeline, ILearningPipelineLoader testData)
             where TInput : class
             where TOutput : class, new()
         {
@@ -76,7 +79,7 @@ namespace Microsoft.ML.Models
                         {
                             PredictorModel = predictorModel
                         };
-                        
+
                         var scorerOutput = subGraph.Add(scorer);
                         lastTransformModel = scorerOutput.ScoringTransform;
                         step = new ScorerPipelineStep(scorerOutput.ScoredData, scorerOutput.ScoringTransform);
@@ -99,9 +102,9 @@ namespace Microsoft.ML.Models
                 }
 
                 var experiment = environment.CreateExperiment();
-                var importTextOutput = loaders[0].ApplyStep(null, experiment);
-
-                Data = (importTextOutput as ILearningPipelineDataStep).Data;
+                
+                TrainingData = (loaders[0].ApplyStep(null, experiment) as ILearningPipelineDataStep).Data;
+                TestingData = (testData.ApplyStep(null, experiment) as ILearningPipelineDataStep).Data;
                 Nodes = subGraph;
                 TransformModel = null;
                 Inputs.Data = firstTransform.GetInputData();
@@ -113,71 +116,64 @@ namespace Microsoft.ML.Models
                 {
                     loader.SetInput(environment, experiment);
                 }
+                testData.SetInput(environment, experiment);
 
                 experiment.Run();
 
-                CrossValidationOutput<TInput, TOutput> cvo = new CrossValidationOutput<TInput, TOutput>();
-                cvo.PredictorModels = new PredictionModel<TInput, TOutput>[NumFolds];
-
-                for (int Index = 0; Index < NumFolds; Index++)
+                TrainTestEvaluatorOutput<TInput, TOutput> tteo = new TrainTestEvaluatorOutput<TInput, TOutput>();
+                
+                if (Kind == MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer)
                 {
-
-                    if (Kind == MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer)
-                    {
-                        cvo.BinaryClassificationMetrics = BinaryClassificationMetrics.FromMetrics(
-                            environment,
-                            experiment.GetOutput(crossValidateOutput.OverallMetrics),
-                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix),
-                            2);
-                    }
-                    else if(Kind == MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer)
-                    {
-                        cvo.ClassificationMetrics = ClassificationMetrics.FromMetrics(
-                            environment,
-                            experiment.GetOutput(crossValidateOutput.OverallMetrics),
-                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix),
-                            2);
-                    }
-                    else if (Kind == MacroUtilsTrainerKinds.SignatureRegressorTrainer)
-                    {
-                        cvo.RegressionMetrics = RegressionMetrics.FromOverallMetrics(
-                            environment,
-                            experiment.GetOutput(crossValidateOutput.OverallMetrics),
-                            2);
-                    }
-                    else
-                    {
-                        //Implement metrics for ranking, clustering and anomaly detection.
-                        throw Contracts.Except($"{Kind.ToString()} is not supported at the moment.");
-                    }
-
-                    ITransformModel model = experiment.GetOutput(crossValidateOutput.TransformModel[Index]);
-                    BatchPredictionEngine<TInput, TOutput> predictor;
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        model.Save(environment, memoryStream);
-
-                        memoryStream.Position = 0;
-
-                        predictor = environment.CreateBatchPredictionEngine<TInput, TOutput>(memoryStream);
-
-                        cvo.PredictorModels[Index] = new PredictionModel<TInput, TOutput>(predictor, memoryStream);
-                    }
+                    tteo.BinaryClassificationMetrics = BinaryClassificationMetrics.FromMetrics(
+                        environment,
+                        experiment.GetOutput(crossValidateOutput.OverallMetrics),
+                        experiment.GetOutput(crossValidateOutput.ConfusionMatrix)).FirstOrDefault();
+                }
+                else if (Kind == MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer)
+                {
+                    tteo.ClassificationMetrics = ClassificationMetrics.FromMetrics(
+                        environment,
+                        experiment.GetOutput(crossValidateOutput.OverallMetrics),
+                        experiment.GetOutput(crossValidateOutput.ConfusionMatrix)).FirstOrDefault();
+                }
+                else if (Kind == MacroUtilsTrainerKinds.SignatureRegressorTrainer)
+                {
+                    tteo.RegressionMetrics = RegressionMetrics.FromOverallMetrics(
+                        environment,
+                        experiment.GetOutput(crossValidateOutput.OverallMetrics)).FirstOrDefault();
+                }
+                else
+                {
+                    //Implement metrics for ranking, clustering and anomaly detection.
+                    throw Contracts.Except($"{Kind.ToString()} is not supported at the moment.");
                 }
 
-                return cvo;
+                ITransformModel model = experiment.GetOutput(crossValidateOutput.TransformModel);
+                BatchPredictionEngine<TInput, TOutput> predictor;
+                using (var memoryStream = new MemoryStream())
+                {
+                    model.Save(environment, memoryStream);
+
+                    memoryStream.Position = 0;
+
+                    predictor = environment.CreateBatchPredictionEngine<TInput, TOutput>(memoryStream);
+
+                    tteo.PredictorModels = new PredictionModel<TInput, TOutput>(predictor, memoryStream);
+                }
+                
+                return tteo;
             }
         }
     }
 
-    public class CrossValidationOutput<TInput, TOutput>
+    public class TrainTestEvaluatorOutput<TInput, TOutput>
             where TInput : class
             where TOutput : class, new()
     {
-        public List<BinaryClassificationMetrics> BinaryClassificationMetrics;
-        public List<ClassificationMetrics> ClassificationMetrics;
-        public List<RegressionMetrics> RegressionMetrics;
-        public PredictionModel<TInput, TOutput>[] PredictorModels;
+        public BinaryClassificationMetrics BinaryClassificationMetrics;
+        public ClassificationMetrics ClassificationMetrics;
+        public RegressionMetrics RegressionMetrics;
+        public PredictionModel<TInput, TOutput> PredictorModels;
 
         //REVIEW: Add warnings and per instance results and implement 
         //metrics for ranking, clustering and anomaly detection.
