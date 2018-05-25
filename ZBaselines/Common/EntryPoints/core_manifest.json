@@ -1437,7 +1437,7 @@
             "Kind": "Struct",
             "Fields": [
               {
-                "Name": "Model",
+                "Name": "PredictorModel",
                 "Type": "PredictorModel",
                 "Desc": "The predictor model",
                 "Required": false,
@@ -3055,7 +3055,7 @@
             "Kind": "Struct",
             "Fields": [
               {
-                "Name": "Model",
+                "Name": "PredictorModel",
                 "Type": "PredictorModel",
                 "Desc": "The predictor model",
                 "Required": false,

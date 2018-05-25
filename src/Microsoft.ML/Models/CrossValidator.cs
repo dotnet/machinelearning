@@ -17,8 +17,8 @@ namespace Microsoft.ML.Models
         /// </summary>
         /// <typeparam name="TInput">Class type that represents input schema.</typeparam>
         /// <typeparam name="TOutput">Class type that represents prediction schema.</typeparam>
-        /// <param name="pipeline">Machine learning pipeline that contain may contain loader, transforms and at least one trainer.</param>
-        /// <returns>List containning metrics and predictor model for each fold</returns>
+        /// <param name="pipeline">Machine learning pipeline may contain loader, transforms and at least one trainer.</param>
+        /// <returns>List containing metrics and predictor model for each fold</returns>
         public CrossValidationOutput<TInput, TOutput> CrossValidate<TInput, TOutput>(LearningPipeline pipeline) 
             where TInput : class
             where TOutput : class, new()
@@ -127,23 +127,20 @@ namespace Microsoft.ML.Models
                         cvOutput.BinaryClassificationMetrics = BinaryClassificationMetrics.FromMetrics(
                             environment,
                             experiment.GetOutput(crossValidateOutput.OverallMetrics),
-                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix),
-                            2);
+                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix), 2);
                     }
                     else if(Kind == MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer)
                     {
                         cvOutput.ClassificationMetrics = ClassificationMetrics.FromMetrics(
                             environment,
                             experiment.GetOutput(crossValidateOutput.OverallMetrics),
-                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix),
-                            2);
+                            experiment.GetOutput(crossValidateOutput.ConfusionMatrix), 2);
                     }
                     else if (Kind == MacroUtilsTrainerKinds.SignatureRegressorTrainer)
                     {
                         cvOutput.RegressionMetrics = RegressionMetrics.FromOverallMetrics(
                             environment,
-                            experiment.GetOutput(crossValidateOutput.OverallMetrics),
-                            2);
+                            experiment.GetOutput(crossValidateOutput.OverallMetrics));
                     }
                     else
                     {

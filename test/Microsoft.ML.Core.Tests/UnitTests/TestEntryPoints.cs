@@ -1875,7 +1875,7 @@ namespace Microsoft.ML.Runtime.RunTests
                           'Data': '$data1'
                         },
                         'Outputs': {
-                          'Model': '$model'
+                          'PredictorModel': '$model'
                         }
                       },
                       'Outputs': {
@@ -1980,7 +1980,7 @@ namespace Microsoft.ML.Runtime.RunTests
                           'Data': '$data1'
                         },
                         'Outputs': {
-                          'Model': '$model'
+                          'PredictorModel': '$model'
                         }
                       },
                       'Outputs': {
@@ -2108,7 +2108,7 @@ namespace Microsoft.ML.Runtime.RunTests
                           'Data': '$data1'
                         },
                         'Outputs': {
-                          'Model': '$model'
+                          'PredictorModel': '$model'
                         }
                       },
                       'Outputs': {
@@ -2141,7 +2141,7 @@ namespace Microsoft.ML.Runtime.RunTests
                           'Data': '$data4'
                         },
                         'Outputs': {
-                          'Model': '$model2'
+                          'PredictorModel': '$model2'
                         }
                       },
                       'Outputs': {
@@ -2274,7 +2274,7 @@ namespace Microsoft.ML.Runtime.RunTests
                           'Data': '$data6'
                         },
                         'Outputs': {
-                          'Model': '$model'
+                          'PredictorModel': '$model'
                         }
                       },
                       'Outputs': {
@@ -2336,7 +2336,7 @@ namespace Microsoft.ML.Runtime.RunTests
                           'Data': '$data4'
                         },
                         'Outputs': {
-                          'Model': '$model2'
+                          'PredictorModel': '$model2'
                         }
                       },
                       'Outputs': {

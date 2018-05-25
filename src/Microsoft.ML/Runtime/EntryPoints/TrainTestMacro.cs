@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class SubGraphOutput
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
-            public Var<IPredictorModel> Model;
+            public Var<IPredictorModel> PredictorModel;
             
             [Argument(ArgumentType.AtMostOnce, HelpText = "Transform model", SortOrder = 2)]
             public Var<ITransformModel> TransformModel;
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             subGraphRunContext.RemoveVariable(dataVariable);
 
             // Change the subgraph to use the model variable as output.
-            varName = input.Outputs.UseTransformModel ? input.Outputs.TransformModel.VarName : input.Outputs.Model.VarName;
+            varName = input.Outputs.UseTransformModel ? input.Outputs.TransformModel.VarName : input.Outputs.PredictorModel.VarName;
             if (!subGraphRunContext.TryGetVariable(varName, out dataVariable))
                 throw env.Except($"Invalid variable name '{varName}'.");
 

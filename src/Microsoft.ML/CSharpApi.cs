@@ -2214,7 +2214,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The predictor model
             /// </summary>
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             /// <summary>
             /// The transform model
@@ -3400,7 +3400,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The predictor model
             /// </summary>
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             /// <summary>
             /// Transform model

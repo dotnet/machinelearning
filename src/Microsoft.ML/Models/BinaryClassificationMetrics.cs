@@ -19,7 +19,7 @@ namespace Microsoft.ML.Models
         {
         }
 
-        internal static List<BinaryClassificationMetrics> FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix, int skipRows = 0)
+        internal static List<BinaryClassificationMetrics> FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix, int confusionMatriceStartIndex = 0)
         {
             Contracts.AssertValue(env);
             env.AssertValue(overallMetrics);
@@ -28,41 +28,40 @@ namespace Microsoft.ML.Models
             var metricsEnumerable = overallMetrics.AsEnumerable<SerializationClass>(env, true, ignoreMissingColumns: true);
             var enumerator = metricsEnumerable.GetEnumerator();
 
-            while (skipRows-- >= 0)
+            if (!enumerator.MoveNext())
             {
-                if (!enumerator.MoveNext())
-                {
-                    throw env.Except("The overall RegressionMetrics didn't have sufficient rows.");
-                }
+                throw env.Except("The overall RegressionMetrics didn't have sufficient rows.");
             }
 
             List<BinaryClassificationMetrics> metrics = new List<BinaryClassificationMetrics>();
             var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
+
+            int Index = 0;
             do
             {
                 SerializationClass metric = enumerator.Current;
 
-                if (!confusionMatrices.MoveNext())
+                if (Index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
                 {
                     throw env.Except("Confusion matrices didn't have enough matrices.");
                 }
 
-                metrics.Add( 
+                metrics.Add(
                     new BinaryClassificationMetrics()
-                {
-                    Auc = metric.Auc,
-                    Accuracy = metric.Accuracy,
-                    PositivePrecision = metric.PositivePrecision,
-                    PositiveRecall = metric.PositiveRecall,
-                    NegativePrecision = metric.NegativePrecision,
-                    NegativeRecall = metric.NegativeRecall,
-                    LogLoss = metric.LogLoss,
-                    LogLossReduction = metric.LogLossReduction,
-                    Entropy = metric.Entropy,
-                    F1Score = metric.F1Score,
-                    Auprc = metric.Auprc,
-                    ConfusionMatrix = confusionMatrices.Current,
-                });
+                    {
+                        Auc = metric.Auc,
+                        Accuracy = metric.Accuracy,
+                        PositivePrecision = metric.PositivePrecision,
+                        PositiveRecall = metric.PositiveRecall,
+                        NegativePrecision = metric.NegativePrecision,
+                        NegativeRecall = metric.NegativeRecall,
+                        LogLoss = metric.LogLoss,
+                        LogLossReduction = metric.LogLossReduction,
+                        Entropy = metric.Entropy,
+                        F1Score = metric.F1Score,
+                        Auprc = metric.Auprc,
+                        ConfusionMatrix = confusionMatrices.Current,
+                    });
 
             } while (enumerator.MoveNext());
 

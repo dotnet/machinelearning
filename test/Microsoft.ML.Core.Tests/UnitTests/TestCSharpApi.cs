@@ -319,7 +319,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TransformModel = null
                 };
                 crossValidate.Inputs.Data = nop.Data;
-                crossValidate.Outputs.Model = modelCombineOutput.PredictorModel;
+                crossValidate.Outputs.PredictorModel = modelCombineOutput.PredictorModel;
                 var crossValidateOutput = experiment.Add(crossValidate);
 
                 experiment.Compile();
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TransformModel = null
                 };
                 crossValidate.Inputs.Data = nop.Data;
-                crossValidate.Outputs.Model = modelCombineOutput.PredictorModel;
+                crossValidate.Outputs.PredictorModel = modelCombineOutput.PredictorModel;
                 var crossValidateOutput = experiment.Add(crossValidate);
 
                 experiment.Compile();
@@ -541,7 +541,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     StratificationColumn = "Strat"
                 };
                 crossValidate.Inputs.Data = nop.Data;
-                crossValidate.Outputs.Model = modelCombineOutput.PredictorModel;
+                crossValidate.Outputs.PredictorModel = modelCombineOutput.PredictorModel;
                 var crossValidateOutput = experiment.Add(crossValidate);
                 experiment.Compile();
                 experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));

@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class SubGraphOutput
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
-            public Var<IPredictorModel> Model;
+            public Var<IPredictorModel> PredictorModel;
             
             [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model", SortOrder = 2)]
             public Var<ITransformModel> TransformModel;
@@ -203,15 +203,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     VarName = mapping[input.Inputs.Data.VarName]
                 };
 
-                if (input.Outputs.Model != null && mapping.ContainsKey(input.Outputs.Model.VarName))
+                if (input.Outputs.PredictorModel != null && mapping.ContainsKey(input.Outputs.PredictorModel.VarName))
                 {
-                    args.Outputs.Model = new Var<IPredictorModel>
+                    args.Outputs.PredictorModel = new Var<IPredictorModel>
                     {
-                        VarName = mapping[input.Outputs.Model.VarName]
+                        VarName = mapping[input.Outputs.PredictorModel.VarName]
                     };
                 }
                 else
-                    args.Outputs.Model = null;
+                    args.Outputs.PredictorModel = null;
 
                 if (input.Outputs.TransformModel != null && mapping.ContainsKey(input.Outputs.TransformModel.VarName))
                 {

@@ -4,9 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.ML.Models
@@ -70,7 +68,7 @@ namespace Microsoft.ML.Models
 
                 var metric = BinaryClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
 
-                Contracts.Assert(metric.Count == 1);
+                Contracts.Check(metric.Count == 1);
 
                 return metric[0];
             }

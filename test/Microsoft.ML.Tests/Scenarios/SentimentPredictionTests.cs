@@ -335,13 +335,45 @@ namespace Microsoft.ML.Scenarios
 
             var cv = new CrossValidator().CrossValidate<SentimentData, SentimentPrediction>(pipeline);
 
+            //First two items are average and std. deviation of metrics from the folds.
             Assert.Equal(2, cv.PredictorModels.Count());
             Assert.Null(cv.ClassificationMetrics);
             Assert.Null(cv.RegressionMetrics);
             Assert.NotNull(cv.BinaryClassificationMetrics);
-            Assert.Equal(2, cv.BinaryClassificationMetrics.Count());
+            Assert.Equal(4, cv.BinaryClassificationMetrics.Count());
 
+            //Avergae of all folds.
             BinaryClassificationMetrics metrics = cv.BinaryClassificationMetrics[0];
+            Assert.Equal(0.57023626091422708, metrics.Accuracy, 4);
+            Assert.Equal(0.54960689910161487, metrics.Auc, 1);
+            Assert.Equal(0.67048277219704255, metrics.Auprc, 2);
+            Assert.Equal(0, metrics.Entropy, 3);
+            Assert.Equal(0.68942642723130532, metrics.F1Score, 4);
+            Assert.Equal(0.97695909611968434, metrics.LogLoss, 3);
+            Assert.Equal(-3.050726259114541, metrics.LogLossReduction, 3);
+            Assert.Equal(0.37553879310344829, metrics.NegativePrecision, 3);
+            Assert.Equal(0.25683962264150945, metrics.NegativeRecall, 3);
+            Assert.Equal(0.63428539173628362, metrics.PositivePrecision, 3);
+            Assert.Equal(0.75795196364816619, metrics.PositiveRecall);
+            Assert.Null(metrics.ConfusionMatrix);
+
+            //Std. Deviation.
+            metrics = cv.BinaryClassificationMetrics[1];
+            Assert.Equal(0.039933230611196011, metrics.Accuracy, 4);
+            Assert.Equal(0.021066177821462407, metrics.Auc, 1);
+            Assert.Equal(0.045842033921572725, metrics.Auprc, 2);
+            Assert.Equal(0, metrics.Entropy, 3);
+            Assert.Equal(0.030085767890644915, metrics.F1Score, 4);
+            Assert.Equal(0.032906777175141941, metrics.LogLoss, 3);
+            Assert.Equal(0.86311349745170118, metrics.LogLossReduction, 3);
+            Assert.Equal(0.030711206896551647, metrics.NegativePrecision, 3);
+            Assert.Equal(0.068160377358490579, metrics.NegativeRecall, 3);
+            Assert.Equal(0.051761119891622735, metrics.PositivePrecision, 3);
+            Assert.Equal(0.0015417072379052127, metrics.PositiveRecall);
+            Assert.Null(metrics.ConfusionMatrix);
+
+            //Fold 1.
+            metrics = cv.BinaryClassificationMetrics[2];
             Assert.Equal(0.53030303030303028, metrics.Accuracy, 4);
             Assert.Equal(0.52854072128015284, metrics.Auc, 1);
             Assert.Equal(0.62464073827546951, metrics.Auprc, 2);
@@ -370,7 +402,8 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(10, matrix[1, 1]);
             Assert.Equal(10, matrix["negative", "negative"]);
 
-            metrics = cv.BinaryClassificationMetrics[1];
+            //Fold 2.
+            metrics = cv.BinaryClassificationMetrics[3];
             Assert.Equal(0.61016949152542377, metrics.Accuracy, 4);
             Assert.Equal(0.57067307692307689, metrics.Auc, 1);
             Assert.Equal(0.71632480611861549, metrics.Auprc, 2);
