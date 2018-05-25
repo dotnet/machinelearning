@@ -376,7 +376,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestCrossValidationMacroWithMultiClass()
         {
-            var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
+            var dataPath = GetDataPath(@"MNIST-Train-Tiny-28x28.txt");
             using (var env = new TlcEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();

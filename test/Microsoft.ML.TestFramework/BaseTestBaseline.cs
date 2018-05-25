@@ -49,12 +49,12 @@ namespace Microsoft.ML.Runtime.RunTests
         private const string SamplesRootRelPath = @"Samples"; // Root location of Samples. Used primarily for local runs
         private const string TestDir = @"Tests";
 
-        private const string DataRootRegExp = @"[a-z]:\\[^/\t ]+\\test\\data" + @"\\[^/\t ]+";
+        private const string DataRootRegExp = @"[a-z]:\\[^/\t ]+\\examples\\datasets" + @"\\[^/\t ]+";
         private const string SamplesRootRegExp = @"[a-z]:\\[^/\t ]+\\Samples\\";
         private const string SourceRootRegExp = @"[a-z]:\\[^/\t ]+\\source\\";
         private const string TestsRootRegExp = @"[a-z]:\\[^/\t ]+\\Tests\\";
 
-        private const string DataRootUnixRegExp = @"\/[^\\\t ]+\/test\/data" + @"\/[^\\\t ]+";
+        private const string DataRootUnixRegExp = @"\/[^\\\t ]+\/examples\/datasets" + @"\/[^\\\t ]+";
         private const string SamplesRootUnixRegExp = @"\/[^\\\t ]+\/Samples\/[^\\\t ]+";
         private const string SourceRootUnixRegExp = @"\/[^\\\t ]+\/source\/[^\\\t ]+";
         private const string TestsRootUnixRegExp = @"\/[^\\\t ]+\/Tests\/[^\\\t ]+";
