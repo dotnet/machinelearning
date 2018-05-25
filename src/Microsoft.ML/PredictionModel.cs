@@ -60,7 +60,6 @@ namespace Microsoft.ML
             foreach(var label in labels.DenseValues())
                 names[index++] = label.ToString();
 
-            
             return true;
         }
 
