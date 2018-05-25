@@ -116,15 +116,15 @@ namespace Microsoft.ML.Models
 
                 experiment.Run();
 
-                CrossValidationOutput<TInput, TOutput> cvo = new CrossValidationOutput<TInput, TOutput>();
-                cvo.PredictorModels = new PredictionModel<TInput, TOutput>[NumFolds];
+                var cvOutput = new CrossValidationOutput<TInput, TOutput>();
+                cvOutput.PredictorModels = new PredictionModel<TInput, TOutput>[NumFolds];
 
                 for (int Index = 0; Index < NumFolds; Index++)
                 {
 
                     if (Kind == MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer)
                     {
-                        cvo.BinaryClassificationMetrics = BinaryClassificationMetrics.FromMetrics(
+                        cvOutput.BinaryClassificationMetrics = BinaryClassificationMetrics.FromMetrics(
                             environment,
                             experiment.GetOutput(crossValidateOutput.OverallMetrics),
                             experiment.GetOutput(crossValidateOutput.ConfusionMatrix),
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Models
                     }
                     else if(Kind == MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer)
                     {
-                        cvo.ClassificationMetrics = ClassificationMetrics.FromMetrics(
+                        cvOutput.ClassificationMetrics = ClassificationMetrics.FromMetrics(
                             environment,
                             experiment.GetOutput(crossValidateOutput.OverallMetrics),
                             experiment.GetOutput(crossValidateOutput.ConfusionMatrix),
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Models
                     }
                     else if (Kind == MacroUtilsTrainerKinds.SignatureRegressorTrainer)
                     {
-                        cvo.RegressionMetrics = RegressionMetrics.FromOverallMetrics(
+                        cvOutput.RegressionMetrics = RegressionMetrics.FromOverallMetrics(
                             environment,
                             experiment.GetOutput(crossValidateOutput.OverallMetrics),
                             2);
@@ -161,11 +161,11 @@ namespace Microsoft.ML.Models
 
                         predictor = environment.CreateBatchPredictionEngine<TInput, TOutput>(memoryStream);
 
-                        cvo.PredictorModels[Index] = new PredictionModel<TInput, TOutput>(predictor, memoryStream);
+                        cvOutput.PredictorModels[Index] = new PredictionModel<TInput, TOutput>(predictor, memoryStream);
                     }
                 }
 
-                return cvo;
+                return cvOutput;
             }
         }
     }

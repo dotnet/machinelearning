@@ -72,7 +72,7 @@ namespace Microsoft.ML.Models
 
                 Contracts.Assert(metric.Count == 1);
 
-                return metric.First();
+                return metric[0];
             }
         }
     }

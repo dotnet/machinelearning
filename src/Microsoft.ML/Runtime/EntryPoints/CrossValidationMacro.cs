@@ -294,7 +294,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var confusionMatrix = new Var<IDataView>();
                 outputMap.Add(nameof(TrainTestMacro.Output.ConfusionMatrix), confusionMatrix.VarName);
                 confusionMatrixVars[k] = confusionMatrix;
-                subGraphNodes.Add(EntryPointNode.Create(env, "Models.TrainTestEvaluator", args, node.Catalog, node.Context, inputBindingMap, inputMap, outputMap));
+                const string trainTestEvaluatorMacroEntryPoint = "Models.TrainTestEvaluator";
+                subGraphNodes.Add(EntryPointNode.Create(env, trainTestEvaluatorMacroEntryPoint, args, node.Catalog, node.Context, inputBindingMap, inputMap, outputMap));
             }
 
             exp.Reset();

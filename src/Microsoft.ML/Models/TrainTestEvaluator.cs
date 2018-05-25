@@ -119,8 +119,7 @@ namespace Microsoft.ML.Models
 
                 experiment.Run();
 
-                TrainTestEvaluatorOutput<TInput, TOutput> trainTestOutput = new TrainTestEvaluatorOutput<TInput, TOutput>();
-                
+                var trainTestOutput = new TrainTestEvaluatorOutput<TInput, TOutput>();
                 if (Kind == MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer)
                 {
                     trainTestOutput.BinaryClassificationMetrics = BinaryClassificationMetrics.FromMetrics(
