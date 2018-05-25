@@ -83,7 +83,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "building", "building", "{DB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "specs", "specs", "{2DEFC784-F2B5-44EA-ABBB-0DCF3E689DAC}"
 	ProjectSection(SolutionItems) = preProject
-		Documentation\specs\mvp.md = Documentation\specs\mvp.md
+		docs\specs\mvp.md = docs\specs\mvp.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pkg", "pkg", "{D3D38B03-B557-484D-8348-8BADEE4DF592}"
