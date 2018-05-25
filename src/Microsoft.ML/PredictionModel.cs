@@ -34,31 +34,32 @@ namespace Microsoft.ML
         /// Returns labels that correspond to indices of the score array in the case of 
         /// multi-class classification problem.
         /// </summary>
-        /// <param name="mapping">Label to score mapping</param>
+        /// <param name="names">Label to score mapping</param>
         /// <param name="scoreColumnName">Name of the score column</param>
         /// <returns></returns>
-        public bool TryGetScoreLabelMapping(out string[] mapping, string scoreColumnName = DefaultColumnNames.Score)
+        public bool TryGetScoreLabelNames(out string[] names, string scoreColumnName = DefaultColumnNames.Score)
         {
-            mapping = null;
+            names = null;
             ISchema schema = _predictorModel.OutputSchema;
             int colIndex = -1;
             if (!schema.TryGetColumnIndex(scoreColumnName, out colIndex))
                 return false;
             
-            int expectedLabelCount = schema.GetColumnType(colIndex).AsVector.ValueCount;
+            int expectedLabelCount = schema.GetColumnType(colIndex).ValueCount;
             if (!schema.HasSlotNames(colIndex, expectedLabelCount))
                 return false;
 
             VBuffer<DvText> labels = default;
             schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref labels);
-            VBufferUtils.Densify(ref labels);
 
             if (labels.Length != expectedLabelCount)
                 return false;
 
-            mapping = new string[labels.Length];
-            for (int index = 0; index < labels.Count; index++)
-                mapping[index] = labels.Values[index].ToString();
+            names = new string[expectedLabelCount];
+            int index = 0;
+            foreach(var label in labels.DenseValues())
+                names[index++] = label.ToString();
+
             
             return true;
         }

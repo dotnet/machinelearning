@@ -18,17 +18,17 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// Note that the schema may have columns that aren't needed by this transform model.
         /// If an IDataView exists with this schema, then applying this transform model to it
         /// shouldn't fail because of column type issues.
-        /// REVIEW: Would be nice to be able to trim this to the minimum needed somehow. Note
-        /// however that doing so may cause issues for composing transform models. For example,
-        /// if transform model A needs column X and model B needs Y, that is NOT produced by A,
-        /// then trimming A's input schema would cause composition to fail.
         /// </summary>
+        // REVIEW: Would be nice to be able to trim this to the minimum needed somehow. Note
+        // however that doing so may cause issues for composing transform models. For example,
+        // if transform model A needs column X and model B needs Y, that is NOT produced by A,
+        // then trimming A's input schema would cause composition to fail.
         ISchema InputSchema { get; }
 
         /// <summary>
-        /// The resulting schema once applied to this model. The <see cref="InputSchema"/> might have
-        /// columns that are not needed by this transform and these columns will be seen in the 
-        /// <see cref="OutputSchema"/> produced by this transform.
+        /// The output schema that this transform model was originally instantiated on. The schema resulting
+        /// from <see cref="Apply(IHostEnvironment, ITransformModel)"/> may differ from this, similarly to how
+        /// <see cref="InputSchema"/> may differ from the schema of dataviews we apply this transform model to.
         /// </summary>
         ISchema OutputSchema { get; }
 

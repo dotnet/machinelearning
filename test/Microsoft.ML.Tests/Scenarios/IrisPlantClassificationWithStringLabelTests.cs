@@ -31,7 +31,7 @@ namespace Microsoft.ML.Scenarios
 
             PredictionModel<IrisDataWithStringLabel, IrisPrediction> model = pipeline.Train<IrisDataWithStringLabel, IrisPrediction>();
             string[] scoreLabels;
-            model.TryGetScoreLabelMapping(out scoreLabels);
+            model.TryGetScoreLabelNames(out scoreLabels);
 
             Assert.NotNull(scoreLabels);
             Assert.Equal(3, scoreLabels.Length);
