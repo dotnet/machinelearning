@@ -63,7 +63,7 @@
     },
     {
       "Name": "Data.IDataViewArrayConverter",
-      "Desc": "Create and array variable",
+      "Desc": "Create an array variable of IDataView",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -92,7 +92,7 @@
     },
     {
       "Name": "Data.PredictorModelArrayConverter",
-      "Desc": "Create and array variable",
+      "Desc": "Create an array variable of IPredictorModel",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -471,7 +471,7 @@
     },
     {
       "Name": "Data.TransformModelArrayConverter",
-      "Desc": "Create and array variable",
+      "Desc": "Create an array variable of ITransformModel",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -1439,7 +1439,7 @@
               {
                 "Name": "Model",
                 "Type": "PredictorModel",
-                "Desc": "The model",
+                "Desc": "The predictor model",
                 "Required": false,
                 "SortOrder": 1.0,
                 "IsNullable": false,
@@ -3057,7 +3057,7 @@
               {
                 "Name": "Model",
                 "Type": "PredictorModel",
-                "Desc": "The model",
+                "Desc": "The predictor model",
                 "Required": false,
                 "SortOrder": 1.0,
                 "IsNullable": false,

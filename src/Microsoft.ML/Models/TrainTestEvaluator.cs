@@ -113,32 +113,31 @@ namespace Microsoft.ML.Models
                 var crossValidateOutput = experiment.Add(this);
                 experiment.Compile();
                 foreach (ILearningPipelineLoader loader in loaders)
-                {
                     loader.SetInput(environment, experiment);
-                }
+
                 testData.SetInput(environment, experiment);
 
                 experiment.Run();
 
-                TrainTestEvaluatorOutput<TInput, TOutput> tteo = new TrainTestEvaluatorOutput<TInput, TOutput>();
+                TrainTestEvaluatorOutput<TInput, TOutput> trainTestOutput = new TrainTestEvaluatorOutput<TInput, TOutput>();
                 
                 if (Kind == MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer)
                 {
-                    tteo.BinaryClassificationMetrics = BinaryClassificationMetrics.FromMetrics(
+                    trainTestOutput.BinaryClassificationMetrics = BinaryClassificationMetrics.FromMetrics(
                         environment,
                         experiment.GetOutput(crossValidateOutput.OverallMetrics),
                         experiment.GetOutput(crossValidateOutput.ConfusionMatrix)).FirstOrDefault();
                 }
                 else if (Kind == MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer)
                 {
-                    tteo.ClassificationMetrics = ClassificationMetrics.FromMetrics(
+                    trainTestOutput.ClassificationMetrics = ClassificationMetrics.FromMetrics(
                         environment,
                         experiment.GetOutput(crossValidateOutput.OverallMetrics),
                         experiment.GetOutput(crossValidateOutput.ConfusionMatrix)).FirstOrDefault();
                 }
                 else if (Kind == MacroUtilsTrainerKinds.SignatureRegressorTrainer)
                 {
-                    tteo.RegressionMetrics = RegressionMetrics.FromOverallMetrics(
+                    trainTestOutput.RegressionMetrics = RegressionMetrics.FromOverallMetrics(
                         environment,
                         experiment.GetOutput(crossValidateOutput.OverallMetrics)).FirstOrDefault();
                 }
@@ -158,10 +157,10 @@ namespace Microsoft.ML.Models
 
                     predictor = environment.CreateBatchPredictionEngine<TInput, TOutput>(memoryStream);
 
-                    tteo.PredictorModels = new PredictionModel<TInput, TOutput>(predictor, memoryStream);
+                    trainTestOutput.PredictorModels = new PredictionModel<TInput, TOutput>(predictor, memoryStream);
                 }
                 
-                return tteo;
+                return trainTestOutput;
             }
         }
     }

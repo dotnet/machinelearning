@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         public sealed class SubGraphOutput
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The model", SortOrder = 1)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
             public Var<IPredictorModel> Model;
             
             [Argument(ArgumentType.AtMostOnce, HelpText = "Transform model", SortOrder = 2)]

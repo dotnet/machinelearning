@@ -1408,7 +1408,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Create and array variable
+        /// Create an array variable of IDataView
         /// </summary>
         public sealed partial class IDataViewArrayConverter
         {
@@ -1435,7 +1435,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Create and array variable
+        /// Create an array variable of IPredictorModel
         /// </summary>
         public sealed partial class PredictorModelArrayConverter
         {
@@ -1658,7 +1658,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Create and array variable
+        /// Create an array variable of ITransformModel
         /// </summary>
         public sealed partial class TransformModelArrayConverter
         {
@@ -2212,7 +2212,7 @@ namespace Microsoft.ML
         public sealed partial class CrossValidationMacroSubGraphOutput
         {
             /// <summary>
-            /// The model
+            /// The predictor model
             /// </summary>
             public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
@@ -3398,7 +3398,7 @@ namespace Microsoft.ML
         public sealed partial class TrainTestMacroSubGraphOutput
         {
             /// <summary>
-            /// The model
+            /// The predictor model
             /// </summary>
             public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 

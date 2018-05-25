@@ -23,9 +23,6 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TrainAndPredictSentimentModelTest()
         {
-
-            //1. Construct the ML pipeline.
-
             string dataPath = GetDataPath(SentimentDataPath);
             var pipeline = new LearningPipeline();
 
@@ -69,8 +66,6 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
 
-            //2.1 Train.
-
             PredictionModel<SentimentData, SentimentPrediction> model = pipeline.Train<SentimentData, SentimentPrediction>();
             IEnumerable<SentimentData> sentiments = new[]
             {
@@ -83,8 +78,6 @@ namespace Microsoft.ML.Scenarios
                     SentimentText = "He is a CHEATER, and the article should say that."
                 }
             };
-
-            //2.2 Predict.
 
             IEnumerable<SentimentPrediction> predictions = model.Predict(sentiments);
 
@@ -118,8 +111,6 @@ namespace Microsoft.ML.Scenarios
                 }
             };
 
-            //2.3 Evaluate the predictor model.
-
             var evaluator = new BinaryClassificationEvaluator();
             BinaryClassificationMetrics metrics = evaluator.Evaluate(model, testData);
 
@@ -150,8 +141,92 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(8, matrix["negative", "positive"]);
             Assert.Equal(1, matrix[1, 1]);
             Assert.Equal(1, matrix["negative", "negative"]);
+        }
 
-            //3. Lets do 2.1, 2.2 and 2.3 using Train-Test that does training, evaluation and gives a predictor.
+        [Fact]
+        public void TrainTestPredictSentimentModelTest()
+        {
+            string dataPath = GetDataPath(SentimentDataPath);
+            var pipeline = new LearningPipeline();
+
+            pipeline.Add(new Data.TextLoader(dataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = new[] { '\t' },
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoaderRange(0) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SentimentText",
+                            Source = new [] { new TextLoaderRange(1) },
+                            Type = Runtime.Data.DataKind.Text
+                        }
+                    }
+                }
+            });
+
+            pipeline.Add(new TextFeaturizer("Features", "SentimentText")
+            {
+                KeepDiacritics = false,
+                KeepPunctuations = false,
+                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
+                OutputTokens = true,
+                StopWordsRemover = new PredefinedStopWordsRemover(),
+                VectorNormalizer = TextTransformTextNormKind.L2,
+                CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
+                WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
+            });
+
+            pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
+            pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
+
+            PredictionModel<SentimentData, SentimentPrediction> model = pipeline.Train<SentimentData, SentimentPrediction>();
+            IEnumerable<SentimentData> sentiments = new[]
+            {
+                new SentimentData
+                {
+                    SentimentText = "Please refrain from adding nonsense to Wikipedia."
+                },
+                new SentimentData
+                {
+                    SentimentText = "He is a CHEATER, and the article should say that."
+                }
+            };
+
+            string testDataPath = GetDataPath(SentimentTestPath);
+            var testData = new Data.TextLoader(testDataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = new[] { '\t' },
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoaderRange(0) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SentimentText",
+                            Source = new [] { new TextLoaderRange(1) },
+                            Type = Runtime.Data.DataKind.Text
+                        }
+                    }
+                }
+            };
 
             var tt = new TrainTestEvaluator().TrainTestEvaluate<SentimentData, SentimentPrediction>(pipeline, testData);
 
@@ -160,8 +235,7 @@ namespace Microsoft.ML.Scenarios
             Assert.NotNull(tt.BinaryClassificationMetrics);
             Assert.NotNull(tt.PredictorModels);
 
-            //These results should match that of 2.3
-            metrics = tt.BinaryClassificationMetrics;
+            BinaryClassificationMetrics metrics = tt.BinaryClassificationMetrics;
             Assert.Equal(.5556, metrics.Accuracy, 4);
             Assert.Equal(.8, metrics.Auc, 1);
             Assert.Equal(.87, metrics.Auprc, 2);
@@ -174,7 +248,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(.529, metrics.PositivePrecision, 3);
             Assert.Equal(1, metrics.PositiveRecall);
 
-            matrix = metrics.ConfusionMatrix;
+            ConfusionMatrix matrix = metrics.ConfusionMatrix;
             Assert.Equal(2, matrix.Order);
             Assert.Equal(2, matrix.ClassNames.Count);
             Assert.Equal("positive", matrix.ClassNames[0]);
@@ -190,7 +264,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(1, matrix[1, 1]);
             Assert.Equal(1, matrix["negative", "negative"]);
 
-            predictions = tt.PredictorModels.Predict(sentiments);
+            IEnumerable<SentimentPrediction> predictions = tt.PredictorModels.Predict(sentiments);
             Assert.Equal(2, predictions.Count());
             Assert.True(predictions.ElementAt(0).Sentiment.IsFalse);
             Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
@@ -199,8 +273,65 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(2, predictions.Count());
             Assert.True(predictions.ElementAt(0).Sentiment.IsFalse);
             Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+        }
 
-            //4. Cross Validation on training pipeline.
+        [Fact]
+        public void CrossValidateSentimentModelTest()
+        {
+            string dataPath = GetDataPath(SentimentDataPath);
+            var pipeline = new LearningPipeline();
+
+            pipeline.Add(new Data.TextLoader(dataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = new[] { '\t' },
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoaderRange(0) },
+                            Type = Runtime.Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SentimentText",
+                            Source = new [] { new TextLoaderRange(1) },
+                            Type = Runtime.Data.DataKind.Text
+                        }
+                    }
+                }
+            });
+
+            pipeline.Add(new TextFeaturizer("Features", "SentimentText")
+            {
+                KeepDiacritics = false,
+                KeepPunctuations = false,
+                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
+                OutputTokens = true,
+                StopWordsRemover = new PredefinedStopWordsRemover(),
+                VectorNormalizer = TextTransformTextNormKind.L2,
+                CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
+                WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
+            });
+
+            pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
+            pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
+
+            IEnumerable<SentimentData> sentiments = new[]
+            {
+                new SentimentData
+                {
+                    SentimentText = "Please refrain from adding nonsense to Wikipedia."
+                },
+                new SentimentData
+                {
+                    SentimentText = "He is a CHEATER, and the article should say that."
+                }
+            };
 
             var cv = new CrossValidator().CrossValidate<SentimentData, SentimentPrediction>(pipeline);
 
@@ -210,7 +341,7 @@ namespace Microsoft.ML.Scenarios
             Assert.NotNull(cv.BinaryClassificationMetrics);
             Assert.Equal(2, cv.BinaryClassificationMetrics.Count());
 
-            metrics = cv.BinaryClassificationMetrics[0];
+            BinaryClassificationMetrics metrics = cv.BinaryClassificationMetrics[0];
             Assert.Equal(0.53030303030303028, metrics.Accuracy, 4);
             Assert.Equal(0.52854072128015284, metrics.Auc, 1);
             Assert.Equal(0.62464073827546951, metrics.Auprc, 2);
@@ -223,7 +354,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0.58252427184466016, metrics.PositivePrecision, 3);
             Assert.Equal(0.759493670886076, metrics.PositiveRecall);
 
-            matrix = metrics.ConfusionMatrix;
+            ConfusionMatrix matrix = metrics.ConfusionMatrix;
             Assert.Equal(2, matrix.Order);
             Assert.Equal(2, matrix.ClassNames.Count);
             Assert.Equal("positive", matrix.ClassNames[0]);
@@ -268,7 +399,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(13, matrix[1, 1]);
             Assert.Equal(13, matrix["negative", "negative"]);
 
-            predictions = cv.PredictorModels[0].Predict(sentiments);
+            IEnumerable<SentimentPrediction> predictions  = cv.PredictorModels[0].Predict(sentiments);
             Assert.Equal(2, predictions.Count());
             Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
             Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);

@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         public sealed class SubGraphOutput
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The model", SortOrder = 1)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
             public Var<IPredictorModel> Model;
             
             [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model", SortOrder = 2)]
@@ -476,7 +476,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
                 default:
                     throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
-
             }
         }
     }
