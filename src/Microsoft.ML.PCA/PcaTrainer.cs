@@ -489,7 +489,6 @@ namespace Microsoft.ML.Runtime.PCA
             return bldr.GetDataView();
         }
 
-
         public ColumnType InputType
         {
             get { return _inputType; }
