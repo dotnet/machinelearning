@@ -490,20 +490,6 @@ namespace Microsoft.ML.Runtime.PCA
         }
 
 
-        public static void GetSlotNames(RoleMappedSchema schema, RoleMappedSchema.ColumnRole role, int vectorSize, ref VBuffer<DvText> slotNames)
-        {
-            Contracts.CheckValueOrNull(schema);
-            Contracts.CheckValue(role.Value, nameof(role));
-            Contracts.CheckParam(vectorSize >= 0, nameof(vectorSize));
-
-            IReadOnlyList<ColumnInfo> list;
-            if ((list = schema?.GetColumns(role)) == null || list.Count != 1 || !schema.Schema.HasSlotNames(list[0].Index, vectorSize))
-                slotNames = new VBuffer<DvText>(vectorSize, 0, slotNames.Values, slotNames.Indices);
-            else
-                schema.Schema.GetMetadata(Kinds.SlotNames, list[0].Index, ref slotNames);
-        }
-
-
         public ColumnType InputType
         {
             get { return _inputType; }
