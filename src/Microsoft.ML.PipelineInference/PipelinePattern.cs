@@ -152,7 +152,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     },
                 Outputs =
                     {
-                        Model = finalOutput
+                        PredictorModel = finalOutput
                     },
                 PipelineId = UniqueId.ToString("N"),
                 Kind = MacroUtils.TrainerKindApiValue<Models.MacroUtilsTrainerKinds>(trainerKind),
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     },
                 Outputs =
                     {
-                        Model = finalOutput
+                        PredictorModel = finalOutput
                     },
                 TrainingData = trainData,
                 TestingData = testData,

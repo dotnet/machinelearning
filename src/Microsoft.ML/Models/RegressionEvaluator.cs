@@ -4,7 +4,6 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Models
@@ -60,8 +59,12 @@ namespace Microsoft.ML.Models
                 {
                     throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(RegressionEvaluator)} Evaluate.");
                 }
+                
+                var metric = RegressionMetrics.FromOverallMetrics(environment, overallMetrics);
 
-                return RegressionMetrics.FromOverallMetrics(environment, overallMetrics);
+                Contracts.Assert(metric.Count == 1, $"Exactly one metric set was expected but found {metric.Count} metrics");
+
+                return metric[0];
             }
         }
     }

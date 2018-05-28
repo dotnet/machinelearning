@@ -63,7 +63,7 @@
     },
     {
       "Name": "Data.IDataViewArrayConverter",
-      "Desc": "Create and array variable",
+      "Desc": "Create an array variable of IDataView",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -92,7 +92,7 @@
     },
     {
       "Name": "Data.PredictorModelArrayConverter",
-      "Desc": "Create and array variable",
+      "Desc": "Create an array variable of IPredictorModel",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -467,6 +467,35 @@
       ],
       "InputKind": [
         "ILearningPipelineLoader"
+      ]
+    },
+    {
+      "Name": "Data.TransformModelArrayConverter",
+      "Desc": "Create an array variable of ITransformModel",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "TransformModel",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "TransformModel"
+          },
+          "Desc": "The models",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputModel",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "TransformModel"
+          },
+          "Desc": "The model array"
+        }
       ]
     },
     {
@@ -1300,7 +1329,7 @@
             "Label"
           ],
           "Required": false,
-          "SortOrder": 6.0,
+          "SortOrder": 5.0,
           "IsNullable": false,
           "Default": "Label"
         },
@@ -1320,7 +1349,7 @@
           },
           "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
           "Required": true,
-          "SortOrder": 7.0,
+          "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
         }
@@ -1408,12 +1437,22 @@
             "Kind": "Struct",
             "Fields": [
               {
-                "Name": "Model",
+                "Name": "PredictorModel",
                 "Type": "PredictorModel",
-                "Desc": "The model",
-                "Required": true,
+                "Desc": "The predictor model",
+                "Required": false,
                 "SortOrder": 1.0,
-                "IsNullable": false
+                "IsNullable": false,
+                "Default": null
+              },
+              {
+                "Name": "TransformModel",
+                "Type": "TransformModel",
+                "Desc": "The transform model",
+                "Required": false,
+                "SortOrder": 2.0,
+                "IsNullable": false,
+                "Default": null
               }
             ]
           },
@@ -1430,7 +1469,7 @@
             "strat"
           ],
           "Required": false,
-          "SortOrder": 7.0,
+          "SortOrder": 6.0,
           "IsNullable": false,
           "Default": null
         },
@@ -1442,7 +1481,7 @@
             "k"
           ],
           "Required": false,
-          "SortOrder": 8.0,
+          "SortOrder": 7.0,
           "IsNullable": false,
           "Default": 2
         },
@@ -1462,7 +1501,7 @@
           },
           "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
           "Required": true,
-          "SortOrder": 9.0,
+          "SortOrder": 8.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
         }
@@ -1473,6 +1512,14 @@
           "Type": {
             "Kind": "Array",
             "ItemType": "PredictorModel"
+          },
+          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
+        },
+        {
+          "Name": "TransformModel",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "TransformModel"
           },
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
@@ -2999,12 +3046,22 @@
             "Kind": "Struct",
             "Fields": [
               {
-                "Name": "Model",
+                "Name": "PredictorModel",
                 "Type": "PredictorModel",
-                "Desc": "The model",
-                "Required": true,
+                "Desc": "The predictor model",
+                "Required": false,
                 "SortOrder": 1.0,
-                "IsNullable": false
+                "IsNullable": false,
+                "Default": null
+              },
+              {
+                "Name": "TransformModel",
+                "Type": "TransformModel",
+                "Desc": "Transform model",
+                "Required": false,
+                "SortOrder": 2.0,
+                "IsNullable": false,
+                "Default": null
               }
             ]
           },
@@ -3056,6 +3113,11 @@
         {
           "Name": "PredictorModel",
           "Type": "PredictorModel",
+          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
+        },
+        {
+          "Name": "TransformModel",
+          "Type": "TransformModel",
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
         {

@@ -58,7 +58,6 @@ namespace Microsoft.ML.TestFramework
         private static ITransformModel CreateKcHousePricePredictorModel(string dataPath)
         {
             Experiment experiment = s_environment.CreateExperiment();
-
             var importData = new Data.TextLoader(dataPath)
             {
                 Arguments = new TextLoaderArguments

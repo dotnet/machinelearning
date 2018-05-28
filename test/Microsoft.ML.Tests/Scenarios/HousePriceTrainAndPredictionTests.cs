@@ -4,12 +4,9 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.Models;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.Scenarios
 {
