@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("SDCA")]
         public void LinearClassifierTest()
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TestLearners.binarySdcaL1,
                     TestLearners.binarySdcaSmoothedHinge,
                     TestLearners.binarySgd,
-                    TestLearners.binarySgdHinge
+                    TestLearners.binarySgdHinge                    
                 };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets);
