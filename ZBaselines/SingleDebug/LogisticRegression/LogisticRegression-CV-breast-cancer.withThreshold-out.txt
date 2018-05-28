@@ -84,7 +84,7 @@ Virtual memory usage(MB): %Number%
 [2] (%Time%)	15 iterations	Loss: 0.0965999141335487	Improvement: 0.0104
 [2] (%Time%)	16 iterations	Loss: 0.0845445916056633	Improvement: 0.01164
 [2] (%Time%)	17 iterations	Loss: 0.0804415196180344	Improvement: 0.005987
-[2] (%Time%)	18 iterations	Loss: 0.0746645256876946	Improvement: 0.00583
+[2] (%Time%)	18 iterations	Loss: 0.0746645256876945	Improvement: 0.00583
 [2] (%Time%)	19 iterations	Loss: 0.0737897828221321	Improvement: 0.002113
 [2] (%Time%)	20 iterations	Loss: 0.0732892006635666	Improvement: 0.0009038
 [2] 'LBFGS Optimizer' finished in %Time%.
