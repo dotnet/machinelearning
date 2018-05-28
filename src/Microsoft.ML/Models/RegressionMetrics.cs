@@ -25,16 +25,14 @@ namespace Microsoft.ML.Models
             env.AssertValue(overallMetrics);
 
             var metricsEnumerable = overallMetrics.AsEnumerable<SerializationClass>(env, true, ignoreMissingColumns: true);
-            var enumerator = metricsEnumerable.GetEnumerator();
-            if (!enumerator.MoveNext())
+            if (!metricsEnumerable.GetEnumerator().MoveNext())
             {
-                throw env.Except("The overall RegressionMetrics didn't have sufficient rows.");
+                throw env.Except("The overall RegressionMetrics didn't have any rows.");
             }
 
             List<RegressionMetrics> metrics = new List<RegressionMetrics>();
-            do
+            foreach (var metric in metricsEnumerable)
             {
-                SerializationClass metric = enumerator.Current;
                 metrics.Add(new RegressionMetrics()
                 {
                     L1 = metric.L1,
@@ -43,8 +41,7 @@ namespace Microsoft.ML.Models
                     LossFn = metric.LossFn,
                     RSquared = metric.RSquared,
                 });
-
-            } while (enumerator.MoveNext());
+            }
 
             return metrics;
         }
@@ -96,7 +93,7 @@ namespace Microsoft.ML.Models
         /// <summary>
         /// This class contains the public fields necessary to deserialize from IDataView.
         /// </summary>
-        private class SerializationClass
+        private sealed class SerializationClass
         {
 #pragma warning disable 649 // never assigned
             [ColumnName(Runtime.Data.RegressionEvaluator.L1)]

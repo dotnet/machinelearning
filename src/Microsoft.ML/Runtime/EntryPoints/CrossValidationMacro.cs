@@ -34,9 +34,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             
             [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model", SortOrder = 2)]
             public Var<ITransformModel> TransformModel;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to use transform model instead of predictor model.", SortOrder = 3)]
-            public bool UseTransformModel = false;
         }
 
         public sealed class Arguments
@@ -222,9 +219,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 }
                 else
                     args.Outputs.TransformModel = null;
-
-                args.Outputs.UseTransformModel = input.Outputs.UseTransformModel;
-
+                
                 // Set train/test trainer kind to match.
                 args.Kind = input.Kind;
 
@@ -240,7 +235,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var outputMap = new Dictionary<string, string>();
                 var transformModelVar = new Var<ITransformModel>();
                 var predModelVar = new Var<IPredictorModel>();
-                if (input.Outputs.UseTransformModel)
+                if (input.Outputs.PredictorModel == null)
                 {
                     outputMap.Add(nameof(TrainTestMacro.Output.TransformModel), transformModelVar.VarName);
                     transformModelVars[k] = transformModelVar;
@@ -302,7 +297,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Convert predictors from all folds into an array of predictors.
 
-            if (input.Outputs.UseTransformModel)
+            if (input.Outputs.PredictorModel == null)
             {
                 var outModels = new ML.Data.TransformModelArrayConverter
                 {

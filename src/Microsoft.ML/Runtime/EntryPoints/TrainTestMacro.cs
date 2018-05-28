@@ -29,9 +29,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             
             [Argument(ArgumentType.AtMostOnce, HelpText = "Transform model", SortOrder = 2)]
             public Var<ITransformModel> TransformModel;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates to use transform model instead of predictor model.", SortOrder = 3)]
-            public bool UseTransformModel = false;
         }
 
         public sealed class Arguments
@@ -129,11 +126,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             subGraphRunContext.RemoveVariable(dataVariable);
 
             // Change the subgraph to use the model variable as output.
-            varName = input.Outputs.UseTransformModel ? input.Outputs.TransformModel.VarName : input.Outputs.PredictorModel.VarName;
+            varName = input.Outputs.PredictorModel == null ? input.Outputs.TransformModel.VarName : input.Outputs.PredictorModel.VarName;
             if (!subGraphRunContext.TryGetVariable(varName, out dataVariable))
                 throw env.Except($"Invalid variable name '{varName}'.");
 
-            string outputVarName = input.Outputs.UseTransformModel ? node.GetOutputVariableName(nameof(Output.TransformModel)) : 
+            string outputVarName = input.Outputs.PredictorModel == null ? node.GetOutputVariableName(nameof(Output.TransformModel)) : 
                 node.GetOutputVariableName(nameof(Output.PredictorModel));
 
             foreach (var subGraphNode in subGraphNodes)
@@ -153,7 +150,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             DatasetScorer.Output scoreNodeOutput = null;
             ML.Models.DatasetTransformer.Output datasetTransformNodeOutput = null;
-            if (input.Outputs.UseTransformModel)
+            if (input.Outputs.PredictorModel == null)
             {
                 //combine the predictor model with any potential transfrom model passed from the outer graph
                 if (transformModelVarName != null && transformModelVarName.VariableName != null)
@@ -222,7 +219,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 DatasetScorer.Output scoreNodeTrainingOutput = null;
                 ML.Models.DatasetTransformer.Output datasetTransformNodeTrainingOutput = null;
-                if (input.Outputs.UseTransformModel)
+                if (input.Outputs.PredictorModel == null)
                 {
                     var datasetTransformerNode = new Models.DatasetTransformer
                     {
@@ -252,7 +249,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var evalInputOutputTraining = MacroUtils.GetEvaluatorInputOutput(input.Kind, settings);
                 var evalNodeTraining = evalInputOutputTraining.Item1;
                 var evalOutputTraining = evalInputOutputTraining.Item2;
-                evalNodeTraining.Data.VarName = input.Outputs.UseTransformModel ? datasetTransformNodeTrainingOutput.OutputData.VarName : 
+                evalNodeTraining.Data.VarName = input.Outputs.PredictorModel == null ? datasetTransformNodeTrainingOutput.OutputData.VarName : 
                     scoreNodeTrainingOutput.ScoredData.VarName;
 
                 if (node.OutputMap.TryGetValue(nameof(Output.TrainingWarnings), out outVariableName))
@@ -276,7 +273,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var evalInputOutput = MacroUtils.GetEvaluatorInputOutput(input.Kind, settings);
             var evalNode = evalInputOutput.Item1;
             var evalOutput = evalInputOutput.Item2;
-            evalNode.Data.VarName = input.Outputs.UseTransformModel ? datasetTransformNodeOutput.OutputData.VarName : scoreNodeOutput.ScoredData.VarName;
+            evalNode.Data.VarName = input.Outputs.PredictorModel == null ? datasetTransformNodeOutput.OutputData.VarName : scoreNodeOutput.ScoredData.VarName;
 
             if (node.OutputMap.TryGetValue(nameof(Output.Warnings), out outVariableName))
                 evalOutput.Warnings.VarName = outVariableName;

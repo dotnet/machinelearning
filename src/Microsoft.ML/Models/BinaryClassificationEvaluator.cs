@@ -5,7 +5,6 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
-using System.Linq;
 
 namespace Microsoft.ML.Models
 {
@@ -68,7 +67,7 @@ namespace Microsoft.ML.Models
 
                 var metric = BinaryClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
 
-                Contracts.Check(metric.Count == 1);
+                Contracts.Check(metric.Count == 1, $"Exactly one metric set was expected but found {metric.Count} metrics");
 
                 return metric[0];
             }

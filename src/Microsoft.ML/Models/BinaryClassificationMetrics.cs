@@ -26,20 +26,17 @@ namespace Microsoft.ML.Models
             env.AssertValue(confusionMatrix);
 
             var metricsEnumerable = overallMetrics.AsEnumerable<SerializationClass>(env, true, ignoreMissingColumns: true);
-            var enumerator = metricsEnumerable.GetEnumerator();
-
-            if (!enumerator.MoveNext())
+            if (!metricsEnumerable.GetEnumerator().MoveNext())
             {
-                throw env.Except("The overall RegressionMetrics didn't have sufficient rows.");
+                throw env.Except("The overall RegressionMetrics didn't have any rows.");
             }
 
             List<BinaryClassificationMetrics> metrics = new List<BinaryClassificationMetrics>();
             var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
 
             int Index = 0;
-            do
+            foreach(var metric in metricsEnumerable)
             {
-                SerializationClass metric = enumerator.Current;
 
                 if (Index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
                 {
@@ -63,7 +60,7 @@ namespace Microsoft.ML.Models
                         ConfusionMatrix = confusionMatrices.Current,
                     });
 
-            } while (enumerator.MoveNext());
+            }
 
             return metrics;
         }
@@ -168,7 +165,7 @@ namespace Microsoft.ML.Models
         /// <summary>
         /// This class contains the public fields necessary to deserialize from IDataView.
         /// </summary>
-        private class SerializationClass
+        private sealed class SerializationClass
         {
 #pragma warning disable 649 // never assigned
             [ColumnName(BinaryClassifierEvaluator.Auc)]

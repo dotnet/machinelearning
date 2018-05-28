@@ -1453,15 +1453,6 @@
                 "SortOrder": 2.0,
                 "IsNullable": false,
                 "Default": null
-              },
-              {
-                "Name": "UseTransformModel",
-                "Type": "Bool",
-                "Desc": "Indicates to use transform model instead of predictor model.",
-                "Required": false,
-                "SortOrder": 3.0,
-                "IsNullable": false,
-                "Default": false
               }
             ]
           },
@@ -3071,15 +3062,6 @@
                 "SortOrder": 2.0,
                 "IsNullable": false,
                 "Default": null
-              },
-              {
-                "Name": "UseTransformModel",
-                "Type": "Bool",
-                "Desc": "Indicates to use transform model instead of predictor model.",
-                "Required": false,
-                "SortOrder": 3.0,
-                "IsNullable": false,
-                "Default": false
               }
             ]
           },

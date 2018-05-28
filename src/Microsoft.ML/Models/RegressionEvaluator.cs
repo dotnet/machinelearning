@@ -4,10 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.ML.Models
 {
@@ -65,7 +62,7 @@ namespace Microsoft.ML.Models
                 
                 var metric = RegressionMetrics.FromOverallMetrics(environment, overallMetrics);
 
-                Contracts.Assert(metric.Count == 1);
+                Contracts.Assert(metric.Count == 1, $"Exactly one metric set was expected but found {metric.Count} metrics");
 
                 return metric[0];
             }

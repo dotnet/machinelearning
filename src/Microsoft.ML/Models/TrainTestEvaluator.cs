@@ -108,8 +108,8 @@ namespace Microsoft.ML.Models
                 Nodes = subGraph;
                 TransformModel = null;
                 Inputs.Data = firstTransform.GetInputData();
+                Outputs.PredictorModel = null;
                 Outputs.TransformModel = lastTransformModel;
-                Outputs.UseTransformModel = true;
                 var crossValidateOutput = experiment.Add(this);
                 experiment.Compile();
                 foreach (ILearningPipelineLoader loader in loaders)
