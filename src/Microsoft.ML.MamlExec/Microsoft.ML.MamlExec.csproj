@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>CORECLR</DefineConstants>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+	<IncludeInPackage>Microsoft.ML</IncludeInPackage>
+	<OutputType>Exe</OutputType>
+	<StartupObject>Microsoft.ML.Runtime.Tools.Maml</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+	<Compile Include="..\Microsoft.ML.Maml\MAML.cs">
+      <Link>MAML.cs</Link>
+    </Compile>
+	<Compile Include="..\Microsoft.ML.Maml\ChainCommand.cs">
+      <Link>ChainCommand.cs</Link>
+    </Compile>
+	<Compile Include="..\Microsoft.ML.Maml\HelpCommand.cs">
+      <Link>HelpCommand.cs</Link>
+    </Compile>
+	<Compile Include="..\Microsoft.ML.Maml\VersionCommand.cs">
+      <Link>VersionCommand.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+</Project>

@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
@@ -12,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Scenarios
 {
-    public partial class ScenariosTests : BaseTestClass
+    public partial class ScenariosTests : BaseTestBaseline
     {
         /*
          A real-estate firm Contoso wants to add a house price prediction to their ASP.NET/Xamarin application.
