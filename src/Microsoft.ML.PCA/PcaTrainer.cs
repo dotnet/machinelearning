@@ -480,9 +480,13 @@ namespace Microsoft.ML.Runtime.PCA
             ValueGetter<VBuffer<DvText>> getSlotNames =
                 (ref VBuffer<DvText> dst) =>
                 {
-                    dst = new VBuffer<DvText>[_rank];
+                    var values = new DvText[_rank];
                     for (var i = 0; i < _rank; ++i)
-                        dst[i] = new DvText("V" + i);
+                        values[i] = new DvText("V" + i);
+
+                    // should we reuse dst VBuffer or not?
+                    var tmp = new VBuffer<DvText>(_rank, values);
+                    tmp.CopyTo(ref dst);
                 };
 
             bldr.AddColumn("EigenVectors", getSlotNames, NumberType.R4, _eigenVectors);
