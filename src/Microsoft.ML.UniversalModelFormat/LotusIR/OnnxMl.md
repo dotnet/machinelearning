@@ -4,7 +4,7 @@
 2. Download protobuf C# compiler version 3.0 or greater from 
    https://github.com/google/protobuf/tree/master/csharp
 3. Add `option csharp_namespace =
-   "Microsoft.MachineLearning.Runtime.UniversalModelFormat.Onnx";` to `onnx-ml.proto3` right below `package ONNX_NAMESPACE;`
+   "Microsoft.ML.Runtime.UniversalModelFormat.Onnx";` to `onnx-ml.proto3` right below `package ONNX_NAMESPACE;`
 4. Assuming the compiler and proto file are saved at
    `E:\protobuf-csharp-port\lib` then run the following in command line to get C# code from the proto file:
    ```
