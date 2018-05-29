@@ -63,7 +63,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(4, cv.BinaryClassificationMetrics.Count());
 
             //Avergae of all folds.
-            BinaryClassificationMetrics metrics = cv.BinaryClassificationMetrics[0];
+            var metrics = cv.BinaryClassificationMetrics[0];
             Assert.Equal(0.57023626091422708, metrics.Accuracy, 4);
             Assert.Equal(0.54960689910161487, metrics.Auc, 1);
             Assert.Equal(0.67048277219704255, metrics.Auprc, 2);
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0.58252427184466016, metrics.PositivePrecision, 3);
             Assert.Equal(0.759493670886076, metrics.PositiveRecall);
 
-            ConfusionMatrix matrix = metrics.ConfusionMatrix;
+            var matrix = metrics.ConfusionMatrix;
             Assert.Equal(2, matrix.Order);
             Assert.Equal(2, matrix.ClassNames.Count);
             Assert.Equal("positive", matrix.ClassNames[0]);
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(13, matrix["negative", "negative"]);
 
             var sentiments = GetTestData();
-            IEnumerable<SentimentPrediction> predictions = cv.PredictorModels[0].Predict(sentiments);
+            var predictions = cv.PredictorModels[0].Predict(sentiments);
             Assert.Equal(2, predictions.Count());
             Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
             Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(.529, metrics.PositivePrecision, 3);
             Assert.Equal(1, metrics.PositiveRecall);
 
-            ConfusionMatrix matrix = metrics.ConfusionMatrix;
+            var matrix = metrics.ConfusionMatrix;
             Assert.Equal(2, matrix.Order);
             Assert.Equal(2, matrix.ClassNames.Count);
             Assert.Equal("positive", matrix.ClassNames[0]);
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Scenarios
 
         private LearningPipeline PreparePipeline()
         {
-            string dataPath = GetDataPath(SentimentDataPath);
+            var dataPath = GetDataPath(SentimentDataPath);
             var pipeline = new LearningPipeline();
 
             pipeline.Add(new Data.TextLoader(dataPath)
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Scenarios
 
         private Data.TextLoader PrepareTextLoaderTestData()
         {
-            string testDataPath = GetDataPath(SentimentTestPath);
+            var testDataPath = GetDataPath(SentimentTestPath);
             var testData = new Data.TextLoader(testDataPath)
             {
                 Arguments = new TextLoaderArguments
