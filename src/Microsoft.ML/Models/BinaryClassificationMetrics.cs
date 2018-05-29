@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Models
 {
@@ -18,41 +19,50 @@ namespace Microsoft.ML.Models
         {
         }
 
-        internal static BinaryClassificationMetrics FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix)
+        internal static List<BinaryClassificationMetrics> FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix, int confusionMatriceStartIndex = 0)
         {
             Contracts.AssertValue(env);
             env.AssertValue(overallMetrics);
             env.AssertValue(confusionMatrix);
 
             var metricsEnumerable = overallMetrics.AsEnumerable<SerializationClass>(env, true, ignoreMissingColumns: true);
-            var enumerator = metricsEnumerable.GetEnumerator();
-            if (!enumerator.MoveNext())
+            if (!metricsEnumerable.GetEnumerator().MoveNext())
             {
                 throw env.Except("The overall RegressionMetrics didn't have any rows.");
             }
 
-            SerializationClass metrics = enumerator.Current;
+            List<BinaryClassificationMetrics> metrics = new List<BinaryClassificationMetrics>();
+            var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
 
-            if (enumerator.MoveNext())
+            int Index = 0;
+            foreach(var metric in metricsEnumerable)
             {
-                throw env.Except("The overall RegressionMetrics contained more than 1 row.");
+
+                if (Index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
+                {
+                    throw env.Except("Confusion matrices didn't have enough matrices.");
+                }
+
+                metrics.Add(
+                    new BinaryClassificationMetrics()
+                    {
+                        Auc = metric.Auc,
+                        Accuracy = metric.Accuracy,
+                        PositivePrecision = metric.PositivePrecision,
+                        PositiveRecall = metric.PositiveRecall,
+                        NegativePrecision = metric.NegativePrecision,
+                        NegativeRecall = metric.NegativeRecall,
+                        LogLoss = metric.LogLoss,
+                        LogLossReduction = metric.LogLossReduction,
+                        Entropy = metric.Entropy,
+                        F1Score = metric.F1Score,
+                        Auprc = metric.Auprc,
+                        ConfusionMatrix = confusionMatrices.Current,
+                    });
+
             }
 
-            return new BinaryClassificationMetrics()
-            {
-                Auc = metrics.Auc,
-                Accuracy = metrics.Accuracy,
-                PositivePrecision = metrics.PositivePrecision,
-                PositiveRecall = metrics.PositiveRecall,
-                NegativePrecision = metrics.NegativePrecision,
-                NegativeRecall = metrics.NegativeRecall,
-                LogLoss = metrics.LogLoss,
-                LogLossReduction = metrics.LogLossReduction,
-                Entropy = metrics.Entropy,
-                F1Score = metrics.F1Score,
-                Auprc = metrics.Auprc,
-                ConfusionMatrix = ConfusionMatrix.Create(env, confusionMatrix),
-            };
+            return metrics;
         }
 
         /// <summary>
@@ -155,7 +165,7 @@ namespace Microsoft.ML.Models
         /// <summary>
         /// This class contains the public fields necessary to deserialize from IDataView.
         /// </summary>
-        private class SerializationClass
+        private sealed class SerializationClass
         {
 #pragma warning disable 649 // never assigned
             [ColumnName(BinaryClassifierEvaluator.Auc)]

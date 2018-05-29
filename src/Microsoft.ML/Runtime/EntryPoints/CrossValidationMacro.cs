@@ -29,8 +29,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         public sealed class SubGraphOutput
         {
-            [Argument(ArgumentType.Required, HelpText = "The model", SortOrder = 1)]
-            public Var<IPredictorModel> Model;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
+            public Var<IPredictorModel> PredictorModel;
+            
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model", SortOrder = 2)]
+            public Var<ITransformModel> TransformModel;
         }
 
         public sealed class Arguments
@@ -42,7 +45,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView Data;
 
             [TlcModule.OptionalInput]
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model from the pipeline before this command. It gets included in the Output.PredictorModel.", SortOrder = 2)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model from the pipeline before this command. " +
+                "It gets included in the Output.PredictorModel.", SortOrder = 2)]
             public ITransformModel TransformModel;
 
             // This is the subgraph that describes how to train a model for each fold. It should
@@ -62,16 +66,16 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // For splitting the data into folds, this column is used for grouping rows and makes sure
             // that a group of rows is not split among folds.
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for stratification", ShortName = "strat", SortOrder = 7)]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for stratification", ShortName = "strat", SortOrder = 6)]
             public string StratificationColumn;
 
             // The number of folds to generate.
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of folds in k-fold cross-validation", ShortName = "k", SortOrder = 8)]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of folds in k-fold cross-validation", ShortName = "k", SortOrder = 7)]
             public int NumFolds = 2;
 
             // REVIEW: suggest moving to subcomponents for evaluators, to allow for different parameters on the evaluators
             // (and the same for the TrainTest macro). I currently do not know how to do this, so this should be revisited in the future.
-            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 9)]
+            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 8)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
         }
 
@@ -79,21 +83,27 @@ namespace Microsoft.ML.Runtime.EntryPoints
         // but that requires changes in the entry points infrastructure to support structs in the output classes.
         public sealed class Output
         {
-            [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.", SortOrder = 1)]
+            [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
+                "provided as the Input.TransformModel.", SortOrder = 1)]
             public IPredictorModel[] PredictorModel;
 
-            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 2)]
+            [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
+                "provided as the Input.TransformModel.", SortOrder = 2)]
+            public ITransformModel[] TransformModel;
+
+            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 3)]
             public IDataView Warnings;
 
-            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 3)]
+            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 4)]
             public IDataView OverallMetrics;
 
-            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 4)]
+            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 5)]
             public IDataView PerInstanceMetrics;
 
-            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 5)]
+            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 6)]
             public IDataView ConfusionMatrix;
         }
+
 
         public sealed class CombineMetricsInput
         {
@@ -109,25 +119,25 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Multiple, HelpText = "Warning datasets", SortOrder = 4)]
             public IDataView[] Warnings;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 5)]
             public string LabelColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 7)]
+            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 6)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
         }
 
         public sealed class CombinedOutput
         {
-            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 2)]
+            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 1)]
             public IDataView Warnings;
 
-            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 3)]
+            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 2)]
             public IDataView OverallMetrics;
 
-            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 4)]
+            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 3)]
             public IDataView PerInstanceMetrics;
 
-            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 5)]
+            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 4)]
             public IDataView ConfusionMatrix;
         }
 
@@ -157,6 +167,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
 
             var predModelVars = new Var<IPredictorModel>[input.NumFolds];
+            var transformModelVars = new Var<ITransformModel>[input.NumFolds];
             var inputTransformModelVars = new Var<IPredictorModel>[input.NumFolds];
             var warningsVars = new Var<IDataView>[input.NumFolds];
             var overallMetricsVars = new Var<IDataView>[input.NumFolds];
@@ -188,11 +199,27 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     VarName = mapping[input.Inputs.Data.VarName]
                 };
-                args.Outputs.Model = new Var<IPredictorModel>
-                {
-                    VarName = mapping[input.Outputs.Model.VarName]
-                };
 
+                if (input.Outputs.PredictorModel != null && mapping.ContainsKey(input.Outputs.PredictorModel.VarName))
+                {
+                    args.Outputs.PredictorModel = new Var<IPredictorModel>
+                    {
+                        VarName = mapping[input.Outputs.PredictorModel.VarName]
+                    };
+                }
+                else
+                    args.Outputs.PredictorModel = null;
+
+                if (input.Outputs.TransformModel != null && mapping.ContainsKey(input.Outputs.TransformModel.VarName))
+                {
+                    args.Outputs.TransformModel = new Var<ITransformModel>
+                    {
+                        VarName = mapping[input.Outputs.TransformModel.VarName]
+                    };
+                }
+                else
+                    args.Outputs.TransformModel = null;
+                
                 // Set train/test trainer kind to match.
                 args.Kind = input.Kind;
 
@@ -206,23 +233,48 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 inputBindingMap.Add(nameof(args.TestingData), new List<ParameterBinding> { testingData });
                 inputMap.Add(testingData, new ArrayIndexVariableBinding(cvSplitOutput.TestData.VarName, k));
                 var outputMap = new Dictionary<string, string>();
+                var transformModelVar = new Var<ITransformModel>();
                 var predModelVar = new Var<IPredictorModel>();
-                outputMap.Add(nameof(TrainTestMacro.Output.PredictorModel), predModelVar.VarName);
-                predModelVars[k] = predModelVar;
-
-                ML.Transforms.TwoHeterogeneousModelCombiner.Output modelCombineOutput = null;
-                if (transformModelVarName != null && transformModelVarName.VariableName != null)
+                if (input.Outputs.PredictorModel == null)
                 {
-                    var modelCombine = new ML.Transforms.TwoHeterogeneousModelCombiner
+                    outputMap.Add(nameof(TrainTestMacro.Output.TransformModel), transformModelVar.VarName);
+                    transformModelVars[k] = transformModelVar;
+                    ML.Transforms.ModelCombiner.Output modelCombineOutput = null;
+                    if (transformModelVarName != null && transformModelVarName.VariableName != null)
                     {
-                        TransformModel = { VarName = transformModelVarName.VariableName },
-                        PredictorModel = predModelVar
-                    };
+                        var modelCombine = new ML.Transforms.ModelCombiner
+                        {
+                            Models = new ArrayVar<ITransformModel>(
+                                new Var<ITransformModel>[] {
+                                    new Var<ITransformModel> { VarName = transformModelVarName.VariableName },
+                                    transformModelVar }
+                                )
+                        };
 
-                    exp.Reset();
-                    modelCombineOutput = exp.Add(modelCombine);
-                    subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
-                    predModelVars[k] = modelCombineOutput.PredictorModel;
+                        exp.Reset();
+                        modelCombineOutput = exp.Add(modelCombine);
+                        subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+                        transformModelVars[k] = modelCombineOutput.OutputModel;
+                    }
+                }
+                else
+                {
+                    outputMap.Add(nameof(TrainTestMacro.Output.PredictorModel), predModelVar.VarName);
+                    predModelVars[k] = predModelVar;
+                    ML.Transforms.TwoHeterogeneousModelCombiner.Output modelCombineOutput = null;
+                    if (transformModelVarName != null && transformModelVarName.VariableName != null)
+                    {
+                        var modelCombine = new ML.Transforms.TwoHeterogeneousModelCombiner
+                        {
+                            TransformModel = { VarName = transformModelVarName.VariableName },
+                            PredictorModel = predModelVar
+                        };
+
+                        exp.Reset();
+                        modelCombineOutput = exp.Add(modelCombine);
+                        subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+                        predModelVars[k] = modelCombineOutput.PredictorModel;
+                    }
                 }
 
                 var warningVar = new Var<IDataView>();
@@ -237,19 +289,34 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var confusionMatrix = new Var<IDataView>();
                 outputMap.Add(nameof(TrainTestMacro.Output.ConfusionMatrix), confusionMatrix.VarName);
                 confusionMatrixVars[k] = confusionMatrix;
-                subGraphNodes.Add(EntryPointNode.Create(env, "Models.TrainTestEvaluator", args, node.Catalog, node.Context, inputBindingMap, inputMap, outputMap));
+                const string trainTestEvaluatorMacroEntryPoint = "Models.TrainTestEvaluator";
+                subGraphNodes.Add(EntryPointNode.Create(env, trainTestEvaluatorMacroEntryPoint, args, node.Catalog, node.Context, inputBindingMap, inputMap, outputMap));
             }
 
             exp.Reset();
 
             // Convert predictors from all folds into an array of predictors.
-            var outModels = new ML.Data.PredictorModelArrayConverter
+
+            if (input.Outputs.PredictorModel == null)
             {
-                Model = new ArrayVar<IPredictorModel>(predModelVars)
-            };
-            var outModelsOutput = new ML.Data.PredictorModelArrayConverter.Output();
-            outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.PredictorModel));
-            exp.Add(outModels, outModelsOutput);
+                var outModels = new ML.Data.TransformModelArrayConverter
+                {
+                    TransformModel = new ArrayVar<ITransformModel>(transformModelVars)
+                };
+                var outModelsOutput = new ML.Data.TransformModelArrayConverter.Output();
+                outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.TransformModel));
+                exp.Add(outModels, outModelsOutput);
+            }
+            else
+            {
+                var outModels = new ML.Data.PredictorModelArrayConverter
+                {
+                    Model = new ArrayVar<IPredictorModel>(predModelVars)
+                };
+                var outModelsOutput = new ML.Data.PredictorModelArrayConverter.Output();
+                outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.PredictorModel));
+                exp.Add(outModels, outModelsOutput);
+            }
 
             // Convert warnings data views from all folds into an array of data views.
             var warnings = new ML.Data.IDataViewArrayConverter
@@ -330,6 +397,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public static CombinedOutput CombineMetrics(IHostEnvironment env, CombineMetricsInput input)
         {
             var eval = GetEvaluator(env, input.Kind);
+
             var perInst = EvaluateUtils.ConcatenatePerInstanceDataViews(env, eval, true, true, input.PerInstanceMetrics.Select(
                 idv => RoleMappedData.Create(idv, RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, input.LabelColumn))).ToArray(),
                 out var variableSizeVectorColumnNames);
@@ -369,6 +437,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         }
                     }
                 }
+
                 conf = EvaluateUtils.ConcatenateOverallMetrics(env, input.ConfusionMatrix);
             }
 

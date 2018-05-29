@@ -30,6 +30,14 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
             PredictionModel<IrisDataWithStringLabel, IrisPrediction> model = pipeline.Train<IrisDataWithStringLabel, IrisPrediction>();
+            string[] scoreLabels;
+            model.TryGetScoreLabelNames(out scoreLabels);
+
+            Assert.NotNull(scoreLabels);
+            Assert.Equal(3, scoreLabels.Length);
+            Assert.Equal("Iris-setosa", scoreLabels[0]);
+            Assert.Equal("Iris-versicolor", scoreLabels[1]);
+            Assert.Equal("Iris-virginica", scoreLabels[2]);
 
             IrisPrediction prediction = model.Predict(new IrisDataWithStringLabel()
             {
