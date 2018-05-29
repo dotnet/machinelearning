@@ -204,8 +204,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset adult = new TestDataset
         {
             name = "Census",
-            trainFilename = @"adult.train",
-            testFilename = @"adult.test",
+            trainFilename = "adult.train",
+            testFilename = "adult.test",
             loaderSettings = "loader=Text{sep=, header+ col=Label:14 col=Num:0,2,4,10-12 col=Cat:TX:1,3,5-9,13}",
             mamlExtraSettings = new[] { "xf=Cat{col=Cat}", "xf=Concat{col=Features:Num,Cat}" },
             extraSettings = @"/inst Text{header+ sep=, label=14 handler=Categorical{cols=5-9,1,13,3}}",
@@ -214,8 +214,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset adultOnlyCat = new TestDataset
         {
             name = "Census-Cat-Only",
-            trainFilename = @"adult.train",
-            testFilename = @"adult.test",
+            trainFilename = "adult.train",
+            testFilename = "adult.test",
             loaderSettings = "loader=Text{sep=, header+ col=Label:14 col=Cat:TX:1,3,5-9,13}",
             mamlExtraSettings = new[] { "xf=Cat{col=Cat}", "xf=Concat{col=Features:Cat}" },
             extraSettings = @"/inst Text{header+ sep=, label=14 handler=Categorical{cols=5-9,1,13,3}}",
@@ -224,8 +224,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset adultHash = new TestDataset
         {
             name = "CensusHash",
-            trainFilename = @"adult.train",
-            testFilename = @"adult.test",
+            trainFilename = "adult.train",
+            testFilename = "adult.test",
             loaderSettings = "loader=Text{sep=, header+ col=Label:14 col=Num:0,2,4,10-12 col=Cat:TX:1,3,5-9,13}",
             mamlExtraSettings = new[] { "xf=CatHash{col=Cat bits=5}", "xf=Concat{col=Features:Num,Cat}" },
             extraSettings = @"/inst Text{header+ sep=, label=14 handler=CatHash{cols=1,3,5-9,13 bits=5}}"
@@ -234,8 +234,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset adultCharGram = new TestDataset
         {
             name = "CensusCharGram",
-            trainFilename = @"adult.train",
-            testFilename = @"adult.test",
+            trainFilename = "adult.train",
+            testFilename = "adult.test",
             extraSettings = @"/inst Text{header+ sep=, label=14 handler=CharGram{cols=1,3,5-9,13 len=2} handler=CharGram{cols=1,3,5-9,13 len=3} handler=CharGram{cols=1,3,5-9,13 len=4} " +
             "handler=CharGram{cols=1,3,5-9,13 len=2 lower=-} handler=CharGram{cols=1,3,5-9,13 len=3 lower=-} handler=CharGram{cols=1,3,5-9,13 len=4 lower=-}}"
         };
@@ -243,8 +243,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset adultHashWithDataPipe = new TestDataset
         {
             name = "CensusHashWithPipe",
-            trainFilename = @"adult.train",
-            testFilename = @"adult.test",
+            trainFilename = "adult.train",
+            testFilename = "adult.test",
             loaderSettings = "loader=Text{header+ sep=comma col=Cat:TX:1,3,5-9,13 col=Label:14 col=Num:~}",
             mamlExtraSettings = new[] { "xf=CatHash{col=Hash:5:Cat}", "xf=Concat{col=Features:Num,Hash}" },
             extraSettings = @"/inst Pipe{loader=Text{header+ sep=comma col=Cat:TX:1,3,5-9,13 col=Label:14 col=Num:0,2,4,10-12} xf=CatHash{col=Hash:5:Cat} xf=Concat{col=Features:Num,Hash}}"
@@ -253,8 +253,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset adultText = new TestDataset
         {
             name = "CensusText",
-            trainFilename = @"adult.train",
-            testFilename = @"adult.test",
+            trainFilename = "adult.train",
+            testFilename = "adult.test",
             loaderSettings = "loader=Text{header+ sep=, col=Label:14 col=Word:TX:1,3,5-9,13 col=Num:~}",
             mamlExtraSettings = new[] { "xf=WordBag{col=Word}", "xf=Concat{col=Features:Num,Word}" },
             extraSettings = @"/inst Text{header+ sep=, label=14 handler=WordBag{cols=1,3,5-9,13}}"
@@ -263,8 +263,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset adultTextHash = new TestDataset
         {
             name = "CensusTextHash",
-            trainFilename = @"adult.train",
-            testFilename = @"adult.test",
+            trainFilename = "adult.train",
+            testFilename = "adult.test",
             loaderSettings = "loader=Text{header+ sep=, col=Label:14 col=Word:TX:1,3,5-9,13 col=Num:~}",
             mamlExtraSettings = new[] { "xf=WordHashBag{col=Word bits=8}", "xf=Concat{col=Features:Num,Word}" },
             extraSettings = @"/inst Text{header+ sep=, label=14 handler=WordHashBag{cols=1,3,5-9,13 sep=, bits=8}}"
@@ -274,8 +274,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset adultHashWithAttr = new TestDataset
         {
             name = "CensusHashWithAttr",
-            trainFilename = @"adult.train",
-            testFilename = @"adult.test",
+            trainFilename = "adult.train",
+            testFilename = "adult.test",
             loaderSettings = "loader=Text{header+ sep=, col=Label:14 col=Attr:TX:1 col=Name:TX:3 col=Cat1:TX:8,9 col=Cat2:TX:1 col=CatHash1:TX:1 col=CatHash2:TX:5-8 col=TextHash:TX:3,13 col=Num:~}",
             mamlExtraSettings = new[] { "xf=Cat{col=Cat1 col=Cat2}", "xf=CatHash{col=CatHash1:5:CatHash1 col=CatHash2:6:CatHash2}", "xf=WordHashBag{col=TextHash:8:TextHash}", "xf=Concat{col=Features:Num,Cat1,CatHash1,TextHash,CatHash2,Cat2}" },
             extraSettings = @"/inst TextInstances {header+ sep=, label=14 attr=1 name=3 cat=8,9 handler=CatHash{cols=1 bits=5} handler=TextHash{cols=3,13 bits=8 seed=2} handler=CatHash{cols=5-8 bits=6} handler=Categorical{cols=1}}"
@@ -284,8 +284,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset adultCatAsAtt = new TestDataset
         {
             name = "CensusCat2Ordinal",
-            trainFilename = @"adult.train",
-            testFilename = @"adult.test",
+            trainFilename = "adult.train",
+            testFilename = "adult.test",
             extraSettings = @"/inst Text{header+ sep=, label=14 attr=5-9,1,13,3 threads-}"
         };
 
