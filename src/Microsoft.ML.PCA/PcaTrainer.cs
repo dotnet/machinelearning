@@ -476,20 +476,7 @@ namespace Microsoft.ML.Runtime.PCA
 
             bldr.AddColumn("MeanVector", NumberType.R4, _mean);
             bldr.AddColumn("ProjectedMeanVector", NumberType.R4, _meanProjected);
-
-            ValueGetter<VBuffer<DvText>> getSlotNames =
-                (ref VBuffer<DvText> dst) =>
-                {
-                    var values = new DvText[_rank];
-                    for (var i = 0; i < _rank; ++i)
-                        values[i] = new DvText("V" + i);
-
-                    // should we reuse dst VBuffer or not?
-                    var tmp = new VBuffer<DvText>(_rank, values);
-                    tmp.CopyTo(ref dst);
-                };
-
-            bldr.AddColumn("EigenVectors", getSlotNames, NumberType.R4, _eigenVectors);
+            bldr.AddColumn("EigenVectors", NumberType.R4, _eigenVectors);
             return bldr.GetDataView();
         }
 
