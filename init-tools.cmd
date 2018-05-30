@@ -73,8 +73,6 @@ if NOT exist "%BUILD_TOOLS_PATH%init-tools.cmd" (
 
 :afterbuildtoolsrestore
 
-:: Ask init-tools to also restore ILAsm
-set /p ILASMCOMPILER_VERSION=< "%~dp0tools-local\ILAsmVersion.txt"
 
 echo Initializing BuildTools...
 echo Running: "%BUILD_TOOLS_PATH%init-tools.cmd" "%~dp0" "%DOTNET_CMD%" "%TOOLRUNTIME_DIR%" >> "%INIT_TOOLS_LOG%"
