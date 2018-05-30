@@ -353,7 +353,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     testMetricVal += 1e-10;
 
                 // Save performance score
-                candidate.PerformanceSummary = 
+                candidate.PerformanceSummary =
                     new RunSummary(testMetricVal, randomizedNumberOfRows, stopwatch.ElapsedMilliseconds, trainMetricVal);
                 _sortedSampledElements.Add(candidate.PerformanceSummary.MetricValue, candidate);
                 _history.Add(candidate);

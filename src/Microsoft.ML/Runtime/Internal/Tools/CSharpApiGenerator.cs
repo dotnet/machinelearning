@@ -408,7 +408,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
         private readonly string _regenerate;
         private readonly HashSet<string> _excludedSet;
         private const string RegistrationName = "CSharpApiGenerator";
-        public Dictionary<string, string> _typesSymbolTable = new Dictionary<string, string>();
+        public Dictionary<string, string> TypesSymbolTable = new Dictionary<string, string>();
 
         public CSharpApiGenerator(IHostEnvironment env, Arguments args, string regenerate)
         {
@@ -612,7 +612,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
                     type = type.GetGenericArguments()[0];
 
-                if (_typesSymbolTable.ContainsKey(type.FullName))
+                if (TypesSymbolTable.ContainsKey(type.FullName))
                     continue;
 
                 if (!type.IsEnum)
@@ -625,13 +625,13 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
                 var enumType = Enum.GetUnderlyingType(type);
 
-                _typesSymbolTable[type.FullName] = GetSymbolFromType(_typesSymbolTable, type, currentNamespace);
+                TypesSymbolTable[type.FullName] = GetSymbolFromType(TypesSymbolTable, type, currentNamespace);
                 if (enumType == typeof(int))
-                    writer.WriteLine($"public enum {_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}");
+                    writer.WriteLine($"public enum {TypesSymbolTable[type.FullName].Substring(TypesSymbolTable[type.FullName].LastIndexOf('.') + 1)}");
                 else
                 {
                     Contracts.Assert(enumType == typeof(byte));
-                    writer.WriteLine($"public enum {_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)} : byte");
+                    writer.WriteLine($"public enum {TypesSymbolTable[type.FullName].Substring(TypesSymbolTable[type.FullName].LastIndexOf('.') + 1)} : byte");
                 }
 
                 writer.Write("{");
@@ -707,19 +707,19 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 if (typeEnum != TlcModule.DataKind.Unknown)
                     continue;
 
-                if (_typesSymbolTable.ContainsKey(type.FullName))
+                if (TypesSymbolTable.ContainsKey(type.FullName))
                     continue;
 
-                _typesSymbolTable[type.FullName] = GetSymbolFromType(_typesSymbolTable, type, currentNamespace);
+                TypesSymbolTable[type.FullName] = GetSymbolFromType(TypesSymbolTable, type, currentNamespace);
                 string classBase = "";
                 if (type.IsSubclassOf(typeof(OneToOneColumn)))
-                    classBase = $" : OneToOneColumn<{_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}>, IOneToOneColumn";
+                    classBase = $" : OneToOneColumn<{TypesSymbolTable[type.FullName].Substring(TypesSymbolTable[type.FullName].LastIndexOf('.') + 1)}>, IOneToOneColumn";
                 else if (type.IsSubclassOf(typeof(ManyToOneColumn)))
-                    classBase = $" : ManyToOneColumn<{_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}>, IManyToOneColumn";
-                writer.WriteLine($"public sealed partial class {_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}{classBase}");
+                    classBase = $" : ManyToOneColumn<{TypesSymbolTable[type.FullName].Substring(TypesSymbolTable[type.FullName].LastIndexOf('.') + 1)}>, IManyToOneColumn";
+                writer.WriteLine($"public sealed partial class {TypesSymbolTable[type.FullName].Substring(TypesSymbolTable[type.FullName].LastIndexOf('.') + 1)}{classBase}");
                 writer.WriteLine("{");
                 writer.Indent();
-                GenerateInputFields(writer, type, catalog, _typesSymbolTable);
+                GenerateInputFields(writer, type, catalog, TypesSymbolTable);
                 writer.Outdent();
                 writer.WriteLine("}");
                 writer.WriteLine();
@@ -858,12 +858,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     writer.Indent();
                     if (isArray)
                     {
-                        writer.WriteLine($"var list = {fieldName} == null ? new List<{_typesSymbolTable[type.FullName]}>() : new List<{_typesSymbolTable[type.FullName]}>({fieldName});");
-                        writer.WriteLine($"list.Add(OneToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(source));");
+                        writer.WriteLine($"var list = {fieldName} == null ? new List<{TypesSymbolTable[type.FullName]}>() : new List<{TypesSymbolTable[type.FullName]}>({fieldName});");
+                        writer.WriteLine($"list.Add(OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(source));");
                         writer.WriteLine($"{fieldName} = list.ToArray();");
                     }
                     else
-                        writer.WriteLine($"{fieldName} = OneToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(source);");
+                        writer.WriteLine($"{fieldName} = OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(source);");
                     writer.Outdent();
                     writer.WriteLine("}");
                     writer.WriteLine();
@@ -872,12 +872,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     writer.Indent();
                     if (isArray)
                     {
-                        writer.WriteLine($"var list = {fieldName} == null ? new List<{_typesSymbolTable[type.FullName]}>() : new List<{_typesSymbolTable[type.FullName]}>({fieldName});");
-                        writer.WriteLine($"list.Add(OneToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(name, source));");
+                        writer.WriteLine($"var list = {fieldName} == null ? new List<{TypesSymbolTable[type.FullName]}>() : new List<{TypesSymbolTable[type.FullName]}>({fieldName});");
+                        writer.WriteLine($"list.Add(OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(name, source));");
                         writer.WriteLine($"{fieldName} = list.ToArray();");
                     }
                     else
-                        writer.WriteLine($"{fieldName} = OneToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(name, source);");
+                        writer.WriteLine($"{fieldName} = OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(name, source);");
                     writer.Outdent();
                     writer.WriteLine("}");
                     writer.WriteLine();
@@ -905,12 +905,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     writer.Indent();
                     if (isArray)
                     {
-                        writer.WriteLine($"var list = {fieldName} == null ? new List<{_typesSymbolTable[type.FullName]}>() : new List<{_typesSymbolTable[type.FullName]}>({fieldName});");
-                        writer.WriteLine($"list.Add(ManyToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(name, source));");
+                        writer.WriteLine($"var list = {fieldName} == null ? new List<{TypesSymbolTable[type.FullName]}>() : new List<{TypesSymbolTable[type.FullName]}>({fieldName});");
+                        writer.WriteLine($"list.Add(ManyToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(name, source));");
                         writer.WriteLine($"{fieldName} = list.ToArray();");
                     }
                     else
-                        writer.WriteLine($"{fieldName} = ManyToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(name, source);");
+                        writer.WriteLine($"{fieldName} = ManyToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(name, source);");
                     writer.Outdent();
                     writer.WriteLine("}");
                     writer.WriteLine();
@@ -942,10 +942,10 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             foreach (var line in entryPointInfo.Description.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                 writer.WriteLine($"/// {line}");
             writer.WriteLine("/// </summary>");
-            
-            if(entryPointInfo.ObsoleteAttribute != null)
+
+            if (entryPointInfo.ObsoleteAttribute != null)
                 writer.WriteLine($"[Obsolete(\"{entryPointInfo.ObsoleteAttribute.Message}\")]");
-            
+
             writer.WriteLine($"public sealed partial class {classAndMethod.Item2}{classBase}");
             writer.WriteLine("{");
             writer.Indent();
@@ -955,7 +955,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
             GenerateColumnAddMethods(writer, entryPointInfo.InputType, catalog, classAndMethod.Item2, out Type transformType);
             writer.WriteLine();
-            GenerateInputFields(writer, entryPointInfo.InputType, catalog, _typesSymbolTable);
+            GenerateInputFields(writer, entryPointInfo.InputType, catalog, TypesSymbolTable);
             writer.WriteLine();
 
             GenerateOutput(writer, entryPointInfo, out HashSet<string> outputVariableNames);
@@ -1191,7 +1191,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine($"public sealed class {GeneratorUtils.GetComponentName(component)} : {component.Kind}");
             writer.WriteLine("{");
             writer.Indent();
-            GenerateInputFields(writer, component.ArgumentType, catalog, _typesSymbolTable, "Microsoft.ML.");
+            GenerateInputFields(writer, component.ArgumentType, catalog, TypesSymbolTable, "Microsoft.ML.");
             writer.WriteLine($"internal override string ComponentName => \"{component.Name}\";");
             writer.Outdent();
             writer.WriteLine("}");
