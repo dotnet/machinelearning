@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.PCA;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -2698,6 +2699,54 @@ namespace Microsoft.ML.Runtime.RunTests
             // CheckEquality(@"../Common/EntryPoints", "lr-stats.txt");
             CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt");
             CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt");
+            Done();
+        }
+
+        [Fact]
+        public void EntryPointPcaPredictorSummary()
+        {
+            var dataPath = GetDataPath("MNIST.Train.0-class.tiny.txt");
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            {
+                Arguments =
+                {
+                    SeparatorChars = new []{'\t' },
+                    HasHeader = false,
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Features",
+                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 784} },
+                            Type = Runtime.Data.DataKind.R4
+                        }
+                    }
+                },
+
+                InputFile = inputFile,
+            }).Data;
+
+            var pcaInput = new RandomizedPcaTrainer.Arguments
+            {
+                TrainingData = dataView,
+            };
+            var model = RandomizedPcaTrainer.TrainPcaAnomaly(Env, pcaInput).PredictorModel;
+
+            var output = SummarizePredictor.Summarize(Env,
+                new SummarizePredictor.Input() { PredictorModel = model });
+
+            using (var ch = Env.Register("PcaPredictorSummary").Start("Save Data Views"))
+            {
+                var weights = DeleteOutputPath(@"../Common/EntryPoints", "pca-weights.txt");
+                var saver = Env.CreateSaver("Text");
+                using (var file = Env.CreateOutputFile(weights))
+                    DataSaverUtils.SaveDataView(ch, saver, output.Summary, file);
+
+                ch.Done();
+            }
+
+            CheckEquality(@"../Common/EntryPoints", "pca-weights.txt");
             Done();
         }
 

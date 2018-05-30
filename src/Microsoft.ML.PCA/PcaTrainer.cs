@@ -476,9 +476,30 @@ namespace Microsoft.ML.Runtime.PCA
         {
             var bldr = new ArrayDataViewBuilder(Host);
 
-            bldr.AddColumn("MeanVector", NumberType.R4, _mean);
-            bldr.AddColumn("ProjectedMeanVector", NumberType.R4, _meanProjected);
-            bldr.AddColumn("EigenVectors", NumberType.R4, _eigenVectors);
+            var cols = new VBuffer<Float>[_rank + 1];
+            var names = new string[_rank + 1];
+            for (var i = 0; i < _rank; ++i)
+            {
+                names[i] = "EigenVector" + i;
+                cols[i] = _eigenVectors[i];
+            }
+            names[_rank] = "MeanVector";
+            cols[_rank] = _mean;
+
+            ValueGetter<VBuffer<DvText>> getSlotNames =
+                (ref VBuffer<DvText> dst) =>
+                {
+                    var values = new DvText[_dimension];
+                    for (var i = 0; i < _dimension; ++i)
+                        values[i] = new DvText("Dim" + i);
+
+                    var tmp = new VBuffer<DvText>(_dimension, values);
+                    tmp.CopyTo(ref dst);
+                };
+
+            bldr.AddColumn("VectorName", names);
+            bldr.AddColumn("VectorData", getSlotNames, NumberType.R4, cols);
+
             return bldr.GetDataView();
         }
 
