@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
             public Var<IPredictorModel> PredictorModel;
-            
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model", SortOrder = 2)]
             public Var<ITransformModel> TransformModel;
         }
@@ -103,7 +103,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 6)]
             public IDataView ConfusionMatrix;
         }
-
 
         public sealed class CombineMetricsInput
         {
@@ -219,7 +218,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 }
                 else
                     args.Outputs.TransformModel = null;
-                
+
                 // Set train/test trainer kind to match.
                 args.Kind = input.Kind;
 
