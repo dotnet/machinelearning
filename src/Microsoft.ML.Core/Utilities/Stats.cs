@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         // http://en.wikipedia.org/wiki/Laplace_distribution
         public static Float SampleFromLaplacian(IRandom rand, Float mean, Float scale)
         {
-            Float u = rand.NextFloat();
+            Float u = rand.NextSingle();
             u = u - 0.5f;
             Float ret = mean;
             if (u >= 0)
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <returns></returns>
         public static Float SampleFromCauchy(IRandom rand)
         {
-            return (Float)Math.Tan(Math.PI * (rand.NextFloat() - 0.5));
+            return (Float)Math.Tan(Math.PI * (rand.NextSingle() - 0.5));
         }
 
         /// <summary>

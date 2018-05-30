@@ -201,7 +201,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 Float[] initWeights = new Float[BiasCount + WeightCount];
                 for (int j = 0; j < initWeights.Length; j++)
-                    initWeights[j] = InitWtsDiameter * (Host.Rand.NextFloat() - (Float)0.5);
+                    initWeights[j] = InitWtsDiameter * (Host.Rand.NextSingle() - (Float)0.5);
                 init = new VBuffer<Float>(initWeights.Length, initWeights);
             }
             else if (SgdInitializationTolerance > 0)

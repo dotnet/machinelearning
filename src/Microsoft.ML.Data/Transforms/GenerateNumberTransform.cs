@@ -426,7 +426,7 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.Assert(lastCounter <= Input.Position);
                 while (lastCounter < Input.Position)
                 {
-                    value = rng.NextFloat();
+                    value = rng.NextSingle();
                     lastCounter++;
                 }
             }
