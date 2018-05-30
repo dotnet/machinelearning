@@ -1215,8 +1215,7 @@ output Out [3] from H all;
             Done();
         }
 
-#if !CORECLR
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
@@ -1229,7 +1228,7 @@ output Out [3] from H all;
 
             Done();
         }
-#endif
+
         /// <summary>
         ///A test for one-class svm (libsvm wrapper)
         ///</summary>

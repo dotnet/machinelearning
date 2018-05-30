@@ -1,0 +1,4 @@
+pcaAnomaly
+AUC	DR @K FP	DR @P FPR	DR @NumPos	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.95619	0.9	0.1	0.5	pcaAnomaly	%Samples%\OneClass\MNIST.Train.0-class.tiny.txt	%Samples%\OneClass\MNIST.Test.tiny.txt	%Output%\pcaAnomaly\Default-TrainTest-mnistOneClass-out.txt	99	0	0	maml.exe TrainTest test=%Samples%\OneClass\MNIST.Test.tiny.txt tr=pcaAnomaly dout=%Output%\pcaAnomaly\Default-TrainTest-mnistOneClass.txt data=%Samples%\OneClass\MNIST.Train.0-class.tiny.txt out=%Output%\pcaAnomaly\Default-TrainTest-mnistOneClass-model.zip seed=1		
+
