@@ -54,5 +54,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// <returns>The transform model as an <see cref="IRowToRowMapper"/>. If not all transforms
         /// in the pipeline are <see cref="IRowToRowMapper"/> then it returns null.</returns>
         IRowToRowMapper AsRowToRowMapper(IExceptionContext ectx);
+
+        /// <summary>
+        /// Get the loader information from the model.
+        /// </summary>
+        IDataView GetLoader();
     }
 }

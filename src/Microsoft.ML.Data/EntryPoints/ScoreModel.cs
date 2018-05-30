@@ -128,8 +128,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             IPredictor predictor;
             RoleMappedData data;
-            var emptyData = new EmptyDataView(host, input.PredictorModel.TransformModel.InputSchema);
-            input.PredictorModel.PrepareData(host, emptyData, out data, out predictor);
+            var loader = input.PredictorModel.TransformModel.GetLoader();
+            var dataview = loader ?? new EmptyDataView(host, input.PredictorModel.TransformModel.InputSchema);
+            input.PredictorModel.PrepareData(host, dataview, out data, out predictor);
 
             IDataView scoredPipe;
             using (var ch = host.Start("Creating scoring pipeline"))
@@ -147,7 +148,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new Output
             {
                 ScoredData = scoredPipe,
-                ScoringTransform = new TransformModel(host, scoredPipe, emptyData)
+                ScoringTransform = new TransformModel(host, scoredPipe, dataview)
             };
         }
     }
