@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestSimpleExperiment()
         {
-            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             using (var env = new TlcEnvironment())
             {
                 var experiment = env.CreateExperiment();
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestSimpleTrainExperiment()
         {
-            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             using (var env = new TlcEnvironment())
             {
                 var experiment = env.CreateExperiment();
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestTrainTestMacro()
         {
-            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             using (var env = new TlcEnvironment())
             {
                 var subGraph = env.CreateExperiment();
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestCrossValidationBinaryMacro()
         {
-            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             using (var env = new TlcEnvironment())
             {
                 var subGraph = env.CreateExperiment();
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TransformModel = null
                 };
                 crossValidate.Inputs.Data = nop.Data;
-                crossValidate.Outputs.Model = modelCombineOutput.PredictorModel;
+                crossValidate.Outputs.PredictorModel = modelCombineOutput.PredictorModel;
                 var crossValidateOutput = experiment.Add(crossValidate);
 
                 experiment.Compile();
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TransformModel = null
                 };
                 crossValidate.Inputs.Data = nop.Data;
-                crossValidate.Outputs.Model = modelCombineOutput.PredictorModel;
+                crossValidate.Outputs.PredictorModel = modelCombineOutput.PredictorModel;
                 var crossValidateOutput = experiment.Add(crossValidate);
 
                 experiment.Compile();
@@ -541,7 +541,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     StratificationColumn = "Strat"
                 };
                 crossValidate.Inputs.Data = nop.Data;
-                crossValidate.Outputs.Model = modelCombineOutput.PredictorModel;
+                crossValidate.Outputs.PredictorModel = modelCombineOutput.PredictorModel;
                 var crossValidateOutput = experiment.Add(crossValidate);
                 experiment.Compile();
                 experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));

@@ -1,0 +1,4 @@
+SGD
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/nt	/iter	/checkFreq	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.995156	0.966325	0.961538	0.941423	0.96882	0.97973	0.49404	47.10512	0.951374	0.990094	1	2	9	SGD	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=SGD{maxIterations=2 checkFreq=9 nt=1} dout=%Output% data=%Data% out=%Output% seed=1	/nt:1;/iter:2;/checkFreq:9	
+

@@ -1,0 +1,38 @@
+maml.exe TrainTest test=%Data% tr=SGD{loss=Hinge maxIterations=2 checkFreq=9 nt=1} dout=%Output% data=%Data% out=%Output% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Warning: Skipped 16 instances with missing features during training
+Training calibrator.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      228 |       11 | 0.9540
+ negative ||       10 |      434 | 0.9775
+          ||======================
+Precision ||   0.9580 |   0.9753 |
+OVERALL 0/1 ACCURACY: 0.969253
+LOG LOSS/instance:  0.129716
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): 86.111860
+AUC:                0.995307
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.995307 (0.0000)
+Accuracy:           0.969253 (0.0000)
+Positive precision: 0.957983 (0.0000)
+Positive recall:    0.953975 (0.0000)
+Negative precision: 0.975281 (0.0000)
+Negative recall:    0.977477 (0.0000)
+Log-loss:           0.129716 (0.0000)
+Log-loss reduction: 86.111860 (0.0000)
+F1 Score:           0.955975 (0.0000)
+AUPRC:              0.990403 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
