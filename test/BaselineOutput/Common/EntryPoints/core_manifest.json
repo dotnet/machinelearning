@@ -2122,23 +2122,11 @@
           "Default": null
         },
         {
-          "Name": "LoadPredictor",
-          "Type": "Bool",
-          "Desc": "Whether we should attempt to load the predictor and attach the scorer to the pipeline if one is present.",
-          "Aliases": [
-            "pred"
-          ],
-          "Required": false,
-          "SortOrder": 7.0,
-          "IsNullable": true,
-          "Default": null
-        },
-        {
           "Name": "Model",
-          "Type": "PredictorModel",
+          "Type": "TransformModel",
           "Desc": "Model that needs to be converted to ONNX format.",
           "Required": true,
-          "SortOrder": 8.0,
+          "SortOrder": 7.0,
           "IsNullable": false
         }
       ],
