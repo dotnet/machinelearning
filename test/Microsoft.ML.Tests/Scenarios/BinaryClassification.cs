@@ -58,7 +58,7 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
 
             var model = pipeline.Train<BreastCancerData, BreastCancerPrediction>();
-            var subDir = Path.Combine("..", "Common", "Scenario", "BinaryClassification", "BreastCancer");
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Scenario", "BinaryClassification", "BreastCancer");
             var modelOutpath = GetOutputPath(subDir, "SaveModelToOnnxTest.zip");
             DeleteOutputPath(modelOutpath);
 

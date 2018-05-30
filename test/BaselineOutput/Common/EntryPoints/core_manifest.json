@@ -2056,6 +2056,95 @@
       ]
     },
     {
+      "Name": "Models.OnnxConverter",
+      "Desc": "Converts the model to ONNX format.",
+      "FriendlyName": "ONNX Converter.",
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Onnx",
+          "Type": "String",
+          "Desc": "The path to write the output ONNX to.",
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Json",
+          "Type": "String",
+          "Desc": "The path to write the output JSON to.",
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The 'name' property in the output ONNX. By default this will be the ONNX extension-less name.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Domain",
+          "Type": "String",
+          "Desc": "The 'domain' property in the output ONNX.",
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "InputsToDrop",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Array of input column names to drop",
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "OutputsToDrop",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Array of output column names to drop",
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "LoadPredictor",
+          "Type": "Bool",
+          "Desc": "Whether we should attempt to load the predictor and attach the scorer to the pipeline if one is present.",
+          "Aliases": [
+            "pred"
+          ],
+          "Required": false,
+          "SortOrder": 7.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "Model",
+          "Type": "PredictorModel",
+          "Desc": "Model that needs to be converted to ONNX format.",
+          "Required": true,
+          "SortOrder": 8.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": []
+    },
+    {
       "Name": "Models.OvaModelCombiner",
       "Desc": "Combines a sequence of PredictorModels into a single model",
       "FriendlyName": null,
