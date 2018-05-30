@@ -33,6 +33,16 @@ namespace Microsoft.ML.Runtime.EntryPoints
         ISchema OutputSchema { get; }
 
         /// <summary>
+        /// This contains the transforms to save instantiated on an IDataView with
+        /// appropriate initial schema. Note that the "root" of this is typically either
+        /// an empty IDataView or a BinaryLoader with no rows. However, other root
+        /// types are possible, since we don't insist on this when loading a model
+        /// from a zip file. However, whenever we save, we force a BinaryLoader to
+        /// be serialized for the root.
+        /// </summary>
+        IDataView View { get; }
+
+        /// <summary>
         /// Apply the transform(s) in the model to the given input data.
         /// </summary>
         IDataView Apply(IHostEnvironment env, IDataView input);

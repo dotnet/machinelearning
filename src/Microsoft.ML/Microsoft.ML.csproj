@@ -14,9 +14,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Api\Microsoft.ML.Api.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Commands\Microsoft.ML.Commands.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
   </ItemGroup>
 

@@ -25,9 +25,24 @@ namespace Microsoft.ML
             _predictorModel = new Runtime.EntryPoints.TransformModel(_env, stream);
         }
 
-        internal Runtime.EntryPoints.TransformModel PredictorModel
+        internal TransformModel PredictorModel
         {
             get { return _predictorModel; }
+        }
+
+        /// <summary>
+        /// Converts the model to ONNX format.
+        /// </summary>
+        /// <param name="onnxConverter">Arguments to ONNX converter.</param>
+        public void ExportToOnnx(Models.OnnxConverter onnxConverter)
+        {
+            _env.CheckValue(onnxConverter, nameof(onnxConverter));
+
+            Experiment experiment = _env.CreateExperiment();
+            experiment.Add(onnxConverter);
+            experiment.Compile();
+            experiment.SetInput(onnxConverter.Model, new PredictorModel(_env, _predictorModel));
+            experiment.Run();
         }
 
         /// <summary>
@@ -44,7 +59,7 @@ namespace Microsoft.ML
             int colIndex = -1;
             if (!schema.TryGetColumnIndex(scoreColumnName, out colIndex))
                 return false;
-            
+
             int expectedLabelCount = schema.GetColumnType(colIndex).ValueCount;
             if (!schema.HasSlotNames(colIndex, expectedLabelCount))
                 return false;
@@ -57,7 +72,7 @@ namespace Microsoft.ML
 
             names = new string[expectedLabelCount];
             int index = 0;
-            foreach(var label in labels.DenseValues())
+            foreach (var label in labels.DenseValues())
                 names[index++] = label.ToString();
 
             return true;

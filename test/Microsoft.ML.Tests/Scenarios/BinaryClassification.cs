@@ -12,9 +12,8 @@ namespace Microsoft.ML.Scenarios
     {
         public class BreastCancerData
         {
-            [Column(ordinal: "0")]
             public float Label;
-            [Column(ordinal: "1-9")]
+
             [VectorType(9)]
             public float[] Features;
         }
@@ -57,36 +56,29 @@ namespace Microsoft.ML.Scenarios
             });
 
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
-            
-            PredictionModel<BreastCancerData, BreastCancerPrediction> model = pipeline.Train<BreastCancerData, BreastCancerPrediction>();
-            
-            var modelOutpath = GetOutputPath(Path.Combine("..", "Common", 
-                "Scenario", "BinaryClassification", "BreastCancer"), "SaveModelToOnnxTest.zip");
 
+            var model = pipeline.Train<BreastCancerData, BreastCancerPrediction>();
+            var subDir = Path.Combine("..", "Common", "Scenario", "BinaryClassification", "BreastCancer");
+            var modelOutpath = GetOutputPath(subDir, "SaveModelToOnnxTest.zip");
             DeleteOutputPath(modelOutpath);
 
-            var onnxPath = GetOutputPath(Path.Combine("..", "Common",
-                "Scenario", "BinaryClassification", "BreastCancer"), "SaveModelToOnnxTest.pb");
-
+            var onnxPath = GetOutputPath(subDir, "SaveModelToOnnxTest.pb");
             DeleteOutputPath(onnxPath);
 
-            var onnxAsJsonPath = GetOutputPath(Path.Combine("..", "Common",
-                "Scenario", "BinaryClassification", "BreastCancer"), "SaveModelToOnnxTest.json");
-
+            var onnxAsJsonPath = GetOutputPath(subDir, "SaveModelToOnnxTest.json");
             DeleteOutputPath(onnxAsJsonPath);
 
-            model.WriteAsync(modelOutpath);
-            SaveAsOnnx.Save(new Runtime.Model.Onnx.SaveOnnxCommand.Arguments
+            model.ExportToOnnx(new OnnxConverter()
             {
-                InputModelFile = modelOutpath,
-                OutputsToDrop = "Label,Features",
+                InputsToDrop = new[] { "Label" },
+                OutputsToDrop = new[] { "Label", "Features" },
                 Onnx = onnxPath,
                 Json = onnxAsJsonPath,
                 Domain = "Onnx"
             });
 
-            Assert.True(CheckEquality(Path.Combine("..", "Common", "Scenario", "BinaryClassification", "BreastCancer"),
-                "SaveModelToOnnxTest.json"));
+            CheckEquality(subDir, "SaveModelToOnnxTest.json");
+            Done();
         }
     }
 }

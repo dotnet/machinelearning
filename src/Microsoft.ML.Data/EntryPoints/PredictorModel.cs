@@ -36,6 +36,18 @@ namespace Microsoft.ML.Runtime.EntryPoints
             _predictor = predictor;
         }
 
+        //REVIEW: I'm not sure this is the right thing to do because we are setting predictor to null
+        //when this class is supposed to contain a predictor. TransformModel may or may not
+        //contain a predictor. Here we are just using this class as a wrapper for TransformModel 
+        //so that we can use a single class to accept TransformModel and PredictorModel has inputs.
+        public PredictorModel(IHostEnvironment env, ITransformModel transformModel)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(transformModel, nameof(transformModel));
+
+            _transformModel = transformModel;
+        }
+
         public PredictorModel(IHostEnvironment env, Stream stream)
         {
             Contracts.CheckValue(env, nameof(env));

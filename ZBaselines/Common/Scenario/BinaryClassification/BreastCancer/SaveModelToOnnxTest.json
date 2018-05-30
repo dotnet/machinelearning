@@ -624,24 +624,6 @@
     "name": "SaveModelToOnnxTest",
     "input": [
       {
-        "name": "Label",
-        "type": {
-          "tensorType": {
-            "elemType": "FLOAT",
-            "shape": {
-              "dim": [
-                {
-                  "dimValue": "1"
-                },
-                {
-                  "dimValue": "1"
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
         "name": "Features",
         "type": {
           "tensorType": {

@@ -5,6 +5,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Core", "src\Microsoft.ML.Core\Microsoft.ML.Core.csproj", "{A6CA6CC6-5D7C-4D7F-A0F5-35E14B383B0A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{09EADF06-BE25-4228-AB53-95AE3E15B530}"
+	ProjectSection(SolutionItems) = preProject
+		src\Microsoft.ML.Commands\Microsoft.ML.Commands.csproj = src\Microsoft.ML.Commands\Microsoft.ML.Commands.csproj
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{AED9C836-31E3-4F3F-8ABC-929555D3F3C4}"
 EndProject
@@ -30,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.KMeansClusteri
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.PCA", "src\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj", "{58E06735-1129-4DD5-86E0-6BBFF049AAD9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Maml", "src\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj", "{D956E291-F6E5-4474-9023-91793F45ABEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Console", "src\Microsoft.ML.Maml\Microsoft.ML.Console.csproj", "{D956E291-F6E5-4474-9023-91793F45ABEB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Api", "src\Microsoft.ML.Api\Microsoft.ML.Api.csproj", "{2F636A2C-062C-49F4-85F3-60DCADAB6A43}"
 EndProject
@@ -104,7 +107,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Parquet", "Mic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Benchmarks", "test\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj", "{7A9DB75F-2CA5-4184-9EF5-1F17EB39483F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.MamlExec", "src\Microsoft.ML.MamlExec\Microsoft.ML.MamlExec.csproj", "{4217964C-891C-43DD-9E20-E77A5567DCE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Commands", "src\Microsoft.ML.Commands\Microsoft.ML.Commands.csproj", "{C5EB2982-739C-4D42-8DA5-0FB5F4223B6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -204,10 +207,10 @@ Global
 		{7A9DB75F-2CA5-4184-9EF5-1F17EB39483F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A9DB75F-2CA5-4184-9EF5-1F17EB39483F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A9DB75F-2CA5-4184-9EF5-1F17EB39483F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4217964C-891C-43DD-9E20-E77A5567DCE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4217964C-891C-43DD-9E20-E77A5567DCE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4217964C-891C-43DD-9E20-E77A5567DCE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4217964C-891C-43DD-9E20-E77A5567DCE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5EB2982-739C-4D42-8DA5-0FB5F4223B6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5EB2982-739C-4D42-8DA5-0FB5F4223B6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5EB2982-739C-4D42-8DA5-0FB5F4223B6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5EB2982-739C-4D42-8DA5-0FB5F4223B6D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -242,7 +245,7 @@ Global
 		{DEC8F776-49F7-4D87-836C-FE4DC057D08C} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{6C95FC87-F5F2-4EEF-BB97-567F2F5DD141} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{7A9DB75F-2CA5-4184-9EF5-1F17EB39483F} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
-		{4217964C-891C-43DD-9E20-E77A5567DCE4} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{C5EB2982-739C-4D42-8DA5-0FB5F4223B6D} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
