@@ -1,4 +1,4 @@
-maml.exe TrainTest test=%Samples%\OneClass\MNIST.Test.tiny.txt tr=pcaAnomaly norm=No dout=%Output%\pcaAnomaly\NoNorm-TrainTest-mnistOneClass.txt data=%Samples%\OneClass\MNIST.Train.0-class.tiny.txt out=%Output%\pcaAnomaly\NoNorm-TrainTest-mnistOneClass-model.zip seed=1
+maml.exe TrainTest test=%Data% tr=pcaAnomaly norm=No dout=%Output% data=%Data% out=%Output% seed=1
 Not adding a normalizer.
 Not training a calibrator because it is not needed.
 50 Top-scored Results
