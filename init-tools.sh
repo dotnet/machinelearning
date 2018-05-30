@@ -8,19 +8,19 @@ __DOTNET_PATH=$__TOOLRUNTIME_DIR/dotnetcli
 __DOTNET_CMD=$__DOTNET_PATH/dotnet
 if [ -z "$__BUILDTOOLS_SOURCE" ]; then __BUILDTOOLS_SOURCE=https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json; fi
 export __BUILDTOOLS_USE_CSPROJ=true
-__BUILD_TOOLS_PACKAGE_VERSION=$(cat $__scriptpath/BuildToolsVersion.txt | sed 's/\r$//') # remove CR if mounted repo on Windows drive
-__DOTNET_TOOLS_VERSION=$(cat $__scriptpath/DotnetCLIVersion.txt | sed 's/\r$//') # remove CR if mounted repo on Windows drive
-__ILASM_VERSION=$(cat $__scriptpath/tools-local/ILAsmVersion.txt | sed 's/\r$//') # remove CR if mounted repo on Windows drive
+__BUILD_TOOLS_PACKAGE_VERSION=$(cat "$__scriptpath/BuildToolsVersion.txt" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
+__DOTNET_TOOLS_VERSION=$(cat "$__scriptpath/DotnetCLIVersion.txt" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
+__ILASM_VERSION=$(cat "$__scriptpath/tools-local/ILAsmVersion.txt" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
 __BUILD_TOOLS_PATH=$__PACKAGES_DIR/microsoft.dotnet.buildtools/$__BUILD_TOOLS_PACKAGE_VERSION/lib
 __INIT_TOOLS_RESTORE_PROJECT=$__scriptpath/init-tools.msbuild
 __BUILD_TOOLS_SEMAPHORE=$__TOOLRUNTIME_DIR/$__BUILD_TOOLS_PACKAGE_VERSION/init-tools.complete
 
-if [ -e $__BUILD_TOOLS_SEMAPHORE ]; then
+if [ -e "$__BUILD_TOOLS_SEMAPHORE" ]; then
     echo "Tools are already initialized"
     return #return instead of exit because this script is inlined in other scripts which we don't want to exit
 fi
 
-if [ -e $__TOOLRUNTIME_DIR ]; then rm -rf -- $__TOOLRUNTIME_DIR; fi
+if [ -e "$__TOOLRUNTIME_DIR" ]; then rm -rf -- "$__TOOLRUNTIME_DIR"; fi
 
 if [ -d "$DotNetBuildToolsDir" ]; then
     echo "Using tools from '$DotNetBuildToolsDir'."
@@ -36,7 +36,7 @@ if [ -d "$DotNetBuildToolsDir" ]; then
     return #return instead of exit because this script is inlined in other scripts which we don't want to exit
 fi
 
-echo "Running: $__scriptpath/init-tools.sh" > $__init_tools_log
+echo "Running: $__scriptpath/init-tools.sh" > "$__init_tools_log"
 
 display_error_message()
 {
@@ -65,7 +65,7 @@ execute_with_retry() {
     return 0
 }
 
-if [ ! -e $__DOTNET_PATH ]; then
+if [ ! -e "$__DOTNET_PATH" ]; then
     if [ -z "$__DOTNET_PKG" ]; then
         if [ "$(uname -m | grep "i[3456]86")" = "i686" ]; then
             echo "Warning: build not supported on 32 bit Unix"
@@ -138,7 +138,7 @@ if [ ! -e $__DOTNET_PATH ]; then
     cd $__scriptpath
 fi
 
-if [ ! -e $__BUILD_TOOLS_PATH ]; then
+if [ ! -e "$__BUILD_TOOLS_PATH" ]; then
     echo "Restoring BuildTools version $__BUILD_TOOLS_PACKAGE_VERSION..."
     echo "Running: $__DOTNET_CMD restore \"$__INIT_TOOLS_RESTORE_PROJECT\" --no-cache --packages $__PACKAGES_DIR --source $__BUILDTOOLS_SOURCE /p:BuildToolsPackageVersion=$__BUILD_TOOLS_PACKAGE_VERSION" >> $__init_tools_log
     $__DOTNET_CMD restore "$__INIT_TOOLS_RESTORE_PROJECT" --no-cache --packages $__PACKAGES_DIR --source $__BUILDTOOLS_SOURCE /p:BuildToolsPackageVersion=$__BUILD_TOOLS_PACKAGE_VERSION >> $__init_tools_log
