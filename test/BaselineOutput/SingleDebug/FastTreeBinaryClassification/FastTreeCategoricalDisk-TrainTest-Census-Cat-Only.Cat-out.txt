@@ -1,0 +1,52 @@
+maml.exe TrainTest test=%Data% tr=FastTreeBinaryClassification{cat=+ nl=5 mil=5 lr=0.25 iter=20 mb=255 dt+} dout=%Output% loader=Text{sep=, header+ col=Label:14 col=Cat:TX:1,3,5-9,13} data=%Data% out=%Output% seed=1 xf=Cat{col=Cat} xf=Concat{col=Features:Cat}
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise on disk
+Processed 32561 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 5016 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.2362 (3846.0/(3846.0+12435.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||    1,946 |    1,900 | 0.5060
+ negative ||      818 |   11,617 | 0.9342
+          ||======================
+Precision ||   0.7041 |   0.8594 |
+OVERALL 0/1 ACCURACY: 0.833057
+LOG LOSS/instance:  0.522096
+Test-set entropy (prior Log-Loss/instance): 0.788708
+LOG-LOSS REDUCTION (RIG): 33.803636
+AUC:                0.878672
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.878672 (0.0000)
+Accuracy:           0.833057 (0.0000)
+Positive precision: 0.704052 (0.0000)
+Positive recall:    0.505980 (0.0000)
+Negative precision: 0.859436 (0.0000)
+Negative recall:    0.934218 (0.0000)
+Log-loss:           0.522096 (0.0000)
+Log-loss reduction: 33.803636 (0.0000)
+F1 Score:           0.588805 (0.0000)
+AUPRC:              0.681234 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Building term dictionary' started.
+[1] (%Time%)	32561 examples	Total Terms: 100
+[1] 'Building term dictionary' finished in %Time%.
+[2] 'FastTree disk-based bins initialization' started.
+[2] 'FastTree disk-based bins initialization' finished in %Time%.
+[3] 'FastTree training' started.
+[3] 'FastTree training' finished in %Time%.
+[4] 'Saving model' started.
+[4] 'Saving model' finished in %Time%.

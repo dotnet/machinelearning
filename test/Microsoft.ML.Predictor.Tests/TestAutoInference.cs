@@ -200,8 +200,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public void EntryPointPipelineSweep()
         {
             // Get datasets
-            var pathData = GetDataPath(@"adult.tiny.with-schema.txt");
-            var pathDataTest = GetDataPath(@"adult.tiny.with-schema.txt");
+            var pathData = GetDataPath("adult.tiny.with-schema.txt");
+            var pathDataTest = GetDataPath("adult.tiny.with-schema.txt");
             const int numOfSampleRows = 1000;
             int numIterations = 4;
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
