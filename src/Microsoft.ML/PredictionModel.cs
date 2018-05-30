@@ -31,21 +31,6 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Converts the model to ONNX format.
-        /// </summary>
-        /// <param name="onnxConverter">Arguments to ONNX converter.</param>
-        public void ExportToOnnx(Models.OnnxConverter onnxConverter)
-        {
-            _env.CheckValue(onnxConverter, nameof(onnxConverter));
-
-            Experiment experiment = _env.CreateExperiment();
-            experiment.Add(onnxConverter);
-            experiment.Compile();
-            experiment.SetInput(onnxConverter.Model, new PredictorModel(_env, _predictorModel));
-            experiment.Run();
-        }
-
-        /// <summary>
         /// Returns labels that correspond to indices of the score array in the case of 
         /// multi-class classification problem.
         /// </summary>

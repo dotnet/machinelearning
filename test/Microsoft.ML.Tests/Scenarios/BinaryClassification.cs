@@ -68,14 +68,16 @@ namespace Microsoft.ML.Scenarios
             var onnxAsJsonPath = GetOutputPath(subDir, "SaveModelToOnnxTest.json");
             DeleteOutputPath(onnxAsJsonPath);
 
-            model.ExportToOnnx(new OnnxConverter()
+            OnnxConverter converter = new OnnxConverter()
             {
                 InputsToDrop = new[] { "Label" },
                 OutputsToDrop = new[] { "Label", "Features" },
                 Onnx = onnxPath,
                 Json = onnxAsJsonPath,
                 Domain = "Onnx"
-            });
+            };
+
+            converter.Convert(model);
 
             CheckEquality(subDir, "SaveModelToOnnxTest.json");
             Done();
