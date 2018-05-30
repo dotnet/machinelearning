@@ -6,11 +6,11 @@
 	<IncludeInPackage>Microsoft.ML</IncludeInPackage>
 	<TargetFramework>netcoreapp2.0</TargetFramework>
 	<OutputType>Exe</OutputType>
-	<StartupObject>Microsoft.ML.Runtime.Tools.Maml</StartupObject>
+	<StartupObject>Microsoft.ML.Runtime.Tools.Console.Console</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.Commands\Microsoft.ML.Commands.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Commands\Microsoft.ML.Maml.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
   </ItemGroup>
 

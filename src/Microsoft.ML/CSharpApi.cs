@@ -2790,14 +2790,9 @@ namespace Microsoft.ML
             public string[] OutputsToDrop { get; set; }
 
             /// <summary>
-            /// Whether we should attempt to load the predictor and attach the scorer to the pipeline if one is present.
-            /// </summary>
-            public bool? LoadPredictor { get; set; }
-
-            /// <summary>
             /// Model that needs to be converted to ONNX format.
             /// </summary>
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
 
             public sealed class Output
