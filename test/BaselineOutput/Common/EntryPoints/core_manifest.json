@@ -9118,6 +9118,18 @@
           "Default": "Features"
         },
         {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
           "Name": "NormalizeFeatures",
           "Type": {
             "Kind": "Enum",
@@ -9253,6 +9265,7 @@
         }
       ],
       "InputKind": [
+        "IUnsupervisedTrainerWithWeight",
         "ITrainerInput"
       ],
       "OutputKind": [
@@ -10875,6 +10888,7 @@
         }
       ],
       "InputKind": [
+        "IUnsupervisedTrainerWithWeight",
         "ITrainerInput"
       ],
       "OutputKind": [
@@ -22575,6 +22589,23 @@
         {
           "Name": "Model",
           "Type": "TransformModel"
+        }
+      ]
+    },
+    {
+      "Kind": "IUnsupervisedTrainerWithWeight",
+      "Settings": [
+        {
+          "Name": "WeightColumn",
+          "Type": "String"
+        },
+        {
+          "Name": "TrainingData",
+          "Type": "DataView"
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String"
         }
       ]
     }
