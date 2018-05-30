@@ -1,0 +1,56 @@
+maml.exe CV tr=SGD{loss=Hinge maxIterations=2 checkFreq=9 nt=1} threads=- dout=%Output% data=%Data% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Warning: Skipped 8 instances with missing features during training
+Training calibrator.
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Warning: Skipped 8 instances with missing features during training
+Training calibrator.
+Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3785 (134.0/(134.0+220.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      125 |        9 | 0.9328
+ negative ||        7 |      213 | 0.9682
+          ||======================
+Precision ||   0.9470 |   0.9595 |
+OVERALL 0/1 ACCURACY: 0.954802
+LOG LOSS/instance:  0.150656
+Test-set entropy (prior Log-Loss/instance): 0.956998
+LOG-LOSS REDUCTION (RIG): 84.257459
+AUC:                0.993114
+Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3191 (105.0/(105.0+224.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       94 |       11 | 0.8952
+ negative ||        2 |      222 | 0.9911
+          ||======================
+Precision ||   0.9792 |   0.9528 |
+OVERALL 0/1 ACCURACY: 0.960486
+LOG LOSS/instance:  0.127422
+Test-set entropy (prior Log-Loss/instance): 0.903454
+LOG-LOSS REDUCTION (RIG): 85.896075
+AUC:                0.997109
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.995111 (0.0020)
+Accuracy:           0.957644 (0.0028)
+Positive precision: 0.963068 (0.0161)
+Positive recall:    0.914037 (0.0188)
+Negative precision: 0.956125 (0.0033)
+Negative recall:    0.979627 (0.0114)
+Log-loss:           0.139039 (0.0116)
+Log-loss reduction: 85.076767 (0.8193)
+F1 Score:           0.937587 (0.0023)
+AUPRC:              0.990374 (0.0032)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

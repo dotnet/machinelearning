@@ -1,0 +1,4 @@
+SGD
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/loss	/nt	/iter	/checkFreq	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.995111	0.957644	0.963068	0.914037	0.956125	0.979627	0.139039	85.07677	0.937587	0.990374	Hinge	1	2	9	SGD	%Data%		%Output%	99	0	0	maml.exe CV tr=SGD{loss=Hinge maxIterations=2 checkFreq=9 nt=1} threads=- dout=%Output% data=%Data% seed=1	/loss:Hinge;/nt:1;/iter:2;/checkFreq:9	
+

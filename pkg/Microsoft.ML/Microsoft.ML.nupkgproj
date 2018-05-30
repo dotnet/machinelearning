@@ -14,4 +14,7 @@
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="build\**\*" Pack="true" PackagePath="build" />
+  </ItemGroup>
 </Project>

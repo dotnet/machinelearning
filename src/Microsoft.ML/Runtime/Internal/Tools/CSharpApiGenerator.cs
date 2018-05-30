@@ -177,6 +177,37 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 return char.ToUpperInvariant(s[0]) + s.Substring(1);
             }
 
+            private static string GetCharAsString(char value)
+            {
+                switch (value)
+                {
+                    case '\t':
+                        return "\\t";
+                    case '\n':
+                        return "\\n";
+                    case '\r':
+                        return "\\r";
+                    case '\\':
+                        return "\\";
+                    case '\"':
+                        return "\"";
+                    case '\'':
+                        return "\\'";
+                    case '\0':
+                        return "\\0";
+                    case '\a':
+                        return "\\a";
+                    case '\b':
+                        return "\\b";
+                    case '\f':
+                        return "\\f";
+                    case '\v':
+                        return "\\v";
+                    default:
+                        return value.ToString();
+                }
+            }
+
             public static string GetValue(ModuleCatalog catalog, Type fieldType, object fieldValue,
                 Dictionary<string, string> typesSymbolTable, string rootNameSpace = "")
             {
@@ -264,7 +295,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     case TlcModule.DataKind.Enum:
                         return GetEnumName(fieldType, typesSymbolTable, rootNameSpace) + "." + fieldValue;
                     case TlcModule.DataKind.Char:
-                        return $"'{(char)fieldValue}'";
+                        return $"'{GetCharAsString((char)fieldValue)}'";
                     case TlcModule.DataKind.Component:
                         var type = fieldValue.GetType();
                         ModuleCatalog.ComponentInfo componentInfo;
@@ -685,7 +716,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     classBase = $" : OneToOneColumn<{_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}>, IOneToOneColumn";
                 else if (type.IsSubclassOf(typeof(ManyToOneColumn)))
                     classBase = $" : ManyToOneColumn<{_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}>, IManyToOneColumn";
-                writer.WriteLine($"public sealed class {_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}{classBase}");
+                writer.WriteLine($"public sealed partial class {_typesSymbolTable[type.FullName].Substring(_typesSymbolTable[type.FullName].LastIndexOf('.') + 1)}{classBase}");
                 writer.WriteLine("{");
                 writer.Indent();
                 GenerateInputFields(writer, type, catalog, _typesSymbolTable);
@@ -694,6 +725,62 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 writer.WriteLine();
                 GenerateStructs(writer, type, catalog, currentNamespace);
             }
+        }
+
+        private void GenerateLoaderAddInputMethod(IndentingTextWriter writer, string className)
+        {
+            //Constructor.
+            writer.WriteLine("[JsonIgnore]");
+            writer.WriteLine("private string _inputFilePath = null;");
+            writer.WriteLine($"public {className}(string filePath)");
+            writer.WriteLine("{");
+            writer.Indent();
+            writer.WriteLine("_inputFilePath = filePath;");
+            writer.Outdent();
+            writer.WriteLine("}");
+            writer.WriteLine("");
+
+            //SetInput.
+            writer.WriteLine($"public void SetInput(IHostEnvironment env, Experiment experiment)");
+            writer.WriteLine("{");
+            writer.Indent();
+            writer.WriteLine("IFileHandle inputFile = new SimpleFileHandle(env, _inputFilePath, false, false);");
+            writer.WriteLine("experiment.SetInput(InputFile, inputFile);");
+            writer.Outdent();
+            writer.WriteLine("}");
+            writer.WriteLine("");
+
+            //GetInputData
+            writer.WriteLine("public Var<IDataView> GetInputData() => null;");
+            writer.WriteLine("");
+
+            //Apply.
+            writer.WriteLine($"public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)");
+            writer.WriteLine("{");
+            writer.Indent();
+            writer.WriteLine("Contracts.Assert(previousStep == null);");
+            writer.WriteLine("");
+            writer.WriteLine($"return new {className}PipelineStep(experiment.Add(this));");
+            writer.Outdent();
+            writer.WriteLine("}");
+            writer.WriteLine("");
+
+            //Pipelinestep class.
+            writer.WriteLine($"private class {className}PipelineStep : ILearningPipelineDataStep");
+            writer.WriteLine("{");
+            writer.Indent();
+            writer.WriteLine($"public {className}PipelineStep (Output output)");
+            writer.WriteLine("{");
+            writer.Indent();
+            writer.WriteLine("Data = output.Data;");
+            writer.WriteLine("Model = null;");
+            writer.Outdent();
+            writer.WriteLine("}");
+            writer.WriteLine();
+            writer.WriteLine("public Var<IDataView> Data { get; }");
+            writer.WriteLine("public Var<ITransformModel> Model { get; }");
+            writer.Outdent();
+            writer.WriteLine("}");
         }
 
         private void GenerateColumnAddMethods(IndentingTextWriter writer,
@@ -842,10 +929,11 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             var classAndMethod = GeneratorUtils.GetClassAndMethodNames(entryPointInfo);
             string classBase = "";
             if (entryPointInfo.InputKinds != null)
+            {
                 classBase += $" : {string.Join(", ", entryPointInfo.InputKinds.Select(GeneratorUtils.GetCSharpTypeName))}";
-
-            if (classBase.Contains("ITransformInput") || classBase.Contains("ITrainerInput"))
-                classBase += ", Microsoft.ML.ILearningPipelineItem";
+                if (entryPointInfo.InputKinds.Any(t => typeof(ITrainerInput).IsAssignableFrom(t) || typeof(ITransformInput).IsAssignableFrom(t)))
+                    classBase += ", Microsoft.ML.ILearningPipelineItem";
+            }
 
             GenerateEnums(writer, entryPointInfo.InputType, classAndMethod.Item1);
             writer.WriteLine();
@@ -854,36 +942,57 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             foreach (var line in entryPointInfo.Description.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                 writer.WriteLine($"/// {line}");
             writer.WriteLine("/// </summary>");
+            
+            if(entryPointInfo.ObsoleteAttribute != null)
+                writer.WriteLine($"[Obsolete(\"{entryPointInfo.ObsoleteAttribute.Message}\")]");
+            
             writer.WriteLine($"public sealed partial class {classAndMethod.Item2}{classBase}");
             writer.WriteLine("{");
             writer.Indent();
             writer.WriteLine();
+            if (entryPointInfo.InputKinds != null && entryPointInfo.InputKinds.Any(t => typeof(ILearningPipelineLoader).IsAssignableFrom(t)))
+                GenerateLoaderAddInputMethod(writer, classAndMethod.Item2);
+
             GenerateColumnAddMethods(writer, entryPointInfo.InputType, catalog, classAndMethod.Item2, out Type transformType);
             writer.WriteLine();
             GenerateInputFields(writer, entryPointInfo.InputType, catalog, _typesSymbolTable);
             writer.WriteLine();
 
             GenerateOutput(writer, entryPointInfo, out HashSet<string> outputVariableNames);
-            GenerateApplyFunction(writer, entryPointInfo, transformType, classBase, outputVariableNames);
+            GenerateApplyFunction(writer, entryPointInfo, transformType, outputVariableNames, entryPointInfo.InputKinds);
             writer.Outdent();
             writer.WriteLine("}");
         }
 
         private static void GenerateApplyFunction(IndentingTextWriter writer, ModuleCatalog.EntryPointInfo entryPointInfo,
-            Type type, string classBase, HashSet<string> outputVariableNames)
+            Type type, HashSet<string> outputVariableNames, Type[] inputKinds)
         {
-            bool isTransform = false;
-            bool isCalibrator = false;
-            if (classBase.Contains("ITransformInput"))
-                isTransform = true;
-            else if (!classBase.Contains("ITrainerInput"))
+            if (inputKinds == null)
                 return;
 
-            if (classBase.Contains("ICalibratorInput"))
+            bool isTransform = false;
+            bool isCalibrator = false;
+
+            if (inputKinds.Any(t => typeof(ITransformInput).IsAssignableFrom(t)))
+                isTransform = true;
+            else if (!inputKinds.Any(t => typeof(ITrainerInput).IsAssignableFrom(t)))
+                return;
+
+            if (inputKinds.Any(t => typeof(ICalibratorInput).IsAssignableFrom(t)))
                 isCalibrator = true;
 
+            if (isTransform)
+                writer.WriteLine("public Var<IDataView> GetInputData() => Data;");
+            else
+                writer.WriteLine("public Var<IDataView> GetInputData() => TrainingData;");
+
+            writer.WriteLine("");
             string className = GeneratorUtils.GetClassAndMethodNames(entryPointInfo).Item2;
             writer.WriteLine("public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)");
+            writer.WriteLine("{");
+
+            writer.Indent();
+            writer.WriteLine("if (previousStep != null)");
             writer.WriteLine("{");
             writer.Indent();
             writer.WriteLine("if (!(previousStep is ILearningPipelineDataStep dataStep))");
@@ -900,6 +1009,9 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
             else
                 writer.WriteLine("TrainingData = dataStep.Data;");
+
+            writer.Outdent();
+            writer.WriteLine("}");
 
             string pipelineStep = $"{className}PipelineStep";
             writer.WriteLine($"Output output = experiment.Add(this);");

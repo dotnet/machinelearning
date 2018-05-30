@@ -93,7 +93,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     new HashJoinTransform.Arguments
                     {
                         Column = new[] { new HashJoinTransform.Column { Name = stratCol, Source = stratificationColumn } },
-                        Join = true
+                        Join = true,
+                        HashBits = 30
                     }, data);
             }
 

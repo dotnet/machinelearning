@@ -191,7 +191,7 @@ namespace Microsoft.ML.Runtime.Data
             private void GetDRotationTerms(int colSize)
             {
                 for (int i = 0; i < colSize; ++i)
-                    RotationTerms[i] = (_rand.NextFloat() - (Float)0.5) * (Float)Math.PI;
+                    RotationTerms[i] = (_rand.NextSingle() - (Float)0.5) * (Float)Math.PI;
             }
 
             private void InitializeFourierCoefficients(int rowSize, int colSize)

@@ -58,13 +58,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Sweeper", "src
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E20AF96D-3F66-4065-8A89-BEE479D74536}"
 	ProjectSection(SolutionItems) = preProject
-		Documentation\README.md = Documentation\README.md
+		docs\README.md = docs\README.md
+		docs\release-notes\0.1\release-0.1.md = docs\release-notes\0.1\release-0.1.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project-docs", "project-docs", "{52794B40-AB8A-41AF-9EF7-799C80D6E0BC}"
 	ProjectSection(SolutionItems) = preProject
-		Documentation\project-docs\contributing.md = Documentation\project-docs\contributing.md
-		Documentation\project-docs\developer-guide.md = Documentation\project-docs\developer-guide.md
+		docs\project-docs\contributing.md = docs\project-docs\contributing.md
+		docs\project-docs\developer-guide.md = docs\project-docs\developer-guide.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{76F579E4-B9D2-4A0C-A511-EEFA4B2B829F}"
@@ -76,13 +77,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "building", "building", "{DB751004-5D49-4B88-B78F-29CA9887087D}"
 	ProjectSection(SolutionItems) = preProject
-		Documentation\building\unix-instructions.md = Documentation\building\unix-instructions.md
-		Documentation\building\windows-instructions.md = Documentation\building\windows-instructions.md
+		docs\building\unix-instructions.md = docs\building\unix-instructions.md
+		docs\building\windows-instructions.md = docs\building\windows-instructions.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "specs", "specs", "{2DEFC784-F2B5-44EA-ABBB-0DCF3E689DAC}"
 	ProjectSection(SolutionItems) = preProject
-		Documentation\specs\mvp.md = Documentation\specs\mvp.md
+		docs\specs\mvp.md = docs\specs\mvp.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pkg", "pkg", "{D3D38B03-B557-484D-8348-8BADEE4DF592}"
