@@ -224,7 +224,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IPredictorModel[] OutputModel;
         }
 
-        [TlcModule.EntryPoint(Desc = "Create and array variable", Name = "Data.PredictorModelArrayConverter")]
+        [TlcModule.EntryPoint(Desc = "Create an array variable of IPredictorModel", Name = "Data.PredictorModelArrayConverter")]
         public static ArrayIPredictorModelOutput MakeArray(IHostEnvironment env, ArrayIPredictorModelInput input)
         {
             var result = new ArrayIPredictorModelOutput
@@ -233,6 +233,29 @@ namespace Microsoft.ML.Runtime.EntryPoints
             };
             return result;
         }
+
+        public sealed class ArrayITransformModelInput
+        {
+            [Argument(ArgumentType.Required, HelpText = "The models", SortOrder = 1)]
+            public ITransformModel[] TransformModel;
+        }
+
+        public sealed class ArrayITransformModelOutput
+        {
+            [TlcModule.Output(Desc = "The model array", SortOrder = 1)]
+            public ITransformModel[] OutputModel;
+        }
+
+        [TlcModule.EntryPoint(Desc = "Create an array variable of ITransformModel", Name = "Data.TransformModelArrayConverter")]
+        public static ArrayITransformModelOutput MakeArray(IHostEnvironment env, ArrayITransformModelInput input)
+        {
+            var result = new ArrayITransformModelOutput
+            {
+                OutputModel = input.TransformModel
+            };
+            return result;
+        }
+
 
         public sealed class ArrayIDataViewInput
         {
@@ -246,7 +269,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView[] OutputData;
         }
 
-        [TlcModule.EntryPoint(Desc = "Create and array variable", Name = "Data.IDataViewArrayConverter")]
+        [TlcModule.EntryPoint(Desc = "Create an array variable of IDataView", Name = "Data.IDataViewArrayConverter")]
         public static ArrayIDataViewOutput MakeArray(IHostEnvironment env, ArrayIDataViewInput input)
         {
             var result = new ArrayIDataViewOutput

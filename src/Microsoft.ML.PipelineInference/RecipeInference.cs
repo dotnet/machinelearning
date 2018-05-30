@@ -507,7 +507,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             var type = typeof(CommonInputs.ITrainerInput);
             var trainerTypes = typeof(Experiment).Assembly.GetTypes()
                 .Where(p => type.IsAssignableFrom(p) &&
-                    p.Name.Equals(MacroUtils.GetTrainerName(trainerKind)));
+                    MacroUtils.IsTrainerOfKind(p, trainerKind));
 
             foreach (var tt in trainerTypes)
             {
@@ -516,7 +516,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 var sl = new SuggestedRecipe.SuggestedLearner
                 {
                     PipelineNode = new TrainerPipelineNode(epInputObj, sweepParams),
-                    LearnerName = tt.Namespace
+                    LearnerName = tt.Name
                 };
 
                 if (sl.PipelineNode != null && availableLearnersList.FirstOrDefault(l=> l.Name.Equals(sl.PipelineNode.GetEpName())) != null)

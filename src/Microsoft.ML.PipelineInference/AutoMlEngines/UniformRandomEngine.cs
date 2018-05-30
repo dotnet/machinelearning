@@ -123,11 +123,11 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         break;
                     case TlcModule.SweepableFloatParamAttribute floParam:
                         var fvg = AutoMlUtils.ToIValueGenerator(floParam);
-                        floParam.RawValue = ((IParameterValue<float>)fvg.CreateFromNormalized(Host.Rand.NextFloat())).Value;
+                        floParam.RawValue = ((IParameterValue<float>)fvg.CreateFromNormalized(Host.Rand.NextSingle())).Value;
                         break;
                     case TlcModule.SweepableLongParamAttribute lonParam:
                         var lvg = AutoMlUtils.ToIValueGenerator(lonParam);
-                        lonParam.RawValue = ((IParameterValue<long>)lvg.CreateFromNormalized(Host.Rand.NextFloat())).Value;
+                        lonParam.RawValue = ((IParameterValue<long>)lvg.CreateFromNormalized(Host.Rand.NextSingle())).Value;
                         break;
                     default:
                         throw new NotSupportedException($"Unknown type of sweepable parameter attribute: {param.GetType()}");

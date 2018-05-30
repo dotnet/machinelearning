@@ -42,16 +42,6 @@ namespace Microsoft.ML.Runtime
 
     public static class RandomUtils
     {
-        public static Single NextFloat(this IRandom rand)
-        {
-            return rand.NextSingle();
-        }
-
-        public static Single NextFloat(this Random rand)
-        {
-            return rand.NextDouble().ToFloat();
-        }
-
         public static TauswortheHybrid Create()
         {
             // Seed from a system random.
@@ -151,7 +141,7 @@ namespace Microsoft.ML.Runtime
         {
             // Note that, according to the documentation for System.Random,
             // this won't ever achieve int.MaxValue, but oh well.
-            return _rnd.Next(int.MinValue, int.MinValue);
+            return _rnd.Next(int.MinValue, int.MaxValue);
         }
     }
 

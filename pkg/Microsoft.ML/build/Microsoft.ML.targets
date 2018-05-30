@@ -1,0 +1,22 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <EnableMLUnsupportedPlatformTargetCheck Condition="'$(EnableMLUnsupportedPlatformTargetCheck)' == ''">true</EnableMLUnsupportedPlatformTargetCheck>
+  </PropertyGroup>
+
+  <Target Name="_CheckForUnsupportedPlatformTarget"
+          Condition="'$(EnableMLUnsupportedPlatformTargetCheck)' == 'true'"
+          AfterTargets="_CheckForInvalidConfigurationAndPlatform">
+
+    <!--
+    Special case .NET Core portable applications.  When building a portable .NET Core app,
+    the PlatformTarget is empty, and you don't know until runtime (i.e. which dotnet.exe)
+    what processor architecture will be used.
+    -->
+    <Error Condition="'$(PlatformTarget)' != 'x64' AND
+                      ('$(OutputType)' == 'Exe' OR '$(OutputType)'=='WinExe') AND
+                      !('$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(PlatformTarget)' == '')"
+           Text="Microsoft.ML currently supports 'x64' processor architectures. Please ensure your application is targeting 'x64'." />
+  </Target>
+  
+</Project>

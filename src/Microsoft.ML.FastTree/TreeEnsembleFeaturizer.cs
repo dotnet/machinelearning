@@ -703,10 +703,12 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = host.Start("Create Tree Ensemble Scorer"))
             {
                 var scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments() { Suffix = args.Suffix };
-                var predictor = args.PredictorModel?.Predictor;
+                var predictor = args.PredictorModel.Predictor;
                 ch.Trace("Prepare data");
                 RoleMappedData data = null;
-                args.PredictorModel?.PrepareData(env, input, out data, out var predictor2);
+                args.PredictorModel.PrepareData(env, input, out data, out var predictor2);
+                ch.AssertValue(data);
+                ch.Assert(predictor == predictor2);
 
                 // Make sure that the given predictor has the correct number of input features.
                 if (predictor is CalibratedPredictorBase)
@@ -715,16 +717,16 @@ namespace Microsoft.ML.Runtime.Data
                 // be non-null.
                 var vm = predictor as IValueMapper;
                 ch.CheckUserArg(vm != null, nameof(args.PredictorModel), "Predictor does not have compatible type");
-                if (data != null && vm?.InputType.VectorSize != data.Schema.Feature.Type.VectorSize)
+                if (data != null && vm.InputType.VectorSize != data.Schema.Feature.Type.VectorSize)
                 {
                     throw ch.ExceptUserArg(nameof(args.PredictorModel),
                         "Predictor expects {0} features, but data has {1} features",
-                        vm?.InputType.VectorSize, data.Schema.Feature.Type.VectorSize);
+                        vm.InputType.VectorSize, data.Schema.Feature.Type.VectorSize);
                 }
 
                 var bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
-                var bound = bindable.Bind(env, data?.Schema);
-                xf = new GenericScorer(env, scorerArgs, input, bound, data?.Schema);
+                var bound = bindable.Bind(env, data.Schema);
+                xf = new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
                 ch.Done();
             }
             return xf;
