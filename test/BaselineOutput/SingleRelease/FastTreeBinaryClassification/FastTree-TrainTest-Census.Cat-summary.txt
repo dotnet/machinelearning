@@ -1,0 +1,17 @@
+
+Per-feature gain summary for the boosted tree ensemble:
+	Cat.marital-status.Married-civ-spouse	1
+	Num.capital-gain	0.709672534767204
+	Num.education-num	0.709133593878877
+	Num.age	0.380240398705399
+	Num.capital-loss	0.354596462689518
+	Num.hours-per-week	0.301481399204752
+	Cat.occupation.Exec-managerial	0.207062863847128
+	Cat.occupation.Prof-specialty	0.167862007507273
+	Cat.relationship.Wife	0.0974867426392215
+	Cat.occupation.Other-service	0.096791509486728
+	Cat.occupation.Farming-fishing	0.0829845451213885
+	Cat.workclass.Self-emp-not-inc	0.0788146487722663
+	Cat.sex.Female	0.0626710315081439
+	Cat.sex.Male	0.0545558527537554
+	Cat.workclass.Federal-gov	0.0533841807201977

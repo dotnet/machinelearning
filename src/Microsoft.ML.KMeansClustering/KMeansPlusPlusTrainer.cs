@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.KMeans
             KMeansParallel = 2
         }
 
-        public class Arguments : LearnerInputBase
+        public class Arguments : UnsupervisedLearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of clusters", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "5,10,20,40")]
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Runtime.KMeans
             long missingFeatureCount;
             long totalTrainingInstances;
 
-            var cursorFactory = new FeatureFloatVectorCursor.Factory(data, CursOpt.Features | CursOpt.Id);
+            var cursorFactory = new FeatureFloatVectorCursor.Factory(data, CursOpt.Features | CursOpt.Id | CursOpt.Weight);
             // REVIEW: It would be nice to extract these out into subcomponents in the future. We should
             // revisit and even consider breaking these all into individual KMeans-flavored trainers, they
             // all produce a valid set of output centroids with various trade-offs in runtime (with perhaps 
@@ -234,7 +234,8 @@ namespace Microsoft.ML.Runtime.KMeans
             EntryPointUtils.CheckInputArgs(host, input);
 
             return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.ClusteringOutput>(host, input,
-                () => new KMeansPlusPlusTrainer(host, input));
+                () => new KMeansPlusPlusTrainer(host, input),
+                getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
     }
 

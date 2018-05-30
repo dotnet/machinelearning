@@ -29,8 +29,8 @@
       <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs)</BuildArgs>
     </PropertyGroup>
 
-    <Message Text="$(MSBuildProjectDirectory)\build.sh $(BuildArgs)" Importance="High"/>
-    <Exec Command="$(MSBuildProjectDirectory)\build.sh $(BuildArgs)" />
+    <Message Text="$(MSBuildProjectDirectory)/build.sh $(BuildArgs)" Importance="High"/>
+    <Exec Command="&quot;$(MSBuildProjectDirectory)/build.sh&quot; $(BuildArgs)" />
 
   </Target>
 

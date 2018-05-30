@@ -1918,7 +1918,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointKMeans()
         {
-            TestEntryPointRoutine("Train-Tiny-28x28.txt", "Trainers.KMeansPlusPlusClusterer");
+            TestEntryPointRoutine("Train-Tiny-28x28.txt", "Trainers.KMeansPlusPlusClusterer", "col=Weight:R4:0 col=Features:R4:1-784", ",'InitAlgorithm':'KMeansPlusPlus'");
         }
 
         [Fact]
@@ -2709,7 +2709,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointTreeLeafFeaturizer()
         {
-            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
 #pragma warning disable 0618
             var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
