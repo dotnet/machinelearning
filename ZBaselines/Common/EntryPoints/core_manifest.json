@@ -63,7 +63,7 @@
     },
     {
       "Name": "Data.IDataViewArrayConverter",
-      "Desc": "Create and array variable",
+      "Desc": "Create an array variable of IDataView",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -92,7 +92,7 @@
     },
     {
       "Name": "Data.PredictorModelArrayConverter",
-      "Desc": "Create and array variable",
+      "Desc": "Create an array variable of IPredictorModel",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -467,6 +467,35 @@
       ],
       "InputKind": [
         "ILearningPipelineLoader"
+      ]
+    },
+    {
+      "Name": "Data.TransformModelArrayConverter",
+      "Desc": "Create an array variable of ITransformModel",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "TransformModel",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "TransformModel"
+          },
+          "Desc": "The models",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputModel",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "TransformModel"
+          },
+          "Desc": "The model array"
+        }
       ]
     },
     {
@@ -1239,6 +1268,116 @@
       ]
     },
     {
+      "Name": "Models.CrossValidationResultsCombiner",
+      "Desc": "Combine the metric data views returned from cross validation.",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "OverallMetrics",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "Overall metrics datasets",
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "PerInstanceMetrics",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "Per instance metrics datasets",
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "ConfusionMatrix",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "Confusion matrix datasets",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Warnings",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "Warning datasets",
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "The label column name",
+          "Aliases": [
+            "Label"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "Kind",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "SignatureBinaryClassifierTrainer",
+              "SignatureMultiClassClassifierTrainer",
+              "SignatureRankerTrainer",
+              "SignatureRegressorTrainer",
+              "SignatureMultiOutputRegressorTrainer",
+              "SignatureAnomalyDetectorTrainer",
+              "SignatureClusteringTrainer"
+            ]
+          },
+          "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
+          "Required": true,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "SignatureBinaryClassifierTrainer"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "Warnings",
+          "Type": "DataView",
+          "Desc": "Warning dataset"
+        },
+        {
+          "Name": "OverallMetrics",
+          "Type": "DataView",
+          "Desc": "Overall metrics dataset"
+        },
+        {
+          "Name": "PerInstanceMetrics",
+          "Type": "DataView",
+          "Desc": "Per instance metrics dataset"
+        },
+        {
+          "Name": "ConfusionMatrix",
+          "Type": "DataView",
+          "Desc": "Confusion matrix dataset"
+        }
+      ]
+    },
+    {
       "Name": "Models.CrossValidator",
       "Desc": "Cross validation for general learning",
       "FriendlyName": null,
@@ -1298,12 +1437,22 @@
             "Kind": "Struct",
             "Fields": [
               {
-                "Name": "Model",
+                "Name": "PredictorModel",
                 "Type": "PredictorModel",
-                "Desc": "The model",
-                "Required": true,
+                "Desc": "The predictor model",
+                "Required": false,
                 "SortOrder": 1.0,
-                "IsNullable": false
+                "IsNullable": false,
+                "Default": null
+              },
+              {
+                "Name": "TransformModel",
+                "Type": "TransformModel",
+                "Desc": "The transform model",
+                "Required": false,
+                "SortOrder": 2.0,
+                "IsNullable": false,
+                "Default": null
               }
             ]
           },
@@ -1320,7 +1469,7 @@
             "strat"
           ],
           "Required": false,
-          "SortOrder": 7.0,
+          "SortOrder": 6.0,
           "IsNullable": false,
           "Default": null
         },
@@ -1332,7 +1481,7 @@
             "k"
           ],
           "Required": false,
-          "SortOrder": 8.0,
+          "SortOrder": 7.0,
           "IsNullable": false,
           "Default": 2
         },
@@ -1352,7 +1501,7 @@
           },
           "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
           "Required": true,
-          "SortOrder": 9.0,
+          "SortOrder": 8.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
         }
@@ -1367,35 +1516,31 @@
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
         {
-          "Name": "Warnings",
+          "Name": "TransformModel",
           "Type": {
             "Kind": "Array",
-            "ItemType": "DataView"
+            "ItemType": "TransformModel"
           },
+          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
+        },
+        {
+          "Name": "Warnings",
+          "Type": "DataView",
           "Desc": "Warning dataset"
         },
         {
           "Name": "OverallMetrics",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
+          "Type": "DataView",
           "Desc": "Overall metrics dataset"
         },
         {
           "Name": "PerInstanceMetrics",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
+          "Type": "DataView",
           "Desc": "Per instance metrics dataset"
         },
         {
           "Name": "ConfusionMatrix",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
+          "Type": "DataView",
           "Desc": "Confusion matrix dataset"
         }
       ]
@@ -2901,12 +3046,22 @@
             "Kind": "Struct",
             "Fields": [
               {
-                "Name": "Model",
+                "Name": "PredictorModel",
                 "Type": "PredictorModel",
-                "Desc": "The model",
-                "Required": true,
+                "Desc": "The predictor model",
+                "Required": false,
                 "SortOrder": 1.0,
-                "IsNullable": false
+                "IsNullable": false,
+                "Default": null
+              },
+              {
+                "Name": "TransformModel",
+                "Type": "TransformModel",
+                "Desc": "Transform model",
+                "Required": false,
+                "SortOrder": 2.0,
+                "IsNullable": false,
+                "Default": null
               }
             ]
           },
@@ -2958,6 +3113,11 @@
         {
           "Name": "PredictorModel",
           "Type": "PredictorModel",
+          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
+        },
+        {
+          "Name": "TransformModel",
+          "Type": "TransformModel",
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
         {

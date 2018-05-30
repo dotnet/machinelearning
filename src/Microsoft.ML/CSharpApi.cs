@@ -82,6 +82,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Data.TextLoader", input, output));
             }
 
+            public Microsoft.ML.Data.TransformModelArrayConverter.Output Add(Microsoft.ML.Data.TransformModelArrayConverter input)
+            {
+                var output = new Microsoft.ML.Data.TransformModelArrayConverter.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Data.TransformModelArrayConverter input, Microsoft.ML.Data.TransformModelArrayConverter.Output output)
+            {
+                _jsonNodes.Add(Serialize("Data.TransformModelArrayConverter", input, output));
+            }
+
             public Microsoft.ML.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Models.AnomalyDetectionEvaluator input)
             {
                 var output = new Microsoft.ML.Models.AnomalyDetectionEvaluator.Output();
@@ -140,6 +152,18 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Models.ClusterEvaluator input, Microsoft.ML.Models.ClusterEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.ClusterEvaluator", input, output));
+            }
+
+            public Microsoft.ML.Models.CrossValidationResultsCombiner.Output Add(Microsoft.ML.Models.CrossValidationResultsCombiner input)
+            {
+                var output = new Microsoft.ML.Models.CrossValidationResultsCombiner.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.CrossValidationResultsCombiner input, Microsoft.ML.Models.CrossValidationResultsCombiner.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.CrossValidationResultsCombiner", input, output));
             }
 
             public Microsoft.ML.Models.CrossValidator.Output Add(Microsoft.ML.Models.CrossValidator input)
@@ -1384,7 +1408,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Create and array variable
+        /// Create an array variable of IDataView
         /// </summary>
         public sealed partial class IDataViewArrayConverter
         {
@@ -1411,7 +1435,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Create and array variable
+        /// Create an array variable of IPredictorModel
         /// </summary>
         public sealed partial class PredictorModelArrayConverter
         {
@@ -1587,6 +1611,8 @@ namespace Microsoft.ML
                 experiment.SetInput(InputFile, inputFile);
             }
             
+            public Var<IDataView> GetInputData() => null;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
                 Contracts.Assert(previousStep == null);
@@ -1623,6 +1649,33 @@ namespace Microsoft.ML
                 /// The resulting data view
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Data
+    {
+
+        /// <summary>
+        /// Create an array variable of ITransformModel
+        /// </summary>
+        public sealed partial class TransformModelArrayConverter
+        {
+
+
+            /// <summary>
+            /// The models
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// The model array
+                /// </summary>
+                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel> OutputModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
         }
@@ -2080,6 +2133,73 @@ namespace Microsoft.ML
         }
 
 
+        /// <summary>
+        /// Combine the metric data views returned from cross validation.
+        /// </summary>
+        public sealed partial class CrossValidationResultsCombiner
+        {
+
+
+            /// <summary>
+            /// Overall metrics datasets
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Per instance metrics datasets
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Confusion matrix datasets
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Warning datasets
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// The label column name
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// Specifies the trainer kind, which determines the evaluator to be used.
+            /// </summary>
+            public Models.MacroUtilsTrainerKinds Kind { get; set; } = Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// Warning dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Overall metrics dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Per instance metrics dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Confusion matrix dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
+
         public sealed partial class CrossValidationMacroSubGraphInput
         {
             /// <summary>
@@ -2092,9 +2212,14 @@ namespace Microsoft.ML
         public sealed partial class CrossValidationMacroSubGraphOutput
         {
             /// <summary>
-            /// The model
+            /// The predictor model
             /// </summary>
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            /// <summary>
+            /// The transform model
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
         }
 
@@ -2154,24 +2279,29 @@ namespace Microsoft.ML
                 public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
                 /// <summary>
+                /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
+                /// </summary>
+                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+                /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             }
         }
@@ -2248,14 +2378,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(DatasetTransformer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(DatasetTransformer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new DatasetTransformerPipelineStep(output);
             }
@@ -2318,14 +2453,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(FixedPlattCalibrator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FixedPlattCalibrator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new FixedPlattCalibratorPipelineStep(output);
             }
@@ -2450,14 +2590,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(NaiveCalibrator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(NaiveCalibrator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new NaiveCalibratorPipelineStep(output);
             }
@@ -2563,14 +2708,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(OneVersusAll)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(OneVersusAll)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new OneVersusAllPipelineStep(output);
             }
@@ -2646,14 +2796,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(OvaModelCombiner)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(OvaModelCombiner)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new OvaModelCombinerPipelineStep(output);
             }
@@ -2705,14 +2860,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(PAVCalibrator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(PAVCalibrator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new PAVCalibratorPipelineStep(output);
             }
@@ -2822,14 +2982,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(PlattCalibrator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(PlattCalibrator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new PlattCalibratorPipelineStep(output);
             }
@@ -3228,9 +3393,14 @@ namespace Microsoft.ML
         public sealed partial class TrainTestMacroSubGraphOutput
         {
             /// <summary>
-            /// The model
+            /// The predictor model
             /// </summary>
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            /// <summary>
+            /// Transform model
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
         }
 
@@ -3293,6 +3463,11 @@ namespace Microsoft.ML
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+                /// <summary>
+                /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
                 /// <summary>
                 /// Warning dataset
@@ -3475,14 +3650,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(AveragedPerceptronBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(AveragedPerceptronBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new AveragedPerceptronBinaryClassifierPipelineStep(output);
             }
@@ -3770,14 +3950,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(FastForestBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FastForestBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new FastForestBinaryClassifierPipelineStep(output);
             }
@@ -4047,14 +4232,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(FastForestRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FastForestRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new FastForestRegressorPipelineStep(output);
             }
@@ -4440,14 +4630,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(FastTreeBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FastTreeBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new FastTreeBinaryClassifierPipelineStep(output);
             }
@@ -4861,14 +5056,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(FastTreeRanker)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FastTreeRanker)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new FastTreeRankerPipelineStep(output);
             }
@@ -5242,14 +5442,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(FastTreeRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FastTreeRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new FastTreeRegressorPipelineStep(output);
             }
@@ -5628,14 +5833,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(FastTreeTweedieRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FastTreeTweedieRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new FastTreeTweedieRegressorPipelineStep(output);
             }
@@ -5780,14 +5990,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(GeneralizedAdditiveModelBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(GeneralizedAdditiveModelBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new GeneralizedAdditiveModelBinaryClassifierPipelineStep(output);
             }
@@ -5916,14 +6131,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(GeneralizedAdditiveModelRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(GeneralizedAdditiveModelRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new GeneralizedAdditiveModelRegressorPipelineStep(output);
             }
@@ -6017,14 +6237,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(KMeansPlusPlusClusterer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(KMeansPlusPlusClusterer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new KMeansPlusPlusClustererPipelineStep(output);
             }
@@ -6147,14 +6372,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(LinearSvmBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LinearSvmBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new LinearSvmBinaryClassifierPipelineStep(output);
             }
@@ -6292,14 +6522,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(LogisticRegressionBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LogisticRegressionBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new LogisticRegressionBinaryClassifierPipelineStep(output);
             }
@@ -6437,14 +6672,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(LogisticRegressionClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LogisticRegressionClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new LogisticRegressionClassifierPipelineStep(output);
             }
@@ -6505,14 +6745,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(NaiveBayesClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(NaiveBayesClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new NaiveBayesClassifierPipelineStep(output);
             }
@@ -6655,14 +6900,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(OnlineGradientDescentRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(OnlineGradientDescentRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new OnlineGradientDescentRegressorPipelineStep(output);
             }
@@ -6739,14 +6989,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(OrdinaryLeastSquaresRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(OrdinaryLeastSquaresRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new OrdinaryLeastSquaresRegressorPipelineStep(output);
             }
@@ -6830,14 +7085,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(PcaAnomalyDetector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(PcaAnomalyDetector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new PcaAnomalyDetectorPipelineStep(output);
             }
@@ -6970,14 +7230,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(PoissonRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(PoissonRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new PoissonRegressorPipelineStep(output);
             }
@@ -7106,14 +7371,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(StochasticDualCoordinateAscentBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(StochasticDualCoordinateAscentBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new StochasticDualCoordinateAscentBinaryClassifierPipelineStep(output);
             }
@@ -7226,14 +7496,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(StochasticDualCoordinateAscentClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(StochasticDualCoordinateAscentClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new StochasticDualCoordinateAscentClassifierPipelineStep(output);
             }
@@ -7346,14 +7621,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(StochasticDualCoordinateAscentRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(StochasticDualCoordinateAscentRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new StochasticDualCoordinateAscentRegressorPipelineStep(output);
             }
@@ -7480,14 +7760,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(StochasticGradientDescentBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(StochasticGradientDescentBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                TrainingData = dataStep.Data;
+                    TrainingData = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new StochasticGradientDescentBinaryClassifierPipelineStep(output);
             }
@@ -7553,14 +7838,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(ApproximateBootstrapSampler)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ApproximateBootstrapSampler)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new ApproximateBootstrapSamplerPipelineStep(output);
             }
@@ -7613,14 +7903,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(BinaryPredictionScoreColumnsRenamer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(BinaryPredictionScoreColumnsRenamer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new BinaryPredictionScoreColumnsRenamerPipelineStep(output);
             }
@@ -7757,14 +8052,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(BinNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(BinNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new BinNormalizerPipelineStep(output);
             }
@@ -7929,14 +8229,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(CategoricalHashOneHotVectorizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(CategoricalHashOneHotVectorizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new CategoricalHashOneHotVectorizerPipelineStep(output);
             }
@@ -8099,14 +8404,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(CategoricalOneHotVectorizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(CategoricalOneHotVectorizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new CategoricalOneHotVectorizerPipelineStep(output);
             }
@@ -8218,14 +8528,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(CharacterTokenizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(CharacterTokenizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new CharacterTokenizerPipelineStep(output);
             }
@@ -8308,14 +8623,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(ColumnConcatenator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ColumnConcatenator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new ColumnConcatenatorPipelineStep(output);
             }
@@ -8422,14 +8742,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(ColumnCopier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ColumnCopier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new ColumnCopierPipelineStep(output);
             }
@@ -8482,14 +8807,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(ColumnDropper)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ColumnDropper)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new ColumnDropperPipelineStep(output);
             }
@@ -8542,14 +8872,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(ColumnSelector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ColumnSelector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new ColumnSelectorPipelineStep(output);
             }
@@ -8704,14 +9039,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(ColumnTypeConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ColumnTypeConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new ColumnTypeConverterPipelineStep(output);
             }
@@ -8769,14 +9109,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(CombinerByContiguousGroupId)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(CombinerByContiguousGroupId)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new CombinerByContiguousGroupIdPipelineStep(output);
             }
@@ -8903,14 +9248,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(ConditionalNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ConditionalNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new ConditionalNormalizerPipelineStep(output);
             }
@@ -8964,14 +9314,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(DataCache)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(DataCache)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new DataCachePipelineStep(output);
             }
@@ -9196,14 +9551,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(Dictionarizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(Dictionarizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new DictionarizerPipelineStep(output);
             }
@@ -9256,14 +9616,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(FeatureCombiner)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FeatureCombiner)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new FeatureCombinerPipelineStep(output);
             }
@@ -9321,14 +9686,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(FeatureSelectorByCount)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FeatureSelectorByCount)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new FeatureSelectorByCountPipelineStep(output);
             }
@@ -9396,14 +9766,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(FeatureSelectorByMutualInformation)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FeatureSelectorByMutualInformation)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new FeatureSelectorByMutualInformationPipelineStep(output);
             }
@@ -9540,14 +9915,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(GlobalContrastNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(GlobalContrastNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new GlobalContrastNormalizerPipelineStep(output);
             }
@@ -9699,14 +10079,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(HashConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(HashConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new HashConverterPipelineStep(output);
             }
@@ -9813,14 +10198,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(KeyToTextConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(KeyToTextConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new KeyToTextConverterPipelineStep(output);
             }
@@ -9878,14 +10268,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(LabelColumnKeyBooleanConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LabelColumnKeyBooleanConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new LabelColumnKeyBooleanConverterPipelineStep(output);
             }
@@ -10002,14 +10397,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(LabelIndicator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LabelIndicator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new LabelIndicatorPipelineStep(output);
             }
@@ -10062,14 +10462,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(LabelToFloatConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LabelToFloatConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new LabelToFloatConverterPipelineStep(output);
             }
@@ -10191,14 +10596,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(LogMeanVarianceNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LogMeanVarianceNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new LogMeanVarianceNormalizerPipelineStep(output);
             }
@@ -10333,14 +10743,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(LpNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LpNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new LpNormalizerPipelineStep(output);
             }
@@ -10480,14 +10895,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(MeanVarianceNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(MeanVarianceNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new MeanVarianceNormalizerPipelineStep(output);
             }
@@ -10590,14 +11010,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(MinMaxNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(MinMaxNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new MinMaxNormalizerPipelineStep(output);
             }
@@ -10746,14 +11171,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(MissingValueHandler)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(MissingValueHandler)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new MissingValueHandlerPipelineStep(output);
             }
@@ -10860,14 +11290,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(MissingValueIndicator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(MissingValueIndicator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new MissingValueIndicatorPipelineStep(output);
             }
@@ -10974,14 +11409,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(MissingValuesDropper)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(MissingValuesDropper)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new MissingValuesDropperPipelineStep(output);
             }
@@ -11039,14 +11479,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(MissingValuesRowDropper)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(MissingValuesRowDropper)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new MissingValuesRowDropperPipelineStep(output);
             }
@@ -11193,14 +11638,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(MissingValueSubstitutor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(MissingValueSubstitutor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new MissingValueSubstitutorPipelineStep(output);
             }
@@ -11391,14 +11841,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(NGramTranslator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(NGramTranslator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new NGramTranslatorPipelineStep(output);
             }
@@ -11446,14 +11901,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(NoOperation)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(NoOperation)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new NoOperationPipelineStep(output);
             }
@@ -11506,14 +11966,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(OptionalColumnCreator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(OptionalColumnCreator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new OptionalColumnCreatorPipelineStep(output);
             }
@@ -11670,14 +12135,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(PcaCalculator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(PcaCalculator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new PcaCalculatorPipelineStep(output);
             }
@@ -11730,14 +12200,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(PredictedLabelColumnOriginalValueConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(PredictedLabelColumnOriginalValueConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new PredictedLabelColumnOriginalValueConverterPipelineStep(output);
             }
@@ -11819,14 +12294,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(RandomNumberGenerator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(RandomNumberGenerator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new RandomNumberGeneratorPipelineStep(output);
             }
@@ -11904,14 +12384,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(RowRangeFilter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(RowRangeFilter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new RowRangeFilterPipelineStep(output);
             }
@@ -11969,14 +12454,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(RowSkipAndTakeFilter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(RowSkipAndTakeFilter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new RowSkipAndTakeFilterPipelineStep(output);
             }
@@ -12029,14 +12519,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(RowSkipFilter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(RowSkipFilter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new RowSkipFilterPipelineStep(output);
             }
@@ -12089,14 +12584,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(RowTakeFilter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(RowTakeFilter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new RowTakeFilterPipelineStep(output);
             }
@@ -12149,14 +12649,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(ScoreColumnSelector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ScoreColumnSelector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new ScoreColumnSelectorPipelineStep(output);
             }
@@ -12253,14 +12758,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(Segregator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(Segregator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new SegregatorPipelineStep(output);
             }
@@ -12318,14 +12828,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(SentimentAnalyzer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(SentimentAnalyzer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new SentimentAnalyzerPipelineStep(output);
             }
@@ -12443,14 +12958,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(SupervisedBinNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(SupervisedBinNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new SupervisedBinNormalizerPipelineStep(output);
             }
@@ -12634,14 +13154,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(TextFeaturizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(TextFeaturizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new TextFeaturizerPipelineStep(output);
             }
@@ -12754,14 +13279,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(TextToKeyConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(TextToKeyConverter)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new TextToKeyConverterPipelineStep(output);
             }
@@ -12866,14 +13396,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(TreeLeafFeaturizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(TreeLeafFeaturizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new TreeLeafFeaturizerPipelineStep(output);
             }
@@ -13022,14 +13557,19 @@ namespace Microsoft.ML
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             }
+            public Var<IDataView> GetInputData() => Data;
+            
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                if (!(previousStep is ILearningPipelineDataStep dataStep))
+                if (previousStep != null)
                 {
-                    throw new InvalidOperationException($"{ nameof(WordTokenizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                }
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(WordTokenizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
 
-                Data = dataStep.Data;
+                    Data = dataStep.Data;
+                }
                 Output output = experiment.Add(this);
                 return new WordTokenizerPipelineStep(output);
             }
