@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("SDCA")]
         public void LinearClassifierTest()
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         public void BinaryClassifierTesterThresholdingTest()
         {
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeBinaryClassificationCategoricalSplitTest()
@@ -1049,7 +1049,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for PAV calibrators
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Calibrator")]
         public void PAVCalibratorPerceptronTest()
         {
