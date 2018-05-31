@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Sweeper
     /// Expose existing <see cref="ISweeper"/>s as <see cref="IAsyncSweeper"/> with no synchronization over the past runs.
     /// Nelder-Mead requires synchronization so is not compatible with SimpleAsyncSweeperBase.
     /// </summary>
-    public class SimpleAsyncSweeper : IAsyncSweeper, IDisposable
+    public partial class SimpleAsyncSweeper : IAsyncSweeper, IDisposable
     {
         private readonly List<IRunResult> _results;
         private readonly object _lock;
@@ -83,6 +83,16 @@ namespace Microsoft.ML.Runtime.Sweeper
             _baseSweeper = baseSweeper;
             _lock = new object();
             _results = new List<IRunResult>();
+        }
+
+        public SimpleAsyncSweeper(IHostEnvironment env, UniformRandomSweeper.ArgumentsBase args)
+       : this(new UniformRandomSweeper(env, args))
+        {
+        }
+
+        public SimpleAsyncSweeper(IHostEnvironment env, RandomGridSweeper.Arguments args)
+            : this(new UniformRandomSweeper(env, args))
+        {
         }
 
         public void Update(int id, IRunResult result)
