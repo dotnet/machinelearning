@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
@@ -34,9 +33,9 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             var pipeline = new LearningPipeline()
             {
-                new Transforms.CategoricalOneHotVectorizer("String1", "String2"),
-                new Transforms.ColumnConcatenator(outputColumn: "Features", "String1", "String2", "Number1", "Number2"),
-                new Trainers.StochasticDualCoordinateAscentRegressor()
+                new CategoricalOneHotVectorizer("String1", "String2"),
+                new ColumnConcatenator(outputColumn: "Features", "String1", "String2", "Number1", "Number2"),
+                new StochasticDualCoordinateAscentRegressor()
             };
             Assert.NotNull(pipeline);
             Assert.Equal(3, pipeline.Count);
@@ -66,7 +65,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void TransformOnlyPipeline()
         {
             const string _dataPath = @"..\..\Data\breast-cancer.txt";
-            var pipeline = new LearningPipeline();
+            var pipeline = new LearningPipeline(seed: 1, conc: 1);
             pipeline.Add(new ML.Data.TextLoader(_dataPath).CreateFrom<InputData>(useHeader: false));
             pipeline.Add(new CategoricalHashOneHotVectorizer("F1") { HashBits = 10, Seed = 314489979, OutputKind = CategoricalTransformOutputKind.Bag });
             var model = pipeline.Train<InputData, TransformedData>();
@@ -103,9 +102,11 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void NoTransformPipeline()
         {
             var data = new Data[1];
-            data[0] = new Data();
-            data[0].Features = new float[] { 0.0f, 1.0f };
-            data[0].Label = 0f;
+            data[0] = new Data
+            {
+                Features = new float[] { 0.0f, 1.0f },
+                Label = 0f
+            };
             var pipeline = new LearningPipeline();
             pipeline.Add(CollectionDataSource.Create(data));
             pipeline.Add(new FastForestBinaryClassifier());
@@ -126,9 +127,11 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void BooleanLabelPipeline()
         {
             var data = new BooleanLabelData[1];
-            data[0] = new BooleanLabelData();
-            data[0].Features = new float[] { 0.0f, 1.0f };
-            data[0].Label = false;
+            data[0] = new BooleanLabelData
+            {
+                Features = new float[] { 0.0f, 1.0f },
+                Label = false
+            };
             var pipeline = new LearningPipeline();
             pipeline.Add(CollectionDataSource.Create(data));
             pipeline.Add(new FastForestBinaryClassifier());
@@ -149,12 +152,16 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void NullableBooleanLabelPipeline()
         {
             var data = new NullableBooleanLabelData[2];
-            data[0] = new NullableBooleanLabelData();
-            data[0].Features = new float[] { 0.0f, 1.0f };
-            data[0].Label = null;
-            data[1] = new NullableBooleanLabelData();
-            data[1].Features = new float[] { 1.0f, 0.0f };
-            data[1].Label = false;
+            data[0] = new NullableBooleanLabelData
+            {
+                Features = new float[] { 0.0f, 1.0f },
+                Label = null
+            };
+            data[1] = new NullableBooleanLabelData
+            {
+                Features = new float[] { 1.0f, 0.0f },
+                Label = false
+            };
             var pipeline = new LearningPipeline();
             pipeline.Add(CollectionDataSource.Create(data));
             pipeline.Add(new FastForestBinaryClassifier());
