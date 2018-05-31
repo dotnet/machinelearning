@@ -1349,8 +1349,6 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public Double ParamA { get; }
         public Double ParamB { get; }
         public bool CanSavePfa => true;
-        public bool CanSaveLotusVNext => true;
-
         public bool CanSaveOnnx => true;
 
         public PlattCalibrator(IHostEnvironment env, Double paramA, Double paramB)

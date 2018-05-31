@@ -43,9 +43,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string LoadName = "RankingEvaluator";
 
-        private const string Ndcg = "NDCG";
-        private const string Dcg = "DCG";
-        private const string MaxDcg = "MaxDCG";
+        public const string Ndcg = "NDCG";
+        public const string Dcg = "DCG";
+        public const string MaxDcg = "MaxDCG";
 
         /// <summary>
         /// The ranking evaluator outputs a data view by this name, which contains metrics aggregated per group. 
