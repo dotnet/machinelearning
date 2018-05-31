@@ -2800,11 +2800,6 @@ namespace Microsoft.ML
             public string DataFile { get; set; }
 
             /// <summary>
-            /// Model file to save
-            /// </summary>
-            public string OutputModelFile { get; set; }
-
-            /// <summary>
             /// Model file to load
             /// </summary>
             public string InputModelFile { get; set; }

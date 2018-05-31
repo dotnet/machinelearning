@@ -2178,18 +2178,6 @@
           "Default": null
         },
         {
-          "Name": "OutputModelFile",
-          "Type": "String",
-          "Desc": "Model file to save",
-          "Aliases": [
-            "out"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
           "Name": "Verbose",
           "Type": "Bool",
           "Desc": "Verbose?",
