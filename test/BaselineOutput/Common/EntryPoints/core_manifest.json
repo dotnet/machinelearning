@@ -2062,6 +2062,18 @@
       "ShortName": null,
       "Inputs": [
         {
+          "Name": "DataFile",
+          "Type": "String",
+          "Desc": "The data file",
+          "Aliases": [
+            "data"
+          ],
+          "Required": false,
+          "SortOrder": 0.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
           "Name": "Onnx",
           "Type": "String",
           "Desc": "The path to write the output ONNX to.",
@@ -2105,7 +2117,7 @@
           },
           "Desc": "Array of input column names to drop",
           "Required": false,
-          "SortOrder": 5.0,
+          "SortOrder": 6.0,
           "IsNullable": false,
           "Default": null
         },
@@ -2117,7 +2129,7 @@
           },
           "Desc": "Array of output column names to drop",
           "Required": false,
-          "SortOrder": 6.0,
+          "SortOrder": 8.0,
           "IsNullable": false,
           "Default": null
         },
@@ -2126,8 +2138,80 @@
           "Type": "TransformModel",
           "Desc": "Model that needs to be converted to ONNX format.",
           "Required": true,
-          "SortOrder": 7.0,
+          "SortOrder": 10.0,
           "IsNullable": false
+        },
+        {
+          "Name": "InputModelFile",
+          "Type": "String",
+          "Desc": "Model file to load",
+          "Aliases": [
+            "in"
+          ],
+          "Required": false,
+          "SortOrder": 90.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "LoadTransforms",
+          "Type": "Bool",
+          "Desc": "Load transforms from model file?",
+          "Aliases": [
+            "loadTrans"
+          ],
+          "Required": false,
+          "SortOrder": 91.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "RandomSeed",
+          "Type": "Int",
+          "Desc": "Random seed",
+          "Aliases": [
+            "seed"
+          ],
+          "Required": false,
+          "SortOrder": 101.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "OutputModelFile",
+          "Type": "String",
+          "Desc": "Model file to save",
+          "Aliases": [
+            "out"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Verbose",
+          "Type": "Bool",
+          "Desc": "Verbose?",
+          "Aliases": [
+            "v"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "Parallel",
+          "Type": "Int",
+          "Desc": "Desired degree of parallelism in the data pipeline",
+          "Aliases": [
+            "n"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
         }
       ],
       "Outputs": []

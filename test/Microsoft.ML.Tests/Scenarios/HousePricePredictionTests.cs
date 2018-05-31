@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Scenarios
 {
-    public partial class ScenariosTests : BaseTestBaseline
+    public partial class ScenariosTests : BaseTestClass
     {
         /*
          A real-estate firm Contoso wants to add a house price prediction to their ASP.NET/Xamarin application.

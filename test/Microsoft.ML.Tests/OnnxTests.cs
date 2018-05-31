@@ -2,14 +2,20 @@
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
 using System.IO;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Microsoft.ML.Scenarios
+namespace Microsoft.ML.Tests
 {
-    public partial class ScenariosTests
+    public class OnnxTests : BaseTestBaseline
     {
+        public OnnxTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         public class BreastCancerData
         {
             public float Label;
@@ -25,7 +31,7 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
-        public void SaveModelToOnnxTest()
+        public void BinaryClassificationSaveModelToOnnxTest()
         {
             string dataPath = GetDataPath(@"breast-cancer.txt");
             var pipeline = new LearningPipeline();
@@ -58,7 +64,7 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
 
             var model = pipeline.Train<BreastCancerData, BreastCancerPrediction>();
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Scenario", "BinaryClassification", "BreastCancer");
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
             var modelOutpath = GetOutputPath(subDir, "SaveModelToOnnxTest.zip");
             DeleteOutputPath(modelOutpath);
 

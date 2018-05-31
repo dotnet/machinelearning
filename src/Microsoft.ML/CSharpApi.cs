@@ -2794,6 +2794,41 @@ namespace Microsoft.ML
             /// </summary>
             public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
+            /// <summary>
+            /// The data file
+            /// </summary>
+            public string DataFile { get; set; }
+
+            /// <summary>
+            /// Model file to save
+            /// </summary>
+            public string OutputModelFile { get; set; }
+
+            /// <summary>
+            /// Model file to load
+            /// </summary>
+            public string InputModelFile { get; set; }
+
+            /// <summary>
+            /// Load transforms from model file?
+            /// </summary>
+            public bool? LoadTransforms { get; set; }
+
+            /// <summary>
+            /// Random seed
+            /// </summary>
+            public int? RandomSeed { get; set; }
+
+            /// <summary>
+            /// Verbose?
+            /// </summary>
+            public bool? Verbose { get; set; }
+
+            /// <summary>
+            /// Desired degree of parallelism in the data pipeline
+            /// </summary>
+            public int? Parallel { get; set; }
+
 
             public sealed class Output
             {
@@ -6237,7 +6272,7 @@ namespace Microsoft.ML
         /// <summary>
         /// K-means is a popular clustering algorithm. With K-means, the data is clustered into a specified number of clusters in order to minimize the within-cluster sum of squares. K-means++ improves upon K-means by using a better method for choosing the initial cluster centers.
         /// </summary>
-        public sealed partial class KMeansPlusPlusClusterer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class KMeansPlusPlusClusterer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
 
@@ -6271,6 +6306,11 @@ namespace Microsoft.ML
             /// Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.
             /// </summary>
             public int? NumThreads { get; set; }
+
+            /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// The data to be used for training
@@ -7088,7 +7128,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Train an PCA Anomaly model.
         /// </summary>
-        public sealed partial class PcaAnomalyDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class PcaAnomalyDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
 

@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Array of output column names to drop", Name = nameof(OutputsToDrop), SortOrder = 8)]
             public string[] OutputsToDropArray;
 
-            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Whether we should attempt to load the predictor and attach the scorer to the pipeline if one is present.", ShortName = "pred", SortOrder = 9)]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Whether we should attempt to load the predictor and attach the scorer to the pipeline if one is present.", ShortName = "pred", SortOrder = 9)]
             public bool? LoadPredictor;
 
             [Argument(ArgumentType.Required, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Model that needs to be converted to ONNX format.", SortOrder = 10)]
@@ -265,48 +265,10 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         {
         }
 
-        //REVIEW: Ideally there is no need to define this input class and just reuse the Argument class from SaveONNX command
-        //but the code generator cannot parse certain complicated data types in the base class that Argument class extends.
-        //We should fix the code generator and use the Argument class.
-        public sealed class Input
-        {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The path to write the output ONNX to.", SortOrder = 1)]
-            public string Onnx;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The path to write the output JSON to.", SortOrder = 2)]
-            public string Json;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The 'name' property in the output ONNX. By default this will be the ONNX extension-less name.", NullName = "<Auto>", SortOrder = 3)]
-            public string Name;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The 'domain' property in the output ONNX.", NullName = "<Auto>", SortOrder = 4)]
-            public string Domain;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Array of input column names to drop", SortOrder = 5)]
-            public string[] InputsToDrop;
-      
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Array of output column names to drop", SortOrder = 6)]
-            public string[] OutputsToDrop;
-
-            [Argument(ArgumentType.Required, HelpText = "Model that needs to be converted to ONNX format.", SortOrder = 7)]
-            public ITransformModel Model;
-        }
-
-
         [TlcModule.EntryPoint(Name = "Models.OnnxConverter", Desc = "Converts the model to ONNX format.", UserName = "ONNX Converter.")]
-        public static Output Apply(IHostEnvironment env, Input input)
+        public static Output Apply(IHostEnvironment env, Arguments input)
         {
-            Arguments args = new Arguments();
-            args.Onnx = input.Onnx;
-            args.Json = input.Json;
-            args.Name = input.Name;
-            args.Domain = input.Domain;
-            args.InputsToDropArray = input.InputsToDrop;
-            args.OutputsToDropArray = input.OutputsToDrop;
-            args.Model = input.Model;
-
-            var cmd = new SaveOnnxCommand(env, args);
-            cmd.Run();
+            new SaveOnnxCommand(env, input).Run();
             return new Output();
         }
 

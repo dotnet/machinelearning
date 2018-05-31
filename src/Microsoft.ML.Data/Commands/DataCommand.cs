@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         public abstract class ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader", SortOrder = 1, NullName = "<Auto>")]
+            [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "The data loader", ShortName = "loader", SortOrder = 1, NullName = "<Auto>")]
             public SubComponent<IDataLoader, SignatureDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The data file", ShortName = "data", SortOrder = 0)]
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Verbose?", ShortName = "v", Hide = true)]
             public bool? Verbose;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The web server to publish the RESTful API", Hide = true)]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "The web server to publish the RESTful API", Hide = true)]
             public ServerChannel.IServerFactory Server;
 
             // This is actually an advisory value. The implementations themselves are responsible for
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.Data
                 HelpText = "Desired degree of parallelism in the data pipeline", ShortName = "n")]
             public int? Parallel;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Transform", ShortName = "xf")]
+            [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Transform", ShortName = "xf")]
             public KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] Transform;
         }
 
