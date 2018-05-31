@@ -77,7 +77,7 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
             public float[] Points;
         }
 
-        [Fact]
+        [Fact(Skip = "Fails intermittently, see https://github.com/dotnet/machinelearning/issues/249")]
         public void PredictClusters()
         {
             int n = 1000;
