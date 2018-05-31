@@ -81,8 +81,8 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
         public void PredictClusters()
         {
             int n = 1000;
-            int k = 5;
-            var rand = new Random();
+            int k = 4;
+            var rand = new Random(1);
             var clusters = new ClusteringData[k];
             var data = new ClusteringData[n];
             for (int i = 0; i < k; i++)
@@ -94,7 +94,7 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
             for (int i = 0; i < n; i++)
             {
                 var index = rand.Next(0, k);
-                var shift = (rand.NextDouble() - 0.5) / k;
+                var shift = (rand.NextDouble() - 0.5) / 10;
                 data[i] = new ClusteringData
                 {
                     Points = new float[2]

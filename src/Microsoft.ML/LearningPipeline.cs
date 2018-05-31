@@ -53,11 +53,20 @@ namespace Microsoft.ML
         private readonly int _conc;
 
         /// <summary>
+        /// Construct an empty <see cref="LearningPipeline"/> object.
+        /// </summary>
+        public LearningPipeline()
+        {
+            _seed = null;
+            _conc = 0;
+        }
+
+        /// <summary>
         ///  Construct an empty <see cref="LearningPipeline"/> object.
         /// </summary>
         /// <param name="seed">Specify seed for random generator</param>
         /// <param name="conc">Specify concurrency factor (default value - autoselection)</param>
-        public LearningPipeline(int? seed=null, int conc=0)
+        internal LearningPipeline(int? seed=null, int conc=0)
         {
             _seed = seed;
             _conc = conc;
