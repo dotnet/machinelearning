@@ -16,8 +16,8 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath(@"external/20newsgroups.txt");
 
-            var pipeline = new LearningPipeline();
-            pipeline.Add(new TextLoader(dataPath).CreateFrom<NewsData>(useHeader: false, allowQuotedStrings:true,  supportSparse:false));
+            var pipeline = new LearningPipeline(seed: 1, conc: 1);
+            pipeline.Add(new TextLoader(dataPath).CreateFrom<NewsData>(useHeader: false, allowQuotedStrings: true, supportSparse: false));
             pipeline.Add(new ColumnConcatenator("AllText", "Subject", "Content"));
             pipeline.Add(new TextFeaturizer("Features", "AllText")
             {
@@ -104,7 +104,7 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
                     }
                 };
             }
-            var pipeline = new LearningPipeline();
+            var pipeline = new LearningPipeline(seed: 1, conc: 1);
             pipeline.Add(CollectionDataSource.Create(data));
             pipeline.Add(new KMeansPlusPlusClusterer() { K = k });
             var model = pipeline.Train<ClusteringData, ClusteringPrediction>();
