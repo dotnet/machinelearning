@@ -86,7 +86,7 @@ namespace Microsoft.ML.Runtime.Sweeper
         }
 
         public SimpleAsyncSweeper(IHostEnvironment env, UniformRandomSweeper.ArgumentsBase args)
-       : this(new UniformRandomSweeper(env, args))
+            : this(new UniformRandomSweeper(env, args))
         {
         }
 
