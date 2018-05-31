@@ -16,6 +16,10 @@ using Microsoft.ML.Runtime.Sweeper;
 
 [assembly: LoadableClass(typeof(DeterministicSweeperAsync), typeof(DeterministicSweeperAsync.Arguments), typeof(SignatureAsyncSweeper),
     "Asynchronous and Deterministic Sweeper", "DeterministicSweeper", "Deterministic")]
+[assembly: LoadableClass(typeof(SimpleAsyncSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureAsyncSweeper),
+    "Asynchronous Random Grid Sweeper", "RandomGridSweeper", "RandomGrid")]
+[assembly: LoadableClass(typeof(DeterministicSweeperAsync), typeof(DeterministicSweeperAsync.Arguments), typeof(SignatureAsyncSweeper),
+    "Asynchronous and Deterministic Sweeper", "DeterministicSweeper", "Deterministic")]
 
 namespace Microsoft.ML.Runtime.Sweeper
 {
