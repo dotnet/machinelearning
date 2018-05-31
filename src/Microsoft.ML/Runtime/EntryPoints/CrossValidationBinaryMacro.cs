@@ -256,7 +256,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return result;
         }
 
-
         public sealed class ArrayIDataViewInput
         {
             [Argument(ArgumentType.Required, HelpText = "The data sets", SortOrder = 1)]

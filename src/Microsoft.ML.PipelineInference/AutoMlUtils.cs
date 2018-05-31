@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 {
     public static class AutoMlUtils
     {
-        public static double ExtractValueFromIDV(IHostEnvironment env, IDataView result, string columnName)
+        public static double ExtractValueFromIdv(IHostEnvironment env, IDataView result, string columnName)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(result, nameof(result));
@@ -40,8 +40,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
         {
-            double testingMetricValue = ExtractValueFromIDV(env, result, metricColumnName);
-            double trainingMetricValue = trainResult != null ? ExtractValueFromIDV(env, trainResult, metricColumnName)  : double.MinValue;
+            double testingMetricValue = ExtractValueFromIdv(env, result, metricColumnName);
+            double trainingMetricValue = trainResult != null ? ExtractValueFromIdv(env, trainResult, metricColumnName)  : double.MinValue;
             return new AutoInference.RunSummary(testingMetricValue, 0, 0, trainingMetricValue);
         }
 

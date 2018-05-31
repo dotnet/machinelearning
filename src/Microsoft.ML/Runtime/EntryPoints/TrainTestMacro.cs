@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
             public Var<IPredictorModel> PredictorModel;
-            
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Transform model", SortOrder = 2)]
             public Var<ITransformModel> TransformModel;
         }
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (!subGraphRunContext.TryGetVariable(varName, out dataVariable))
                 throw env.Except($"Invalid variable name '{varName}'.");
 
-            string outputVarName = input.Outputs.PredictorModel == null ? node.GetOutputVariableName(nameof(Output.TransformModel)) : 
+            string outputVarName = input.Outputs.PredictorModel == null ? node.GetOutputVariableName(nameof(Output.TransformModel)) :
                 node.GetOutputVariableName(nameof(Output.PredictorModel));
 
             foreach (var subGraphNode in subGraphNodes)
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var evalInputOutputTraining = MacroUtils.GetEvaluatorInputOutput(input.Kind, settings);
                 var evalNodeTraining = evalInputOutputTraining.Item1;
                 var evalOutputTraining = evalInputOutputTraining.Item2;
-                evalNodeTraining.Data.VarName = input.Outputs.PredictorModel == null ? datasetTransformNodeTrainingOutput.OutputData.VarName : 
+                evalNodeTraining.Data.VarName = input.Outputs.PredictorModel == null ? datasetTransformNodeTrainingOutput.OutputData.VarName :
                     scoreNodeTrainingOutput.ScoredData.VarName;
 
                 if (node.OutputMap.TryGetValue(nameof(Output.TrainingWarnings), out outVariableName))
