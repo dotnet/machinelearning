@@ -471,8 +471,6 @@ namespace Microsoft.ML.Runtime.Data
 
         public virtual bool CanSaveOnnx => false;
 
-        public virtual bool CanSaveLotusVNext => false;
-
         protected OneToOneTransformBase(IHostEnvironment env, string name, OneToOneColumn[] column,
             IDataView input, Func<ColumnType, string> testType)
             : base(env, name, input)

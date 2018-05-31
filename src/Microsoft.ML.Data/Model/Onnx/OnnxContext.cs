@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Data;
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
     /// <summary>
-    /// A context for defining a lotusIR output.
+    /// A context for defining a ONNX output.
     /// </summary>
     public sealed class OnnxContext
     {
