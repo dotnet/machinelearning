@@ -7,6 +7,5 @@ namespace Microsoft.ML.Runtime.Tools.Console
     public static class Console
     {
         public static int Main(string[] args) => Maml.Main(args);
-
     }
 }
