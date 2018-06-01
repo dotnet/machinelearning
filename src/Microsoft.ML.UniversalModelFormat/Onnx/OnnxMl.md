@@ -11,4 +11,4 @@
    protoc.exe -I="E:\protobuf-csharp-port\lib" --csharp_out="E:\protobuf-csharp-port\lib" "E:\protobuf-csharp-port\lib\onnx-ml.proto3"
    ```
 
-## The proto3 file is current as of 02/07/2018.
+## The proto3 file is current as of 06/01/2018 and generated from onnx-ml.proto3 based on https://github.com/onnx/onnx/pull/1052

@@ -57,7 +57,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             public bool? LoadPredictor;
 
             [Argument(ArgumentType.Required, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Model that needs to be converted to ONNX format.", SortOrder = 10)]
-
             public ITransformModel Model;
         }
 
