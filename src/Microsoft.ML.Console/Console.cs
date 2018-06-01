@@ -6,16 +6,7 @@ namespace Microsoft.ML.Runtime.Tools.Console
 {
     public static class Console
     {
-        public static int Main(string[] args)
-        {
-            string all = string.Join(" ", args);
-            return Maml.MainAll(all);
-        }
+        public static int Main(string[] args) => Maml.Main(args);
 
-        public static unsafe int MainRaw(char* psz)
-        {
-            string args = new string(psz);
-            return Maml.MainAll(args);
-        }
     }
 }
