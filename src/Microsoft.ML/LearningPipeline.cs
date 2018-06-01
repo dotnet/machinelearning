@@ -66,7 +66,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="seed">Specify seed for random generator</param>
         /// <param name="conc">Specify concurrency factor (default value - autoselection)</param>
-        internal LearningPipeline(int? seed=null, int conc=0)
+        internal LearningPipeline(int? seed = null, int conc = 0)
         {
             _seed = seed;
             _conc = conc;
@@ -110,6 +110,16 @@ namespace Microsoft.ML
         public void Add(ILearningPipelineItem item) => Items.Add(item);
 
         /// <summary>
+        /// Add a data loader, transform or trainer into the pipeline.
+        /// </summary>
+        /// <param name="item">Any ML component (data loader, transform or trainer) defined as <see cref="ILearningPipelineItem"/>.</param>
+        /// <returns>Pipeline with added item</returns>
+        public LearningPipeline Append(ILearningPipelineItem item)
+        {
+            Items.Add(item);
+            return this;
+        }
+        /// <summary>
         /// Remove all the loaders/transforms/trainers from the pipeline.
         /// </summary>
         public void Clear() => Items.Clear();
@@ -152,7 +162,7 @@ namespace Microsoft.ML
             where TInput : class
             where TOutput : class, new()
         {
-            using (var environment = new TlcEnvironment(seed:_seed, conc:_conc))
+            using (var environment = new TlcEnvironment(seed: _seed, conc: _conc))
             {
                 Experiment experiment = environment.CreateExperiment();
                 ILearningPipelineStep step = null;
