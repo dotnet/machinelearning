@@ -93,7 +93,6 @@ namespace Microsoft.ML.Runtime.Data
 
         public override bool CanSavePfa => true;
         public override bool CanSaveOnnx => true;
-        public override bool CanSaveLotusVNext => true;
         public const string LoaderSignature = "NormalizeTransform";
         internal const string LoaderSignatureOld = "NormalizeFunction";
         private static VersionInfo GetVersionInfo()
