@@ -2799,31 +2799,6 @@ namespace Microsoft.ML
             /// </summary>
             public string DataFile { get; set; }
 
-            /// <summary>
-            /// Model file to load
-            /// </summary>
-            public string InputModelFile { get; set; }
-
-            /// <summary>
-            /// Load transforms from model file?
-            /// </summary>
-            public bool? LoadTransforms { get; set; }
-
-            /// <summary>
-            /// Random seed
-            /// </summary>
-            public int? RandomSeed { get; set; }
-
-            /// <summary>
-            /// Verbose?
-            /// </summary>
-            public bool? Verbose { get; set; }
-
-            /// <summary>
-            /// Desired degree of parallelism in the data pipeline
-            /// </summary>
-            public int? Parallel { get; set; }
-
 
             public sealed class Output
             {
