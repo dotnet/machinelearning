@@ -98,8 +98,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             public static SupportedMetric ByName(string name)
             {
                 var fields =
-                    typeof(SupportedMetric).GetFields(BindingFlags.Static | BindingFlags.Public)
-                    .Where(s => s.MemberType == MemberTypes.Field);
+                    typeof(SupportedMetric).GetFields(BindingFlags.Static | BindingFlags.Public);
 
                 foreach (var field in fields)
                 {
