@@ -473,9 +473,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
         }
 
-        public EntryPointNode(IHostEnvironment env, ModuleCatalog moduleCatalog, RunContext context,
+        private EntryPointNode(IHostEnvironment env, IChannel ch, ModuleCatalog moduleCatalog, RunContext context,
             string id, string entryPointName, JObject inputs, JObject outputs, bool checkpoint = false,
-            string stageId = "", float cost = float.NaN)
+            string stageId = "", float cost = float.NaN, string label = null, string group = null, string weight = null)
         {
             Contracts.AssertValue(env);
             env.AssertNonEmpty(id);
@@ -497,6 +497,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             _inputMap = new Dictionary<ParameterBinding, VariableBinding>();
             _inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
             _inputBuilder = new InputBuilder(_host, _entryPoint.InputType, moduleCatalog);
+
             // REVIEW: This logic should move out of Node eventually and be delegated to
             // a class that can nest to handle Components with variables.
             if (inputs != null)
@@ -507,6 +508,43 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var missing = _inputBuilder.GetMissingValues().Except(_inputBindingMap.Keys).ToArray();
             if (missing.Length > 0)
                 throw _host.Except($"The following required inputs were not provided: {String.Join(", ", missing)}");
+
+            var inputInstance = _inputBuilder.GetInstance();
+            var warning = "Different {0} column specified in trainer and in macro: '{1}', '{2}'." +
+                        " Using column '{2}'. To column use '{1}' instead, please specify this name in" +
+                        "the trainer node arguments.";
+            if (!string.IsNullOrEmpty(label) && inputInstance is LearnerInputBaseWithLabel)
+            {
+                var labelInputInstance = inputInstance as LearnerInputBaseWithLabel;
+                if (label != labelInputInstance.LabelColumn)
+                    ch.Warning(warning, "label", label, labelInputInstance.LabelColumn);
+                else
+                    labelInputInstance.LabelColumn = label;
+            }
+            if (!string.IsNullOrEmpty(group) && inputInstance is LearnerInputBaseWithGroupId)
+            {
+                var groupInputInstance = inputInstance as LearnerInputBaseWithGroupId;
+                if (group != groupInputInstance.GroupIdColumn)
+                    ch.Warning(warning, "group Id", group, groupInputInstance.GroupIdColumn);
+                else
+                    groupInputInstance.GroupIdColumn = group;
+            }
+            if (!string.IsNullOrEmpty(weight) && inputInstance is LearnerInputBaseWithWeight)
+            {
+                var weightInputInstance = inputInstance as LearnerInputBaseWithWeight;
+                if (weight != weightInputInstance.WeightColumn)
+                    ch.Warning(warning, "weight", weight, weightInputInstance.WeightColumn);
+                else
+                    weightInputInstance.WeightColumn = weight;
+            }
+            if (!string.IsNullOrEmpty(weight) && inputInstance is UnsupervisedLearnerInputBaseWithWeight)
+            {
+                var weightInputInstance = inputInstance as UnsupervisedLearnerInputBaseWithWeight;
+                if (weight != weightInputInstance.WeightColumn)
+                    ch.Warning(warning, "weight", weight, weightInputInstance.WeightColumn);
+                else
+                    weightInputInstance.WeightColumn = weight;
+            }
 
             // Validate outputs.
             _outputHelper = new OutputHelper(_host, _entryPoint.OutputType);
@@ -550,10 +588,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var inputBuilder = new InputBuilder(env, info.InputType, catalog);
             var outputHelper = new OutputHelper(env, info.OutputType);
 
-            var entryPointNode = new EntryPointNode(env, catalog, context, context.GenerateId(entryPointName), entryPointName,
-                inputBuilder.GetJsonObject(arguments, inputBindingMap, inputMap),
-                outputHelper.GetJsonObject(outputMap), checkpoint, stageId, cost);
-            return entryPointNode;
+            using (var ch = env.Start("Create EntryPointNode"))
+            {
+                var entryPointNode = new EntryPointNode(env, ch, catalog, context, context.GenerateId(entryPointName), entryPointName,
+                    inputBuilder.GetJsonObject(arguments, inputBindingMap, inputMap),
+                    outputHelper.GetJsonObject(outputMap), checkpoint, stageId, cost);
+
+                ch.Done();
+                return entryPointNode;
+            }
         }
 
         public static EntryPointNode Create(
@@ -850,7 +893,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             throw _host.ExceptNotImpl("Unsupported ParameterBinding");
         }
 
-        public static List<EntryPointNode> ValidateNodes(IHostEnvironment env, RunContext context, JArray nodes, ModuleCatalog moduleCatalog)
+        public static List<EntryPointNode> ValidateNodes(IHostEnvironment env, RunContext context, JArray nodes,
+            ModuleCatalog moduleCatalog, string label = null, string group = null, string weight = null)
         {
             Contracts.AssertValue(env);
             env.AssertValue(context);
@@ -890,8 +934,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         ch.Warning("Node '{0}' has unexpected fields that are ignored: {1}", id, string.Join(", ", unexpectedFields.Select(x => x.Name)));
                     }
 
-                    result.Add(new EntryPointNode(env, moduleCatalog, context, id, name, inputs, outputs, checkpoint, stageId, cost));
+                    result.Add(new EntryPointNode(env, ch, moduleCatalog, context, id, name, inputs, outputs, checkpoint, stageId, cost, label, group, weight));
                 }
+
+                ch.Done();
             }
             return result;
         }

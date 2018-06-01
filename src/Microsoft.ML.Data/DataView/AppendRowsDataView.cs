@@ -190,6 +190,8 @@ namespace Microsoft.ML.Runtime.Data
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col), "The column must be active against the defined predicate.");
+                if (!(Getters[col] is ValueGetter<TValue>))
+                    throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}'");
                 return Getters[col] as ValueGetter<TValue>;
             }
 
