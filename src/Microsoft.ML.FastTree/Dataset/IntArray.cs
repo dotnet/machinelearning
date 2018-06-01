@@ -23,6 +23,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     /// </summary>
     public abstract class IntArray : IEnumerable<int>
     {
+#if USE_DLL_SUFFIX
+        public const string NativeDll = "FastTreeNative.dll";
+#else
+        public const string NativeDll = "FastTreeNative";
+#endif
+
         // The level of compression to use with features.
         // 0x1 - Use 10 bit.
         // 0x2 -
