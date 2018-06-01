@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.CheckValue(result, nameof(result));
             env.CheckValue(input, nameof(input));
 
-            var root = new EmptyDataView(env, input.Schema);
+            var root = input is IDataLoader ? input : new EmptyDataView(env, input.Schema);
             _schemaRoot = root.Schema;
             _chain = ApplyTransformUtils.ApplyAllTransformsToData(env, result, root, input);
         }
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 using (var rep = RepositoryWriter.CreateNew(stream, ch))
                 {
                     ch.Trace("Saving root schema and transformations");
-                    TrainUtils.SaveDataPipe(env, rep, _chain, blankLoader: true);
+                    TrainUtils.SaveDataPipe(env, rep, _chain, blankLoader: false);
                     rep.Commit();
                 }
                 ch.Done();
@@ -184,6 +184,20 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 CompositeRowToRowMapper.IsCompositeRowToRowMapper(_chain)
                     ? new CompositeRowToRowMapper(ectx, _chain, _schemaRoot)
                     : null;
+        }
+
+        public IDataView GetLoader()
+        {
+            // Find the root schema.
+            for (IDataView view = _chain; ;)
+            {
+                var xf = view as IDataTransform;
+                if (xf == null)
+                {
+                    return view;
+                }
+                view = xf.Source;
+            }
         }
 
         private sealed class CompositeRowToRowMapper : IRowToRowMapper
