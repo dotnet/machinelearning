@@ -71,7 +71,7 @@ namespace Microsoft.ML.Models
         public double L2 { get; private set; }
 
         /// <summary>
-        /// Gets the root mean square loss (or RMC) which is the square root of the L2 loss.
+        /// Gets the root mean square loss (or RMS) which is the square root of the L2 loss.
         /// </summary>
         public double Rms { get; private set; }
 
