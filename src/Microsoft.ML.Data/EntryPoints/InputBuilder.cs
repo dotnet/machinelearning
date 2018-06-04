@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
@@ -836,35 +836,35 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         public static class PipelineSweeperSupportedMetrics
         {
             public new static string ToString() => "SupportedMetric";
-            public const string Auc = "AUC";
-            public const string AccuracyMicro = "AccuracyMicro";
-            public const string AccuracyMacro = "AccuracyMacro";
-            public const string F1 = "F1";
-            public const string AuPrc = "AUPRC";
-            public const string TopKAccuracy = "TopKAccuracy";
-            public const string L1 = "L1";
-            public const string L2 = "L2";
-            public const string Rms = "RMS";
-            public const string LossFn = "LossFn";
-            public const string RSquared = "RSquared";
-            public const string LogLoss = "LogLoss";
-            public const string LogLossReduction = "LogLossReduction";
-            public const string Ndcg = "NDCG";
-            public const string Dcg = "DCG";
-            public const string PositivePrecision = "PositivePrecision";
-            public const string PositiveRecall = "PositiveRecall";
-            public const string NegativePrecision = "NegativePrecision";
-            public const string NegativeRecall = "NegativeRecall";
-            public const string DrAtK = "DrAtK";
-            public const string DrAtPFpr = "DrAtPFpr";
-            public const string DrAtNumPos = "DrAtNumPos";
-            public const string NumAnomalies = "NumAnomalies";
-            public const string ThreshAtK = "ThreshAtK";
-            public const string ThreshAtP = "ThreshAtP";
-            public const string ThreshAtNumPos = "ThreshAtNumPos";
-            public const string Nmi = "NMI";
-            public const string AvgMinScore = "AvgMinScore";
-            public const string Dbi = "DBI";
+            public const string Auc = BinaryClassifierEvaluator.Auc;
+            public const string AccuracyMicro = Data.MultiClassClassifierEvaluator.AccuracyMicro;
+            public const string AccuracyMacro = MultiClassClassifierEvaluator.AccuracyMacro;
+            public const string F1 = BinaryClassifierEvaluator.F1;
+            public const string AuPrc = BinaryClassifierEvaluator.AuPrc;
+            public const string TopKAccuracy = MultiClassClassifierEvaluator.TopKAccuracy;
+            public const string L1 = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.L1;
+            public const string L2 = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.L2;
+            public const string Rms = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.Rms;
+            public const string LossFn = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.Loss;
+            public const string RSquared = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.RSquared;
+            public const string LogLoss = BinaryClassifierEvaluator.LogLoss;
+            public const string LogLossReduction = BinaryClassifierEvaluator.LogLossReduction;
+            public const string Ndcg = RankerEvaluator.Ndcg;
+            public const string Dcg = RankerEvaluator.Dcg;
+            public const string PositivePrecision = BinaryClassifierEvaluator.PosPrecName;
+            public const string PositiveRecall = BinaryClassifierEvaluator.PosRecallName;
+            public const string NegativePrecision = BinaryClassifierEvaluator.NegPrecName;
+            public const string NegativeRecall = BinaryClassifierEvaluator.NegRecallName;
+            public const string DrAtK = AnomalyDetectionEvaluator.OverallMetrics.DrAtK;
+            public const string DrAtPFpr = AnomalyDetectionEvaluator.OverallMetrics.DrAtPFpr;
+            public const string DrAtNumPos = AnomalyDetectionEvaluator.OverallMetrics.DrAtNumPos;
+            public const string NumAnomalies = AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies;
+            public const string ThreshAtK = AnomalyDetectionEvaluator.OverallMetrics.ThreshAtK;
+            public const string ThreshAtP = AnomalyDetectionEvaluator.OverallMetrics.ThreshAtP;
+            public const string ThreshAtNumPos = AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos;
+            public const string Nmi = ClusteringEvaluator.Nmi;
+            public const string AvgMinScore = ClusteringEvaluator.AvgMinScore;
+            public const string Dbi = ClusteringEvaluator.Dbi;
         }
     }
 }
