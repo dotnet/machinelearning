@@ -98,12 +98,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
             public static SupportedMetric ByName(string name)
             {
                 var fields =
-                    typeof(SupportedMetric).GetMembers(BindingFlags.Static | BindingFlags.Public)
-                    .Where(s => s.MemberType == MemberTypes.Field);
+                    typeof(SupportedMetric).GetFields(BindingFlags.Static | BindingFlags.Public);
+
                 foreach (var field in fields)
                 {
-                    if (name.Equals(field.Name, StringComparison.OrdinalIgnoreCase))
-                        return (SupportedMetric)typeof(SupportedMetric).GetField(field.Name).GetValue(null);
+                    var metric = (SupportedMetric)field.GetValue(Auc);
+                    if (name.Equals(metric.Name, StringComparison.OrdinalIgnoreCase))
+                        return metric;
                 }
                 throw new NotSupportedException($"Metric '{name}' not supported.");
             }
@@ -353,7 +354,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     testMetricVal += 1e-10;
 
                 // Save performance score
-                candidate.PerformanceSummary = 
+                candidate.PerformanceSummary =
                     new RunSummary(testMetricVal, randomizedNumberOfRows, stopwatch.ElapsedMilliseconds, trainMetricVal);
                 _sortedSampledElements.Add(candidate.PerformanceSummary.MetricValue, candidate);
                 _history.Add(candidate);
