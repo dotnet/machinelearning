@@ -23,10 +23,14 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly HashSet<string> _variableMap;
         private readonly HashSet<string> _nodeNames;
         private readonly string _name;
+        private readonly string _producerName;
         private readonly IHost _host;
         private readonly string _domain;
+        private readonly string _producerVersion;
+        private readonly long _modelVersion;
 
-        public OnnxContext(IHostEnvironment env, string name, string domain)
+        public OnnxContext(IHostEnvironment env, string name, string producerName, 
+            string producerVersion, long modelVersion, string domain)
         {
             Contracts.CheckValue(env, nameof(env));
             Contracts.CheckValue(name, nameof(name));
@@ -41,6 +45,9 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             _variableMap = new HashSet<string>();
             _nodeNames = new HashSet<string>();
             _name = name;
+            _producerName = producerName;
+            _producerVersion = producerVersion;
+            _modelVersion = modelVersion;
             _domain = domain;
         }
 
@@ -234,6 +241,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// Makes the ONNX model based on the context.
         /// </summary>
         public ModelProto MakeModel()
-            => OnnxUtils.MakeModel(_nodes, _name, _name, _domain, _inputs, _outputs, _intermediateValues);
+            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues);
     }
 }

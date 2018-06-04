@@ -1,5 +1,7 @@
 {
-  "producerName": "SaveModelToOnnxTest",
+  "irVersion": "3",
+  "producerName": "ML.Net",
+  "producerVersion": "0.2.0.0000",
   "domain": "Onnx",
   "graph": {
     "node": [
@@ -590,7 +592,8 @@
             "f": -1E-07,
             "type": "FLOAT"
           }
-        ]
+        ],
+        "domain": "ai.onnx"
       },
       {
         "input": [
@@ -600,7 +603,8 @@
           "Probability"
         ],
         "name": "Sigmoid",
-        "opType": "Sigmoid"
+        "opType": "Sigmoid",
+        "domain": "ai.onnx"
       },
       {
         "input": [
@@ -698,5 +702,15 @@
         }
       }
     ]
-  }
+  },
+  "opsetImport": [
+    {
+      "domain": "ai.onnx.ml",
+      "version": "1"
+    },
+    {
+      "domain": "ai.onnx",
+      "version": "6"
+    }
+  ]
 }
