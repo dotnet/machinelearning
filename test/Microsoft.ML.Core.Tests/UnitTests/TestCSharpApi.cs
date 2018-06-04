@@ -681,9 +681,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     getter(ref stdev);
                     foldGetter(ref fold);
                     Assert.True(fold.EqualsStr("Standard Deviation"));
-                    Assert.Equal(10.87, stdev.Values[0], 3);
-                    Assert.Equal(6.804, stdev.Values[1], 3);
-                    Assert.Equal(7.568, stdev.Values[2], 3);
+                    Assert.Equal(2.462, stdev.Values[0], 3);
+                    Assert.Equal(2.763, stdev.Values[1], 3);
+                    Assert.Equal(3.273, stdev.Values[2], 3);
 
                     var sumBldr = new BufferBuilder<double>(R8Adder.Instance);
                     sumBldr.Reset(avg.Length, true);

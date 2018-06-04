@@ -375,6 +375,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var combineArgs = new CombineMetricsInput();
             combineArgs.Kind = input.Kind;
             combineArgs.LabelColumn = input.LabelColumn;
+            combineArgs.WeightColumn = input.WeightColumn;
+            combineArgs.GroupColumn = input.GroupColumn;
 
             // Set the input bindings for the CombineMetrics entry point.
             var combineInputBindingMap = new Dictionary<string, List<ParameterBinding>>();
@@ -420,7 +422,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var eval = GetEvaluator(env, input.Kind);
 
             var perInst = EvaluateUtils.ConcatenatePerInstanceDataViews(env, eval, true, true, input.PerInstanceMetrics.Select(
-                idv => RoleMappedData.Create(idv, RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, input.LabelColumn))).ToArray(),
+                idv => RoleMappedData.CreateOpt(idv, new[]
+                {
+                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, input.LabelColumn),
+                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Weight, input.WeightColumn.Value),
+                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Group, input.GroupColumn.Value)
+                })).ToArray(),
                 out var variableSizeVectorColumnNames);
 
             var warnings = input.Warnings != null ? new List<IDataView>(input.Warnings) : new List<IDataView>();
@@ -477,22 +484,22 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             switch (kind)
             {
-                case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
-                    return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer:
-                    return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
-                    return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureRankerTrainer:
-                    return new RankerMamlEvaluator(env, new RankerMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
-                    return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureClusteringTrainer:
-                    return new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
-                    return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
-                default:
-                    throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
+            case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
+                return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer:
+                return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
+                return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureRankerTrainer:
+                return new RankerMamlEvaluator(env, new RankerMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
+                return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureClusteringTrainer:
+                return new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
+                return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
+            default:
+                throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
             }
         }
     }
