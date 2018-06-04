@@ -36,7 +36,6 @@ namespace Microsoft.ML.Scenarios
         public void TrainTestPredictSentimentModelTest()
         {
             var pipeline = PreparePipeline();
-            PredictionModel<SentimentData, SentimentPrediction> model = pipeline.Train<SentimentData, SentimentPrediction>();
             var testData = PrepareTextLoaderTestData();
             var tt = new TrainTestEvaluator().TrainTestEvaluate<SentimentData, SentimentPrediction>(pipeline, testData);
 
