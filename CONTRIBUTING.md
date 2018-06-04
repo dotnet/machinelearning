@@ -24,8 +24,8 @@ All commits in a pull request will be squashed to a single commit with the origi
 
 # Contributing
 
-See [Contributing](Documentation/project-docs/contributing.md) for information about coding styles, source structure, making pull requests, and more.
+See [Contributing](docs/project-docs/contributing.md) for information about coding styles, source structure, making pull requests, and more.
 
 # Developers
 
-See the [Developer Guide](Documentation/project-docs/developer-guide.md) for details about developing in this repo.
+See the [Developer Guide](docs/project-docs/developer-guide.md) for details about developing in this repo.

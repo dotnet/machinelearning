@@ -1,14 +1,50 @@
-<Project DefaultTargets="Publish" >
+<Project>
   <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
+
+  <UsingTask TaskName="ExecWithRetriesForNuGetPush" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <PropertyGroup>
     <PublishSymbolsPackage>Microsoft.SymbolUploader.Build.Task</PublishSymbolsPackage>
-    <EnablePublishSymbols>false</EnablePublishSymbols>
+    <EnablePublishSymbols Condition="'$(EnablePublishSymbols)'==''" >true</EnablePublishSymbols>
+    <NuGetPushTimeoutSeconds Condition="'$(NuGetPushTimeoutSeconds)' == ''">600</NuGetPushTimeoutSeconds>
   </PropertyGroup>
 
   <Import Project="$(PackagesDir)\$(PublishSymbolsPackage.ToLower())\$(PublishSymbolsPackageVersion)\build\PublishSymbols.targets" />
 
-  <Target Name="Publish" Condition="'$(EnablePublishSymbols)'=='true'" DependsOnTargets="SetupPublishSymbols">
+  <Target Name="PublishPackages">
+    <Error Condition="'$(NuGetFeedUrl)' == ''" Text="Missing required property NuGetFeedUrl" />
+    <Error Condition="'$(NuGetApiKey)' == ''" Text="Missing required property NuGetApiKey" />
+
+    <ItemGroup>
+      <NuGetPackages Include="$(PackageOutputPath)**\*.nupkg"
+                     Exclude="$(PackageOutputPath)**\*.symbols.*nupkg" />
+
+      <!--
+      IgnorableErrorMessages applies to the "ExectWithRetriesForNuGetPush" task.
+      There's a very special failure scenario that we want to ignore.  That scenario is
+      when NuGet hits a timeout on one "push" attempt, and then gets a "Forbidden" response
+      because the package "already exists" on the next response.  This indicates that the
+      timeout occurred, but the push was actually successful.
+      -->
+      <IgnorableErrorMessages Include="Overwriting existing packages is forbidden according to the package retention settings for this feed.">
+        <ConditionalErrorMessage>Pushing took too long</ConditionalErrorMessage>
+      </IgnorableErrorMessages>
+    </ItemGroup>
+    
+    <Message Text="Pushing ML.NET packages to $(NuGetFeedUrl)" />
+    
+    <PropertyGroup>
+      <DotnetToolCommand>$(ToolsDir)dotnetcli/dotnet</DotnetToolCommand>
+      <NuGetPushCommand>$(DotnetToolCommand) nuget push --source $(NuGetFeedUrl) --api-key $(NuGetApiKey) --timeout $(NuGetPushTimeoutSeconds)</NuGetPushCommand>
+    </PropertyGroup>
+
+    <ExecWithRetriesForNuGetPush Command="$(NuGetPushCommand) %(NuGetPackages.Identity)"
+                                 IgnoredErrorMessagesWithConditional="@(IgnorableErrorMessages)" />
+  </Target>
+  
+  <Target Name="PublishSymbolPackages"
+          Condition="'$(EnablePublishSymbols)'=='true'"
+          DependsOnTargets="SetupPublishSymbols">
     <Message Text="Attempting to Publish Symbols" />
     <Error Condition="!Exists('$(PackageOutputPath)')" Text="'PackageOutputPath' folder '$(PackageOutputPath)' does not exist."/>
     <Error Condition="'$(SymbolServerPath)'==''" Text="Missing property SymbolServerPath" />
@@ -18,7 +54,7 @@
 
   <Target Name="SetupPublishSymbols">
     <PropertyGroup>
-      <SymbolExpirationInDays Condition="'$(SymbolExpirationInDays)'=='' and '$(SymbolExpirationDate)'==''">1</SymbolExpirationInDays>
+      <SymbolExpirationInDays Condition="'$(SymbolExpirationInDays)'=='' and '$(SymbolExpirationDate)'==''">180</SymbolExpirationInDays>
       <ConvertPortablePdbsToWindowsPdbs>true</ConvertPortablePdbsToWindowsPdbs>
     </PropertyGroup>
 

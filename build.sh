@@ -10,4 +10,4 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-$DIR/run.sh build "$@"
+"$DIR/run.sh" build "$@"

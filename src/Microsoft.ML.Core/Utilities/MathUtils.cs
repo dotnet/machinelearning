@@ -871,5 +871,16 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             var res = Math.Cos(a);
             return Math.Abs(res) > 1 ? double.NaN : res;
         }
+
+        /// <summary>
+        /// Returns the smallest integral value that is greater than or equal to the result of the division.
+        /// </summary>
+        /// <param name="numerator">Number to be divided.</param>
+        /// <param name="denomenator">Number with which to divide the numerator.</param>
+        /// <returns></returns>
+        public static long DivisionCeiling(long numerator, long denomenator)
+        {
+            return (checked(numerator + denomenator) - 1) / denomenator;
+        }
     }
 }

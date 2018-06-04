@@ -194,7 +194,11 @@ namespace Microsoft.ML.Runtime.Data
             var metrics = evaluator.Evaluate(dataEval);
             MetricWriter.PrintWarnings(ch, metrics);
             evaluator.PrintFoldResults(ch, metrics);
-            evaluator.PrintOverallResults(ch, Args.SummaryFilename, metrics);
+            if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out var overall))
+                throw ch.Except("No overall metrics found");
+            overall = evaluator.GetOverallResults(overall);
+            MetricWriter.PrintOverallMetrics(Host, ch, Args.SummaryFilename, overall, 1);
+            evaluator.PrintAdditionalMetrics(ch, metrics);
             Dictionary<string, IDataView>[] metricValues = { metrics };
             SendTelemetryMetric(metricValues);
             if (!string.IsNullOrWhiteSpace(Args.OutputDataFile))

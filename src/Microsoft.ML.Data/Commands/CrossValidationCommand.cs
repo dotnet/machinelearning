@@ -211,204 +211,40 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // Print the overall results.
-            eval.PrintOverallResults(ch, Args.SummaryFilename, tasks.Select(t => t.Result.Metrics).ToArray());
+            if (!TryGetOverallMetrics(tasks.Select(t => t.Result.Metrics).ToArray(), out var overallList))
+                throw ch.Except("No overall metrics found");
+
+            var overall = eval.GetOverallResults(overallList.ToArray());
+            MetricWriter.PrintOverallMetrics(Host, ch, Args.SummaryFilename, overall, Args.NumFolds);
+            eval.PrintAdditionalMetrics(ch, tasks.Select(t => t.Result.Metrics).ToArray());
             Dictionary<string, IDataView>[] metricValues = tasks.Select(t => t.Result.Metrics).ToArray();
             SendTelemetryMetric(metricValues);
 
             // Save the per-instance results.
             if (!string.IsNullOrWhiteSpace(Args.OutputDataFile))
             {
-                Func<Task<FoldHelper.FoldResult>, int, IDataView> getPerInstance =
-                    (task, i) =>
-                    {
-                        if (!Args.OutputExampleFoldIndex)
-                            return task.Result.PerInstanceResults;
-
-                        // If the fold index is requested, add a column containing it. We use the first column in the data view
-                        // as an input column to the LambdaColumnMapper, because it must have an input.
-                        var inputColName = task.Result.PerInstanceResults.Schema.GetColumnName(0);
-                        var inputColType = task.Result.PerInstanceResults.Schema.GetColumnType(0);
-                        return Utils.MarshalInvoke(EvaluateUtils.AddKeyColumn<int>, inputColType.RawType, Host,
-                            task.Result.PerInstanceResults, inputColName, MetricKinds.ColumnNames.FoldIndex,
-                            inputColType, Args.NumFolds, i + 1, "FoldIndex", default(ValueGetter<VBuffer<DvText>>));
-                    };
-
-                var foldDataViews = tasks.Select(getPerInstance).ToArray();
+                var perInstance = EvaluateUtils.ConcatenatePerInstanceDataViews(Host, eval, Args.CollateMetrics,
+                    Args.OutputExampleFoldIndex, tasks.Select(t => t.Result.PerInstanceResults).ToArray(), out var variableSizeVectorColumnNames);
+                if (variableSizeVectorColumnNames.Length > 0)
+                {
+                    ch.Warning("Detected columns of variable length: {0}. Consider setting collateMetrics- for meaningful per-Folds results.",
+                        string.Join(", ", variableSizeVectorColumnNames));
+                }
                 if (Args.CollateMetrics)
                 {
-                    var perInst = AppendPerInstanceDataViews(foldDataViews, ch);
-                    MetricWriter.SavePerInstance(Host, ch, Args.OutputDataFile, perInst);
+                    ch.Assert(perInstance.Length == 1);
+                    MetricWriter.SavePerInstance(Host, ch, Args.OutputDataFile, perInstance[0]);
                 }
                 else
                 {
                     int i = 0;
-                    foreach (var idv in foldDataViews)
+                    foreach (var idv in perInstance)
                     {
                         MetricWriter.SavePerInstance(Host, ch, ConstructPerFoldName(Args.OutputDataFile, i), idv);
                         i++;
                     }
                 }
             }
-        }
-
-        private IDataView AppendPerInstanceDataViews(IEnumerable<IDataView> foldDataViews, IChannel ch)
-        {
-            // Make sure there are no variable size vector columns.
-            // This is a dictionary from the column name to its vector size.
-            var vectorSizes = new Dictionary<string, int>();
-            var firstDvSlotNames = new Dictionary<string, VBuffer<DvText>>();
-            var firstDvKeyColumns = new List<string>();
-            var firstDvVectorKeyColumns = new List<string>();
-            var variableSizeVectorColumnNames = new List<string>();
-            var list = new List<IDataView>();
-            int dvNumber = 0;
-            foreach (var dv in foldDataViews)
-            {
-                var hidden = new List<int>();
-                for (int i = 0; i < dv.Schema.ColumnCount; i++)
-                {
-                    if (dv.Schema.IsHidden(i))
-                    {
-                        hidden.Add(i);
-                        continue;
-                    }
-
-                    var type = dv.Schema.GetColumnType(i);
-                    var name = dv.Schema.GetColumnName(i);
-                    if (type.IsVector)
-                    {
-                        if (dvNumber == 0)
-                        {
-                            if (dv.Schema.HasKeyNames(i, type.ItemType.KeyCount))
-                                firstDvVectorKeyColumns.Add(name);
-                            // Store the slot names of the 1st idv and use them as baseline.
-                            if (dv.Schema.HasSlotNames(i, type.VectorSize))
-                            {
-                                VBuffer<DvText> slotNames = default(VBuffer<DvText>);
-                                dv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref slotNames);
-                                firstDvSlotNames.Add(name, slotNames);
-                            }
-                        }
-
-                        int cachedSize;
-                        if (vectorSizes.TryGetValue(name, out cachedSize))
-                        {
-                            VBuffer<DvText> slotNames;
-                            // In the event that no slot names were recorded here, then slotNames will be
-                            // the default, length 0 vector.
-                            firstDvSlotNames.TryGetValue(name, out slotNames);
-                            if (!VerifyVectorColumnsMatch(cachedSize, i, dv, type, ref slotNames))
-                                variableSizeVectorColumnNames.Add(name);
-                        }
-                        else
-                            vectorSizes.Add(name, type.VectorSize);
-                    }
-                    else if (dvNumber == 0 && dv.Schema.HasKeyNames(i, type.KeyCount))
-                    {
-                        // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
-                        firstDvKeyColumns.Add(name);
-                    }
-                }
-                var idv = dv;
-                if (hidden.Count > 0)
-                {
-                    var args = new ChooseColumnsByIndexTransform.Arguments();
-                    args.Drop = true;
-                    args.Index = hidden.ToArray();
-                    idv = new ChooseColumnsByIndexTransform(Host, args, idv);
-                }
-                list.Add(idv);
-                dvNumber++;
-            }
-
-            if (variableSizeVectorColumnNames.Count == 0 && firstDvKeyColumns.Count == 0)
-                return AppendRowsDataView.Create(Host, null, list.ToArray());
-
-            var views = list.ToArray();
-            foreach (var keyCol in firstDvKeyColumns)
-                EvaluateUtils.ReconcileKeyValues(Host, views, keyCol);
-            foreach (var vectorKeyCol in firstDvVectorKeyColumns)
-                EvaluateUtils.ReconcileVectorKeyValues(Host, views, vectorKeyCol);
-
-            Func<IDataView, int, IDataView> keyToValue =
-                (idv, i) =>
-                {
-                    foreach (var keyCol in firstDvKeyColumns.Concat(firstDvVectorKeyColumns))
-                    {
-                        idv = new KeyToValueTransform(Host, new KeyToValueTransform.Arguments() { Column = new[] { new KeyToValueTransform.Column() { Name = keyCol }, } }, idv);
-                        var hidden = FindHiddenColumns(idv.Schema, keyCol);
-                        idv = new ChooseColumnsByIndexTransform(Host, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = hidden.ToArray() }, idv);
-                    }
-                    return idv;
-                };
-
-            Func<IDataView, IDataView> selectDropNonVarLenthCol =
-                (idv) =>
-                {
-                    foreach (var variableSizeVectorColumnName in variableSizeVectorColumnNames)
-                    {
-                        int index;
-                        idv.Schema.TryGetColumnIndex(variableSizeVectorColumnName, out index);
-                        var type = idv.Schema.GetColumnType(index);
-
-                        idv = Utils.MarshalInvoke(AddVarLengthColumn<int>, type.ItemType.RawType, Host, idv,
-                                 variableSizeVectorColumnName, type);
-
-                        // Drop the old column that does not have variable length.
-                        idv = new DropColumnsTransform(Host, new DropColumnsTransform.Arguments() { Column = new[] { variableSizeVectorColumnName } }, idv);
-                    }
-                    return idv;
-                };
-
-            if (variableSizeVectorColumnNames.Count > 0)
-                ch.Warning("Detected columns of variable length: {0}. Consider setting collateMetrics- for meaningful per-Folds results.", string.Join(", ", variableSizeVectorColumnNames));
-            return AppendRowsDataView.Create(Host, null, views.Select(keyToValue).Select(selectDropNonVarLenthCol).ToArray());
-        }
-
-        private static IEnumerable<int> FindHiddenColumns(ISchema schema, string colName)
-        {
-            for (int i = 0; i < schema.ColumnCount; i++)
-            {
-                if (schema.IsHidden(i) && schema.GetColumnName(i) == colName)
-                    yield return i;
-            }
-        }
-
-        private static bool VerifyVectorColumnsMatch(int cachedSize, int col, IDataView dv,
-            ColumnType type, ref VBuffer<DvText> firstDvSlotNames)
-        {
-            if (cachedSize != type.VectorSize)
-                return false;
-
-            // If we detect mismatch it a sign that slots reshuffling has happened.
-            if (dv.Schema.HasSlotNames(col, type.VectorSize))
-            {
-                // Verify that slots match with slots from 1st idv.
-                VBuffer<DvText> currSlotNames = default(VBuffer<DvText>);
-                dv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, col, ref currSlotNames);
-
-                if (currSlotNames.Length != firstDvSlotNames.Length)
-                    return false;
-                else
-                {
-                    var result = true;
-                    VBufferUtils.ForEachEitherDefined(ref currSlotNames, ref firstDvSlotNames,
-                        (slot, val1, val2) => result = result && DvText.Identical(val1, val2));
-                    return result;
-                }
-            }
-            else
-            {
-                // If we don't have slot names, then the first dataview should not have had slot names either.
-                return firstDvSlotNames.Length == 0;
-            }
-        }
-
-        private static IDataView AddVarLengthColumn<TSrc>(IHostEnvironment env, IDataView idv, string variableSizeVectorColumnName, ColumnType typeSrc)
-        {
-            return LambdaColumnMapper.Create(env, "ChangeToVarLength", idv, variableSizeVectorColumnName,
-                       variableSizeVectorColumnName + "_VarLength", typeSrc, new VectorType(typeSrc.ItemType.AsPrimitive),
-                       (ref VBuffer<TSrc> src, ref VBuffer<TSrc> dst) => src.CopyTo(ref dst));
         }
 
         /// <summary>
@@ -504,16 +340,32 @@ namespace Microsoft.ML.Runtime.Data
             return stratificationColumn;
         }
 
+        private bool TryGetOverallMetrics(Dictionary<string, IDataView>[] metrics, out List<IDataView> overallList)
+        {
+            Host.AssertNonEmpty(metrics);
+
+            overallList = new List<IDataView>();
+            for (int i = 0; i < metrics.Length; i++)
+            {
+                var dict = metrics[i];
+                IDataView idv;
+                if (!dict.TryGetValue(MetricKinds.OverallMetrics, out idv))
+                    return false;
+                overallList.Add(idv);
+            }
+            return true;
+        }
+
         private sealed class FoldHelper
         {
             public struct FoldResult
             {
                 public readonly Dictionary<string, IDataView> Metrics;
                 public readonly ISchema ScoreSchema;
-                public readonly IDataView PerInstanceResults;
+                public readonly RoleMappedData PerInstanceResults;
                 public readonly RoleMappedSchema TrainSchema;
 
-                public FoldResult(Dictionary<string, IDataView> metrics, ISchema scoreSchema, IDataView perInstance, RoleMappedSchema trainSchema)
+                public FoldResult(Dictionary<string, IDataView> metrics, ISchema scoreSchema, RoleMappedData perInstance, RoleMappedSchema trainSchema)
                 {
                     Metrics = metrics;
                     ScoreSchema = scoreSchema;
@@ -735,12 +587,11 @@ namespace Microsoft.ML.Runtime.Data
                     var dataEval = RoleMappedData.CreateOpt(scorePipe, testData.Schema.GetColumnRoleNames());
 
                     var dict = eval.Evaluate(dataEval);
-                    IDataView perInstance = null;
+                    RoleMappedData perInstance = null;
                     if (_savePerInstance)
                     {
                         var perInst = eval.GetPerInstanceMetrics(dataEval);
-                        var perInstData = RoleMappedData.CreateOpt(perInst, dataEval.Schema.GetColumnRoleNames());
-                        perInstance = eval.GetPerInstanceDataViewToSave(perInstData);
+                        perInstance = RoleMappedData.CreateOpt(perInst, dataEval.Schema.GetColumnRoleNames());
                     }
                     ch.Done();
                     return new FoldResult(dict, dataEval.Schema.Schema, perInstance, trainData.Schema);

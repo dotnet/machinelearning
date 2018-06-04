@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -18,6 +17,13 @@ namespace Microsoft.ML.Runtime.Data
 {
     public static class EvaluateUtils
     {
+        public struct AggregatedMetric
+        {
+            public double Sum;
+            public double SumSq;
+            public string Name;
+        }
+
         private static class DefaultEvaluatorTable
         {
             private static volatile Dictionary<string, string> _knownEvaluatorLoadNames;
@@ -200,7 +206,7 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        public static bool IsScoreColumnKind(IExceptionContext ectx, ISchema schema, int col, string kind)
+        private static bool IsScoreColumnKind(IExceptionContext ectx, ISchema schema, int col, string kind)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));
@@ -359,7 +365,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static IDataView AddTextColumn<TSrc>(IHostEnvironment env, IDataView input, string inputColName, string outputColName,
+        private static IDataView AddTextColumn<TSrc>(IHostEnvironment env, IDataView input, string inputColName, string outputColName,
             ColumnType typeSrc, string value, string registrationName)
         {
             Contracts.Check(typeSrc.RawType == typeof(TSrc));
@@ -367,7 +373,33 @@ namespace Microsoft.ML.Runtime.Data
                 (ref TSrc src, ref DvText dst) => dst = new DvText(value));
         }
 
-        public static IDataView AddKeyColumn<TSrc>(IHostEnvironment env, IDataView input, string inputColName, string outputColName,
+        /// <summary>
+        /// Add a text column containing a fold index to a data view.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="input">The data view to which we add the column</param>
+        /// <param name="curFold">The current fold this data view belongs to.</param>
+        /// <returns>The input data view with an additional text column containing the current fold index.</returns>
+        public static IDataView AddFoldIndex(IHostEnvironment env, IDataView input, int curFold)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(input, nameof(input));
+            env.CheckParam(curFold >= 0, nameof(curFold));
+
+            // We use the first column in the data view as an input column to the LambdaColumnMapper, 
+            // because it must have an input.
+            int inputCol = 0;
+            while (inputCol < input.Schema.ColumnCount && input.Schema.IsHidden(inputCol))
+                inputCol++;
+            env.Assert(inputCol < input.Schema.ColumnCount);
+
+            var inputColName = input.Schema.GetColumnName(0);
+            var inputColType = input.Schema.GetColumnType(0);
+            return Utils.MarshalInvoke(AddTextColumn<int>, inputColType.RawType, env,
+                input, inputColName, MetricKinds.ColumnNames.FoldIndex, inputColType, $"Fold {curFold}", "FoldName");
+        }
+
+        private static IDataView AddKeyColumn<TSrc>(IHostEnvironment env, IDataView input, string inputColName, string outputColName,
             ColumnType typeSrc, int keyCount, int value, string registrationName, ValueGetter<VBuffer<DvText>> keyValueGetter)
         {
             Contracts.Check(typeSrc.RawType == typeof(TSrc));
@@ -379,6 +411,35 @@ namespace Microsoft.ML.Runtime.Data
                     else
                         dst = (uint)value;
                 }, keyValueGetter);
+        }
+
+        /// <summary>
+        /// Add a key type column containing a fold index to a data view.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="input">The data view to which we add the column</param>
+        /// <param name="curFold">The current fold this data view belongs to.</param>
+        /// <param name="numFolds">The total number of folds.</param>
+        /// <returns>The input data view with an additional key type column containing the current fold index.</returns>
+        public static IDataView AddFoldIndex(IHostEnvironment env, IDataView input, int curFold, int numFolds)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(input, nameof(input));
+            env.CheckParam(curFold >= 0, nameof(curFold));
+            env.CheckParam(numFolds > 0, nameof(numFolds));
+
+            // We use the first column in the data view as an input column to the LambdaColumnMapper, 
+            // because it must have an input.
+            int inputCol = 0;
+            while (inputCol < input.Schema.ColumnCount && input.Schema.IsHidden(inputCol))
+                inputCol++;
+            env.Assert(inputCol < input.Schema.ColumnCount);
+
+            var inputColName = input.Schema.GetColumnName(inputCol);
+            var inputColType = input.Schema.GetColumnType(inputCol);
+            return Utils.MarshalInvoke(AddKeyColumn<int>, inputColType.RawType, env,
+                input, inputColName, MetricKinds.ColumnNames.FoldIndex,
+                inputColType, numFolds, curFold + 1, "FoldIndex", default(ValueGetter<VBuffer<DvText>>));
         }
 
         /// <summary>
@@ -639,6 +700,584 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        /// <summary>
+        /// This method gets the per-instance metrics from multiple scored data views and either returns them as an
+        /// array or combines them into a single data view, based on user specifications.
+        /// </summary>
+        /// <param name="env">A host environment.</param>
+        /// <param name="eval">The evaluator to use for getting the per-instance metrics.</param>
+        /// <param name="collate">If true, data views are combined into a single data view. Otherwise, data views
+        /// are returned as an array.</param>
+        /// <param name="outputFoldIndex">If true, a column containing the fold index is added to the returned data views.</param>
+        /// <param name="perInstance">The array of scored data views to evaluate. These are passed as <see cref="RoleMappedData"/>
+        /// so that the evaluator can know the role mappings it needs.</param>
+        /// <param name="variableSizeVectorColumnNames">A list of column names that are not included in the combined data view
+        /// since their types do not match.</param>
+        /// <returns></returns>
+        public static IDataView[] ConcatenatePerInstanceDataViews(IHostEnvironment env, IMamlEvaluator eval, bool collate, bool outputFoldIndex, RoleMappedData[] perInstance, out string[] variableSizeVectorColumnNames)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(eval, nameof(eval));
+            env.CheckNonEmpty(perInstance, nameof(perInstance));
+
+            Func<RoleMappedData, int, IDataView> getPerInstance =
+                (rmd, i) =>
+                {
+                    var perInst = eval.GetPerInstanceDataViewToSave(rmd);
+
+                    if (!outputFoldIndex)
+                        return perInst;
+
+                    // If the fold index is requested, add a column containing it. We use the first column in the data view
+                    // as an input column to the LambdaColumnMapper, because it must have an input.
+                    return AddFoldIndex(env, perInst, i, perInstance.Length);
+                };
+
+            var foldDataViews = perInstance.Select(getPerInstance).ToArray();
+            if (collate)
+            {
+                var combined = AppendPerInstanceDataViews(env, foldDataViews, out variableSizeVectorColumnNames);
+                return new[] { combined };
+            }
+            else
+            {
+                variableSizeVectorColumnNames = new string[0];
+                return foldDataViews.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Create an output data view that is the vertical concatenation of the metric data views.
+        /// </summary>
+        public static IDataView ConcatenateOverallMetrics(IHostEnvironment env, IDataView[] metrics)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckNonEmpty(metrics, nameof(metrics));
+
+            if (metrics.Length == 1)
+                return metrics[0];
+
+            var overallList = new List<IDataView>();
+            for (int i = 0; i < metrics.Length; i++)
+            {
+                // Add a fold-name column. We add it as a text column, since it is only used for saving the result summary file.
+                var idv = AddFoldIndex(env, metrics[i], i);
+                overallList.Add(idv);
+            }
+            return AppendRowsDataView.Create(env, overallList[0].Schema, overallList.ToArray());
+        }
+
+        private static IDataView AppendPerInstanceDataViews(IHostEnvironment env, IEnumerable<IDataView> foldDataViews, out string[] variableSizeVectorColumnNames)
+        {
+            Contracts.AssertValue(env);
+            env.AssertValue(foldDataViews);
+
+            // Make sure there are no variable size vector columns.
+            // This is a dictionary from the column name to its vector size.
+            var vectorSizes = new Dictionary<string, int>();
+            var firstDvSlotNames = new Dictionary<string, VBuffer<DvText>>();
+            var firstDvKeyColumns = new List<string>();
+            var firstDvVectorKeyColumns = new List<string>();
+            var variableSizeVectorColumnNamesList = new List<string>();
+            var list = new List<IDataView>();
+            int dvNumber = 0;
+            foreach (var dv in foldDataViews)
+            {
+                var hidden = new List<int>();
+                for (int i = 0; i < dv.Schema.ColumnCount; i++)
+                {
+                    if (dv.Schema.IsHidden(i))
+                    {
+                        hidden.Add(i);
+                        continue;
+                    }
+
+                    var type = dv.Schema.GetColumnType(i);
+                    var name = dv.Schema.GetColumnName(i);
+                    if (type.IsVector)
+                    {
+                        if (dvNumber == 0)
+                        {
+                            if (dv.Schema.HasKeyNames(i, type.ItemType.KeyCount))
+                                firstDvVectorKeyColumns.Add(name);
+                            // Store the slot names of the 1st idv and use them as baseline.
+                            if (dv.Schema.HasSlotNames(i, type.VectorSize))
+                            {
+                                VBuffer<DvText> slotNames = default(VBuffer<DvText>);
+                                dv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref slotNames);
+                                firstDvSlotNames.Add(name, slotNames);
+                            }
+                        }
+
+                        int cachedSize;
+                        if (vectorSizes.TryGetValue(name, out cachedSize))
+                        {
+                            VBuffer<DvText> slotNames;
+                            // In the event that no slot names were recorded here, then slotNames will be
+                            // the default, length 0 vector.
+                            firstDvSlotNames.TryGetValue(name, out slotNames);
+                            if (!VerifyVectorColumnsMatch(cachedSize, i, dv, type, ref slotNames))
+                                variableSizeVectorColumnNamesList.Add(name);
+                        }
+                        else
+                            vectorSizes.Add(name, type.VectorSize);
+                    }
+                    else if (dvNumber == 0 && dv.Schema.HasKeyNames(i, type.KeyCount))
+                    {
+                        // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
+                        firstDvKeyColumns.Add(name);
+                    }
+                }
+                var idv = dv;
+                if (hidden.Count > 0)
+                {
+                    var args = new ChooseColumnsByIndexTransform.Arguments();
+                    args.Drop = true;
+                    args.Index = hidden.ToArray();
+                    idv = new ChooseColumnsByIndexTransform(env, args, idv);
+                }
+                list.Add(idv);
+                dvNumber++;
+            }
+
+            variableSizeVectorColumnNames = variableSizeVectorColumnNamesList.ToArray();
+            if (variableSizeVectorColumnNamesList.Count == 0 && firstDvKeyColumns.Count == 0)
+                return AppendRowsDataView.Create(env, null, list.ToArray());
+
+            var views = list.ToArray();
+            foreach (var keyCol in firstDvKeyColumns)
+                ReconcileKeyValues(env, views, keyCol);
+            foreach (var vectorKeyCol in firstDvVectorKeyColumns)
+                ReconcileVectorKeyValues(env, views, vectorKeyCol);
+
+            Func<IDataView, int, IDataView> keyToValue =
+                (idv, i) =>
+                {
+                    foreach (var keyCol in firstDvKeyColumns.Concat(firstDvVectorKeyColumns))
+                    {
+                        idv = new KeyToValueTransform(env, new KeyToValueTransform.Arguments() { Column = new[] { new KeyToValueTransform.Column() { Name = keyCol }, } }, idv);
+                        var hidden = FindHiddenColumns(idv.Schema, keyCol);
+                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = hidden.ToArray() }, idv);
+                    }
+                    return idv;
+                };
+
+            Func<IDataView, IDataView> selectDropNonVarLenthCol =
+                (idv) =>
+                {
+                    foreach (var variableSizeVectorColumnName in variableSizeVectorColumnNamesList)
+                    {
+                        int index;
+                        idv.Schema.TryGetColumnIndex(variableSizeVectorColumnName, out index);
+                        var type = idv.Schema.GetColumnType(index);
+
+                        idv = Utils.MarshalInvoke(AddVarLengthColumn<int>, type.ItemType.RawType, env, idv,
+                                 variableSizeVectorColumnName, type);
+
+                        // Drop the old column that does not have variable length.
+                        idv = new DropColumnsTransform(env, new DropColumnsTransform.Arguments() { Column = new[] { variableSizeVectorColumnName } }, idv);
+                    }
+                    return idv;
+                };
+
+            return AppendRowsDataView.Create(env, null, views.Select(keyToValue).Select(selectDropNonVarLenthCol).ToArray());
+        }
+
+        private static IEnumerable<int> FindHiddenColumns(ISchema schema, string colName)
+        {
+            for (int i = 0; i < schema.ColumnCount; i++)
+            {
+                if (schema.IsHidden(i) && schema.GetColumnName(i) == colName)
+                    yield return i;
+            }
+        }
+
+        private static bool VerifyVectorColumnsMatch(int cachedSize, int col, IDataView dv,
+            ColumnType type, ref VBuffer<DvText> firstDvSlotNames)
+        {
+            if (cachedSize != type.VectorSize)
+                return false;
+
+            // If we detect mismatch it a sign that slots reshuffling has happened.
+            if (dv.Schema.HasSlotNames(col, type.VectorSize))
+            {
+                // Verify that slots match with slots from 1st idv.
+                VBuffer<DvText> currSlotNames = default(VBuffer<DvText>);
+                dv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, col, ref currSlotNames);
+
+                if (currSlotNames.Length != firstDvSlotNames.Length)
+                    return false;
+                else
+                {
+                    var result = true;
+                    VBufferUtils.ForEachEitherDefined(ref currSlotNames, ref firstDvSlotNames,
+                        (slot, val1, val2) => result = result && DvText.Identical(val1, val2));
+                    return result;
+                }
+            }
+            else
+            {
+                // If we don't have slot names, then the first dataview should not have had slot names either.
+                return firstDvSlotNames.Length == 0;
+            }
+        }
+
+        private static IDataView AddVarLengthColumn<TSrc>(IHostEnvironment env, IDataView idv, string variableSizeVectorColumnName, ColumnType typeSrc)
+        {
+            return LambdaColumnMapper.Create(env, "ChangeToVarLength", idv, variableSizeVectorColumnName,
+                       variableSizeVectorColumnName + "_VarLength", typeSrc, new VectorType(typeSrc.ItemType.AsPrimitive),
+                       (ref VBuffer<TSrc> src, ref VBuffer<TSrc> dst) => src.CopyTo(ref dst));
+        }
+
+        private static List<string> GetMetricNames(IChannel ch, ISchema schema, IRow row, Func<int, bool> ignoreCol,
+            ValueGetter<double>[] getters, ValueGetter<VBuffer<double>>[] vBufferGetters)
+        {
+            ch.AssertValue(schema);
+            ch.AssertValue(row);
+            ch.Assert(Utils.Size(getters) == schema.ColumnCount);
+            ch.Assert(Utils.Size(vBufferGetters) == schema.ColumnCount);
+
+            // Get the names of the metrics. For R8 valued columns the metric name is the column name. For R8 vector valued columns
+            // the names of the metrics are the column name, followed by the slot name if it exists, or "Label_i" if it doesn't. 
+            VBuffer<DvText> names = default(VBuffer<DvText>);
+            int metricCount = 0;
+            var metricNames = new List<string>();
+            for (int i = 0; i < schema.ColumnCount; i++)
+            {
+                if (schema.IsHidden(i) || ignoreCol(i))
+                    continue;
+
+                var type = schema.GetColumnType(i);
+                var metricName = row.Schema.GetColumnName(i);
+                if (type.IsNumber)
+                {
+                    getters[i] = RowCursorUtils.GetGetterAs<double>(NumberType.R8, row, i);
+                    metricNames.Add(metricName);
+                    metricCount++;
+                }
+                else if (type.IsVector && type.ItemType == NumberType.R8)
+                {
+                    if (type.VectorSize == 0)
+                    {
+                        ch.Warning("Vector metric '{0}' has different lengths in different folds and will not be averaged for overall results.", metricName);
+                        continue;
+                    }
+
+                    vBufferGetters[i] = row.GetGetter<VBuffer<double>>(i);
+                    metricCount += type.VectorSize;
+                    var slotNamesType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, i);
+                    if (slotNamesType != null && slotNamesType.VectorSize == type.VectorSize && slotNamesType.ItemType.IsText)
+                        schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref names);
+                    else
+                    {
+                        var namesArray = names.Values;
+                        if (Utils.Size(namesArray) < type.VectorSize)
+                            namesArray = new DvText[type.VectorSize];
+                        for (int j = 0; j < type.VectorSize; j++)
+                            namesArray[j] = new DvText(string.Format("Label_{0}", j));
+                        names = new VBuffer<DvText>(type.VectorSize, namesArray);
+                    }
+                    foreach (var name in names.Items(all: true))
+                        metricNames.Add(string.Format("{0}{1}", metricName, name.Value));
+                }
+            }
+            ch.Assert(metricNames.Count == metricCount);
+            return metricNames;
+        }
+
+        internal static IDataView GetOverallMetricsData(IHostEnvironment env, IDataView data, int numFolds, out AggregatedMetric[] agg,
+            out AggregatedMetric[] weightedAgg)
+        {
+            agg = ComputeMetricsSum(env, data, numFolds, out int isWeightedCol, out int stratCol, out int stratVal, out int foldCol, out weightedAgg);
+
+            var nonAveragedCols = new List<string>();
+            var avgMetrics = GetAverageToDataView(env, data.Schema, agg, weightedAgg, numFolds, stratCol, stratVal,
+                isWeightedCol, foldCol, numFolds > 1, nonAveragedCols);
+
+            var idvList = new List<IDataView>() { avgMetrics };
+
+            var hasStrat = stratCol >= 0;
+            if (numFolds > 1 || hasStrat)
+            {
+                if (Utils.Size(nonAveragedCols) > 0)
+                {
+                    var dropArgs = new DropColumnsTransform.Arguments() { Column = nonAveragedCols.ToArray() };
+                    data = new DropColumnsTransform(env, dropArgs, data);
+                }
+                idvList.Add(data);
+            }
+
+            var overall = AppendRowsDataView.Create(env, avgMetrics.Schema, idvList.ToArray());
+
+            // If there are stratified results, apply a KeyToValue transform to get the stratification column
+            // names from the key column.
+            if (hasStrat)
+            {
+                var args = new KeyToValueTransform.Arguments();
+                args.Column = new[] { new KeyToValueTransform.Column() { Source = MetricKinds.ColumnNames.StratCol }, };
+                overall = new KeyToValueTransform(env, args, overall);
+            }
+            return overall;
+        }
+
+        internal static AggregatedMetric[] ComputeMetricsSum(IHostEnvironment env, IDataView data, int numFolds, out int isWeightedCol,
+            out int stratCol, out int stratVal, out int foldCol, out AggregatedMetric[] weightedAgg)
+        {
+            var hasWeighted = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.IsWeighted, out int wcol);
+            var hasStrats = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out int scol);
+            var hasStratVals = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out int svalcol);
+            env.Assert(hasStrats == hasStratVals);
+            var hasFoldCol = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.FoldIndex, out int fcol);
+
+            isWeightedCol = hasWeighted ? wcol : -1;
+            stratCol = hasStrats ? scol : -1;
+            stratVal = hasStratVals ? svalcol : -1;
+            foldCol = hasFoldCol ? fcol : -1;
+
+            // We currently have only double valued or vector of double valued metrics.
+            int colCount = data.Schema.ColumnCount;
+            var getters = new ValueGetter<double>[colCount];
+            var vBufferGetters = new ValueGetter<VBuffer<double>>[colCount];
+            int numResults = 0;
+            int numWeightedResults = 0;
+            AggregatedMetric[] agg;
+            using (var cursor = data.GetRowCursor(col => true))
+            {
+                DvBool isWeighted = DvBool.False;
+                ValueGetter<DvBool> isWeightedGetter;
+                if (hasWeighted)
+                    isWeightedGetter = cursor.GetGetter<DvBool>(isWeightedCol);
+                else
+                    isWeightedGetter = (ref DvBool dst) => dst = DvBool.False;
+
+                ValueGetter<uint> stratColGetter;
+                if (hasStrats)
+                {
+                    var type = cursor.Schema.GetColumnType(stratCol);
+                    stratColGetter = RowCursorUtils.GetGetterAs<uint>(type, cursor, stratCol);
+                }
+                else
+                    stratColGetter = (ref uint dst) => dst = 0;
+
+                // Get the names of the metrics. For R8 valued columns the metric name is the column name. For R8 vector valued columns
+                // the names of the metrics are the column name, followed by the slot name if it exists, or "Label_i" if it doesn't.
+                List<string> metricNames;
+                using (var ch = env.Register("GetMetricsAsString").Start("Get Metric Names"))
+                {
+                    metricNames = GetMetricNames(ch, data.Schema, cursor,
+                        i => hasWeighted && i == wcol || hasStrats && (i == scol || i == svalcol) ||
+                            hasFoldCol && i == fcol, getters, vBufferGetters);
+                    ch.Done();
+                }
+                agg = new AggregatedMetric[metricNames.Count];
+
+                Double metricVal = 0;
+                VBuffer<Double> metricVals = default(VBuffer<Double>);
+                if (hasWeighted)
+                    weightedAgg = new AggregatedMetric[metricNames.Count];
+                else
+                    weightedAgg = null;
+                uint strat = 0;
+                while (cursor.MoveNext())
+                {
+                    stratColGetter(ref strat);
+                    // REVIEW: how to print stratified results?
+                    if (strat > 0)
+                        continue;
+
+                    isWeightedGetter(ref isWeighted);
+                    if (isWeighted.IsTrue)
+                    {
+                        // If !average, we should have only one relevant row.
+                        if (numWeightedResults > numFolds)
+                            throw Contracts.Except("Multiple weighted rows found in metrics data view.");
+
+                        numWeightedResults++;
+                        UpdateSums(isWeightedCol, stratCol, stratVal, weightedAgg, numFolds > 1, metricNames, hasWeighted,
+                            hasStrats, colCount, getters, vBufferGetters, ref metricVal, ref metricVals);
+                    }
+                    else
+                    {
+                        // If !average, we should have only one relevant row.
+                        if (numResults > numFolds)
+                            throw Contracts.Except("Multiple unweighted rows found in metrics data view.");
+
+                        numResults++;
+                        UpdateSums(isWeightedCol, stratCol, stratVal, agg, numFolds > 1, metricNames, hasWeighted, hasStrats,
+                            colCount, getters, vBufferGetters, ref metricVal, ref metricVals);
+                    }
+
+                    if (numResults == numFolds && (!hasWeighted || numWeightedResults == numFolds))
+                        break;
+                }
+            }
+            return agg;
+        }
+
+        private static void UpdateSums(int isWeightedCol, int stratCol, int stratVal, AggregatedMetric[] aggregated, bool hasStdev, List<string> metricNames, bool hasWeighted, bool hasStrats, int colCount, ValueGetter<double>[] getters, ValueGetter<VBuffer<double>>[] vBufferGetters, ref double metricVal, ref VBuffer<double> metricVals)
+        {
+            int iMetric = 0;
+            for (int i = 0; i < colCount; i++)
+            {
+                if (hasWeighted && i == isWeightedCol || hasStrats && (i == stratCol || i == stratVal))
+                    continue;
+
+                if (getters[i] == null && vBufferGetters[i] == null)
+                {
+                    // REVIEW: What to do with metrics that are not doubles?
+                    continue;
+                }
+                if (getters[i] != null)
+                {
+                    getters[i](ref metricVal);
+                    aggregated[iMetric].Sum += metricVal;
+                    if (hasStdev)
+                        aggregated[iMetric].SumSq += metricVal * metricVal;
+                    aggregated[iMetric].Name = metricNames[iMetric];
+                    iMetric++;
+                }
+                else
+                {
+                    Contracts.AssertValue(vBufferGetters[i]);
+                    vBufferGetters[i](ref metricVals);
+                    foreach (var metric in metricVals.Items(all: true))
+                    {
+                        aggregated[iMetric].Sum += metric.Value;
+                        if (hasStdev)
+                            aggregated[iMetric].SumSq += metric.Value * metric.Value;
+                        aggregated[iMetric].Name = metricNames[iMetric];
+                        iMetric++;
+                    }
+                }
+            }
+            Contracts.Assert(iMetric == metricNames.Count);
+        }
+
+        internal static IDataView GetAverageToDataView(IHostEnvironment env, ISchema schema, AggregatedMetric[] agg, AggregatedMetric[] weightedAgg,
+            int numFolds, int stratCol, int stratVal, int isWeightedCol, int foldCol, bool hasStdev, List<string> nonAveragedCols = null)
+        {
+            Contracts.AssertValue(env);
+
+            int colCount = schema.ColumnCount;
+
+            var dvBldr = new ArrayDataViewBuilder(env);
+            var weightedDvBldr = isWeightedCol >= 0 ? new ArrayDataViewBuilder(env) : null;
+
+            int iMetric = 0;
+            for (int i = 0; i < colCount; i++)
+            {
+                if (schema.IsHidden(i))
+                    continue;
+
+                var type = schema.GetColumnType(i);
+                var name = schema.GetColumnName(i);
+                if (i == stratCol)
+                {
+                    var keyValuesType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, i);
+                    if (keyValuesType == null || !keyValuesType.ItemType.IsText ||
+                        keyValuesType.VectorSize != type.KeyCount)
+                    {
+                        throw env.Except("Column '{0}' must have key values metadata",
+                            MetricKinds.ColumnNames.StratCol);
+                    }
+
+                    ValueGetter<VBuffer<DvText>> getKeyValues =
+                        (ref VBuffer<DvText> dst) =>
+                        {
+                            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, stratCol, ref dst);
+                            Contracts.Assert(dst.IsDense);
+                        };
+
+                    var keys = foldCol >= 0 ? new uint[] { 0, 0 } : new uint[] { 0 };
+                    dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, getKeyValues, 0, type.KeyCount, keys);
+                    weightedDvBldr?.AddColumn(MetricKinds.ColumnNames.StratCol, getKeyValues, 0, type.KeyCount, keys);
+                }
+                else if (i == stratVal)
+                {
+                    var stratVals = foldCol >= 0 ? new[] { DvText.NA, DvText.NA } : new[] { DvText.NA };
+                    dvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVals);
+                    weightedDvBldr?.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVals);
+                }
+                else if (i == isWeightedCol)
+                {
+                    env.AssertValue(weightedDvBldr);
+                    dvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { DvBool.False, DvBool.False } : new[] { DvBool.False });
+                    weightedDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { DvBool.True, DvBool.True } : new[] { DvBool.True });
+                }
+                else if (i == foldCol)
+                {
+                    var foldVals = new[] { new DvText("Average"), new DvText("Standard Deviation") };
+                    dvBldr.AddColumn(MetricKinds.ColumnNames.FoldIndex, TextType.Instance, foldVals);
+                    weightedDvBldr?.AddColumn(MetricKinds.ColumnNames.FoldIndex, TextType.Instance, foldVals);
+                }
+                else if (type.IsNumber)
+                {
+                    dvBldr.AddScalarColumn(schema, agg, hasStdev, numFolds, iMetric);
+                    weightedDvBldr?.AddScalarColumn(schema, weightedAgg, hasStdev, numFolds, iMetric);
+                    iMetric++;
+                }
+                else if (type.IsKnownSizeVector && type.ItemType == NumberType.R8)
+                {
+                    dvBldr.AddVectorColumn(env, schema, agg, hasStdev, numFolds, iMetric, i, type, name);
+                    weightedDvBldr?.AddVectorColumn(env, schema, weightedAgg, hasStdev, numFolds, iMetric, i, type, name);
+                    iMetric += type.VectorSize;
+                }
+                else
+                    nonAveragedCols?.Add(name);
+            }
+            var idv = dvBldr.GetDataView();
+            if (weightedDvBldr != null)
+                idv = AppendRowsDataView.Create(env, idv.Schema, idv, weightedDvBldr.GetDataView());
+            return idv;
+        }
+
+        private static void AddVectorColumn(this ArrayDataViewBuilder dvBldr, IHostEnvironment env, ISchema schema,
+            AggregatedMetric[] agg, bool hasStdev, int numFolds, int iMetric, int i, ColumnType type, string columnName)
+        {
+            var vectorMetrics = new double[type.VectorSize];
+            env.Assert(vectorMetrics.Length > 0);
+            for (int j = 0; j < vectorMetrics.Length; j++)
+                vectorMetrics[j] = agg[iMetric + j].Sum / numFolds;
+            double[] vectorStdevMetrics = null;
+            if (hasStdev)
+            {
+                vectorStdevMetrics = new double[type.VectorSize];
+                for (int j = 0; j < vectorStdevMetrics.Length; j++)
+                    vectorStdevMetrics[j] = Math.Sqrt(agg[iMetric + j].SumSq / numFolds - vectorMetrics[j] * vectorMetrics[j]);
+            }
+            var names = new DvText[type.VectorSize];
+            for (int j = 0; j < names.Length; j++)
+                names[j] = new DvText(agg[iMetric + j].Name);
+            var slotNames = new VBuffer<DvText>(type.VectorSize, names);
+            ValueGetter<VBuffer<DvText>> getSlotNames = (ref VBuffer<DvText> dst) => dst = slotNames;
+            if (vectorStdevMetrics != null)
+            {
+                env.AssertValue(vectorStdevMetrics);
+                dvBldr.AddColumn(columnName, getSlotNames, NumberType.R8, new[] { vectorMetrics, vectorStdevMetrics });
+            }
+            else
+                dvBldr.AddColumn(columnName, getSlotNames, NumberType.R8, new[] { vectorMetrics });
+        }
+
+        private static void AddScalarColumn(this ArrayDataViewBuilder dvBldr, ISchema schema, AggregatedMetric[] agg, bool hasStdev, int numFolds, int iMetric)
+        {
+            Contracts.AssertValue(dvBldr);
+
+            var avg = agg[iMetric].Sum / numFolds;
+            if (hasStdev)
+                dvBldr.AddColumn(agg[iMetric].Name, NumberType.R8, avg, Math.Sqrt(agg[iMetric].SumSq / numFolds - avg * avg));
+            else
+                dvBldr.AddColumn(agg[iMetric].Name, NumberType.R8, avg);
+        }
+
+        /// <summary>
+        /// Takes a data view containing one or more rows of metrics, and returns a data view containing additional 
+        /// rows with the average and the standard deviation of the metrics in the input data view.
+        /// </summary>
+        public static IDataView CombineFoldMetricsDataViews(IHostEnvironment env, IDataView data, int numFolds)
+        {
+            return GetOverallMetricsData(env, data, numFolds, out var _, out var _);
+        }
     }
 
     public static class MetricWriter
@@ -791,13 +1430,27 @@ namespace Microsoft.ML.Runtime.Data
         /// metrics. Otherwise it is assigned null.</param>
         public static string GetPerFoldResults(IHostEnvironment env, IDataView fold, out string weightedMetrics)
         {
-            IDataView avgMetrics;
-            int isWeightedCol;
-            if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.IsWeighted, out isWeightedCol))
-                weightedMetrics = GetMetricsAsString(env, fold, true, 1, out avgMetrics);
-            else
-                weightedMetrics = null;
-            return GetMetricsAsString(env, fold, false, 1, out avgMetrics);
+            return GetFoldMetricsAsString(env, fold, out weightedMetrics);
+        }
+
+        private static string GetOverallMetricsAsString(double[] sumMetrics, double[] sumSqMetrics, int numFolds, bool weighted, bool average, List<string> metricNames)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < metricNames.Count; i++)
+            {
+                var avg = sumMetrics[i] / numFolds;
+                sb.Append(string.Format("{0}{1}: ", weighted ? "Weighted " : "", metricNames[i]).PadRight(20));
+                sb.Append(string.Format(CultureInfo.InvariantCulture, "{0,7:N6}", avg));
+                if (average)
+                {
+                    Contracts.Assert(sumSqMetrics != null || numFolds == 1);
+                    sb.AppendLine(string.Format(" ({0:N4})", numFolds == 1 ? 0 :
+                        Math.Sqrt(sumSqMetrics[i] / numFolds - avg * avg)));
+                }
+                else
+                    sb.AppendLine();
+            }
+            return sb.ToString();
         }
 
         // This method returns a string representation of a set of metrics. If there are stratification columns, it looks for columns named
@@ -808,269 +1461,25 @@ namespace Microsoft.ML.Runtime.Data
         // or a known length vector of doubles).
         // If average is false, no averaging is done, and instead we check that there is exactly one relevant row. Otherwise, we
         // add the vector columns of variable length of the list of non-averagable columns if nonAveragedCols is not null.
-        private static string GetMetricsAsString(IHostEnvironment env, IDataView data, bool weighted,
-            int numFolds, out IDataView avgMetricsDataView, bool average = false, List<string> nonAveragedCols = null)
+        private static string GetFoldMetricsAsString(IHostEnvironment env, IDataView data, out string weightedMetricsString)
         {
-            int isWeightedCol;
-            bool hasWeighted = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.IsWeighted, out isWeightedCol);
-            // If the IsWeighted column is not present, weighted must be false.
-            Contracts.Assert(hasWeighted || !weighted);
-
-            int stratCol;
-            bool hasStrats = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out stratCol);
-            int stratVal;
-            bool hasStratVals = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
-            Contracts.Assert(hasStrats == hasStratVals);
-
-            int foldCol;
-            bool hasFoldCol = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.FoldIndex, out foldCol);
-
-            // We currently have only double valued or vector of double valued metrics.
-            var colCount = data.Schema.ColumnCount;
-            var getters = new ValueGetter<double>[colCount];
-            var vBufferGetters = new ValueGetter<VBuffer<double>>[colCount];
-
-            double[] avgMetrics;
-            double[] sumSqMetrics;
-            List<string> metricNames;
-            int numResults = 0;
-            using (var cursor = data.GetRowCursor(col => true))
-            {
-                DvBool isWeighted = DvBool.False;
-                ValueGetter<DvBool> isWeightedGetter;
-                if (hasWeighted)
-                    isWeightedGetter = cursor.GetGetter<DvBool>(isWeightedCol);
-                else
-                    isWeightedGetter = (ref DvBool dst) => dst = DvBool.False;
-
-                ValueGetter<uint> stratColGetter;
-                if (hasStrats)
-                {
-                    var type = cursor.Schema.GetColumnType(stratCol);
-                    stratColGetter = RowCursorUtils.GetGetterAs<uint>(type, cursor, stratCol);
-                }
-                else
-                    stratColGetter = (ref uint dst) => dst = 0;
-
-                // Get the names of the metrics. For R8 valued columns the metric name is the column name. For R8 vector valued columns
-                // the names of the metrics are the column name, followed by the slot name if it exists, or "Label_i" if it doesn't.
-                using (var ch = env.Register("GetMetricsAsString").Start("Get Metric Names"))
-                {
-                    metricNames = GetMetricNames(ch, data.Schema, cursor,
-                        i => hasWeighted && i == isWeightedCol || hasStrats && (i == stratCol || i == stratVal) ||
-                            hasFoldCol && i == foldCol, getters, vBufferGetters);
-                    ch.Done();
-                }
-
-                Double metricVal = 0;
-                VBuffer<Double> metricVals = default(VBuffer<Double>);
-                avgMetrics = new double[metricNames.Count];
-                sumSqMetrics = new double[metricNames.Count];
-                uint strat = 0;
-                while (cursor.MoveNext())
-                {
-                    isWeightedGetter(ref isWeighted);
-                    if (isWeighted.IsTrue != weighted)
-                        continue;
-
-                    stratColGetter(ref strat);
-                    // REVIEW: how to print stratified results?
-                    if (strat > 0)
-                        continue;
-
-                    // If !average, we should have only one relevant row.
-                    if (!average && numResults > 0)
-                        throw Contracts.Except("Multiple {0} rows found in metrics data view.", weighted ? "weighted" : "unweighted");
-
-                    numResults++;
-                    int iMetric = 0;
-                    for (int i = 0; i < colCount; i++)
-                    {
-                        if (hasWeighted && i == isWeightedCol || hasStrats && (i == stratCol || i == stratVal))
-                            continue;
-
-                        // REVIEW: What to do with metrics that are not doubles?
-                        if (getters[i] != null)
-                        {
-                            getters[i](ref metricVal);
-                            avgMetrics[iMetric] += metricVal;
-                            if (sumSqMetrics != null)
-                                sumSqMetrics[iMetric] += metricVal * metricVal;
-                            iMetric++;
-                        }
-                        else if (vBufferGetters[i] != null)
-                        {
-                            vBufferGetters[i](ref metricVals);
-                            foreach (var metric in metricVals.Items(all: true))
-                            {
-                                avgMetrics[iMetric] += metric.Value;
-                                if (sumSqMetrics != null)
-                                    sumSqMetrics[iMetric] += metric.Value * metric.Value;
-                                iMetric++;
-                            }
-                        }
-                    }
-                    Contracts.Assert(iMetric == metricNames.Count);
-
-                    if (numResults == numFolds)
-                        break;
-                }
-            }
+            var metrics = EvaluateUtils.ComputeMetricsSum(env, data, 1, out int isWeightedCol, out int stratCol,
+                out int stratVal, out int foldCol, out var weightedMetrics);
 
             var sb = new StringBuilder();
-            for (int i = 0; i < metricNames.Count; i++)
+            var weightedSb = isWeightedCol >= 0 ? new StringBuilder() : null;
+            for (int i = 0; i < metrics.Length; i++)
             {
-                avgMetrics[i] /= numResults;
-                sb.Append(string.Format("{0}{1}: ", weighted ? "Weighted " : "", metricNames[i]).PadRight(20));
-                sb.Append(string.Format(CultureInfo.InvariantCulture, "{0,7:N6}", avgMetrics[i]));
-                if (average)
-                {
-                    Contracts.AssertValue(sumSqMetrics);
-                    sb.AppendLine(string.Format(" ({0:N4})", numResults == 1 ? 0 :
-                        Math.Sqrt(sumSqMetrics[i] / numResults - avgMetrics[i] * avgMetrics[i])));
-                }
-                else
-                    sb.AppendLine();
+                sb.Append($"{metrics[i].Name}: ".PadRight(20));
+                sb.Append(string.Format(CultureInfo.InvariantCulture, "{0,7:N6}", metrics[i].Sum));
+                weightedSb?.Append($"Weighted {weightedMetrics[i].Name}: ".PadRight(20));
+                weightedSb?.Append(string.Format(CultureInfo.InvariantCulture, "{0,7:N6}", weightedMetrics[i].Sum));
+                sb.AppendLine();
+                weightedSb?.AppendLine();
             }
 
-            if (average)
-            {
-                var dvBldr = new ArrayDataViewBuilder(env);
-                int iMetric = 0;
-                for (int i = 0; i < colCount; i++)
-                {
-                    if (hasStrats && i == stratCol)
-                    {
-                        var type = data.Schema.GetColumnType(i);
-                        var keyValuesType = data.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, i);
-                        if (keyValuesType == null || !keyValuesType.ItemType.IsText ||
-                            keyValuesType.VectorSize != type.KeyCount)
-                        {
-                            throw env.Except("Column '{0}' must have key values metadata",
-                                MetricKinds.ColumnNames.StratCol);
-                        }
-
-                        ValueGetter<VBuffer<DvText>> getKeyValues =
-                            (ref VBuffer<DvText> dst) =>
-                            {
-                                data.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, stratCol, ref dst);
-                                Contracts.Assert(dst.IsDense);
-                            };
-
-                        dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, getKeyValues, 0, type.KeyCount, (uint)0);
-                    }
-                    else if (hasStratVals && i == stratVal)
-                        dvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, DvText.NA);
-                    else if (hasWeighted && i == isWeightedCol)
-                        dvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, weighted ? DvBool.True : DvBool.False);
-                    else if (hasFoldCol && i == foldCol)
-                    {
-                        var avg = new DvText("Average");
-                        dvBldr.AddColumn(MetricKinds.ColumnNames.FoldIndex, TextType.Instance, avg);
-                    }
-                    else if (getters[i] != null)
-                    {
-                        dvBldr.AddColumn(data.Schema.GetColumnName(i), NumberType.R8, avgMetrics[iMetric]);
-                        iMetric++;
-                    }
-                    else if (vBufferGetters[i] != null)
-                    {
-                        var type = data.Schema.GetColumnType(i);
-                        var vectorMetrics = new double[type.VectorSize];
-                        env.Assert(vectorMetrics.Length > 0);
-                        Array.Copy(avgMetrics, iMetric, vectorMetrics, 0, vectorMetrics.Length);
-                        var slotNamesType = data.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, i);
-                        var name = data.Schema.GetColumnName(i);
-                        var slotNames = default(VBuffer<DvText>);
-                        if (slotNamesType != null && slotNamesType.ItemType.IsText &&
-                            slotNamesType.VectorSize == type.VectorSize)
-                        {
-                            data.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref slotNames);
-                            Contracts.Assert(slotNames.IsDense);
-                            var values = slotNames.Values;
-                            for (int j = 0; j < values.Length; j++)
-                                values[j] = new DvText(name + values[j]);
-                            slotNames = new VBuffer<DvText>(slotNames.Length, values, slotNames.Indices);
-                        }
-                        else
-                        {
-                            var values = slotNames.Values;
-                            if (Utils.Size(values) < type.VectorSize)
-                                values = new DvText[type.VectorSize];
-                            for (int j = 0; j < type.VectorSize; j++)
-                                values[j] = new DvText(name + j);
-                            slotNames = new VBuffer<DvText>(type.VectorSize, values, slotNames.Indices);
-                        }
-                        ValueGetter<VBuffer<DvText>> getSlotNames = (ref VBuffer<DvText> dst) => dst = slotNames;
-                        dvBldr.AddColumn(name, getSlotNames, NumberType.R8, new[] { vectorMetrics });
-                        iMetric += vectorMetrics.Length;
-                    }
-                    else
-                        nonAveragedCols?.Add(data.Schema.GetColumnName(i));
-                }
-                Contracts.Assert(iMetric == metricNames.Count);
-                avgMetricsDataView = dvBldr.GetDataView();
-            }
-            else
-                avgMetricsDataView = null;
-
+            weightedMetricsString = weightedSb?.ToString();
             return sb.ToString();
-        }
-
-        private static List<string> GetMetricNames(IChannel ch, ISchema schema, IRow row, Func<int, bool> ignoreCol,
-            ValueGetter<double>[] getters, ValueGetter<VBuffer<double>>[] vBufferGetters)
-        {
-            Contracts.AssertValue(schema);
-            Contracts.AssertValue(row);
-            Contracts.Assert(Utils.Size(getters) == schema.ColumnCount);
-            Contracts.Assert(Utils.Size(vBufferGetters) == schema.ColumnCount);
-
-            // Get the names of the metrics. For R8 valued columns the metric name is the column name. For R8 vector valued columns
-            // the names of the metrics are the column name, followed by the slot name if it exists, or "Label_i" if it doesn't. 
-            VBuffer<DvText> names = default(VBuffer<DvText>);
-            int metricCount = 0;
-            var metricNames = new List<string>();
-            for (int i = 0; i < schema.ColumnCount; i++)
-            {
-                if (schema.IsHidden(i) || ignoreCol(i))
-                    continue;
-
-                var type = schema.GetColumnType(i);
-                var metricName = row.Schema.GetColumnName(i);
-                if (type.IsNumber)
-                {
-                    getters[i] = RowCursorUtils.GetGetterAs<double>(NumberType.R8, row, i);
-                    metricNames.Add(metricName);
-                    metricCount++;
-                }
-                else if (type.IsVector && type.ItemType == NumberType.R8)
-                {
-                    if (type.VectorSize == 0)
-                    {
-                        ch.Warning("Vector metric '{0}' has different lengths in different folds and will not be averaged for overall results.", metricName);
-                        continue;
-                    }
-
-                    vBufferGetters[i] = row.GetGetter<VBuffer<double>>(i);
-                    metricCount += type.VectorSize;
-                    var slotNamesType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, i);
-                    if (slotNamesType != null && slotNamesType.VectorSize == type.VectorSize && slotNamesType.ItemType.IsText)
-                        schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref names);
-                    else
-                    {
-                        var namesArray = names.Values;
-                        if (Utils.Size(namesArray) < type.VectorSize)
-                            namesArray = new DvText[type.VectorSize];
-                        for (int j = 0; j < type.VectorSize; j++)
-                            namesArray[j] = new DvText(string.Format("Label_{0}", j));
-                        names = new VBuffer<DvText>(type.VectorSize, namesArray);
-                    }
-                    foreach (var name in names.Items(all: true))
-                        metricNames.Add(string.Format("{0} {1}", metricName, name.Value));
-                }
-            }
-            Contracts.Assert(metricNames.Count == metricCount);
-            return metricNames;
         }
 
         // Get a string representation of a confusion table.
@@ -1181,58 +1590,26 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public static void PrintOverallMetrics(IHostEnvironment env, IChannel ch, string filename, IDataView overall, int numFolds)
         {
+            var overallWithAvg = EvaluateUtils.GetOverallMetricsData(env, overall, numFolds, out var agg, out var weightedAgg);
+
             var sb = new StringBuilder();
             sb.AppendLine();
             sb.AppendLine("OVERALL RESULTS");
             sb.AppendLine("---------------------------------------");
 
-            int isWeighted;
-            IDataView weightedAvgMetrics = null;
             var nonAveragedCols = new List<string>();
-            if (overall.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.IsWeighted, out isWeighted))
-                sb.Append(GetMetricsAsString(env, overall, true, numFolds, out weightedAvgMetrics, true));
-            IDataView avgMetrics;
-            sb.AppendLine(GetMetricsAsString(env, overall, false, numFolds, out avgMetrics, true, nonAveragedCols));
-            env.AssertValue(avgMetrics);
-            sb.AppendLine("---------------------------------------");
+            if (weightedAgg != null)
+                sb.Append(GetOverallMetricsAsString(weightedAgg.Select(x => x.Sum).ToArray(), weightedAgg.Select(x => x.SumSq).ToArray(), numFolds, true, true, weightedAgg.Select(x => x.Name).ToList()));
+            sb.Append(GetOverallMetricsAsString(agg.Select(x => x.Sum).ToArray(), agg.Select(x => x.SumSq).ToArray(), numFolds, false, true, agg.Select(x => x.Name).ToList()));
+            sb.AppendLine("\n---------------------------------------");
             ch.Info(sb.ToString());
 
             if (!string.IsNullOrEmpty(filename))
             {
                 using (var file = env.CreateOutputFile(filename))
                 {
-                    // idvList will contain all the dataviews that should be appended with AppendRowsDataView.
-                    // If numResults=1, then we just save the average metrics. Otherwise, we remove all the non-metric columns
-                    // (except for the IsWeighted column and FoldIndex column if present), and append to the average results.
-                    var idvList = new List<IDataView>() { avgMetrics };
-                    if (weightedAvgMetrics != null)
-                        idvList.Add(weightedAvgMetrics);
-
-                    int stratCol;
-                    var hasStrat = overall.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out stratCol);
-                    if (numFolds > 1 || hasStrat)
-                    {
-                        if (Utils.Size(nonAveragedCols) > 0)
-                        {
-                            var dropArgs = new DropColumnsTransform.Arguments() { Column = nonAveragedCols.ToArray() };
-                            overall = new DropColumnsTransform(env, dropArgs, overall);
-                        }
-                        idvList.Add(overall);
-                    }
-
-                    var summary = AppendRowsDataView.Create(env, avgMetrics.Schema, idvList.ToArray());
-
-                    // If there are stratified results, apply a KeyToValue transform to get the stratification column
-                    // names from the key column.
-                    if (hasStrat)
-                    {
-                        var args = new KeyToValueTransform.Arguments();
-                        args.Column = new[] { new KeyToValueTransform.Column() { Source = MetricKinds.ColumnNames.StratCol }, };
-                        summary = new KeyToValueTransform(env, args, summary);
-                    }
-
                     var saverArgs = new TextSaver.Arguments() { Dense = true, Silent = true };
-                    DataSaverUtils.SaveDataView(ch, new TextSaver(env, saverArgs), summary, file);
+                    DataSaverUtils.SaveDataView(ch, new TextSaver(env, saverArgs), overallWithAvg, file);
                 }
             }
         }

@@ -38,9 +38,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string LoadName = "ClusteringEvaluator";
 
-        private const string Nmi = "NMI";
-        private const string AvgMinScore = "AvgMinScore";
-        private const string Dbi = "DBI";
+        public const string Nmi = "NMI";
+        public const string AvgMinScore = "AvgMinScore";
+        public const string Dbi = "DBI";
 
         private readonly bool _calculateDbi;
 

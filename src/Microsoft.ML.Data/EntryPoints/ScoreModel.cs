@@ -72,11 +72,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-
-            IPredictor predictor;
             var inputData = input.Data;
-            RoleMappedData data;
-            input.PredictorModel.PrepareData(host, inputData, out data, out predictor);
+            input.PredictorModel.PrepareData(host, inputData, out RoleMappedData data, out IPredictor predictor);
 
             IDataView scoredPipe;
             using (var ch = host.Start("Creating scoring pipeline"))
