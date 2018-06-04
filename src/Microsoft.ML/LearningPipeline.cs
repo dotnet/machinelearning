@@ -116,7 +116,7 @@ namespace Microsoft.ML
         /// <returns>Pipeline with added item</returns>
         public LearningPipeline Append(ILearningPipelineItem item)
         {
-            Items.Add(item);
+            Add(item);
             return this;
         }
         /// <summary>
