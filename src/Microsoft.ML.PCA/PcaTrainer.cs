@@ -486,19 +486,8 @@ namespace Microsoft.ML.Runtime.PCA
             names[_rank] = "MeanVector";
             cols[_rank] = _mean;
 
-            ValueGetter<VBuffer<DvText>> getSlotNames =
-                (ref VBuffer<DvText> dst) =>
-                {
-                    var values = new DvText[_dimension];
-                    for (var i = 0; i < _dimension; ++i)
-                        values[i] = new DvText("Dim" + i);
-
-                    var tmp = new VBuffer<DvText>(_dimension, values);
-                    tmp.CopyTo(ref dst);
-                };
-
             bldr.AddColumn("VectorName", names);
-            bldr.AddColumn("VectorData", getSlotNames, NumberType.R4, cols);
+            bldr.AddColumn("VectorData", NumberType.R4, cols);
 
             return bldr.GetDataView();
         }
