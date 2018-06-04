@@ -27,7 +27,7 @@ namespace Microsoft.ML.Scenarios
             var model = pipeline.Train<SentimentData, SentimentPrediction>();
             var testData = PrepareTextLoaderTestData();
             var evaluator = new BinaryClassificationEvaluator();
-            BinaryClassificationMetrics metrics = evaluator.Evaluate(model, testData);
+            var metrics = evaluator.Evaluate(model, testData);
             ValidateExamples(model);
             ValidateBinaryMetrics(metrics);
         }
