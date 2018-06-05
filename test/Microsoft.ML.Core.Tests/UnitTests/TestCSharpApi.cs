@@ -593,5 +593,68 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
             }
         }
+
+        [Fact]
+        public void TestOvaMacro()
+        {
+            // Get datasets
+            var dataPath = GetDataPath(@"iris.txt");
+            using (var env = new TlcEnvironment(42))
+            {
+
+                var experiment = env.CreateExperiment();
+                var importInput = new ML.Data.TextLoader(dataPath);
+                importInput.Arguments.Column = new ML.Data.TextLoaderColumn[]
+                {
+                    new ML.Data.TextLoaderColumn { Name = "Label", Source = new[] { new ML.Data.TextLoaderRange(0) } },
+                    new ML.Data.TextLoaderColumn { Name = "Features", Source = new[] { new ML.Data.TextLoaderRange(1,4) } }
+                };
+                var importOutput = experiment.Add(importInput);
+                var subGraph = env.CreateExperiment();
+                var learnerInput = new ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier
+                {
+                    TrainingData = importOutput.Data,
+                    NumThreads = 1
+                };
+                var learnerOutput = subGraph.Add(learnerInput);
+                var oneVersusAll = new ML.Models.OneVersusAll
+                {
+                    TrainingData = importOutput.Data,
+                    Nodes = subGraph,
+                    UseProbabilities = true,
+                };
+                var ovaOutput = experiment.Add(oneVersusAll);
+                var scoreInput = new ML.Transforms.DatasetScorer
+                {
+                    Data = importOutput.Data,
+                    PredictorModel = ovaOutput.PredictorModel
+                };
+                var scoreOutput = experiment.Add(scoreInput);
+
+                var evalInput = new ML.Models.ClassificationEvaluator
+                {
+                    Data = scoreOutput.ScoredData
+                };
+                var evalOutput = experiment.Add(evalInput);
+                experiment.Compile();
+                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                experiment.Run();
+                var data = experiment.GetOutput(evalOutput.OverallMetrics);
+                var schema = data.Schema;
+                var b = schema.TryGetColumnIndex(MultiClassClassifierEvaluator.AccuracyMacro, out int aucCol);
+                Assert.True(b);
+                using (var cursor = data.GetRowCursor(col => col == aucCol))
+                {
+                    var getter = cursor.GetGetter<double>(aucCol);
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    double auc = 0;
+                    getter(ref auc);
+                    Assert.Equal(0.96, auc, 2);
+                    b = cursor.MoveNext();
+                    Assert.False(b);
+                }
+            }
+        }
     }
 }

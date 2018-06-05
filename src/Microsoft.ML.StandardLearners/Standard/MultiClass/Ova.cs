@@ -200,10 +200,13 @@ namespace Microsoft.ML.Runtime.Learners
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
             host.CheckNonEmpty(input.ModelArray, nameof(input.ModelArray));
-
+            // Something tells me we should put normalization as part of macro expansion, but since i get 
+            // subgraph instead of learner it's a bit tricky to get learner and decide should we add 
+            // normalization node or not, plus everywhere in code we leave that reposnsibility to TransformModel.
+            var normalizedView = input.ModelArray[0].TransformModel.Apply(host, input.TrainingData);
             using (var ch = host.Start("CombineOvaModels"))
             {
-                ISchema schema = input.TrainingData.Schema;
+                ISchema schema = normalizedView.Schema;
                 var label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.LabelColumn),
                     input.LabelColumn,
                     DefaultColumnNames.Label);
@@ -211,7 +214,7 @@ namespace Microsoft.ML.Runtime.Learners
                     input.FeatureColumn, DefaultColumnNames.Features);
                 var weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.WeightColumn),
                     input.WeightColumn, DefaultColumnNames.Weight);
-                var data = TrainUtils.CreateExamples(input.TrainingData, label, feature, null, weight);
+                var data = TrainUtils.CreateExamples(normalizedView, label, feature, null, weight);
 
                 return new ModelOperations.PredictorModelOutput
                 {
