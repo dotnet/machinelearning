@@ -142,6 +142,12 @@ namespace Microsoft.ML.Models
                             environment,
                             experiment.GetOutput(crossValidateOutput.OverallMetrics));
                     }
+                    else if( Kind== MacroUtilsTrainerKinds.SignatureClusteringTrainer)
+                    {
+                        cvOutput.ClusterMetrics = ClusterMetrics.FromOverallMetrics(
+                            environment,
+                            experiment.GetOutput(crossValidateOutput.OverallMetrics));
+                    }
                     else
                     {
                         //Implement metrics for ranking, clustering and anomaly detection.
@@ -174,6 +180,7 @@ namespace Microsoft.ML.Models
         public List<BinaryClassificationMetrics> BinaryClassificationMetrics;
         public List<ClassificationMetrics> ClassificationMetrics;
         public List<RegressionMetrics> RegressionMetrics;
+        public List<ClusterMetrics> ClusterMetrics;
         public PredictionModel<TInput, TOutput>[] PredictorModels;
 
         //REVIEW: Add warnings and per instance results and implement 

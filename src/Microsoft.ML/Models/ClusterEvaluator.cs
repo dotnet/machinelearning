@@ -8,22 +8,21 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Models
 {
-    public sealed partial class ClassificationEvaluator
+    public sealed partial class ClusterEvaluator
     {
         /// <summary>
-        /// Computes the quality metrics for the multi-class classification PredictionModel
-        /// using the specified data set.
+        /// Computes the quality metrics for the PredictionModel using the specified data set.
         /// </summary>
         /// <param name="model">
-        /// The trained multi-class classification PredictionModel to be evaluated.
+        /// The trained PredictionModel to be evaluated.
         /// </param>
         /// <param name="testData">
         /// The test data that will be predicted and used to evaluate the model.
         /// </param>
         /// <returns>
-        /// A ClassificationMetrics instance that describes how well the model performed against the test data.
+        /// A ClusterMetrics instance that describes how well the model performed against the test data.
         /// </returns>
-        public ClassificationMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
+        public ClusterMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
         {
             using (var environment = new TlcEnvironment())
             {
@@ -55,20 +54,15 @@ namespace Microsoft.ML.Models
                 experiment.Run();
 
                 IDataView overallMetrics = experiment.GetOutput(evaluteOutput.OverallMetrics);
+
                 if (overallMetrics == null)
                 {
-                    throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(ClassificationEvaluator)} Evaluate.");
+                    throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(ClusterEvaluator)} Evaluate.");
                 }
 
-                IDataView confusionMatrix = experiment.GetOutput(evaluteOutput.ConfusionMatrix);
-                if (confusionMatrix == null)
-                {
-                    throw environment.Except($"Could not find ConfusionMatrix in the results returned in {nameof(ClassificationEvaluator)} Evaluate.");
-                }
+                var metric = ClusterMetrics.FromOverallMetrics(environment, overallMetrics);
 
-                var metric = ClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
-
-                Contracts.Check(metric.Count == 1, $"Exactly one metric set was expected but found {metric.Count} metrics");
+                Contracts.Assert(metric.Count == 1, $"Exactly one metric set was expected but found {metric.Count} metrics");
 
                 return metric[0];
             }
