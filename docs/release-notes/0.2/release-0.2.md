@@ -26,23 +26,27 @@ Below are some of the highlights from this release.
 
 Clustering is an unsupervised learning task that groups sets of items based on their features. It identifies which items are more similar to each other than other items. This might be useful in scenarios such as organizing news articles into groups based on their topics, segmenting users based on their shopping habits, and grouping viewers based on their taste in movies. 
 
-ML.NET 0.2 exposes `KMeansPlusPlusClusterer` which implments K-Means++ clustering. [This test](https://github.com/dotnet/machinelearning/blob/78810563616f3fcb0b63eb8a50b8b2e62d9d65fc/test/Microsoft.ML.Tests/Scenarios/ClusteringTests.cs) shows how to use it.
+ML.NET 0.2 exposes `KMeansPlusPlusClusterer` which implments K-Means++ clustering. [This test](https://github.com/dotnet/machinelearning/blob/78810563616f3fcb0b63eb8a50b8b2e62d9d65fc/test/Microsoft.ML.Tests/Scenarios/ClusteringTests.cs) shows how to use it (from [#222](https://github.com/dotnet/machinelearning/pull/222)).
 
 #### Train using data objects in addition to loading data from a file: `CollectionDataSource`
 
-ML.NET 0.1 enabled loading data from a delimited text file. `CollectionDataSource` in ML.NET 0.2 adds the ability to use a collection of objects as the input to a `LearningPipeline`. See sample usage [here](https://github.com/dotnet/machinelearning/blob/78810563616f3fcb0b63eb8a50b8b2e62d9d65fc/test/Microsoft.ML.Tests/CollectionDataSourceTests.cs#L133). 
+ML.NET 0.1 enabled loading data from a delimited text file. `CollectionDataSource` in ML.NET 0.2 adds the ability to use a collection of objects as the input to a `LearningPipeline`. See sample usage [here](https://github.com/dotnet/machinelearning/blob/78810563616f3fcb0b63eb8a50b8b2e62d9d65fc/test/Microsoft.ML.Tests/CollectionDataSourceTests.cs#L133) (from [#106](https://github.com/dotnet/machinelearning/pull/106)). 
 
 #### Easier model validation with cross-validation and train-test
 
-[Cross-validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) is an approach to validating how well your model statistically performs. It does not require a separate test dataset, but rather uses your training data to test your model (it partitions the data so different data is used for training and testing, and it does this multiple times). [Here](https://github.com/dotnet/machinelearning/blob/78810563616f3fcb0b63eb8a50b8b2e62d9d65fc/test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs#L51) is an example for doing cross-validation.
+[Cross-validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) is an approach to validating how well your model statistically performs. It does not require a separate test dataset, but rather uses your training data to test your model (it partitions the data so different data is used for training and testing, and it does this multiple times). [Here](https://github.com/dotnet/machinelearning/blob/78810563616f3fcb0b63eb8a50b8b2e62d9d65fc/test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs#L51) is an example for doing cross-validation (from [#212](https://github.com/dotnet/machinelearning/pull/212)).
 
 Train-test is a shortcut to testing your model on a separate dataset. See example usage [here](https://github.com/dotnet/machinelearning/blob/78810563616f3fcb0b63eb8a50b8b2e62d9d65fc/test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs#L36). 
 
-Note that the `LearningPipeline` is prepared the same way in both cases.
+Note that the `LearningPipeline` is prepared the same way in both cases. 
 
 #### Speed improvement for predictions
 
 By not creating a parallel cursor for dataviews that only have one element, we get a significant speed-up for predictions (see [#179](https://github.com/dotnet/machinelearning/issues/179) for a few measurements).
+
+#### Updated `TextLoader` API
+
+The `TextLoader` API is now code generated and was updated to take explicit declarations for the columns in the data, which is required in some scenarios. See [#142](https://github.com/dotnet/machinelearning/pull/142).
 
 #### Added daily NuGet builds of the project
 
