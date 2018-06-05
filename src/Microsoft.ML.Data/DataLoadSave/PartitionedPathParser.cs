@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="path">The file path.</param>
         /// <returns>The resulting column definitions.</returns>
-        /// <exception cref="FormatException">Thrown when parsing fails.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when parsing fails.</exception>
         IEnumerable<PartitionedFileLoader.Column> ParseColumns(string path);
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="path">The file path.</param>
         /// <returns>The resulting column values.</returns>
-        /// <exception cref="FormatException">Thrown when parsing fails.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when parsing fails.</exception>
         IEnumerable<string> ParseValues(string path);
     }
 
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (col.Source < 0 || col.Source >= values.Count())
                 {
-                    throw new FormatException($"Column definition {col} is outside the bounds of path {path}.");
+                    throw Contracts.Except($"Column definition {col} is outside the bounds of path {path}.");
                 }
             }
 
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (!TryParseNames(path, out List<string> names))
             {
-                throw new FormatException($"Failed to parse names from path {path}. Expected directory names with the format 'Name=Value'.");
+                throw Contracts.Except($"Failed to parse names from path {path}. Expected directory names with the format 'Name=Value'.");
             }
 
             _columns = new PartitionedFileLoader.Column[names.Count];
@@ -300,12 +300,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (!TryParseValues(path, out List<string> values))
             {
-                throw new FormatException($"Failed to parse names from path {path}. Expected directory names with the format 'Name=Value'.");
+                throw Contracts.Except($"Failed to parse names from path {path}. Expected directory names with the format 'Name=Value'.");
             }
 
             if (values.Count != _columns.Length)
             {
-                throw new FormatException($"The extracted value count of {values.Count} does not match the expected Column count of {_columns.Length} for path {path}");
+                throw Contracts.Except($"The extracted value count of {values.Count} does not match the expected Column count of {_columns.Length} for path {path}");
             }
 
             return values;

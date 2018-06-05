@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.Data
                         UpdateSubGetters();
                         UpdateColumnValues(relativePath, values);
                     }
-                    catch (FormatException e)
+                    catch (InvalidOperationException e)
                     {
                         // Failed to load this file so skip.
                         Ch.Warning(MessageSensitivity.Schema, e.Message);
@@ -706,7 +706,7 @@ namespace Microsoft.ML.Runtime.Data
                     results = _parent._pathParser.ParseValues(path).ToList();
                     return true;
                 }
-                catch (FormatException e)
+                catch (InvalidOperationException e)
                 {
                     Ch.Warning($"Could not parse column values from the path {path}. Ex: {e.Message}");
                     results = null;
