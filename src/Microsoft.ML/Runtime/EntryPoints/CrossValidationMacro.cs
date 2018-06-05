@@ -205,8 +205,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     Nodes = new JArray(graph.Select(n => n.ToJson()).ToArray()),
                     TransformModel = null,
                     LabelColumn = input.LabelColumn,
-                    GroupColumn = input.GroupColumn.IsExplicit ? input.GroupColumn : Optional<string>.Implicit(DefaultColumnNames.GroupId),
-                    WeightColumn = input.WeightColumn.IsExplicit ? input.WeightColumn : Optional<string>.Implicit(DefaultColumnNames.Weight)
+                    GroupColumn = input.GroupColumn,
+                    WeightColumn = input.WeightColumn
                 };
 
                 if (transformModelVarName != null)
@@ -409,7 +409,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var combineConfusionMatrix = new Var<IDataView>();
                 combineConfusionMatrix.VarName = node.GetOutputVariableName(nameof(Output.ConfusionMatrix));
                 combineOutputMap.Add(nameof(TrainTestMacro.Output.ConfusionMatrix), combineConfusionMatrix.VarName);
-
             }
             subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
             subGraphNodes.Add(EntryPointNode.Create(env, "Models.CrossValidationResultsCombiner", combineArgs, node.Catalog, node.Context, combineInputBindingMap, combineInputMap, combineOutputMap));
@@ -484,22 +483,22 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             switch (kind)
             {
-            case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
-                return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer:
-                return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
-                return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureRankerTrainer:
-                return new RankerMamlEvaluator(env, new RankerMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
-                return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureClusteringTrainer:
-                return new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
-                return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
-            default:
-                throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
+                case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
+                    return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer:
+                    return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
+                    return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureRankerTrainer:
+                    return new RankerMamlEvaluator(env, new RankerMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
+                    return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureClusteringTrainer:
+                    return new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
+                    return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
+                default:
+                    throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
             }
         }
     }

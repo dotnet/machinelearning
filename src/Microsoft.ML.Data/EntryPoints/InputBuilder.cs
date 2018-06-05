@@ -429,81 +429,81 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             {
                 switch (dt)
                 {
-                case TlcModule.DataKind.Bool:
-                    return value.Value<bool>();
-                case TlcModule.DataKind.String:
-                    return value.Value<string>();
-                case TlcModule.DataKind.Char:
-                    return value.Value<char>();
-                case TlcModule.DataKind.Enum:
-                    if (!Enum.IsDefined(type, value.Value<string>()))
-                        throw ectx.Except($"Requested value '{value.Value<string>()}' is not a member of the Enum type '{type.Name}'");
-                    return Enum.Parse(type, value.Value<string>());
-                case TlcModule.DataKind.Float:
-                    if (type == typeof(double))
-                        return value.Value<double>();
-                    else if (type == typeof(float))
-                        return value.Value<float>();
-                    else
-                    {
+                    case TlcModule.DataKind.Bool:
+                        return value.Value<bool>();
+                    case TlcModule.DataKind.String:
+                        return value.Value<string>();
+                    case TlcModule.DataKind.Char:
+                        return value.Value<char>();
+                    case TlcModule.DataKind.Enum:
+                        if (!Enum.IsDefined(type, value.Value<string>()))
+                            throw ectx.Except($"Requested value '{value.Value<string>()}' is not a member of the Enum type '{type.Name}'");
+                        return Enum.Parse(type, value.Value<string>());
+                    case TlcModule.DataKind.Float:
+                        if (type == typeof(double))
+                            return value.Value<double>();
+                        else if (type == typeof(float))
+                            return value.Value<float>();
+                        else
+                        {
+                            ectx.Assert(false);
+                            throw ectx.ExceptNotSupp();
+                        }
+                    case TlcModule.DataKind.Array:
+                        var ja = value as JArray;
+                        ectx.Check(ja != null, "Expected array value");
+                        Func<IExceptionContext, JArray, Attributes, ModuleCatalog, object> makeArray = MakeArray<int>;
+                        return Utils.MarshalInvoke(makeArray, type.GetElementType(), ectx, ja, attributes, catalog);
+                    case TlcModule.DataKind.Int:
+                        if (type == typeof(long))
+                            return value.Value<long>();
+                        if (type == typeof(int))
+                            return value.Value<int>();
                         ectx.Assert(false);
                         throw ectx.ExceptNotSupp();
-                    }
-                case TlcModule.DataKind.Array:
-                    var ja = value as JArray;
-                    ectx.Check(ja != null, "Expected array value");
-                    Func<IExceptionContext, JArray, Attributes, ModuleCatalog, object> makeArray = MakeArray<int>;
-                    return Utils.MarshalInvoke(makeArray, type.GetElementType(), ectx, ja, attributes, catalog);
-                case TlcModule.DataKind.Int:
-                    if (type == typeof(long))
-                        return value.Value<long>();
-                    if (type == typeof(int))
-                        return value.Value<int>();
-                    ectx.Assert(false);
-                    throw ectx.ExceptNotSupp();
-                case TlcModule.DataKind.UInt:
-                    if (type == typeof(ulong))
-                        return value.Value<ulong>();
-                    if (type == typeof(uint))
-                        return value.Value<uint>();
-                    ectx.Assert(false);
-                    throw ectx.ExceptNotSupp();
-                case TlcModule.DataKind.Dictionary:
-                    ectx.Check(value is JObject, "Expected object value");
-                    Func<IExceptionContext, JObject, Attributes, ModuleCatalog, object> makeDict = MakeDictionary<int>;
-                    return Utils.MarshalInvoke(makeDict, type.GetGenericArguments()[1], ectx, (JObject)value, attributes, catalog);
-                case TlcModule.DataKind.Component:
-                    var jo = value as JObject;
-                    ectx.Check(jo != null, "Expected object value");
-                    // REVIEW: consider accepting strings alone.
-                    var jName = jo[FieldNames.Name];
-                    ectx.Check(jName != null, "Field '" + FieldNames.Name + "' is required for component.");
-                    ectx.Check(jName is JValue, "Expected '" + FieldNames.Name + "' field to be a string.");
-                    var name = jName.Value<string>();
-                    ectx.Check(jo[FieldNames.Settings] == null || jo[FieldNames.Settings] is JObject,
-                        "Expected '" + FieldNames.Settings + "' field to be an object");
-                    return GetComponentJson(ectx, type, name, jo[FieldNames.Settings] as JObject, catalog);
-                default:
-                    var settings = value as JObject;
-                    ectx.Check(settings != null, "Expected object value");
-                    var inputBuilder = new InputBuilder(ectx, type, catalog);
+                    case TlcModule.DataKind.UInt:
+                        if (type == typeof(ulong))
+                            return value.Value<ulong>();
+                        if (type == typeof(uint))
+                            return value.Value<uint>();
+                        ectx.Assert(false);
+                        throw ectx.ExceptNotSupp();
+                    case TlcModule.DataKind.Dictionary:
+                        ectx.Check(value is JObject, "Expected object value");
+                        Func<IExceptionContext, JObject, Attributes, ModuleCatalog, object> makeDict = MakeDictionary<int>;
+                        return Utils.MarshalInvoke(makeDict, type.GetGenericArguments()[1], ectx, (JObject)value, attributes, catalog);
+                    case TlcModule.DataKind.Component:
+                        var jo = value as JObject;
+                        ectx.Check(jo != null, "Expected object value");
+                        // REVIEW: consider accepting strings alone.
+                        var jName = jo[FieldNames.Name];
+                        ectx.Check(jName != null, "Field '" + FieldNames.Name + "' is required for component.");
+                        ectx.Check(jName is JValue, "Expected '" + FieldNames.Name + "' field to be a string.");
+                        var name = jName.Value<string>();
+                        ectx.Check(jo[FieldNames.Settings] == null || jo[FieldNames.Settings] is JObject,
+                            "Expected '" + FieldNames.Settings + "' field to be an object");
+                        return GetComponentJson(ectx, type, name, jo[FieldNames.Settings] as JObject, catalog);
+                    default:
+                        var settings = value as JObject;
+                        ectx.Check(settings != null, "Expected object value");
+                        var inputBuilder = new InputBuilder(ectx, type, catalog);
 
-                    if (inputBuilder._fields.Length == 0)
-                        throw ectx.Except($"Unsupported input type: {dt}");
+                        if (inputBuilder._fields.Length == 0)
+                            throw ectx.Except($"Unsupported input type: {dt}");
 
-                    if (settings != null)
-                    {
-                        foreach (var pair in settings)
+                        if (settings != null)
                         {
-                            if (!inputBuilder.TrySetValueJson(pair.Key, pair.Value))
-                                throw ectx.Except($"Unexpected value for component '{type}', field '{pair.Key}': '{pair.Value}'");
+                            foreach (var pair in settings)
+                            {
+                                if (!inputBuilder.TrySetValueJson(pair.Key, pair.Value))
+                                    throw ectx.Except($"Unexpected value for component '{type}', field '{pair.Key}': '{pair.Value}'");
+                            }
                         }
-                    }
 
-                    var missing = inputBuilder.GetMissingValues().ToArray();
-                    if (missing.Length > 0)
-                        throw ectx.Except($"The following required inputs were not provided for component '{type}': {string.Join(", ", missing)}");
-                    return inputBuilder.GetInstance();
+                        var missing = inputBuilder.GetMissingValues().ToArray();
+                        if (missing.Length > 0)
+                            throw ectx.Except($"The following required inputs were not provided for component '{type}': {string.Join(", ", missing)}");
+                        return inputBuilder.GetInstance();
                 }
             }
             catch (FormatException ex)

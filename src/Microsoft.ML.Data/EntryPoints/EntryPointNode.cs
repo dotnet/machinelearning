@@ -513,37 +513,45 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var warning = "Different {0} column specified in trainer and in macro: '{1}', '{2}'." +
                         " Using column '{2}'. To column use '{1}' instead, please specify this name in" +
                         "the trainer node arguments.";
-            if (!string.IsNullOrEmpty(label) && inputInstance is LearnerInputBaseWithLabel)
+            if (!string.IsNullOrEmpty(label) && Utils.Size(_entryPoint.InputKinds) > 0 &&
+                _entryPoint.InputKinds.Contains(typeof(CommonInputs.ITrainerInputWithLabel)))
             {
-                var labelInputInstance = inputInstance as LearnerInputBaseWithLabel;
-                if (label != labelInputInstance.LabelColumn)
-                    ch.Warning(warning, "label", label, labelInputInstance.LabelColumn);
+                var labelColField = _inputBuilder.GetFieldNameOrNull("LabelColumn");
+                ch.AssertNonEmpty(labelColField);
+                var labelColFieldType = _inputBuilder.GetFieldTypeOrNull(labelColField);
+                ch.Assert(labelColFieldType == typeof(string));
+                var inputLabel = inputInstance.GetType().GetField(labelColField).GetValue(inputInstance);
+                if (label != (string)inputLabel)
+                    ch.Warning(warning, "label", label, inputLabel);
                 else
-                    labelInputInstance.LabelColumn = label;
+                    _inputBuilder.TrySetValue(labelColField, label);
             }
-            if (!string.IsNullOrEmpty(group) && inputInstance is LearnerInputBaseWithGroupId)
+            if (!string.IsNullOrEmpty(group) && Utils.Size(_entryPoint.InputKinds) > 0 &&
+                _entryPoint.InputKinds.Contains(typeof(CommonInputs.ITrainerInputWithGroupId)))
             {
-                var groupInputInstance = inputInstance as LearnerInputBaseWithGroupId;
-                if (group != groupInputInstance.GroupIdColumn)
-                    ch.Warning(warning, "group Id", group, groupInputInstance.GroupIdColumn);
+                var groupColField = _inputBuilder.GetFieldNameOrNull("GroupIdColumn");
+                ch.AssertNonEmpty(groupColField);
+                var groupColFieldType = _inputBuilder.GetFieldTypeOrNull(groupColField);
+                ch.Assert(groupColFieldType == typeof(string));
+                var inputGroup = inputInstance.GetType().GetField(groupColField).GetValue(inputInstance);
+                if (group != (Optional<string>)inputGroup)
+                    ch.Warning(warning, "group Id", label, inputGroup);
                 else
-                    groupInputInstance.GroupIdColumn = group;
+                    _inputBuilder.TrySetValue(groupColField, label);
             }
-            if (!string.IsNullOrEmpty(weight) && inputInstance is LearnerInputBaseWithWeight)
+            if (!string.IsNullOrEmpty(weight) && Utils.Size(_entryPoint.InputKinds) > 0 &&
+                (_entryPoint.InputKinds.Contains(typeof(CommonInputs.ITrainerInputWithWeight)) ||
+                _entryPoint.InputKinds.Contains(typeof(CommonInputs.IUnsupervisedTrainerWithWeight))))
             {
-                var weightInputInstance = inputInstance as LearnerInputBaseWithWeight;
-                if (weight != weightInputInstance.WeightColumn)
-                    ch.Warning(warning, "weight", weight, weightInputInstance.WeightColumn);
+                var weightColField = _inputBuilder.GetFieldNameOrNull("WeightColumn");
+                ch.AssertNonEmpty(weightColField);
+                var weightColFieldType = _inputBuilder.GetFieldTypeOrNull(weightColField);
+                ch.Assert(weightColFieldType == typeof(string));
+                var inputWeight = inputInstance.GetType().GetField(weightColField).GetValue(inputInstance);
+                if (weight != (Optional<string>)inputWeight)
+                    ch.Warning(warning, "weight", label, inputWeight);
                 else
-                    weightInputInstance.WeightColumn = weight;
-            }
-            if (!string.IsNullOrEmpty(weight) && inputInstance is UnsupervisedLearnerInputBaseWithWeight)
-            {
-                var weightInputInstance = inputInstance as UnsupervisedLearnerInputBaseWithWeight;
-                if (weight != weightInputInstance.WeightColumn)
-                    ch.Warning(warning, "weight", weight, weightInputInstance.WeightColumn);
-                else
-                    weightInputInstance.WeightColumn = weight;
+                    _inputBuilder.TrySetValue(weightColField, label);
             }
 
             // Validate outputs.
