@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly HashSet<string> _inputsToDrop;
         private readonly HashSet<string> _outputsToDrop;
         private readonly ITransformModel _model;
-        private const string ProducerName = "ML.Net";
+        private const string ProducerName = "ML.NET";
         private const string ProducerVersion = "0.2.0.0000";
         private const long ModelVersion = 0;
 

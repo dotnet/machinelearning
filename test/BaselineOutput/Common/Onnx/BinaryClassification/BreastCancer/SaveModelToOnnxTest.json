@@ -1,6 +1,6 @@
 {
   "irVersion": "3",
-  "producerName": "ML.Net",
+  "producerName": "ML.NET",
   "producerVersion": "0.2.0.0000",
   "domain": "Onnx",
   "graph": {
