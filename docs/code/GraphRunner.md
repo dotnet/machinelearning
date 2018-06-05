@@ -1,6 +1,9 @@
 ﻿# JSON Graph format
 
-The entry point graph in TLC is an array of _nodes_. Each node is an object with the following fields:
+The entry point graph in TLC is an array of _nodes_. More information about the definition of entry points and classes that help construct entry point graphs 
+can be found in the [EntryPoint.md document](./EntryPoints.md). 
+ 
+Each node is an object with the following fields:
 
 - _name_: string. Required. Name of the entry point.
 - _inputs_: object. Optional. Specifies non-default inputs to the entry point. 
@@ -10,27 +13,27 @@ Note that if the entry point has required inputs (which is very common), the _in
 ## Input and output types
 The following types are supported in JSON graphs:
 
-- _string_. Represented as a JSON string, maps to a C# string.
-- _float_. Represented as a JSON float, maps to a C# float or double.
-- _bool_. Represented as a JSON bool, maps to a C# bool.
-- _enum_. Represented as a JSON string, maps to a C# enum. The allowed values are those of the C# enum (they are also listed in the manifest).
-- _int_. Currently not implemented. Represented as a JSON integer, maps to a C# int or long.
-- _array_ of the above. Represented as a JSON array, maps to a C# array.
-- _dictionary_. Currently not implemented. Represented as a JSON object, maps to a C# `Dictionary<string,T>`.
-- _component_. Currently not implemented. Represented as a JSON object with 2 fields: _name_:string and _settings_:object.
+- `string`. Represented as a JSON string, maps to a C# string.
+- `float`. Represented as a JSON float, maps to a C# float or double.
+- `bool`. Represented as a JSON bool, maps to a C# bool.
+- `enum`. Represented as a JSON string, maps to a C# enum. The allowed values are those of the C# enum (they are also listed in the manifest).
+- `int`.  Represented as a JSON integer, maps to a C# int or long.
+- `array` of the above. Represented as a JSON array, maps to a C# array.
+- `dictionary`. Currently not implemented. Represented as a JSON object, maps to a C# `Dictionary<string,T>`.
+- `component`. Represented as a JSON object with 2 fields: _name_:string and _settings_:object.
 
 ## Variables
 The following input/output types can not be represented as a JSON value:
-- _DataView_
-- _FileHandle_
-- _TransformModel_
-- _PredictorModel_
+- `IDataView`
+- `IFileHandle`
+- `ITransformModel`
+- `IPredictorModel`
 
-These must be passed as _variables_. The variable is represented as a JSON string that begins with "$". 
+These must be passed as _variables_. The variable is represented as a JSON string that begins with `$`. 
 Note the following rules:
 
 - A variable can appear in the _outputs_ only once per graph. That is, the variable can be 'assigned' only once. 
-- If the variable is present in _inputs_ of one node and in the _outputs_ of another node, this signifies the graph 'edge'. 
+- If the variable is present in _inputs_ of one node and in the _outputs_ of another node, this signifies a graph 'edge'. 
 The same variable can participate in many edges.
 - If the variable is present only in _inputs_, but never in _outputs_, it is a _graph input_. All graph inputs must be provided before
 a graph can be run.
@@ -55,7 +58,8 @@ _This is also not yet implemented._
 
 ## Example of a JSON entry point manifest object, and the respective entry point graph node
 Let's consider the following manifest snippet, describing an entry point _'CVSplit.Split'_:
-```
+
+```javascript
     {
       "name": "CVSplit.Split",
       "desc": "Split the dataset into the specified number of cross-validation folds (train and test sets)",
@@ -107,7 +111,8 @@ Let's consider the following manifest snippet, describing an entry point _'CVSpl
 
 As we can see, the entry point has 3 inputs (one of them required), and 2 outputs.
 The following is a correct graph containing call to this entry point:
-```
+
+```javascript
 {
   "nodes": [
     {

@@ -1,120 +1,227 @@
-﻿# Overview
+﻿# Entry Points And Helper Classes 
 
-An 'entry point', is a representation of a ML.Net type in json format and it is used to serialize and deserialize an ML.Net type in JSON. 
-It is also one of the ways ML.Net uses to deserialize experiments, and the recommended way to interface with other languages. 
-In terms defining experiments w.r.t entry points, experiments are entry points DAGs, and respectively, entry points are experiment graph nodes.
+## Overview
+
+An 'entry point', is a representation of a ML.NET type in JSON format. Entry points are used to serialize and deserialize an ML.NET type in JSON. 
+It is also the recommended way to interface with other languages. 
+Defined based on entry points, experiments are entry points DAGs, and respectively, entry points are experiment graph nodes.
 That's why through the documentaiton, we also refer to them as 'entry points nodes'.
-The graph 'variables', the various values of the experiemnt graph json properties serve to describe the relationship between the entry point nodes. 
+The graph 'variables', the various values of the experiment graph JSON properties serve to describe the relationship between the entry point nodes. 
 The 'variables' are therefore the edges of the DAG. 
 
-All of ML.Net entry points are described by their manifest. The manifest is another json object that documents and describes the structure of an entry points. 
+All of ML.NET entry points are described by their manifest. The manifest is another JSON object that documents and describes the structure of an entry points. 
 Manifests are referenced to understand what an entry point does, and how it should be constructed, in a graph.  
 
-This document briefly describes the structure of the entry points, the structure of an entry point manifest, and mentions the ML.Net classes that help construct an entry point
+This document briefly describes the structure of the entry points, the structure of an entry point manifest, and mentions the ML.NET classes that help construct an entry point
 graph.
 
-## `EntryPoint manifest - the definition of an entry point`
+## EntryPoint manifest - the definition of an entry point
 
 An example of an entry point manifest object, specifically for the MissingValueIndicator transform, is:
 
 ```javascript
-    {
-      "Name": "Transforms.MissingValueIndicator",
-      "Desc": "Create a boolean output column with the same number of slots as the input column, where the output value is true if the value in the input column is missing.",
-      "FriendlyName": "NA Indicator Transform",
-      "ShortName": "NAInd",
-      "Inputs": [
+{
+    "Name": "Transforms.ColumnTypeConverter",
+    "Desc": "Converts a column to a different type, using standard conversions.",
+    "FriendlyName": "Convert Transform",
+    "ShortName": "Convert",
+    "Inputs": [
         {
-          "Name": "Column",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": {
-              "Kind": "Struct",
-              "Fields": [
-                {
-                  "Name": "Name",
-                  "Type": "String",
-                  "Desc": "Name of the new column",
-                  "Aliases": [
-                    "name"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
-                },
-                {
-                  "Name": "Source",
-                  "Type": "String",
-                  "Desc": "Name of the source column",
-                  "Aliases": [
-                    "src"
-                  ],
-                  "Required": false,
-                  "SortOrder": 150.0,
-                  "IsNullable": false,
-                  "Default": null
+            "Name": "Column",
+            "Type": {
+                "Kind": "Array",
+                "ItemType": {
+                    "Kind": "Struct",
+                    "Fields": [
+                        {
+                            "Name": "ResultType",
+                            "Type": {
+                                "Kind": "Enum",
+                                "Values": [
+                                    "I1",
+                                    "U1",
+                                    "I2",
+                                    "U2",
+                                    "I4",
+                                    "U4",
+                                    "I8",
+                                    "U8",
+                                    "R4",
+                                    "Num",
+                                    "R8",
+                                    "TX",
+                                    "Text",
+                                    "TXT",
+                                    "BL",
+                                    "Bool",
+                                    "TimeSpan",
+                                    "TS",
+                                    "DT",
+                                    "DateTime",
+                                    "DZ",
+                                    "DateTimeZone",
+                                    "UG",
+                                    "U16"
+                                ]
+                            },
+                            "Desc": "The result type",
+                            "Aliases": [
+                                "type"
+                            ],
+                            "Required": false,
+                            "SortOrder": 150,
+                            "IsNullable": true,
+                            "Default": null
+                        },
+                        {
+                            "Name": "Range",
+                            "Type": "String",
+                            "Desc": "For a key column, this defines the range of values",
+                            "Aliases": [
+                                "key"
+                            ],
+                            "Required": false,
+                            "SortOrder": 150,
+                            "IsNullable": false,
+                            "Default": null
+                        },
+                        {
+                            "Name": "Name",
+                            "Type": "String",
+                            "Desc": "Name of the new column",
+                            "Aliases": [
+                                "name"
+                            ],
+                            "Required": false,
+                            "SortOrder": 150,
+                            "IsNullable": false,
+                            "Default": null
+                        },
+                        {
+                            "Name": "Source",
+                            "Type": "String",
+                            "Desc": "Name of the source column",
+                            "Aliases": [
+                                "src"
+                            ],
+                            "Required": false,
+                            "SortOrder": 150,
+                            "IsNullable": false,
+                            "Default": null
+                        }
+                    ]
                 }
-              ]
-            }
-          },
-          "Desc": "New column definition(s) (optional form: name:src)",
-          "Aliases": [
-            "col"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
+            },
+            "Desc": "New column definition(s) (optional form: name:type:src)",
+            "Aliases": [
+                "col"
+            ],
+            "Required": true,
+            "SortOrder": 1,
+            "IsNullable": false
         },
         {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputData",
-          "Type": "DataView",
-          "Desc": "Transformed dataset"
+            "Name": "Data",
+            "Type": "DataView",
+            "Desc": "Input dataset",
+            "Required": true,
+            "SortOrder": 2,
+            "IsNullable": false
         },
         {
-          "Name": "Model",
-          "Type": "TransformModel",
-          "Desc": "Transform model"
+            "Name": "ResultType",
+            "Type": {
+                "Kind": "Enum",
+                "Values": [
+                    "I1",
+                    "U1",
+                    "I2",
+                    "U2",
+                    "I4",
+                    "U4",
+                    "I8",
+                    "U8",
+                    "R4",
+                    "Num",
+                    "R8",
+                    "TX",
+                    "Text",
+                    "TXT",
+                    "BL",
+                    "Bool",
+                    "TimeSpan",
+                    "TS",
+                    "DT",
+                    "DateTime",
+                    "DZ",
+                    "DateTimeZone",
+                    "UG",
+                    "U16"
+                ]
+            },
+            "Desc": "The result type",
+            "Aliases": [
+                "type"
+            ],
+            "Required": false,
+            "SortOrder": 2,
+            "IsNullable": true,
+            "Default": null
+        },
+        {
+            "Name": "Range",
+            "Type": "String",
+            "Desc": "For a key column, this defines the range of values",
+            "Aliases": [
+                "key"
+            ],
+            "Required": false,
+            "SortOrder": 150,
+            "IsNullable": false,
+            "Default": null
         }
-      ],
-      "InputKind": [
+    ],
+    "Outputs": [
+        {
+            "Name": "OutputData",
+            "Type": "DataView",
+            "Desc": "Transformed dataset"
+        },
+        {
+            "Name": "Model",
+            "Type": "TransformModel",
+            "Desc": "Transform model"
+        }
+    ],
+    "InputKind": [
         "ITransformInput"
-      ],
-      "OutputKind": [
+    ],
+    "OutputKind": [
         "ITransformOutput"
-      ]
-    }
+    ]
+}
 ```
 
 The respective entry point, constructed based on this manifest would be:
 
 ```javascript
-	{
-		"Name": "Transforms.MissingValueIndicator",
-		"Inputs": {
-			"Column": [
-				{
-					"Name": "Features",
-					"Source": "Features"
-				}
-			],
-			"Data": "$data0"
-		},
-		"Outputs": {
-			"OutputData": "$Output_1528136517433",
-			"Model": "$TransformModel_1528136517433"
-		}
-	}
+    {
+        "Name": "Transforms.ColumnTypeConverter",
+        "Inputs": {
+            "Column": [
+                {
+                    "Name": "Features",
+                    "Source": "Features"
+                }
+            ],
+            "Data": "$data0",
+            "ResultType": "R4"
+        },
+        "Outputs": {
+            "OutputData": "$Convert_Output",
+            "Model": "$Convert_TransformModel"
+        }
+    }
 ```
 
 ## `EntryPointGraph`
@@ -168,7 +275,7 @@ allowed as element types for a variable.
 
 This class is just a container for all the variables in a graph.
 
-## VariableBinding and Derived Classes
+## `VariableBinding` and Derived Classes
 
 The abstract base class represents a "pointer to a (part of a) variable". It
 is used in conjunction with `ParameterBinding`s to specify inputs to an entry
@@ -177,7 +284,7 @@ the `ArrayIndexVariableBinding` is a pointer to a specific index in an array
 variable, and the `DictionaryKeyVariableBinding` is a pointer to a specific
 key in a dictionary variable.
 
-## ParameterBinding and Derived Classes
+## `ParameterBinding` and Derived Classes
 
 The abstract base class represents a "pointer to a (part of a) parameter". It
 parallels the `VariableBinding` hierarchy and it is used to specify the inputs
