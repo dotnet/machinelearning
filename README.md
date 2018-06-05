@@ -66,7 +66,7 @@ Here's an example of code to train a model to predict sentiment from text sample
 
 ```C#
 var pipeline = new LearningPipeline();
-pipeline.Add(new TextLoader<SentimentData>(dataPath, separator: ","));
+pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>(separator: ','));
 pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
 pipeline.Add(new FastTreeBinaryClassifier());
 var model = pipeline.Train<SentimentData, SentimentPrediction>();
