@@ -11,7 +11,7 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Models
 {
     /// <summary>
-    /// This class contains the overall metrics computed by regression evaluators.
+    /// This class contains the overall metrics computed by cluster evaluators.
     /// </summary>
     public sealed class ClusterMetrics
     {
