@@ -597,27 +597,23 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestOvaMacro()
         {
-            // Get datasets
             var dataPath = GetDataPath(@"iris.txt");
             using (var env = new TlcEnvironment(42))
             {
-
+                // Specify subgraph for OVA
+                var subGraph = env.CreateExperiment();
+                var learnerInput = new Trainers.StochasticDualCoordinateAscentBinaryClassifier { NumThreads = 1 };
+                var learnerOutput = subGraph.Add(learnerInput);
+                // Create pipeline with OVA and multiclass scoring.
                 var experiment = env.CreateExperiment();
                 var importInput = new ML.Data.TextLoader(dataPath);
-                importInput.Arguments.Column = new ML.Data.TextLoaderColumn[]
+                importInput.Arguments.Column = new TextLoaderColumn[]
                 {
-                    new ML.Data.TextLoaderColumn { Name = "Label", Source = new[] { new ML.Data.TextLoaderRange(0) } },
-                    new ML.Data.TextLoaderColumn { Name = "Features", Source = new[] { new ML.Data.TextLoaderRange(1,4) } }
+                    new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
+                    new TextLoaderColumn { Name = "Features", Source = new[] { new TextLoaderRange(1,4) } }
                 };
                 var importOutput = experiment.Add(importInput);
-                var subGraph = env.CreateExperiment();
-                var learnerInput = new ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier
-                {
-                    TrainingData = importOutput.Data,
-                    NumThreads = 1
-                };
-                var learnerOutput = subGraph.Add(learnerInput);
-                var oneVersusAll = new ML.Models.OneVersusAll
+                var oneVersusAll = new Models.OneVersusAll
                 {
                     TrainingData = importOutput.Data,
                     Nodes = subGraph,
@@ -630,7 +626,6 @@ namespace Microsoft.ML.Runtime.RunTests
                     PredictorModel = ovaOutput.PredictorModel
                 };
                 var scoreOutput = experiment.Add(scoreInput);
-
                 var evalInput = new ML.Models.ClassificationEvaluator
                 {
                     Data = scoreOutput.ScoredData
@@ -639,6 +634,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 experiment.Compile();
                 experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
                 experiment.Run();
+
                 var data = experiment.GetOutput(evalOutput.OverallMetrics);
                 var schema = data.Schema;
                 var b = schema.TryGetColumnIndex(MultiClassClassifierEvaluator.AccuracyMacro, out int aucCol);
