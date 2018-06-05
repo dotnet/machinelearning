@@ -783,16 +783,16 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 var data = experiment.GetOutput(evalOutput.OverallMetrics);
                 var schema = data.Schema;
-                var b = schema.TryGetColumnIndex(MultiClassClassifierEvaluator.AccuracyMacro, out int aucCol);
+                var b = schema.TryGetColumnIndex(MultiClassClassifierEvaluator.AccuracyMacro, out int accCol);
                 Assert.True(b);
-                using (var cursor = data.GetRowCursor(col => col == aucCol))
+                using (var cursor = data.GetRowCursor(col => col == accCol))
                 {
-                    var getter = cursor.GetGetter<double>(aucCol);
+                    var getter = cursor.GetGetter<double>(accCol);
                     b = cursor.MoveNext();
                     Assert.True(b);
-                    double auc = 0;
-                    getter(ref auc);
-                    Assert.Equal(0.96, auc, 2);
+                    double acc = 0;
+                    getter(ref acc);
+                    Assert.Equal(0.96, acc, 2);
                     b = cursor.MoveNext();
                     Assert.False(b);
                 }
