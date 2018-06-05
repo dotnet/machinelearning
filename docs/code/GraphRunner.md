@@ -1,4 +1,4 @@
-﻿# JSON Graph format
+﻿# Entry Point JSON Graph format
 
 The entry point graph in TLC is an array of _nodes_. More information about the definition of entry points and classes that help construct entry point graphs 
 can be found in the [EntryPoint.md document](./EntryPoints.md). 
