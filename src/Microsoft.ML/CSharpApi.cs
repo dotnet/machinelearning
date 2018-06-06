@@ -2178,6 +2178,16 @@ namespace Microsoft.ML
             public string LabelColumn { get; set; } = "Label";
 
             /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for grouping
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
+
+            /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
             /// </summary>
             public Models.MacroUtilsTrainerKinds Kind { get; set; } = Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
@@ -2281,6 +2291,21 @@ namespace Microsoft.ML
             /// Specifies the trainer kind, which determines the evaluator to be used.
             /// </summary>
             public Models.MacroUtilsTrainerKinds Kind { get; set; } = Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for grouping
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
 
 
             public sealed class Output
@@ -3524,6 +3549,21 @@ namespace Microsoft.ML
             /// Indicates whether to include and output training dataset metrics.
             /// </summary>
             public bool IncludeTrainingMetrics { get; set; } = false;
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for grouping
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
 
 
             public sealed class Output
