@@ -20,38 +20,38 @@ namespace Microsoft.ML.Runtime.Data
     {
         public abstract class ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader", SortOrder = 1, NullName = "<Auto>")]
+            [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "The data loader", ShortName = "loader", SortOrder = 1, NullName = "<Auto>")]
             public SubComponent<IDataLoader, SignatureDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The data file", ShortName = "data", SortOrder = 0)]
             public string DataFile;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Model file to save", ShortName = "out")]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Model file to save", ShortName = "out")]
             public string OutputModelFile;
 
-            [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Model file to load", ShortName = "in", SortOrder = 90)]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, IsInputFileName = true, HelpText = "Model file to load", ShortName = "in", SortOrder = 90)]
             public string InputModelFile;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Load transforms from model file?", ShortName = "loadTrans", SortOrder = 91)]
+            [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Load transforms from model file?", ShortName = "loadTrans", SortOrder = 91)]
             public bool? LoadTransforms;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Random seed", ShortName = "seed", SortOrder = 101)]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Random seed", ShortName = "seed", SortOrder = 101)]
             public int? RandomSeed;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Verbose?", ShortName = "v", Hide = true)]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Verbose?", ShortName = "v", Hide = true)]
             public bool? Verbose;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The web server to publish the RESTful API", Hide = true)]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "The web server to publish the RESTful API", Hide = true)]
             public ServerChannel.IServerFactory Server;
 
             // This is actually an advisory value. The implementations themselves are responsible for
             // determining what they consider appropriate, and the actual heuristics is a bit more
             // complex than just this.
-            [Argument(ArgumentType.LastOccurenceWins,
+            [Argument(ArgumentType.LastOccurenceWins, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly,
                 HelpText = "Desired degree of parallelism in the data pipeline", ShortName = "n")]
             public int? Parallel;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Transform", ShortName = "xf")]
+            [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Transform", ShortName = "xf")]
             public KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] Transform;
         }
 

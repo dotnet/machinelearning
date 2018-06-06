@@ -1334,6 +1334,18 @@
           "Default": "Label"
         },
         {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
           "Name": "Kind",
           "Type": {
             "Kind": "Enum",
@@ -1352,6 +1364,18 @@
           "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
+        },
+        {
+          "Name": "GroupColumn",
+          "Type": "String",
+          "Desc": "Column to use for grouping",
+          "Aliases": [
+            "group"
+          ],
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": "GroupId"
         }
       ],
       "Outputs": [
@@ -1504,6 +1528,42 @@
           "SortOrder": 8.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 10.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "GroupColumn",
+          "Type": "String",
+          "Desc": "Column to use for grouping",
+          "Aliases": [
+            "group"
+          ],
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": "GroupId"
         }
       ],
       "Outputs": [
@@ -2054,6 +2114,95 @@
         "ITrainerInputWithLabel",
         "ITrainerInput"
       ]
+    },
+    {
+      "Name": "Models.OnnxConverter",
+      "Desc": "Converts the model to ONNX format.",
+      "FriendlyName": "ONNX Converter.",
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "DataFile",
+          "Type": "String",
+          "Desc": "The data file",
+          "Aliases": [
+            "data"
+          ],
+          "Required": false,
+          "SortOrder": 0.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Onnx",
+          "Type": "String",
+          "Desc": "The path to write the output ONNX to.",
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Json",
+          "Type": "String",
+          "Desc": "The path to write the output JSON to.",
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The 'name' property in the output ONNX. By default this will be the ONNX extension-less name.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Domain",
+          "Type": "String",
+          "Desc": "The 'domain' property in the output ONNX.",
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "InputsToDrop",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Array of input column names to drop",
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "OutputsToDrop",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Array of output column names to drop",
+          "Required": false,
+          "SortOrder": 8.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Model that needs to be converted to ONNX format.",
+          "Required": true,
+          "SortOrder": 10.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": []
     },
     {
       "Name": "Models.OvaModelCombiner",
@@ -3107,6 +3256,42 @@
           "SortOrder": 9.0,
           "IsNullable": false,
           "Default": false
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 10.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "GroupColumn",
+          "Type": "String",
+          "Desc": "Column to use for grouping",
+          "Aliases": [
+            "group"
+          ],
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": "GroupId"
         }
       ],
       "Outputs": [

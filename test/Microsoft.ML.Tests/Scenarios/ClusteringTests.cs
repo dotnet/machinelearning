@@ -1,4 +1,5 @@
 ﻿using Microsoft.ML.Data;
+using Microsoft.ML.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Trainers;
@@ -116,6 +117,16 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
                 Assert.True(!labels.Contains(scores.SelectedClusterId));
                 labels.Add(scores.SelectedClusterId);
             }
+
+            var evaluator = new ClusterEvaluator();
+            var testData = CollectionDataSource.Create(clusters);
+            ClusterMetrics metrics = evaluator.Evaluate(model, testData);
+
+            //Label is not specified, so NMI would be equal to NaN
+            Assert.Equal(metrics.Nmi, double.NaN);
+            //Calculate dbi is false by default so Dbi would be 0
+            Assert.Equal(metrics.Dbi, (double)0.0);
+            Assert.Equal(metrics.AvgMinScore, (double)0.0, 5);
         }
     }
 }
