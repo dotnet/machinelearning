@@ -3158,7 +3158,14 @@ namespace Microsoft.ML.Runtime.FastTree
                 var name = names.GetItemOrDefault(pair.Key).ToString();
                 if (string.IsNullOrEmpty(name))
                     name = $"f{pair.Key}";
-                yield return new KeyValuePair<string, Double>(name, Math.Sqrt(pair.Value) * normFactor);
+                
+                //REVIEW: For categorical split points some gain values can be negative because when gain
+                //map is built we have to reverse engineer what each feature-value's gain was from the total 
+                //gain of split at that node. The reason we chose to do this way was to speed things up and 
+                //reduce memory footprint during training time. A better solution would be to keep track 
+                //of each split point's contribution during training but that is an expensive approach.
+                double value = pair.Value < 0 ? -1 * Math.Sqrt(Math.Abs(pair.Value)) : Math.Sqrt(pair.Value);
+                yield return new KeyValuePair<string, Double>(name, value * normFactor);
             }
         }
 

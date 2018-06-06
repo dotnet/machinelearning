@@ -166,12 +166,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         public abstract long SizeInBytes();
 
         // Returns first bin index for a given feature in histogram
-        protected abstract int GetMinBorder(int featureIndexInFlock);
+        internal abstract int GetMinBorder(int featureIndexInFlock);
 
         // Returns last bin index for a given feature in histogram
         protected abstract int GetMaxBorder(int featureIndex);
 
-        protected abstract PerBinStats GetBinStats(int featureIndex);
+        internal abstract PerBinStats GetBinStats(int featureIndex);
 
         protected abstract double GetBinGradient(int featureIndex, double bias);
 
@@ -1386,12 +1386,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 return _flock.HotFeatureStarts[featureIndex + 1] - 1;
             }
 
-            protected override int GetMinBorder(int featureIndex)
+            internal override int GetMinBorder(int featureIndex)
             {
                 return _flock.HotFeatureStarts[featureIndex];
             }
 
-            protected override PerBinStats GetBinStats(int featureIndex)
+            internal override PerBinStats GetBinStats(int featureIndex)
             {
                 if (Hist.SumWeightsByBin != null)
                     return new PerBinStats(Hist.SumTargetsByBin[featureIndex], Hist.SumWeightsByBin[featureIndex], Hist.CountByBin[featureIndex]);

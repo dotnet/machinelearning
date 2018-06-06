@@ -145,12 +145,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 return _hist.NumFeatureValues - 1;
             }
 
-            protected override int GetMinBorder(int featureIndex)
+            internal override int GetMinBorder(int featureIndex)
             {
                 return 1;
             }
 
-            protected override PerBinStats GetBinStats(int featureIndex)
+            internal override PerBinStats GetBinStats(int featureIndex)
             {
                 if (_hist.SumWeightsByBin != null)
                     return new PerBinStats(_hist.SumTargetsByBin[featureIndex], _hist.SumWeightsByBin[featureIndex], _hist.CountByBin[featureIndex]);
