@@ -69,9 +69,6 @@ namespace Microsoft.ML.Tests
 
             var model = pipeline.Train<BreastCancerData, BreastCancerPrediction>();
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
-            var modelOutpath = GetOutputPath(subDir, "SaveModelToOnnxTest.zip");
-            DeleteOutputPath(modelOutpath);
-
             var onnxPath = GetOutputPath(subDir, "SaveModelToOnnxTest.pb");
             DeleteOutputPath(onnxPath);
 
