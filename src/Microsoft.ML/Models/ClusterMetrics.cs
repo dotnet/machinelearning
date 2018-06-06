@@ -56,9 +56,8 @@ namespace Microsoft.ML.Models
         /// Normalized Mutual Information
         /// </summary>
         /// <remarks>
-        /// NMI is a measure of the mutual dependence of the variables.
-        /// Normalized variants work on data that already has cluster labels.
-        /// It returns values from 0 to 1, where higher numbers are better.
+        /// NMI is a measure of the mutual dependence between the true and predicted cluster labels for instances in the dataset.
+        /// NMI ranges between 0 and 1 where "0" indicates clustering is random and "1" indicates clustering is perfect w.r.t true labels. 
         /// </remarks>
         public double Nmi { get; private set; }
 
@@ -66,10 +65,11 @@ namespace Microsoft.ML.Models
         /// Average minimum score.
         /// </summary>
         /// <remarks>
-        /// This makes sense for K-Means algorithm, where the 'score' is the distance from the centroid to the example.
-        /// The average score is, therefore, a measure of proximity of the examples to cluster centroids.
-        /// In other words, it's the 'cluster tightness' measure.
-        /// Note however, that this metric will only decrease if the number of clusters is increased, and in the extreme case (where each distinct example is its own cluster) it will be equal to zero.
+        /// AvgMinScore is the average squared-distance of examples from the respective cluster centroids.
+        /// It is defined as 
+        /// AvgMinScore  = (1/m) * sum ((xi - c(xi))^2)
+        /// where m is the number of instances in the dataset.
+        /// xi is the i'th instance and c(xi) is the centriod of the predicted cluster for xi.
         /// </remarks>
         public double AvgMinScore { get; private set; }
 
