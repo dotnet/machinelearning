@@ -4,12 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
@@ -405,7 +404,11 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                 return null;
 
             if (type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(Optional<>) || type.GetGenericTypeDefinition() == typeof(Nullable<>)))
+            {
+                if (type.GetGenericTypeDefinition() == typeof(Optional<>) && value.HasValues)
+                    value = value.Values().FirstOrDefault();
                 type = type.GetGenericArguments()[0];
+            }
 
             if (type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(Var<>)))
             {

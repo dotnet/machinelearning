@@ -1334,6 +1334,18 @@
           "Default": "Label"
         },
         {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
           "Name": "Kind",
           "Type": {
             "Kind": "Enum",
@@ -1352,6 +1364,18 @@
           "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
+        },
+        {
+          "Name": "GroupColumn",
+          "Type": "String",
+          "Desc": "Column to use for grouping",
+          "Aliases": [
+            "group"
+          ],
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": "GroupId"
         }
       ],
       "Outputs": [
@@ -1504,6 +1528,42 @@
           "SortOrder": 8.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 10.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "GroupColumn",
+          "Type": "String",
+          "Desc": "Column to use for grouping",
+          "Aliases": [
+            "group"
+          ],
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": "GroupId"
         }
       ],
       "Outputs": [
@@ -3107,6 +3167,42 @@
           "SortOrder": 9.0,
           "IsNullable": false,
           "Default": false
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 10.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "GroupColumn",
+          "Type": "String",
+          "Desc": "Column to use for grouping",
+          "Aliases": [
+            "group"
+          ],
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": "GroupId"
         }
       ],
       "Outputs": [
