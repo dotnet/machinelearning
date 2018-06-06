@@ -25,7 +25,7 @@ namespace Microsoft.ML
             _predictorModel = new Runtime.EntryPoints.TransformModel(_env, stream);
         }
 
-        internal Runtime.EntryPoints.TransformModel PredictorModel
+        internal TransformModel PredictorModel
         {
             get { return _predictorModel; }
         }
@@ -44,7 +44,7 @@ namespace Microsoft.ML
             int colIndex = -1;
             if (!schema.TryGetColumnIndex(scoreColumnName, out colIndex))
                 return false;
-            
+
             int expectedLabelCount = schema.GetColumnType(colIndex).ValueCount;
             if (!schema.HasSlotNames(colIndex, expectedLabelCount))
                 return false;
@@ -57,7 +57,7 @@ namespace Microsoft.ML
 
             names = new string[expectedLabelCount];
             int index = 0;
-            foreach(var label in labels.DenseValues())
+            foreach (var label in labels.DenseValues())
                 names[index++] = label.ToString();
 
             return true;

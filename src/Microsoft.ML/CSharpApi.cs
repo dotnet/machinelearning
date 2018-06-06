@@ -250,6 +250,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Models.OneVersusAll", input, output));
             }
 
+            public Microsoft.ML.Models.OnnxConverter.Output Add(Microsoft.ML.Models.OnnxConverter input)
+            {
+                var output = new Microsoft.ML.Models.OnnxConverter.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.OnnxConverter input, Microsoft.ML.Models.OnnxConverter.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.OnnxConverter", input, output));
+            }
+
             public Microsoft.ML.Models.OvaModelCombiner.Output Add(Microsoft.ML.Models.OvaModelCombiner input)
             {
                 var output = new Microsoft.ML.Models.OvaModelCombiner.Output();
@@ -2758,6 +2770,63 @@ namespace Microsoft.ML
                 }
 
                 public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Models
+    {
+
+        /// <summary>
+        /// Converts the model to ONNX format.
+        /// </summary>
+        public sealed partial class OnnxConverter
+        {
+
+
+            /// <summary>
+            /// The path to write the output ONNX to.
+            /// </summary>
+            public string Onnx { get; set; }
+
+            /// <summary>
+            /// The path to write the output JSON to.
+            /// </summary>
+            public string Json { get; set; }
+
+            /// <summary>
+            /// The 'name' property in the output ONNX. By default this will be the ONNX extension-less name.
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// The 'domain' property in the output ONNX.
+            /// </summary>
+            public string Domain { get; set; }
+
+            /// <summary>
+            /// Array of input column names to drop
+            /// </summary>
+            public string[] InputsToDrop { get; set; }
+
+            /// <summary>
+            /// Array of output column names to drop
+            /// </summary>
+            public string[] OutputsToDrop { get; set; }
+
+            /// <summary>
+            /// Model that needs to be converted to ONNX format.
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            /// <summary>
+            /// The data file
+            /// </summary>
+            public string DataFile { get; set; }
+
+
+            public sealed class Output
+            {
             }
         }
     }

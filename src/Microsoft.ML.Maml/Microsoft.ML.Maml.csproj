@@ -3,8 +3,8 @@
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>CORECLR</DefineConstants>
-    <TargetFramework>netstandard2.0</TargetFramework>
 	<IncludeInPackage>Microsoft.ML</IncludeInPackage>
+	<TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
