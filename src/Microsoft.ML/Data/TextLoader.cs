@@ -86,7 +86,7 @@ namespace Microsoft.ML.Data
 
                 var name = mappingAttr.Name ?? field.Name;
                 if (!new CSharpCodeProvider().IsValidIdentifier(name))
-                    throw Contracts.Except($"{name} can only have alphanumeric or '_'.");
+                    throw Contracts.Except($"{name} is not a valid identifier.");
 
                 Runtime.Data.TextLoader.Range[] sources;
                 if (!Runtime.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Ordinal, out sources))
