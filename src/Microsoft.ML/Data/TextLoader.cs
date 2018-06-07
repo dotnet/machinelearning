@@ -84,8 +84,8 @@ namespace Microsoft.ML.Data
                         $"Valid characters are 0-9, *, - and ~");
 
                 var name = mappingAttr.Name ?? field.Name;
-                if (name.Any(c => !Char.IsLetterOrDigit(c)))
-                    throw Contracts.Except($"{name} is not alphanumeric.");
+                if (name.Any(c => !Char.IsLetterOrDigit(c) && c != '_'))
+                    throw Contracts.Except($"{name} can only have alphanumeric or '_'.");
 
                 Runtime.Data.TextLoader.Range[] sources;
                 if (!Runtime.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Ordinal, out sources))
