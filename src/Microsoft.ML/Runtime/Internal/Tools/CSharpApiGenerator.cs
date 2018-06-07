@@ -836,16 +836,16 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     writer.Outdent();
                     writer.WriteLine("}");
                     writer.WriteLine("");
-                    writer.WriteLine($"public {className}(params ValueTuple<string, string>[] inputOutput{fieldName}s)");
+                    writer.WriteLine($"public {className}(params (string inputColumn, string outputColumn)[] inputOutput{fieldName}s)");
                     writer.WriteLine("{");
                     writer.Indent();
                     writer.WriteLine($"if (inputOutput{fieldName}s != null)");
                     writer.WriteLine("{");
                     writer.Indent();
-                    writer.WriteLine($"foreach (ValueTuple<string, string> inputOutput in inputOutput{fieldName}s)");
+                    writer.WriteLine($"foreach (var inputOutput in inputOutput{fieldName}s)");
                     writer.WriteLine("{");
                     writer.Indent();
-                    writer.WriteLine($"Add{fieldName}(inputOutput.Item2, inputOutput.Item1);");
+                    writer.WriteLine($"Add{fieldName}(inputOutput.outputColumn, inputOutput.inputColumn);");
                     writer.Outdent();
                     writer.WriteLine("}");
                     writer.Outdent();
@@ -853,31 +853,31 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     writer.Outdent();
                     writer.WriteLine("}");
                     writer.WriteLine("");
-                    writer.WriteLine($"public void Add{fieldName}(string source)");
+                    writer.WriteLine($"public void Add{fieldName}(string inputColumn)");
                     writer.WriteLine("{");
                     writer.Indent();
                     if (isArray)
                     {
                         writer.WriteLine($"var list = {fieldName} == null ? new List<{TypesSymbolTable[type.FullName]}>() : new List<{TypesSymbolTable[type.FullName]}>({fieldName});");
-                        writer.WriteLine($"list.Add(OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(source));");
+                        writer.WriteLine($"list.Add(OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(inputColumn));");
                         writer.WriteLine($"{fieldName} = list.ToArray();");
                     }
                     else
-                        writer.WriteLine($"{fieldName} = OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(source);");
+                        writer.WriteLine($"{fieldName} = OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(inputColumn);");
                     writer.Outdent();
                     writer.WriteLine("}");
                     writer.WriteLine();
-                    writer.WriteLine($"public void Add{fieldName}(string name, string source)");
+                    writer.WriteLine($"public void Add{fieldName}(string outputColumn, string inputColumn)");
                     writer.WriteLine("{");
                     writer.Indent();
                     if (isArray)
                     {
                         writer.WriteLine($"var list = {fieldName} == null ? new List<{TypesSymbolTable[type.FullName]}>() : new List<{TypesSymbolTable[type.FullName]}>({fieldName});");
-                        writer.WriteLine($"list.Add(OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(name, source));");
+                        writer.WriteLine($"list.Add(OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(outputColumn, inputColumn));");
                         writer.WriteLine($"{fieldName} = list.ToArray();");
                     }
                     else
-                        writer.WriteLine($"{fieldName} = OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(name, source);");
+                        writer.WriteLine($"{fieldName} = OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(outputColumn, inputColumn);");
                     writer.Outdent();
                     writer.WriteLine("}");
                     writer.WriteLine();
