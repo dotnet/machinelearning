@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Internal.Internallearn.Test;
+using System.Globalization;
 using System.IO;
+using System.Threading;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.TestFramework
@@ -18,6 +20,11 @@ namespace Microsoft.ML.TestFramework
 
         public BaseTestClass(ITestOutputHelper output)
         {
+            //This locale is currently set for tests only so that the produced output
+            //files can be compared on systems with other locales to give set of known
+            //correct results that are on en-US locale.
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+
             var currentAssemblyLocation = new FileInfo(typeof(BaseTestClass).Assembly.Location);
             _rootDir = currentAssemblyLocation.Directory.Parent.Parent.Parent.Parent.FullName;
             _outDir = Path.Combine(currentAssemblyLocation.Directory.FullName, "TestOutput");
