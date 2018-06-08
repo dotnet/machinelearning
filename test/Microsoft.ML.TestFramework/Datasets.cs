@@ -593,8 +593,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset mnistOneClass = new TestDataset()
         {
             name = "mnistOneClass",
-            trainFilename = @"..\OneClass\MNIST.Train.0-class.tiny.txt",
-            testFilename = @"..\OneClass\MNIST.Test.tiny.txt",
+            trainFilename = @"MNIST.Train.0-class.tiny.txt",
+            testFilename = @"MNIST.Test.tiny.txt",
             settings = ""
         };
 

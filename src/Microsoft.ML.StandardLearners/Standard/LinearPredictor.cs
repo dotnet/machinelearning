@@ -44,6 +44,7 @@ namespace Microsoft.ML.Runtime.Learners
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
         ICanSaveModel,
+        ICanGetSummaryAsIRow,
         ICanSaveSummary,
         IPredictorWithFeatureWeights<Float>,
         IWhatTheFeatureValueMapper,
@@ -343,6 +344,30 @@ namespace Microsoft.ML.Runtime.Learners
 
         public abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
 
+        public virtual IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
+        {
+            var cols = new List<IColumn>();
+
+            var names = default(VBuffer<DvText>);
+            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
+            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
+                new VectorType(TextType.Instance, Weight.Length), ref names);
+            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
+            var colType = new VectorType(NumberType.R4, Weight.Length);
+
+            // Add the bias and the weight columns.
+            var bias = Bias;
+            cols.Add(RowColumnUtils.GetColumn("Bias", NumberType.R4, ref bias));
+            var weights = Weight;
+            cols.Add(RowColumnUtils.GetColumn("Weights", colType, ref weights, slotNamesRow));
+            return RowColumnUtils.GetRow(null, cols.ToArray());
+        }
+
+        public virtual IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        {
+            return null;
+        }
+
         public abstract void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
 
         public virtual void GetFeatureWeights(ref VBuffer<Float> weights)
@@ -366,8 +391,7 @@ namespace Microsoft.ML.Runtime.Learners
 
     public sealed partial class LinearBinaryPredictor : LinearPredictor,
         ICanGetSummaryInKeyValuePairs,
-        IParameterMixer<Float>,
-        ICanGetSummaryAsIRow
+        IParameterMixer<Float>
     {
         public const string LoaderSignature = "Linear2CExec";
         public const string RegistrationName = "LinearBinaryPredictor";
@@ -503,26 +527,7 @@ namespace Microsoft.ML.Runtime.Learners
             return results;
         }
 
-        public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
-        {
-            var cols = new List<IColumn>();
-
-            var names = default(VBuffer<DvText>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
-                new VectorType(TextType.Instance, Weight.Length), ref names);
-            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
-            var colType = new VectorType(NumberType.R4, Weight.Length);
-
-            // Add the bias and the weight columns.
-            var bias = Bias;
-            cols.Add(RowColumnUtils.GetColumn("Bias", NumberType.R4, ref bias));
-            var weights = Weight;
-            cols.Add(RowColumnUtils.GetColumn("Weights", colType, ref weights, slotNamesRow));
-            return RowColumnUtils.GetRow(null, cols.ToArray());
-        }
-
-        public IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        public override IRow GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;
@@ -582,8 +587,7 @@ namespace Microsoft.ML.Runtime.Learners
 
     public sealed class LinearRegressionPredictor : RegressionPredictor,
         IParameterMixer<Float>,
-        ICanGetSummaryInKeyValuePairs,
-        ICanGetSummaryAsIRow
+        ICanGetSummaryInKeyValuePairs
     {
         public const string LoaderSignature = "LinearRegressionExec";
         public const string RegistrationName = "LinearRegressionPredictor";
@@ -662,30 +666,6 @@ namespace Microsoft.ML.Runtime.Learners
             LinearPredictorUtils.SaveLinearModelWeightsInKeyValuePairs(ref weights, Bias, schema, results);
 
             return results;
-        }
-
-        public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
-        {
-            var cols = new List<IColumn>();
-
-            var names = default(VBuffer<DvText>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
-                new VectorType(TextType.Instance, Weight.Length), ref names);
-            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
-            var colType = new VectorType(NumberType.R4, Weight.Length);
-
-            // Add the bias and the weight columns.
-            var bias = Bias;
-            cols.Add(RowColumnUtils.GetColumn("Bias", NumberType.R4, ref bias));
-            var weights = Weight;
-            cols.Add(RowColumnUtils.GetColumn("Weights", colType, ref weights, slotNamesRow));
-            return RowColumnUtils.GetRow(null, cols.ToArray());
-        }
-
-        public IRow GetStatsIRowOrNull(RoleMappedSchema schema)
-        {
-            return null;
         }
     }
 
