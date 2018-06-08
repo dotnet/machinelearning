@@ -1501,7 +1501,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40
             /// </summary>
-            public Microsoft.ML.TextLoaderColumn[] Column { get; set; }
+            public TextLoaderColumn[] Column { get; set; }
 
             /// <summary>
             /// Remove trailing whitespace from lines
@@ -1525,17 +1525,17 @@ namespace Microsoft.ML
             /// <summary>
             /// Type of the items in the column
             /// </summary>
-            public Microsoft.ML.DataKind? Type { get; set; }
+            public DataKind? Type { get; set; }
 
             /// <summary>
             /// Source index range(s) of the column
             /// </summary>
-            public Microsoft.ML.TextLoaderRange[] Source { get; set; }
+            public TextLoaderRange[] Source { get; set; }
 
             /// <summary>
             /// For a key column, this defines the range of values
             /// </summary>
-            public Microsoft.ML.KeyRange KeyRange { get; set; }
+            public KeyRange KeyRange { get; set; }
 
         }
 
@@ -13699,7 +13699,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Supported metric for evaluator.
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } = Microsoft.ML.Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
+            public  Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } =  Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
 
             /// <summary>
             /// AutoML engine (pipeline optimizer) that generates next candidates.
@@ -13710,7 +13710,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Kind of trainer for task, such as binary classification trainer, multiclass trainer, etc.
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } = Microsoft.ML.Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public  Microsoft.ML.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } =  Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
             /// <summary>
             /// Arguments for creating terminator, which determines when to stop search.
@@ -13966,7 +13966,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14131,7 +14131,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -14274,12 +14274,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeBinaryClassification";
         }
@@ -14354,7 +14354,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14519,7 +14519,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -14662,12 +14662,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeRanking";
         }
@@ -14702,7 +14702,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14867,7 +14867,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -15010,12 +15010,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeRegression";
         }
@@ -15055,7 +15055,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -15220,7 +15220,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -15363,12 +15363,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeTweedieRegression";
         }
@@ -15405,7 +15405,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The weighting criteria
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } = Microsoft.ML.Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
+            public  Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } =  Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
 
             internal override string ComponentName => "NGram";
         }
@@ -15513,7 +15513,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Data type of each column.
             /// </summary>
-            public Microsoft.ML.Microsoft.ML.Transforms.DataKind Type { get; set; } = Microsoft.ML.Microsoft.ML.Transforms.DataKind.TX;
+            public  Microsoft.ML.Transforms.DataKind Type { get; set; } =  Microsoft.ML.Transforms.DataKind.TX;
 
             internal override string ComponentName => "SimplePathParser";
         }
