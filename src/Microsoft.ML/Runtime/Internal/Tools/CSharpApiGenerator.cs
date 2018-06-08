@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     case TlcModule.DataKind.FileHandle:
                         return GetCSharpTypeName(inputType);
                     case TlcModule.DataKind.Array:
-                        return GetInputType(catalog, inputType.GetElementType(), typesSymbolTable) + "[]";
+                        return GetInputType(catalog, inputType.GetElementType(), typesSymbolTable, rootNameSpace) + "[]";
                     case TlcModule.DataKind.Component:
                         string kind;
                         bool success = catalog.TryGetComponentKind(type, out kind);
@@ -136,13 +136,13 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                         return $"{enumName}";
                     default:
                         if (isNullable)
-                            return rootNameSpace + typesSymbolTable[type.FullName];
+                            return GetEnumName(type, typesSymbolTable, rootNameSpace); ;
                         if (isOptional)
-                            return $"Optional<{rootNameSpace + typesSymbolTable[type.FullName]}>";
+                            return $"Optional<{GetEnumName(type, typesSymbolTable, rootNameSpace)}>";
                         if (typesSymbolTable.ContainsKey(type.FullName))
-                            return rootNameSpace + typesSymbolTable[type.FullName];
+                            return GetEnumName(type, typesSymbolTable, rootNameSpace);
                         else
-                            return GetSymbolFromType(typesSymbolTable, type, rootNameSpace);
+                            return GetEnumName(type, typesSymbolTable, rootNameSpace); ;
                 }
             }
 
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                         var properties = propertyBag.Count > 0 ? $" {{ {string.Join(", ", propertyBag)} }}" : "";
                         return $"new {GetComponentName(componentInfo)}(){properties}";
                     case TlcModule.DataKind.Unknown:
-                        return $"new {rootNameSpace + typesSymbolTable[fieldType.FullName]}()";
+                        return $"new {GetEnumName(fieldType, typesSymbolTable, rootNameSpace)}()";
                     default:
                         return fieldValue.ToString();
                 }
@@ -347,12 +347,13 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 return $"{Capitalize(component.Name)}{component.Kind}";
             }
 
-            public static string GetEnumName(Type type, Dictionary<string, string> typesSymbolTable, string rootNamespace = "")
+            public static string GetEnumName(Type type, Dictionary<string, string> typesSymbolTable, string rootNamespace)
             {
-                if (typesSymbolTable.ContainsKey(type.FullName))
-                    return rootNamespace + typesSymbolTable[type.FullName];
-                else
-                    return GetSymbolFromType(typesSymbolTable, type, rootNamespace);
+                if (!typesSymbolTable.TryGetValue(type.FullName, out string fullname))
+                    fullname = GetSymbolFromType(typesSymbolTable, type, rootNamespace);
+                if (fullname.StartsWith(rootNamespace))
+                    return fullname.Substring(rootNamespace.Length + 1);
+                else return fullname;
             }
 
             public static string GetJsonFromField(string fieldName, Type fieldType)
@@ -408,7 +409,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
         private readonly string _regenerate;
         private readonly HashSet<string> _excludedSet;
         private const string RegistrationName = "CSharpApiGenerator";
-        public Dictionary<string, string> TypesSymbolTable = new Dictionary<string, string>();
+        private Dictionary<string, string> _typesSymbolTable = new Dictionary<string, string>();
 
         public CSharpApiGenerator(IHostEnvironment env, Arguments args, string regenerate)
         {
@@ -456,12 +457,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 writer.WriteLine("{");
                 writer.Indent();
 
-                foreach (var kind in catalog.GetAllComponentKinds().OrderBy(x => x))
+                foreach (var kind in catalog.GetAllComponentKinds())
                 {
                     // Generate kind base class
                     GenerateComponentKind(writer, kind);
 
-                    foreach (var component in catalog.GetAllComponents(kind).OrderBy(x => x.Name))
+                    foreach (var component in catalog.GetAllComponents(kind))
                     {
                         // Generate component
                         GenerateComponent(writer, component, catalog);
@@ -594,8 +595,8 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 name += nestedNames[i];
 
             Contracts.Assert(typesSymbolTable.Select(kvp => kvp.Value).All(str => string.Compare(str, name) != 0));
-
-            return "Microsoft.ML." + name;
+            typesSymbolTable[type.FullName] = name;
+            return name;
         }
 
         private void GenerateEnums(IndentingTextWriter writer, Type inputType, string currentNamespace)
@@ -612,7 +613,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
                     type = type.GetGenericArguments()[0];
 
-                if (TypesSymbolTable.ContainsKey(type.FullName))
+                if (_typesSymbolTable.ContainsKey(type.FullName))
                     continue;
 
                 if (!type.IsEnum)
@@ -625,13 +626,13 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
                 var enumType = Enum.GetUnderlyingType(type);
 
-                TypesSymbolTable[type.FullName] = GetSymbolFromType(TypesSymbolTable, type, currentNamespace);
+                var symbolName = GetSymbolFromType(_typesSymbolTable, type, currentNamespace);
                 if (enumType == typeof(int))
-                    writer.WriteLine($"public enum {TypesSymbolTable[type.FullName].Substring(TypesSymbolTable[type.FullName].LastIndexOf('.') + 1)}");
+                    writer.WriteLine($"public enum {symbolName.Substring(symbolName.LastIndexOf('.') + 1)}");
                 else
                 {
                     Contracts.Assert(enumType == typeof(byte));
-                    writer.WriteLine($"public enum {TypesSymbolTable[type.FullName].Substring(TypesSymbolTable[type.FullName].LastIndexOf('.') + 1)} : byte");
+                    writer.WriteLine($"public enum {symbolName.Substring(symbolName.LastIndexOf('.') + 1)} : byte");
                 }
 
                 writer.Write("{");
@@ -707,23 +708,23 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 if (typeEnum != TlcModule.DataKind.Unknown)
                     continue;
 
-                if (TypesSymbolTable.ContainsKey(type.FullName))
+                if (_typesSymbolTable.ContainsKey(type.FullName))
                     continue;
-
-                TypesSymbolTable[type.FullName] = GetSymbolFromType(TypesSymbolTable, type, currentNamespace);
+                GenerateEnums(writer, type,currentNamespace);
+                GenerateStructs(writer, type, catalog, currentNamespace);
+                var symbolName = GetSymbolFromType(_typesSymbolTable, type, currentNamespace);
                 string classBase = "";
                 if (type.IsSubclassOf(typeof(OneToOneColumn)))
-                    classBase = $" : OneToOneColumn<{TypesSymbolTable[type.FullName].Substring(TypesSymbolTable[type.FullName].LastIndexOf('.') + 1)}>, IOneToOneColumn";
+                    classBase = $" : OneToOneColumn<{symbolName.Substring(symbolName.LastIndexOf('.') + 1)}>, IOneToOneColumn";
                 else if (type.IsSubclassOf(typeof(ManyToOneColumn)))
-                    classBase = $" : ManyToOneColumn<{TypesSymbolTable[type.FullName].Substring(TypesSymbolTable[type.FullName].LastIndexOf('.') + 1)}>, IManyToOneColumn";
-                writer.WriteLine($"public sealed partial class {TypesSymbolTable[type.FullName].Substring(TypesSymbolTable[type.FullName].LastIndexOf('.') + 1)}{classBase}");
+                    classBase = $" : ManyToOneColumn<{symbolName.Substring(symbolName.LastIndexOf('.') + 1)}>, IManyToOneColumn";
+                writer.WriteLine($"public sealed partial class {symbolName.Substring(symbolName.LastIndexOf('.') + 1)}{classBase}");
                 writer.WriteLine("{");
                 writer.Indent();
-                GenerateInputFields(writer, type, catalog, TypesSymbolTable);
+                GenerateInputFields(writer, type, catalog, _typesSymbolTable, currentNamespace);
                 writer.Outdent();
                 writer.WriteLine("}");
                 writer.WriteLine();
-                GenerateStructs(writer, type, catalog, currentNamespace);
             }
         }
 
@@ -858,12 +859,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     writer.Indent();
                     if (isArray)
                     {
-                        writer.WriteLine($"var list = {fieldName} == null ? new List<{TypesSymbolTable[type.FullName]}>() : new List<{TypesSymbolTable[type.FullName]}>({fieldName});");
-                        writer.WriteLine($"list.Add(OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(source));");
+                        writer.WriteLine($"var list = {fieldName} == null ? new List<{_typesSymbolTable[type.FullName]}>() : new List<{_typesSymbolTable[type.FullName]}>({fieldName});");
+                        writer.WriteLine($"list.Add(OneToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(source));");
                         writer.WriteLine($"{fieldName} = list.ToArray();");
                     }
                     else
-                        writer.WriteLine($"{fieldName} = OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(source);");
+                        writer.WriteLine($"{fieldName} = OneToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(source);");
                     writer.Outdent();
                     writer.WriteLine("}");
                     writer.WriteLine();
@@ -872,12 +873,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     writer.Indent();
                     if (isArray)
                     {
-                        writer.WriteLine($"var list = {fieldName} == null ? new List<{TypesSymbolTable[type.FullName]}>() : new List<{TypesSymbolTable[type.FullName]}>({fieldName});");
-                        writer.WriteLine($"list.Add(OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(name, source));");
+                        writer.WriteLine($"var list = {fieldName} == null ? new List<{_typesSymbolTable[type.FullName]}>() : new List<{_typesSymbolTable[type.FullName]}>({fieldName});");
+                        writer.WriteLine($"list.Add(OneToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(name, source));");
                         writer.WriteLine($"{fieldName} = list.ToArray();");
                     }
                     else
-                        writer.WriteLine($"{fieldName} = OneToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(name, source);");
+                        writer.WriteLine($"{fieldName} = OneToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(name, source);");
                     writer.Outdent();
                     writer.WriteLine("}");
                     writer.WriteLine();
@@ -905,12 +906,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     writer.Indent();
                     if (isArray)
                     {
-                        writer.WriteLine($"var list = {fieldName} == null ? new List<{TypesSymbolTable[type.FullName]}>() : new List<{TypesSymbolTable[type.FullName]}>({fieldName});");
-                        writer.WriteLine($"list.Add(ManyToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(name, source));");
+                        writer.WriteLine($"var list = {fieldName} == null ? new List<{_typesSymbolTable[type.FullName]}>() : new List<{_typesSymbolTable[type.FullName]}>({fieldName});");
+                        writer.WriteLine($"list.Add(ManyToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(name, source));");
                         writer.WriteLine($"{fieldName} = list.ToArray();");
                     }
                     else
-                        writer.WriteLine($"{fieldName} = ManyToOneColumn<{TypesSymbolTable[type.FullName]}>.Create(name, source);");
+                        writer.WriteLine($"{fieldName} = ManyToOneColumn<{_typesSymbolTable[type.FullName]}>.Create(name, source);");
                     writer.Outdent();
                     writer.WriteLine("}");
                     writer.WriteLine();
@@ -935,9 +936,9 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     classBase += ", Microsoft.ML.ILearningPipelineItem";
             }
 
-            GenerateEnums(writer, entryPointInfo.InputType, classAndMethod.Item1);
+            GenerateEnums(writer, entryPointInfo.InputType, "Microsoft.ML." + classAndMethod.Item1);
             writer.WriteLine();
-            GenerateStructs(writer, entryPointInfo.InputType, catalog, classAndMethod.Item1);
+            GenerateStructs(writer, entryPointInfo.InputType, catalog, "Microsoft.ML." + classAndMethod.Item1);
             writer.WriteLine("/// <summary>");
             foreach (var line in entryPointInfo.Description.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                 writer.WriteLine($"/// {line}");
@@ -955,7 +956,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
             GenerateColumnAddMethods(writer, entryPointInfo.InputType, catalog, classAndMethod.Item2, out Type transformType);
             writer.WriteLine();
-            GenerateInputFields(writer, entryPointInfo.InputType, catalog, TypesSymbolTable);
+            GenerateInputFields(writer, entryPointInfo.InputType, catalog, _typesSymbolTable, "Microsoft.ML." + classAndMethod.Item1);
             writer.WriteLine();
 
             GenerateOutput(writer, entryPointInfo, out HashSet<string> outputVariableNames);
@@ -1057,8 +1058,8 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("}");
         }
 
-        private static void GenerateInputFields(IndentingTextWriter writer,
-            Type inputType, ModuleCatalog catalog, Dictionary<string, string> typesSymbolTable, string rootNameSpace = "")
+        private void GenerateInputFields(IndentingTextWriter writer,
+            Type inputType, ModuleCatalog catalog, Dictionary<string, string> typesSymbolTable, string rootNameSpace)
         {
             var defaults = Activator.CreateInstance(inputType);
             foreach (var fieldInfo in inputType.GetFields())
@@ -1191,7 +1192,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine($"public sealed class {GeneratorUtils.GetComponentName(component)} : {component.Kind}");
             writer.WriteLine("{");
             writer.Indent();
-            GenerateInputFields(writer, component.ArgumentType, catalog, TypesSymbolTable, "Microsoft.ML.");
+            GenerateInputFields(writer, component.ArgumentType, catalog, _typesSymbolTable, "Runtime");
             writer.WriteLine($"internal override string ComponentName => \"{component.Name}\";");
             writer.Outdent();
             writer.WriteLine("}");
