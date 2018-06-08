@@ -853,7 +853,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             var predWithFeatureScores = predictor as IPredictorWithFeatureWeights<Float>;
             if (predWithFeatureScores != null && predictor is IParameterMixer<Float> && cali is IParameterMixer)
                 return new ParameterMixingCalibratedPredictor(env, predWithFeatureScores, cali);
-            if (needValueMapper)
+            if (needValueMapper || predictor is IValueMapper)
                 return new CalibratedPredictor(env, predictor, cali);
             return new SchemaBindableCalibratedPredictor(env, predictor, cali);
         }
