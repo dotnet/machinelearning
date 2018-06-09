@@ -491,20 +491,6 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
         }
-
-        [TlcModule.EntryPoint(Name= "Trainers.OrdinaryLeastSquaresRegressor", Desc = "Train an OLS regression model.", UserName = UserNameValue, ShortName = ShortName)]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var host = env.Register("TrainOLS");
-            host.CheckValue(input, nameof(input));
-            EntryPointUtils.CheckInputArgs(host, input);
-
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.RegressionOutput>(host, input,
-                () => new OlsLinearRegressionTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
-        }
     }
 
     /// <summary>
