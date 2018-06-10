@@ -595,7 +595,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
             Contracts.Assert(typesSymbolTable.Select(kvp => kvp.Value).All(str => string.Compare(str, name) != 0));
 
-            return name;
+            return "Microsoft.ML." + name;
         }
 
         private void GenerateEnums(IndentingTextWriter writer, Type inputType, string currentNamespace)
