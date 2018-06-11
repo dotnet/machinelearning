@@ -574,18 +574,6 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Trainers.OnlineGradientDescentRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output Add(Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor input)
-            {
-                var output = new Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            public void Add(Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor input, Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.OrdinaryLeastSquaresRegressor", input, output));
-            }
-
             public Microsoft.ML.Trainers.PcaAnomalyDetector.Output Add(Microsoft.ML.Trainers.PcaAnomalyDetector input)
             {
                 var output = new Microsoft.ML.Trainers.PcaAnomalyDetector.Output();
@@ -1473,32 +1461,82 @@ namespace Microsoft.ML
     namespace Data
     {
 
-        public enum DataKind : byte
+        public sealed partial class TextLoaderArguments
         {
-            I1 = 1,
-            U1 = 2,
-            I2 = 3,
-            U2 = 4,
-            I4 = 5,
-            U4 = 6,
-            I8 = 7,
-            U8 = 8,
-            R4 = 9,
-            Num = 9,
-            R8 = 10,
-            TX = 11,
-            Text = 11,
-            TXT = 11,
-            BL = 12,
-            Bool = 12,
-            TimeSpan = 13,
-            TS = 13,
-            DT = 14,
-            DateTime = 14,
-            DZ = 15,
-            DateTimeZone = 15,
-            UG = 16,
-            U16 = 16
+            /// <summary>
+            /// Use separate parsing threads?
+            /// </summary>
+            public bool UseThreads { get; set; } = true;
+
+            /// <summary>
+            /// File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.
+            /// </summary>
+            public string HeaderFile { get; set; }
+
+            /// <summary>
+            /// Maximum number of rows to produce
+            /// </summary>
+            public long? MaxRows { get; set; }
+
+            /// <summary>
+            /// Whether the input may include quoted values, which can contain separator characters, colons, and distinguish empty values from missing values. When true, consecutive separators denote a missing value and an empty value is denoted by "". When false, consecutive separators denote an empty value.
+            /// </summary>
+            public bool AllowQuoting { get; set; } = true;
+
+            /// <summary>
+            /// Whether the input may include sparse representations
+            /// </summary>
+            public bool AllowSparse { get; set; } = true;
+
+            /// <summary>
+            /// Number of source columns in the text data. Default is that sparse rows contain their size information.
+            /// </summary>
+            public int? InputSize { get; set; }
+
+            /// <summary>
+            /// Source column separator.
+            /// </summary>
+            public char[] Separator { get; set; } = { '\t' };
+
+            /// <summary>
+            /// Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40
+            /// </summary>
+            public TextLoaderColumn[] Column { get; set; }
+
+            /// <summary>
+            /// Remove trailing whitespace from lines
+            /// </summary>
+            public bool TrimWhitespace { get; set; } = false;
+
+            /// <summary>
+            /// Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.
+            /// </summary>
+            public bool HasHeader { get; set; } = false;
+
+        }
+
+        public sealed partial class TextLoaderColumn
+        {
+            /// <summary>
+            /// Name of the column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Type of the items in the column
+            /// </summary>
+            public DataKind? Type { get; set; }
+
+            /// <summary>
+            /// Source index range(s) of the column
+            /// </summary>
+            public TextLoaderRange[] Source { get; set; }
+
+            /// <summary>
+            /// For a key column, this defines the range of values
+            /// </summary>
+            public KeyRange KeyRange { get; set; }
+
         }
 
         public sealed partial class TextLoaderRange
@@ -1554,84 +1592,6 @@ namespace Microsoft.ML
 
         }
 
-        public sealed partial class TextLoaderColumn
-        {
-            /// <summary>
-            /// Name of the column
-            /// </summary>
-            public string Name { get; set; }
-
-            /// <summary>
-            /// Type of the items in the column
-            /// </summary>
-            public DataKind? Type { get; set; }
-
-            /// <summary>
-            /// Source index range(s) of the column
-            /// </summary>
-            public TextLoaderRange[] Source { get; set; }
-
-            /// <summary>
-            /// For a key column, this defines the range of values
-            /// </summary>
-            public KeyRange KeyRange { get; set; }
-
-        }
-
-        public sealed partial class TextLoaderArguments
-        {
-            /// <summary>
-            /// Use separate parsing threads?
-            /// </summary>
-            public bool UseThreads { get; set; } = true;
-
-            /// <summary>
-            /// File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.
-            /// </summary>
-            public string HeaderFile { get; set; }
-
-            /// <summary>
-            /// Maximum number of rows to produce
-            /// </summary>
-            public long? MaxRows { get; set; }
-
-            /// <summary>
-            /// Whether the input may include quoted values, which can contain separator characters, colons, and distinguish empty values from missing values. When true, consecutive separators denote a missing value and an empty value is denoted by "". When false, consecutive separators denote an empty value.
-            /// </summary>
-            public bool AllowQuoting { get; set; } = true;
-
-            /// <summary>
-            /// Whether the input may include sparse representations
-            /// </summary>
-            public bool AllowSparse { get; set; } = true;
-
-            /// <summary>
-            /// Number of source columns in the text data. Default is that sparse rows contain their size information.
-            /// </summary>
-            public int? InputSize { get; set; }
-
-            /// <summary>
-            /// Source column separator.
-            /// </summary>
-            public char[] Separator { get; set; } = { '\t' };
-
-            /// <summary>
-            /// Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40
-            /// </summary>
-            public TextLoaderColumn[] Column { get; set; }
-
-            /// <summary>
-            /// Remove trailing whitespace from lines
-            /// </summary>
-            public bool TrimWhitespace { get; set; } = false;
-
-            /// <summary>
-            /// Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.
-            /// </summary>
-            public bool HasHeader { get; set; } = false;
-
-        }
-
         /// <summary>
         /// Import a dataset from a text file
         /// </summary>
@@ -1680,7 +1640,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Arguments
             /// </summary>
-            public TextLoaderArguments Arguments { get; set; } = new TextLoaderArguments();
+            public Microsoft.ML.Data.TextLoaderArguments Arguments { get; set; } = new Microsoft.ML.Data.TextLoaderArguments();
 
 
             public sealed class Output
@@ -1946,12 +1906,12 @@ namespace Microsoft.ML
             /// <summary>
             /// The training subgraph inputs
             /// </summary>
-            public CrossValidationBinaryMacroSubGraphInput Inputs { get; set; } = new CrossValidationBinaryMacroSubGraphInput();
+            public Microsoft.ML.Models.CrossValidationBinaryMacroSubGraphInput Inputs { get; set; } = new Microsoft.ML.Models.CrossValidationBinaryMacroSubGraphInput();
 
             /// <summary>
             /// The training subgraph outputs
             /// </summary>
-            public CrossValidationBinaryMacroSubGraphOutput Outputs { get; set; } = new CrossValidationBinaryMacroSubGraphOutput();
+            public Microsoft.ML.Models.CrossValidationBinaryMacroSubGraphOutput Outputs { get; set; } = new Microsoft.ML.Models.CrossValidationBinaryMacroSubGraphOutput();
 
             /// <summary>
             /// Column to use for stratification
@@ -2218,7 +2178,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
             /// </summary>
-            public MacroUtilsTrainerKinds Kind { get; set; } = MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public Microsoft.ML.Models.MacroUtilsTrainerKinds Kind { get; set; } = Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
 
             public sealed class Output
@@ -2298,12 +2258,12 @@ namespace Microsoft.ML
             /// <summary>
             /// The training subgraph inputs
             /// </summary>
-            public CrossValidationMacroSubGraphInput Inputs { get; set; } = new CrossValidationMacroSubGraphInput();
+            public Microsoft.ML.Models.CrossValidationMacroSubGraphInput Inputs { get; set; } = new Microsoft.ML.Models.CrossValidationMacroSubGraphInput();
 
             /// <summary>
             /// The training subgraph outputs
             /// </summary>
-            public CrossValidationMacroSubGraphOutput Outputs { get; set; } = new CrossValidationMacroSubGraphOutput();
+            public Microsoft.ML.Models.CrossValidationMacroSubGraphOutput Outputs { get; set; } = new Microsoft.ML.Models.CrossValidationMacroSubGraphOutput();
 
             /// <summary>
             /// Column to use for stratification
@@ -2318,7 +2278,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
             /// </summary>
-            public MacroUtilsTrainerKinds Kind { get; set; } = MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public Microsoft.ML.Models.MacroUtilsTrainerKinds Kind { get; set; } = Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
             /// <summary>
             /// Column to use for labels
@@ -2727,7 +2687,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The training subgraph output.
             /// </summary>
-            public OneVersusAllMacroSubGraphOutput OutputForSubGraph { get; set; } = new OneVersusAllMacroSubGraphOutput();
+            public Microsoft.ML.Models.OneVersusAllMacroSubGraphOutput OutputForSubGraph { get; set; } = new Microsoft.ML.Models.OneVersusAllMacroSubGraphOutput();
 
             /// <summary>
             /// Use probabilities in OVA combiner
@@ -2757,12 +2717,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public NormalizeOption NormalizeFeatures { get; set; } = NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public CachingOptions Caching { get; set; } = CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output
@@ -2902,12 +2862,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public NormalizeOption NormalizeFeatures { get; set; } = NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public CachingOptions Caching { get; set; } = CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output
@@ -3461,12 +3421,12 @@ namespace Microsoft.ML
             /// <summary>
             /// The training subgraph inputs
             /// </summary>
-            public TrainTestBinaryMacroSubGraphInput Inputs { get; set; } = new TrainTestBinaryMacroSubGraphInput();
+            public Microsoft.ML.Models.TrainTestBinaryMacroSubGraphInput Inputs { get; set; } = new Microsoft.ML.Models.TrainTestBinaryMacroSubGraphInput();
 
             /// <summary>
             /// The training subgraph outputs
             /// </summary>
-            public TrainTestBinaryMacroSubGraphOutput Outputs { get; set; } = new TrainTestBinaryMacroSubGraphOutput();
+            public Microsoft.ML.Models.TrainTestBinaryMacroSubGraphOutput Outputs { get; set; } = new Microsoft.ML.Models.TrainTestBinaryMacroSubGraphOutput();
 
 
             public sealed class Output
@@ -3556,17 +3516,17 @@ namespace Microsoft.ML
             /// <summary>
             /// The training subgraph inputs
             /// </summary>
-            public TrainTestMacroSubGraphInput Inputs { get; set; } = new TrainTestMacroSubGraphInput();
+            public Microsoft.ML.Models.TrainTestMacroSubGraphInput Inputs { get; set; } = new Microsoft.ML.Models.TrainTestMacroSubGraphInput();
 
             /// <summary>
             /// The training subgraph outputs
             /// </summary>
-            public TrainTestMacroSubGraphOutput Outputs { get; set; } = new TrainTestMacroSubGraphOutput();
+            public Microsoft.ML.Models.TrainTestMacroSubGraphOutput Outputs { get; set; } = new Microsoft.ML.Models.TrainTestMacroSubGraphOutput();
 
             /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
             /// </summary>
-            public MacroUtilsTrainerKinds Kind { get; set; } = MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public Microsoft.ML.Models.MacroUtilsTrainerKinds Kind { get; set; } = Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
             /// <summary>
             /// Identifies which pipeline was run for this train test.
@@ -3928,7 +3888,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Bundle Bundling { get; set; } = Bundle.None;
+            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -4210,7 +4170,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Bundle Bundling { get; set; } = Bundle.None;
+            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -4443,7 +4403,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -4608,7 +4568,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Bundle Bundling { get; set; } = Bundle.None;
+            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -4869,7 +4829,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -5034,7 +4994,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Bundle Bundling { get; set; } = Bundle.None;
+            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -5255,7 +5215,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -5420,7 +5380,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Bundle Bundling { get; set; } = Bundle.None;
+            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -5646,7 +5606,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -5811,7 +5771,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Bundle Bundling { get; set; } = Bundle.None;
+            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -6323,7 +6283,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Cluster initialization algorithm
             /// </summary>
-            public KMeansPlusPlusTrainerInitAlgorithm InitAlgorithm { get; set; } = KMeansPlusPlusTrainerInitAlgorithm.KMeansParallel;
+            public Microsoft.ML.Trainers.KMeansPlusPlusTrainerInitAlgorithm InitAlgorithm { get; set; } = Microsoft.ML.Trainers.KMeansPlusPlusTrainerInitAlgorithm.KMeansParallel;
 
             /// <summary>
             /// Tolerance parameter for trainer convergence. Lower = slower, more accurate
@@ -7062,95 +7022,6 @@ namespace Microsoft.ML
             private class OnlineGradientDescentRegressorPipelineStep : ILearningPipelinePredictorStep
             {
                 public OnlineGradientDescentRegressorPipelineStep(Output output)
-                {
-                    Model = output.PredictorModel;
-                }
-
-                public Var<IPredictorModel> Model { get; }
-            }
-        }
-    }
-
-    namespace Trainers
-    {
-
-        /// <summary>
-        /// Train an OLS regression model.
-        /// </summary>
-        public sealed partial class OrdinaryLeastSquaresRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
-        {
-
-
-            /// <summary>
-            /// L2 regularization weight
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L2Weight", new object[]{1E-06f, 0.1f, 1f})]
-            public float L2Weight { get; set; } = 1E-06f;
-
-            /// <summary>
-            /// Whether to calculate per parameter significance statistics
-            /// </summary>
-            public bool PerParameterSignificance { get; set; } = true;
-
-            /// <summary>
-            /// Column to use for example weight
-            /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for labels
-            /// </summary>
-            public string LabelColumn { get; set; } = "Label";
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// Column to use for features
-            /// </summary>
-            public string FeatureColumn { get; set; } = "Features";
-
-            /// <summary>
-            /// Normalize option for the feature column
-            /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
-
-            /// <summary>
-            /// Whether learner should cache input training data
-            /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
-
-
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
-            {
-                /// <summary>
-                /// The trained model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
-
-            }
-            public Var<IDataView> GetInputData() => TrainingData;
-            
-            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
-            {
-                if (previousStep != null)
-                {
-                    if (!(previousStep is ILearningPipelineDataStep dataStep))
-                    {
-                        throw new InvalidOperationException($"{ nameof(OrdinaryLeastSquaresRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                    }
-
-                    TrainingData = dataStep.Data;
-                }
-                Output output = experiment.Add(this);
-                return new OrdinaryLeastSquaresRegressorPipelineStep(output);
-            }
-
-            private class OrdinaryLeastSquaresRegressorPipelineStep : ILearningPipelinePredictorStep
-            {
-                public OrdinaryLeastSquaresRegressorPipelineStep(Output output)
                 {
                     Model = output.PredictorModel;
                 }
@@ -8158,7 +8029,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public NormalizeTransformBinColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.NormalizeTransformBinColumn[] Column { get; set; }
 
             /// <summary>
             /// Max number of bins, power of 2 recommended
@@ -8261,7 +8132,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)
             /// </summary>
-            public CategoricalTransformOutputKind? OutputKind { get; set; }
+            public Microsoft.ML.Transforms.CategoricalTransformOutputKind? OutputKind { get; set; }
 
             /// <summary>
             /// Name of the new column
@@ -8325,7 +8196,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:hashBits:src)
             /// </summary>
-            public CategoricalHashTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.CategoricalHashTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Number of bits to hash into. Must be between 1 and 30, inclusive.
@@ -8350,7 +8221,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)
             /// </summary>
-            public CategoricalTransformOutputKind OutputKind { get; set; } = CategoricalTransformOutputKind.Bag;
+            public Microsoft.ML.Transforms.CategoricalTransformOutputKind OutputKind { get; set; } = Microsoft.ML.Transforms.CategoricalTransformOutputKind.Bag;
 
             /// <summary>
             /// Input dataset
@@ -8416,7 +8287,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector
             /// </summary>
-            public CategoricalTransformOutputKind? OutputKind { get; set; }
+            public Microsoft.ML.Transforms.CategoricalTransformOutputKind? OutputKind { get; set; }
 
             /// <summary>
             /// Maximum number of terms to keep when auto-training
@@ -8431,7 +8302,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder? Sort { get; set; }
+            public Microsoft.ML.Transforms.TermTransformSortOrder? Sort { get; set; }
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -8500,12 +8371,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public CategoricalTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.CategoricalTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)
             /// </summary>
-            public CategoricalTransformOutputKind OutputKind { get; set; } = CategoricalTransformOutputKind.Ind;
+            public Microsoft.ML.Transforms.CategoricalTransformOutputKind OutputKind { get; set; } = Microsoft.ML.Transforms.CategoricalTransformOutputKind.Ind;
 
             /// <summary>
             /// Maximum number of terms to keep per column when auto-training
@@ -8520,7 +8391,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
+            public Microsoft.ML.Transforms.TermTransformSortOrder Sort { get; set; } = Microsoft.ML.Transforms.TermTransformSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -8644,7 +8515,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public CharTokenizeTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.CharTokenizeTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether to mark the beginning/end of each row/slot with start of text character (0x02)/end of text character (0x03)
@@ -8744,7 +8615,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:srcs)
             /// </summary>
-            public ConcatTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.ConcatTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -8863,7 +8734,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public CopyColumnsTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.CopyColumnsTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -9047,13 +8918,41 @@ namespace Microsoft.ML
 
     namespace Transforms
     {
+        public enum DataKind : byte
+        {
+            I1 = 1,
+            U1 = 2,
+            I2 = 3,
+            U2 = 4,
+            I4 = 5,
+            U4 = 6,
+            I8 = 7,
+            U8 = 8,
+            R4 = 9,
+            Num = 9,
+            R8 = 10,
+            TX = 11,
+            Text = 11,
+            TXT = 11,
+            BL = 12,
+            Bool = 12,
+            TimeSpan = 13,
+            TS = 13,
+            DT = 14,
+            DateTime = 14,
+            DZ = 15,
+            DateTimeZone = 15,
+            UG = 16,
+            U16 = 16
+        }
+
 
         public sealed partial class ConvertTransformColumn : OneToOneColumn<ConvertTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The result type
             /// </summary>
-            public Microsoft.ML.Data.DataKind? ResultType { get; set; }
+            public Microsoft.ML.Transforms.DataKind? ResultType { get; set; }
 
             /// <summary>
             /// For a key column, this defines the range of values
@@ -9122,12 +9021,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:type:src)
             /// </summary>
-            public ConvertTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.ConvertTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The result type
             /// </summary>
-            public Microsoft.ML.Data.DataKind? ResultType { get; set; }
+            public Microsoft.ML.Transforms.DataKind? ResultType { get; set; }
 
             /// <summary>
             /// For a key column, this defines the range of values
@@ -9331,7 +9230,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public NormalizeTransformAffineColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.NormalizeTransformAffineColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether to map zero to zero, preserving sparsity
@@ -9412,7 +9311,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Caching strategy
             /// </summary>
-            public CacheCachingType Caching { get; set; } = CacheCachingType.Memory;
+            public Microsoft.ML.Transforms.CacheCachingType Caching { get; set; } = Microsoft.ML.Transforms.CacheCachingType.Memory;
 
             /// <summary>
             /// Input dataset
@@ -9555,7 +9454,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder? Sort { get; set; }
+            public Microsoft.ML.Transforms.TermTransformSortOrder? Sort { get; set; }
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -9624,7 +9523,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public TermTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.TermTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum number of terms to keep per column when auto-training
@@ -9639,7 +9538,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
+            public Microsoft.ML.Transforms.TermTransformSortOrder Sort { get; set; } = Microsoft.ML.Transforms.TermTransformSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -9993,7 +9892,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public LpNormNormalizerTransformGcnColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn[] Column { get; set; }
 
             /// <summary>
             /// Subtract mean from each value before normalizing
@@ -10152,7 +10051,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public HashJoinTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.HashJoinTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether the values need to be combined for a single hash
@@ -10291,7 +10190,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public KeyToValueTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.KeyToValueTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -10485,7 +10384,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public LabelIndicatorTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.LabelIndicatorTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Label of the positive class.
@@ -10684,7 +10583,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public NormalizeTransformLogNormalColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn[] Column { get; set; }
 
             /// <summary>
             /// Max number of examples used to train the normalizer
@@ -10757,7 +10656,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The norm to use to normalize each sample
             /// </summary>
-            public LpNormNormalizerTransformNormalizerKind? NormKind { get; set; }
+            public Microsoft.ML.Transforms.LpNormNormalizerTransformNormalizerKind? NormKind { get; set; }
 
             /// <summary>
             /// Subtract mean from each value before normalizing
@@ -10826,12 +10725,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public LpNormNormalizerTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.LpNormNormalizerTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The norm to use to normalize each sample
             /// </summary>
-            public LpNormNormalizerTransformNormalizerKind NormKind { get; set; } = LpNormNormalizerTransformNormalizerKind.L2Norm;
+            public Microsoft.ML.Transforms.LpNormNormalizerTransformNormalizerKind NormKind { get; set; } = Microsoft.ML.Transforms.LpNormNormalizerTransformNormalizerKind.L2Norm;
 
             /// <summary>
             /// Subtract mean from each value before normalizing
@@ -10978,7 +10877,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public NormalizeTransformAffineColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.NormalizeTransformAffineColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether to map zero to zero, preserving sparsity
@@ -11093,7 +10992,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public NormalizeTransformAffineColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.NormalizeTransformAffineColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether to map zero to zero, preserving sparsity
@@ -11175,7 +11074,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public NAHandleTransformReplacementKind? Kind { get; set; }
+            public Microsoft.ML.Transforms.NAHandleTransformReplacementKind? Kind { get; set; }
 
             /// <summary>
             /// Whether to impute values by slot
@@ -11249,12 +11148,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:rep:src)
             /// </summary>
-            public NAHandleTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.NAHandleTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public NAHandleTransformReplacementKind ReplaceWith { get; set; } = NAHandleTransformReplacementKind.Def;
+            public Microsoft.ML.Transforms.NAHandleTransformReplacementKind ReplaceWith { get; set; } = Microsoft.ML.Transforms.NAHandleTransformReplacementKind.Def;
 
             /// <summary>
             /// Whether to impute values by slot
@@ -11383,7 +11282,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public NAIndicatorTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.NAIndicatorTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -11502,7 +11401,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Columns to drop the NAs for
             /// </summary>
-            public NADropTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.NADropTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -11652,7 +11551,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public NAReplaceTransformReplacementKind? Kind { get; set; }
+            public Microsoft.ML.Transforms.NAReplaceTransformReplacementKind? Kind { get; set; }
 
             /// <summary>
             /// Whether to impute values by slot
@@ -11721,12 +11620,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:rep:src)
             /// </summary>
-            public NAReplaceTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.NAReplaceTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public NAReplaceTransformReplacementKind ReplacementKind { get; set; } = NAReplaceTransformReplacementKind.Def;
+            public Microsoft.ML.Transforms.NAReplaceTransformReplacementKind ReplacementKind { get; set; } = Microsoft.ML.Transforms.NAReplaceTransformReplacementKind.Def;
 
             /// <summary>
             /// Whether to impute values by slot
@@ -11845,7 +11744,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Statistical measure used to evaluate how important a word is to a document in a corpus
             /// </summary>
-            public NgramTransformWeightingCriteria? Weighting { get; set; }
+            public Microsoft.ML.Transforms.NgramTransformWeightingCriteria? Weighting { get; set; }
 
             /// <summary>
             /// Name of the new column
@@ -11909,7 +11808,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public NgramTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.NgramTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum ngram length
@@ -11934,7 +11833,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The weighting criteria
             /// </summary>
-            public NgramTransformWeightingCriteria Weighting { get; set; } = NgramTransformWeightingCriteria.Tf;
+            public Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } = Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
 
             /// <summary>
             /// Input dataset
@@ -12203,7 +12102,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public PcaTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.PcaTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The name of the weight column
@@ -12377,7 +12276,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:seed)
             /// </summary>
-            public GenerateNumberTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.GenerateNumberTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Use an auto-incremented integer starting at zero instead of a random number
@@ -12851,7 +12750,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Specifies how to unroll multiple pivot columns of different size.
             /// </summary>
-            public UngroupTransformUngroupMode Mode { get; set; } = UngroupTransformUngroupMode.Inner;
+            public Microsoft.ML.Transforms.UngroupTransformUngroupMode Mode { get; set; } = Microsoft.ML.Transforms.UngroupTransformUngroupMode.Inner;
 
             /// <summary>
             /// Input dataset
@@ -13036,7 +12935,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public NormalizeTransformBinColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.NormalizeTransformBinColumn[] Column { get; set; }
 
             /// <summary>
             /// Max number of bins, power of 2 recommended
@@ -13156,7 +13055,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
+            public Microsoft.ML.Transforms.TermTransformSortOrder Sort { get; set; } = Microsoft.ML.Transforms.TermTransformSortOrder.Occurrence;
 
             /// <summary>
             /// Drop unknown terms instead of mapping them to NA term.
@@ -13189,12 +13088,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition (optional form: name:srcs).
             /// </summary>
-            public TextTransformColumn Column { get; set; }
+            public Microsoft.ML.Transforms.TextTransformColumn Column { get; set; }
 
             /// <summary>
             /// Dataset language or 'AutoDetect' to detect language per row.
             /// </summary>
-            public TextTransformLanguage Language { get; set; } = TextTransformLanguage.English;
+            public Microsoft.ML.Transforms.TextTransformLanguage Language { get; set; } = Microsoft.ML.Transforms.TextTransformLanguage.English;
 
             /// <summary>
             /// Stopwords remover.
@@ -13205,7 +13104,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Casing text using the rules of the invariant culture.
             /// </summary>
-            public TextNormalizerTransformCaseNormalizationMode TextCase { get; set; } = TextNormalizerTransformCaseNormalizationMode.Lower;
+            public Microsoft.ML.Transforms.TextNormalizerTransformCaseNormalizationMode TextCase { get; set; } = Microsoft.ML.Transforms.TextNormalizerTransformCaseNormalizationMode.Lower;
 
             /// <summary>
             /// Whether to keep diacritical marks or remove them.
@@ -13230,7 +13129,7 @@ namespace Microsoft.ML
             /// <summary>
             /// A dictionary of whitelisted terms.
             /// </summary>
-            public TermLoaderArguments Dictionary { get; set; }
+            public Microsoft.ML.Transforms.TermLoaderArguments Dictionary { get; set; }
 
             /// <summary>
             /// Ngram feature extractor to use for words (WordBag/WordHashBag).
@@ -13247,7 +13146,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize vectors (rows) individually by rescaling them to unit norm.
             /// </summary>
-            public TextTransformTextNormKind VectorNormalizer { get; set; } = TextTransformTextNormKind.L2;
+            public Microsoft.ML.Transforms.TextTransformTextNormKind VectorNormalizer { get; set; } = Microsoft.ML.Transforms.TextTransformTextNormKind.L2;
 
             /// <summary>
             /// Input dataset
@@ -13352,7 +13251,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public TermTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.TermTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum number of terms to keep per column when auto-training
@@ -13367,7 +13266,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
+            public Microsoft.ML.Transforms.TermTransformSortOrder Sort { get; set; } = Microsoft.ML.Transforms.TermTransformSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -13645,7 +13544,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s)
             /// </summary>
-            public DelimitedTokenizeTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.
@@ -13800,7 +13699,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Supported metric for evaluator.
             /// </summary>
-            public AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } = AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
+            public  Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } =  Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
 
             /// <summary>
             /// AutoML engine (pipeline optimizer) that generates next candidates.
@@ -13811,7 +13710,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Kind of trainer for task, such as binary classification trainer, multiclass trainer, etc.
             /// </summary>
-            public Microsoft.ML.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } = Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public  Microsoft.ML.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } =  Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
             /// <summary>
             /// Arguments for creating terminator, which determines when to stop search.
@@ -13831,6 +13730,9 @@ namespace Microsoft.ML
 
 
 
+        /// <summary>
+        /// 
+        /// </summary>
         public sealed class FixedPlattCalibratorCalibratorTrainer : CalibratorTrainer
         {
             /// <summary>
@@ -13848,6 +13750,9 @@ namespace Microsoft.ML
 
 
 
+        /// <summary>
+        /// 
+        /// </summary>
         public sealed class NaiveCalibratorCalibratorTrainer : CalibratorTrainer
         {
             internal override string ComponentName => "NaiveCalibrator";
@@ -13855,6 +13760,9 @@ namespace Microsoft.ML
 
 
 
+        /// <summary>
+        /// 
+        /// </summary>
         public sealed class PavCalibratorCalibratorTrainer : CalibratorTrainer
         {
             internal override string ComponentName => "PavCalibrator";
@@ -14058,7 +13966,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14223,7 +14131,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -14366,12 +14274,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeBinaryClassification";
         }
@@ -14446,7 +14354,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14611,7 +14519,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -14754,12 +14662,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeRanking";
         }
@@ -14794,7 +14702,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14959,7 +14867,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -15102,12 +15010,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeRegression";
         }
@@ -15147,7 +15055,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -15312,7 +15220,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -15455,12 +15363,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeTweedieRegression";
         }
@@ -15497,7 +15405,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The weighting criteria
             /// </summary>
-            public Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } = Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
+            public  Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } =  Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
 
             internal override string ComponentName => "NGram";
         }
@@ -15582,7 +15490,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Data type of the column.
             /// </summary>
-            public Microsoft.ML.Data.DataKind? Type { get; set; }
+            public Microsoft.ML.Transforms.DataKind? Type { get; set; }
 
             /// <summary>
             /// Index of the directory representing this column.
@@ -15600,12 +15508,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1
             /// </summary>
-            public PartitionedFileLoaderColumn[] Columns { get; set; }
+            public Microsoft.ML.Runtime.PartitionedFileLoaderColumn[] Columns { get; set; }
 
             /// <summary>
             /// Data type of each column.
             /// </summary>
-            public Microsoft.ML.Data.DataKind Type { get; set; } = Microsoft.ML.Data.DataKind.TX;
+            public  Microsoft.ML.Transforms.DataKind Type { get; set; } =  Microsoft.ML.Transforms.DataKind.TX;
 
             internal override string ComponentName => "SimplePathParser";
         }

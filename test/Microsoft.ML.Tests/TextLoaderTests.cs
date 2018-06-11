@@ -32,7 +32,10 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, supportSparse: false, trimWhitespace: false));
             Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, supportSparse: false));
             Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, allowQuotedStrings: false));
+
+            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<InputWithUnderscore>());
         }
+
 
         [Fact]
         public void CanSuccessfullyApplyATransform()
@@ -262,6 +265,15 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             [Column("1")]
             public float Number1;
+        }
+
+        public class InputWithUnderscore
+        {
+            [Column("0")]
+            public string String_1;
+
+            [Column("1")]
+            public float Number_1;
         }
 
         public class ModelWithoutColumnAttribute
