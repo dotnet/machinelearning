@@ -43,7 +43,7 @@ namespace Microsoft.ML.Data
         {
 
             Contracts.CheckParam(min >= 0, nameof(min), "Cannot be a negative number.");
-            Contracts.CheckParam(max >= min, nameof(max), "Cannot be less than " + nameof(min) +".");
+            Contracts.CheckParam(max >= min, nameof(max), "Cannot be less than " + nameof(min) + ".");
 
             Min = min;
             Max = max;
@@ -84,8 +84,8 @@ namespace Microsoft.ML.Data
                         $"Valid characters are 0-9, *, - and ~");
 
                 var name = mappingAttr.Name ?? field.Name;
-                if (name.Any(c => !Char.IsLetterOrDigit(c)))
-                    throw Contracts.Except($"{name} is not alphanumeric.");
+                if (Regex.Match(name, @"^[a-zA-Z_@]\w*$").Success)
+                    throw Contracts.Except($"{name} contains invalid characters as a column name. ");
 
                 Runtime.Data.TextLoader.Range[] sources;
                 if (!Runtime.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Ordinal, out sources))
