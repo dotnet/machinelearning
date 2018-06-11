@@ -42,6 +42,23 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             return type;
         }
 
+        public static Type ExtractOptionalOrNullableType(Type type, out bool isNullable, out bool isOptional)
+        {
+            isNullable = false;
+            isOptional = false;
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                type = type.GetGenericArguments()[0];
+                isNullable = true;
+            }
+            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
+            {
+                type = type.GetGenericArguments()[0];
+                isOptional = true;
+            }
+            return type;
+        }
+
         public static string GetCSharpTypeName(Type type)
         {
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
@@ -83,20 +100,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             if (Var<int>.CheckType(inputType))
                 return $"Var<{GetCSharpTypeName(inputType)}>";
 
-            bool isNullable = false;
-            bool isOptional = false;
-            var type = inputType;
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                type = type.GetGenericArguments()[0];
-                isNullable = true;
-            }
-            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
-            {
-                type = type.GetGenericArguments()[0];
-                isOptional = true;
-            }
-
+            var type = ExtractOptionalOrNullableType(inputType, out bool isNullable, out bool isOptional);
             var typeEnum = TlcModule.GetDataType(type);
             switch (typeEnum)
             {
@@ -227,7 +231,9 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
 
             var typeEnum = TlcModule.GetDataType(fieldType);
-            fieldType = ExtractOptionalOrNullableType(fieldType);
+            fieldType = ExtractOptionalOrNullableType(fieldType, out bool isNullable, out bool isOptional);
+            if (isOptional)
+                fieldValue = (fieldValue as Optional).GetValue();
             switch (typeEnum)
             {
                 case TlcModule.DataKind.Array:
