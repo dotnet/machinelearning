@@ -574,18 +574,6 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Trainers.OnlineGradientDescentRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output Add(Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor input)
-            {
-                var output = new Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            public void Add(Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor input, Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.OrdinaryLeastSquaresRegressor", input, output));
-            }
-
             public Microsoft.ML.Trainers.PcaAnomalyDetector.Output Add(Microsoft.ML.Trainers.PcaAnomalyDetector input)
             {
                 var output = new Microsoft.ML.Trainers.PcaAnomalyDetector.Output();
@@ -1652,7 +1640,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Arguments
             /// </summary>
-            public Data.TextLoaderArguments Arguments { get; set; } = new Data.TextLoaderArguments();
+            public Microsoft.ML.Data.TextLoaderArguments Arguments { get; set; } = new Microsoft.ML.Data.TextLoaderArguments();
 
 
             public sealed class Output
@@ -2190,7 +2178,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
             /// </summary>
-            public Models.MacroUtilsTrainerKinds Kind { get; set; } = Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public Microsoft.ML.Models.MacroUtilsTrainerKinds Kind { get; set; } = Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
 
             public sealed class Output
@@ -6295,7 +6283,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Cluster initialization algorithm
             /// </summary>
-            public Trainers.KMeansPlusPlusTrainerInitAlgorithm InitAlgorithm { get; set; } = Trainers.KMeansPlusPlusTrainerInitAlgorithm.KMeansParallel;
+            public Microsoft.ML.Trainers.KMeansPlusPlusTrainerInitAlgorithm InitAlgorithm { get; set; } = Microsoft.ML.Trainers.KMeansPlusPlusTrainerInitAlgorithm.KMeansParallel;
 
             /// <summary>
             /// Tolerance parameter for trainer convergence. Lower = slower, more accurate
@@ -6335,12 +6323,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IClusteringOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6620,12 +6608,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7047,95 +7035,6 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Train an OLS regression model.
-        /// </summary>
-        public sealed partial class OrdinaryLeastSquaresRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
-        {
-
-
-            /// <summary>
-            /// L2 regularization weight
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L2Weight", new object[]{1E-06f, 0.1f, 1f})]
-            public float L2Weight { get; set; } = 1E-06f;
-
-            /// <summary>
-            /// Whether to calculate per parameter significance statistics
-            /// </summary>
-            public bool PerParameterSignificance { get; set; } = true;
-
-            /// <summary>
-            /// Column to use for example weight
-            /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for labels
-            /// </summary>
-            public string LabelColumn { get; set; } = "Label";
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// Column to use for features
-            /// </summary>
-            public string FeatureColumn { get; set; } = "Features";
-
-            /// <summary>
-            /// Normalize option for the feature column
-            /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
-
-            /// <summary>
-            /// Whether learner should cache input training data
-            /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
-
-
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
-            {
-                /// <summary>
-                /// The trained model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
-
-            }
-            public Var<IDataView> GetInputData() => TrainingData;
-            
-            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
-            {
-                if (previousStep != null)
-                {
-                    if (!(previousStep is ILearningPipelineDataStep dataStep))
-                    {
-                        throw new InvalidOperationException($"{ nameof(OrdinaryLeastSquaresRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                    }
-
-                    TrainingData = dataStep.Data;
-                }
-                Output output = experiment.Add(this);
-                return new OrdinaryLeastSquaresRegressorPipelineStep(output);
-            }
-
-            private class OrdinaryLeastSquaresRegressorPipelineStep : ILearningPipelinePredictorStep
-            {
-                public OrdinaryLeastSquaresRegressorPipelineStep(Output output)
-                {
-                    Model = output.PredictorModel;
-                }
-
-                public Var<IPredictorModel> Model { get; }
-            }
-        }
-    }
-
-    namespace Trainers
-    {
-
-        /// <summary>
         /// Train an PCA Anomaly model.
         /// </summary>
         public sealed partial class PcaAnomalyDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
@@ -7183,12 +7082,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IAnomalyDetectionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -12187,15 +12086,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string source)
             {
-                var list = Column == null ? new List<Transforms.PcaTransformColumn>() : new List<Transforms.PcaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.PcaTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.PcaTransformColumn>() : new List<Microsoft.ML.Transforms.PcaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.PcaTransformColumn>.Create(source));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string name, string source)
             {
-                var list = Column == null ? new List<Transforms.PcaTransformColumn>() : new List<Transforms.PcaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.PcaTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.PcaTransformColumn>() : new List<Microsoft.ML.Transforms.PcaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.PcaTransformColumn>.Create(name, source));
                 Column = list.ToArray();
             }
 
@@ -12203,7 +12102,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.PcaTransformColumn[] Column { get; set; }
+            public Microsoft.ML.Transforms.PcaTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The name of the weight column
@@ -13800,7 +13699,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Supported metric for evaluator.
             /// </summary>
-            public Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } = Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
+            public  Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } =  Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
 
             /// <summary>
             /// AutoML engine (pipeline optimizer) that generates next candidates.
@@ -13811,7 +13710,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Kind of trainer for task, such as binary classification trainer, multiclass trainer, etc.
             /// </summary>
-            public Microsoft.ML.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } = Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public  Microsoft.ML.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } =  Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
             /// <summary>
             /// Arguments for creating terminator, which determines when to stop search.
@@ -14067,7 +13966,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14232,7 +14131,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -14375,12 +14274,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeBinaryClassification";
         }
@@ -14455,7 +14354,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14620,7 +14519,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -14763,12 +14662,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeRanking";
         }
@@ -14803,7 +14702,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14968,7 +14867,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -15111,12 +15010,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeRegression";
         }
@@ -15156,7 +15055,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -15321,7 +15220,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -15464,12 +15363,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeTweedieRegression";
         }
@@ -15506,7 +15405,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The weighting criteria
             /// </summary>
-            public Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } = Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
+            public  Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } =  Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
 
             internal override string ComponentName => "NGram";
         }
@@ -15581,7 +15480,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed class PartitionedFileLoaderColumn
+        public sealed partial class PartitionedFileLoaderColumn
         {
             /// <summary>
             /// Name of the column.
@@ -15594,7 +15493,7 @@ namespace Microsoft.ML
             public Microsoft.ML.Transforms.DataKind? Type { get; set; }
 
             /// <summary>
-            /// Source index of the column.
+            /// Index of the directory representing this column.
             /// </summary>
             public int Source { get; set; }
 
@@ -15614,7 +15513,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Data type of each column.
             /// </summary>
-            public Microsoft.ML.Transforms.DataKind Type { get; set; } = Microsoft.ML.Transforms.DataKind.TX;
+            public  Microsoft.ML.Transforms.DataKind Type { get; set; } =  Microsoft.ML.Transforms.DataKind.TX;
 
             internal override string ComponentName => "SimplePathParser";
         }
