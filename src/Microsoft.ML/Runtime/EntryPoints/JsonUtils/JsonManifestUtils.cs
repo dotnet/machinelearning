@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                 {
                     var jField = new JObject();
                     jField[FieldNames.Name] = fieldInfo.Name;
-                    var type = GeneratorUtils.ExtractOptionalOrNullableType(fieldInfo.PropertyType);
+                    var type = CSharpGeneratorUtils.ExtractOptionalOrNullableType(fieldInfo.PropertyType);
                     // Dive inside Var.
                     if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Var<>))
                         type = type.GetGenericArguments()[0];
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                 jo[FieldNames.ItemType] = typeString;
                 return jo;
             }
-            type = GeneratorUtils.ExtractOptionalOrNullableType(type);
+            type = CSharpGeneratorUtils.ExtractOptionalOrNullableType(type);
 
             // Dive inside Var.
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Var<>))

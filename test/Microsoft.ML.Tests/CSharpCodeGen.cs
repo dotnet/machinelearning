@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
 using System.IO;
 using Xunit;
@@ -9,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public class CSharpCodeGen : BaseTestClass
+    public class CSharpCodeGen : BaseTestBaseline
     {
         public CSharpCodeGen(ITestOutputHelper output) : base(output)
         {
@@ -18,8 +19,25 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void GenerateCSharpAPI()
         {
-            var cSharpAPIPath = Path.Combine(RootDir, @"src\\Microsoft.ML\\CSharpApi.cs");
-            Runtime.Tools.Maml.Main(new[] { $"? generator=cs{{csFilename={cSharpAPIPath}}}" });
+            var dataPath = GetOutputPath("Api.cs");
+            Runtime.Tools.Maml.Main(new[] { $"? generator=cs{{csFilename={dataPath}}}" });
+            
+            var basePath = GetDataPath("../../src/Microsoft.ML/CSharpApi.cs");
+            using (StreamReader baseline = OpenReader(basePath))
+            using (StreamReader result = OpenReader(dataPath))
+            {
+                for (; ; )
+                {
+                    string line1 = baseline.ReadLine();
+                    string line2 = result.ReadLine();
+
+                    if (line1 == null && line2 == null)
+                        break;
+                    if (line2 != null && line2.Contains(dataPath))
+                        continue;
+                    Assert.Equal(line1, line2);
+                }
+            }
         }
     }
 }
