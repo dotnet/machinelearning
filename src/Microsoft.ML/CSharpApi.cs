@@ -8000,28 +8000,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public BinNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public BinNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -8167,28 +8167,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public CategoricalHashOneHotVectorizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public CategoricalHashOneHotVectorizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalHashTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalHashTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalHashTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalHashTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -8342,28 +8342,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public CategoricalOneHotVectorizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public CategoricalOneHotVectorizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -8486,28 +8486,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public CharacterTokenizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public CharacterTokenizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CharTokenizeTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CharTokenizeTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CharTokenizeTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CharTokenizeTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -8705,28 +8705,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public ColumnCopier(params ValueTuple<string, string>[] inputOutputColumns)
+            public ColumnCopier(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -8992,28 +8992,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public ColumnTypeConverter(params ValueTuple<string, string>[] inputOutputColumns)
+            public ColumnTypeConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.ConvertTransformColumn>() : new List<Microsoft.ML.Transforms.ConvertTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ConvertTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ConvertTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.ConvertTransformColumn>() : new List<Microsoft.ML.Transforms.ConvertTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ConvertTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ConvertTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -9201,28 +9201,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public ConditionalNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public ConditionalNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -9494,28 +9494,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public Dictionarizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public Dictionarizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -9863,28 +9863,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public GlobalContrastNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public GlobalContrastNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10022,28 +10022,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public HashConverter(params ValueTuple<string, string>[] inputOutputColumns)
+            public HashConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Transforms.HashJoinTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.HashJoinTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.HashJoinTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Transforms.HashJoinTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.HashJoinTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.HashJoinTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10161,28 +10161,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public KeyToTextConverter(params ValueTuple<string, string>[] inputOutputColumns)
+            public KeyToTextConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>() : new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.KeyToValueTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.KeyToValueTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>() : new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.KeyToValueTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.KeyToValueTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10355,28 +10355,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public LabelIndicator(params ValueTuple<string, string>[] inputOutputColumns)
+            public LabelIndicator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10549,28 +10549,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public LogMeanVarianceNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public LogMeanVarianceNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10696,28 +10696,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public LpNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public LpNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10843,28 +10843,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MeanVarianceNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public MeanVarianceNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10963,28 +10963,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MinMaxNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public MinMaxNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11119,28 +11119,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MissingValueHandler(params ValueTuple<string, string>[] inputOutputColumns)
+            public MissingValueHandler(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NAHandleTransformColumn>() : new List<Microsoft.ML.Transforms.NAHandleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAHandleTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAHandleTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NAHandleTransformColumn>() : new List<Microsoft.ML.Transforms.NAHandleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAHandleTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAHandleTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11253,28 +11253,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MissingValueIndicator(params ValueTuple<string, string>[] inputOutputColumns)
+            public MissingValueIndicator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAIndicatorTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAIndicatorTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAIndicatorTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAIndicatorTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11372,28 +11372,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MissingValuesDropper(params ValueTuple<string, string>[] inputOutputColumns)
+            public MissingValuesDropper(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NADropTransformColumn>() : new List<Microsoft.ML.Transforms.NADropTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NADropTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NADropTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NADropTransformColumn>() : new List<Microsoft.ML.Transforms.NADropTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NADropTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NADropTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11591,28 +11591,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MissingValueSubstitutor(params ValueTuple<string, string>[] inputOutputColumns)
+            public MissingValueSubstitutor(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>() : new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAReplaceTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAReplaceTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>() : new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAReplaceTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAReplaceTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11779,28 +11779,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public NGramTranslator(params ValueTuple<string, string>[] inputOutputColumns)
+            public NGramTranslator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NgramTransformColumn>() : new List<Microsoft.ML.Transforms.NgramTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NgramTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NgramTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NgramTransformColumn>() : new List<Microsoft.ML.Transforms.NgramTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NgramTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NgramTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12073,28 +12073,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public PcaCalculator(params ValueTuple<string, string>[] inputOutputColumns)
+            public PcaCalculator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.PcaTransformColumn>() : new List<Microsoft.ML.Transforms.PcaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.PcaTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.PcaTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.PcaTransformColumn>() : new List<Microsoft.ML.Transforms.PcaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.PcaTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.PcaTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12896,28 +12896,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public SupervisedBinNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public SupervisedBinNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13222,28 +13222,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public TextToKeyConverter(params ValueTuple<string, string>[] inputOutputColumns)
+            public TextToKeyConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13515,28 +13515,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public WordTokenizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public WordTokenizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>.Create(source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>.Create(name, source));
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13699,7 +13699,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Supported metric for evaluator.
             /// </summary>
-            public  Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } =  Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
+            public Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } = Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
 
             /// <summary>
             /// AutoML engine (pipeline optimizer) that generates next candidates.
@@ -13710,7 +13710,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Kind of trainer for task, such as binary classification trainer, multiclass trainer, etc.
             /// </summary>
-            public  Microsoft.ML.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } =  Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public Microsoft.ML.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } = Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
             /// <summary>
             /// Arguments for creating terminator, which determines when to stop search.
@@ -13966,7 +13966,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14131,7 +14131,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
+            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -14274,12 +14274,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeBinaryClassification";
         }
@@ -14354,7 +14354,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14519,7 +14519,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
+            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -14662,12 +14662,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeRanking";
         }
@@ -14702,7 +14702,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -14867,7 +14867,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
+            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -15010,12 +15010,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeRegression";
         }
@@ -15055,7 +15055,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } =  Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -15220,7 +15220,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public  Microsoft.ML.Trainers.Bundle Bundling { get; set; } =  Microsoft.ML.Trainers.Bundle.None;
+            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -15363,12 +15363,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public  Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } =  Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public  Microsoft.ML.Models.CachingOptions Caching { get; set; } =  Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeTweedieRegression";
         }
@@ -15405,7 +15405,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The weighting criteria
             /// </summary>
-            public  Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } =  Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
+            public Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } = Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
 
             internal override string ComponentName => "NGram";
         }
@@ -15513,7 +15513,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Data type of each column.
             /// </summary>
-            public  Microsoft.ML.Transforms.DataKind Type { get; set; } =  Microsoft.ML.Transforms.DataKind.TX;
+            public Microsoft.ML.Transforms.DataKind Type { get; set; } = Microsoft.ML.Transforms.DataKind.TX;
 
             internal override string ComponentName => "SimplePathParser";
         }
