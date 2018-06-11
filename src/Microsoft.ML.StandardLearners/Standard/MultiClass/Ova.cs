@@ -92,7 +92,7 @@ namespace Microsoft.ML.Runtime.Learners
                 else
                     calibrator = Args.Calibrator.CreateInstance(Host);
                 var res = CalibratorUtils.TrainCalibratorIfNeeded(Host, ch, calibrator, Args.MaxCalibrationExamples,
-                    trainer, predictor, td, true);
+                    trainer, predictor, td);
                 predictor = res as TScalarPredictor;
                 Host.Check(predictor != null, "Calibrated predictor does not implement the expected interface");
             }
