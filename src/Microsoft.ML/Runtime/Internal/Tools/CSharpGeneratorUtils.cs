@@ -16,11 +16,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 {
     internal static class CSharpGeneratorUtils
     {
-        public static string GetFullMethodName(ModuleCatalog.EntryPointInfo entryPointInfo)
-        {
-            return entryPointInfo.Name;
-        }
-
         public sealed class EntryPointGenerationMetadata
         {
             public string Namespace { get; }
@@ -334,7 +329,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             return $"{Capitalize(component.Name)}{component.Kind}";
         }
 
-
         public static void GenerateSummary(IndentingTextWriter writer, string summary)
         {
             if (string.IsNullOrEmpty(summary))
@@ -355,7 +349,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("//     the code is regenerated.");
             writer.WriteLine("// </auto-generated>");
             writer.WriteLine("//------------------------------------------------------------------------------");
-            //writer.WriteLine($"// This file is auto generated. To regenerate it, run: {_regenerate}");
             writer.WriteLine("#pragma warning disable");
             writer.WriteLine("using System.Collections.Generic;");
             writer.WriteLine("using Microsoft.ML.Runtime;");

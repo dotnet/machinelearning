@@ -18,6 +18,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
         }
 
         private readonly Dictionary<string, ApiClass> _typesSymbolTable;
+
         public GeneratedClasses()
         {
             _typesSymbolTable = new Dictionary<string, ApiClass>();

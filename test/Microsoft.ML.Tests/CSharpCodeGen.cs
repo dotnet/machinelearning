@@ -17,7 +17,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void GenerateCSharpAPI()
+        public void TestGeneratedCSharpAPI()
         {
             var dataPath = GetOutputPath("Api.cs");
             Runtime.Tools.Maml.Main(new[] { $"? generator=cs{{csFilename={dataPath}}}" });
