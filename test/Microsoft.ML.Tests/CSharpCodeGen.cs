@@ -40,8 +40,6 @@ namespace Microsoft.ML.Tests
 
                     if (line1 == null && line2 == null)
                         break;
-                    if (line2 != null && line2.Contains(dataPath))
-                        continue;
                     Assert.Equal(line1, line2);
                 }
             }
