@@ -106,8 +106,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
         }
 
-
-
         private void GenerateInputOutput(IndentingTextWriter writer,
             ModuleCatalog.EntryPointInfo entryPointInfo,
             ModuleCatalog catalog)
@@ -122,7 +120,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine();
         }
 
-
         private void GenerateEnums(IndentingTextWriter writer, Type inputType, string currentNamespace)
         {
             foreach (var fieldInfo in inputType.GetFields())
@@ -130,13 +127,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 var inputAttr = fieldInfo.GetCustomAttributes(typeof(ArgumentAttribute), false).FirstOrDefault() as ArgumentAttribute;
                 if (inputAttr == null || inputAttr.Visibility == ArgumentAttribute.VisibilityType.CmdLineOnly)
                     continue;
-
-                var type = fieldInfo.FieldType;
-                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                    type = type.GetGenericArguments()[0];
-                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
-                    type = type.GetGenericArguments()[0];
-
+                var type = GeneratorUtils.ExtractOptionalOrNullableType(fieldInfo.FieldType);
                 if (_typesSymbolTable.ContainsKey(type.FullName))
                     continue;
 
@@ -212,10 +203,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     continue;
 
                 var type = fieldInfo.FieldType;
-                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                    type = type.GetGenericArguments()[0];
-                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
-                    type = type.GetGenericArguments()[0];
+                type = GeneratorUtils.ExtractOptionalOrNullableType(type);
                 if (type.IsArray)
                     type = type.GetElementType();
                 if (type == typeof(JArray) || type == typeof(JObject))
@@ -320,12 +308,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 var inputAttr = fieldInfo.GetCustomAttributes(typeof(ArgumentAttribute), false).FirstOrDefault() as ArgumentAttribute;
                 if (inputAttr == null || inputAttr.Visibility == ArgumentAttribute.VisibilityType.CmdLineOnly)
                     continue;
-
-                var type = fieldInfo.FieldType;
-                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                    type = type.GetGenericArguments()[0];
-                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
-                    type = type.GetGenericArguments()[0];
+                var type = GeneratorUtils.ExtractOptionalOrNullableType(fieldInfo.FieldType);
                 var isArray = type.IsArray;
                 if (isArray)
                     type = type.GetElementType();

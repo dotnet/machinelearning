@@ -1,13 +1,16 @@
-﻿using Microsoft.CSharp;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Newtonsoft.Json.Linq;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using Microsoft.CSharp;
+using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Runtime.Internal.Tools
 {
@@ -18,10 +21,10 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             return entryPointInfo.Name;
         }
 
-        public class EntryPointGenerationMetadata
+        public sealed class EntryPointGenerationMetadata
         {
-            public string Namespace { get; private set; }
-            public string ClassName { get; private set; }
+            public string Namespace { get; }
+            public string ClassName { get; }
             public EntryPointGenerationMetadata(string @namespace, string className)
             {
                 Namespace = @namespace;
@@ -36,15 +39,21 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             return new EntryPointGenerationMetadata(split[0], split[1]);
         }
 
+        public static Type ExtractOptionalOrNullableType(Type type)
+        {
+            if (type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(Optional<>) || type.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                type = type.GetGenericArguments()[0];
+
+            return type;
+        }
+
         public static string GetCSharpTypeName(Type type)
         {
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 return GetCSharpTypeName(type.GetGenericArguments()[0]) + "?";
 
-            string name;
             using (var p = new CSharpCodeProvider())
-                name = p.GetTypeOutput(new CodeTypeReference(type));
-            return name;
+                return p.GetTypeOutput(new CodeTypeReference(type));
         }
 
         public static string GetOutputType(Type outputType)
@@ -147,12 +156,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             if (Var<int>.CheckType(inputType))
                 return false;
 
-            var type = inputType;
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                type = type.GetGenericArguments()[0];
-            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
-                type = type.GetGenericArguments()[0];
-
+            var type = ExtractOptionalOrNullableType(inputType);
             var typeEnum = TlcModule.GetDataType(type);
             return typeEnum == TlcModule.DataKind.Component;
         }
@@ -231,8 +235,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
 
             var typeEnum = TlcModule.GetDataType(fieldType);
-            if (fieldType.IsGenericType && (fieldType.GetGenericTypeDefinition() == typeof(Optional<>) || fieldType.GetGenericTypeDefinition() == typeof(Nullable<>)))
-                fieldType = fieldType.GetGenericArguments()[0];
+            fieldType = ExtractOptionalOrNullableType(fieldType);
             switch (typeEnum)
             {
                 case TlcModule.DataKind.Array:
