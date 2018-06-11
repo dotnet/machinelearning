@@ -16,7 +16,6 @@ namespace Microsoft.ML.Tests
         {
         }
 
-
         [Fact(Skip = "Execute this test if you want to regenerate CSharpApi file")]
         public void RegenerateCSharpApi()
         {

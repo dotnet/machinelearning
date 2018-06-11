@@ -2196,12 +2196,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for grouping
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
 
             /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
@@ -2316,12 +2316,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for grouping
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
 
 
             public sealed class Output
@@ -2725,7 +2725,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -2870,7 +2870,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -3574,12 +3574,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for grouping
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
 
 
             public sealed class Output
@@ -4034,12 +4034,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example groupId
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -4316,12 +4316,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example groupId
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -4714,12 +4714,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example groupId
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -5140,12 +5140,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example groupId
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -5526,12 +5526,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example groupId
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -5917,12 +5917,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example groupId
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -6079,7 +6079,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -6220,7 +6220,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -6336,7 +6336,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// The data to be used for training
@@ -6616,7 +6616,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -6766,7 +6766,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -7095,7 +7095,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// The data to be used for training
@@ -7235,7 +7235,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -7765,7 +7765,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -14240,12 +14240,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example groupId
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -14628,12 +14628,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example groupId
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -14976,12 +14976,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example groupId
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -15329,12 +15329,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Column to use for example groupId
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; } = "GroupId";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; } = "Weight";
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels

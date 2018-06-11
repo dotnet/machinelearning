@@ -232,8 +232,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
             var typeEnum = TlcModule.GetDataType(fieldType);
             fieldType = ExtractOptionalOrNullableType(fieldType, out bool isNullable, out bool isOptional);
-            if (isOptional)
-                fieldValue = (fieldValue as Optional).GetValue();
             switch (typeEnum)
             {
                 case TlcModule.DataKind.Array:
