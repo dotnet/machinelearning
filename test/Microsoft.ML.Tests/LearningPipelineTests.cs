@@ -167,5 +167,22 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Add(new FastForestBinaryClassifier());
             var model = pipeline.Train<Data, Prediction>();
         }
+
+        [Fact]
+        public void AppendPipeline()
+        {
+            var pipeline = new LearningPipeline();
+            pipeline.Append(new CategoricalOneHotVectorizer("String1", "String2"))
+                .Append(new ColumnConcatenator(outputColumn: "Features", "String1", "String2", "Number1", "Number2"))
+                .Append(new StochasticDualCoordinateAscentRegressor());
+            Assert.NotNull(pipeline);
+            Assert.Equal(3, pipeline.Count);
+
+            pipeline.Remove(pipeline.ElementAt(2));
+            Assert.Equal(2, pipeline.Count);
+
+            pipeline.Append(new StochasticDualCoordinateAscentRegressor());
+            Assert.Equal(3, pipeline.Count);
+        }
     }
 }

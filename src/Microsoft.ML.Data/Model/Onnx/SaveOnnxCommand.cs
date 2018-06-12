@@ -9,12 +9,16 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model.Onnx;
+using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
 using Newtonsoft.Json;
 
 [assembly: LoadableClass(SaveOnnxCommand.Summary, typeof(SaveOnnxCommand), typeof(SaveOnnxCommand.Arguments), typeof(SignatureCommand),
     "Save ONNX", "SaveOnnx", DocName = "command/SaveOnnx.md")]
+
+[assembly: LoadableClass(typeof(void), typeof(SaveOnnxCommand), null, typeof(SignatureEntryPointModule), "SaveOnnx")]
 
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
@@ -37,14 +41,23 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             [Argument(ArgumentType.AtMostOnce, HelpText = "The 'domain' property in the output ONNX.", NullName = "<Auto>", SortOrder = 4)]
             public string Domain;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma delimited list of input column names to drop", ShortName = "idrop", SortOrder = 5)]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Comma delimited list of input column names to drop", ShortName = "idrop", SortOrder = 5)]
             public string InputsToDrop;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma delimited list of output column names to drop", ShortName = "odrop", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Array of input column names to drop", Name = nameof(InputsToDrop), SortOrder = 6)]
+            public string[] InputsToDropArray;
+
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Comma delimited list of output column names to drop", ShortName = "odrop", SortOrder = 7)]
             public string OutputsToDrop;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether we should attempt to load the predictor and attach the scorer to the pipeline if one is present.", ShortName = "pred", SortOrder = 7)]
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Array of output column names to drop", Name = nameof(OutputsToDrop), SortOrder = 8)]
+            public string[] OutputsToDropArray;
+
+            [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Whether we should attempt to load the predictor and attach the scorer to the pipeline if one is present.", ShortName = "pred", SortOrder = 9)]
             public bool? LoadPredictor;
+
+            [Argument(ArgumentType.Required, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Model that needs to be converted to ONNX format.", SortOrder = 10)]
+            public ITransformModel Model;
         }
 
         private readonly string _outputModelPath;
@@ -54,6 +67,10 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly bool? _loadPredictor;
         private readonly HashSet<string> _inputsToDrop;
         private readonly HashSet<string> _outputsToDrop;
+        private readonly ITransformModel _model;
+        private const string ProducerName = "ML.NET";
+        private const string ProducerVersion = "0.2.0.0000";
+        private const long ModelVersion = 0;
 
         public SaveOnnxCommand(IHostEnvironment env, Arguments args)
                 : base(env, args, LoadName)
@@ -68,16 +85,18 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 _name = args.Name;
 
             _loadPredictor = args.LoadPredictor;
-            _inputsToDrop = CreateDropMap(args.InputsToDrop);
-            _outputsToDrop = CreateDropMap(args.OutputsToDrop);
+            _inputsToDrop = CreateDropMap(args.InputsToDropArray ?? args.InputsToDrop?.Split(','));
+            _outputsToDrop = CreateDropMap(args.OutputsToDropArray ?? args.OutputsToDrop?.Split(','));
             _domain = args.Domain;
+            _model = args.Model;
         }
 
-        private static HashSet<string> CreateDropMap(string toDrop)
+        private static HashSet<string> CreateDropMap(string[] toDrop)
         {
-            if (string.IsNullOrWhiteSpace(toDrop))
+            if (toDrop == null)
                 return new HashSet<string>();
-            return new HashSet<string>(toDrop.Split(','));
+
+            return new HashSet<string>(toDrop);
         }
 
         public override void Run()
@@ -115,29 +134,37 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
         private void Run(IChannel ch)
         {
-            IDataLoader loader;
-            IPredictor rawPred;
-            RoleMappedSchema trainSchema;
+            IDataLoader loader = null;
+            IPredictor rawPred = null;
+            IDataView view;
+            RoleMappedSchema trainSchema = null;
 
-            if (string.IsNullOrEmpty(Args.InputModelFile))
+            if (_model == null)
             {
-                loader = CreateLoader();
-                rawPred = null;
-                trainSchema = null;
-                Host.CheckUserArg(Args.LoadPredictor != true, nameof(Args.LoadPredictor),
-                    "Cannot be set to true unless " + nameof(Args.InputModelFile) + " is also specifified.");
+                if (string.IsNullOrEmpty(Args.InputModelFile))
+                {
+                    loader = CreateLoader();
+                    rawPred = null;
+                    trainSchema = null;
+                    Host.CheckUserArg(Args.LoadPredictor != true, nameof(Args.LoadPredictor),
+                        "Cannot be set to true unless " + nameof(Args.InputModelFile) + " is also specifified.");
+                }
+                else
+                    LoadModelObjects(ch, _loadPredictor, out rawPred, true, out trainSchema, out loader);
+
+                view = loader;
             }
             else
-                LoadModelObjects(ch, _loadPredictor, out rawPred, true, out trainSchema, out loader);
+                view = _model.Apply(Host, new EmptyDataView(Host, _model.InputSchema));
 
             // Get the transform chain.
             IDataView source;
             IDataView end;
             LinkedList<ITransformCanSaveOnnx> transforms;
-            GetPipe(ch, loader, out source, out end, out transforms);
+            GetPipe(ch, view, out source, out end, out transforms);
             Host.Assert(transforms.Count == 0 || transforms.Last.Value == end);
 
-            var ctx = new OnnxContext(Host, _name, _domain);
+            var ctx = new OnnxContext(Host, _name, ProducerName, ProducerVersion, ModelVersion, _domain);
             // If we have a predictor, try to get the scorer for it.
             if (rawPred != null)
             {
@@ -228,10 +255,24 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
             if (!string.IsNullOrWhiteSpace(Args.OutputModelFile))
             {
+                Contracts.Assert(loader != null);
+
                 ch.Trace("Saving the data pipe");
                 // Should probably include "end"?
                 SaveLoader(loader, Args.OutputModelFile);
             }
         }
+
+        public sealed class Output
+        {
+        }
+
+        [TlcModule.EntryPoint(Name = "Models.OnnxConverter", Desc = "Converts the model to ONNX format.", UserName = "ONNX Converter.")]
+        public static Output Apply(IHostEnvironment env, Arguments input)
+        {
+            new SaveOnnxCommand(env, input).Run();
+            return new Output();
+        }
+
     }
 }

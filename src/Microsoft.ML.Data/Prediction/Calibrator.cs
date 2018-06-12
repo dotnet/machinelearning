@@ -1444,9 +1444,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             string opType = "Affine";
             string linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
             var node = OnnxUtils.MakeNode(opType, new List<string> { scoreProbablityColumnNames[0] },
-                new List<string> { linearOutput }, ctx.GetNodeName(opType));
+                new List<string> { linearOutput }, ctx.GetNodeName(opType), "ai.onnx");
 
-            node.Domain = "";
             OnnxUtils.NodeAddAttributes(node, "alpha", ParamA * -1);
             OnnxUtils.NodeAddAttributes(node, "beta", -0.0000001);
 
@@ -1454,9 +1453,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
             opType = "Sigmoid";
             node = OnnxUtils.MakeNode(opType, new List<string> { linearOutput },
-                new List<string> { scoreProbablityColumnNames[1] }, ctx.GetNodeName(opType));
+                new List<string> { scoreProbablityColumnNames[1] }, ctx.GetNodeName(opType), "ai.onnx");
 
-            node.Domain = "";
             ctx.AddNode(node);
 
             return true;

@@ -1,0 +1,10 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Bias:R4:0
+#@   col=Weights:R4:1-9
+#@   col=ClassNames:TX:10
+#@ }
+Bias	thickness	uniform_size	uniform_shape	adhesion	epit_size	bare_nuclei	bland_chromatin	normal_nucleoli	mitoses	ClassNames
+3.36404228	-1.579712	-0.8266232	-1.051891	-0.79305464	-0.386733949	-1.59106934	-1.01550019	-0.8356989	-0.332574666	Class_0
+-3.36404562	1.57971311	0.826623559	1.051891	0.7930542	0.386735022	1.59107041	1.015499	0.8356983	0.332574	Class_1

@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.PCA;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -2609,6 +2610,145 @@ namespace Microsoft.ML.Runtime.RunTests
                 // Serialize the graph and verify again.
                 var serNodes = new JArray(graph.AllNodes.Select(node => node.ToJson()));
                 graph = new EntryPointGraph(Env, catalog, serNodes);
+            }
+        }
+
+        [Fact]
+        public void EntryPointLinearPredictorSummary()
+        {
+            var dataPath = GetDataPath("breast-cancer-withheader.txt");
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+
+            /*var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input
+            { InputFile = inputFile, CustomSchema =  "header+ col=Label:0 col=Features:Num:1-9"*/
+            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            {
+                Arguments =
+                {
+                    SeparatorChars = new []{'\t' },
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "Features",
+                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 9} },
+                            Type = Runtime.Data.DataKind.Num
+                        }
+                    }
+                },
+
+                InputFile = inputFile,
+            }).Data;
+
+            var lrInput = new LogisticRegression.Arguments
+            {
+                TrainingData = dataView,
+                NormalizeFeatures = NormalizeOption.Yes,
+                NumThreads = 1,
+                // REVIEW: this depends on MKL library which is not available
+                ShowTrainingStats = false 
+            };
+            var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
+
+            var mcLrInput = new MulticlassLogisticRegression.Arguments
+            {
+                TrainingData = dataView,
+                NormalizeFeatures = NormalizeOption.Yes,
+                NumThreads = 1,
+                ShowTrainingStats = true
+            };
+            var mcModel = LogisticRegression.TrainMultiClass(Env, mcLrInput).PredictorModel;
+
+            var output = SummarizePredictor.Summarize(Env,
+                new SummarizePredictor.Input() { PredictorModel = model });
+
+            var mcOutput = SummarizePredictor.Summarize(Env,
+                new SummarizePredictor.Input() { PredictorModel = mcModel });
+
+            using (var ch = Env.Register("LinearPredictorSummary").Start("Save Data Views"))
+            {
+                var weights = DeleteOutputPath(@"../Common/EntryPoints", "lr-weights.txt");
+                var saver = Env.CreateSaver("Text");
+                using (var file = Env.CreateOutputFile(weights))
+                    DataSaverUtils.SaveDataView(ch, saver, output.Summary, file);
+
+                // REVIEW: enable this once MKL library is available
+                // var stats = DeleteOutputPath(@"../Common/EntryPoints", "lr-stats.txt");
+                // using (var file = Env.CreateOutputFile(stats))
+                //    DataSaverUtils.SaveDataView(ch, saver, output.Stats, file);
+
+                weights = DeleteOutputPath(@"../Common/EntryPoints", "mc-lr-weights.txt");
+                using (var file = Env.CreateOutputFile(weights))
+                    DataSaverUtils.SaveDataView(ch, saver, mcOutput.Summary, file);
+
+                var stats = DeleteOutputPath(@"../Common/EntryPoints", "mc-lr-stats.txt");
+                using (var file = Env.CreateOutputFile(stats))
+                    DataSaverUtils.SaveDataView(ch, saver, mcOutput.Stats, file);
+
+                ch.Done();
+            }
+
+            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt");
+            // CheckEquality(@"../Common/EntryPoints", "lr-stats.txt");
+            CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt");
+            CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt");
+            Done();
+        }
+
+        [Fact]
+        public void EntryPointPcaPredictorSummary()
+        {
+            var dataPath = GetDataPath("MNIST.Train.0-class.tiny.txt");
+            using (var inputFile = new SimpleFileHandle(Env, dataPath, false, false))
+            {
+                var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+                {
+                    Arguments =
+                {
+                    SeparatorChars = new []{'\t' },
+                    HasHeader = false,
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Features",
+                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 784} },
+                            Type = Runtime.Data.DataKind.R4
+                        }
+                    }
+                },
+
+                    InputFile = inputFile,
+                }).Data;
+
+                var pcaInput = new RandomizedPcaTrainer.Arguments
+                {
+                    TrainingData = dataView,
+                };
+                var model = RandomizedPcaTrainer.TrainPcaAnomaly(Env, pcaInput).PredictorModel;
+
+                var output = SummarizePredictor.Summarize(Env,
+                    new SummarizePredictor.Input() { PredictorModel = model });
+
+                using (var ch = Env.Register("PcaPredictorSummary").Start("Save Data Views"))
+                {
+                    var weights = DeleteOutputPath(@"../Common/EntryPoints", "pca-weights.txt");
+                    var saver = Env.CreateSaver("Text");
+                    using (var file = Env.CreateOutputFile(weights))
+                        DataSaverUtils.SaveDataView(ch, saver, output.Summary, file);
+
+                    ch.Done();
+                }
+
+                CheckEquality(@"../Common/EntryPoints", "pca-weights.txt");
+                Done();
             }
         }
 
