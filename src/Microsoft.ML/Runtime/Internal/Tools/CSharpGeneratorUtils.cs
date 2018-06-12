@@ -279,7 +279,10 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 case TlcModule.DataKind.Bool:
                     return (bool)fieldValue ? "true" : "false";
                 case TlcModule.DataKind.Enum:
-                    return generatedClasses.GetApiName(fieldType, rootNameSpace) + "." + fieldValue;
+                    if (generatedClasses.IsGenerated(fieldType.FullName))
+                        return generatedClasses.GetApiName(fieldType, rootNameSpace) + "." + fieldValue;
+                    else
+                        return generatedClasses.GetApiName(fieldType, "Runtime") + "." + fieldValue;
                 case TlcModule.DataKind.Char:
                     return $"'{GetCharAsString((char)fieldValue)}'";
                 case TlcModule.DataKind.Component:
