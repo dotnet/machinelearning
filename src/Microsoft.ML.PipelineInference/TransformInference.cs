@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.ML;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -712,7 +711,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Name = columnNameQuoted.ToString(),
                             Source = columnNameQuoted.ToString(),
-                            ResultType = ML.Transforms.DataKind.R4
+                            ResultType = ML.Data.DataKind.R4
                         });
                     }
 
@@ -721,7 +720,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         ch.Info("Suggested conversion to numeric for boolean features.");
                         var args = new SubComponent<IDataTransform, SignatureDataTransform>("Convert",
                             new[] { $"{columnArgument}type=R4" });
-                        var epInput = new ML.Transforms.ColumnTypeConverter { Column = epColumns.ToArray(), ResultType = ML.Transforms.DataKind.R4 };
+                        var epInput = new ML.Transforms.ColumnTypeConverter { Column = epColumns.ToArray(), ResultType = ML.Data.DataKind.R4 };
                         ColumnRoutingStructure.AnnotatedName[] columnsSource =
                             epColumns.Select(c => new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = c.Name }).ToArray();
                         ColumnRoutingStructure.AnnotatedName[] columnsDest =

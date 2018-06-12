@@ -303,14 +303,14 @@ namespace Microsoft.ML.Runtime.RunTests
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(11) },
-                            Type = DataKind.Num
+                            Type = ML.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Features",
                             Source = new [] { new TextLoaderRange(0,10) },
-                            Type = DataKind.Num
+                            Type = ML.Data.DataKind.Num
                         }
                     }
                     }
@@ -666,7 +666,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 importInput.Arguments.Column = new TextLoaderColumn[]
                 {
                     new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
-                    new TextLoaderColumn { Name = "Workclass", Source = new[] { new TextLoaderRange(1) }, Type = DataKind.Text },
+                    new TextLoaderColumn { Name = "Workclass", Source = new[] { new TextLoaderRange(1) }, Type = ML.Data.DataKind.Text },
                     new TextLoaderColumn { Name = "Features", Source = new[] { new TextLoaderRange(9, 14) } }
                 };
                 var importOutput = experiment.Add(importInput);
