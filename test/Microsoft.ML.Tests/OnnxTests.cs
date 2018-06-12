@@ -52,14 +52,14 @@ namespace Microsoft.ML.Tests
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(0) },
-                            Type = DataKind.Num
+                            Type = Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Features",
                             Source = new [] { new TextLoaderRange(1, 9) },
-                            Type = DataKind.Num
+                            Type = Data.DataKind.Num
                         }
                     }
                 }
