@@ -216,7 +216,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Do not double-add previous nodes.
             exp.Reset();
 
-
             // REVIEW: add similar support for NameColumn and FeatureColumn.
             var settings = new MacroUtils.EvaluatorSettings
             {
