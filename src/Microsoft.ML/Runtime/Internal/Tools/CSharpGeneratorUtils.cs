@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
         public static EntryPointGenerationMetadata GetEntryPointMetadata(ModuleCatalog.EntryPointInfo entryPointInfo)
         {
             var split = entryPointInfo.Name.Split('.');
-            Contracts.Assert(split.Length == 2);
+            Contracts.Check(split.Length == 2);
             return new EntryPointGenerationMetadata(split[0], split[1]);
         }
 
