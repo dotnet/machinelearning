@@ -4,7 +4,7 @@
 
 Entry-points are a way to interface with ML.NET components, by specifying an execution graph of connected inputs and outputs of those components.
 Both the manifest describing available components and their inputs/outputs, and an "experiment" graph description, are expressed in JSON. 
-The recommended way of interacting with ML.NET through other programming languages is by composing, and exchanging pipeline or experiment graphs.  
+The recommended way of interacting with ML.NET through other, non-.NET programming languages, is by composing, and exchanging pipeline or experiment graphs.  
 
 Through the documentaiton, we also refer to them as 'entry points nodes', and not just entry points, and that is because they are used as nodes of the experiemnt graphs. 
 The graph 'variables', the various values of the experiment graph JSON properties serve to describe the relationship between the entry point nodes. 
@@ -37,7 +37,7 @@ An example of an entry point manifest object, specifically for the MissingValueI
                             "Name": "ResultType",
                             "Type": {
                                 "Kind": "Enum",
-                                "Values": [ "I1","I2","U2","I4","U4","I8","U8","R4","Num","R8","TX","Text","TXT","BL","Bool","TimeSpan","TS","DT","DateTime","DZ","DateTimeZone","UG","U16"]
+                                "Values": [ "I1","I2","U2","I4","U4","I8","U8","R4","Num","R8","TX","Text","TXT","BL","Bool","TimeSpan","TS","DT","DateTime","DZ","DateTimeZone","UG","U16" ]
                             },
                             "Desc": "The result type",
                             "Aliases": [ "type" ],
@@ -67,7 +67,7 @@ An example of an entry point manifest object, specifically for the MissingValueI
                         {   "Name": "Source",
                             "Type": "String",
                             "Desc": "Name of the source column",
-                            "Aliases": ["src"],
+                            "Aliases": [ "src" ],
                             "Required": false,
                             "SortOrder": 150,
                             "IsNullable": false,
@@ -77,7 +77,7 @@ An example of an entry point manifest object, specifically for the MissingValueI
                 }
             },
             "Desc": "New column definition(s) (optional form: name:type:src)",
-            "Aliases": ["col"],
+            "Aliases": [ "col" ],
             "Required": true,
             "SortOrder": 1,
             "IsNullable": false
@@ -92,10 +92,10 @@ An example of an entry point manifest object, specifically for the MissingValueI
         {   "Name": "ResultType",
             "Type": {
                 "Kind": "Enum",
-                "Values": [ "I1","I2","U2","I4","U4","I8","U8","R4","Num","R8","TX","Text","TXT","BL","Bool","TimeSpan","TS","DT","DateTime","DZ","DateTimeZone","UG","U16"]
+                "Values": [ "I1","I2","U2","I4","U4","I8","U8","R4","Num","R8","TX","Text","TXT","BL","Bool","TimeSpan","TS","DT","DateTime","DZ","DateTimeZone","UG","U16" ]
             },
             "Desc": "The result type",
-            "Aliases": ["type" ],
+            "Aliases": [ "type" ],
             "Required": false,
             "SortOrder": 2,
             "IsNullable": true,
@@ -104,7 +104,7 @@ An example of an entry point manifest object, specifically for the MissingValueI
         {   "Name": "Range",
             "Type": "String",
             "Desc": "For a key column, this defines the range of values",
-            "Aliases": ["key"],
+            "Aliases": [ "key" ],
             "Required": false,
             "SortOrder": 150,
             "IsNullable": false,
@@ -123,8 +123,8 @@ An example of an entry point manifest object, specifically for the MissingValueI
             "Desc": "Transform model"
         }
     ],
-    "InputKind": ["ITransformInput"],
-    "OutputKind": ["ITransformOutput"]
+    "InputKind": ["ITransformInput" ],
+    "OutputKind": [ "ITransformOutput" ]
 }
 ```
 
@@ -136,7 +136,7 @@ The respective entry point, constructed based on this manifest would be:
         "Inputs": {
             "Column": [{ 
             "Name": "Features",
-                  "Source": "Features"
+                    "Source": "Features"
                 }],
             "Data": "$data0",
             "ResultType": "R4"
