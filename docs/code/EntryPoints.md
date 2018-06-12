@@ -18,7 +18,7 @@ graph.
 
 ## EntryPoint manifest - the definition of an entry point
 
-An example of an entry point manifest object, specifically for the MissingValueIndicator transform, is:
+An example of an entry point manifest object, specifically for the `MissingValueIndicator` transform, is:
 
 ```javascript
 {
