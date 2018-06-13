@@ -15390,14 +15390,10 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Default",
-                      "Def",
                       "DefaultValue",
                       "Mean",
                       "Minimum",
-                      "Min",
-                      "Maximum",
-                      "Max"
+                      "Maximum"
                     ]
                   },
                   "Desc": "The replacement method to utilize",
@@ -15478,14 +15474,10 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Default",
-              "Def",
               "DefaultValue",
               "Mean",
               "Minimum",
-              "Min",
-              "Maximum",
-              "Max"
+              "Maximum"
             ]
           },
           "Desc": "The replacement method to utilize",
@@ -15780,17 +15772,10 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Default",
                       "DefaultValue",
-                      "Def",
                       "Mean",
-                      "Min",
                       "Minimum",
-                      "Max",
-                      "Maximum",
-                      "SpecifiedValue",
-                      "Val",
-                      "Value"
+                      "Maximum"
                     ]
                   },
                   "Desc": "The replacement method to utilize",
@@ -15856,17 +15841,10 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Default",
               "DefaultValue",
-              "Def",
               "Mean",
-              "Min",
               "Minimum",
-              "Max",
-              "Maximum",
-              "SpecifiedValue",
-              "Val",
-              "Value"
+              "Maximum"
             ]
           },
           "Desc": "The replacement method to utilize",
