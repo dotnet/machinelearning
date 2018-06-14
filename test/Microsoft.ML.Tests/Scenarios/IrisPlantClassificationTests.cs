@@ -149,11 +149,10 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
             
-            PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
+            var model = pipeline.Train<IrisData, IrisPrediction>();
 
             var testData = new TextLoader(dataPath).CreateFrom<IrisData>(useHeader: false);
             var evaluator = new ClassificationEvaluator();
-            evaluator.OutputTopKAcc = 3;
             ClassificationMetrics metrics = evaluator.Evaluate(model, testData);
             CheckMetrics(metrics);
             
@@ -167,7 +166,6 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(.96, metrics.AccuracyMicro, 2);
             Assert.Equal(.19, metrics.LogLoss, 2);
             Assert.InRange(metrics.LogLossReduction, 80, 84);
-            Assert.Equal(1, metrics.TopKAccuracy);
         }
     }
 }
