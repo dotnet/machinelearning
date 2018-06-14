@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML</IncludeInPackage>
     <DefineConstants>CORECLR</DefineConstants>
+    <BaseIntermediateOutputPath>..\..\bin\obj\AnyCPU.Debug\Microsoft.ML.Transforms</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
