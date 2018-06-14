@@ -3348,6 +3348,120 @@
       ]
     },
     {
+      "Name": "TextAnalytics.WordEmbeddings",
+      "Desc": "Word Embeddings transform is a text featurizer which converts vectors of text tokens into sentence vectors using a pre-trained model",
+      "FriendlyName": "Word Embeddings Transform",
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 0.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "ModelKind",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "GloVe50D",
+              "GloVe100D",
+              "GloVe200D",
+              "GloVe300D",
+              "GloVeTwitter25D",
+              "GloVeTwitter50D",
+              "GloVeTwitter100D",
+              "GloVeTwitter200D",
+              "FastTextWikipedia300D",
+              "Sswe"
+            ]
+          },
+          "Desc": "Pre-trained model used to create the vocabulary",
+          "Aliases": [
+            "model"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": true,
+          "Default": "Sswe"
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "CustomLookupTable",
+          "Type": "String",
+          "Desc": "Filename for custom word embedding model",
+          "Aliases": [
+            "dataFile"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": null
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Trainers.AveragedPerceptronBinaryClassifier",
       "Desc": "Train a Average perceptron.",
       "FriendlyName": "Averaged Perceptron",
