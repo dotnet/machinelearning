@@ -136,6 +136,39 @@ namespace Microsoft.ML.Scenarios
             [ColumnName("Score")]
             public float[] PredictedLabels;
         }
+
+        [Fact]
+        public void TrainOva()
+        {
+            string dataPath = GetDataPath("iris.txt");
+
+            var pipeline = new LearningPipeline(seed: 1, conc: 1);
+            pipeline.Add(new TextLoader(dataPath).CreateFrom<IrisData>(useHeader: false));
+            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
+                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
+
+            pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
+            
+            PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
+
+            var testData = new TextLoader(dataPath).CreateFrom<IrisData>(useHeader: false);
+            var evaluator = new ClassificationEvaluator();
+            evaluator.OutputTopKAcc = 3;
+            ClassificationMetrics metrics = evaluator.Evaluate(model, testData);
+            CheckMetrics(metrics);
+            
+            var trainTest = new TrainTestEvaluator() { Kind = MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer }.TrainTestEvaluate<IrisData, IrisPrediction>(pipeline, testData);
+            CheckMetrics(trainTest.ClassificationMetrics);
+        }
+
+        private void CheckMetrics(ClassificationMetrics metrics)
+        {
+            Assert.Equal(.96, metrics.AccuracyMacro);
+            Assert.Equal(.96, metrics.AccuracyMicro, 2);
+            Assert.Equal(.19, metrics.LogLoss, 2);
+            Assert.InRange(metrics.LogLossReduction, 80, 84);
+            Assert.Equal(1, metrics.TopKAccuracy);
+        }
     }
 }
 
