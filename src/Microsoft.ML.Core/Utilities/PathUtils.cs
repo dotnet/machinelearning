@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -67,13 +67,17 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // 1. Search in customSearchDir.
             if (!string.IsNullOrWhiteSpace(customSearchDir)
                 && TryFindFile(fileName, folderPrefix, customSearchDir, out candidate))
-                    return candidate;
+            {
+                return candidate;
+            }
 
             // 2. Search in the path specified by the environment variable.
             var envDir = Environment.GetEnvironmentVariable(CustomSearchDirEnvVariable);
             if (!string.IsNullOrWhiteSpace(envDir)
                 && TryFindFile(fileName, folderPrefix, envDir, out candidate))
-                    return candidate;
+            {
+                return candidate;
+            }
 
             // 3. Search in the path specified by the assemblyForBasePath.
             if (assemblyForBasePath != null)

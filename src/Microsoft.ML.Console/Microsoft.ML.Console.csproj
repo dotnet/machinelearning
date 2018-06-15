@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>CORECLR</DefineConstants>
+	<IncludeInPackage>Microsoft.ML</IncludeInPackage>
+	<TargetFramework>netcoreapp2.0</TargetFramework>
+	<OutputType>Exe</OutputType>
+	<AssemblyName>MML</AssemblyName> 
+	<StartupObject>Microsoft.ML.Runtime.Tools.Console.Console</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.PipelineInference\Microsoft.ML.PipelineInference.csproj" />
+  </ItemGroup>
+
+</Project>

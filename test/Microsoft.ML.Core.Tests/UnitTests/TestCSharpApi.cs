@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestSimpleExperiment()
         {
-            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             using (var env = new TlcEnvironment())
             {
                 var experiment = env.CreateExperiment();
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestSimpleTrainExperiment()
         {
-            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             using (var env = new TlcEnvironment())
             {
                 var experiment = env.CreateExperiment();
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestTrainTestMacro()
         {
-            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             using (var env = new TlcEnvironment())
             {
                 var subGraph = env.CreateExperiment();
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestCrossValidationBinaryMacro()
         {
-            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             using (var env = new TlcEnvironment())
             {
                 var subGraph = env.CreateExperiment();
@@ -270,16 +270,22 @@ namespace Microsoft.ML.Runtime.RunTests
                 var nop = new ML.Transforms.NoOperation();
                 var nopOutput = subGraph.Add(nop);
 
-                var learnerInput = new ML.Trainers.StochasticDualCoordinateAscentRegressor
+                var generate = new ML.Transforms.RandomNumberGenerator();
+                generate.Column = new[] { new ML.Transforms.GenerateNumberTransformColumn() { Name = "Weight1" } };
+                generate.Data = nopOutput.OutputData;
+                var generateOutput = subGraph.Add(generate);
+
+                var learnerInput = new ML.Trainers.PoissonRegressor
                 {
-                    TrainingData = nopOutput.OutputData,
-                    NumThreads = 1
+                    TrainingData = generateOutput.OutputData,
+                    NumThreads = 1,
+                    WeightColumn = "Weight1"
                 };
                 var learnerOutput = subGraph.Add(learnerInput);
 
                 var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
                 {
-                    TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model),
+                    TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model, generateOutput.Model),
                     PredictorModel = learnerOutput.PredictorModel
                 };
                 var modelCombineOutput = subGraph.Add(modelCombine);
@@ -297,14 +303,14 @@ namespace Microsoft.ML.Runtime.RunTests
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(11) },
-                            Type = DataKind.Num
+                            Type = ML.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Features",
                             Source = new [] { new TextLoaderRange(0,10) },
-                            Type = DataKind.Num
+                            Type = ML.Data.DataKind.Num
                         }
                     }
                     }
@@ -316,7 +322,8 @@ namespace Microsoft.ML.Runtime.RunTests
                     Data = importOutput.Data,
                     Nodes = subGraph,
                     Kind = ML.Models.MacroUtilsTrainerKinds.SignatureRegressorTrainer,
-                    TransformModel = null
+                    TransformModel = null,
+                    WeightColumn = "Weight1"
                 };
                 crossValidate.Inputs.Data = nop.Data;
                 crossValidate.Outputs.PredictorModel = modelCombineOutput.PredictorModel;
@@ -332,40 +339,66 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(b);
                 b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
                 Assert.True(b);
-                using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
+                b = schema.TryGetColumnIndex("IsWeighted", out int isWeightedCol);
+                using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol || col == isWeightedCol))
                 {
                     var getter = cursor.GetGetter<double>(metricCol);
                     var foldGetter = cursor.GetGetter<DvText>(foldCol);
+                    var isWeightedGetter = cursor.GetGetter<DvBool>(isWeightedCol);
                     DvText fold = default;
+                    DvBool isWeighted = default;
 
-                    // Get the verage.
-                    b = cursor.MoveNext();
-                    Assert.True(b);
                     double avg = 0;
-                    getter(ref avg);
-                    foldGetter(ref fold);
-                    Assert.True(fold.EqualsStr("Average"));
-
-                    // Get the standard deviation.
-                    b = cursor.MoveNext();
-                    Assert.True(b);
-                    double stdev = 0;
-                    getter(ref stdev);
-                    foldGetter(ref fold);
-                    Assert.True(fold.EqualsStr("Standard Deviation"));
-                    Assert.Equal(0.0013, stdev, 4);
-
-                    double sum = 0;
-                    double val = 0;
-                    for (int f = 0; f < 2; f++)
+                    double weightedAvg = 0;
+                    for (int w = 0; w < 2; w++)
                     {
+                        // Get the average.
                         b = cursor.MoveNext();
                         Assert.True(b);
-                        getter(ref val);
+                        if (w == 1)
+                            getter(ref weightedAvg);
+                        else
+                            getter(ref avg);
                         foldGetter(ref fold);
-                        sum += val;
-                        Assert.True(fold.EqualsStr("Fold " + f));
+                        Assert.True(fold.EqualsStr("Average"));
+                        isWeightedGetter(ref isWeighted);
+                        Assert.True(isWeighted.IsTrue == (w == 1));
+
+                        // Get the standard deviation.
+                        b = cursor.MoveNext();
+                        Assert.True(b);
+                        double stdev = 0;
+                        getter(ref stdev);
+                        foldGetter(ref fold);
+                        Assert.True(fold.EqualsStr("Standard Deviation"));
+                        if (w == 1)
+                            Assert.Equal(0.002827, stdev, 6);
+                        else
+                            Assert.Equal(0.002376, stdev, 6);
+                        isWeightedGetter(ref isWeighted);
+                        Assert.True(isWeighted.IsTrue == (w == 1));
                     }
+                    double sum = 0;
+                    double weightedSum = 0;
+                    for (int f = 0; f < 2; f++)
+                    {
+                        for (int w = 0; w < 2; w++)
+                        {
+                            b = cursor.MoveNext();
+                            Assert.True(b);
+                            double val = 0;
+                            getter(ref val);
+                            foldGetter(ref fold);
+                            if (w == 1)
+                                weightedSum += val;
+                            else
+                                sum += val;
+                            Assert.True(fold.EqualsStr("Fold " + f));
+                            isWeightedGetter(ref isWeighted);
+                            Assert.True(isWeighted.IsTrue == (w == 1));
+                        }
+                    }
+                    Assert.Equal(weightedAvg, weightedSum / 2);
                     Assert.Equal(avg, sum / 2);
                     b = cursor.MoveNext();
                     Assert.False(b);
@@ -588,6 +621,237 @@ namespace Microsoft.ML.Runtime.RunTests
                         Assert.True(fold.EqualsStr("Fold " + f));
                     }
                     Assert.Equal(avg, sum / 2);
+                    b = cursor.MoveNext();
+                    Assert.False(b);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestCrossValidationMacroWithNonDefaultNames()
+        {
+            string dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            using (var env = new TlcEnvironment(42))
+            {
+                var subGraph = env.CreateExperiment();
+
+                var textToKey = new ML.Transforms.TextToKeyConverter();
+                textToKey.Column = new[] { new ML.Transforms.TermTransformColumn() { Name = "Label1", Source = "Label" } };
+                var textToKeyOutput = subGraph.Add(textToKey);
+
+                var hash = new ML.Transforms.HashConverter();
+                hash.Column = new[] { new ML.Transforms.HashJoinTransformColumn() { Name = "GroupId1", Source = "Workclass" } };
+                hash.Data = textToKeyOutput.OutputData;
+                var hashOutput = subGraph.Add(hash);
+
+                var learnerInput = new Trainers.FastTreeRanker
+                {
+                    TrainingData = hashOutput.OutputData,
+                    NumThreads = 1,
+                    LabelColumn = "Label1",
+                    GroupIdColumn = "GroupId1"
+                };
+                var learnerOutput = subGraph.Add(learnerInput);
+
+                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                {
+                    TransformModels = new ArrayVar<ITransformModel>(textToKeyOutput.Model, hashOutput.Model),
+                    PredictorModel = learnerOutput.PredictorModel
+                };
+                var modelCombineOutput = subGraph.Add(modelCombine);
+
+                var experiment = env.CreateExperiment();
+                var importInput = new ML.Data.TextLoader(dataPath);
+                importInput.Arguments.HasHeader = true;
+                importInput.Arguments.Column = new TextLoaderColumn[]
+                {
+                    new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
+                    new TextLoaderColumn { Name = "Workclass", Source = new[] { new TextLoaderRange(1) }, Type = ML.Data.DataKind.Text },
+                    new TextLoaderColumn { Name = "Features", Source = new[] { new TextLoaderRange(9, 14) } }
+                };
+                var importOutput = experiment.Add(importInput);
+
+                var crossValidate = new Models.CrossValidator
+                {
+                    Data = importOutput.Data,
+                    Nodes = subGraph,
+                    TransformModel = null,
+                    LabelColumn = "Label1",
+                    GroupColumn = "GroupId1",
+                    Kind = Models.MacroUtilsTrainerKinds.SignatureRankerTrainer
+                };
+                crossValidate.Inputs.Data = textToKey.Data;
+                crossValidate.Outputs.PredictorModel = modelCombineOutput.PredictorModel;
+                var crossValidateOutput = experiment.Add(crossValidate);
+                experiment.Compile();
+                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                experiment.Run();
+                var data = experiment.GetOutput(crossValidateOutput.OverallMetrics);
+
+                var schema = data.Schema;
+                var b = schema.TryGetColumnIndex("NDCG", out int metricCol);
+                Assert.True(b);
+                b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
+                Assert.True(b);
+                using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
+                {
+                    var getter = cursor.GetGetter<VBuffer<double>>(metricCol);
+                    var foldGetter = cursor.GetGetter<DvText>(foldCol);
+                    DvText fold = default;
+
+                    // Get the verage.
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    var avg = default(VBuffer<double>);
+                    getter(ref avg);
+                    foldGetter(ref fold);
+                    Assert.True(fold.EqualsStr("Average"));
+
+                    // Get the standard deviation.
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    var stdev = default(VBuffer<double>);
+                    getter(ref stdev);
+                    foldGetter(ref fold);
+                    Assert.True(fold.EqualsStr("Standard Deviation"));
+                    Assert.Equal(5.247, stdev.Values[0], 3);
+                    Assert.Equal(4.703, stdev.Values[1], 3);
+                    Assert.Equal(3.844, stdev.Values[2], 3);
+
+                    var sumBldr = new BufferBuilder<double>(R8Adder.Instance);
+                    sumBldr.Reset(avg.Length, true);
+                    var val = default(VBuffer<double>);
+                    for (int f = 0; f < 2; f++)
+                    {
+                        b = cursor.MoveNext();
+                        Assert.True(b);
+                        getter(ref val);
+                        foldGetter(ref fold);
+                        sumBldr.AddFeatures(0, ref val);
+                        Assert.True(fold.EqualsStr("Fold " + f));
+                    }
+                    var sum = default(VBuffer<double>);
+                    sumBldr.GetResult(ref sum);
+                    for (int i = 0; i < avg.Length; i++)
+                        Assert.Equal(avg.Values[i], sum.Values[i] / 2);
+                    b = cursor.MoveNext();
+                    Assert.False(b);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestOvaMacro()
+        {
+            var dataPath = GetDataPath(@"iris.txt");
+            using (var env = new TlcEnvironment(42))
+            {
+                // Specify subgraph for OVA
+                var subGraph = env.CreateExperiment();
+                var learnerInput = new Trainers.StochasticDualCoordinateAscentBinaryClassifier { NumThreads = 1 };
+                var learnerOutput = subGraph.Add(learnerInput);
+                // Create pipeline with OVA and multiclass scoring.
+                var experiment = env.CreateExperiment();
+                var importInput = new ML.Data.TextLoader(dataPath);
+                importInput.Arguments.Column = new TextLoaderColumn[]
+                {
+                    new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
+                    new TextLoaderColumn { Name = "Features", Source = new[] { new TextLoaderRange(1,4) } }
+                };
+                var importOutput = experiment.Add(importInput);
+                var oneVersusAll = new Models.OneVersusAll
+                {
+                    TrainingData = importOutput.Data,
+                    Nodes = subGraph,
+                    UseProbabilities = true,
+                };
+                var ovaOutput = experiment.Add(oneVersusAll);
+                var scoreInput = new ML.Transforms.DatasetScorer
+                {
+                    Data = importOutput.Data,
+                    PredictorModel = ovaOutput.PredictorModel
+                };
+                var scoreOutput = experiment.Add(scoreInput);
+                var evalInput = new ML.Models.ClassificationEvaluator
+                {
+                    Data = scoreOutput.ScoredData
+                };
+                var evalOutput = experiment.Add(evalInput);
+                experiment.Compile();
+                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                experiment.Run();
+
+                var data = experiment.GetOutput(evalOutput.OverallMetrics);
+                var schema = data.Schema;
+                var b = schema.TryGetColumnIndex(MultiClassClassifierEvaluator.AccuracyMacro, out int accCol);
+                Assert.True(b);
+                using (var cursor = data.GetRowCursor(col => col == accCol))
+                {
+                    var getter = cursor.GetGetter<double>(accCol);
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    double acc = 0;
+                    getter(ref acc);
+                    Assert.Equal(0.96, acc, 2);
+                    b = cursor.MoveNext();
+                    Assert.False(b);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestOvaMacroWithUncalibratedLearner()
+        {
+            var dataPath = GetDataPath(@"iris.txt");
+            using (var env = new TlcEnvironment(42))
+            {
+                // Specify subgraph for OVA
+                var subGraph = env.CreateExperiment();
+                var learnerInput = new Trainers.AveragedPerceptronBinaryClassifier { Shuffle = false };
+                var learnerOutput = subGraph.Add(learnerInput);
+                // Create pipeline with OVA and multiclass scoring.
+                var experiment = env.CreateExperiment();
+                var importInput = new ML.Data.TextLoader(dataPath);
+                importInput.Arguments.Column = new TextLoaderColumn[]
+                {
+                    new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
+                    new TextLoaderColumn { Name = "Features", Source = new[] { new TextLoaderRange(1,4) } }
+                };
+                var importOutput = experiment.Add(importInput);
+                var oneVersusAll = new Models.OneVersusAll
+                {
+                    TrainingData = importOutput.Data,
+                    Nodes = subGraph,
+                    UseProbabilities = true,
+                };
+                var ovaOutput = experiment.Add(oneVersusAll);
+                var scoreInput = new ML.Transforms.DatasetScorer
+                {
+                    Data = importOutput.Data,
+                    PredictorModel = ovaOutput.PredictorModel
+                };
+                var scoreOutput = experiment.Add(scoreInput);
+                var evalInput = new ML.Models.ClassificationEvaluator
+                {
+                    Data = scoreOutput.ScoredData
+                };
+                var evalOutput = experiment.Add(evalInput);
+                experiment.Compile();
+                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                experiment.Run();
+
+                var data = experiment.GetOutput(evalOutput.OverallMetrics);
+                var schema = data.Schema;
+                var b = schema.TryGetColumnIndex(MultiClassClassifierEvaluator.AccuracyMacro, out int accCol);
+                Assert.True(b);
+                using (var cursor = data.GetRowCursor(col => col == accCol))
+                {
+                    var getter = cursor.GetGetter<double>(accCol);
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    double acc = 0;
+                    getter(ref acc);
+                    Assert.Equal(0.71, acc, 2);
                     b = cursor.MoveNext();
                     Assert.False(b);
                 }

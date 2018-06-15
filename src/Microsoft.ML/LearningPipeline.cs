@@ -49,12 +49,27 @@ namespace Microsoft.ML
     public class LearningPipeline : ICollection<ILearningPipelineItem>
     {
         private List<ILearningPipelineItem> Items { get; } = new List<ILearningPipelineItem>();
+        private readonly int? _seed;
+        private readonly int _conc;
 
         /// <summary>
         /// Construct an empty <see cref="LearningPipeline"/> object.
         /// </summary>
         public LearningPipeline()
         {
+            _seed = null;
+            _conc = 0;
+        }
+
+        /// <summary>
+        ///  Construct an empty <see cref="LearningPipeline"/> object.
+        /// </summary>
+        /// <param name="seed">Specify seed for random generator</param>
+        /// <param name="conc">Specify concurrency factor (default value - autoselection)</param>
+        internal LearningPipeline(int? seed = null, int conc = 0)
+        {
+            _seed = seed;
+            _conc = conc;
         }
 
         /// <summary>
@@ -94,6 +109,16 @@ namespace Microsoft.ML
         /// <param name="item">Any ML component (data loader, transform or trainer) defined as <see cref="ILearningPipelineItem"/>.</param>
         public void Add(ILearningPipelineItem item) => Items.Add(item);
 
+        /// <summary>
+        /// Add a data loader, transform or trainer into the pipeline.
+        /// </summary>
+        /// <param name="item">Any ML component (data loader, transform or trainer) defined as <see cref="ILearningPipelineItem"/>.</param>
+        /// <returns>Pipeline with added item</returns>
+        public LearningPipeline Append(ILearningPipelineItem item)
+        {
+            Add(item);
+            return this;
+        }
         /// <summary>
         /// Remove all the loaders/transforms/trainers from the pipeline.
         /// </summary>
@@ -137,8 +162,7 @@ namespace Microsoft.ML
             where TInput : class
             where TOutput : class, new()
         {
-
-            using (var environment = new TlcEnvironment())
+            using (var environment = new TlcEnvironment(seed: _seed, conc: _conc))
             {
                 Experiment experiment = environment.CreateExperiment();
                 ILearningPipelineStep step = null;

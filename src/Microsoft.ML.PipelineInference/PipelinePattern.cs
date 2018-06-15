@@ -213,8 +213,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             var dataOut = experiment.GetOutput(trainTestOutput.OverallMetrics);
             var dataOutTraining = experiment.GetOutput(trainTestOutput.TrainingOverallMetrics);
-            testMetricValue = AutoMlUtils.ExtractValueFromIDV(_env, dataOut, metric.Name);
-            trainMetricValue = AutoMlUtils.ExtractValueFromIDV(_env, dataOutTraining, metric.Name);
+            testMetricValue = AutoMlUtils.ExtractValueFromIdv(_env, dataOut, metric.Name);
+            trainMetricValue = AutoMlUtils.ExtractValueFromIdv(_env, dataOutTraining, metric.Name);
         }
 
         public static PipelineResultRow[] ExtractResults(IHostEnvironment env, IDataView data,

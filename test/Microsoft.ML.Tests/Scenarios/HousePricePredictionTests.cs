@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;

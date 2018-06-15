@@ -27,7 +27,7 @@ namespace Microsoft.ML.Scenarios
             var model = pipeline.Train<SentimentData, SentimentPrediction>();
             var testData = PrepareTextLoaderTestData();
             var evaluator = new BinaryClassificationEvaluator();
-            BinaryClassificationMetrics metrics = evaluator.Evaluate(model, testData);
+            var metrics = evaluator.Evaluate(model, testData);
             ValidateExamples(model);
             ValidateBinaryMetrics(metrics);
         }
@@ -36,7 +36,6 @@ namespace Microsoft.ML.Scenarios
         public void TrainTestPredictSentimentModelTest()
         {
             var pipeline = PreparePipeline();
-            PredictionModel<SentimentData, SentimentPrediction> model = pipeline.Train<SentimentData, SentimentPrediction>();
             var testData = PrepareTextLoaderTestData();
             var tt = new TrainTestEvaluator().TrainTestEvaluate<SentimentData, SentimentPrediction>(pipeline, testData);
 
@@ -212,14 +211,14 @@ namespace Microsoft.ML.Scenarios
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(0) },
-                            Type = Runtime.Data.DataKind.Num
+                            Type = Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SentimentText",
                             Source = new [] { new TextLoaderRange(1) },
-                            Type = Runtime.Data.DataKind.Text
+                            Type = Data.DataKind.Text
                         }
                     }
                 }
@@ -266,14 +265,14 @@ namespace Microsoft.ML.Scenarios
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(0) },
-                            Type = Runtime.Data.DataKind.Num
+                            Type = Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SentimentText",
                             Source = new [] { new TextLoaderRange(1) },
-                            Type = Runtime.Data.DataKind.Text
+                            Type = Data.DataKind.Text
                         }
                     }
                 }

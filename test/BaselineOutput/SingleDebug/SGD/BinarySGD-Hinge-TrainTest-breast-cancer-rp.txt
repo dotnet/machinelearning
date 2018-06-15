@@ -1,0 +1,4 @@
+SGD
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/loss	/nt	/iter	/checkFreq	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.995307	0.969253	0.957983	0.953975	0.975281	0.977477	0.129716	86.11186	0.955975	0.990403	Hinge	1	2	9	SGD	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=SGD{loss=Hinge maxIterations=2 checkFreq=9 nt=1} dout=%Output% data=%Data% out=%Output% seed=1	/loss:Hinge;/nt:1;/iter:2;/checkFreq:9	
+

@@ -1334,6 +1334,18 @@
           "Default": "Label"
         },
         {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
           "Name": "Kind",
           "Type": {
             "Kind": "Enum",
@@ -1352,6 +1364,18 @@
           "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
+        },
+        {
+          "Name": "GroupColumn",
+          "Type": "String",
+          "Desc": "Column to use for grouping",
+          "Aliases": [
+            "group"
+          ],
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": "GroupId"
         }
       ],
       "Outputs": [
@@ -1504,6 +1528,42 @@
           "SortOrder": 8.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 10.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "GroupColumn",
+          "Type": "String",
+          "Desc": "Column to use for grouping",
+          "Aliases": [
+            "group"
+          ],
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": "GroupId"
         }
       ],
       "Outputs": [
@@ -2054,6 +2114,95 @@
         "ITrainerInputWithLabel",
         "ITrainerInput"
       ]
+    },
+    {
+      "Name": "Models.OnnxConverter",
+      "Desc": "Converts the model to ONNX format.",
+      "FriendlyName": "ONNX Converter.",
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "DataFile",
+          "Type": "String",
+          "Desc": "The data file",
+          "Aliases": [
+            "data"
+          ],
+          "Required": false,
+          "SortOrder": 0.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Onnx",
+          "Type": "String",
+          "Desc": "The path to write the output ONNX to.",
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Json",
+          "Type": "String",
+          "Desc": "The path to write the output JSON to.",
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The 'name' property in the output ONNX. By default this will be the ONNX extension-less name.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Domain",
+          "Type": "String",
+          "Desc": "The 'domain' property in the output ONNX.",
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "InputsToDrop",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Array of input column names to drop",
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "OutputsToDrop",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Array of output column names to drop",
+          "Required": false,
+          "SortOrder": 8.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Model that needs to be converted to ONNX format.",
+          "Required": true,
+          "SortOrder": 10.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": []
     },
     {
       "Name": "Models.OvaModelCombiner",
@@ -3107,6 +3256,42 @@
           "SortOrder": 9.0,
           "IsNullable": false,
           "Default": false
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 10.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "GroupColumn",
+          "Type": "String",
+          "Desc": "Column to use for grouping",
+          "Aliases": [
+            "group"
+          ],
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": "GroupId"
         }
       ],
       "Outputs": [
@@ -9118,6 +9303,18 @@
           "Default": "Features"
         },
         {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
           "Name": "NormalizeFeatures",
           "Type": {
             "Kind": "Enum",
@@ -9253,6 +9450,7 @@
         }
       ],
       "InputKind": [
+        "IUnsupervisedTrainerWithWeight",
         "ITrainerInput"
       ],
       "OutputKind": [
@@ -10574,149 +10772,6 @@
       ]
     },
     {
-      "Name": "Trainers.OrdinaryLeastSquaresRegressor",
-      "Desc": "Train an OLS regression model.",
-      "FriendlyName": "Ordinary Least Squares (Regression)",
-      "ShortName": "ols",
-      "Inputs": [
-        {
-          "Name": "TrainingData",
-          "Type": "DataView",
-          "Desc": "The data to be used for training",
-          "Aliases": [
-            "data"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "FeatureColumn",
-          "Type": "String",
-          "Desc": "Column to use for features",
-          "Aliases": [
-            "feat"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Features"
-        },
-        {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "Column to use for labels",
-          "Aliases": [
-            "lab"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
-          "Name": "WeightColumn",
-          "Type": "String",
-          "Desc": "Column to use for example weight",
-          "Aliases": [
-            "weight"
-          ],
-          "Required": false,
-          "SortOrder": 4.0,
-          "IsNullable": false,
-          "Default": "Weight"
-        },
-        {
-          "Name": "NormalizeFeatures",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "No",
-              "Warn",
-              "Auto",
-              "Yes"
-            ]
-          },
-          "Desc": "Normalize option for the feature column",
-          "Aliases": [
-            "norm"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "Caching",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Auto",
-              "Memory",
-              "Disk",
-              "None"
-            ]
-          },
-          "Desc": "Whether learner should cache input training data",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "L2Weight",
-          "Type": "Float",
-          "Desc": "L2 regularization weight",
-          "Aliases": [
-            "l2"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": 1E-06,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              1E-06,
-              0.1,
-              1.0
-            ]
-          }
-        },
-        {
-          "Name": "PerParameterSignificance",
-          "Type": "Bool",
-          "Desc": "Whether to calculate per parameter significance statistics",
-          "Aliases": [
-            "sig"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": true
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "InputKind": [
-        "ITrainerInputWithWeight",
-        "ITrainerInputWithLabel",
-        "ITrainerInput"
-      ],
-      "OutputKind": [
-        "IRegressionOutput",
-        "ITrainerOutput"
-      ]
-    },
-    {
       "Name": "Trainers.PcaAnomalyDetector",
       "Desc": "Train an PCA Anomaly model.",
       "FriendlyName": "PCA Anomaly Detector",
@@ -10875,6 +10930,7 @@
         }
       ],
       "InputKind": [
+        "IUnsupervisedTrainerWithWeight",
         "ITrainerInput"
       ],
       "OutputKind": [
@@ -22183,6 +22239,140 @@
       ]
     },
     {
+      "Kind": "PartitionedPathParser",
+      "Components": [
+        {
+          "Name": "ParquetPathParser",
+          "Desc": "Extract name/value pairs from Parquet formatted directory names. Example path: Year=2018/Month=12/data1.parquet",
+          "FriendlyName": "Parquet Partitioned Path Parser",
+          "Aliases": [
+            "ParqPP"
+          ],
+          "Settings": []
+        },
+        {
+          "Name": "SimplePathParser",
+          "Desc": "A simple parser that extracts directory names as column values. Column names are defined as arguments.",
+          "FriendlyName": "Simple Partitioned Path Parser",
+          "Aliases": [
+            "SmplPP"
+          ],
+          "Settings": [
+            {
+              "Name": "Columns",
+              "Type": {
+                "Kind": "Array",
+                "ItemType": {
+                  "Kind": "Struct",
+                  "Fields": [
+                    {
+                      "Name": "Name",
+                      "Type": "String",
+                      "Desc": "Name of the column.",
+                      "Required": true,
+                      "SortOrder": 150.0,
+                      "IsNullable": false
+                    },
+                    {
+                      "Name": "Type",
+                      "Type": {
+                        "Kind": "Enum",
+                        "Values": [
+                          "I1",
+                          "U1",
+                          "I2",
+                          "U2",
+                          "I4",
+                          "U4",
+                          "I8",
+                          "U8",
+                          "R4",
+                          "Num",
+                          "R8",
+                          "TX",
+                          "Text",
+                          "TXT",
+                          "BL",
+                          "Bool",
+                          "TimeSpan",
+                          "TS",
+                          "DT",
+                          "DateTime",
+                          "DZ",
+                          "DateTimeZone",
+                          "UG",
+                          "U16"
+                        ]
+                      },
+                      "Desc": "Data type of the column.",
+                      "Required": false,
+                      "SortOrder": 150.0,
+                      "IsNullable": true,
+                      "Default": null
+                    },
+                    {
+                      "Name": "Source",
+                      "Type": "Int",
+                      "Desc": "Index of the directory representing this column.",
+                      "Required": true,
+                      "SortOrder": 150.0,
+                      "IsNullable": false,
+                      "Default": 0
+                    }
+                  ]
+                }
+              },
+              "Desc": "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1",
+              "Aliases": [
+                "col"
+              ],
+              "Required": false,
+              "SortOrder": 1.0,
+              "IsNullable": false,
+              "Default": null
+            },
+            {
+              "Name": "Type",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "I1",
+                  "U1",
+                  "I2",
+                  "U2",
+                  "I4",
+                  "U4",
+                  "I8",
+                  "U8",
+                  "R4",
+                  "Num",
+                  "R8",
+                  "TX",
+                  "Text",
+                  "TXT",
+                  "BL",
+                  "Bool",
+                  "TimeSpan",
+                  "TS",
+                  "DT",
+                  "DateTime",
+                  "DZ",
+                  "DateTimeZone",
+                  "UG",
+                  "U16"
+                ]
+              },
+              "Desc": "Data type of each column.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": "TX"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "Kind": "RegressionLossFunction",
       "Components": [
         {
@@ -22575,6 +22765,23 @@
         {
           "Name": "Model",
           "Type": "TransformModel"
+        }
+      ]
+    },
+    {
+      "Kind": "IUnsupervisedTrainerWithWeight",
+      "Settings": [
+        {
+          "Name": "WeightColumn",
+          "Type": "String"
+        },
+        {
+          "Name": "TrainingData",
+          "Type": "DataView"
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String"
         }
       ]
     }

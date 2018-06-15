@@ -2789,8 +2789,7 @@ namespace Microsoft.ML.Runtime.FastTree
         IWhatTheFeatureValueMapper,
         ICanGetSummaryAsIRow,
         ISingleCanSavePfa,
-        ISingleCanSaveOnnx/*,
-        ISingleCanSaveLotusVNext*/
+        ISingleCanSaveOnnx
     {
         //The below two properties are necessary for tree Visualizer
         public Ensemble TrainedEnsemble { get; }
@@ -2816,7 +2815,6 @@ namespace Microsoft.ML.Runtime.FastTree
         public ColumnType OutputType => NumberType.Float;
         public bool CanSavePfa => true;
         public bool CanSaveOnnx => true;
-        public bool CanSaveLotusVNext => true;
 
         protected internal FastTreePredictionWrapper(IHostEnvironment env, string name, Ensemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
@@ -3133,27 +3131,6 @@ namespace Microsoft.ML.Runtime.FastTree
 
             return true;
         }
-
-        /*public void SaveAsLotusVNext(LotusVNextContext ctx, string featuresVariableName, string outputColumnName)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            Host.CheckValue(featuresVariableName, nameof(featuresVariableName));
-            var tempVariables = new List<string>();
-            foreach (RegressionTree tree in TrainedEnsemble.Trees)
-            {
-                var tempVariable = ctx.DeclareVariable(null, LotusVNextUtils.MakeFloatLiteral(0));
-                tempVariables.Add(tempVariable);
-                tree.SaveAsLotusVNext(ctx, featuresVariableName, tempVariable);
-            }
-
-            var sumExpression = LotusVNextUtils.MakeVariableReference(tempVariables[0]);
-            for (int i = 1; i < tempVariables.Count; i++)
-                sumExpression = LotusVNextUtils.MakeCall("plus",
-                    sumExpression,
-                    LotusVNextUtils.MakeVariableReference(tempVariables[i]));
-
-            ctx.DeclareVariable(outputColumnName, sumExpression);
-        }*/
 
         public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {

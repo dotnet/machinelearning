@@ -343,6 +343,9 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <returns>standard test for the dataset</returns>
         private Test CreateStandardTest(Dataset dataset)
         {
+            if (Utils.Size(dataset.MaxDcg) == 0)
+                dataset.Skeleton.RecomputeMaxDcg(10);
+
             return new NdcgTest(
                 ConstructScoreTracker(dataset),
                 dataset.Ratings,

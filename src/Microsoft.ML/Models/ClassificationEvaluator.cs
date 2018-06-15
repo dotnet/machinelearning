@@ -57,13 +57,13 @@ namespace Microsoft.ML.Models
                 IDataView overallMetrics = experiment.GetOutput(evaluteOutput.OverallMetrics);
                 if (overallMetrics == null)
                 {
-                    throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(BinaryClassificationEvaluator)} Evaluate.");
+                    throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(ClassificationEvaluator)} Evaluate.");
                 }
 
                 IDataView confusionMatrix = experiment.GetOutput(evaluteOutput.ConfusionMatrix);
                 if (confusionMatrix == null)
                 {
-                    throw environment.Except($"Could not find ConfusionMatrix in the results returned in {nameof(BinaryClassificationEvaluator)} Evaluate.");
+                    throw environment.Except($"Could not find ConfusionMatrix in the results returned in {nameof(ClassificationEvaluator)} Evaluate.");
                 }
 
                 var metric = ClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);

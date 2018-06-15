@@ -102,7 +102,7 @@ namespace Microsoft.ML.Models
                 }
 
                 var experiment = environment.CreateExperiment();
-                
+
                 TrainingData = (loaders[0].ApplyStep(null, experiment) as ILearningPipelineDataStep).Data;
                 TestingData = (testData.ApplyStep(null, experiment) as ILearningPipelineDataStep).Data;
                 Nodes = subGraph;
@@ -140,6 +140,12 @@ namespace Microsoft.ML.Models
                         environment,
                         experiment.GetOutput(crossValidateOutput.OverallMetrics)).FirstOrDefault();
                 }
+                else if (Kind == MacroUtilsTrainerKinds.SignatureClusteringTrainer)
+                {
+                    trainTestOutput.ClusterMetrics = ClusterMetrics.FromOverallMetrics(
+                        environment,
+                        experiment.GetOutput(crossValidateOutput.OverallMetrics)).FirstOrDefault();
+                }
                 else
                 {
                     //Implement metrics for ranking, clustering and anomaly detection.
@@ -158,7 +164,7 @@ namespace Microsoft.ML.Models
 
                     trainTestOutput.PredictorModels = new PredictionModel<TInput, TOutput>(predictor, memoryStream);
                 }
-                
+
                 return trainTestOutput;
             }
         }
@@ -171,6 +177,7 @@ namespace Microsoft.ML.Models
         public BinaryClassificationMetrics BinaryClassificationMetrics;
         public ClassificationMetrics ClassificationMetrics;
         public RegressionMetrics RegressionMetrics;
+        public ClusterMetrics ClusterMetrics;
         public PredictionModel<TInput, TOutput> PredictorModels;
 
         //REVIEW: Add warnings and per instance results and implement 
