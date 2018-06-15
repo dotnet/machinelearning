@@ -11526,7 +11526,8 @@ namespace Microsoft.ML
             DefaultValue = 0,
             Mean = 1,
             Minimum = 2,
-            Maximum = 3
+            Maximum = 3,
+            SpecifiedValue = 4
         }
 
 
