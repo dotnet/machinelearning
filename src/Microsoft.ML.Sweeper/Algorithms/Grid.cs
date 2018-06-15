@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.Sweeper
             SweepParameters = sweepParameters;
         }
 
-        public virtual ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns)
+        public virtual ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns = null)
         {
             var prevParamSets = previousRuns?.Select(r => r.ParameterSet).ToList() ?? new List<ParameterSet>();
             var result = new List<ParameterSet>();
