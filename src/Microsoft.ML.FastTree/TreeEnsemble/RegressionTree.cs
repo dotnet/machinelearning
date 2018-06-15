@@ -105,15 +105,16 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             LteChild = buffer.ToIntArray(ref position);
             GtChild = buffer.ToIntArray(ref position);
             SplitFeatures = buffer.ToIntArray(ref position);
-            int[] categoricalNodeIndices = buffer.ToIntArray(ref position);
-            CategoricalSplit = GetCategoricalSplitFromIndices(categoricalNodeIndices);
-            if (categoricalNodeIndices?.Length > 0)
+            byte[] categoricalSplitAsBytes = buffer.ToByteArray(ref position);
+            CategoricalSplit = categoricalSplitAsBytes.Select(b => b > 0).ToArray();
+            if (CategoricalSplit.Any(b => b))
             {
                 CategoricalSplitFeatures = new int[NumNodes][];
                 CategoricalSplitFeatureRanges = new int[NumNodes][];
-                foreach (var index in categoricalNodeIndices)
+                for (int index = 0; index < NumNodes; index++)
                 {
-                    Contracts.Assert(CategoricalSplit[index]);
+                    if (!CategoricalSplit[index])
+                        continue;
 
                     CategoricalSplitFeatures[index] = buffer.ToIntArray(ref position);
                     CategoricalSplitFeatureRanges[index] = buffer.ToIntArray(ref position, 2);
@@ -121,6 +122,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
 
             Thresholds = buffer.ToUIntArray(ref position);
+            RawThresholds = buffer.ToFloatArray(ref position);
             _splitGain = buffer.ToDoubleArray(ref position);
             _gainPValue = buffer.ToDoubleArray(ref position);
             _previousLeafValue = buffer.ToDoubleArray(ref position);
@@ -128,6 +130,23 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         }
 
         private bool[] GetCategoricalSplitFromIndices(int[] indices)
+        {
+            bool[] categoricalSplit = new bool[NumNodes];
+            if (indices == null)
+                return categoricalSplit;
+
+            Contracts.Assert(indices.Length <= NumNodes);
+
+            foreach (int index in indices)
+            {
+                Contracts.Assert(index >= 0 && index < NumNodes);
+                categoricalSplit[index] = true;
+            }
+
+            return categoricalSplit;
+        }
+
+        private bool[] GetCategoricalSplitFromBytes(byte[] indices)
         {
             bool[] categoricalSplit = new bool[NumNodes];
             if (indices == null)
@@ -500,6 +519,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 NumNodes * sizeof(int) +
                 CategoricalSplit.Length * sizeof(bool) +
                 Thresholds.SizeInBytes() +
+                RawThresholds.SizeInBytes() +
                 _splitGain.SizeInBytes() +
                 _gainPValue.SizeInBytes() +
                 _previousLeafValue.SizeInBytes() +
@@ -514,6 +534,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             LteChild.ToByteArray(buffer, ref position);
             GtChild.ToByteArray(buffer, ref position);
             SplitFeatures.ToByteArray(buffer, ref position);
+            CategoricalSplit.Length.ToByteArray(buffer, ref position);
             foreach (var split in CategoricalSplit)
                 Convert.ToByte(split).ToByteArray(buffer, ref position);
 
@@ -530,6 +551,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
 
             Thresholds.ToByteArray(buffer, ref position);
+            RawThresholds.ToByteArray(buffer, ref position);
             _splitGain.ToByteArray(buffer, ref position);
             _gainPValue.ToByteArray(buffer, ref position);
             _previousLeafValue.ToByteArray(buffer, ref position);
