@@ -80,12 +80,11 @@ namespace Microsoft.ML.Runtime.Sweeper
                     (AlreadyGenerated(paramSet, prevParamSets) || AlreadyGenerated(paramSet, result)));
 
                 Contracts.Assert(paramSet != null);
-                result.Add(paramSet);
+                if (!result.Contains(paramSet))
+                    result.Add(paramSet);
             }
-
             return result.ToArray();
         }
-
         protected abstract ParameterSet CreateParamSet();
 
         protected static bool AlreadyGenerated(ParameterSet paramSet, IEnumerable<ParameterSet> previousRuns)
@@ -150,7 +149,7 @@ namespace Microsoft.ML.Runtime.Sweeper
             }
         }
 
-        public override ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns)
+        public override ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns = null)
         {
             if (_nGridPoints == 0)
                 return base.ProposeSweeps(maxSweeps, previousRuns);
@@ -173,7 +172,8 @@ namespace Microsoft.ML.Runtime.Sweeper
                     if (!AlreadyGenerated(_cache[iPerm], prevParamSets))
                         break;
                 }
-                result.Add(_cache[iPerm]);
+                if (!result.Contains(_cache[iPerm]))
+                    result.Add(_cache[iPerm]);
             }
             return result.ToArray();
         }
