@@ -746,13 +746,10 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         /// <param name="trainer">The trainer used to train the predictor.</param>
         /// <param name="predictor">The predictor that needs calibration.</param>
         /// <param name="data">The examples to used for calibrator training.</param>
-        /// <param name="needValueMapper">Indicates whether the predictor returned needs to be an <see cref="IValueMapper"/>.
-        /// This parameter is needed for OVA that uses the predictors as <see cref="IValueMapper"/>s. If it is false,
-        /// The predictor returned is an an <see cref="ISchemaBindableMapper"/>.</param>
         /// <returns>The original predictor, if no calibration is needed, 
         /// or a metapredictor that wraps the original predictor and the newly trained calibrator.</returns>
         public static IPredictor TrainCalibratorIfNeeded(IHostEnvironment env, IChannel ch, ICalibratorTrainer calibrator,
-            int maxRows, ITrainer trainer, IPredictor predictor, RoleMappedData data, bool needValueMapper = false)
+            int maxRows, ITrainer trainer, IPredictor predictor, RoleMappedData data)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
@@ -763,7 +760,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             if (!NeedCalibration(env, ch, calibrator, trainer, predictor, data.Schema))
                 return predictor;
 
-            return TrainCalibrator(env, ch, calibrator, maxRows, predictor, data, needValueMapper);
+            return TrainCalibrator(env, ch, calibrator, maxRows, predictor, data);
         }
 
         /// <summary>
@@ -775,13 +772,10 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         /// <param name="maxRows">The maximum rows to use for calibrator training.</param>
         /// <param name="predictor">The predictor that needs calibration.</param>
         /// <param name="data">The examples to used for calibrator training.</param>
-        /// <param name="needValueMapper">Indicates whether the predictor returned needs to be an <see cref="IValueMapper"/>.
-        /// This parameter is needed for OVA that uses the predictors as <see cref="IValueMapper"/>s. If it is false,
-        /// The predictor returned is an an <see cref="ISchemaBindableMapper"/>.</param>
         /// <returns>The original predictor, if no calibration is needed, 
         /// or a metapredictor that wraps the original predictor and the newly trained calibrator.</returns>
         public static IPredictor TrainCalibrator(IHostEnvironment env, IChannel ch, ICalibratorTrainer caliTrainer,
-            int maxRows, IPredictor predictor, RoleMappedData data, bool needValueMapper = false)
+            int maxRows, IPredictor predictor, RoleMappedData data)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
@@ -834,10 +828,10 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 }
             }
             var cali = caliTrainer.FinishTraining(ch);
-            return CreateCalibratedPredictor(env, (IPredictorProducing<Float>)predictor, cali, needValueMapper);
+            return CreateCalibratedPredictor(env, (IPredictorProducing<Float>)predictor, cali);
         }
 
-        public static IPredictorProducing<Float> CreateCalibratedPredictor(IHostEnvironment env, IPredictorProducing<Float> predictor, ICalibrator cali, bool needValueMapper = false)
+        public static IPredictorProducing<Float> CreateCalibratedPredictor(IHostEnvironment env, IPredictorProducing<Float> predictor, ICalibrator cali)
         {
             Contracts.Assert(predictor != null);
             if (cali == null)
@@ -853,7 +847,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             var predWithFeatureScores = predictor as IPredictorWithFeatureWeights<Float>;
             if (predWithFeatureScores != null && predictor is IParameterMixer<Float> && cali is IParameterMixer)
                 return new ParameterMixingCalibratedPredictor(env, predWithFeatureScores, cali);
-            if (needValueMapper)
+            if (predictor is IValueMapper)
                 return new CalibratedPredictor(env, predictor, cali);
             return new SchemaBindableCalibratedPredictor(env, predictor, cali);
         }

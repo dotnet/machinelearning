@@ -211,14 +211,14 @@ namespace Microsoft.ML.Scenarios
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(0) },
-                            Type = Runtime.Data.DataKind.Num
+                            Type = Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SentimentText",
                             Source = new [] { new TextLoaderRange(1) },
-                            Type = Runtime.Data.DataKind.Text
+                            Type = Data.DataKind.Text
                         }
                     }
                 }
@@ -265,14 +265,14 @@ namespace Microsoft.ML.Scenarios
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(0) },
-                            Type = Runtime.Data.DataKind.Num
+                            Type = Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SentimentText",
                             Source = new [] { new TextLoaderRange(1) },
-                            Type = Runtime.Data.DataKind.Text
+                            Type = Data.DataKind.Text
                         }
                     }
                 }

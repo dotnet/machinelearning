@@ -574,18 +574,6 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Trainers.OnlineGradientDescentRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output Add(Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor input)
-            {
-                var output = new Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            public void Add(Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor input, Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.OrdinaryLeastSquaresRegressor", input, output));
-            }
-
             public Microsoft.ML.Trainers.PcaAnomalyDetector.Output Add(Microsoft.ML.Trainers.PcaAnomalyDetector input)
             {
                 var output = new Microsoft.ML.Trainers.PcaAnomalyDetector.Output();
@@ -1473,82 +1461,32 @@ namespace Microsoft.ML
     namespace Data
     {
 
-        public sealed partial class TextLoaderArguments
+        public enum DataKind : byte
         {
-            /// <summary>
-            /// Use separate parsing threads?
-            /// </summary>
-            public bool UseThreads { get; set; } = true;
-
-            /// <summary>
-            /// File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.
-            /// </summary>
-            public string HeaderFile { get; set; }
-
-            /// <summary>
-            /// Maximum number of rows to produce
-            /// </summary>
-            public long? MaxRows { get; set; }
-
-            /// <summary>
-            /// Whether the input may include quoted values, which can contain separator characters, colons, and distinguish empty values from missing values. When true, consecutive separators denote a missing value and an empty value is denoted by "". When false, consecutive separators denote an empty value.
-            /// </summary>
-            public bool AllowQuoting { get; set; } = true;
-
-            /// <summary>
-            /// Whether the input may include sparse representations
-            /// </summary>
-            public bool AllowSparse { get; set; } = true;
-
-            /// <summary>
-            /// Number of source columns in the text data. Default is that sparse rows contain their size information.
-            /// </summary>
-            public int? InputSize { get; set; }
-
-            /// <summary>
-            /// Source column separator.
-            /// </summary>
-            public char[] Separator { get; set; } = { '\t' };
-
-            /// <summary>
-            /// Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40
-            /// </summary>
-            public TextLoaderColumn[] Column { get; set; }
-
-            /// <summary>
-            /// Remove trailing whitespace from lines
-            /// </summary>
-            public bool TrimWhitespace { get; set; } = false;
-
-            /// <summary>
-            /// Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.
-            /// </summary>
-            public bool HasHeader { get; set; } = false;
-
-        }
-
-        public sealed partial class TextLoaderColumn
-        {
-            /// <summary>
-            /// Name of the column
-            /// </summary>
-            public string Name { get; set; }
-
-            /// <summary>
-            /// Type of the items in the column
-            /// </summary>
-            public DataKind? Type { get; set; }
-
-            /// <summary>
-            /// Source index range(s) of the column
-            /// </summary>
-            public TextLoaderRange[] Source { get; set; }
-
-            /// <summary>
-            /// For a key column, this defines the range of values
-            /// </summary>
-            public KeyRange KeyRange { get; set; }
-
+            I1 = 1,
+            U1 = 2,
+            I2 = 3,
+            U2 = 4,
+            I4 = 5,
+            U4 = 6,
+            I8 = 7,
+            U8 = 8,
+            R4 = 9,
+            Num = 9,
+            R8 = 10,
+            TX = 11,
+            Text = 11,
+            TXT = 11,
+            BL = 12,
+            Bool = 12,
+            TimeSpan = 13,
+            TS = 13,
+            DT = 14,
+            DateTime = 14,
+            DZ = 15,
+            DateTimeZone = 15,
+            UG = 16,
+            U16 = 16
         }
 
         public sealed partial class TextLoaderRange
@@ -1604,6 +1542,84 @@ namespace Microsoft.ML
 
         }
 
+        public sealed partial class TextLoaderColumn
+        {
+            /// <summary>
+            /// Name of the column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Type of the items in the column
+            /// </summary>
+            public DataKind? Type { get; set; }
+
+            /// <summary>
+            /// Source index range(s) of the column
+            /// </summary>
+            public TextLoaderRange[] Source { get; set; }
+
+            /// <summary>
+            /// For a key column, this defines the range of values
+            /// </summary>
+            public KeyRange KeyRange { get; set; }
+
+        }
+
+        public sealed partial class TextLoaderArguments
+        {
+            /// <summary>
+            /// Use separate parsing threads?
+            /// </summary>
+            public bool UseThreads { get; set; } = true;
+
+            /// <summary>
+            /// File containing a header with feature names. If specified, header defined in the data file (header+) is ignored.
+            /// </summary>
+            public string HeaderFile { get; set; }
+
+            /// <summary>
+            /// Maximum number of rows to produce
+            /// </summary>
+            public long? MaxRows { get; set; }
+
+            /// <summary>
+            /// Whether the input may include quoted values, which can contain separator characters, colons, and distinguish empty values from missing values. When true, consecutive separators denote a missing value and an empty value is denoted by "". When false, consecutive separators denote an empty value.
+            /// </summary>
+            public bool AllowQuoting { get; set; } = true;
+
+            /// <summary>
+            /// Whether the input may include sparse representations
+            /// </summary>
+            public bool AllowSparse { get; set; } = true;
+
+            /// <summary>
+            /// Number of source columns in the text data. Default is that sparse rows contain their size information.
+            /// </summary>
+            public int? InputSize { get; set; }
+
+            /// <summary>
+            /// Source column separator.
+            /// </summary>
+            public char[] Separator { get; set; } = { '\t' };
+
+            /// <summary>
+            /// Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40
+            /// </summary>
+            public TextLoaderColumn[] Column { get; set; }
+
+            /// <summary>
+            /// Remove trailing whitespace from lines
+            /// </summary>
+            public bool TrimWhitespace { get; set; } = false;
+
+            /// <summary>
+            /// Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.
+            /// </summary>
+            public bool HasHeader { get; set; } = false;
+
+        }
+
         /// <summary>
         /// Import a dataset from a text file
         /// </summary>
@@ -1652,7 +1668,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Arguments
             /// </summary>
-            public Data.TextLoaderArguments Arguments { get; set; } = new Data.TextLoaderArguments();
+            public TextLoaderArguments Arguments { get; set; } = new TextLoaderArguments();
 
 
             public sealed class Output
@@ -1918,12 +1934,12 @@ namespace Microsoft.ML
             /// <summary>
             /// The training subgraph inputs
             /// </summary>
-            public Models.CrossValidationBinaryMacroSubGraphInput Inputs { get; set; } = new Models.CrossValidationBinaryMacroSubGraphInput();
+            public CrossValidationBinaryMacroSubGraphInput Inputs { get; set; } = new CrossValidationBinaryMacroSubGraphInput();
 
             /// <summary>
             /// The training subgraph outputs
             /// </summary>
-            public Models.CrossValidationBinaryMacroSubGraphOutput Outputs { get; set; } = new Models.CrossValidationBinaryMacroSubGraphOutput();
+            public CrossValidationBinaryMacroSubGraphOutput Outputs { get; set; } = new CrossValidationBinaryMacroSubGraphOutput();
 
             /// <summary>
             /// Column to use for stratification
@@ -2190,7 +2206,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
             /// </summary>
-            public Models.MacroUtilsTrainerKinds Kind { get; set; } = Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public MacroUtilsTrainerKinds Kind { get; set; } = MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
 
             public sealed class Output
@@ -2270,12 +2286,12 @@ namespace Microsoft.ML
             /// <summary>
             /// The training subgraph inputs
             /// </summary>
-            public Models.CrossValidationMacroSubGraphInput Inputs { get; set; } = new Models.CrossValidationMacroSubGraphInput();
+            public CrossValidationMacroSubGraphInput Inputs { get; set; } = new CrossValidationMacroSubGraphInput();
 
             /// <summary>
             /// The training subgraph outputs
             /// </summary>
-            public Models.CrossValidationMacroSubGraphOutput Outputs { get; set; } = new Models.CrossValidationMacroSubGraphOutput();
+            public CrossValidationMacroSubGraphOutput Outputs { get; set; } = new CrossValidationMacroSubGraphOutput();
 
             /// <summary>
             /// Column to use for stratification
@@ -2290,7 +2306,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
             /// </summary>
-            public Models.MacroUtilsTrainerKinds Kind { get; set; } = Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public MacroUtilsTrainerKinds Kind { get; set; } = MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
             /// <summary>
             /// Column to use for labels
@@ -2699,7 +2715,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The training subgraph output.
             /// </summary>
-            public Models.OneVersusAllMacroSubGraphOutput OutputForSubGraph { get; set; } = new Models.OneVersusAllMacroSubGraphOutput();
+            public OneVersusAllMacroSubGraphOutput OutputForSubGraph { get; set; } = new OneVersusAllMacroSubGraphOutput();
 
             /// <summary>
             /// Use probabilities in OVA combiner
@@ -2729,12 +2745,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public NormalizeOption NormalizeFeatures { get; set; } = NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public CachingOptions Caching { get; set; } = CachingOptions.Auto;
 
 
             public sealed class Output
@@ -2874,12 +2890,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public NormalizeOption NormalizeFeatures { get; set; } = NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public CachingOptions Caching { get; set; } = CachingOptions.Auto;
 
 
             public sealed class Output
@@ -3433,12 +3449,12 @@ namespace Microsoft.ML
             /// <summary>
             /// The training subgraph inputs
             /// </summary>
-            public Models.TrainTestBinaryMacroSubGraphInput Inputs { get; set; } = new Models.TrainTestBinaryMacroSubGraphInput();
+            public TrainTestBinaryMacroSubGraphInput Inputs { get; set; } = new TrainTestBinaryMacroSubGraphInput();
 
             /// <summary>
             /// The training subgraph outputs
             /// </summary>
-            public Models.TrainTestBinaryMacroSubGraphOutput Outputs { get; set; } = new Models.TrainTestBinaryMacroSubGraphOutput();
+            public TrainTestBinaryMacroSubGraphOutput Outputs { get; set; } = new TrainTestBinaryMacroSubGraphOutput();
 
 
             public sealed class Output
@@ -3528,17 +3544,17 @@ namespace Microsoft.ML
             /// <summary>
             /// The training subgraph inputs
             /// </summary>
-            public Models.TrainTestMacroSubGraphInput Inputs { get; set; } = new Models.TrainTestMacroSubGraphInput();
+            public TrainTestMacroSubGraphInput Inputs { get; set; } = new TrainTestMacroSubGraphInput();
 
             /// <summary>
             /// The training subgraph outputs
             /// </summary>
-            public Models.TrainTestMacroSubGraphOutput Outputs { get; set; } = new Models.TrainTestMacroSubGraphOutput();
+            public TrainTestMacroSubGraphOutput Outputs { get; set; } = new TrainTestMacroSubGraphOutput();
 
             /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
             /// </summary>
-            public Models.MacroUtilsTrainerKinds Kind { get; set; } = Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public MacroUtilsTrainerKinds Kind { get; set; } = MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
             /// <summary>
             /// Identifies which pipeline was run for this train test.
@@ -3743,12 +3759,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -3900,7 +3916,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Trainers.Bundle Bundling { get; set; } = Trainers.Bundle.None;
+            public Bundle Bundling { get; set; } = Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -4043,12 +4059,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -4182,7 +4198,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Trainers.Bundle Bundling { get; set; } = Trainers.Bundle.None;
+            public Bundle Bundling { get; set; } = Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -4325,12 +4341,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -4415,7 +4431,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -4580,7 +4596,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Trainers.Bundle Bundling { get; set; } = Trainers.Bundle.None;
+            public Bundle Bundling { get; set; } = Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -4723,12 +4739,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -4841,7 +4857,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -5006,7 +5022,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Trainers.Bundle Bundling { get; set; } = Trainers.Bundle.None;
+            public Bundle Bundling { get; set; } = Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -5149,12 +5165,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRankingOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -5227,7 +5243,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -5392,7 +5408,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Trainers.Bundle Bundling { get; set; } = Trainers.Bundle.None;
+            public Bundle Bundling { get; set; } = Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -5535,12 +5551,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -5618,7 +5634,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -5783,7 +5799,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Trainers.Bundle Bundling { get; set; } = Trainers.Bundle.None;
+            public Bundle Bundling { get; set; } = Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -5926,12 +5942,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6083,12 +6099,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6224,12 +6240,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6295,7 +6311,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Cluster initialization algorithm
             /// </summary>
-            public Trainers.KMeansPlusPlusTrainerInitAlgorithm InitAlgorithm { get; set; } = Trainers.KMeansPlusPlusTrainerInitAlgorithm.KMeansParallel;
+            public KMeansPlusPlusTrainerInitAlgorithm InitAlgorithm { get; set; } = KMeansPlusPlusTrainerInitAlgorithm.KMeansParallel;
 
             /// <summary>
             /// Tolerance parameter for trainer convergence. Lower = slower, more accurate
@@ -6335,12 +6351,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IClusteringOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6470,12 +6486,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6620,12 +6636,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6770,12 +6786,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6843,12 +6859,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6998,12 +7014,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7034,95 +7050,6 @@ namespace Microsoft.ML
             private class OnlineGradientDescentRegressorPipelineStep : ILearningPipelinePredictorStep
             {
                 public OnlineGradientDescentRegressorPipelineStep(Output output)
-                {
-                    Model = output.PredictorModel;
-                }
-
-                public Var<IPredictorModel> Model { get; }
-            }
-        }
-    }
-
-    namespace Trainers
-    {
-
-        /// <summary>
-        /// Train an OLS regression model.
-        /// </summary>
-        public sealed partial class OrdinaryLeastSquaresRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
-        {
-
-
-            /// <summary>
-            /// L2 regularization weight
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L2Weight", new object[]{1E-06f, 0.1f, 1f})]
-            public float L2Weight { get; set; } = 1E-06f;
-
-            /// <summary>
-            /// Whether to calculate per parameter significance statistics
-            /// </summary>
-            public bool PerParameterSignificance { get; set; } = true;
-
-            /// <summary>
-            /// Column to use for example weight
-            /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for labels
-            /// </summary>
-            public string LabelColumn { get; set; } = "Label";
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// Column to use for features
-            /// </summary>
-            public string FeatureColumn { get; set; } = "Features";
-
-            /// <summary>
-            /// Normalize option for the feature column
-            /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
-
-            /// <summary>
-            /// Whether learner should cache input training data
-            /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
-
-
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
-            {
-                /// <summary>
-                /// The trained model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
-
-            }
-            public Var<IDataView> GetInputData() => TrainingData;
-            
-            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
-            {
-                if (previousStep != null)
-                {
-                    if (!(previousStep is ILearningPipelineDataStep dataStep))
-                    {
-                        throw new InvalidOperationException($"{ nameof(OrdinaryLeastSquaresRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                    }
-
-                    TrainingData = dataStep.Data;
-                }
-                Output output = experiment.Add(this);
-                return new OrdinaryLeastSquaresRegressorPipelineStep(output);
-            }
-
-            private class OrdinaryLeastSquaresRegressorPipelineStep : ILearningPipelinePredictorStep
-            {
-                public OrdinaryLeastSquaresRegressorPipelineStep(Output output)
                 {
                     Model = output.PredictorModel;
                 }
@@ -7183,12 +7110,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IAnomalyDetectionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7328,12 +7255,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7469,12 +7396,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7594,12 +7521,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7719,12 +7646,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7858,12 +7785,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Models.NormalizeOption NormalizeFeatures { get; set; } = Models.NormalizeOption.Auto;
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Models.CachingOptions Caching { get; set; } = Models.CachingOptions.Auto;
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -8101,28 +8028,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public BinNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public BinNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformBinColumn>() : new List<Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformBinColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformBinColumn>() : new List<Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformBinColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -8130,7 +8057,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.NormalizeTransformBinColumn[] Column { get; set; }
+            public NormalizeTransformBinColumn[] Column { get; set; }
 
             /// <summary>
             /// Max number of bins, power of 2 recommended
@@ -8233,7 +8160,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)
             /// </summary>
-            public Transforms.CategoricalTransformOutputKind? OutputKind { get; set; }
+            public CategoricalTransformOutputKind? OutputKind { get; set; }
 
             /// <summary>
             /// Name of the new column
@@ -8268,28 +8195,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public CategoricalHashOneHotVectorizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public CategoricalHashOneHotVectorizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.CategoricalHashTransformColumn>() : new List<Transforms.CategoricalHashTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.CategoricalHashTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalHashTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.CategoricalHashTransformColumn>() : new List<Transforms.CategoricalHashTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.CategoricalHashTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalHashTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -8297,7 +8224,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:hashBits:src)
             /// </summary>
-            public Transforms.CategoricalHashTransformColumn[] Column { get; set; }
+            public CategoricalHashTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Number of bits to hash into. Must be between 1 and 30, inclusive.
@@ -8322,7 +8249,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)
             /// </summary>
-            public Transforms.CategoricalTransformOutputKind OutputKind { get; set; } = Transforms.CategoricalTransformOutputKind.Bag;
+            public CategoricalTransformOutputKind OutputKind { get; set; } = CategoricalTransformOutputKind.Bag;
 
             /// <summary>
             /// Input dataset
@@ -8388,7 +8315,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector
             /// </summary>
-            public Transforms.CategoricalTransformOutputKind? OutputKind { get; set; }
+            public CategoricalTransformOutputKind? OutputKind { get; set; }
 
             /// <summary>
             /// Maximum number of terms to keep when auto-training
@@ -8403,7 +8330,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public Transforms.TermTransformSortOrder? Sort { get; set; }
+            public TermTransformSortOrder? Sort { get; set; }
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -8443,28 +8370,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public CategoricalOneHotVectorizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public CategoricalOneHotVectorizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.CategoricalTransformColumn>() : new List<Transforms.CategoricalTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.CategoricalTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.CategoricalTransformColumn>() : new List<Transforms.CategoricalTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.CategoricalTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -8472,12 +8399,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.CategoricalTransformColumn[] Column { get; set; }
+            public CategoricalTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)
             /// </summary>
-            public Transforms.CategoricalTransformOutputKind OutputKind { get; set; } = Transforms.CategoricalTransformOutputKind.Ind;
+            public CategoricalTransformOutputKind OutputKind { get; set; } = CategoricalTransformOutputKind.Ind;
 
             /// <summary>
             /// Maximum number of terms to keep per column when auto-training
@@ -8492,7 +8419,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public Transforms.TermTransformSortOrder Sort { get; set; } = Transforms.TermTransformSortOrder.Occurrence;
+            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -8587,28 +8514,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public CharacterTokenizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public CharacterTokenizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.CharTokenizeTransformColumn>() : new List<Transforms.CharTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.CharTokenizeTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CharTokenizeTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.CharTokenizeTransformColumn>() : new List<Transforms.CharTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.CharTokenizeTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CharTokenizeTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -8616,7 +8543,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.CharTokenizeTransformColumn[] Column { get; set; }
+            public CharTokenizeTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether to mark the beginning/end of each row/slot with start of text character (0x02)/end of text character (0x03)
@@ -8707,8 +8634,8 @@ namespace Microsoft.ML
             
             public void AddColumn(string name, params string[] source)
             {
-                var list = Column == null ? new List<Transforms.ConcatTransformColumn>() : new List<Transforms.ConcatTransformColumn>(Column);
-                list.Add(ManyToOneColumn<Transforms.ConcatTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ConcatTransformColumn>() : new List<Microsoft.ML.Transforms.ConcatTransformColumn>(Column);
+                list.Add(ManyToOneColumn<Microsoft.ML.Transforms.ConcatTransformColumn>.Create(name, source));
                 Column = list.ToArray();
             }
 
@@ -8716,7 +8643,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:srcs)
             /// </summary>
-            public Transforms.ConcatTransformColumn[] Column { get; set; }
+            public ConcatTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -8806,28 +8733,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public ColumnCopier(params ValueTuple<string, string>[] inputOutputColumns)
+            public ColumnCopier(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.CopyColumnsTransformColumn>() : new List<Transforms.CopyColumnsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.CopyColumnsTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.CopyColumnsTransformColumn>() : new List<Transforms.CopyColumnsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.CopyColumnsTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -8835,7 +8762,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.CopyColumnsTransformColumn[] Column { get; set; }
+            public CopyColumnsTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -9019,41 +8946,13 @@ namespace Microsoft.ML
 
     namespace Transforms
     {
-        public enum DataKind : byte
-        {
-            I1 = 1,
-            U1 = 2,
-            I2 = 3,
-            U2 = 4,
-            I4 = 5,
-            U4 = 6,
-            I8 = 7,
-            U8 = 8,
-            R4 = 9,
-            Num = 9,
-            R8 = 10,
-            TX = 11,
-            Text = 11,
-            TXT = 11,
-            BL = 12,
-            Bool = 12,
-            TimeSpan = 13,
-            TS = 13,
-            DT = 14,
-            DateTime = 14,
-            DZ = 15,
-            DateTimeZone = 15,
-            UG = 16,
-            U16 = 16
-        }
-
 
         public sealed partial class ConvertTransformColumn : OneToOneColumn<ConvertTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The result type
             /// </summary>
-            public Transforms.DataKind? ResultType { get; set; }
+            public Microsoft.ML.Data.DataKind? ResultType { get; set; }
 
             /// <summary>
             /// For a key column, this defines the range of values
@@ -9093,28 +8992,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public ColumnTypeConverter(params ValueTuple<string, string>[] inputOutputColumns)
+            public ColumnTypeConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.ConvertTransformColumn>() : new List<Transforms.ConvertTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.ConvertTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ConvertTransformColumn>() : new List<Microsoft.ML.Transforms.ConvertTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ConvertTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.ConvertTransformColumn>() : new List<Transforms.ConvertTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.ConvertTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ConvertTransformColumn>() : new List<Microsoft.ML.Transforms.ConvertTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ConvertTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -9122,12 +9021,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:type:src)
             /// </summary>
-            public Transforms.ConvertTransformColumn[] Column { get; set; }
+            public ConvertTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The result type
             /// </summary>
-            public Transforms.DataKind? ResultType { get; set; }
+            public Microsoft.ML.Data.DataKind? ResultType { get; set; }
 
             /// <summary>
             /// For a key column, this defines the range of values
@@ -9302,28 +9201,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public ConditionalNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public ConditionalNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformAffineColumn>() : new List<Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformAffineColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformAffineColumn>() : new List<Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformAffineColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -9331,7 +9230,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.NormalizeTransformAffineColumn[] Column { get; set; }
+            public NormalizeTransformAffineColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether to map zero to zero, preserving sparsity
@@ -9412,7 +9311,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Caching strategy
             /// </summary>
-            public Transforms.CacheCachingType Caching { get; set; } = Transforms.CacheCachingType.Memory;
+            public CacheCachingType Caching { get; set; } = CacheCachingType.Memory;
 
             /// <summary>
             /// Input dataset
@@ -9555,7 +9454,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public Transforms.TermTransformSortOrder? Sort { get; set; }
+            public TermTransformSortOrder? Sort { get; set; }
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -9595,28 +9494,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public Dictionarizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public Dictionarizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.TermTransformColumn>() : new List<Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.TermTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.TermTransformColumn>() : new List<Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.TermTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -9624,7 +9523,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.TermTransformColumn[] Column { get; set; }
+            public TermTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum number of terms to keep per column when auto-training
@@ -9639,7 +9538,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public Transforms.TermTransformSortOrder Sort { get; set; } = Transforms.TermTransformSortOrder.Occurrence;
+            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -9964,28 +9863,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public GlobalContrastNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public GlobalContrastNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Transforms.LpNormNormalizerTransformGcnColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.LpNormNormalizerTransformGcnColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Transforms.LpNormNormalizerTransformGcnColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.LpNormNormalizerTransformGcnColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -9993,7 +9892,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.LpNormNormalizerTransformGcnColumn[] Column { get; set; }
+            public LpNormNormalizerTransformGcnColumn[] Column { get; set; }
 
             /// <summary>
             /// Subtract mean from each value before normalizing
@@ -10123,28 +10022,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public HashConverter(params ValueTuple<string, string>[] inputOutputColumns)
+            public HashConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.HashJoinTransformColumn>() : new List<Transforms.HashJoinTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.HashJoinTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Transforms.HashJoinTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.HashJoinTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.HashJoinTransformColumn>() : new List<Transforms.HashJoinTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.HashJoinTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Transforms.HashJoinTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.HashJoinTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10152,7 +10051,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.HashJoinTransformColumn[] Column { get; set; }
+            public HashJoinTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether the values need to be combined for a single hash
@@ -10262,28 +10161,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public KeyToTextConverter(params ValueTuple<string, string>[] inputOutputColumns)
+            public KeyToTextConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.KeyToValueTransformColumn>() : new List<Transforms.KeyToValueTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.KeyToValueTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>() : new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.KeyToValueTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.KeyToValueTransformColumn>() : new List<Transforms.KeyToValueTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.KeyToValueTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>() : new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.KeyToValueTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10291,7 +10190,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.KeyToValueTransformColumn[] Column { get; set; }
+            public KeyToValueTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -10456,28 +10355,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public LabelIndicator(params ValueTuple<string, string>[] inputOutputColumns)
+            public LabelIndicator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.LabelIndicatorTransformColumn>() : new List<Transforms.LabelIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.LabelIndicatorTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.LabelIndicatorTransformColumn>() : new List<Transforms.LabelIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.LabelIndicatorTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10485,7 +10384,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.LabelIndicatorTransformColumn[] Column { get; set; }
+            public LabelIndicatorTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Label of the positive class.
@@ -10650,28 +10549,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public LogMeanVarianceNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public LogMeanVarianceNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformLogNormalColumn>() : new List<Transforms.NormalizeTransformLogNormalColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformLogNormalColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformLogNormalColumn>() : new List<Transforms.NormalizeTransformLogNormalColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformLogNormalColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10684,7 +10583,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.NormalizeTransformLogNormalColumn[] Column { get; set; }
+            public NormalizeTransformLogNormalColumn[] Column { get; set; }
 
             /// <summary>
             /// Max number of examples used to train the normalizer
@@ -10757,7 +10656,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The norm to use to normalize each sample
             /// </summary>
-            public Transforms.LpNormNormalizerTransformNormalizerKind? NormKind { get; set; }
+            public LpNormNormalizerTransformNormalizerKind? NormKind { get; set; }
 
             /// <summary>
             /// Subtract mean from each value before normalizing
@@ -10797,28 +10696,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public LpNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public LpNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.LpNormNormalizerTransformColumn>() : new List<Transforms.LpNormNormalizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.LpNormNormalizerTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.LpNormNormalizerTransformColumn>() : new List<Transforms.LpNormNormalizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.LpNormNormalizerTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10826,12 +10725,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.LpNormNormalizerTransformColumn[] Column { get; set; }
+            public LpNormNormalizerTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The norm to use to normalize each sample
             /// </summary>
-            public Transforms.LpNormNormalizerTransformNormalizerKind NormKind { get; set; } = Transforms.LpNormNormalizerTransformNormalizerKind.L2Norm;
+            public LpNormNormalizerTransformNormalizerKind NormKind { get; set; } = LpNormNormalizerTransformNormalizerKind.L2Norm;
 
             /// <summary>
             /// Subtract mean from each value before normalizing
@@ -10944,28 +10843,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MeanVarianceNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public MeanVarianceNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformAffineColumn>() : new List<Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformAffineColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformAffineColumn>() : new List<Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformAffineColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10978,7 +10877,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.NormalizeTransformAffineColumn[] Column { get; set; }
+            public NormalizeTransformAffineColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether to map zero to zero, preserving sparsity
@@ -11064,28 +10963,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MinMaxNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public MinMaxNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformAffineColumn>() : new List<Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformAffineColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformAffineColumn>() : new List<Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformAffineColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11093,7 +10992,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.NormalizeTransformAffineColumn[] Column { get; set; }
+            public NormalizeTransformAffineColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether to map zero to zero, preserving sparsity
@@ -11175,7 +11074,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public Transforms.NAHandleTransformReplacementKind? Kind { get; set; }
+            public NAHandleTransformReplacementKind? Kind { get; set; }
 
             /// <summary>
             /// Whether to impute values by slot
@@ -11220,28 +11119,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MissingValueHandler(params ValueTuple<string, string>[] inputOutputColumns)
+            public MissingValueHandler(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NAHandleTransformColumn>() : new List<Transforms.NAHandleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NAHandleTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NAHandleTransformColumn>() : new List<Microsoft.ML.Transforms.NAHandleTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAHandleTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NAHandleTransformColumn>() : new List<Transforms.NAHandleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NAHandleTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NAHandleTransformColumn>() : new List<Microsoft.ML.Transforms.NAHandleTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAHandleTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11249,12 +11148,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:rep:src)
             /// </summary>
-            public Transforms.NAHandleTransformColumn[] Column { get; set; }
+            public NAHandleTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public Transforms.NAHandleTransformReplacementKind ReplaceWith { get; set; } = Transforms.NAHandleTransformReplacementKind.Def;
+            public NAHandleTransformReplacementKind ReplaceWith { get; set; } = NAHandleTransformReplacementKind.Def;
 
             /// <summary>
             /// Whether to impute values by slot
@@ -11354,28 +11253,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MissingValueIndicator(params ValueTuple<string, string>[] inputOutputColumns)
+            public MissingValueIndicator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NAIndicatorTransformColumn>() : new List<Transforms.NAIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NAIndicatorTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAIndicatorTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NAIndicatorTransformColumn>() : new List<Transforms.NAIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NAIndicatorTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAIndicatorTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11383,7 +11282,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.NAIndicatorTransformColumn[] Column { get; set; }
+            public NAIndicatorTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -11473,28 +11372,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MissingValuesDropper(params ValueTuple<string, string>[] inputOutputColumns)
+            public MissingValuesDropper(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NADropTransformColumn>() : new List<Transforms.NADropTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NADropTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NADropTransformColumn>() : new List<Microsoft.ML.Transforms.NADropTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NADropTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NADropTransformColumn>() : new List<Transforms.NADropTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NADropTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NADropTransformColumn>() : new List<Microsoft.ML.Transforms.NADropTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NADropTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11502,7 +11401,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Columns to drop the NAs for
             /// </summary>
-            public Transforms.NADropTransformColumn[] Column { get; set; }
+            public NADropTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -11652,7 +11551,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public Transforms.NAReplaceTransformReplacementKind? Kind { get; set; }
+            public NAReplaceTransformReplacementKind? Kind { get; set; }
 
             /// <summary>
             /// Whether to impute values by slot
@@ -11692,28 +11591,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public MissingValueSubstitutor(params ValueTuple<string, string>[] inputOutputColumns)
+            public MissingValueSubstitutor(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NAReplaceTransformColumn>() : new List<Transforms.NAReplaceTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NAReplaceTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>() : new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAReplaceTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NAReplaceTransformColumn>() : new List<Transforms.NAReplaceTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NAReplaceTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>() : new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAReplaceTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11721,12 +11620,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:rep:src)
             /// </summary>
-            public Transforms.NAReplaceTransformColumn[] Column { get; set; }
+            public NAReplaceTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public Transforms.NAReplaceTransformReplacementKind ReplacementKind { get; set; } = Transforms.NAReplaceTransformReplacementKind.Def;
+            public NAReplaceTransformReplacementKind ReplacementKind { get; set; } = NAReplaceTransformReplacementKind.Def;
 
             /// <summary>
             /// Whether to impute values by slot
@@ -11845,7 +11744,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Statistical measure used to evaluate how important a word is to a document in a corpus
             /// </summary>
-            public Transforms.NgramTransformWeightingCriteria? Weighting { get; set; }
+            public NgramTransformWeightingCriteria? Weighting { get; set; }
 
             /// <summary>
             /// Name of the new column
@@ -11880,28 +11779,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public NGramTranslator(params ValueTuple<string, string>[] inputOutputColumns)
+            public NGramTranslator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NgramTransformColumn>() : new List<Transforms.NgramTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NgramTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NgramTransformColumn>() : new List<Microsoft.ML.Transforms.NgramTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NgramTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NgramTransformColumn>() : new List<Transforms.NgramTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NgramTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NgramTransformColumn>() : new List<Microsoft.ML.Transforms.NgramTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NgramTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11909,7 +11808,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.NgramTransformColumn[] Column { get; set; }
+            public NgramTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum ngram length
@@ -11934,7 +11833,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The weighting criteria
             /// </summary>
-            public Transforms.NgramTransformWeightingCriteria Weighting { get; set; } = Transforms.NgramTransformWeightingCriteria.Tf;
+            public NgramTransformWeightingCriteria Weighting { get; set; } = NgramTransformWeightingCriteria.Tf;
 
             /// <summary>
             /// Input dataset
@@ -12174,28 +12073,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public PcaCalculator(params ValueTuple<string, string>[] inputOutputColumns)
+            public PcaCalculator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.PcaTransformColumn>() : new List<Transforms.PcaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.PcaTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.PcaTransformColumn>() : new List<Microsoft.ML.Transforms.PcaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.PcaTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.PcaTransformColumn>() : new List<Transforms.PcaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.PcaTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.PcaTransformColumn>() : new List<Microsoft.ML.Transforms.PcaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.PcaTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12203,7 +12102,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.PcaTransformColumn[] Column { get; set; }
+            public PcaTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The name of the weight column
@@ -12377,7 +12276,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:seed)
             /// </summary>
-            public Transforms.GenerateNumberTransformColumn[] Column { get; set; }
+            public GenerateNumberTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Use an auto-incremented integer starting at zero instead of a random number
@@ -12851,7 +12750,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Specifies how to unroll multiple pivot columns of different size.
             /// </summary>
-            public Transforms.UngroupTransformUngroupMode Mode { get; set; } = Transforms.UngroupTransformUngroupMode.Inner;
+            public UngroupTransformUngroupMode Mode { get; set; } = UngroupTransformUngroupMode.Inner;
 
             /// <summary>
             /// Input dataset
@@ -12997,28 +12896,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public SupervisedBinNormalizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public SupervisedBinNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformBinColumn>() : new List<Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformBinColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.NormalizeTransformBinColumn>() : new List<Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.NormalizeTransformBinColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13036,7 +12935,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.NormalizeTransformBinColumn[] Column { get; set; }
+            public NormalizeTransformBinColumn[] Column { get; set; }
 
             /// <summary>
             /// Max number of bins, power of 2 recommended
@@ -13156,7 +13055,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public Transforms.TermTransformSortOrder Sort { get; set; } = Transforms.TermTransformSortOrder.Occurrence;
+            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
 
             /// <summary>
             /// Drop unknown terms instead of mapping them to NA term.
@@ -13182,19 +13081,19 @@ namespace Microsoft.ML
             
             public void AddColumn(string name, params string[] source)
             {
-                Column = ManyToOneColumn<Transforms.TextTransformColumn>.Create(name, source);
+                Column = ManyToOneColumn<Microsoft.ML.Transforms.TextTransformColumn>.Create(name, source);
             }
 
 
             /// <summary>
             /// New column definition (optional form: name:srcs).
             /// </summary>
-            public Transforms.TextTransformColumn Column { get; set; }
+            public TextTransformColumn Column { get; set; }
 
             /// <summary>
             /// Dataset language or 'AutoDetect' to detect language per row.
             /// </summary>
-            public Transforms.TextTransformLanguage Language { get; set; } = Transforms.TextTransformLanguage.English;
+            public TextTransformLanguage Language { get; set; } = TextTransformLanguage.English;
 
             /// <summary>
             /// Stopwords remover.
@@ -13205,7 +13104,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Casing text using the rules of the invariant culture.
             /// </summary>
-            public Transforms.TextNormalizerTransformCaseNormalizationMode TextCase { get; set; } = Transforms.TextNormalizerTransformCaseNormalizationMode.Lower;
+            public TextNormalizerTransformCaseNormalizationMode TextCase { get; set; } = TextNormalizerTransformCaseNormalizationMode.Lower;
 
             /// <summary>
             /// Whether to keep diacritical marks or remove them.
@@ -13230,7 +13129,7 @@ namespace Microsoft.ML
             /// <summary>
             /// A dictionary of whitelisted terms.
             /// </summary>
-            public Transforms.TermLoaderArguments Dictionary { get; set; }
+            public TermLoaderArguments Dictionary { get; set; }
 
             /// <summary>
             /// Ngram feature extractor to use for words (WordBag/WordHashBag).
@@ -13247,7 +13146,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize vectors (rows) individually by rescaling them to unit norm.
             /// </summary>
-            public Transforms.TextTransformTextNormKind VectorNormalizer { get; set; } = Transforms.TextTransformTextNormKind.L2;
+            public TextTransformTextNormKind VectorNormalizer { get; set; } = TextTransformTextNormKind.L2;
 
             /// <summary>
             /// Input dataset
@@ -13323,28 +13222,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public TextToKeyConverter(params ValueTuple<string, string>[] inputOutputColumns)
+            public TextToKeyConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.TermTransformColumn>() : new List<Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.TermTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.TermTransformColumn>() : new List<Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.TermTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13352,7 +13251,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public Transforms.TermTransformColumn[] Column { get; set; }
+            public TermTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum number of terms to keep per column when auto-training
@@ -13367,7 +13266,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
             /// </summary>
-            public Transforms.TermTransformSortOrder Sort { get; set; } = Transforms.TermTransformSortOrder.Occurrence;
+            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -13616,28 +13515,28 @@ namespace Microsoft.ML
                 }
             }
             
-            public WordTokenizer(params ValueTuple<string, string>[] inputOutputColumns)
+            public WordTokenizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
-                    foreach (ValueTuple<string, string> inputOutput in inputOutputColumns)
+                    foreach (var inputOutput in inputOutputColumns)
                     {
-                        AddColumn(inputOutput.Item2, inputOutput.Item1);
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
                     }
                 }
             }
             
-            public void AddColumn(string source)
+            public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.DelimitedTokenizeTransformColumn>() : new List<Transforms.DelimitedTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.DelimitedTokenizeTransformColumn>.Create(source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
-            public void AddColumn(string name, string source)
+            public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Transforms.DelimitedTokenizeTransformColumn>() : new List<Transforms.DelimitedTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Transforms.DelimitedTokenizeTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13645,7 +13544,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s)
             /// </summary>
-            public Transforms.DelimitedTokenizeTransformColumn[] Column { get; set; }
+            public DelimitedTokenizeTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.
@@ -13800,7 +13699,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Supported metric for evaluator.
             /// </summary>
-            public Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } = Microsoft.ML.Runtime.AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
+            public AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } = AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
 
             /// <summary>
             /// AutoML engine (pipeline optimizer) that generates next candidates.
@@ -13831,9 +13730,6 @@ namespace Microsoft.ML
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public sealed class FixedPlattCalibratorCalibratorTrainer : CalibratorTrainer
         {
             /// <summary>
@@ -13851,9 +13747,6 @@ namespace Microsoft.ML
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public sealed class NaiveCalibratorCalibratorTrainer : CalibratorTrainer
         {
             internal override string ComponentName => "NaiveCalibrator";
@@ -13861,9 +13754,6 @@ namespace Microsoft.ML
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public sealed class PavCalibratorCalibratorTrainer : CalibratorTrainer
         {
             internal override string ComponentName => "PavCalibrator";
@@ -15566,6 +15456,57 @@ namespace Microsoft.ML
         public sealed class SingleParallelTraining : ParallelTraining
         {
             internal override string ComponentName => "Single";
+        }
+
+        public abstract class PartitionedPathParser : ComponentKind {}
+
+
+
+        /// <summary>
+        /// Extract name/value pairs from Parquet formatted directory names. Example path: Year=2018/Month=12/data1.parquet
+        /// </summary>
+        public sealed class ParquetPathParserPartitionedPathParser : PartitionedPathParser
+        {
+            internal override string ComponentName => "ParquetPathParser";
+        }
+
+
+        public sealed partial class PartitionedFileLoaderColumn
+        {
+            /// <summary>
+            /// Name of the column.
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Data type of the column.
+            /// </summary>
+            public Microsoft.ML.Data.DataKind? Type { get; set; }
+
+            /// <summary>
+            /// Index of the directory representing this column.
+            /// </summary>
+            public int Source { get; set; }
+
+        }
+
+
+        /// <summary>
+        /// A simple parser that extracts directory names as column values. Column names are defined as arguments.
+        /// </summary>
+        public sealed class SimplePathParserPartitionedPathParser : PartitionedPathParser
+        {
+            /// <summary>
+            /// Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1
+            /// </summary>
+            public PartitionedFileLoaderColumn[] Columns { get; set; }
+
+            /// <summary>
+            /// Data type of each column.
+            /// </summary>
+            public Microsoft.ML.Data.DataKind Type { get; set; } = Microsoft.ML.Data.DataKind.TX;
+
+            internal override string ComponentName => "SimplePathParser";
         }
 
         public abstract class RegressionLossFunction : ComponentKind {}
