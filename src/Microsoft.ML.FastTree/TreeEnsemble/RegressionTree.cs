@@ -113,11 +113,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 CategoricalSplitFeatureRanges = new int[NumNodes][];
                 for (int index = 0; index < NumNodes; index++)
                 {
-                    if (!CategoricalSplit[index])
-                        continue;
-
                     CategoricalSplitFeatures[index] = buffer.ToIntArray(ref position);
-                    CategoricalSplitFeatureRanges[index] = buffer.ToIntArray(ref position, 2);
+                    CategoricalSplitFeatureRanges[index] = buffer.ToIntArray(ref position);
                 }
             }
 
@@ -211,7 +208,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             LeafValues = leafValues;
             CategoricalSplitFeatures = categoricalSplitFeatures;
             CategoricalSplitFeatureRanges = new int[CategoricalSplitFeatures.Length][];
-            for(int i= 0; i < CategoricalSplitFeatures.Length; ++i)
+            for (int i = 0; i < CategoricalSplitFeatures.Length; ++i)
             {
                 if (CategoricalSplitFeatures[i] != null && CategoricalSplitFeatures[i].Length > 0)
                 {
@@ -540,14 +537,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
             if (CategoricalSplitFeatures != null)
             {
-                foreach (var splits in CategoricalSplitFeatures)
-                    splits.ToByteArray(buffer, ref position);
-            }
-
-            if (CategoricalSplitFeatureRanges != null)
-            {
-                foreach (var ranges in CategoricalSplitFeatureRanges)
-                    ranges.ToByteArray(buffer, ref position);
+                Contracts.AssertValue(CategoricalSplitFeatureRanges);
+                for (int i = 0; i < CategoricalSplitFeatures.Length; i++)
+                {
+                    CategoricalSplitFeatures[i].ToByteArray(buffer, ref position);
+                    CategoricalSplitFeatureRanges[i].ToByteArray(buffer, ref position);
+                }
             }
 
             Thresholds.ToByteArray(buffer, ref position);

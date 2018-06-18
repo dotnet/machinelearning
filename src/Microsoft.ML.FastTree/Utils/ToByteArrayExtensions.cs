@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.FastTree.Internal
 {
@@ -290,7 +291,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public static int SizeInBytes(this byte[] a)
         {
-            return sizeof(int) + a.Length * sizeof(byte);
+            return sizeof(int) + Utils.Size(a) * sizeof(byte);
         }
 
         public static void ToByteArray(this byte[] a, byte[] buffer, ref int position)
@@ -314,7 +315,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public static int SizeInBytes(this short[] a)
         {
-            return sizeof(int) + a.Length * sizeof(short);
+            return sizeof(int) + Utils.Size(a) * sizeof(short);
         }
 
         public unsafe static void ToByteArray(this short[] a, byte[] buffer, ref int position)
@@ -353,7 +354,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public static int SizeInBytes(this ushort[] a)
         {
-            return sizeof(int) + a.Length * sizeof(ushort);
+            return sizeof(int) + Utils.Size(a) * sizeof(ushort);
         }
 
         public unsafe static void ToByteArray(this ushort[] a, byte[] buffer, ref int position)
@@ -392,12 +393,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public static int SizeInBytes(this int[] array)
         {
-            return sizeof(int) + array.Length * sizeof(int);
+            return sizeof(int) + Utils.Size(array) * sizeof(int);
         }
 
         public unsafe static void ToByteArray(this int[] a, byte[] buffer, ref int position)
         {
-            int length = a.Length;
+            int length = Utils.Size(a);
             length.ToByteArray(buffer, ref position);
 
             fixed (byte* tmpBuffer = buffer)
@@ -415,6 +416,9 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public unsafe static int[] ToIntArray(this byte[] buffer, ref int position, int length)
         {
+            if (length == 0)
+                return null;
+
             int[] a = new int[length];
 
             fixed (byte* tmpBuffer = buffer)
@@ -433,7 +437,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public static int SizeInBytes(this uint[] array)
         {
-            return sizeof(int) + array.Length * sizeof(uint);
+            return sizeof(int) + Utils.Size(array) * sizeof(uint);
         }
 
         public unsafe static void ToByteArray(this uint[] a, byte[] buffer, ref int position)
@@ -472,7 +476,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public static int SizeInBytes(this long[] array)
         {
-            return sizeof(int) + array.Length * sizeof(long);
+            return sizeof(int) + Utils.Size(array) * sizeof(long);
         }
 
         public unsafe static void ToByteArray(this long[] a, byte[] buffer, ref int position)
@@ -511,7 +515,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public static int SizeInBytes(this ulong[] array)
         {
-            return sizeof(int) + array.Length * sizeof(ulong);
+            return sizeof(int) + Utils.Size(array) * sizeof(ulong);
         }
 
         public unsafe static void ToByteArray(this ulong[] a, byte[] buffer, ref int position)
@@ -550,7 +554,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public static int SizeInBytes(this MD5Hash[] array)
         {
-            return sizeof(int) + array.Length * MD5Hash.SizeInBytes();
+            return sizeof(int) + Utils.Size(array) * MD5Hash.SizeInBytes();
         }
 
         public static void ToByteArray(this MD5Hash[] a, byte[] buffer, ref int position)
@@ -577,7 +581,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public static int SizeInBytes(this float[] array)
         {
-            return sizeof(int) + array.Length * sizeof(float);
+            return sizeof(int) + Utils.Size(array) * sizeof(float);
         }
 
         public unsafe static void ToByteArray(this float[] a, byte[] buffer, ref int position)
@@ -616,7 +620,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public static int SizeInBytes(this double[] array)
         {
-            return sizeof(int) + array.Length * sizeof(double);
+            return sizeof(int) + Utils.Size(array) * sizeof(double);
         }
 
         public unsafe static void ToByteArray(this double[] a, byte[] buffer, ref int position)
@@ -655,6 +659,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public static int SizeInBytes(this double[][] array)
         {
+            if (Utils.Size(array) == 0)
+                return sizeof(int);
             return sizeof(int) + array.Sum(x => x.SizeInBytes());
         }
 
@@ -683,10 +689,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         public static long SizeInBytes(this string[] array)
         {
             long length = sizeof(int);
-            for (int i = 0; i < array.Length; ++i)
+            for (int i = 0; i < Utils.Size(array); ++i)
             {
                 length += array[i].SizeInBytes();
             }
+            if (length > 0)
+                length += sizeof(int);
             return length;
         }
 

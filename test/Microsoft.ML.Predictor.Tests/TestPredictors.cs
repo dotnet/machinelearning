@@ -429,13 +429,50 @@ namespace Microsoft.ML.Runtime.RunTests
                     TrainingData = dataView
                 }).PredictorModel;
             }
+            CombineAndTestTreeEnsembles(dataView, fastTrees);
+        }
 
+        [Fact]
+        public void TestTreeEnsembleCombinerWithCategoricalSplits()
+        {
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+#pragma warning disable 0618
+            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
+#pragma warning restore 0618
+
+            var cat = CategoricalTransform.Create(Env,
+                new CategoricalTransform.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new CategoricalTransform.Column() { Name = "Features", Source = "Categories" }
+                    }
+                }, dataView);
+            var fastTrees = new IPredictorModel[3];
+            for (int i = 0; i < 3; i++)
+            {
+                fastTrees[i] = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                {
+                    FeatureColumn = "Features",
+                    NumTrees = 5,
+                    NumLeaves = 4,
+                    CategoricalSplit = true,
+                    LabelColumn = DefaultColumnNames.Label,
+                    TrainingData = cat
+                }).PredictorModel;
+            }
+            CombineAndTestTreeEnsembles(cat, fastTrees);
+        }
+
+        private void CombineAndTestTreeEnsembles(IDataView idv, IPredictorModel[] fastTrees)
+        {
             var combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
 
             var fastTree = combiner.CombineModels(fastTrees.Select(pm => pm.Predictor as IPredictorProducing<float>));
 
-            var data = RoleMappedData.Create(dataView, RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"));
-            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = dataView, PredictorModel = new PredictorModel(Env, data, dataView, fastTree) }).ScoredData;
+            var data = RoleMappedData.Create(idv, RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"));
+            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModel(Env, data, idv, fastTree) }).ScoredData;
             Assert.True(scored.Schema.TryGetColumnIndex("Score", out int scoreCol));
             Assert.True(scored.Schema.TryGetColumnIndex("Probability", out int probCol));
             Assert.True(scored.Schema.TryGetColumnIndex("PredictedLabel", out int predCol));
@@ -446,7 +483,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var predColArray = new int[3];
             for (int i = 0; i < 3; i++)
             {
-                scoredArray[i] = ScoreModel.Score(Env, new ScoreModel.Input() { Data = dataView, PredictorModel = fastTrees[i] }).ScoredData;
+                scoredArray[i] = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = fastTrees[i] }).ScoredData;
                 Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Score", out scoreColArray[i]));
                 Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Probability", out probColArray[i]));
                 Assert.True(scoredArray[i].Schema.TryGetColumnIndex("PredictedLabel", out predColArray[i]));
