@@ -2,23 +2,23 @@
 
 ## Overview
 
-Entry-points are a way to interface with ML.NET components, by specifying an execution graph of connected inputs and outputs of those components.
+Entry points are a way to interface with ML.NET components, by specifying an execution graph of connected inputs and outputs of those components.
 Both the manifest describing available components and their inputs/outputs, and an "experiment" graph description, are expressed in JSON. 
-The recommended way of interacting with ML.NET through other, non-.NET programming languages, is by composing, and exchanging pipeline or experiment graphs.  
+The recommended way of interacting with ML.NET through other, non-.NET programming languages, is by composing, and exchanging pipelines or experiment graphs.  
 
-Through the documentaiton, we also refer to them as 'entry points nodes', and not just entry points, and that is because they are used as nodes of the experiemnt graphs. 
-The graph 'variables', the various values of the experiment graph JSON properties serve to describe the relationship between the entry point nodes. 
-The 'variables' are therefore the edges of the DAG. 
+Through the documentation, we also refer to entry points as 'entry points nodes', and that is because they are the nodes of the graph representing the experiment. 
+The graph 'variables', the various values of the experiment graph JSON properties, serve to describe the relationship between the entry point nodes. 
+The 'variables' are therefore the edges of the DAG (Directed Acyclic Graph). 
 
 All of ML.NET entry points are described by their manifest. The manifest is another JSON object that documents and describes the structure of an entry points. 
 Manifests are referenced to understand what an entry point does, and how it should be constructed, in a graph.  
 
-This document briefly describes the structure of the entry points, the structure of an entry point manifest, and mentions the ML.NET classes that help construct an entry point
-graph.
+This document briefly describes the structure of the entry points, the structure of an entry point manifest, and mentions the ML.NET classes that help construct an entry point graph.
 
 ## EntryPoint manifest - the definition of an entry point
 
-An example of an entry point manifest object, specifically for the `MissingValueIndicator` transform, is:
+The components manifest is build by scanning the ML.Net assemblies through reflection and searching for types having the: `SignatureEntryPointModule` signature in their `LoadableClass` assembly  attribute definition. 
+An example of an entry point manifest object, specifically for the `ColumnTypeConverter` transform, is:
 
 ```javascript
 {
@@ -217,3 +217,14 @@ non-array, non-dictionary parameter, the `ArrayIndexParameterBinding` is a
 pointer to a specific index of an array parameter and the
 `DictionaryKeyParameterBinding` is a pointer to a specific key of a dictionary
 parameter.
+
+## How to create an entry point for an existing ML.Net component
+
+The steps to take, to create an entry point for an existing ML.Net component, are:
+1. Add the `SignatureEntryPointModule` signature to the `LoadableClass` assembly attribute.  
+2. Create a public static method, that:
+    a. Takes as input, among others, an object representing the arguments of the component you want to expose. 
+    b. Initializes and run the components, returning one of the nested classes of  `Microsoft.ML.Runtime.EntryPoints.CommonOutputs`
+    c. Is annotated with the `TlcModule.EntryPoint` attribute 
+
+Based on the type of entry point being created, there are further conventions on the name of the method, for example, the Trainers entry points are typically called: 'TrainMultiClass', 'TrainBinary' etc, based on the task. 
