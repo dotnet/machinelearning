@@ -106,6 +106,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Models.AnomalyDetectionEvaluator", input, output));
             }
 
+            public Microsoft.ML.Models.AnomalyPipelineEnsemble.Output Add(Microsoft.ML.Models.AnomalyPipelineEnsemble input)
+            {
+                var output = new Microsoft.ML.Models.AnomalyPipelineEnsemble.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.AnomalyPipelineEnsemble input, Microsoft.ML.Models.AnomalyPipelineEnsemble.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.AnomalyPipelineEnsemble", input, output));
+            }
+
             public Microsoft.ML.Models.BinaryClassificationEvaluator.Output Add(Microsoft.ML.Models.BinaryClassificationEvaluator input)
             {
                 var output = new Microsoft.ML.Models.BinaryClassificationEvaluator.Output();
@@ -128,6 +140,30 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Models.BinaryCrossValidator input, Microsoft.ML.Models.BinaryCrossValidator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.BinaryCrossValidator", input, output));
+            }
+
+            public Microsoft.ML.Models.BinaryEnsemble.Output Add(Microsoft.ML.Models.BinaryEnsemble input)
+            {
+                var output = new Microsoft.ML.Models.BinaryEnsemble.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.BinaryEnsemble input, Microsoft.ML.Models.BinaryEnsemble.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.BinaryEnsemble", input, output));
+            }
+
+            public Microsoft.ML.Models.BinaryPipelineEnsemble.Output Add(Microsoft.ML.Models.BinaryPipelineEnsemble input)
+            {
+                var output = new Microsoft.ML.Models.BinaryPipelineEnsemble.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.BinaryPipelineEnsemble input, Microsoft.ML.Models.BinaryPipelineEnsemble.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.BinaryPipelineEnsemble", input, output));
             }
 
             public Microsoft.ML.Models.ClassificationEvaluator.Output Add(Microsoft.ML.Models.ClassificationEvaluator input)
@@ -202,6 +238,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Models.DatasetTransformer", input, output));
             }
 
+            public Microsoft.ML.Models.EnsembleSummary.Output Add(Microsoft.ML.Models.EnsembleSummary input)
+            {
+                var output = new Microsoft.ML.Models.EnsembleSummary.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.EnsembleSummary input, Microsoft.ML.Models.EnsembleSummary.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.EnsembleSummary", input, output));
+            }
+
             public Microsoft.ML.Models.FixedPlattCalibrator.Output Add(Microsoft.ML.Models.FixedPlattCalibrator input)
             {
                 var output = new Microsoft.ML.Models.FixedPlattCalibrator.Output();
@@ -212,6 +260,18 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Models.FixedPlattCalibrator input, Microsoft.ML.Models.FixedPlattCalibrator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.FixedPlattCalibrator", input, output));
+            }
+
+            public Microsoft.ML.Models.MultiClassPipelineEnsemble.Output Add(Microsoft.ML.Models.MultiClassPipelineEnsemble input)
+            {
+                var output = new Microsoft.ML.Models.MultiClassPipelineEnsemble.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.MultiClassPipelineEnsemble input, Microsoft.ML.Models.MultiClassPipelineEnsemble.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.MultiClassPipelineEnsemble", input, output));
             }
 
             public Microsoft.ML.Models.MultiOutputRegressionEvaluator.Output Add(Microsoft.ML.Models.MultiOutputRegressionEvaluator input)
@@ -334,6 +394,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Models.RankerEvaluator", input, output));
             }
 
+            public Microsoft.ML.Models.RegressionEnsemble.Output Add(Microsoft.ML.Models.RegressionEnsemble input)
+            {
+                var output = new Microsoft.ML.Models.RegressionEnsemble.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.RegressionEnsemble input, Microsoft.ML.Models.RegressionEnsemble.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.RegressionEnsemble", input, output));
+            }
+
             public Microsoft.ML.Models.RegressionEvaluator.Output Add(Microsoft.ML.Models.RegressionEvaluator input)
             {
                 var output = new Microsoft.ML.Models.RegressionEvaluator.Output();
@@ -344,6 +416,18 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Models.RegressionEvaluator input, Microsoft.ML.Models.RegressionEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.RegressionEvaluator", input, output));
+            }
+
+            public Microsoft.ML.Models.RegressionPipelineEnsemble.Output Add(Microsoft.ML.Models.RegressionPipelineEnsemble input)
+            {
+                var output = new Microsoft.ML.Models.RegressionPipelineEnsemble.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Models.RegressionPipelineEnsemble input, Microsoft.ML.Models.RegressionPipelineEnsemble.Output output)
+            {
+                _jsonNodes.Add(Serialize("Models.RegressionPipelineEnsemble", input, output));
             }
 
             public Microsoft.ML.Models.Summarizer.Output Add(Microsoft.ML.Models.Summarizer input)
@@ -1798,6 +1882,44 @@ namespace Microsoft.ML
 
     namespace Models
     {
+        public enum EnsembleCreatorScoreCombiner
+        {
+            Median = 0,
+            Average = 1
+        }
+
+
+        /// <summary>
+        /// Combine anomaly detection models into an ensemble
+        /// </summary>
+        public sealed partial class AnomalyPipelineEnsemble
+        {
+
+
+            /// <summary>
+            /// The combiner used to combine the scores
+            /// </summary>
+            public EnsembleCreatorScoreCombiner ModelCombiner { get; set; } = EnsembleCreatorScoreCombiner.Average;
+
+            /// <summary>
+            /// The models to combine into an ensemble
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IAnomalyDetectionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
 
         /// <summary>
         /// Evaluates a binary classification scored dataset.
@@ -1978,6 +2100,82 @@ namespace Microsoft.ML
                 /// Confusion matrix dataset
                 /// </summary>
                 public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
+        public enum EnsembleCreatorClassifierCombiner
+        {
+            Median = 0,
+            Average = 1,
+            Vote = 2
+        }
+
+
+        /// <summary>
+        /// Combine binary classifiers into an ensemble
+        /// </summary>
+        public sealed partial class BinaryEnsemble
+        {
+
+
+            /// <summary>
+            /// The combiner used to combine the scores
+            /// </summary>
+            public EnsembleCreatorClassifierCombiner ModelCombiner { get; set; } = EnsembleCreatorClassifierCombiner.Median;
+
+            /// <summary>
+            /// The models to combine into an ensemble
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            /// <summary>
+            /// Whether to validate that all the pipelines are identical
+            /// </summary>
+            public bool ValidatePipelines { get; set; } = true;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
+
+        /// <summary>
+        /// Combine binary classification models into an ensemble
+        /// </summary>
+        public sealed partial class BinaryPipelineEnsemble
+        {
+
+
+            /// <summary>
+            /// The combiner used to combine the scores
+            /// </summary>
+            public EnsembleCreatorClassifierCombiner ModelCombiner { get; set; } = EnsembleCreatorClassifierCombiner.Median;
+
+            /// <summary>
+            /// The models to combine into an ensemble
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
         }
@@ -2465,6 +2663,38 @@ namespace Microsoft.ML
     {
 
         /// <summary>
+        /// Summarize a pipeline ensemble predictor.
+        /// </summary>
+        public sealed partial class EnsembleSummary
+        {
+
+
+            /// <summary>
+            /// The predictor to summarize
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+
+            public sealed class Output
+            {
+                /// <summary>
+                /// The summaries of the individual predictors
+                /// </summary>
+                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Summaries { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// The model statistics of the individual predictors
+                /// </summary>
+                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Stats { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
+
+        /// <summary>
         /// Apply a Platt calibrator with a fixed slope and offset to an input model
         /// </summary>
         public sealed partial class FixedPlattCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
@@ -2531,6 +2761,38 @@ namespace Microsoft.ML
                 }
 
                 public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Models
+    {
+
+        /// <summary>
+        /// Combine multiclass classifiers into an ensemble
+        /// </summary>
+        public sealed partial class MultiClassPipelineEnsemble
+        {
+
+
+            /// <summary>
+            /// The combiner used to combine the scores
+            /// </summary>
+            public EnsembleCreatorClassifierCombiner ModelCombiner { get; set; } = EnsembleCreatorClassifierCombiner.Median;
+
+            /// <summary>
+            /// The models to combine into an ensemble
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
             }
         }
     }
@@ -3275,6 +3537,43 @@ namespace Microsoft.ML
     {
 
         /// <summary>
+        /// Combine regression models into an ensemble
+        /// </summary>
+        public sealed partial class RegressionEnsemble
+        {
+
+
+            /// <summary>
+            /// The combiner used to combine the scores
+            /// </summary>
+            public EnsembleCreatorScoreCombiner ModelCombiner { get; set; } = EnsembleCreatorScoreCombiner.Median;
+
+            /// <summary>
+            /// The models to combine into an ensemble
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            /// <summary>
+            /// Whether to validate that all the pipelines are identical
+            /// </summary>
+            public bool ValidatePipelines { get; set; } = true;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
+
+        /// <summary>
         /// Evaluates a regression scored dataset.
         /// </summary>
         public sealed partial class RegressionEvaluator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IEvaluatorInput
@@ -3334,6 +3633,38 @@ namespace Microsoft.ML
                 /// Per instance metrics dataset
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            }
+        }
+    }
+
+    namespace Models
+    {
+
+        /// <summary>
+        /// Combine regression models into an ensemble
+        /// </summary>
+        public sealed partial class RegressionPipelineEnsemble
+        {
+
+
+            /// <summary>
+            /// The combiner used to combine the scores
+            /// </summary>
+            public EnsembleCreatorScoreCombiner ModelCombiner { get; set; } = EnsembleCreatorScoreCombiner.Median;
+
+            /// <summary>
+            /// The models to combine into an ensemble
+            /// </summary>
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
             }
         }

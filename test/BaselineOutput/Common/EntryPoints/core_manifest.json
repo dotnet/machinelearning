@@ -655,6 +655,57 @@
       ]
     },
     {
+      "Name": "Models.AnomalyPipelineEnsemble",
+      "Desc": "Combine anomaly detection models into an ensemble",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Models",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "PredictorModel"
+          },
+          "Desc": "The models to combine into an ensemble",
+          "Aliases": [
+            "models"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "ModelCombiner",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Median",
+              "Average"
+            ]
+          },
+          "Desc": "The combiner used to combine the scores",
+          "Aliases": [
+            "combiner"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Average"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "OutputKind": [
+        "IAnomalyDetectionOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
       "Name": "Models.BinaryClassificationEvaluator",
       "Desc": "Evaluates a binary classification scored dataset.",
       "FriendlyName": null,
@@ -965,6 +1016,122 @@
           },
           "Desc": "Confusion matrix dataset"
         }
+      ]
+    },
+    {
+      "Name": "Models.BinaryEnsemble",
+      "Desc": "Combine binary classifiers into an ensemble",
+      "FriendlyName": "Parallel Ensemble (bagging, stacking, etc)",
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Models",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "PredictorModel"
+          },
+          "Desc": "The models to combine into an ensemble",
+          "Aliases": [
+            "models"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "ModelCombiner",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Median",
+              "Average",
+              "Vote"
+            ]
+          },
+          "Desc": "The combiner used to combine the scores",
+          "Aliases": [
+            "combiner"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Median"
+        },
+        {
+          "Name": "ValidatePipelines",
+          "Type": "Bool",
+          "Desc": "Whether to validate that all the pipelines are identical",
+          "Aliases": [
+            "validate"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": true
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "OutputKind": [
+        "IBinaryClassificationOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
+      "Name": "Models.BinaryPipelineEnsemble",
+      "Desc": "Combine binary classification models into an ensemble",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Models",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "PredictorModel"
+          },
+          "Desc": "The models to combine into an ensemble",
+          "Aliases": [
+            "models"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "ModelCombiner",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Median",
+              "Average",
+              "Vote"
+            ]
+          },
+          "Desc": "The combiner used to combine the scores",
+          "Aliases": [
+            "combiner"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Median"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "OutputKind": [
+        "IBinaryClassificationOutput",
+        "ITrainerOutput"
       ]
     },
     {
@@ -1695,6 +1862,43 @@
       ]
     },
     {
+      "Name": "Models.EnsembleSummary",
+      "Desc": "Summarize a pipeline ensemble predictor.",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The predictor to summarize",
+          "Aliases": [
+            "predictorModel"
+          ],
+          "Required": true,
+          "SortOrder": 150.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "Summaries",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "The summaries of the individual predictors"
+        },
+        {
+          "Name": "Stats",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "DataView"
+          },
+          "Desc": "The model statistics of the individual predictors"
+        }
+      ]
+    },
+    {
       "Name": "Models.FixedPlattCalibrator",
       "Desc": "Apply a Platt calibrator with a fixed slope and offset to an input model",
       "FriendlyName": "Fixed Sigmoid Calibration",
@@ -1773,6 +1977,58 @@
       ],
       "OutputKind": [
         "ICalibratorOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
+      "Name": "Models.MultiClassPipelineEnsemble",
+      "Desc": "Combine multiclass classifiers into an ensemble",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Models",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "PredictorModel"
+          },
+          "Desc": "The models to combine into an ensemble",
+          "Aliases": [
+            "models"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "ModelCombiner",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Median",
+              "Average",
+              "Vote"
+            ]
+          },
+          "Desc": "The combiner used to combine the scores",
+          "Aliases": [
+            "combiner"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Median"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "OutputKind": [
+        "IMulticlassClassificationOutput",
         "ITrainerOutput"
       ]
     },
@@ -2823,6 +3079,69 @@
       ]
     },
     {
+      "Name": "Models.RegressionEnsemble",
+      "Desc": "Combine regression models into an ensemble",
+      "FriendlyName": "Regression Ensemble (bagging, stacking, etc)",
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Models",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "PredictorModel"
+          },
+          "Desc": "The models to combine into an ensemble",
+          "Aliases": [
+            "models"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "ModelCombiner",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Median",
+              "Average"
+            ]
+          },
+          "Desc": "The combiner used to combine the scores",
+          "Aliases": [
+            "combiner"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Median"
+        },
+        {
+          "Name": "ValidatePipelines",
+          "Type": "Bool",
+          "Desc": "Whether to validate that all the pipelines are identical",
+          "Aliases": [
+            "validate"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": true
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "OutputKind": [
+        "IRegressionOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
       "Name": "Models.RegressionEvaluator",
       "Desc": "Evaluates a regression scored dataset.",
       "FriendlyName": null,
@@ -2942,6 +3261,57 @@
       ],
       "OutputKind": [
         "IEvaluatorOutput"
+      ]
+    },
+    {
+      "Name": "Models.RegressionPipelineEnsemble",
+      "Desc": "Combine regression models into an ensemble",
+      "FriendlyName": null,
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "Models",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "PredictorModel"
+          },
+          "Desc": "The models to combine into an ensemble",
+          "Aliases": [
+            "models"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "ModelCombiner",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Median",
+              "Average"
+            ]
+          },
+          "Desc": "The combiner used to combine the scores",
+          "Aliases": [
+            "combiner"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Median"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "OutputKind": [
+        "IRegressionOutput",
+        "ITrainerOutput"
       ]
     },
     {
