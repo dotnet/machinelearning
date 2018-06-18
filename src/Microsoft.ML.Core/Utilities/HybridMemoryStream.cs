@@ -121,8 +121,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     var overflow = _overflowStream;
                     _overflowStream = null;
                     overflow.Dispose();
-                    Contracts.AssertValue(_overflowPath);
-                    _overflowPath = null;
                 }
                 _disposed = true;
                 AssertInvariants();
