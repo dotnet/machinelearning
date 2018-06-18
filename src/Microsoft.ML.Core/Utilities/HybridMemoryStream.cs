@@ -25,20 +25,19 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         private bool _disposed;
 
-        private Stream MyStream { get { return _memStream ?? _overflowStream; } }
+        private Stream MyStream => _memStream ?? _overflowStream;
 
-        private bool IsMemory { get { return _memStream != null; } }
+        private bool IsMemory => _memStream != null;
 
-        public override long Position
-        {
-            get { return MyStream.Position; }
-            set { Seek(value, SeekOrigin.Begin); }
+        public override long Position {
+            get => MyStream.Position;
+            set => Seek(value, SeekOrigin.Begin);
         }
 
-        public override long Length { get { return MyStream.Length; } }
-        public override bool CanWrite { get { return MyStream.CanWrite; } }
-        public override bool CanSeek { get { return MyStream.CanSeek; } }
-        public override bool CanRead { get { return MyStream.CanRead; } }
+        public override long Length => MyStream.Length;
+        public override bool CanWrite => MyStream.CanWrite;
+        public override bool CanSeek => MyStream.CanSeek;
+        public override bool CanRead => MyStream.CanRead;
 
         /// <summary>
         /// Constructs an initially empty read-write stream. Once the number of
@@ -129,21 +128,22 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 }
                 _disposed = true;
                 AssertInvariants();
+                base.Dispose(disposing);
             }
         }
 
         public override void Close()
         {
             AssertInvariants();
-            if (MyStream != null)
-                MyStream.Close();
+            MyStream?.Close();
+            // The base Stream class Close will call Dispose(bool).
+            base.Close();
         }
 
         public override void Flush()
         {
             AssertInvariants();
-            if (MyStream != null)
-                MyStream.Flush();
+            MyStream?.Flush();
             AssertInvariants();
         }
 
