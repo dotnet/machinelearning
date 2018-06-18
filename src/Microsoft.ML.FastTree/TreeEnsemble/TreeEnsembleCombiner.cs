@@ -27,7 +27,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     _kind = kind;
                     break;
                 default:
-                    throw _host.ExceptUserArg(nameof(kind), "Tree ensembles can be either binary classifiers, regressors or rankers");
+                    throw _host.ExceptUserArg(nameof(kind), $"Tree ensembles can be either of type {nameof(PredictionKind.BinaryClassification)}, " +
+                        $"{nameof(PredictionKind.Regression)} or {nameof(PredictionKind.Ranking)}");
             }
         }
 
@@ -107,7 +108,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     return new FastTreeRankingPredictor(_host, ensemble, featureCount, null);
                 default:
                     _host.Assert(false);
-                    throw _host.ExceptNotSupp("PredictionKind can only be binary classification, regression or ranking");
+                    throw _host.ExceptNotSupp();
             }
         }
     }

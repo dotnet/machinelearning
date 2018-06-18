@@ -693,15 +693,13 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             {
                 length += array[i].SizeInBytes();
             }
-            if (length > 0)
-                length += sizeof(int);
             return length;
         }
 
         public static void ToByteArray(this string[] a, byte[] buffer, ref int position)
         {
-            a.Length.ToByteArray(buffer, ref position);
-            for (int i = 0; i < a.Length; ++i)
+            Utils.Size(a).ToByteArray(buffer, ref position);
+            for (int i = 0; i < Utils.Size(a); ++i)
             {
                 a[i].ToByteArray(buffer, ref position);
             }
