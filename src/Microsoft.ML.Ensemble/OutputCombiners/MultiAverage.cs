@@ -6,12 +6,13 @@ using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(MultiAverage), typeof(MultiAverage.Arguments), typeof(SignatureCombiner),
-    Average.LoadName, MultiAverage.LoadName)]
+    Average.UserName, MultiAverage.LoadName)]
 [assembly: LoadableClass(typeof(MultiAverage), null, typeof(SignatureLoadModel),
-    Average.LoadName, MultiAverage.LoadName, MultiAverage.LoaderSignature)]
+    Average.UserName, MultiAverage.LoadName, MultiAverage.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
@@ -28,6 +29,12 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
+        }
+
+        [TlcModule.Component(Name = LoadName, FriendlyName = Average.UserName)]
+        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<VBuffer<Single>>
+        {
+            public IOutputCombiner<VBuffer<float>> CreateComponent(IHostEnvironment env) => new MultiAverage(env, this);
         }
 
         public MultiAverage(IHostEnvironment env, Arguments args)

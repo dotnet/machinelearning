@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector;
+using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: LoadableClass(typeof(AllInstanceSelector), typeof(AllInstanceSelector.Arguments),
     typeof(SignatureEnsembleDataSelector), AllInstanceSelector.UserName, AllInstanceSelector.LoadName)]
@@ -17,8 +18,10 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
         public const string UserName = "All Instance Selector";
         public const string LoadName = "AllInstanceSelector";
 
-        public sealed class Arguments : ArgumentsBase
+        [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
+        public sealed class Arguments : ArgumentsBase, ISupportSubsetSelectorFactory
         {
+            public ISubsetSelector CreateComponent(IHostEnvironment env) => new AllInstanceSelector(env, this);
         }
 
         public AllInstanceSelector(IHostEnvironment env, Arguments args)

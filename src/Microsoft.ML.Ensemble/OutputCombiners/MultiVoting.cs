@@ -6,6 +6,7 @@ using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
@@ -32,8 +33,15 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderSignature: LoaderSignature);
         }
 
-        public MultiVoting(IHostEnvironment env)
-            : base(env, LoaderSignature, new Arguments() { Normalize = false })
+        [TlcModule.Component(Name = LoadName, FriendlyName = Voting.UserName)]
+        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<VBuffer<Single>>
+        {
+            public new bool Normalize = false;
+            public IOutputCombiner<VBuffer<float>> CreateComponent(IHostEnvironment env) => new MultiVoting(env, this);
+        }
+
+        public MultiVoting(IHostEnvironment env, Arguments args)
+            : base(env, LoaderSignature, args)
         {
             Host.Assert(!Normalize);
         }

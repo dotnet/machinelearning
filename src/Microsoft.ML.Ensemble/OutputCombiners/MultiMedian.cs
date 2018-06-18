@@ -6,6 +6,7 @@ using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -31,6 +32,12 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
+        }
+
+        [TlcModule.Component(Name = LoadName, FriendlyName = Median.UserName)]
+        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<VBuffer<Single>>
+        {
+            public IOutputCombiner<VBuffer<float>> CreateComponent(IHostEnvironment env) => new MultiMedian(env, this);
         }
 
         public MultiMedian(IHostEnvironment env, Arguments args)
@@ -91,5 +98,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                     dst = new VBuffer<Single>(len, values, dst.Indices);
                 };
         }
+
+       
     }
 }

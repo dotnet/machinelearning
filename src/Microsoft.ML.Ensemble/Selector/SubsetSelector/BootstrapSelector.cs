@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector;
+using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: LoadableClass(typeof(BootstrapSelector), typeof(BootstrapSelector.Arguments),
     typeof(SignatureEnsembleDataSelector), BootstrapSelector.UserName, BootstrapSelector.LoadName)]
@@ -18,16 +19,18 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
         public const string UserName = "Bootstrap Selector";
         public const string LoadName = "BootstrapSelector";
 
-        public class Arguments : ArgumentsBase
+        [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
+        public sealed class Arguments : ArgumentsBase, ISupportSubsetSelectorFactory
         {
             // REVIEW tfinley: This could be reintroduced by having the transform counting the
             // proportions of each label, then adjusting the lambdas accordingly. However, at
             // the current point in time supporting this non-default action is not considered
             // a priority.
-#if OLD_ENSEMBLE 
+#if OLD_ENSEMBLE
             [Argument(ArgumentType.AtMostOnce, HelpText = "If checked, the classes will be balanced by over sampling of minority classes", ShortName = "cb", SortOrder = 50)]
             public bool balanced = false;
 #endif
+            public ISubsetSelector CreateComponent(IHostEnvironment env) => new BootstrapSelector(env, this);
         }
 
         public BootstrapSelector(IHostEnvironment env, Arguments args)

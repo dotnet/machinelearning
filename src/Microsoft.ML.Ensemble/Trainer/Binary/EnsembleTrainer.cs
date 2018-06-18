@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
+using Microsoft.ML.Ensemble.EntryPoints;
 
 [assembly: LoadableClass(EnsembleTrainer.Summary, typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
@@ -38,8 +39,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             public Arguments()
             {
                 BasePredictors = new[] { new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureBinaryClassifierTrainer>("LinearSVM") };
-                OutputCombiner = new SubComponent<IBinaryOutputCombiner, SignatureCombiner>(Median.LoadName);
-                SubModelSelectorType = new SubComponent<IBinarySubModelSelector, SignatureEnsembleSubModelSelector>(AllSelector.LoadName);
+                OutputCombiner = new MedianFactory();
+                SubModelSelectorType = new AllSelectorFactory();
             }
         }
 
@@ -65,7 +66,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var weights = models.Select(m => m.Weight).ToArray();
             if (weights.All(w => w == 1))
                 weights = null;
-            var combiner = Args.OutputCombiner.CreateInstance(Host);
+            var combiner = Args.OutputCombiner.CreateComponent(Host);
             var p = models.First().Value;
 
             TScalarPredictor predictor = null;

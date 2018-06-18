@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector;
+using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: LoadableClass(typeof(RandomPartitionSelector),typeof(RandomPartitionSelector.Arguments),
     typeof(SignatureEnsembleDataSelector),RandomPartitionSelector.UserName, RandomPartitionSelector.LoadName)]
@@ -19,8 +20,10 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
         public const string UserName = "Random Partition Selector";
         public const string LoadName = "RandomPartitionSelector";
 
-        public sealed class Arguments : ArgumentsBase
+        [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
+        public sealed class Arguments : ArgumentsBase, ISupportSubsetSelectorFactory
         {
+            public ISubsetSelector CreateComponent(IHostEnvironment env) => new RandomPartitionSelector(env, this);
         }
 
         public RandomPartitionSelector(IHostEnvironment env, Arguments args)

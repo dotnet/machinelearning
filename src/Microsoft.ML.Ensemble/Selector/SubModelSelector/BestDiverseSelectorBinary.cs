@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
+using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: LoadableClass(typeof(BestDiverseSelectorBinary), typeof(BestDiverseSelectorBinary.Arguments),
     typeof(SignatureEnsembleSubModelSelector), BestDiverseSelectorBinary.UserName, BestDiverseSelectorBinary.LoadName)]
@@ -24,6 +25,12 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         public override string DiversityMeasureLoadname
         {
             get { return DisagreementDiversityMeasure.LoadName; }
+        }
+
+        [TlcModule.Component(Name = BestDiverseSelectorBinary.LoadName, FriendlyName = BestDiverseSelectorBinary.UserName)]
+        public sealed class Arguments : DiverseSelectorArguments, ISupportSubModelSelectorFactory<Single>
+        {
+            public ISubModelSelector<Single> CreateComponent(IHostEnvironment env) => new BestDiverseSelectorBinary(env, this);
         }
 
         public BestDiverseSelectorBinary(IHostEnvironment env, Arguments args)
@@ -42,5 +49,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         {
             get { return PredictionKind.BinaryClassification; }
         }
+
+        
     }
 }

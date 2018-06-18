@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 
@@ -34,11 +35,14 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderSignature: LoaderSignature);
         }
 
-        public class Arguments
+        [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
+        public sealed class Arguments: ISupportOutputCombinerFactory<Single>
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the weights for each model", ShortName = "wn", SortOrder = 50)]
             [TGUI(Label = "Weightage Name", Description = "The weights are calculated according to the selected metric")]
             public WeightageKind WeightageName = WeightageKind.Auc;
+
+            public IOutputCombiner<float> CreateComponent(IHostEnvironment env) => new WeightedAverage(env, this);
         }
 
         private WeightageKind _weightageKind;

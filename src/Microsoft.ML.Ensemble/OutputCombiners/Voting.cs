@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(typeof(Voting), null, typeof(SignatureCombiner), Voting.UserName, Voting.UserName)]
+[assembly: LoadableClass(typeof(Voting), null, typeof(SignatureCombiner), Voting.UserName, Voting.LoadName)]
 [assembly: LoadableClass(typeof(Voting), null, typeof(SignatureLoadModel), Voting.UserName, Voting.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
@@ -17,6 +17,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
     {
         private readonly IHost _host;
         public const string UserName = "Voting";
+        public const string LoadName = "Voting";
         public const string LoaderSignature = "VotingCombiner";
 
         private static VersionInfo GetVersionInfo()

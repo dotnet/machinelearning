@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector
 {
@@ -12,4 +13,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
     }
 
     public delegate void SignatureEnsembleFeatureSelector();
+    public interface ISupportFeatureSelectorFactory : IComponentFactory<IFeatureSelector>
+    {
+    }
 }

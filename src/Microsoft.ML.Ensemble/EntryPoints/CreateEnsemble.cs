@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -14,7 +15,6 @@ using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
 
 [assembly: LoadableClass(typeof(void), typeof(EnsembleCreator), null, typeof(SignatureEntryPointModule), "CreateEnsemble")]
 
@@ -155,13 +155,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
             switch (input.ModelCombiner)
             {
                 case ClassifierCombiner.Median:
-                    args.OutputCombiner = new SubComponent<IBinaryOutputCombiner, SignatureCombiner>("Median");
+                    args.OutputCombiner = new MedianFactory();
                     break;
                 case ClassifierCombiner.Average:
-                    args.OutputCombiner = new SubComponent<IBinaryOutputCombiner, SignatureCombiner>("Average");
+                    args.OutputCombiner = new AverageFactory();
                     break;
                 case ClassifierCombiner.Vote:
-                    args.OutputCombiner = new SubComponent<IBinaryOutputCombiner, SignatureCombiner>("Voting");
+                    args.OutputCombiner = new VotingFactory();
                     break;
                 default:
                     throw host.Except("Unknown combiner kind");
@@ -191,10 +191,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
             switch (input.ModelCombiner)
             {
                 case ScoreCombiner.Median:
-                    args.OutputCombiner = new SubComponent<IRegressionOutputCombiner, SignatureCombiner>("Median");
+                    args.OutputCombiner = new MedianFactory();
                     break;
                 case ScoreCombiner.Average:
-                    args.OutputCombiner = new SubComponent<IRegressionOutputCombiner, SignatureCombiner>("Average");
+                    args.OutputCombiner = new AverageFactory();
                     break;
                 default:
                     throw host.Except("Unknown combiner kind");
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     combiner = new MultiAverage(host, new MultiAverage.Arguments() { Normalize = true });
                     break;
                 case ClassifierCombiner.Vote:
-                    combiner = new MultiVoting(host);
+                    combiner = new MultiVoting(host, new MultiVoting.Arguments());
                     break;
                 default:
                     throw host.Except("Unknown combiner kind");

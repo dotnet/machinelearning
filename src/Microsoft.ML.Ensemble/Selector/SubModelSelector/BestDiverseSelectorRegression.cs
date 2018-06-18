@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
+using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: LoadableClass(typeof(BestDiverseSelectorRegression), typeof(BestDiverseSelectorRegression.Arguments),
     typeof(SignatureEnsembleSubModelSelector), BestDiverseSelectorRegression.UserName, BestDiverseSelectorRegression.LoadName)]
@@ -24,6 +25,12 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         public override string DiversityMeasureLoadname
         {
             get { return RegressionDisagreementDiversityMeasure.LoadName; }
+        }
+
+        [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
+        public sealed class Arguments : DiverseSelectorArguments, ISupportSubModelSelectorFactory<Single>
+        {
+            public ISubModelSelector<Single> CreateComponent(IHostEnvironment env) => new BestDiverseSelectorRegression(env, this);
         }
 
         public BestDiverseSelectorRegression(IHostEnvironment env, Arguments args)

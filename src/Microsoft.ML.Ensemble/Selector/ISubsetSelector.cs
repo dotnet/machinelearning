@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector
 {
@@ -17,4 +18,8 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
     }
 
     public delegate void SignatureEnsembleDataSelector();
+
+    public interface ISupportSubsetSelectorFactory : IComponentFactory<ISubsetSelector>
+    {
+    }
 }

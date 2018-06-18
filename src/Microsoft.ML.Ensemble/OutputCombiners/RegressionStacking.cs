@@ -6,18 +6,20 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(RegressionStacking), typeof(RegressionStacking.Arguments), typeof(SignatureCombiner),
-    Stacking.UserName, RegressionStacking.LoaderSignature)]
+    Stacking.UserName, RegressionStacking.LoadName)]
 [assembly: LoadableClass(typeof(RegressionStacking), null, typeof(SignatureLoadModel),
-    Stacking.UserName, RegressionStacking.LoaderSignature)]
+    Stacking.UserName, RegressionStacking.LoadName)]
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     using TScalarPredictor = IPredictorProducing<Single>;
     public sealed class RegressionStacking : BaseScalarStacking<SignatureRegressorTrainer>, IRegressionOutputCombiner, ICanSaveModel
     {
+        public const string LoadName = "RegressionStacking";
         public const string LoaderSignature = "RegressionStacking";
 
         private static VersionInfo GetVersionInfo()
@@ -30,12 +32,15 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderSignature: LoaderSignature);
         }
 
-        public class Arguments : ArgumentsBase
+        [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
+        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<Single>
         {
             public Arguments()
             {
                 BasePredictorType = new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureRegressorTrainer>("FastTreeRegression");
             }
+
+            public IOutputCombiner<Single> CreateComponent(IHostEnvironment env) => new RegressionStacking(env, this);
         }
 
         public RegressionStacking(IHostEnvironment env, Arguments args)

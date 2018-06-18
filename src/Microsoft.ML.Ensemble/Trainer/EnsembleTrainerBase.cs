@@ -39,8 +39,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             [Argument(ArgumentType.Multiple, HelpText = "Sampling Type", ShortName = "st", SortOrder = 2)]
             [TGUI(Label = "Sampling Type", Description = "Subset Selection Algorithm to induce the base learner.Sub-settings can be used to select the features")]
-            public SubComponent<ISubsetSelector, SignatureEnsembleDataSelector> SamplingType
-                = new SubComponent<ISubsetSelector, SignatureEnsembleDataSelector>(BootstrapSelector.LoadName);
+            public ISupportSubsetSelectorFactory SamplingType = new BootstrapSelector.Arguments();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "All the base learners will run asynchronously if the value is true", ShortName = "tp", SortOrder = 106)]
             [TGUI(Label = "Train parallel", Description = "All the base learners will run asynchronously if the value is true")]
@@ -54,12 +53,12 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             [Argument(ArgumentType.Multiple, HelpText = "Output combiner", ShortName = "oc", SortOrder = 5)]
             [TGUI(Label = "Output combiner", Description = "Output combiner type")]
-            public SubComponent<TCombiner, SignatureCombiner> OutputCombiner;
+            public ISupportOutputCombinerFactory <TOutput> OutputCombiner;
 
             [Argument(ArgumentType.Multiple, HelpText = "Algorithm to prune the base learners for selective Ensemble", ShortName = "pt", SortOrder = 4)]
             [TGUI(Label = "Sub-Model Selector(pruning) Type",
                 Description = "Algorithm to prune the base learners for selective Ensemble")]
-            public SubComponent<TSelector, SignatureEnsembleSubModelSelector> SubModelSelectorType;
+            public ISupportSubModelSelectorFactory<TOutput> SubModelSelectorType;
 
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1)]
             public SubComponent<ITrainer<RoleMappedData, IPredictorProducing<TOutput>>, TSig>[] BasePredictors;
@@ -75,9 +74,9 @@ namespace Microsoft.ML.Runtime.Ensemble
         protected readonly ITrainer<RoleMappedData, IPredictorProducing<TOutput>>[] Trainers;
 
         private readonly ISubsetSelector _subsetSelector;
-        private readonly TSelector _subModelSelector;
+        private readonly ISubModelSelector<TOutput> _subModelSelector;
 
-        protected readonly TCombiner Combiner;
+        protected readonly IOutputCombiner<TOutput> Combiner;
 
         protected List<FeatureSubsetModel<IPredictorProducing<TOutput>>> Models;
 
@@ -101,9 +100,9 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (Utils.Size(Args.BasePredictors) > NumModels)
                     ch.Warning("The base predictor count is greater than models count. Some of the base predictors will be ignored.");
 
-                _subsetSelector = Args.SamplingType.CreateInstance(Host);
-                _subModelSelector = Args.SubModelSelectorType.CreateInstance(Host);
-                Combiner = Args.OutputCombiner.CreateInstance(Host);
+                _subsetSelector = Args.SamplingType.CreateComponent(Host);
+                _subModelSelector = Args.SubModelSelectorType.CreateComponent(Host);
+                Combiner = Args.OutputCombiner.CreateComponent(Host);
 
                 Trainers = new ITrainer<RoleMappedData, IPredictorProducing<TOutput>>[NumModels];
                 for (int i = 0; i < Trainers.Length; i++)

@@ -17,33 +17,33 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
     public abstract class BaseDiverseSelector<TOutput, TDiversityMetric> : SubModelDataSelector<TOutput>
         where TDiversityMetric : class, IDiversityMeasure<TOutput>
     {
-        public sealed class Arguments : ArgumentsBase
+        public abstract class DiverseSelectorArguments : ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "The metric type to be used to find the diversity among base learners", ShortName = "dm", SortOrder = 50)]
             [TGUI(Label = "Diversity Measure Type")]
-            public SubComponent<TDiversityMetric, SignatureEnsembleDiversityMeasure> DiversityMetricType;
+            public ISupportDiversityMeasureFactory<TOutput> DiversityMetricType;
         }
 
-        private readonly SubComponent<TDiversityMetric, SignatureEnsembleDiversityMeasure> _diversityMetricType;
+        private readonly ISupportDiversityMeasureFactory<TOutput> _diversityMetricType;
         private ConcurrentDictionary<FeatureSubsetModel<IPredictorProducing<TOutput>>, TOutput[]> _predictions;
 
         public abstract string DiversityMeasureLoadname { get; }
 
-        protected internal BaseDiverseSelector(IHostEnvironment env, Arguments args, string name)
+        protected internal BaseDiverseSelector(IHostEnvironment env, DiverseSelectorArguments args, string name)
             : base(args, env, name)
         {
             _diversityMetricType = args.DiversityMetricType;
             _predictions = new ConcurrentDictionary<FeatureSubsetModel<IPredictorProducing<TOutput>>, TOutput[]>();
         }
 
-        protected TDiversityMetric CreateDiversityMetric()
+        protected IDiversityMeasure<TOutput> CreateDiversityMetric()
         {
-            if (!_diversityMetricType.IsGood())
+            if (_diversityMetricType == null)
             {
                 var sc = new SubComponent<TDiversityMetric, SignatureEnsembleDiversityMeasure>(DiversityMeasureLoadname);
                 return sc.CreateInstance(Host);
             }
-            return _diversityMetricType.CreateInstance(Host);
+            return _diversityMetricType.CreateComponent(Host);
         }
 
         public override void CalculateMetrics(FeatureSubsetModel<IPredictorProducing<TOutput>> model,

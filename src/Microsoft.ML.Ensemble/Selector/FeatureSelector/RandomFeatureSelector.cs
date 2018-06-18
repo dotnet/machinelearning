@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(typeof(RandomFeatureSelector), typeof(RandomFeatureSelector.Arguments),
@@ -21,10 +22,13 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
         public const string UserName = "Random Feature Selector";
         public const string LoadName = "RandomFeatureSelector";
 
-        public class Arguments
+        [TlcModule.Component(Name = RandomFeatureSelector.LoadName, FriendlyName = RandomFeatureSelector.UserName)]
+        public sealed class Arguments: ISupportFeatureSelectorFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The proportion of features to be selected. The range is 0.0-1.0", ShortName = "fp", SortOrder = 50)]
             public Single FeaturesSelectionProportion = 0.8f;
+
+            public IFeatureSelector CreateComponent(IHostEnvironment env) => new RandomFeatureSelector(env, this);
         }
 
         private readonly Arguments _args;

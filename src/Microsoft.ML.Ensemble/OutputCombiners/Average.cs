@@ -7,13 +7,14 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(typeof(Average), null, typeof(SignatureCombiner), Average.LoadName)]
-[assembly: LoadableClass(typeof(Average), null, typeof(SignatureLoadModel), Average.LoadName, Average.LoaderSignature)]
+[assembly: LoadableClass(typeof(Average), null, typeof(SignatureCombiner), Average.UserName)]
+[assembly: LoadableClass(typeof(Average), null, typeof(SignatureLoadModel), Average.UserName, Average.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     public sealed class Average : BaseAverager, ICanSaveModel, IRegressionOutputCombiner
     {
+        public const string UserName = "Average";
         public const string LoadName = "Average";
         public const string LoaderSignature = "AverageCombiner";
 

@@ -7,9 +7,10 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(typeof(Stacking), typeof(Stacking.Arguments), typeof(SignatureCombiner),Stacking.UserName, Stacking.LoadName)]
+[assembly: LoadableClass(typeof(Stacking), typeof(Stacking.Arguments), typeof(SignatureCombiner), Stacking.UserName, Stacking.LoadName)]
 [assembly: LoadableClass(typeof(Stacking), null, typeof(SignatureLoadModel), Stacking.UserName, Stacking.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
@@ -31,12 +32,15 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderSignature: LoaderSignature);
         }
 
-        public class Arguments : ArgumentsBase
+        [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
+        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<Single>
         {
             public Arguments()
             {
                 BasePredictorType = new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureBinaryClassifierTrainer>("FastTreeBinaryClassification");
             }
+
+            public IOutputCombiner<float> CreateComponent(IHostEnvironment env) => new Stacking(env, this);
         }
 
         public Stacking(IHostEnvironment env, Arguments args)

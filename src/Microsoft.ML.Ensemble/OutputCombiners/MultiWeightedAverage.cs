@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 
@@ -46,11 +47,14 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderSignature: LoaderSignature);
         }
 
-        public new class Arguments : BaseMultiCombiner.Arguments
+        [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
+        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<VBuffer<Single>>
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the weights for each model", ShortName = "wn", SortOrder = 50)]
             [TGUI(Label = "Metric Name", Description = "The weights are calculated according to the selected metric")]
             public MultiWeightageKind WeightageName = MultiWeightageKind.AccuracyMicroAvg;
+
+            public IOutputCombiner<VBuffer<Single>> CreateComponent(IHostEnvironment env) => new MultiWeightedAverage(env, this);
         }
 
         private readonly MultiWeightageKind _weightageKind;

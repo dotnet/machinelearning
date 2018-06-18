@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure;
+using Microsoft.ML.Runtime.EntryPoints;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector
 {
@@ -15,4 +16,8 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
     }
 
     public delegate void SignatureEnsembleDiversityMeasure();
+
+    public interface ISupportDiversityMeasureFactory<TOutput> : IComponentFactory<IDiversityMeasure<TOutput>>
+    {
+    }
 }

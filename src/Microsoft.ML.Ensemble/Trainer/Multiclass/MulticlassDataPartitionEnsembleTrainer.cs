@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -28,7 +29,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     /// </summary>
     public sealed class MulticlassDataPartitionEnsembleTrainer :
         EnsembleTrainerBase<VBuffer<Single>, EnsembleMultiClassPredictor,
-        ISubModelSelector<VBuffer<Single>>, IOutputCombiner<VBuffer<Single>>, SignatureMultiClassClassifierTrainer>,
+        IMulticlassSubModelSelector, IOutputCombiner<VBuffer<Single>>, SignatureMultiClassClassifierTrainer>,
         IModelCombiner<WeightedValue<TVectorPredictor>, TVectorPredictor>
     {
         public const string LoadNameValue = "WeightedEnsembleMulticlass";
@@ -40,8 +41,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             public Arguments()
             {
                 BasePredictors = new[] { new SubComponent<ITrainer<RoleMappedData, TVectorPredictor>, SignatureMultiClassClassifierTrainer>("MultiClassLogisticRegression") };
-                OutputCombiner = new SubComponent<IOutputCombiner<VBuffer<Single>>, SignatureCombiner>(MultiMedian.LoadName);
-                SubModelSelectorType = new SubComponent<ISubModelSelector<VBuffer<Single>>, SignatureEnsembleSubModelSelector>(AllSelectorMultiClass.LoadName);
+                OutputCombiner = new  MultiMedian.Arguments();
+                SubModelSelectorType = new AllSelectorMultiClassFactory();
             }
         }
 
@@ -66,7 +67,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             var predictor = new EnsembleMultiClassPredictor(Host,
                 models.Select(k => new FeatureSubsetModel<TVectorPredictor>(k.Value)).ToArray(),
-                Args.OutputCombiner.CreateInstance(Host), weights);
+                Args.OutputCombiner.CreateComponent(Host), weights);
 
             return predictor;
         }

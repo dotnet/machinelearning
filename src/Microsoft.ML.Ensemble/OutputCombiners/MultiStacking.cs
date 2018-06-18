@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -35,8 +36,10 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderSignature: LoaderSignature);
         }
 
-        public class Arguments : ArgumentsBase
+        [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
+        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<VBuffer<Single>>
         {
+            public IOutputCombiner<VBuffer<float>> CreateComponent(IHostEnvironment env) => new MultiStacking(env, this);
             public Arguments()
             {
                 // REVIEW tfinley: Kinda stupid. Perhaps we can have a better non-parametetric learner.

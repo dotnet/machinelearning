@@ -20,12 +20,9 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
             public Single ValidationDatasetProportion = 0.3f;
         }
 
-        private readonly Single _learnersSelectionProportion;
-        private readonly Single _validationDatasetProportion;
+        public Single LearnersSelectionProportion { get; }
 
-        public Single LearnersSelectionProportion { get { return _learnersSelectionProportion; } }
-
-        public override Single ValidationDatasetProportion { get { return _validationDatasetProportion; } }
+        public override Single ValidationDatasetProportion { get; }
 
         protected SubModelDataSelector(ArgumentsBase args, IHostEnvironment env, string name)
             : base(env, name)
@@ -37,8 +34,8 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
             Host.CheckParam(0 < args.LearnersSelectionProportion && args.LearnersSelectionProportion < 1,
                 nameof(args.LearnersSelectionProportion),
                 "Should be greater than 0 and less than 1");
-            _learnersSelectionProportion = args.LearnersSelectionProportion;
-            _validationDatasetProportion = args.ValidationDatasetProportion;
+            LearnersSelectionProportion = args.LearnersSelectionProportion;
+            ValidationDatasetProportion = args.ValidationDatasetProportion;
         }
     }
 }

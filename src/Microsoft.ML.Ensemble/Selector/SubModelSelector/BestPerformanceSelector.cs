@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 
 [assembly: LoadableClass(typeof(BestPerformanceSelector), typeof(BestPerformanceSelector.Arguments),
@@ -17,11 +18,14 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
     public sealed class BestPerformanceSelector : BaseBestPerformanceSelector<Single>, IBinarySubModelSelector
     {
-        public sealed class Arguments : ArgumentsBase
+        [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
+        public sealed class Arguments : ArgumentsBase, ISupportSubModelSelectorFactory<Single>
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the best performance", ShortName = "mn", SortOrder = 50)]
             [TGUI(Label = "Metric Name")]
             public BinaryClassifierEvaluator.Metrics MetricName = BinaryClassifierEvaluator.Metrics.Auc;
+
+            public ISubModelSelector<Single> CreateComponent(IHostEnvironment env) => new BestPerformanceSelector(env, this);
         }
 
         public const string UserName = "Best Performance Selector";

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -34,8 +35,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             public Arguments()
             {
                 BasePredictors = new[] { new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureRegressorTrainer>("OnlineGradientDescent") };
-                OutputCombiner = new SubComponent<IRegressionOutputCombiner, SignatureCombiner>(Median.LoadName);
-                SubModelSelectorType = new SubComponent<IRegressionSubModelSelector, SignatureEnsembleSubModelSelector>(AllSelector.LoadName);
+                OutputCombiner = new MedianFactory();
+                SubModelSelectorType = new AllSelectorFactory();
             }
         }
 
@@ -59,7 +60,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var weights = models.Select(m => m.Weight).ToArray();
             if (weights.All(w => w == 1))
                 weights = null;
-            var combiner = Args.OutputCombiner.CreateInstance(Host);
+            var combiner = Args.OutputCombiner.CreateComponent(Host);
             var p = models.First().Value;
 
             var predictor = new EnsemblePredictor(Host, p.PredictionKind,
