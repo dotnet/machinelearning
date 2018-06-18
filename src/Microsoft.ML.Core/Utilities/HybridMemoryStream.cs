@@ -123,7 +123,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     _overflowStream = null;
                     overflow.Dispose();
                     Contracts.AssertValue(_overflowPath);
-                    File.Delete(_overflowPath);
                     _overflowPath = null;
                 }
                 _disposed = true;
@@ -135,7 +134,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public override void Close()
         {
             AssertInvariants();
-            MyStream?.Close();
             // The base Stream class Close will call Dispose(bool).
             base.Close();
         }
@@ -166,7 +164,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             Contracts.Assert(_overflowPath == null);
             _overflowPath = Path.GetTempFileName();
-            _overflowStream = new FileStream(_overflowPath, FileMode.Open, FileAccess.ReadWrite);
+            _overflowStream = new FileStream(_overflowPath, FileMode.Open, FileAccess.ReadWrite,
+                FileShare.None, bufferSize: 4096, FileOptions.DeleteOnClose);
 
             // The documentation is not clear on this point, but the source code for
             // memory stream makes clear that this buffer is exposable for a memory
