@@ -19,7 +19,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     {
         private MemoryStream _memStream;
         private Stream _overflowStream;
-        private string _overflowPath;
         private readonly int _overflowBoundary;
         private const int _defaultMaxLen = 1 << 30;
 
@@ -162,9 +161,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // been closed.
             Contracts.Check(_memStream.CanRead, "attempt to perform operation on closed stream");
 
-            Contracts.Assert(_overflowPath == null);
-            _overflowPath = Path.GetTempFileName();
-            _overflowStream = new FileStream(_overflowPath, FileMode.Open, FileAccess.ReadWrite,
+            string overflowPath = Path.GetTempFileName();
+            _overflowStream = new FileStream(overflowPath, FileMode.Open, FileAccess.ReadWrite,
                 FileShare.None, bufferSize: 4096, FileOptions.DeleteOnClose);
 
             // The documentation is not clear on this point, but the source code for
