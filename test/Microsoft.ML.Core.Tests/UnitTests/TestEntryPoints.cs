@@ -154,7 +154,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointScoring()
         {
-            var dataView = GetBreastCancerDataView();
+            var dataView = GetBreastCancerDataviewWithTextColumns();
             dataView = Env.CreateTransform("Term{col=F1}", dataView);
             var trainData = FeatureCombiner.PrepareFeatures(Env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } });
             var lrModel = LogisticRegression.TrainBinary(Env, new LogisticRegression.Arguments { TrainingData = trainData.OutputData }).PredictorModel;
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointApplyModel()
         {
-            var dataView = GetBreastCancerDataView();
+            var dataView = GetBreastCancerDataviewWithTextColumns();
 
             dataView = Env.CreateTransform("Term{col=F1}", dataView);
 
