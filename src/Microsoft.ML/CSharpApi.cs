@@ -3966,7 +3966,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -4248,7 +4248,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -4646,7 +4646,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -5072,7 +5072,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -5458,7 +5458,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -5849,7 +5849,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -14162,7 +14162,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -14550,7 +14550,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -14898,7 +14898,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -15251,7 +15251,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
