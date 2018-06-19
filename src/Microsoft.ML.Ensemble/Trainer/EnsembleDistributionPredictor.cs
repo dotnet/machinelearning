@@ -44,32 +44,32 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         private readonly Single[] _averagedWeights;
 
-        private readonly PredictionKind _kind;
         private readonly Median _probabilityCombiner;
 
-        private readonly ColumnType _inputType;
         private readonly IValueMapperDist[] _mappers;
 
-        public ColumnType InputType { get { return _inputType; } }
+        public ColumnType InputType { get; }
         public ColumnType OutputType { get { return NumberType.Float; } }
         public ColumnType DistType { get { return NumberType.Float; } }
+
+        public override PredictionKind PredictionKind { get; }
 
         internal EnsembleDistributionPredictor(IHostEnvironment env, PredictionKind kind,
             FeatureSubsetModel<TDistPredictor>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
             : base(env, RegistrationName, models, combiner, weights)
         {
-            _kind = kind;
+            PredictionKind = kind;
             _probabilityCombiner = new Median(env);
-            _inputType = InitializeMappers(out _mappers);
+            InputType = InitializeMappers(out _mappers);
             ComputeAveragedWeights(out _averagedWeights);
         }
 
         private EnsembleDistributionPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
-            _kind = (PredictionKind)ctx.Reader.ReadInt32();
+            PredictionKind = (PredictionKind)ctx.Reader.ReadInt32();
             _probabilityCombiner = new Median(env);
-            _inputType = InitializeMappers(out _mappers);
+            InputType = InitializeMappers(out _mappers);
             ComputeAveragedWeights(out _averagedWeights);
         }
 
@@ -118,11 +118,11 @@ namespace Microsoft.ML.Runtime.Ensemble
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: _kind
-            ctx.Writer.Write((int)_kind);
+            // int: PredictionKind
+            ctx.Writer.Write((int)PredictionKind);
         }
 
-        public override PredictionKind PredictionKind { get { return _kind; } }
+        
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {
@@ -137,8 +137,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             ValueMapper<VBuffer<Single>, Single> del =
                 (ref VBuffer<Single> src, ref Single dst) =>
                 {
-                    if (_inputType.VectorSize > 0)
-                        Host.Check(src.Length == _inputType.VectorSize);
+                    if (InputType.VectorSize > 0)
+                        Host.Check(src.Length == InputType.VectorSize);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>
@@ -175,8 +175,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             ValueMapper<VBuffer<Single>, Single, Single> del =
                 (ref VBuffer<Single> src, ref Single score, ref Single prob) =>
                 {
-                    if (_inputType.VectorSize > 0)
-                        Host.Check(src.Length == _inputType.VectorSize);
+                    if (InputType.VectorSize > 0)
+                        Host.Check(src.Length == InputType.VectorSize);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>

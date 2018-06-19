@@ -19,6 +19,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
 
     public delegate void SignatureEnsembleDataSelector();
 
+    [TlcModule.ComponentKind("EnsembleSubsetSelector")]
     public interface ISupportSubsetSelectorFactory : IComponentFactory<ISubsetSelector>
     {
     }

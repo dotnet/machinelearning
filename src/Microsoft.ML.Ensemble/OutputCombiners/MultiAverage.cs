@@ -11,8 +11,8 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(MultiAverage), typeof(MultiAverage.Arguments), typeof(SignatureCombiner),
     Average.UserName, MultiAverage.LoadName)]
-[assembly: LoadableClass(typeof(MultiAverage), null, typeof(SignatureLoadModel),
-    Average.UserName, MultiAverage.LoadName, MultiAverage.LoaderSignature)]
+[assembly: LoadableClass(typeof(MultiAverage), null, typeof(SignatureLoadModel), Average.UserName,
+    MultiAverage.LoadName, MultiAverage.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {

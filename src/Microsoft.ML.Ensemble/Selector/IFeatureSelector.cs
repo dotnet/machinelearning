@@ -13,6 +13,8 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
     }
 
     public delegate void SignatureEnsembleFeatureSelector();
+
+    [TlcModule.ComponentKind("EnsembleFeatureSelector")]
     public interface ISupportFeatureSelectorFactory : IComponentFactory<IFeatureSelector>
     {
     }

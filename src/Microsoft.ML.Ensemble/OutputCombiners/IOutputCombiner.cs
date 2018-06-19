@@ -42,6 +42,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
     {
     }
 
+    [TlcModule.ComponentKind("EnsembleOutputCombiner")]
     public interface ISupportOutputCombinerFactory<TOutput> : IComponentFactory<IOutputCombiner<TOutput>>
     {
     }

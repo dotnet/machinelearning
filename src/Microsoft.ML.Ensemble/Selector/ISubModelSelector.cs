@@ -33,6 +33,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
 
     public delegate void SignatureEnsembleSubModelSelector();
 
+    [TlcModule.ComponentKind("EnsembleSubModelSelector")]
     public interface ISupportSubModelSelectorFactory<TOutput> : IComponentFactory<ISubModelSelector<TOutput>>
     {
     }

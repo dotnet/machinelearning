@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
 {
@@ -16,8 +16,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
         public abstract class ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "The Feature selector", ShortName = "fs", SortOrder = 1)]
-            public SubComponent<IFeatureSelector, SignatureEnsembleFeatureSelector> FeatureSelector =
-                new SubComponent<IFeatureSelector, SignatureEnsembleFeatureSelector>(AllFeatureSelector.LoadName);
+            public ISupportFeatureSelectorFactory FeatureSelector = new AllFeatureSelectorFactory();
         }
 
         protected readonly IHost Host;
@@ -37,7 +36,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
 
             Host = env.Register(name);
             Args = args;
-            FeatureSelector = Args.FeatureSelector.CreateInstance(Host);
+            FeatureSelector = Args.FeatureSelector.CreateComponent(Host);
         }
 
         public void Initialize(RoleMappedData data, int size, int batchSize, Single validationDatasetProportion)

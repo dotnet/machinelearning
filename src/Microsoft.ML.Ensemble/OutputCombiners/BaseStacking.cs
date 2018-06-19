@@ -19,11 +19,13 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
     {
         public abstract class ArgumentsBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set", ShortName = "vp", SortOrder = 50)]
+            [Argument(ArgumentType.AtMostOnce, ShortName = "vp", SortOrder = 50,
+                HelpText = "The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set")]
             [TGUI(Label = "Validation Dataset Proportion")]
             public Single ValidationDatasetProportion = 0.3f;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50)]
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
+                Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             [TGUI(Label = "Base predictor")]
             public SubComponent<ITrainer<RoleMappedData, IPredictorProducing<TOutput>>, TSigBase> BasePredictorType;
         }

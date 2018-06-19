@@ -12,6 +12,8 @@ using Microsoft.ML.Runtime.EntryPoints;
 [assembly: LoadableClass(typeof(BootstrapSelector), typeof(BootstrapSelector.Arguments),
     typeof(SignatureEnsembleDataSelector), BootstrapSelector.UserName, BootstrapSelector.LoadName)]
 
+[assembly: EntryPointModule(typeof(BootstrapSelector))]
+
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
 {
     public sealed class BootstrapSelector : BaseSubsetSelector<BootstrapSelector.Arguments>

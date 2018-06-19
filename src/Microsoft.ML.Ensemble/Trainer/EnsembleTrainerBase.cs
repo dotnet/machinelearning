@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
@@ -23,7 +24,7 @@ namespace Microsoft.ML.Runtime.Ensemble
          where TSelector : class, ISubModelSelector<TOutput>
          where TCombiner : class, IOutputCombiner<TOutput>
     {
-        public abstract class ArgumentsBase
+        public abstract class ArgumentsBase : LearnerInputBaseWithLabel
         {
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of models per batch. If not specified, will default to 50 if there is only one base predictor, " +
@@ -60,7 +61,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 Description = "Algorithm to prune the base learners for selective Ensemble")]
             public ISupportSubModelSelectorFactory<TOutput> SubModelSelectorType;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1)]
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility =ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public SubComponent<ITrainer<RoleMappedData, IPredictorProducing<TOutput>>, TSig>[] BasePredictors;
 
             public const int DefaultNumModels = 50;

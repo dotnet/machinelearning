@@ -9,9 +9,11 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
+using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: LoadableClass(typeof(EnsemblePredictor), null, typeof(SignatureLoadModel),
     EnsemblePredictor.UserName, EnsemblePredictor.LoaderSignature)]
+[assembly: EntryPointModule(typeof(EnsemblePredictor))]
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
@@ -36,27 +38,25 @@ namespace Microsoft.ML.Runtime.Ensemble
                 loaderSignature: LoaderSignature);
         }
 
-        private readonly PredictionKind _kind;
-        private readonly ColumnType _inputType;
         private readonly IValueMapper[] _mappers;
 
-        public ColumnType InputType { get { return _inputType; } }
+        public ColumnType InputType { get; }
         public ColumnType OutputType { get { return NumberType.Float; } }
-        public override PredictionKind PredictionKind { get { return _kind; } }
+        public override PredictionKind PredictionKind { get; }
 
         internal EnsemblePredictor(IHostEnvironment env, PredictionKind kind,
             FeatureSubsetModel<TScalarPredictor>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
             : base(env, LoaderSignature, models, combiner, weights)
         {
-            _kind = kind;
-            _inputType = InitializeMappers(out _mappers);
+            PredictionKind = kind;
+            InputType = InitializeMappers(out _mappers);
         }
 
         private EnsemblePredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
-            _kind = (PredictionKind)ctx.Reader.ReadInt32();
-            _inputType = InitializeMappers(out _mappers);
+            PredictionKind = (PredictionKind)ctx.Reader.ReadInt32();
+            InputType = InitializeMappers(out _mappers);
         }
 
         private ColumnType InitializeMappers(out IValueMapper[] mappers)
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             // *** Binary format ***
             // int: _kind
-            ctx.Writer.Write((int)_kind);
+            ctx.Writer.Write((int)PredictionKind);
         }
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
@@ -123,8 +123,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             ValueMapper<VBuffer<Single>, Single> del =
                 (ref VBuffer<Single> src, ref Single dst) =>
                 {
-                    if (_inputType.VectorSize > 0)
-                        Host.Check(src.Length == _inputType.VectorSize);
+                    if (InputType.VectorSize > 0)
+                        Host.Check(src.Length == InputType.VectorSize);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>

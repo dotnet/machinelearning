@@ -13,6 +13,8 @@ using Microsoft.ML.Runtime.EntryPoints;
 [assembly: LoadableClass(typeof(RandomPartitionSelector),typeof(RandomPartitionSelector.Arguments),
     typeof(SignatureEnsembleDataSelector),RandomPartitionSelector.UserName, RandomPartitionSelector.LoadName)]
 
+[assembly: EntryPointModule(typeof(RandomPartitionSelector))]
+
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
 {
     public sealed class RandomPartitionSelector : BaseSubsetSelector<RandomPartitionSelector.Arguments>

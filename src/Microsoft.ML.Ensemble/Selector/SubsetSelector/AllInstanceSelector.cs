@@ -11,6 +11,8 @@ using Microsoft.ML.Runtime.EntryPoints;
 [assembly: LoadableClass(typeof(AllInstanceSelector), typeof(AllInstanceSelector.Arguments),
     typeof(SignatureEnsembleDataSelector), AllInstanceSelector.UserName, AllInstanceSelector.LoadName)]
 
+[assembly: EntryPointModule(typeof(AllInstanceSelector))]
+
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
 {
     public sealed class AllInstanceSelector : BaseSubsetSelector<AllInstanceSelector.Arguments>

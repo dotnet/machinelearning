@@ -17,6 +17,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
 
     public delegate void SignatureEnsembleDiversityMeasure();
 
+    [TlcModule.ComponentKind("EnsembleDiversityMeasure")]
     public interface ISupportDiversityMeasureFactory<TOutput> : IComponentFactory<IDiversityMeasure<TOutput>>
     {
     }

@@ -478,6 +478,42 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Models.TrainTestEvaluator", input, output));
             }
 
+            public Microsoft.ML.Trainer.BinaryEnsemble.Output Add(Microsoft.ML.Trainer.BinaryEnsemble input)
+            {
+                var output = new Microsoft.ML.Trainer.BinaryEnsemble.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainer.BinaryEnsemble input, Microsoft.ML.Trainer.BinaryEnsemble.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainer.BinaryEnsemble", input, output));
+            }
+
+            public Microsoft.ML.Trainer.ClassificationEnsemble.Output Add(Microsoft.ML.Trainer.ClassificationEnsemble input)
+            {
+                var output = new Microsoft.ML.Trainer.ClassificationEnsemble.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainer.ClassificationEnsemble input, Microsoft.ML.Trainer.ClassificationEnsemble.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainer.ClassificationEnsemble", input, output));
+            }
+
+            public Microsoft.ML.Trainer.RegressionEnsemble.Output Add(Microsoft.ML.Trainer.RegressionEnsemble input)
+            {
+                var output = new Microsoft.ML.Trainer.RegressionEnsemble.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainer.RegressionEnsemble input, Microsoft.ML.Trainer.RegressionEnsemble.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainer.RegressionEnsemble", input, output));
+            }
+
             public Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier.Output Add(Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier input)
             {
                 var output = new Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier.Output();
@@ -3965,6 +4001,339 @@ namespace Microsoft.ML
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
+            }
+        }
+    }
+
+    namespace Trainer
+    {
+
+        /// <summary>
+        /// Train binary ensemble.
+        /// </summary>
+        public sealed partial class BinaryEnsemble : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// Number of models per batch. If not specified, will default to 50 if there is only one base predictor, or the number of base predictors otherwise.
+            /// </summary>
+            public int? NumModels { get; set; }
+
+            /// <summary>
+            /// Batch size
+            /// </summary>
+            public int BatchSize { get; set; } = -1;
+
+            /// <summary>
+            /// Sampling Type
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleSubsetSelector SamplingType { get; set; } = new BootstrapSelectorEnsembleSubsetSelector();
+
+            /// <summary>
+            /// All the base learners will run asynchronously if the value is true
+            /// </summary>
+            public bool TrainParallel { get; set; } = false;
+
+            /// <summary>
+            /// True, if metrics for each model need to be evaluated and shown in comparison table. This is done by using validation set if available or the training set
+            /// </summary>
+            public bool ShowMetrics { get; set; } = false;
+
+            /// <summary>
+            /// Output combiner
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleOutputCombiner OutputCombiner { get; set; } = new MedianEnsembleOutputCombiner();
+
+            /// <summary>
+            /// Algorithm to prune the base learners for selective Ensemble
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleSubModelSelector SubModelSelectorType { get; set; } = new AllSelectorEnsembleSubModelSelector();
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(BinaryEnsemble)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    TrainingData = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new BinaryEnsemblePipelineStep(output);
+            }
+
+            private class BinaryEnsemblePipelineStep : ILearningPipelinePredictorStep
+            {
+                public BinaryEnsemblePipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainer
+    {
+
+        /// <summary>
+        /// Train multiclass ensemble.
+        /// </summary>
+        public sealed partial class ClassificationEnsemble : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// Number of models per batch. If not specified, will default to 50 if there is only one base predictor, or the number of base predictors otherwise.
+            /// </summary>
+            public int? NumModels { get; set; }
+
+            /// <summary>
+            /// Batch size
+            /// </summary>
+            public int BatchSize { get; set; } = -1;
+
+            /// <summary>
+            /// Sampling Type
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleSubsetSelector SamplingType { get; set; } = new BootstrapSelectorEnsembleSubsetSelector();
+
+            /// <summary>
+            /// All the base learners will run asynchronously if the value is true
+            /// </summary>
+            public bool TrainParallel { get; set; } = false;
+
+            /// <summary>
+            /// True, if metrics for each model need to be evaluated and shown in comparison table. This is done by using validation set if available or the training set
+            /// </summary>
+            public bool ShowMetrics { get; set; } = false;
+
+            /// <summary>
+            /// Output combiner
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleOutputCombiner OutputCombiner { get; set; } = new MultiMedianEnsembleOutputCombiner();
+
+            /// <summary>
+            /// Algorithm to prune the base learners for selective Ensemble
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleSubModelSelector SubModelSelectorType { get; set; } = new AllSelectorMultiClassEnsembleSubModelSelector();
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ClassificationEnsemble)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    TrainingData = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new ClassificationEnsemblePipelineStep(output);
+            }
+
+            private class ClassificationEnsemblePipelineStep : ILearningPipelinePredictorStep
+            {
+                public ClassificationEnsemblePipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainer
+    {
+
+        /// <summary>
+        /// Train regression ensemble.
+        /// </summary>
+        public sealed partial class RegressionEnsemble : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// Number of models per batch. If not specified, will default to 50 if there is only one base predictor, or the number of base predictors otherwise.
+            /// </summary>
+            public int? NumModels { get; set; }
+
+            /// <summary>
+            /// Batch size
+            /// </summary>
+            public int BatchSize { get; set; } = -1;
+
+            /// <summary>
+            /// Sampling Type
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleSubsetSelector SamplingType { get; set; } = new BootstrapSelectorEnsembleSubsetSelector();
+
+            /// <summary>
+            /// All the base learners will run asynchronously if the value is true
+            /// </summary>
+            public bool TrainParallel { get; set; } = false;
+
+            /// <summary>
+            /// True, if metrics for each model need to be evaluated and shown in comparison table. This is done by using validation set if available or the training set
+            /// </summary>
+            public bool ShowMetrics { get; set; } = false;
+
+            /// <summary>
+            /// Output combiner
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleOutputCombiner OutputCombiner { get; set; } = new MedianEnsembleOutputCombiner();
+
+            /// <summary>
+            /// Algorithm to prune the base learners for selective Ensemble
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleSubModelSelector SubModelSelectorType { get; set; } = new AllSelectorEnsembleSubModelSelector();
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(RegressionEnsemble)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    TrainingData = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new RegressionEnsemblePipelineStep(output);
+            }
+
+            private class RegressionEnsemblePipelineStep : ILearningPipelinePredictorStep
+            {
+                public RegressionEnsemblePipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
             }
         }
     }
@@ -14249,6 +14618,413 @@ namespace Microsoft.ML
             public int WindowSize { get; set; } = 5;
 
             internal override string ComponentName => "UP";
+        }
+
+        public abstract class EnsembleDiversityMeasure : ComponentKind {}
+
+
+
+        public sealed class DisagreementDiversityMeasureEnsembleDiversityMeasure : EnsembleDiversityMeasure
+        {
+            internal override string ComponentName => "DisagreementDiversityMeasure";
+        }
+
+
+
+        public sealed class MultiDisagreementDiversityMeasureEnsembleDiversityMeasure : EnsembleDiversityMeasure
+        {
+            internal override string ComponentName => "MultiDisagreementDiversityMeasure";
+        }
+
+
+
+        public sealed class RegressionDisagreementDiversityMeasureEnsembleDiversityMeasure : EnsembleDiversityMeasure
+        {
+            internal override string ComponentName => "RegressionDisagreementDiversityMeasure";
+        }
+
+        public abstract class EnsembleFeatureSelector : ComponentKind {}
+
+
+
+        public sealed class AllFeatureSelectorEnsembleFeatureSelector : EnsembleFeatureSelector
+        {
+            internal override string ComponentName => "AllFeatureSelector";
+        }
+
+
+
+        public sealed class RandomFeatureSelectorEnsembleFeatureSelector : EnsembleFeatureSelector
+        {
+            /// <summary>
+            /// The proportion of features to be selected. The range is 0.0-1.0
+            /// </summary>
+            public float FeaturesSelectionProportion { get; set; } = 0.8f;
+
+            internal override string ComponentName => "RandomFeatureSelector";
+        }
+
+        public abstract class EnsembleOutputCombiner : ComponentKind {}
+
+
+
+        public sealed class AverageEnsembleOutputCombiner : EnsembleOutputCombiner
+        {
+            internal override string ComponentName => "Average";
+        }
+
+
+
+        public sealed class MedianEnsembleOutputCombiner : EnsembleOutputCombiner
+        {
+            internal override string ComponentName => "Median";
+        }
+
+
+
+        public sealed class MultiAverageEnsembleOutputCombiner : EnsembleOutputCombiner
+        {
+            /// <summary>
+            /// Whether to normalize the output of base models before combining them
+            /// </summary>
+            public bool Normalize { get; set; } = true;
+
+            internal override string ComponentName => "MultiAverage";
+        }
+
+
+
+        public sealed class MultiMedianEnsembleOutputCombiner : EnsembleOutputCombiner
+        {
+            /// <summary>
+            /// Whether to normalize the output of base models before combining them
+            /// </summary>
+            public bool Normalize { get; set; } = true;
+
+            internal override string ComponentName => "MultiMedian";
+        }
+
+
+
+        public sealed class MultiStackingEnsembleOutputCombiner : EnsembleOutputCombiner
+        {
+            /// <summary>
+            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
+            /// </summary>
+            public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+            internal override string ComponentName => "MultiStacking";
+        }
+
+
+
+        public sealed class MultiVotingEnsembleOutputCombiner : EnsembleOutputCombiner
+        {
+            /// <summary>
+            /// Whether to normalize the output of base models before combining them
+            /// </summary>
+            public bool Normalize { get; set; } = true;
+
+            internal override string ComponentName => "MultiVoting";
+        }
+
+        public enum MultiWeightageKind
+        {
+            AccuracyMicroAvg = 0,
+            AccuracyMacroAvg = 1
+        }
+
+
+
+        public sealed class MultiWeightedAverageEnsembleOutputCombiner : EnsembleOutputCombiner
+        {
+            /// <summary>
+            /// The metric type to be used to find the weights for each model
+            /// </summary>
+            public MultiWeightageKind WeightageName { get; set; } = MultiWeightageKind.AccuracyMicroAvg;
+
+            /// <summary>
+            /// Whether to normalize the output of base models before combining them
+            /// </summary>
+            public bool Normalize { get; set; } = true;
+
+            internal override string ComponentName => "MultiWeightedAverage";
+        }
+
+
+
+        public sealed class RegressionStackingEnsembleOutputCombiner : EnsembleOutputCombiner
+        {
+            /// <summary>
+            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
+            /// </summary>
+            public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+            internal override string ComponentName => "RegressionStacking";
+        }
+
+
+
+        public sealed class StackingEnsembleOutputCombiner : EnsembleOutputCombiner
+        {
+            /// <summary>
+            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
+            /// </summary>
+            public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+            internal override string ComponentName => "Stacking";
+        }
+
+
+
+        public sealed class VotingEnsembleOutputCombiner : EnsembleOutputCombiner
+        {
+            internal override string ComponentName => "Voting";
+        }
+
+        public enum WeightageKind
+        {
+            Accuracy = 0,
+            Auc = 1,
+            PosPrecision = 2,
+            PosRecall = 3,
+            NegPrecision = 4,
+            NegRecall = 5
+        }
+
+
+
+        public sealed class WeightedAverageEnsembleOutputCombiner : EnsembleOutputCombiner
+        {
+            /// <summary>
+            /// The metric type to be used to find the weights for each model
+            /// </summary>
+            public WeightageKind WeightageName { get; set; } = WeightageKind.Auc;
+
+            internal override string ComponentName => "WeightedAverage";
+        }
+
+        public abstract class EnsembleSubModelSelector : ComponentKind {}
+
+
+
+        public sealed class AllSelectorEnsembleSubModelSelector : EnsembleSubModelSelector
+        {
+            internal override string ComponentName => "AllSelector";
+        }
+
+
+
+        public sealed class AllSelectorMultiClassEnsembleSubModelSelector : EnsembleSubModelSelector
+        {
+            internal override string ComponentName => "AllSelectorMultiClass";
+        }
+
+
+
+        public sealed class BestDiverseSelectorEnsembleSubModelSelector : EnsembleSubModelSelector
+        {
+            /// <summary>
+            /// The metric type to be used to find the diversity among base learners
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleDiversityMeasure DiversityMetricType { get; set; }
+
+            /// <summary>
+            /// The proportion of best base learners to be selected. The range is 0.0-1.0
+            /// </summary>
+            public float LearnersSelectionProportion { get; set; } = 0.5f;
+
+            /// <summary>
+            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
+            /// </summary>
+            public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+            internal override string ComponentName => "BestDiverseSelector";
+        }
+
+
+
+        public sealed class BestDiverseSelectorMultiClassEnsembleSubModelSelector : EnsembleSubModelSelector
+        {
+            /// <summary>
+            /// The metric type to be used to find the diversity among base learners
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleDiversityMeasure DiversityMetricType { get; set; }
+
+            /// <summary>
+            /// The proportion of best base learners to be selected. The range is 0.0-1.0
+            /// </summary>
+            public float LearnersSelectionProportion { get; set; } = 0.5f;
+
+            /// <summary>
+            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
+            /// </summary>
+            public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+            internal override string ComponentName => "BestDiverseSelectorMultiClass";
+        }
+
+
+
+        public sealed class BestDiverseSelectorRegressionEnsembleSubModelSelector : EnsembleSubModelSelector
+        {
+            /// <summary>
+            /// The metric type to be used to find the diversity among base learners
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleDiversityMeasure DiversityMetricType { get; set; }
+
+            /// <summary>
+            /// The proportion of best base learners to be selected. The range is 0.0-1.0
+            /// </summary>
+            public float LearnersSelectionProportion { get; set; } = 0.5f;
+
+            /// <summary>
+            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
+            /// </summary>
+            public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+            internal override string ComponentName => "BestDiverseSelectorRegression";
+        }
+
+        public enum RegressionEvaluatorMetrics
+        {
+            L1 = 0,
+            L2 = 1,
+            Rms = 2,
+            Loss = 3,
+            RSquared = 4
+        }
+
+
+
+        public sealed class BestPerformanceRegressionSelectorEnsembleSubModelSelector : EnsembleSubModelSelector
+        {
+            /// <summary>
+            /// The metric type to be used to find the best performance
+            /// </summary>
+            public RegressionEvaluatorMetrics MetricName { get; set; } = RegressionEvaluatorMetrics.L1;
+
+            /// <summary>
+            /// The proportion of best base learners to be selected. The range is 0.0-1.0
+            /// </summary>
+            public float LearnersSelectionProportion { get; set; } = 0.5f;
+
+            /// <summary>
+            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
+            /// </summary>
+            public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+            internal override string ComponentName => "BestPerformanceRegressionSelector";
+        }
+
+        public enum BinaryClassifierEvaluatorMetrics
+        {
+            Accuracy = 0,
+            PosPrecName = 1,
+            PosRecallName = 2,
+            NegPrecName = 3,
+            NegRecallName = 4,
+            Auc = 5,
+            LogLoss = 6,
+            LogLossReduction = 7,
+            F1 = 8,
+            AuPrc = 9
+        }
+
+
+
+        public sealed class BestPerformanceSelectorEnsembleSubModelSelector : EnsembleSubModelSelector
+        {
+            /// <summary>
+            /// The metric type to be used to find the best performance
+            /// </summary>
+            public BinaryClassifierEvaluatorMetrics MetricName { get; set; } = BinaryClassifierEvaluatorMetrics.Auc;
+
+            /// <summary>
+            /// The proportion of best base learners to be selected. The range is 0.0-1.0
+            /// </summary>
+            public float LearnersSelectionProportion { get; set; } = 0.5f;
+
+            /// <summary>
+            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
+            /// </summary>
+            public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+            internal override string ComponentName => "BestPerformanceSelector";
+        }
+
+        public enum MultiClassClassifierEvaluatorMetrics
+        {
+            AccuracyMicro = 0,
+            AccuracyMacro = 1,
+            LogLoss = 2,
+            LogLossReduction = 3
+        }
+
+
+
+        public sealed class BestPerformanceSelectorMultiClassEnsembleSubModelSelector : EnsembleSubModelSelector
+        {
+            /// <summary>
+            /// The metric type to be used to find the best performance
+            /// </summary>
+            public MultiClassClassifierEvaluatorMetrics MetricName { get; set; } = MultiClassClassifierEvaluatorMetrics.AccuracyMicro;
+
+            /// <summary>
+            /// The proportion of best base learners to be selected. The range is 0.0-1.0
+            /// </summary>
+            public float LearnersSelectionProportion { get; set; } = 0.5f;
+
+            /// <summary>
+            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
+            /// </summary>
+            public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+            internal override string ComponentName => "BestPerformanceSelectorMultiClass";
+        }
+
+        public abstract class EnsembleSubsetSelector : ComponentKind {}
+
+
+
+        public sealed class AllInstanceSelectorEnsembleSubsetSelector : EnsembleSubsetSelector
+        {
+            /// <summary>
+            /// The Feature selector
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleFeatureSelector FeatureSelector { get; set; } = new AllFeatureSelectorEnsembleFeatureSelector();
+
+            internal override string ComponentName => "AllInstanceSelector";
+        }
+
+
+
+        public sealed class BootstrapSelectorEnsembleSubsetSelector : EnsembleSubsetSelector
+        {
+            /// <summary>
+            /// The Feature selector
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleFeatureSelector FeatureSelector { get; set; } = new AllFeatureSelectorEnsembleFeatureSelector();
+
+            internal override string ComponentName => "BootstrapSelector";
+        }
+
+
+
+        public sealed class RandomPartitionSelectorEnsembleSubsetSelector : EnsembleSubsetSelector
+        {
+            /// <summary>
+            /// The Feature selector
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleFeatureSelector FeatureSelector { get; set; } = new AllFeatureSelectorEnsembleFeatureSelector();
+
+            internal override string ComponentName => "RandomPartitionSelector";
         }
 
         public abstract class FastTreeTrainer : ComponentKind {}
