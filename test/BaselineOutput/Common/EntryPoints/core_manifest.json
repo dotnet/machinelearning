@@ -3703,7 +3703,7 @@
         {
           "Name": "NumTrees",
           "Type": "Int",
-          "Desc": "Number of weak hypotheses in the ensemble",
+          "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
             "iter"
           ],
@@ -4354,7 +4354,7 @@
         {
           "Name": "NumTrees",
           "Type": "Int",
-          "Desc": "Number of weak hypotheses in the ensemble",
+          "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
             "iter"
           ],
@@ -4979,7 +4979,7 @@
         {
           "Name": "NumTrees",
           "Type": "Int",
-          "Desc": "Number of weak hypotheses in the ensemble",
+          "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
             "iter"
           ],
@@ -5891,7 +5891,7 @@
         {
           "Name": "NumTrees",
           "Type": "Int",
-          "Desc": "Number of weak hypotheses in the ensemble",
+          "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
             "iter"
           ],
@@ -6884,7 +6884,7 @@
         {
           "Name": "NumTrees",
           "Type": "Int",
-          "Desc": "Number of weak hypotheses in the ensemble",
+          "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
             "iter"
           ],
@@ -7784,7 +7784,7 @@
         {
           "Name": "NumTrees",
           "Type": "Int",
-          "Desc": "Number of weak hypotheses in the ensemble",
+          "Desc": "Total number of decision trees to create in the ensemble",
           "Aliases": [
             "iter"
           ],
@@ -18394,7 +18394,7 @@
             {
               "Name": "NumTrees",
               "Type": "Int",
-              "Desc": "Number of weak hypotheses in the ensemble",
+              "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
                 "iter"
               ],
@@ -19288,7 +19288,7 @@
             {
               "Name": "NumTrees",
               "Type": "Int",
-              "Desc": "Number of weak hypotheses in the ensemble",
+              "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
                 "iter"
               ],
@@ -20263,7 +20263,7 @@
             {
               "Name": "NumTrees",
               "Type": "Int",
-              "Desc": "Number of weak hypotheses in the ensemble",
+              "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
                 "iter"
               ],
@@ -21145,7 +21145,7 @@
             {
               "Name": "NumTrees",
               "Type": "Int",
-              "Desc": "Number of weak hypotheses in the ensemble",
+              "Desc": "Total number of decision trees to create in the ensemble",
               "Aliases": [
                 "iter"
               ],
