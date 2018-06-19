@@ -228,4 +228,4 @@ The steps to take, to create an entry point for an existing ML.NET component, ar
     c. Is annotated with the `TlcModule.EntryPoint` attribute 
 
 Based on the type of entry point being created, there are further conventions on the name of the method, for example, the Trainers entry points are typically called: 'TrainMultiClass', 'TrainBinary' etc, based on the task. 
-Look at [OnlineGradientDescent](.././src/Microsoft.ML.StandardLearners/Standard/Online/OnlineGradientDescent.cs) for an example of a component and its entry point. 
+Look at [OnlineGradientDescent](../../src/Microsoft.ML.StandardLearners/Standard/Online/OnlineGradientDescent.cs) for an example of a component and its entry point. 
