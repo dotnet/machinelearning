@@ -11,8 +11,9 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
 
-[assembly: LoadableClass(typeof(EnsemblePredictor), null, typeof(SignatureLoadModel),
-    EnsemblePredictor.UserName, EnsemblePredictor.LoaderSignature)]
+[assembly: LoadableClass(typeof(EnsemblePredictor), null, typeof(SignatureLoadModel), EnsemblePredictor.UserName,
+    EnsemblePredictor.LoaderSignature)]
+
 [assembly: EntryPointModule(typeof(EnsemblePredictor))]
 
 namespace Microsoft.ML.Runtime.Ensemble

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.Selector;
@@ -22,11 +23,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
     {
         public const string UserName = "Best Diverse Selector";
         public const string LoadName = "BestDiverseSelectorMultiClass";
-
-        public override string DiversityMeasureLoadname
-        {
-            get { return MultiDisagreementDiversityMeasure.LoadName; }
-        }
+        protected override ISupportDiversityMeasureFactory<VBuffer<Single>> DefaultDiversityMetricType =>  new MultinDisagreementDiversityFactory();
 
         [TlcModule.Component(Name = BestDiverseSelectorMultiClass.LoadName, FriendlyName = UserName)]
         public sealed class Arguments : DiverseSelectorArguments, ISupportMulticlassSubModelSelectorFactory

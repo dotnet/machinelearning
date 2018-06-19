@@ -1779,6 +1779,24 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void EntryPointBinaryEnsemble()
+        {
+            TestEntryPointRoutine("iris.txt", "Trainers.BinaryEnsemble");
+        }
+
+        [Fact]
+        public void EntryPointClassificationEnsemble()
+        {
+            TestEntryPointRoutine("iris.txt", "Trainers.ClassificationEnsemble");
+        }
+
+        [Fact]
+        public void EntryPointRegressionEnsemble()
+        {
+            TestEntryPointRoutine(TestDatasets.winequality.trainFilename, "Trainers.RegressionEnsemble", loader: TestDatasets.winequality.loaderSettings);
+        }
+
+        [Fact]
         public void EntryPointNaiveBayesMultiClass()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.NaiveBayesClassifier");
@@ -1790,7 +1808,7 @@ namespace Microsoft.ML.Runtime.RunTests
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.StochasticGradientDescentBinaryClassifier");
         }
 
-        [Fact()]
+        [Fact]
         public void EntryPointPoissonRegression()
         {
             TestEntryPointRoutine(TestDatasets.winequality.trainFilename, "Trainers.PoissonRegressor", loader: TestDatasets.winequality.loaderSettings);

@@ -15,8 +15,7 @@ using Microsoft.ML.Runtime.Model;
 
 // These are for deserialization from a model repository.
 [assembly: LoadableClass(typeof(EnsembleDistributionPredictor), null, typeof(SignatureLoadModel),
-    EnsembleDistributionPredictor.UserName,
-    EnsembleDistributionPredictor.LoaderSignature)]
+    EnsembleDistributionPredictor.UserName, EnsembleDistributionPredictor.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
@@ -122,7 +121,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             ctx.Writer.Write((int)PredictionKind);
         }
 
-        
+
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {

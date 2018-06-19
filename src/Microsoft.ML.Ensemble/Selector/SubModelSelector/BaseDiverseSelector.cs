@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         private readonly ISupportDiversityMeasureFactory<TOutput> _diversityMetricType;
         private ConcurrentDictionary<FeatureSubsetModel<IPredictorProducing<TOutput>>, TOutput[]> _predictions;
 
-        public abstract string DiversityMeasureLoadname { get; }
+        protected abstract ISupportDiversityMeasureFactory<TOutput> DefaultDiversityMetricType { get; }
 
         protected internal BaseDiverseSelector(IHostEnvironment env, DiverseSelectorArguments args, string name)
             : base(args, env, name)
@@ -39,10 +39,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         protected IDiversityMeasure<TOutput> CreateDiversityMetric()
         {
             if (_diversityMetricType == null)
-            {
-                var sc = new SubComponent<TDiversityMetric, SignatureEnsembleDiversityMeasure>(DiversityMeasureLoadname);
-                return sc.CreateInstance(Host);
-            }
+                return DefaultDiversityMetricType.CreateComponent(Host);
             return _diversityMetricType.CreateComponent(Host);
         }
 

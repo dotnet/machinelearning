@@ -13,7 +13,7 @@ namespace Microsoft.ML.Ensemble.EntryPoints
 {
     public static class Ensemble
     {
-        [TlcModule.EntryPoint(Name = "Trainer.BinaryEnsemble", Desc = "Train binary ensemble.", UserName = EnsembleTrainer.UserNameValue)]
+        [TlcModule.EntryPoint(Name = "Trainers.BinaryEnsemble", Desc = "Train binary ensemble.", UserName = EnsembleTrainer.UserNameValue)]
         public static CommonOutputs.BinaryClassificationOutput CreateBinaryEnsemble(IHostEnvironment env, EnsembleTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Ensemble.EntryPoints
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 
-        [TlcModule.EntryPoint(Name = "Trainer.ClassificationEnsemble", Desc = "Train multiclass ensemble.", UserName = EnsembleTrainer.UserNameValue)]
+        [TlcModule.EntryPoint(Name = "Trainers.ClassificationEnsemble", Desc = "Train multiclass ensemble.", UserName = EnsembleTrainer.UserNameValue)]
         public static CommonOutputs.MulticlassClassificationOutput CreateMultiClassEnsemble(IHostEnvironment env, MulticlassDataPartitionEnsembleTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Ensemble.EntryPoints
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 
-        [TlcModule.EntryPoint(Name = "Trainer.RegressionEnsemble", Desc = "Train regression ensemble.", UserName = EnsembleTrainer.UserNameValue)]
+        [TlcModule.EntryPoint(Name = "Trainers.RegressionEnsemble", Desc = "Train regression ensemble.", UserName = EnsembleTrainer.UserNameValue)]
         public static CommonOutputs.RegressionOutput CreateRegressionEnsemble(IHostEnvironment env, RegressionEnsembleTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
