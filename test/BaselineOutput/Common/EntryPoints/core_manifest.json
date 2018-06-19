@@ -15390,14 +15390,10 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Default",
-                      "Def",
                       "DefaultValue",
                       "Mean",
                       "Minimum",
-                      "Min",
-                      "Maximum",
-                      "Max"
+                      "Maximum"
                     ]
                   },
                   "Desc": "The replacement method to utilize",
@@ -15478,14 +15474,10 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Default",
-              "Def",
               "DefaultValue",
               "Mean",
               "Minimum",
-              "Min",
-              "Maximum",
-              "Max"
+              "Maximum"
             ]
           },
           "Desc": "The replacement method to utilize",
@@ -15780,17 +15772,11 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Default",
                       "DefaultValue",
-                      "Def",
                       "Mean",
-                      "Min",
                       "Minimum",
-                      "Max",
                       "Maximum",
-                      "SpecifiedValue",
-                      "Val",
-                      "Value"
+                      "SpecifiedValue"
                     ]
                   },
                   "Desc": "The replacement method to utilize",
@@ -15856,17 +15842,11 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Default",
               "DefaultValue",
-              "Def",
               "Mean",
-              "Min",
               "Minimum",
-              "Max",
               "Maximum",
-              "SpecifiedValue",
-              "Val",
-              "Value"
+              "SpecifiedValue"
             ]
           },
           "Desc": "The replacement method to utilize",
@@ -15876,7 +15856,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "Def"
+          "Default": "Default"
         },
         {
           "Name": "ImputeBySlot",

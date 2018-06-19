@@ -19,26 +19,24 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     {
         private MemoryStream _memStream;
         private Stream _overflowStream;
-        private string _overflowPath;
         private readonly int _overflowBoundary;
         private const int _defaultMaxLen = 1 << 30;
 
         private bool _disposed;
 
-        private Stream MyStream { get { return _memStream ?? _overflowStream; } }
+        private Stream MyStream => _memStream ?? _overflowStream;
 
-        private bool IsMemory { get { return _memStream != null; } }
+        private bool IsMemory => _memStream != null;
 
-        public override long Position
-        {
-            get { return MyStream.Position; }
-            set { Seek(value, SeekOrigin.Begin); }
+        public override long Position {
+            get => MyStream.Position;
+            set => Seek(value, SeekOrigin.Begin);
         }
 
-        public override long Length { get { return MyStream.Length; } }
-        public override bool CanWrite { get { return MyStream.CanWrite; } }
-        public override bool CanSeek { get { return MyStream.CanSeek; } }
-        public override bool CanRead { get { return MyStream.CanRead; } }
+        public override long Length => MyStream.Length;
+        public override bool CanWrite => MyStream.CanWrite;
+        public override bool CanSeek => MyStream.CanSeek;
+        public override bool CanRead => MyStream.CanRead;
 
         /// <summary>
         /// Constructs an initially empty read-write stream. Once the number of
@@ -123,27 +121,24 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     var overflow = _overflowStream;
                     _overflowStream = null;
                     overflow.Dispose();
-                    Contracts.AssertValue(_overflowPath);
-                    File.Delete(_overflowPath);
-                    _overflowPath = null;
                 }
                 _disposed = true;
                 AssertInvariants();
+                base.Dispose(disposing);
             }
         }
 
         public override void Close()
         {
             AssertInvariants();
-            if (MyStream != null)
-                MyStream.Close();
+            // The base Stream class Close will call Dispose(bool).
+            base.Close();
         }
 
         public override void Flush()
         {
             AssertInvariants();
-            if (MyStream != null)
-                MyStream.Flush();
+            MyStream?.Flush();
             AssertInvariants();
         }
 
@@ -164,9 +159,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // been closed.
             Contracts.Check(_memStream.CanRead, "attempt to perform operation on closed stream");
 
-            Contracts.Assert(_overflowPath == null);
-            _overflowPath = Path.GetTempFileName();
-            _overflowStream = new FileStream(_overflowPath, FileMode.Open, FileAccess.ReadWrite);
+            string overflowPath = Path.GetTempFileName();
+            _overflowStream = new FileStream(overflowPath, FileMode.Open, FileAccess.ReadWrite,
+                FileShare.None, bufferSize: 4096, FileOptions.DeleteOnClose);
 
             // The documentation is not clear on this point, but the source code for
             // memory stream makes clear that this buffer is exposable for a memory
