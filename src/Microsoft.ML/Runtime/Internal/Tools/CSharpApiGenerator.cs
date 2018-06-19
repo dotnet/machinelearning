@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -156,6 +157,8 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 for (int i = 0; i < names.Length; i++)
                 {
                     var name = names[i];
+                    if (type.GetField(name).GetCustomAttribute<HideEnumValueAttribute>() != null)
+                        continue;
                     var value = values.GetValue(i);
                     writer.WriteLine(prefix);
                     if (enumType == typeof(int))

@@ -74,6 +74,8 @@ namespace Microsoft.ML.Runtime
         TPredictor CombineModels(IEnumerable<TModel> models);
     }
 
+    public delegate void SignatureModelCombiner(PredictionKind kind);
+
     /// <summary>
     /// Weakly typed interface for a trainer "session" that produces a predictor.
     /// </summary>
