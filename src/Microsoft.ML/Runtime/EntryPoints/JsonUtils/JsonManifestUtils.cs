@@ -344,7 +344,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                 case TlcModule.DataKind.Enum:
                     jo = new JObject();
                     jo[FieldNames.Kind] = typeEnum.ToString();
-                    var values = Enum.GetNames(type);
+                    var values = Enum.GetNames(type).Where(n => type.GetField(n).GetCustomAttribute<HideEnumValueAttribute>() == null);
                     jo[FieldNames.Values] = new JArray(values);
                     return jo;
                 case TlcModule.DataKind.Array:
