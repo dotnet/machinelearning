@@ -3966,7 +3966,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -4248,7 +4248,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -4646,7 +4646,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -5072,7 +5072,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -5458,7 +5458,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -5849,7 +5849,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -11058,14 +11058,10 @@ namespace Microsoft.ML
     {
         public enum NAHandleTransformReplacementKind
         {
-            Default = 0,
-            Def = 0,
             DefaultValue = 0,
             Mean = 1,
             Minimum = 2,
-            Min = 2,
-            Maximum = 3,
-            Max = 3
+            Maximum = 3
         }
 
 
@@ -11153,7 +11149,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public NAHandleTransformReplacementKind ReplaceWith { get; set; } = NAHandleTransformReplacementKind.Def;
+            public NAHandleTransformReplacementKind ReplaceWith { get; set; } = NAHandleTransformReplacementKind.DefaultValue;
 
             /// <summary>
             /// Whether to impute values by slot
@@ -11527,17 +11523,11 @@ namespace Microsoft.ML
     {
         public enum NAReplaceTransformReplacementKind
         {
-            Default = 0,
             DefaultValue = 0,
-            Def = 0,
             Mean = 1,
-            Min = 2,
             Minimum = 2,
-            Max = 3,
             Maximum = 3,
-            SpecifiedValue = 4,
-            Val = 4,
-            Value = 4
+            SpecifiedValue = 4
         }
 
 
@@ -11625,7 +11615,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public NAReplaceTransformReplacementKind ReplacementKind { get; set; } = NAReplaceTransformReplacementKind.Def;
+            public NAReplaceTransformReplacementKind ReplacementKind { get; set; } = NAReplaceTransformReplacementKind.DefaultValue;
 
             /// <summary>
             /// Whether to impute values by slot
@@ -14172,7 +14162,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -14560,7 +14550,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -14908,7 +14898,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
@@ -15261,7 +15251,7 @@ namespace Microsoft.ML
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
-            /// Number of weak hypotheses in the ensemble
+            /// Total number of decision trees to create in the ensemble
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
             public int NumTrees { get; set; } = 100;
