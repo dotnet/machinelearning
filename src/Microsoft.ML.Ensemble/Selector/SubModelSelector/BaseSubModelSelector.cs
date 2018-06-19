@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 
         protected void Print(IChannel ch, IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> models, string metricName)
         {
-            // REVIEW tfinley: The output format was faithfully reproduced from the original format, but it's unclear
+            // REVIEW: The output format was faithfully reproduced from the original format, but it's unclear
             // to me that this is right. Why have two bars in the header line, but only one bar in the results?
             ch.Info("List of models and the metrics after sorted");
             ch.Info("| {0}(Sorted) || Name of Model |", metricName);
@@ -81,20 +81,20 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
                 // Because the training and test datasets are drawn from the same base dataset, the test data role mappings
                 // are the same as for the train data.
                 IDataScorerTransform scorePipe = ScoreUtils.GetScorer(model.Predictor, testData, Host, testData.Schema);
-                // REVIEW tfinley: Should we somehow allow the user to customize the evaluator?
+                // REVIEW: Should we somehow allow the user to customize the evaluator?
                 // By what mechanism should we allow that?
                 var evalComp = GetEvaluatorSubComponent();
                 RoleMappedData scoredTestData = RoleMappedData.Create(scorePipe,
                     GetColumnRoles(testData.Schema, scorePipe.Schema));
                 IEvaluator evaluator = evalComp.CreateInstance(Host);
-                // REVIEW yaeld: with the new evaluators, metrics of individual models are no longer
+                // REVIEW: with the new evaluators, metrics of individual models are no longer
                 // printed to the Console. Consider adding an option on the combiner to print them.
-                // REVIEW yaeld(petelu): Consider adding an option to the combiner to save a data view
+                // REVIEW: Consider adding an option to the combiner to save a data view
                 // containing all the results of the individual models.
                 var metricsDict = evaluator.Evaluate(scoredTestData);
                 if (!metricsDict.TryGetValue(MetricKinds.OverallMetrics, out IDataView metricsView))
                     throw Host.Except("Evaluator did not produce any overall metrics");
-                // REVIEW tfinley: We're assuming that the metrics of interest are always doubles here.
+                // REVIEW: We're assuming that the metrics of interest are always doubles here.
                 var metrics = EvaluateUtils.GetMetrics(metricsView, getVectorMetrics: false);
                 model.Metrics = metrics.ToArray();
                 ch.Done();

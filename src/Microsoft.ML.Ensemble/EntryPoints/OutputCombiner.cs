@@ -23,20 +23,24 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Ensemble.EntryPoints
 {
     [TlcModule.Component(Name = Average.LoadName, FriendlyName = Average.UserName)]
-    public sealed class AverageFactory : ISupportOutputCombinerFactory<Single>
+    public sealed class AverageFactory : ISupportBinaryOutputCombinerFactory, ISupportRegressionOutputCombinerFactory
     {
-        IOutputCombiner<Single> IComponentFactory<IOutputCombiner<Single>>.CreateComponent(IHostEnvironment env) => new Average(env);
+        public IRegressionOutputCombiner CreateComponent(IHostEnvironment env) => new Average(env);
+
+        IBinaryOutputCombiner IComponentFactory<IBinaryOutputCombiner>.CreateComponent(IHostEnvironment env) => new Average(env);
     }
 
     [TlcModule.Component(Name = Median.LoadName, FriendlyName = Median.UserName)]
-    public sealed class MedianFactory : ISupportOutputCombinerFactory<Single>
+    public sealed class MedianFactory : ISupportBinaryOutputCombinerFactory, ISupportRegressionOutputCombinerFactory
     {
-        IOutputCombiner<Single> IComponentFactory<IOutputCombiner<Single>>.CreateComponent(IHostEnvironment env) => new Median(env);
+        public IRegressionOutputCombiner CreateComponent(IHostEnvironment env) => new Median(env);
+
+        IBinaryOutputCombiner IComponentFactory<IBinaryOutputCombiner>.CreateComponent(IHostEnvironment env) => new Median(env);
     }
 
     [TlcModule.Component(Name = Voting.LoadName, FriendlyName = Voting.UserName)]
-    public sealed class VotingFactory : ISupportOutputCombinerFactory<Single>
+    public sealed class VotingFactory : ISupportBinaryOutputCombinerFactory
     {
-        IOutputCombiner<Single> IComponentFactory<IOutputCombiner<Single>>.CreateComponent(IHostEnvironment env) => new Voting(env);
+        IBinaryOutputCombiner IComponentFactory<IBinaryOutputCombiner>.CreateComponent(IHostEnvironment env) => new Voting(env);
     }
 }

@@ -18,7 +18,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
-    public sealed class BestDiverseSelectorMultiClass : BaseDiverseSelector<VBuffer<Single>, IDiversityMeasure<VBuffer<Single>>>
+    public sealed class BestDiverseSelectorMultiClass : BaseDiverseSelector<VBuffer<Single>, IDiversityMeasure<VBuffer<Single>>>, IMulticlassSubModelSelector
     {
         public const string UserName = "Best Diverse Selector";
         public const string LoadName = "BestDiverseSelectorMultiClass";
@@ -28,10 +28,10 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
             get { return MultiDisagreementDiversityMeasure.LoadName; }
         }
 
-        [TlcModule.Component(Name = BestDiverseSelectorMultiClass.LoadName, FriendlyName = BestDiverseSelectorMultiClass.UserName)]
-        public sealed class Arguments : DiverseSelectorArguments, ISupportSubModelSelectorFactory<VBuffer<Single>>
+        [TlcModule.Component(Name = BestDiverseSelectorMultiClass.LoadName, FriendlyName = UserName)]
+        public sealed class Arguments : DiverseSelectorArguments, ISupportMulticlassSubModelSelectorFactory
         {
-            public ISubModelSelector<VBuffer<Single>> CreateComponent(IHostEnvironment env) => new BestDiverseSelectorMultiClass(env, this);
+            public IMulticlassSubModelSelector CreateComponent(IHostEnvironment env) => new BestDiverseSelectorMultiClass(env, this);
         }
 
         public BestDiverseSelectorMultiClass(IHostEnvironment env, Arguments args)

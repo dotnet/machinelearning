@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Numeric;
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
-    public abstract class BaseMultiCombiner : IOutputCombiner<VBuffer<Single>>
+    public abstract class BaseMultiCombiner : IMultiClassOutputCombiner
     {
         protected readonly IHost Host;
 

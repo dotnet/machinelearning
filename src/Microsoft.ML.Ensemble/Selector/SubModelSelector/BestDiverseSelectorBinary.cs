@@ -27,10 +27,10 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
             get { return DisagreementDiversityMeasure.LoadName; }
         }
 
-        [TlcModule.Component(Name = BestDiverseSelectorBinary.LoadName, FriendlyName = BestDiverseSelectorBinary.UserName)]
-        public sealed class Arguments : DiverseSelectorArguments, ISupportSubModelSelectorFactory<Single>
+        [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
+        public sealed class Arguments : DiverseSelectorArguments, ISupportBinarySubModelSelectorFactory
         {
-            public ISubModelSelector<Single> CreateComponent(IHostEnvironment env) => new BestDiverseSelectorBinary(env, this);
+            public IBinarySubModelSelector CreateComponent(IHostEnvironment env) => new BestDiverseSelectorBinary(env, this);
         }
 
         public BestDiverseSelectorBinary(IHostEnvironment env, Arguments args)

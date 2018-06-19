@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 
 [assembly: LoadableClass(MulticlassDataPartitionEnsembleTrainer.Summary, typeof(MulticlassDataPartitionEnsembleTrainer),
@@ -29,7 +30,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     /// </summary>
     public sealed class MulticlassDataPartitionEnsembleTrainer :
         EnsembleTrainerBase<VBuffer<Single>, EnsembleMultiClassPredictor,
-        IMulticlassSubModelSelector, IOutputCombiner<VBuffer<Single>>, SignatureMultiClassClassifierTrainer>,
+        IMulticlassSubModelSelector, IMultiClassOutputCombiner, SignatureMultiClassClassifierTrainer>,
         IModelCombiner<WeightedValue<TVectorPredictor>, TVectorPredictor>
     {
         public const string LoadNameValue = "WeightedEnsembleMulticlass";
@@ -38,6 +39,14 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public sealed class Arguments : ArgumentsBase
         {
+            [Argument(ArgumentType.Multiple, HelpText = "Algorithm to prune the base learners for selective Ensemble", ShortName = "pt", SortOrder = 4)]
+            [TGUI(Label = "Sub-Model Selector(pruning) Type", Description = "Algorithm to prune the base learners for selective Ensemble")]
+            public ISupportMulticlassSubModelSelectorFactory SubModelSelectorType;
+
+            [Argument(ArgumentType.Multiple, HelpText = "Output combiner", ShortName = "oc", SortOrder = 5)]
+            [TGUI(Label = "Output combiner", Description = "Output combiner type")]
+            public ISupportMulticlassOutputCombinerFactory OutputCombiner;
+
             public Arguments()
             {
                 BasePredictors = new[] { new SubComponent<ITrainer<RoleMappedData, TVectorPredictor>, SignatureMultiClassClassifierTrainer>("MultiClassLogisticRegression") };
@@ -46,9 +55,14 @@ namespace Microsoft.ML.Runtime.Ensemble
             }
         }
 
+        private readonly ISupportMulticlassOutputCombinerFactory _outputCombiner;
+
         public MulticlassDataPartitionEnsembleTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, LoadNameValue)
         {
+            SubModelSelector = args.SubModelSelectorType.CreateComponent(Host);
+            _outputCombiner = args.OutputCombiner;
+            Combiner = args.OutputCombiner.CreateComponent(Host);
         }
 
         public override PredictionKind PredictionKind { get { return PredictionKind.MultiClassClassification; } }
@@ -56,7 +70,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         public override EnsembleMultiClassPredictor CreatePredictor()
         {
             var combiner = Combiner;
-            return new EnsembleMultiClassPredictor(Host, CreateModels<TVectorPredictor>(), combiner);
+            return new EnsembleMultiClassPredictor(Host, CreateModels<TVectorPredictor>(), combiner as IMultiClassOutputCombiner);
         }
 
         public TVectorPredictor CombineModels(IEnumerable<WeightedValue<TVectorPredictor>> models)
@@ -67,7 +81,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             var predictor = new EnsembleMultiClassPredictor(Host,
                 models.Select(k => new FeatureSubsetModel<TVectorPredictor>(k.Value)).ToArray(),
-                Args.OutputCombiner.CreateComponent(Host), weights);
+                _outputCombiner.CreateComponent(Host), weights);
 
             return predictor;
         }

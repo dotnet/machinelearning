@@ -36,13 +36,13 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
-        public sealed class Arguments: ISupportOutputCombinerFactory<Single>
+        public sealed class Arguments: ISupportBinaryOutputCombinerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the weights for each model", ShortName = "wn", SortOrder = 50)]
             [TGUI(Label = "Weightage Name", Description = "The weights are calculated according to the selected metric")]
             public WeightageKind WeightageName = WeightageKind.Auc;
 
-            public IOutputCombiner<float> CreateComponent(IHostEnvironment env) => new WeightedAverage(env, this);
+            public IBinaryOutputCombiner CreateComponent(IHostEnvironment env) => new WeightedAverage(env, this);
         }
 
         private WeightageKind _weightageKind;

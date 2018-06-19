@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
 
                 if (BatchSize > 0)
                 {
-                    // REVIEW shonk: How should we carve the data into batches?
+                    // REVIEW: How should we carve the data into batches?
                     ch.Warning("Batch support is temporarily disabled");
                 }
 

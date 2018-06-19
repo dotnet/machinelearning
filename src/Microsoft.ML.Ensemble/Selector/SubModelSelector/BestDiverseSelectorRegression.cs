@@ -28,9 +28,9 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
-        public sealed class Arguments : DiverseSelectorArguments, ISupportSubModelSelectorFactory<Single>
+        public sealed class Arguments : DiverseSelectorArguments, ISupportRegressionSubModelSelectorFactory
         {
-            public ISubModelSelector<Single> CreateComponent(IHostEnvironment env) => new BestDiverseSelectorRegression(env, this);
+            public IRegressionSubModelSelector CreateComponent(IHostEnvironment env) => new BestDiverseSelectorRegression(env, this);
         }
 
         public BestDiverseSelectorRegression(IHostEnvironment env, Arguments args)

@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             Host.AssertNonEmpty(src);
             Host.Assert(weights == null || Utils.Size(weights) == Utils.Size(src));
 
-            // REVIEW shonk: Should this be tolerant of NaNs?
+            // REVIEW: Should this be tolerant of NaNs?
             int len = GetClassCount(src);
             if (!TryNormalize(src))
             {

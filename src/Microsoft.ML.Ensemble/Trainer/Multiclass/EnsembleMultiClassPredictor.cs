@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         public ColumnType OutputType { get { return _outputType; } }
 
         internal EnsembleMultiClassPredictor(IHostEnvironment env, FeatureSubsetModel<TVectorPredictor>[] models,
-            IOutputCombiner<VBuffer<Single>> combiner, Single[] weights = null)
+            IMultiClassOutputCombiner combiner, Single[] weights = null)
             : base(env, RegistrationName, models, combiner, weights)
         {
             InitializeMappers(out _mappers, out _inputType, out _outputType);

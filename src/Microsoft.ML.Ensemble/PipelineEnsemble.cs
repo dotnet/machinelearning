@@ -240,7 +240,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 }
             }
 
-            public ImplOne(IHostEnvironment env, IPredictorModel[] predictors, IOutputCombiner<Single> combiner, string scoreColumnKind)
+            public ImplOne(IHostEnvironment env, IPredictorModel[] predictors, IRegressionOutputCombiner combiner, string scoreColumnKind)
                 : base(env, predictors, combiner, LoaderSignature, scoreColumnKind)
             {
             }
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             private readonly VectorType _scoreType;
 
-            public ImplVec(IHostEnvironment env, IPredictorModel[] predictors, IOutputCombiner<VBuffer<Single>> combiner)
+            public ImplVec(IHostEnvironment env, IPredictorModel[] predictors, IMultiClassOutputCombiner combiner)
                 : base(env, predictors, combiner, LoaderSignature, MetadataUtils.Const.ScoreColumnKind.MultiClassClassification)
             {
                 int classCount = CheckLabelColumn(Host, predictors, false);
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
 
-            public ImplOneWithCalibrator(IHostEnvironment env, IPredictorModel[] predictors, IOutputCombiner<Single> combiner)
+            public ImplOneWithCalibrator(IHostEnvironment env, IPredictorModel[] predictors, IBinaryOutputCombiner combiner)
                 : base(env, predictors, combiner, LoaderSignature, MetadataUtils.Const.ScoreColumnKind.BinaryClassification)
             {
                 Host.Assert(_scoreColumnKind == MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
@@ -515,18 +515,18 @@ namespace Microsoft.ML.Runtime.Ensemble
             switch (scoreColumnKind)
             {
                 case MetadataUtils.Const.ScoreColumnKind.BinaryClassification:
-                    var binaryCombiner = combiner as IOutputCombiner<Single>;
+                    var binaryCombiner = combiner as IBinaryOutputCombiner;
                     if (binaryCombiner == null)
                         throw env.Except("Combiner type incompatible with score column kind");
                     return new ImplOneWithCalibrator(env, predictors, binaryCombiner);
                 case MetadataUtils.Const.ScoreColumnKind.Regression:
                 case MetadataUtils.Const.ScoreColumnKind.AnomalyDetection:
-                    var regressionCombiner = combiner as IOutputCombiner<Single>;
+                    var regressionCombiner = combiner as IRegressionOutputCombiner;
                     if (regressionCombiner == null)
                         throw env.Except("Combiner type incompatible with score column kind");
                     return new ImplOne(env, predictors, regressionCombiner, scoreColumnKind);
                 case MetadataUtils.Const.ScoreColumnKind.MultiClassClassification:
-                    var vectorCombiner = combiner as IOutputCombiner<VBuffer<Single>>;
+                    var vectorCombiner = combiner as IMultiClassOutputCombiner;
                     if (vectorCombiner == null)
                         throw env.Except("Combiner type incompatible with score column kind");
                     return new ImplVec(env, predictors, vectorCombiner);

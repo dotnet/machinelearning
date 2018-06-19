@@ -32,9 +32,9 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = Average.UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<VBuffer<Single>>
+        public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
         {
-            public IOutputCombiner<VBuffer<float>> CreateComponent(IHostEnvironment env) => new MultiAverage(env, this);
+            public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiAverage(env, this);
         }
 
         public MultiAverage(IHostEnvironment env, Arguments args)

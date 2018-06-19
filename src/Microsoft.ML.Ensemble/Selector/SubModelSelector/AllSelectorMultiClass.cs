@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
-    public class AllSelectorMultiClass : BaseSubModelSelector<VBuffer<Single>>
+    public class AllSelectorMultiClass : BaseSubModelSelector<VBuffer<Single>>, IMulticlassSubModelSelector
     {
         public const string UserName = "All Selector";
         public const string LoadName = "AllSelectorMultiClass";

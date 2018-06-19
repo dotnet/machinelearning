@@ -22,14 +22,23 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Ensemble.EntryPoints
 {
     [TlcModule.Component(Name = AllSelector.LoadName, FriendlyName = AllSelector.UserName)]
-    public sealed class AllSelectorFactory : ISupportSubModelSelectorFactory<Single>
+    public sealed class AllSelectorFactory : ISupportBinarySubModelSelectorFactory, ISupportRegressionSubModelSelectorFactory
     {
         public ISubModelSelector<Single> CreateComponent(IHostEnvironment env) => new AllSelector(env);
+
+        IBinarySubModelSelector IComponentFactory<IBinarySubModelSelector>.CreateComponent(IHostEnvironment env) => new AllSelector(env);
+
+        IRegressionSubModelSelector IComponentFactory<IRegressionSubModelSelector>.CreateComponent(IHostEnvironment env) => new AllSelector(env);
     }
 
     [TlcModule.Component(Name = AllSelectorMultiClass.LoadName, FriendlyName = AllSelectorMultiClass.UserName)]
-    public sealed class AllSelectorMultiClassFactory : ISupportSubModelSelectorFactory<VBuffer<Single>>
+    public sealed class AllSelectorMultiClassFactory : ISupportMulticlassSubModelSelectorFactory
     {
-        public ISubModelSelector<VBuffer<Single>> CreateComponent(IHostEnvironment env) => new AllSelectorMultiClass(env);
+        public ISubModelSelector<VBuffer<float>> CreateComponent(IHostEnvironment env)
+        {
+            throw new NotImplementedException();
+        }
+
+        IMulticlassSubModelSelector IComponentFactory<IMulticlassSubModelSelector>.CreateComponent(IHostEnvironment env) => new AllSelectorMultiClass(env);
     }
 }

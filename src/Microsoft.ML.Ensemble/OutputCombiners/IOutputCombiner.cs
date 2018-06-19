@@ -42,11 +42,28 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
     {
     }
 
-    [TlcModule.ComponentKind("EnsembleOutputCombiner")]
-    public interface ISupportOutputCombinerFactory<TOutput> : IComponentFactory<IOutputCombiner<TOutput>>
+    public interface IMultiClassOutputCombiner : IOutputCombiner<VBuffer<Single>>
     {
     }
 
+
+    [TlcModule.ComponentKind("EnsembleMulticlassOutputCombiner")]
+    public interface ISupportMulticlassOutputCombinerFactory : IComponentFactory<IMultiClassOutputCombiner>
+    {
+    }
+
+    [TlcModule.ComponentKind("EnsembleBinaryOutputCombiner")]
+    public interface ISupportBinaryOutputCombinerFactory : IComponentFactory<IBinaryOutputCombiner>
+    {
+
+    }
+
+    [TlcModule.ComponentKind("EnsembleRegressionOutputCombiner")]
+    public interface ISupportRegressionOutputCombinerFactory : IComponentFactory<IRegressionOutputCombiner>
+    {
+
+    }
+    
     public interface IWeightedAverager
     {
         string WeightageMetricName { get; }

@@ -33,9 +33,20 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
 
     public delegate void SignatureEnsembleSubModelSelector();
 
-    [TlcModule.ComponentKind("EnsembleSubModelSelector")]
-    public interface ISupportSubModelSelectorFactory<TOutput> : IComponentFactory<ISubModelSelector<TOutput>>
+    [TlcModule.ComponentKind("EnsembleMulticlassSubModelSelector")]
+    public interface ISupportMulticlassSubModelSelectorFactory : IComponentFactory<IMulticlassSubModelSelector>
     {
     }
 
+    [TlcModule.ComponentKind("EnsembleBinarySubModelSelector")]
+    public interface ISupportBinarySubModelSelectorFactory: IComponentFactory<IBinarySubModelSelector>
+    {
+
+    }
+
+    [TlcModule.ComponentKind("EnsembleRegressionSubModelSelector")]
+    public interface ISupportRegressionSubModelSelectorFactory : IComponentFactory<IRegressionSubModelSelector>
+    {
+
+    }
 }

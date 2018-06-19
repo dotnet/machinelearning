@@ -76,7 +76,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 
         private void CombineCore(ref Single dst, Single[] src, Single[] weights)
         {
-            // REVIEW shonk: This mutates "src". We need to ensure that the documentation of
+            // REVIEW: This mutates "src". We need to ensure that the documentation of
             // combiners makes it clear that combiners are allowed to do this. Note that "normalization"
             // in the multi-class case also mutates.
             _host.AssertNonEmpty(src);

@@ -153,7 +153,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                             maps[i](ref tmp, ref predictions[i], ref probabilities[i]);
                     });
 
-                    // REVIEW ansarim(nihejazi): Bug 3303: DistributionEnsemble - AveragedWeights are used only in one of the two PredictDistributions overloads
+                    // REVIEW: DistributionEnsemble - AveragedWeights are used only in one of the two PredictDistributions overloads
                     combine(ref dst, predictions, Weights);
                 };
 

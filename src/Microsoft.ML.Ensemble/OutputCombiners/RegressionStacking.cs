@@ -33,14 +33,14 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<Single>
+        public sealed class Arguments : ArgumentsBase, ISupportRegressionOutputCombinerFactory
         {
             public Arguments()
             {
                 BasePredictorType = new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureRegressorTrainer>("FastTreeRegression");
             }
 
-            public IOutputCombiner<Single> CreateComponent(IHostEnvironment env) => new RegressionStacking(env, this);
+            public IRegressionOutputCombiner CreateComponent(IHostEnvironment env) => new RegressionStacking(env, this);
         }
 
         public RegressionStacking(IHostEnvironment env, Arguments args)

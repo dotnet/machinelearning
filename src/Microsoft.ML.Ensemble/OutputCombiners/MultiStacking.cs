@@ -20,7 +20,7 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
-    public sealed class MultiStacking : BaseStacking<VBuffer<Single>, SignatureMultiClassClassifierTrainer>, ICanSaveModel, IOutputCombiner<VBuffer<Single>>
+    public sealed class MultiStacking : BaseStacking<VBuffer<Single>, SignatureMultiClassClassifierTrainer>, ICanSaveModel, IMultiClassOutputCombiner
     {
         public const string LoadName = "MultiStacking";
         public const string LoaderSignature = "MultiStackingCombiner";
@@ -36,12 +36,13 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<VBuffer<Single>>
+        public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
         {
-            public IOutputCombiner<VBuffer<float>> CreateComponent(IHostEnvironment env) => new MultiStacking(env, this);
+            public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiStacking(env, this);
+
             public Arguments()
             {
-                // REVIEW tfinley: Kinda stupid. Perhaps we can have a better non-parametetric learner.
+                // REVIEW: Kinda stupid. Perhaps we can have a better non-parametetric learner.
                 BasePredictorType = new SubComponent<ITrainer<RoleMappedData, TVectorPredictor>, SignatureMultiClassClassifierTrainer>(
                     "OVA", "p=FastTreeBinaryClassification");
             }
@@ -75,7 +76,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         {
             Contracts.AssertNonEmpty(src);
 
-            // REVIEW shonk: Would there be any value in ever making dst sparse?
+            // REVIEW: Would there be any value in ever making dst sparse?
             int len = 0;
             for (int i = 0; i < src.Length; i++)
                 len += src[i].Length;

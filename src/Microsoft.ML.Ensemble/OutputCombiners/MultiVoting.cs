@@ -16,7 +16,7 @@ using Microsoft.ML.Runtime.Numeric;
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
-    // REVIEW shonk: Why is MultiVoting based on BaseMultiCombiner? Normalizing the model outputs
+    // REVIEW: Why is MultiVoting based on BaseMultiCombiner? Normalizing the model outputs
     // is senseless, so the base adds no real functionality.
     public sealed class MultiVoting : BaseMultiCombiner, ICanSaveModel
     {
@@ -34,10 +34,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = Voting.UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<VBuffer<Single>>
+        public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
         {
             public new bool Normalize = false;
-            public IOutputCombiner<VBuffer<float>> CreateComponent(IHostEnvironment env) => new MultiVoting(env, this);
+
+            public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiVoting(env, this);
         }
 
         public MultiVoting(IHostEnvironment env, Arguments args)

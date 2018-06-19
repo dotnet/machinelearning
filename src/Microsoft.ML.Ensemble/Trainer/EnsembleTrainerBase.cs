@@ -52,14 +52,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             [TGUI(Label = "Show Sub-Model Metrics")]
             public bool ShowMetrics;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Output combiner", ShortName = "oc", SortOrder = 5)]
-            [TGUI(Label = "Output combiner", Description = "Output combiner type")]
-            public ISupportOutputCombinerFactory <TOutput> OutputCombiner;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Algorithm to prune the base learners for selective Ensemble", ShortName = "pt", SortOrder = 4)]
-            [TGUI(Label = "Sub-Model Selector(pruning) Type",
-                Description = "Algorithm to prune the base learners for selective Ensemble")]
-            public ISupportSubModelSelectorFactory<TOutput> SubModelSelectorType;
 
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility =ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public SubComponent<ITrainer<RoleMappedData, IPredictorProducing<TOutput>>, TSig>[] BasePredictors;
@@ -75,9 +68,8 @@ namespace Microsoft.ML.Runtime.Ensemble
         protected readonly ITrainer<RoleMappedData, IPredictorProducing<TOutput>>[] Trainers;
 
         private readonly ISubsetSelector _subsetSelector;
-        private readonly ISubModelSelector<TOutput> _subModelSelector;
-
-        protected readonly IOutputCombiner<TOutput> Combiner;
+        protected ISubModelSelector<TOutput> SubModelSelector;
+        protected IOutputCombiner<TOutput> Combiner;
 
         protected List<FeatureSubsetModel<IPredictorProducing<TOutput>>> Models;
 
@@ -102,8 +94,6 @@ namespace Microsoft.ML.Runtime.Ensemble
                     ch.Warning("The base predictor count is greater than models count. Some of the base predictors will be ignored.");
 
                 _subsetSelector = Args.SamplingType.CreateComponent(Host);
-                _subModelSelector = Args.SubModelSelectorType.CreateComponent(Host);
-                Combiner = Args.OutputCombiner.CreateComponent(Host);
 
                 Trainers = new ITrainer<RoleMappedData, IPredictorProducing<TOutput>>[NumModels];
                 for (int i = 0; i < Trainers.Length; i++)
@@ -147,10 +137,10 @@ namespace Microsoft.ML.Runtime.Ensemble
             // 1. Subset Selection
             var stackingTrainer = Combiner as IStackingTrainer<TOutput>;
 
-            //REVIEW ansarim: Implement stacking for Batch mode.
+            //REVIEW: Implement stacking for Batch mode.
             ch.CheckUserArg(stackingTrainer == null || Args.BatchSize <= 0, nameof(Args.BatchSize), "Stacking works only with Non-batch mode");
 
-            var validationDataSetProportion = _subModelSelector.ValidationDatasetProportion;
+            var validationDataSetProportion = SubModelSelector.ValidationDatasetProportion;
             if (stackingTrainer != null)
                 validationDataSetProportion = Math.Max(validationDataSetProportion, stackingTrainer.ValidationDatasetProportion);
 
@@ -180,7 +170,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                                     Trainers[(int)index].CreatePredictor(),
                                     subset.SelectedFeatures,
                                     null);
-                                _subModelSelector.CalculateMetrics(model, _subsetSelector, subset, batch, needMetrics);
+                                SubModelSelector.CalculateMetrics(model, _subsetSelector, subset, batch, needMetrics);
                                 models[(int)index] = model;
                             }
                         }
@@ -197,7 +187,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (Args.ShowMetrics)
                     PrintMetrics(ch, modelsList);
 
-                modelsList = _subModelSelector.Prune(modelsList).ToList();
+                modelsList = SubModelSelector.Prune(modelsList).ToList();
 
                 if (stackingTrainer != null)
                     stackingTrainer.Train(modelsList, _subsetSelector.GetTestData(null, batch), Host);
@@ -226,7 +216,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         protected virtual void PrintMetrics(IChannel ch, List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models)
         {
-            // REVIEW tfinley: The formatting of this method is bizarre and seemingly not even self-consistent
+            // REVIEW: The formatting of this method is bizarre and seemingly not even self-consistent
             // w.r.t. its usage of |. Is this intentional?
             if (models.Count == 0 || models[0].Metrics == null)
                 return;

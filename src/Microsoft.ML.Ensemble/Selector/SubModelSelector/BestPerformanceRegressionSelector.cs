@@ -19,14 +19,15 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
     public sealed class BestPerformanceRegressionSelector : BaseBestPerformanceSelector<Single>, IRegressionSubModelSelector
     {
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportSubModelSelectorFactory<Single>
+        public sealed class Arguments : ArgumentsBase, ISupportRegressionSubModelSelectorFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the best performance", ShortName = "mn", SortOrder = 50)]
             [TGUI(Label = "Metric Name")]
             public RegressionEvaluator.Metrics MetricName = RegressionEvaluator.Metrics.L1;
 
-            public ISubModelSelector<Single> CreateComponent(IHostEnvironment env) => new BestPerformanceRegressionSelector(env, this);
+            public IRegressionSubModelSelector CreateComponent(IHostEnvironment env) => new BestPerformanceRegressionSelector(env, this);
         }
+
         public const string UserName = "Best Performance Selector";
         public const string LoadName = "BestPerformanceRegressionSelector";
 

@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
     {
         public const string UserName = "Multi Weighted Average";
         public const string LoadName = "MultiWeightedAverage";
-        public const string LoaderSignature = "MultiWeightedAverageCombiner";
+        public const string LoaderSignature = "MultiWeightedAverageComb";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -48,13 +48,13 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<VBuffer<Single>>
+        public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
         {
+            IMultiClassOutputCombiner IComponentFactory<IMultiClassOutputCombiner>.CreateComponent(IHostEnvironment env) => new MultiWeightedAverage(env, this);
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the weights for each model", ShortName = "wn", SortOrder = 50)]
             [TGUI(Label = "Metric Name", Description = "The weights are calculated according to the selected metric")]
             public MultiWeightageKind WeightageName = MultiWeightageKind.AccuracyMicroAvg;
-
-            public IOutputCombiner<VBuffer<Single>> CreateComponent(IHostEnvironment env) => new MultiWeightedAverage(env, this);
         }
 
         private readonly MultiWeightageKind _weightageKind;

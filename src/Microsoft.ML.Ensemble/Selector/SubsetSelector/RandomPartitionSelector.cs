@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
             args.Seed = (uint)rand.Next();
             IDataTransform view = new GenerateNumberTransform(Host, args, Data.Data);
 
-            // REVIEW shonk: This won't be very efficient when _size is large.
+            // REVIEW: This won't be very efficient when _size is large.
             for (int i = 0; i < Size; i++)
             {
                 var viewTrain = new RangeFilter(Host, new RangeFilter.Arguments() { Column = name, Min = (Double)i / Size, Max = (Double)(i + 1) / Size }, view);

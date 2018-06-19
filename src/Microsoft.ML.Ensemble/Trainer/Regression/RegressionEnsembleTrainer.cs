@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments),
@@ -32,6 +33,14 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public sealed class Arguments : ArgumentsBase
         {
+            [Argument(ArgumentType.Multiple, HelpText = "Algorithm to prune the base learners for selective Ensemble", ShortName = "pt", SortOrder = 4)]
+            [TGUI(Label = "Sub-Model Selector(pruning) Type", Description = "Algorithm to prune the base learners for selective Ensemble")]
+            public ISupportRegressionSubModelSelectorFactory SubModelSelectorType;
+
+            [Argument(ArgumentType.Multiple, HelpText = "Output combiner", ShortName = "oc", SortOrder = 5)]
+            [TGUI(Label = "Output combiner", Description = "Output combiner type")]
+            public ISupportRegressionOutputCombinerFactory OutputCombiner;
+
             public Arguments()
             {
                 BasePredictors = new[] { new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureRegressorTrainer>("OnlineGradientDescent") };
@@ -40,9 +49,14 @@ namespace Microsoft.ML.Runtime.Ensemble
             }
         }
 
+        private readonly ISupportRegressionOutputCombinerFactory _outputCombiner;
+
         public RegressionEnsembleTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, LoadNameValue)
         {
+            SubModelSelector = args.SubModelSelectorType.CreateComponent(Host);
+            _outputCombiner = args.OutputCombiner;
+            Combiner = args.OutputCombiner.CreateComponent(Host);
         }
 
         public override PredictionKind PredictionKind
@@ -60,7 +74,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var weights = models.Select(m => m.Weight).ToArray();
             if (weights.All(w => w == 1))
                 weights = null;
-            var combiner = Args.OutputCombiner.CreateComponent(Host);
+            var combiner = _outputCombiner.CreateComponent(Host);
             var p = models.First().Value;
 
             var predictor = new EnsemblePredictor(Host, p.PredictionKind,

@@ -16,16 +16,16 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
-    public class BestPerformanceSelectorMultiClass : BaseBestPerformanceSelector<VBuffer<Single>>
+    public class BestPerformanceSelectorMultiClass : BaseBestPerformanceSelector<VBuffer<Single>>, IMulticlassSubModelSelector
     {
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
-        public sealed class Arguments : ArgumentsBase,ISupportSubModelSelectorFactory<VBuffer<Single>>
+        public sealed class Arguments : ArgumentsBase, ISupportMulticlassSubModelSelectorFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the best performance", ShortName = "mn", SortOrder = 50)]
             [TGUI(Label = "Metric Name")]
             public MultiClassClassifierEvaluator.Metrics MetricName = MultiClassClassifierEvaluator.Metrics.AccuracyMicro;
 
-            public ISubModelSelector<VBuffer<Single>> CreateComponent(IHostEnvironment env) => new BestPerformanceSelectorMultiClass(env, this);
+            IMulticlassSubModelSelector IComponentFactory<IMulticlassSubModelSelector>.CreateComponent(IHostEnvironment env) => new BestPerformanceSelectorMultiClass(env, this);
         }
 
         public const string UserName = "Best Performance Selector";

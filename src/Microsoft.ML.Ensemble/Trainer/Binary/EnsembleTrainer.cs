@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
 using Microsoft.ML.Ensemble.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 
 [assembly: LoadableClass(EnsembleTrainer.Summary, typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
@@ -36,6 +37,15 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public sealed class Arguments : ArgumentsBase
         {
+            [Argument(ArgumentType.Multiple, HelpText = "Algorithm to prune the base learners for selective Ensemble", ShortName = "pt", SortOrder = 4)]
+            [TGUI(Label = "Sub-Model Selector(pruning) Type",
+                Description = "Algorithm to prune the base learners for selective Ensemble")]
+            public ISupportBinarySubModelSelectorFactory SubModelSelectorType;
+
+            [Argument(ArgumentType.Multiple, HelpText = "Output combiner", ShortName = "oc", SortOrder = 5)]
+            [TGUI(Label = "Output combiner", Description = "Output combiner type")]
+            public ISupportBinaryOutputCombinerFactory OutputCombiner;
+
             public Arguments()
             {
                 BasePredictors = new[] { new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureBinaryClassifierTrainer>("LinearSVM") };
@@ -44,9 +54,14 @@ namespace Microsoft.ML.Runtime.Ensemble
             }
         }
 
+        private readonly ISupportBinaryOutputCombinerFactory _outputCombiner;
+
         public EnsembleTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, LoadNameValue)
         {
+            SubModelSelector = args.SubModelSelectorType.CreateComponent(Host);
+            _outputCombiner = args.OutputCombiner;
+            Combiner = args.OutputCombiner.CreateComponent(Host);
         }
 
         public override PredictionKind PredictionKind
@@ -66,7 +81,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var weights = models.Select(m => m.Weight).ToArray();
             if (weights.All(w => w == 1))
                 weights = null;
-            var combiner = Args.OutputCombiner.CreateComponent(Host);
+            var combiner = _outputCombiner.CreateComponent(Host);
             var p = models.First().Value;
 
             TScalarPredictor predictor = null;

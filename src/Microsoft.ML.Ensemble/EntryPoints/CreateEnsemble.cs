@@ -296,7 +296,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             host.CheckValue(input, nameof(input));
             host.CheckNonEmpty(input.Models, nameof(input.Models));
 
-            IOutputCombiner<Single> combiner;
+            IRegressionOutputCombiner combiner;
             switch (input.ModelCombiner)
             {
                 case ScoreCombiner.Median:
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             using (var ms = new MemoryStream())
             {
-                // REVIEW yaeld (tfinley): This can be done more efficiently by adding a custom type of repository that
+                // REVIEW: This can be done more efficiently by adding a custom type of repository that
                 // doesn't actually save the data, but upon stream closure compares the results to the given repository
                 // and then discards it. Currently, however, this cannot be done because ModelSaveContext does not use
                 // an abstract class/interface, but rather the RepositoryWriter class.

@@ -155,7 +155,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 writer.WriteLine(";; Partition model {0}", i);
                 writer.WriteLine(";; Weight={0}", (Weights != null ? Weights[i] : 1));
 
-                // REVIEW ansarim: The featureName Collection names may vary for different base learners. 
+                // REVIEW: The featureName Collection names may vary for different base learners. 
                 // How do we get the right collection for the base learners?
                 if (Models[i].Predictor is ICanSaveSummary summaryModel)
                     summaryModel.SaveSummary(writer, schema);

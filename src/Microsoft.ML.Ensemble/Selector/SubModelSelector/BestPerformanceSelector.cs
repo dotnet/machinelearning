@@ -19,13 +19,13 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
     public sealed class BestPerformanceSelector : BaseBestPerformanceSelector<Single>, IBinarySubModelSelector
     {
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportSubModelSelectorFactory<Single>
+        public sealed class Arguments : ArgumentsBase, ISupportBinarySubModelSelectorFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the best performance", ShortName = "mn", SortOrder = 50)]
             [TGUI(Label = "Metric Name")]
             public BinaryClassifierEvaluator.Metrics MetricName = BinaryClassifierEvaluator.Metrics.Auc;
 
-            public ISubModelSelector<Single> CreateComponent(IHostEnvironment env) => new BestPerformanceSelector(env, this);
+            public IBinarySubModelSelector CreateComponent(IHostEnvironment env) => new BestPerformanceSelector(env, this);
         }
 
         public const string UserName = "Best Performance Selector";

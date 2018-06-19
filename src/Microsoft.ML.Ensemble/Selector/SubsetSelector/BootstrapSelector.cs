@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
         public sealed class Arguments : ArgumentsBase, ISupportSubsetSelectorFactory
         {
-            // REVIEW tfinley: This could be reintroduced by having the transform counting the
+            // REVIEW: This could be reintroduced by having the transform counting the
             // proportions of each label, then adjusting the lambdas accordingly. However, at
             // the current point in time supporting this non-default action is not considered
             // a priority.
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
         {
             for (int i = 0; i < Size; i++)
             {
-                // REVIEW tfinley: Consider ways to reintroduce "balanced" samples.
+                // REVIEW: Consider ways to reintroduce "balanced" samples.
                 var viewTrain = new BootstrapSampleTransform(Host, new BootstrapSampleTransform.Arguments(), Data.Data);
                 var dataTrain = RoleMappedData.Create(viewTrain, Data.Schema.GetColumnRoleNames());
                 yield return FeatureSelector.SelectFeatures(dataTrain, rand);

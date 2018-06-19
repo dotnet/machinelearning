@@ -145,11 +145,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                     maps[i] = m.GetMapper<VBuffer<Single>, TOutput>();
                 }
 
-                // REVIEW shonk: Should implement this better....
+                // REVIEW: Should implement this better....
                 var labels = new Single[100];
                 var features = new VBuffer<Single>[100];
                 int count = 0;
-                // REVIEW shonk: Should this include bad values or filter them?
+                // REVIEW: Should this include bad values or filter them?
                 using (var cursor = new FloatLabelCursor(data, CursOpt.AllFeatures | CursOpt.AllLabels))
                 {
                     TOutput[] predictions = new TOutput[maps.Length];

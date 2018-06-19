@@ -33,14 +33,14 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportOutputCombinerFactory<Single>
+        public sealed class Arguments : ArgumentsBase, ISupportBinaryOutputCombinerFactory
         {
             public Arguments()
             {
                 BasePredictorType = new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureBinaryClassifierTrainer>("FastTreeBinaryClassification");
             }
 
-            public IOutputCombiner<float> CreateComponent(IHostEnvironment env) => new Stacking(env, this);
+            public IBinaryOutputCombiner CreateComponent(IHostEnvironment env) => new Stacking(env, this);
         }
 
         public Stacking(IHostEnvironment env, Arguments args)

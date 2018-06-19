@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             if (card == type.VectorSize)
                 return data;
 
-            // REVIEW shonk: This doesn't preserve metadata on the features column. Should it?
+            // REVIEW: This doesn't preserve metadata on the features column. Should it?
             var name = data.Schema.Feature.Name;
             var view = LambdaColumnMapper.Create(
                 host, "FeatureSelector", data.Data, name, name, type, type,
