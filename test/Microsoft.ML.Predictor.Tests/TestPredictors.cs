@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         public IList<TestDataset> GetDatasetsForRegressorTest()
         {
-            return new[] { TestDatasets.housing };
+            return new[] { TestDatasets.winequality };
         }
 
         /// <summary>
@@ -350,6 +350,70 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        [Fact]
+        [TestCategory("Regressor"), TestCategory("Ensemble - Regression")]
+        public void RegressorEnsembleTest()
+        {
+            IList<PredictorAndArgs> regressionPredictors = new PredictorAndArgs[] { TestLearners.EnsembleRegression };
+            IList<TestDataset> regressionDatasets = GetDatasetsForRegressorTest();
+            RunAllTests(regressionPredictors, regressionDatasets);
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Regressor"), TestCategory("Ensemble - Regression")]
+        public void RegressorEnsembleNumModelsTest()
+        {
+            IList<PredictorAndArgs> regressionPredictors = new PredictorAndArgs[] { TestLearners.EnsembleRegressionNumModels };
+            IList<TestDataset> regressionDatasets = GetDatasetsForRegressorTest();
+            RunAllTests(regressionPredictors, regressionDatasets);
+            Done();
+        }
+
+        [Fact]
+        [ TestCategory("Regressor"), TestCategory("Ensemble - Regression")]
+        public void RegressorEnsembleAverageCombinerTest()
+        {
+            IList<PredictorAndArgs> regressionPredictors = new PredictorAndArgs[] { TestLearners.EnsembleRegressionAverageCombiner, };
+            IList<TestDataset> regressionDatasets = GetDatasetsForRegressorTest();
+            RunAllTests(regressionPredictors, regressionDatasets);
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Regressor"), TestCategory("Ensemble - Regression")]
+        public void RegressorEnsembleDiverseSelectorTest()
+        {
+            IList<PredictorAndArgs> regressionPredictors = new PredictorAndArgs[] { TestLearners.EnsembleRegressionDiverseSelector };
+            IList<TestDataset> regressionDatasets = GetDatasetsForRegressorTest();
+            RunAllTests(regressionPredictors, regressionDatasets);
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Regressor"), TestCategory("Ensemble - Regression")]
+        public void RegressorEnsemblePerformanceSelectorTest()
+        {
+            IList<PredictorAndArgs> regressionPredictors = new PredictorAndArgs[] { TestLearners.EnsembleRegressionPerformanceSelector };
+            IList<TestDataset> regressionDatasets = GetDatasetsForRegressorTest();
+            RunAllTests(regressionPredictors, regressionDatasets);
+            Done();
+        }
+
+        [Fact]
+        [ TestCategory("Regressor"), TestCategory("Ensemble - Regression"), TestCategory("FastTree")]
+        public void RegressorEnsembleStackingCombinerTest()
+        {
+            IList<PredictorAndArgs> regressionPredictors = new PredictorAndArgs[] { TestLearners.EnsembleRegressionStackingCombiner };
+            IList<TestDataset> regressionDatasets = GetDatasetsForRegressorTest();
+            RunMTAThread(() =>
+            {
+                // Default is a FastTree learner, so we have to push it into an MTA thread.
+                RunAllTests(regressionPredictors, regressionDatasets);
+            });
+            Done();
+        }
+
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Weighting Predictors")]
         [TestCategory("FastForest")]
@@ -565,7 +629,7 @@ namespace Microsoft.ML.Runtime.RunTests
             // case where the number of actual leaves is less than the number of maximum leaves per tree.
             RunMTAThread(() =>
             {
-                Run_TrainTest(TestLearners.FastTreeUnderbuiltRegressor, TestDatasets.housing, null, "Underbuilt");
+                Run_TrainTest(TestLearners.FastTreeUnderbuiltRegressor, TestDatasets.winequality, null, "Underbuilt");
             });
             Done();
         }
@@ -633,7 +697,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
-            Run_TrainTest(TestLearners.Ols, TestDatasets.housing);
+            Run_TrainTest(TestLearners.Ols, TestDatasets.winequality);
             Done();
         }
 
@@ -1689,4 +1753,7 @@ output Out [3] from H all;
         }
     }
 #endif
+
+
+
 }

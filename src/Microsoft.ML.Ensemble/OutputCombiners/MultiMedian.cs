@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(MultiMedian), typeof(MultiMedian.Arguments), typeof(SignatureCombiner),
     Median.UserName, MultiMedian.LoadName)]
-[assembly: LoadableClass(typeof(MultiMedian), null, typeof(SignatureLoadModel),Median.UserName, MultiMedian.LoaderSignature)]
+[assembly: LoadableClass(typeof(MultiMedian), null, typeof(SignatureLoadModel), Median.UserName, MultiMedian.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
@@ -98,7 +98,5 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                     dst = new VBuffer<Single>(len, values, dst.Indices);
                 };
         }
-
-       
     }
 }

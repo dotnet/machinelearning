@@ -145,19 +145,12 @@ namespace Microsoft.ML.Runtime.RunTests
             testFilename = "vw.dat"
         };
 
-        public static TestDataset housing = new TestDataset
-        {
-            name = "housing",
-            trainFilename = "housing.txt",
-            testFilename = "housing.txt"
-        };
-
         public static TestDataset winequality = new TestDataset
         {
             name = "wine",
             trainFilename = "external/winequality-white.csv",
             testFilename = "external/winequality-white.csv",
-            loaderSettings = "col=Label:R4:11 col=Features:R4:0-10 sep=; header+"
+            loaderSettings = "loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=semicolon header+}"
         };
 
         public static TestDataset msm = new TestDataset

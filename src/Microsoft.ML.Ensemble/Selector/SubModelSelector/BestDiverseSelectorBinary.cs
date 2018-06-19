@@ -49,7 +49,5 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         {
             get { return PredictionKind.BinaryClassification; }
         }
-
-        
     }
 }
