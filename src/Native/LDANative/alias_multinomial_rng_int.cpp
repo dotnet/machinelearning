@@ -1,0 +1,48 @@
+#include "alias_multinomial_rng_int.hpp"
+#include "rand_int_rng.h"
+#include <ctime>
+#include <list>
+#include <algorithm>
+#include <iostream>
+
+namespace wood
+{
+	AliasMultinomialRNGInt::AliasMultinomialRNGInt()
+		: n_(-1), internal_memory_(nullptr)
+	{
+
+	}
+	AliasMultinomialRNGInt::~AliasMultinomialRNGInt()
+	{
+		if (internal_memory_ != nullptr)
+		{
+			delete[]internal_memory_;
+		}
+	}
+	
+	int32_t AliasMultinomialRNGInt::Next(xorshift_rng& rng, std::vector<alias_k_v>& alias_kv)
+	{
+		// NOTE(jiyuan): stl uniform_real_distribution generates the highest quality random numbers
+		// yet, the other two are much faster
+		auto sample = rng.rand();
+		
+		// NOTE(jiyuan): use std::floor is too slow
+		// here we guarantee sample * n_ is nonnegative, this makes cast work
+		//int idx = std::floor(sample * n_);
+		int idx = sample / a_int_;
+
+		if (n_ <= idx)
+		{
+			idx = n_ - 1;
+		}
+
+		// CHECK(idx < K.size()) << "sample = " << sample << ",a_int_ = " << a_int_ << ",idx=" << idx;
+		// the following code is equivalent to 
+		// return sample < V_[idx] ? idx : K_[idx];
+		// but faster, see
+	    // http://stackoverflow.com/questions/6754454/speed-difference-between-if-else-and-ternary-operator-in-c
+		int m = -(sample < alias_kv[idx].v_);
+		return (idx & m) | (alias_kv[idx].k_ & ~m);
+		// return sample < V[idx] ? idx : K[idx];
+	}
+}

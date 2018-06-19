@@ -180,3 +180,4 @@ endfunction()
 
 add_subdirectory(CpuMathNative)
 add_subdirectory(FastTreeNative)
+add_subdirectory(LDANative)
