@@ -145,6 +145,13 @@ namespace Microsoft.ML.Runtime.RunTests
             testFilename = "vw.dat"
         };
 
+        public static TestDataset housing = new TestDataset
+        {
+            name = "housing",
+            trainFilename = "housing.txt",
+            testFilename = "housing.txt"
+        };
+
         public static TestDataset winequality = new TestDataset
         {
             name = "wine",
