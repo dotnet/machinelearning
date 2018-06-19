@@ -1,13 +1,13 @@
 ﻿# Entry Point JSON Graph format
 
-The entry point graph in ML.Net is an array of _nodes_. More information about the definition of entry points and classes that help construct entry point graphs 
+The entry point graph in ML.NET is an array of _nodes_. More information about the definition of entry points and classes that help construct entry point graphs 
 can be found in the [EntryPoint.md document](./EntryPoints.md). 
  
 Each node is an object with the following fields:
 
 - _name_: string. Required. Name of the entry point.
 - _inputs_: object. Optional. Specifies non-default inputs to the entry point. 
-Note that if the entry point has required inputs (which is very common), the _inputs_ field is requred.
+Note that if the entry point has required inputs (which is very common), the _inputs_ field is required.
 - _outputs_: object. Optional. Specifies the variables that will hold the node's outputs.
 
 ## Input and output types
@@ -38,8 +38,8 @@ The same variable can participate in many edges.
 - If the variable is present only in _inputs_, but never in _outputs_, it is a _graph input_. All graph inputs must be provided before
 a graph can be run.
 - The variable has a type, which is the type of inputs (and, optionally, output) that it appears in. If the type of the variable is 
-ambiguous, ML.Net throws an exception.
-- Circular references. The experiment graph is expected to be a DAG. If the circular dependency is detected, ML.Net throws an exception. 
+ambiguous, ML.NET throws an exception.
+- Circular references. The experiment graph is expected to be a DAG. If the circular dependency is detected, ML.NET throws an exception. 
 _Currently, this is done lazily: if we couldn't ever run a node because it's waiting for inputs, we throw._
 
 ### Variables for arrays and dictionaries.
