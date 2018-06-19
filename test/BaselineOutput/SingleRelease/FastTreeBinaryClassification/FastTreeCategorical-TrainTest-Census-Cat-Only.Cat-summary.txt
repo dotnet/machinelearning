@@ -1,0 +1,9 @@
+
+Per-feature gain summary for the boosted tree ensemble:
+	relationship.Not-in-family	1
+	education.Bachelors	0.739210160447933
+	occupation.Adm-clerical	0.619514507984866
+	marital-status.Never-married	0.478823481036688
+	workclass.State-gov	0.178910813028999
+	native-country.United-States	0.149840287997728
+	sex.Male	0.0407163800778101

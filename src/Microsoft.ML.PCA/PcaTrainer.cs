@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.PCA
         internal const string Summary = "This algorithm trains an approximate PCA using Randomized SVD algorithm. "
             + "This PCA can be made into Kernel PCA by using Random Fourier Features transform.";
 
-        public class Arguments : LearnerInputBaseWithWeight
+        public class Arguments : UnsupervisedLearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10,20,40,80")]
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Runtime.PCA
             public int Oversampling = 20;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean", ShortName = "center")]
-            [TlcModule.SweepableDiscreteParam("Center", null, isBool:true)]
+            [TlcModule.SweepableDiscreteParam("Center", null, isBool: true)]
             public bool Center = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation", ShortName = "seed")]
@@ -294,8 +294,7 @@ namespace Microsoft.ML.Runtime.PCA
 
             return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.AnomalyDetectionOutput>(host, input,
                 () => new RandomizedPcaTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
     }
 
@@ -308,6 +307,7 @@ namespace Microsoft.ML.Runtime.PCA
     // REVIEW: move the predictor to a different file and fold EigenUtils.cs to this file.
     public sealed class PcaPredictor : PredictorBase<Float>,
         IValueMapper,
+        ICanGetSummaryAsIDataView,
         ICanSaveInTextFormat, ICanSaveModel, ICanSaveSummary
     {
         public const string LoaderSignature = "pcaAnomExec";
@@ -467,6 +467,26 @@ namespace Microsoft.ML.Runtime.PCA
                     (ind, val) => { if (val != 0) writer.Write(" {0}:{1}", ind, val); });
                 writer.WriteLine();
             }
+        }
+
+        public IDataView GetSummaryDataView(RoleMappedSchema schema)
+        {
+            var bldr = new ArrayDataViewBuilder(Host);
+
+            var cols = new VBuffer<Float>[_rank + 1];
+            var names = new string[_rank + 1];
+            for (var i = 0; i < _rank; ++i)
+            {
+                names[i] = "EigenVector" + i;
+                cols[i] = _eigenVectors[i];
+            }
+            names[_rank] = "MeanVector";
+            cols[_rank] = _mean;
+
+            bldr.AddColumn("VectorName", names);
+            bldr.AddColumn("VectorData", NumberType.R4, cols);
+
+            return bldr.GetDataView();
         }
 
         public ColumnType InputType

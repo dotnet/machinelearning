@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Models
 {
@@ -18,33 +19,31 @@ namespace Microsoft.ML.Models
         {
         }
 
-        internal static RegressionMetrics FromOverallMetrics(IHostEnvironment env, IDataView overallMetrics)
+        internal static List<RegressionMetrics> FromOverallMetrics(IHostEnvironment env, IDataView overallMetrics)
         {
             Contracts.AssertValue(env);
             env.AssertValue(overallMetrics);
 
             var metricsEnumerable = overallMetrics.AsEnumerable<SerializationClass>(env, true, ignoreMissingColumns: true);
-            var enumerator = metricsEnumerable.GetEnumerator();
-            if (!enumerator.MoveNext())
+            if (!metricsEnumerable.GetEnumerator().MoveNext())
             {
                 throw env.Except("The overall RegressionMetrics didn't have any rows.");
             }
 
-            SerializationClass metrics = enumerator.Current;
-
-            if (enumerator.MoveNext())
+            List<RegressionMetrics> metrics = new List<RegressionMetrics>();
+            foreach (var metric in metricsEnumerable)
             {
-                throw env.Except("The overall RegressionMetrics contained more than 1 row.");
+                metrics.Add(new RegressionMetrics()
+                {
+                    L1 = metric.L1,
+                    L2 = metric.L2,
+                    Rms = metric.Rms,
+                    LossFn = metric.LossFn,
+                    RSquared = metric.RSquared,
+                });
             }
 
-            return new RegressionMetrics()
-            {
-                L1 = metrics.L1,
-                L2 = metrics.L2,
-                Rms = metrics.Rms,
-                LossFn = metrics.LossFn,
-                RSquared = metrics.RSquared,
-            };
+            return metrics;
         }
 
         /// <summary>
@@ -72,7 +71,7 @@ namespace Microsoft.ML.Models
         public double L2 { get; private set; }
 
         /// <summary>
-        /// Gets the root mean square loss (or RMC) which is the square root of the L2 loss.
+        /// Gets the root mean square loss (or RMS) which is the square root of the L2 loss.
         /// </summary>
         public double Rms { get; private set; }
 
@@ -94,7 +93,7 @@ namespace Microsoft.ML.Models
         /// <summary>
         /// This class contains the public fields necessary to deserialize from IDataView.
         /// </summary>
-        private class SerializationClass
+        private sealed class SerializationClass
         {
 #pragma warning disable 649 // never assigned
             [ColumnName(Runtime.Data.RegressionEvaluator.L1)]

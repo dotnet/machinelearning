@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("SDCA")]
         public void LinearClassifierTest()
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         public void BinaryClassifierTesterThresholdingTest()
         {
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeBinaryClassificationCategoricalSplitTest()
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeBinaryClassificationNoOpGroupIdTest()
@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeHighMinDocsTest()
@@ -1035,44 +1035,62 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         /// <summary>
-        ///A test for calibrators
+        ///A test for no calibrators
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Calibrator")]
-        public void CalibratorPerceptronTest()
+        public void DefaultCalibratorPerceptronTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(
-                new[] { TestLearners.perceptronDefault },
-                datasets,
-                new string[] { "cali={}" }, "nocalibration");
-            RunAllTests(
-                new[] { TestLearners.perceptronDefault },
-                datasets,
-                new[] { "cali=PAV" }, "PAVcalibration");
-            RunAllTests(
-            new[] { TestLearners.perceptronDefault },
-                datasets,
-                new string[] { "numcali=200" }, "calibrateRandom");
+            RunAllTests( new[] { TestLearners.perceptronDefault }, datasets, new string[] { "cali={}" }, "nocalibration");
             Done();
         }
 
         /// <summary>
-        ///A test for calibrators
+        ///A test for PAV calibrators
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Calibrator")]
-        public void CalibratorLinearSvmTest()
+        public void PAVCalibratorPerceptronTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(
-                new[] { TestLearners.linearSVM },
-                datasets,
-                new string[] { "cali={}" }, "nocalibration");
-            RunAllTests(
-                new[] { TestLearners.linearSVM },
-                datasets,
-                new string[] { "cali=PAV" }, "PAVcalibration");
+            RunAllTests( new[] { TestLearners.perceptronDefault }, datasets, new[] { "cali=PAV" }, "PAVcalibration");
+            Done();
+        }
+
+        /// <summary>
+        ///A test for random calibrators
+        ///</summary>
+        [Fact]
+        [TestCategory("Calibrator")]
+        public void RandomCalibratorPerceptronTest()
+        {
+            var datasets = GetDatasetsForCalibratorTest();
+            RunAllTests( new[] { TestLearners.perceptronDefault }, datasets, new string[] { "numcali=200" }, "calibrateRandom");
+            Done();
+        }
+
+        /// <summary>
+        ///A test for default calibrators
+        ///</summary>
+        [Fact]
+        [TestCategory("Calibrator")]
+        public void NoCalibratorLinearSvmTest()
+        {
+            var datasets = GetDatasetsForCalibratorTest();
+            RunAllTests( new[] { TestLearners.linearSVM }, datasets, new string[] { "cali={}" }, "nocalibration");
+            Done();
+        }
+
+        /// <summary>
+        ///A test for PAV calibrators
+        ///</summary>
+        [Fact]
+        [TestCategory("Calibrator")]
+        public void PAVCalibratorLinearSvmTest()
+        {
+            var datasets = GetDatasetsForCalibratorTest();
+            RunAllTests( new[] { TestLearners.linearSVM }, datasets, new string[] { "cali=PAV" }, "PAVcalibration");
             Done();
         }
 
@@ -1197,8 +1215,7 @@ output Out [3] from H all;
             Done();
         }
 
-#if !CORECLR
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
@@ -1207,11 +1224,12 @@ output Out [3] from H all;
 
             // REVIEW: This next test was misbehaving in a strange way that seems to have gone away
             // mysteriously (bad build?).
-            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.azureCounterUnlabeled, summary: true);
+            // REVIEW: enable this test afte Expr transform is available. Currently maml breaks on xf=Expr setting
+            // Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.azureCounterUnlabeled, summary: true);
 
             Done();
         }
-#endif
+
         /// <summary>
         ///A test for one-class svm (libsvm wrapper)
         ///</summary>

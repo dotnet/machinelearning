@@ -24,7 +24,7 @@
     <PackageLicenseUrl>https://github.com/dotnet/machinelearning/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://dot.net/ml</PackageProjectUrl>
     <PackageIconUrl>https://aka.ms/mlnetlogo</PackageIconUrl>
-    <PackageReleaseNotes>https://github.com/dotnet/machinelearning/tree/master/Documentation/release-notes</PackageReleaseNotes>
+    <PackageReleaseNotes>https://aka.ms/mlnetreleasenotes</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

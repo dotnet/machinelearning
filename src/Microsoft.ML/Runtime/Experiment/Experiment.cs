@@ -34,7 +34,6 @@ namespace Microsoft.ML.Runtime
         private readonly JsonSerializer _serializer;
         private readonly SerializationHelper _helper;
         private EntryPointGraph _graph;
-
         public Experiment(Runtime.IHostEnvironment env)
         {
             _env = env;

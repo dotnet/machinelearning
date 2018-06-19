@@ -196,21 +196,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
         private RecipeInference.SuggestedRecipe.SuggestedLearner[] GetTopLearners(IEnumerable<PipelinePattern> history)
         {
             var weights = LearnerHistoryToWeights(history.ToArray(), IsMaximizingMetric);
-            var topKTuples = new Tuple<double, int>[_topK];
-
-            for (int i = 0; i < weights.Length; i++)
-            {
-                if (i < _topK)
-                    topKTuples[i] = new Tuple<double, int>(weights[i], i);
-                else
-                {
-                    for (int j = 0; j < topKTuples.Length; j++)
-                        if (weights[i] > topKTuples[j].Item1)
-                            topKTuples[j] = new Tuple<double, int>(weights[i], i);
-                }
-            }
-
-            return topKTuples.Select(t => AvailableLearners[t.Item2]).ToArray();
+            return weights.Select((w, i) => new { Weight = w, Index = i })
+                .OrderByDescending(x => x.Weight)
+                .Take(_topK)
+                .Select(t=>AvailableLearners[t.Index]).ToArray();
         }
 
         public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates)

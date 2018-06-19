@@ -98,12 +98,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
             public static SupportedMetric ByName(string name)
             {
                 var fields =
-                    typeof(SupportedMetric).GetMembers(BindingFlags.Static | BindingFlags.Public)
-                    .Where(s => s.MemberType == MemberTypes.Field);
+                    typeof(SupportedMetric).GetFields(BindingFlags.Static | BindingFlags.Public);
+
                 foreach (var field in fields)
                 {
-                    if (name.Equals(field.Name, StringComparison.OrdinalIgnoreCase))
-                        return (SupportedMetric)typeof(SupportedMetric).GetField(field.Name).GetValue(null);
+                    var metric = (SupportedMetric)field.GetValue(Auc);
+                    if (name.Equals(metric.Name, StringComparison.OrdinalIgnoreCase))
+                        return metric;
                 }
                 throw new NotSupportedException($"Metric '{name}' not supported.");
             }
@@ -158,7 +159,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     return false;
 
                 string dataVar = firstNodeInputs.Value<String>(nameOfData);
-                ectx.Check(VariableBinding.IsValidVariableName(ectx, dataVar), $"Invalid variable name {dataVar}.");
+                if (!VariableBinding.IsValidVariableName(ectx, dataVar))
+                    throw ectx.ExceptParam(nameof(nameOfData), $"Invalid variable name {dataVar}.");
 
                 variableName = dataVar.Substring(1);
                 return true;
@@ -172,12 +174,14 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public sealed class RunSummary
         {
             public double MetricValue { get; }
+            public double TrainingMetricValue { get; }
             public int NumRowsInTraining { get; }
             public long RunTimeMilliseconds { get; }
 
-            public RunSummary(double metricValue, int numRows, long runTimeMilliseconds)
+            public RunSummary(double metricValue, int numRows, long runTimeMilliseconds, double trainingMetricValue)
             {
                 MetricValue = metricValue;
+                TrainingMetricValue = trainingMetricValue;
                 NumRowsInTraining = numRows;
                 RunTimeMilliseconds = runTimeMilliseconds;
             }
@@ -303,7 +307,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 var stopwatch = new Stopwatch();
                 var probabilityUtils = new Sweeper.Algorithms.SweeperProbabilityUtils(_host);
 
-                 while (!_terminator.ShouldTerminate(_history))
+                while (!_terminator.ShouldTerminate(_history))
                 {
                     // Get next set of candidates
                     var currentBatchSize = batchSize;
@@ -341,16 +345,17 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 // Run pipeline, and time how long it takes
                 stopwatch.Restart();
-                double d = candidate.RunTrainTestExperiment(_trainData.Take(randomizedNumberOfRows),
-                    _testData, Metric, TrainerKind);
+                candidate.RunTrainTestExperiment(_trainData.Take(randomizedNumberOfRows),
+                    _testData, Metric, TrainerKind, out var testMetricVal, out var trainMetricVal);
                 stopwatch.Stop();
 
                 // Handle key collisions on sorted list
-                while (_sortedSampledElements.ContainsKey(d))
-                    d += 1e-10;
+                while (_sortedSampledElements.ContainsKey(testMetricVal))
+                    testMetricVal += 1e-10;
 
                 // Save performance score
-                candidate.PerformanceSummary = new RunSummary(d, randomizedNumberOfRows, stopwatch.ElapsedMilliseconds);
+                candidate.PerformanceSummary =
+                    new RunSummary(testMetricVal, randomizedNumberOfRows, stopwatch.ElapsedMilliseconds, trainMetricVal);
                 _sortedSampledElements.Add(candidate.PerformanceSummary.MetricValue, candidate);
                 _history.Add(candidate);
             }
@@ -579,11 +584,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
             RecipeInference.InferRecipesFromData(env, trainDataPath, schemaDefinitionFile,
                 out var _, out schemaDefinition, out var _, true);
 
+#pragma warning disable 0618
             var data = ImportTextData.ImportText(env, new ImportTextData.Input
             {
                 InputFile = new SimpleFileHandle(env, trainDataPath, false, false),
                 CustomSchema = schemaDefinition
             }).Data;
+#pragma warning restore 0618
             var splitOutput = TrainTestSplit.Split(env, new TrainTestSplit.Input { Data = data, Fraction = 0.8f });
             AutoMlMlState amls = new AutoMlMlState(env, metric, autoMlEngine, terminator, trainerKind,
                 splitOutput.TrainData.Take(numOfSampleRows), splitOutput.TestData.Take(numOfSampleRows));

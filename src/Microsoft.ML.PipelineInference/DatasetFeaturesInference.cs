@@ -507,7 +507,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 }
 
                 if (args.PrettyPrint)
-                    jsonString = JsonConvert.SerializeObject(features, Formatting.Indented);
+                    jsonString = JsonConvert.SerializeObject(features, Newtonsoft.Json.Formatting.Indented);
                 else
                     jsonString = JsonConvert.SerializeObject(features);
 

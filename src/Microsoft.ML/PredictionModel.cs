@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,9 +25,42 @@ namespace Microsoft.ML
             _predictorModel = new Runtime.EntryPoints.TransformModel(_env, stream);
         }
 
-        internal Runtime.EntryPoints.TransformModel PredictorModel
+        internal TransformModel PredictorModel
         {
             get { return _predictorModel; }
+        }
+
+        /// <summary>
+        /// Returns labels that correspond to indices of the score array in the case of 
+        /// multi-class classification problem.
+        /// </summary>
+        /// <param name="names">Label to score mapping</param>
+        /// <param name="scoreColumnName">Name of the score column</param>
+        /// <returns></returns>
+        public bool TryGetScoreLabelNames(out string[] names, string scoreColumnName = DefaultColumnNames.Score)
+        {
+            names = null;
+            ISchema schema = _predictorModel.OutputSchema;
+            int colIndex = -1;
+            if (!schema.TryGetColumnIndex(scoreColumnName, out colIndex))
+                return false;
+
+            int expectedLabelCount = schema.GetColumnType(colIndex).ValueCount;
+            if (!schema.HasSlotNames(colIndex, expectedLabelCount))
+                return false;
+
+            VBuffer<DvText> labels = default;
+            schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref labels);
+
+            if (labels.Length != expectedLabelCount)
+                return false;
+
+            names = new string[expectedLabelCount];
+            int index = 0;
+            foreach (var label in labels.DenseValues())
+                names[index++] = label.ToString();
+
+            return true;
         }
 
         /// <summary>

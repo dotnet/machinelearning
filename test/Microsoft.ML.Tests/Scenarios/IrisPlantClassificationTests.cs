@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Trainers;
@@ -17,9 +18,9 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath("iris.txt");
 
-            var pipeline = new LearningPipeline();
+            var pipeline = new LearningPipeline(seed:1, conc:1);
 
-            pipeline.Add(new TextLoader<IrisData>(dataPath, useHeader: false, separator: "tab"));
+            pipeline.Add(new TextLoader(dataPath).CreateFrom<IrisData>(useHeader: false));
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
 
@@ -66,7 +67,7 @@ namespace Microsoft.ML.Scenarios
             // Note: Testing against the same data set as a simple way to test evaluation.
             // This isn't appropriate in real-world scenarios.
             string testDataPath = GetDataPath("iris.txt");
-            var testData = new TextLoader<IrisData>(testDataPath, useHeader: false, separator: "tab");
+            var testData = new TextLoader(testDataPath).CreateFrom<IrisData>(useHeader: false);
 
             var evaluator = new ClassificationEvaluator();
             evaluator.OutputTopKAcc = 3;

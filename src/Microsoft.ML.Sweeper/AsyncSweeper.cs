@@ -8,12 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-using Microsoft.ML;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper;
 
+[assembly: LoadableClass(typeof(SimpleAsyncSweeper), typeof(SweeperBase.ArgumentsBase), typeof(SignatureAsyncSweeper),
+    "Asynchronous Uniform Random Sweeper", "UniformRandomSweeper", "UniformRandom")]
+[assembly: LoadableClass(typeof(SimpleAsyncSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureAsyncSweeper),
+    "Asynchronous Random Grid Sweeper", "RandomGridSweeper", "RandomGrid")]
 [assembly: LoadableClass(typeof(DeterministicSweeperAsync), typeof(DeterministicSweeperAsync.Arguments), typeof(SignatureAsyncSweeper),
     "Asynchronous and Deterministic Sweeper", "DeterministicSweeper", "Deterministic")]
 
@@ -63,7 +66,7 @@ namespace Microsoft.ML.Runtime.Sweeper
     /// Expose existing <see cref="ISweeper"/>s as <see cref="IAsyncSweeper"/> with no synchronization over the past runs.
     /// Nelder-Mead requires synchronization so is not compatible with SimpleAsyncSweeperBase.
     /// </summary>
-    public class SimpleAsyncSweeper : IAsyncSweeper, IDisposable
+    public partial class SimpleAsyncSweeper : IAsyncSweeper, IDisposable
     {
         private readonly List<IRunResult> _results;
         private readonly object _lock;
@@ -83,6 +86,16 @@ namespace Microsoft.ML.Runtime.Sweeper
             _baseSweeper = baseSweeper;
             _lock = new object();
             _results = new List<IRunResult>();
+        }
+
+        public SimpleAsyncSweeper(IHostEnvironment env, UniformRandomSweeper.ArgumentsBase args)
+            : this(new UniformRandomSweeper(env, args))
+        {
+        }
+
+        public SimpleAsyncSweeper(IHostEnvironment env, RandomGridSweeper.Arguments args)
+            : this(new UniformRandomSweeper(env, args))
+        {
         }
 
         public void Update(int id, IRunResult result)

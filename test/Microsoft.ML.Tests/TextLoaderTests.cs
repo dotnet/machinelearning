@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
@@ -24,19 +25,22 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConstructorDoesntThrow()
         {
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt"));
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: true));
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", separator: "tab"));
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false, separator: "tab"));
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false, separator: "tab", false, false));
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false, separator: "tab", supportSparse: false));
-            Assert.NotNull(new TextLoader<Input>("fakeFile.txt", useHeader: false, separator: "tab", allowQuotedStrings: false));
+            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>());
+            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader:true));
+            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>());
+            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false));
+            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, supportSparse: false, trimWhitespace: false));
+            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, supportSparse: false));
+            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, allowQuotedStrings: false));
+
+            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<InputWithUnderscore>());
         }
+
 
         [Fact]
         public void CanSuccessfullyApplyATransform()
         {
-            var loader = new TextLoader<Input>("fakeFile.txt");
+            var loader = new Data.TextLoader("fakeFile.txt").CreateFrom<Input>();
 
             using (var environment = new TlcEnvironment())
             {
@@ -53,7 +57,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyRetrieveQuotedData()
         {
             string dataPath = GetDataPath("QuotingData.csv");
-            var loader = new TextLoader<QuoteInput>(dataPath, useHeader: true, separator: ",", allowQuotedStrings: true, supportSparse: false);
+            var loader = new Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: true, supportSparse: false);
             
             using (var environment = new TlcEnvironment())
             {
@@ -111,7 +115,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyRetrieveSparseData()
         {
             string dataPath = GetDataPath("SparseData.txt");
-            var loader = new TextLoader<SparseInput>(dataPath, useHeader: true, separator: "tab", allowQuotedStrings: false, supportSparse: true);
+            var loader = new Data.TextLoader(dataPath).CreateFrom<SparseInput>(useHeader: true, allowQuotedStrings: false, supportSparse: true);
 
             using (var environment = new TlcEnvironment())
             {
@@ -176,7 +180,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyTrimSpaces()
         {
             string dataPath = GetDataPath("TrimData.csv");
-            var loader = new TextLoader<QuoteInput>(dataPath, useHeader: true, separator: ",", allowQuotedStrings: false, supportSparse: false, trimWhitespace: true);
+            var loader = new Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: false, supportSparse: false, trimWhitespace: true);
 
             using (var environment = new TlcEnvironment())
             {
@@ -223,7 +227,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ThrowsExceptionWithPropertyName()
         {
-            Exception ex = Assert.Throws<ArgumentOutOfRangeException>( () => new TextLoader<ModelWithoutColumnAttribute>("fakefile.txt") );
+            Exception ex = Assert.Throws<InvalidOperationException>( () => new Data.TextLoader("fakefile.txt").CreateFrom<ModelWithoutColumnAttribute>() );
             Assert.StartsWith("String1 is missing ColumnAttribute", ex.Message);
         }
 
@@ -261,6 +265,15 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             [Column("1")]
             public float Number1;
+        }
+
+        public class InputWithUnderscore
+        {
+            [Column("0")]
+            public string String_1;
+
+            [Column("1")]
+            public float Number_1;
         }
 
         public class ModelWithoutColumnAttribute
