@@ -280,8 +280,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             SplitInfo bestSplitInfo = BestSplitInfoPerLeaf[bestLeaf];
 
             // perform the split in the tree, get new node names
-            int newInteriorNodeIndex = tree.Split(bestLeaf, bestSplitInfo.Feature, bestSplitInfo.CategoricalFeatureIndices, bestSplitInfo.CategoricalSplitRange, 
-                bestSplitInfo.CategoricalSplit, bestSplitInfo.Threshold, bestSplitInfo.LteOutput, bestSplitInfo.GTOutput, bestSplitInfo.Gain, bestSplitInfo.GainPValue, 
+            int newInteriorNodeIndex = tree.Split(bestLeaf, bestSplitInfo.Feature, bestSplitInfo.CategoricalFeatureIndices, bestSplitInfo.CategoricalSplitRange,
+                bestSplitInfo.CategoricalSplit, bestSplitInfo.Threshold, bestSplitInfo.LteOutput, bestSplitInfo.GTOutput, bestSplitInfo.Gain, bestSplitInfo.GainPValue,
                 bestSplitInfo.CategoricalFeatureGain);
 
             gtChild = ~tree.GetGtChildForNode(newInteriorNodeIndex);
@@ -515,13 +515,28 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 ? FeatureFirstUsePenalty
                 : FeatureReusePenalty * Math.Log(FeatureUseCount[firstFlockFeature] + 1);
 
-            //During feature split evaluation step the accumalated gain is subtracted from gainShift and multiplied with trust and 
-            //penalty. The below equation seperates out this quantity from each feature gain so that the cummalative 
-            //feature gain is roughly the same as the gain calculated in the feature split evaluation step.
-            double gainResidual = (gainShift * trust + usePenalty) / splitInfo.CategoricalFeatureIndices.Length;
+            int zeroCountBins = 0;
             for (int i = 0; i < splitInfo.CategoricalFeatureIndices.Length; i++)
             {
-                //REVIEW mzs: For categorical split points some gain values can be negative because when gain
+                int featureIndex = splitInfo.CategoricalFeatureIndices[i] - featureMin;
+
+                Contracts.Assert(featureIndex >= 0);
+
+                if (stats.GetBinStats(stats.GetMinBorder(featureIndex)).Count == 0)
+                    zeroCountBins++;
+            }
+
+            if (zeroCountBins == splitInfo.CategoricalFeatureIndices.Length)
+                return;
+
+            //During feature split evaluation step the accumalated gain is subtracted from gainShift and multiplied with trust and 
+            //penalty. The below equation seperates out this quantity from each feature gain so that the cumulative 
+            //feature gain is roughly the same as the gain calculated in the feature split evaluation step.
+            double gainResidual = (gainShift * trust + usePenalty) / (splitInfo.CategoricalFeatureIndices.Length - zeroCountBins);
+
+            for (int i = 0; i < splitInfo.CategoricalFeatureIndices.Length; i++)
+            {
+                //REVIEW: For categorical split points some gain values can be negative because when gain
                 //map is built we have to reverse engineer what each feature-value's gain was from the total 
                 //gain of split at that node. The reason we chose to do this way was to speed things up and 
                 //reduce memory footprint during training time. A better solution would be to keep track 
@@ -556,7 +571,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     previousShiftGain = currentShiftedGain;
                 }
                 else
-                    splitInfo.CategoricalFeatureGain[i] = -1 * gainResidual;
+                    splitInfo.CategoricalFeatureGain[i] = 0;
             }
 
 #if DEBUG
@@ -567,6 +582,28 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             Contracts.Assert(min / max >= 0.99999);
 
 #endif
+        }
+
+        public double ComputeShiftGain(double minShiftedGain, int totalCount, int gtCount,
+            int lteCount, FloatType sumTargets, FloatType sumGTTargets, FloatType sumGTWeights,
+            FloatType sumWeights)
+        {
+            // Calculate the shifted gain, including the LTE child.
+            double shiftGain = GetLeafSplitGain(gtCount, sumGTTargets, sumGTWeights)
+                + GetLeafSplitGain(lteCount, sumTargets - sumGTTargets, sumWeights - sumGTWeights);
+
+            // Test whether we are meeting the min shifted gain confidence criteria for this split.
+            if (shiftGain < minShiftedGain)
+                return shiftGain;
+
+            if (EntropyCoefficient > 0)
+            {
+                // Consider the entropy of the split.
+                double entropyGain = (totalCount * Math.Log(totalCount) - lteCount * Math.Log(lteCount) - gtCount * Math.Log(gtCount));
+                shiftGain += EntropyCoefficient * entropyGain;
+            }
+
+            return shiftGain;
         }
 
         /// <summary>
@@ -748,30 +785,26 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 {
                     histogram.FillSplitCandidatesCategorical(this, leafSplitCandidates,
                     flock, FeatureUseCount, FeatureFirstUsePenalty, FeatureReusePenalty, MinDocsInLeaf,
-                    HasWeights, GainConfidenceInSquaredStandardDeviations,
-                    EntropyCoefficient);
+                    HasWeights, GainConfidenceInSquaredStandardDeviations);
                 }
                 else if (Bundling == Bundle.AggregateLowPopulation)
                 {
                     histogram.FillSplitCandidatesCategoricalLowPopulation(this, leafSplitCandidates,
                     flock, FeatureUseCount, FeatureFirstUsePenalty, FeatureReusePenalty, MinDocsInLeaf,
-                    HasWeights, GainConfidenceInSquaredStandardDeviations,
-                    EntropyCoefficient);
+                    HasWeights, GainConfidenceInSquaredStandardDeviations);
                 }
                 else if (Bundling == Bundle.Adjacent)
                 {
                     histogram.FillSplitCandidatesCategoricalNeighborBundling(this, leafSplitCandidates,
                     flock, FeatureUseCount, FeatureFirstUsePenalty, FeatureReusePenalty, MinDocsInLeaf,
-                    HasWeights, GainConfidenceInSquaredStandardDeviations,
-                    EntropyCoefficient);
+                    HasWeights, GainConfidenceInSquaredStandardDeviations);
                 }
             }
             else
             {
                 histogram.FillSplitCandidates(this, leafSplitCandidates,
                     flock, FeatureUseCount, FeatureFirstUsePenalty, FeatureReusePenalty, MinDocsInLeaf,
-                    HasWeights, GainConfidenceInSquaredStandardDeviations,
-                    EntropyCoefficient);
+                    HasWeights, GainConfidenceInSquaredStandardDeviations);
             }
 
         }

@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             _trees = new List<RegressionTree>();
         }
 
-        public Ensemble(ModelLoadContext ctx, bool usingDefaultValues, bool categoricalSplits)
+        public Ensemble(ModelLoadContext ctx, bool usingDefaultValues, FastTreeCategoricalSplitVersion categoricalSplits)
         {
             // REVIEW: Verify the contents of the ensemble, both during building,
             // and during deserialization.

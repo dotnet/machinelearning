@@ -405,8 +405,9 @@ namespace Microsoft.ML.Runtime.FastTree
             return new VersionInfo(
                 modelSignature: "FTREE TW",
                 // verWrittenCur: 0x00010001, // Initial
-                //verWrittenCur: 0x00010002, // Add _defaultValueForMissing
-                verWrittenCur: 0x00010003, // Categorical splits.
+                // verWrittenCur: 0x00010002, // Add _defaultValueForMissing
+                // verWrittenCur: 0x00010003, // Categorical splits.
+                verWrittenCur: 0x00010004, //Categorical splits with gains.
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
@@ -417,6 +418,8 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override uint VerDefaultValueSerialized { get { return 0x00010002; } }
 
         protected override uint VerCategoricalSplitSerialized { get { return 0x00010003; } }
+
+        protected override uint VerCategoricalSplitWithGainsSerialized { get { return 0x00010004; } }
 
         internal FastTreeTweediePredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)

@@ -2775,6 +2775,13 @@ namespace Microsoft.ML.Runtime.FastTree
         }
     }
 
+    public enum FastTreeCategoricalSplitVersion
+    {
+        CategoricalSplitAbsent,
+        CategoricalSplit,
+        CategoricalSplitWithGains
+    }
+
     public abstract class FastTreePredictionWrapper :
         PredictorBase<Float>,
         IValueMapper,
@@ -2811,6 +2818,8 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected abstract uint VerCategoricalSplitSerialized { get; }
 
+        protected abstract uint VerCategoricalSplitWithGainsSerialized { get; }
+
         public ColumnType InputType { get; }
         public ColumnType OutputType => NumberType.Float;
         public bool CanSavePfa => true;
@@ -2846,12 +2855,14 @@ namespace Microsoft.ML.Runtime.FastTree
             // <PredictionKind> specific stuff
             ctx.CheckVersionInfo(ver);
             bool usingDefaultValues = false;
-            bool categoricalSplits = false;
+            FastTreeCategoricalSplitVersion categoricalSplits = FastTreeCategoricalSplitVersion.CategoricalSplitAbsent;
             if (ctx.Header.ModelVerWritten >= VerDefaultValueSerialized)
                 usingDefaultValues = true;
 
-            if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
-                categoricalSplits = true;
+            if (ctx.Header.ModelVerWritten >= VerCategoricalSplitWithGainsSerialized)
+                categoricalSplits = FastTreeCategoricalSplitVersion.CategoricalSplitWithGains;
+            else if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
+                categoricalSplits = FastTreeCategoricalSplitVersion.CategoricalSplit;
 
             TrainedEnsemble = new Ensemble(ctx, usingDefaultValues, categoricalSplits);
             MaxSplitFeatIdx = FindMaxFeatureIndex(TrainedEnsemble);
@@ -3158,14 +3169,8 @@ namespace Microsoft.ML.Runtime.FastTree
                 var name = names.GetItemOrDefault(pair.Key).ToString();
                 if (string.IsNullOrEmpty(name))
                     name = $"f{pair.Key}";
-                
-                //REVIEW: For categorical split points some gain values can be negative because when gain
-                //map is built we have to reverse engineer what each feature-value's gain was from the total 
-                //gain of split at that node. The reason we chose to do this way was to speed things up and 
-                //reduce memory footprint during training time. A better solution would be to keep track 
-                //of each split point's contribution during training but that is an expensive approach.
-                double value = pair.Value < 0 ? -1 * Math.Sqrt(Math.Abs(pair.Value)) : Math.Sqrt(pair.Value);
-                yield return new KeyValuePair<string, Double>(name, value * normFactor);
+
+                yield return new KeyValuePair<string, Double>(name, Math.Sqrt(pair.Value) * normFactor);
             }
         }
 

@@ -406,8 +406,9 @@ namespace Microsoft.ML.Runtime.FastTree
                 // verWrittenCur: 0x00010001, // Initial
                 // verWrittenCur: 0x00010002, // _numFeatures serialized
                 // verWrittenCur: 0x00010003, // Ini content out of predictor
-                //verWrittenCur: 0x00010004, // Add _defaultValueForMissing
-                verWrittenCur: 0x00010005, // Categorical splits.
+                // verWrittenCur: 0x00010004, // Add _defaultValueForMissing
+                // verWrittenCur: 0x00010005, // Categorical splits.
+                verWrittenCur: 0x00010006, //Categorical splits with gains.
                 verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
@@ -418,6 +419,7 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override uint VerDefaultValueSerialized { get { return 0x00010004; } }
 
         protected override uint VerCategoricalSplitSerialized { get { return 0x00010005; } }
+        protected override uint VerCategoricalSplitWithGainsSerialized { get { return 0x00010006; } }
 
         internal FastTreeRegressionPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)

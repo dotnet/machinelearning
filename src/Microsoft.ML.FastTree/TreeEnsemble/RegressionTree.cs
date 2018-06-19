@@ -233,7 +233,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
         }
 
-        internal RegressionTree(ModelLoadContext ctx, bool usingDefaultValue, bool categoricalSplits)
+        internal RegressionTree(ModelLoadContext ctx, bool usingDefaultValue, FastTreeCategoricalSplitVersion categoricalSplits)
             : this()
         {
             // *** Binary format ***
@@ -272,14 +272,16 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             GtChild = reader.ReadIntArray();
             SplitFeatures = reader.ReadIntArray();
 
-            if (categoricalSplits)
+            if (categoricalSplits >= FastTreeCategoricalSplitVersion.CategoricalSplit)
             {
                 int[] categoricalNodeIndices = reader.ReadIntArray();
                 CategoricalSplit = GetCategoricalSplitFromIndices(categoricalNodeIndices);
                 if (categoricalNodeIndices?.Length > 0)
                 {
                     CategoricalSplitFeatures = new int[NumNodes][];
-                    CategoricalFeatureGain = new double[NumNodes][];
+                    if (categoricalSplits >= FastTreeCategoricalSplitVersion.CategoricalSplitWithGains)
+                        CategoricalFeatureGain = new double[NumNodes][];
+
                     CategoricalSplitFeatureRanges = new int[NumNodes][];
                     foreach (var index in categoricalNodeIndices)
                     {
@@ -287,7 +289,9 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                         Contracts.Assert(index >= 0 && index < NumNodes);
 
                         CategoricalSplitFeatures[index] = reader.ReadIntArray();
-                        CategoricalFeatureGain[index] = reader.ReadDoubleArray();
+                        if (categoricalSplits >= FastTreeCategoricalSplitVersion.CategoricalSplitWithGains)
+                            CategoricalFeatureGain[index] = reader.ReadDoubleArray();
+
                         CategoricalSplitFeatureRanges[index] = reader.ReadIntArray(2);
                     }
                 }
@@ -418,7 +422,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             Save(ctx, TreeType.Regression);
         }
 
-        public static RegressionTree Load(ModelLoadContext ctx, bool usingDefaultValues, bool categoricalSplits)
+        public static RegressionTree Load(ModelLoadContext ctx, bool usingDefaultValues, FastTreeCategoricalSplitVersion categoricalSplits)
         {
             TreeType code = (TreeType)ctx.Reader.ReadByte();
             switch (code)
@@ -1328,8 +1332,18 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 {
                     if (CategoricalSplit[n])
                     {
-                        for (int index = 0; index < CategoricalFeatureGain[n].Length; index++)
-                            result[CategoricalSplitFeatures[n][index]] += CategoricalFeatureGain[n][index];
+                        if (CategoricalFeatureGain != null)
+                        {
+                            for (int index = 0; index < CategoricalFeatureGain[n].Length; index++)
+                                result[CategoricalSplitFeatures[n][index]] += CategoricalFeatureGain[n][index];
+                        }
+                        else
+                        {
+                            //Best effort.
+                            double averagedGain = _splitGain[n] / CategoricalSplitFeatures[n].Length;
+                            for (int index = 0; index < CategoricalFeatureGain[n].Length; index++)
+                                result[CategoricalSplitFeatures[n][index]] += averagedGain;
+                        }
                     }
                     else
                         result[SplitFeatures[n]] += _splitGain[n];
