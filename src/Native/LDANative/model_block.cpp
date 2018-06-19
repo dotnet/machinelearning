@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include "utils.hpp"
-#include <malloc.h>
+#include <stdlib.h>
 #include "model_block.h"
 #include "lda_document.h"
 
