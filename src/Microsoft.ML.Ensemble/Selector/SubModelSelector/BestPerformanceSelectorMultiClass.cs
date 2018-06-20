@@ -44,20 +44,10 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
             Host.Assert(!string.IsNullOrEmpty(_metricName));
         }
 
-        protected override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.MultiClassClassification; }
-        }
+        protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        protected override bool IsAscMetric
-        {
-            get { return _metric != MultiClassClassifierEvaluator.Metrics.LogLoss; }
-        }
+        protected override bool IsAscMetric => _metric != MultiClassClassifierEvaluator.Metrics.LogLoss;
 
-        protected override string MetricName
-        {
-            get { return _metricName; }
-        }
+        protected override string MetricName => _metricName;
     }
-
 }

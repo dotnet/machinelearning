@@ -14,10 +14,7 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Ensemble
 {
     public abstract class EnsemblePredictorBase<TPredictor, TOutput> : PredictorBase<TOutput>,
-        IPredictorProducing<TOutput>,
-        ICanSaveInTextFormat,
-        ICanSaveModel,
-        ICanSaveSummary
+        IPredictorProducing<TOutput>, ICanSaveInTextFormat, ICanSaveModel, ICanSaveSummary
         where TPredictor : class, IPredictorProducing<TOutput>
     {
         private const string SubPredictorFmt = "SubPredictor_{0:000}";

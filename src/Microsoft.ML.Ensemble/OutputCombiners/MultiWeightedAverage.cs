@@ -19,15 +19,6 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
-    // These values are serialized, so should not be changed.
-    public enum MultiWeightageKind
-    {
-        [TGUI(Label = MultiClassClassifierEvaluator.AccuracyMicro)]
-        AccuracyMicroAvg = 0,
-        [TGUI(Label = MultiClassClassifierEvaluator.AccuracyMacro)]
-        AccuracyMacroAvg = 1
-    }
-
     /// <summary>
     /// Generic interface for combining outputs of multiple models
     /// </summary>
@@ -100,5 +91,14 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         {
             return CombineCore;
         }
+    }
+
+    // These values are serialized, so should not be changed.
+    public enum MultiWeightageKind
+    {
+        [TGUI(Label = MultiClassClassifierEvaluator.AccuracyMicro)]
+        AccuracyMicroAvg = 0,
+        [TGUI(Label = MultiClassClassifierEvaluator.AccuracyMacro)]
+        AccuracyMacroAvg = 1
     }
 }

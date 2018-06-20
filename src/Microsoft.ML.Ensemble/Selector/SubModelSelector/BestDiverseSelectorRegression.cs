@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         public const string UserName = "Best Diverse Selector";
         public const string LoadName = "BestDiverseSelectorRegression";
 
-        protected override ISupportDiversityMeasureFactory<float> DefaultDiversityMetricType =>  new RegressionDisagreementDiversityFactory();
+        protected override ISupportDiversityMeasureFactory<float> DefaultDiversityMetricType => new RegressionDisagreementDiversityFactory();
 
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
         public sealed class Arguments : DiverseSelectorArguments, ISupportRegressionSubModelSelectorFactory
@@ -43,9 +43,6 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
             return diversityMetric.CalculateDiversityMeasure(models, predictions);
         }
 
-        protected override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.Regression; }
-        }
+        protected override PredictionKind PredictionKind => PredictionKind.Regression;
     }
 }

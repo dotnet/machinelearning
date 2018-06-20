@@ -20,10 +20,9 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Ensemble
 {
     using TDistPredictor = IDistPredictorProducing<Single, Single>;
-    public sealed class EnsembleDistributionPredictor :
-         EnsemblePredictorBase<TDistPredictor, Single>,
-         TDistPredictor,
-         IValueMapperDist
+
+    public sealed class EnsembleDistributionPredictor : EnsemblePredictorBase<TDistPredictor, Single>,
+         TDistPredictor, IValueMapperDist
     {
         public const string UserName = "Ensemble Distribution Executor";
         public const string LoaderSignature = "EnsemDbExec";
@@ -42,14 +41,12 @@ namespace Microsoft.ML.Runtime.Ensemble
         }
 
         private readonly Single[] _averagedWeights;
-
         private readonly Median _probabilityCombiner;
-
         private readonly IValueMapperDist[] _mappers;
 
         public ColumnType InputType { get; }
-        public ColumnType OutputType { get { return NumberType.Float; } }
-        public ColumnType DistType { get { return NumberType.Float; } }
+        public ColumnType OutputType => NumberType.Float;
+        public ColumnType DistType => NumberType.Float;
 
         public override PredictionKind PredictionKind { get; }
 
@@ -120,8 +117,6 @@ namespace Microsoft.ML.Runtime.Ensemble
             // int: PredictionKind
             ctx.Writer.Write((int)PredictionKind);
         }
-
-
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {

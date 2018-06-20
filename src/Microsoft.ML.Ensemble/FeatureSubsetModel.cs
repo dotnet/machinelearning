@@ -8,8 +8,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
-    public sealed class FeatureSubsetModel<TPredictor>
-       where TPredictor : IPredictor
+    public sealed class FeatureSubsetModel<TPredictor> where TPredictor : IPredictor
     {
         public readonly TPredictor Predictor;
         public readonly BitArray SelectedFeatures;

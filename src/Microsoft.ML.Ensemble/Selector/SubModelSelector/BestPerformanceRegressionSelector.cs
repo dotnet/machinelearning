@@ -44,19 +44,10 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
             Host.Assert(!string.IsNullOrEmpty(_metricName));
         }
 
-        protected override string MetricName
-        {
-            get { return _metricName; }
-        }
+        protected override string MetricName => _metricName;
 
-        protected override bool IsAscMetric
-        {
-            get { return false; }
-        }
+        protected override bool IsAscMetric => false;
 
-        protected override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.Regression; }
-        }
+        protected override PredictionKind PredictionKind => PredictionKind.Regression;
     }
 }

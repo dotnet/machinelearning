@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure
             Contracts.Assert(models.Count > 1);
             Contracts.Assert(predictions.Count == models.Count);
 
-            List<ModelDiversityMetric<TOutput>> diversityValues = new List<ModelDiversityMetric<TOutput>>();
+            var diversityValues = new List<ModelDiversityMetric<TOutput>>();
 
             for (int i = 0; i < (models.Count - 1); i++)
             {

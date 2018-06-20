@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
     {
         public const string UserName = "Best Diverse Selector";
         public const string LoadName = "BestDiverseSelectorMultiClass";
-        protected override ISupportDiversityMeasureFactory<VBuffer<Single>> DefaultDiversityMetricType =>  new MultiDisagreementDiversityFactory();
+        protected override ISupportDiversityMeasureFactory<VBuffer<Single>> DefaultDiversityMetricType => new MultiDisagreementDiversityFactory();
 
         [TlcModule.Component(Name = BestDiverseSelectorMultiClass.LoadName, FriendlyName = UserName)]
         public sealed class Arguments : DiverseSelectorArguments, ISupportMulticlassSubModelSelectorFactory
@@ -36,10 +36,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         {
         }
 
-        protected override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.MultiClassClassification; }
-        }
+        protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         public override List<ModelDiversityMetric<VBuffer<Single>>> CalculateDiversityMeasure(IList<FeatureSubsetModel<TVectorPredictor>> models,
             ConcurrentDictionary<FeatureSubsetModel<TVectorPredictor>, VBuffer<Single>[]> predictions)

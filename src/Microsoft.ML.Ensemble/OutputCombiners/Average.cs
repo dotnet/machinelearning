@@ -55,8 +55,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         public override Combiner<Single> GetCombiner()
         {
             // Force the weights to null.
-            return
-                (ref Single dst, Single[] src, Single[] weights) =>
+            return(ref Single dst, Single[] src, Single[] weights) =>
                     CombineCore(ref dst, src, null);
         }
     }

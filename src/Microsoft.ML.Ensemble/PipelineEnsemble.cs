@@ -27,7 +27,8 @@ namespace Microsoft.ML.Runtime.Ensemble
     /// useful for the distributed training scenario, where the featurization includes trainable transforms (for example,
     /// categorical transform, or normalization).
     /// </summary>
-    public abstract class SchemaBindablePipelineEnsembleBase : ICanGetTrainingLabelNames, ICanSaveModel, ISchemaBindableMapper, ICanSaveSummary, ICanGetSummaryInKeyValuePairs
+    public abstract class SchemaBindablePipelineEnsembleBase : ICanGetTrainingLabelNames, ICanSaveModel,
+        ISchemaBindableMapper, ICanSaveSummary, ICanGetSummaryInKeyValuePairs
     {
         private abstract class BoundBase : ISchemaBoundRowMapper
         {
@@ -38,13 +39,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             protected readonly IRowToRowMapper[] BoundPipelines;
             protected readonly int[] ScoreCols;
 
-            public ISchemaBindableMapper Bindable
-            {
-                get { return Parent; }
-            }
-
+            public ISchemaBindableMapper Bindable => Parent;
             public RoleMappedSchema InputSchema { get; }
-
             public ISchema OutputSchema { get; }
 
             public BoundBase(SchemaBindablePipelineEnsembleBase parent, RoleMappedSchema schema)
@@ -226,7 +222,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         // This is an implementation of pipeline ensembles that combines scores of type float (regression and anomaly detection).
         private sealed class ImplOne : SchemaBindablePipelineEnsemble<Single>
         {
-            protected override ColumnType ScoreType { get { return NumberType.R4; } }
+            protected override ColumnType ScoreType => NumberType.R4;
 
             public override PredictionKind PredictionKind
             {

@@ -30,7 +30,10 @@ namespace Microsoft.ML.Runtime.Ensemble.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            input.PredictorModel.PrepareData(host, new EmptyDataView(host, input.PredictorModel.TransformModel.InputSchema), out RoleMappedData rmd, out IPredictor predictor);
+            input.PredictorModel.PrepareData(host,
+                new EmptyDataView(host, input.PredictorModel.TransformModel.InputSchema),
+                out RoleMappedData rmd, out IPredictor predictor
+);
 
             var calibrated = predictor as CalibratedPredictorBase;
             while (calibrated != null)

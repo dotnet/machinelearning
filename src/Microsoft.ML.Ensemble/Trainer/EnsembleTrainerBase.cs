@@ -19,6 +19,7 @@ using Microsoft.ML.Runtime.Training;
 namespace Microsoft.ML.Runtime.Ensemble
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
+
     public abstract class EnsembleTrainerBase<TOutput, TPredictor, TSelector, TCombiner, TSig> : TrainerBase<RoleMappedData, TPredictor>
          where TPredictor : class, IPredictorProducing<TOutput>
          where TSelector : class, ISubModelSelector<TOutput>
@@ -52,14 +53,11 @@ namespace Microsoft.ML.Runtime.Ensemble
             [TGUI(Label = "Show Sub-Model Metrics")]
             public bool ShowMetrics;
 
-
-
-            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility =ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public SubComponent<ITrainer<RoleMappedData, IPredictorProducing<TOutput>>, TSig>[] BasePredictors;
-
-            public const int DefaultNumModels = 50;
         }
 
+        private const int DefaultNumModels = 50;
         /// <summary> Command-line arguments </summary>
         protected readonly ArgumentsBase Args;
         protected readonly int NumModels;
@@ -86,7 +84,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 ch.CheckUserArg(Utils.Size(Args.BasePredictors) > 0, nameof(Args.BasePredictors), "This should have at-least one value");
 
                 NumModels = Args.NumModels ??
-                    (Args.BasePredictors.Length == 1 ? ArgumentsBase.DefaultNumModels : Args.BasePredictors.Length);
+                    (Args.BasePredictors.Length == 1 ? DefaultNumModels : Args.BasePredictors.Length);
 
                 ch.CheckUserArg(NumModels > 0, nameof(Args.NumModels), "Must be positive, or null to indicate numModels is the number of base predictors");
 
@@ -112,13 +110,13 @@ namespace Microsoft.ML.Runtime.Ensemble
             }
         }
 
-        public override bool NeedNormalization { get { return _needNorm; } }
+        public override bool NeedNormalization => _needNorm;
 
-        public override bool NeedCalibration { get { return _needCalibration; } }
+        public override bool NeedCalibration => _needCalibration;
 
         // No matter the internal predictors, we are performing multiple passes over the data
         // so it is probably appropriate to always cache.
-        public override bool WantCaching { get { return true; } }
+        public override bool WantCaching => true;
 
         public override void Train(RoleMappedData data)
         {

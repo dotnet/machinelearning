@@ -14,10 +14,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
     {
         protected abstract string MetricName { get; }
 
-        protected virtual bool IsAscMetric
-        {
-            get { return true; }
-        }
+        protected virtual bool IsAscMetric => true;
 
         protected BaseBestPerformanceSelector(ArgumentsBase args, IHostEnvironment env, string name)
             : base(args, env, name)

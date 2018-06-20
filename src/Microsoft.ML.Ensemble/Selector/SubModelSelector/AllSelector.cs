@@ -16,9 +16,9 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         public const string UserName = "All Selector";
         public const string LoadName = "AllSelector";
 
-        public override Single ValidationDatasetProportion { get { return 0; } }
+        public override Single ValidationDatasetProportion => 0;
 
-        protected override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
+        protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         public AllSelector(IHostEnvironment env)
             : base(env, LoadName)

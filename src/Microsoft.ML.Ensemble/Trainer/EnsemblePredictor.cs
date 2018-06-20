@@ -19,9 +19,8 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Runtime.Ensemble
 {
     using TScalarPredictor = IPredictorProducing<Single>;
-    public sealed class EnsemblePredictor :
-        EnsemblePredictorBase<TScalarPredictor, Single>,
-        IValueMapper
+
+    public sealed class EnsemblePredictor : EnsemblePredictorBase<TScalarPredictor, Single>, IValueMapper
     {
         public const string UserName = "Ensemble Executor";
         public const string LoaderSignature = "EnsembleFloatExec";
@@ -42,7 +41,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         private readonly IValueMapper[] _mappers;
 
         public ColumnType InputType { get; }
-        public ColumnType OutputType { get { return NumberType.Float; } }
+        public ColumnType OutputType => NumberType.Float;
         public override PredictionKind PredictionKind { get; }
 
         internal EnsemblePredictor(IHostEnvironment env, PredictionKind kind,
