@@ -387,7 +387,7 @@ namespace lda {
         maskLL |= (1LL << (thread_id));
         DWORD_PTR mask = maskLL;
         SetThreadAffinityMask(GetCurrentThread(), mask);
-#else
+#elif !defined(__APPLE__)
         cpu_set_t set;
         CPU_ZERO(&set);
         CPU_SET(thread_id, &set);
