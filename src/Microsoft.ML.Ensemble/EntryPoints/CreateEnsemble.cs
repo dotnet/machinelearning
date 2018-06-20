@@ -131,16 +131,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
         }
 
-        private static IEnumerable<WeightedValue<T>> GetWeightedModels<T>(IEnumerable<IPredictorModel> models)
-            where T : class, IPredictor
-        {
-            return models.Select(predictor => new WeightedValue<T>()
-            {
-                Value = predictor.Predictor as T,
-                Weight = 1
-            });
-        }
-
         [TlcModule.EntryPoint(Name = "Models.BinaryEnsemble", Desc = "Combine binary classifiers into an ensemble", UserName = EnsembleTrainer.UserNameValue)]
         public static CommonOutputs.BinaryClassificationOutput CreateBinaryEnsemble(IHostEnvironment env, ClassifierInput input)
         {
@@ -168,8 +158,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
 
             var trainer = new EnsembleTrainer(host, args);
-            var weightedModels = GetWeightedModels<IPredictorProducing<Single>>(input.Models);
-            var ensemble = trainer.CombineModels(weightedModels);
+            var ensemble = trainer.CombineModels(input.Models.Select(pm => pm.Predictor as IPredictorProducing<float>));
 
             var predictorModel = new PredictorModel(host, transformedData, startingData, ensemble);
 
@@ -201,8 +190,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
 
             var trainer = new RegressionEnsembleTrainer(host, args);
-            var weightedModels = GetWeightedModels<IPredictorProducing<Single>>(input.Models);
-            var ensemble = trainer.CombineModels(weightedModels);
+            var ensemble = trainer.CombineModels(input.Models.Select(pm => pm.Predictor as IPredictorProducing<float>));
 
             var predictorModel = new PredictorModel(host, transformedData, startingData, ensemble);
 

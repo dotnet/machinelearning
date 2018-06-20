@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: EntryPointModule(typeof(DisagreementDiversityFactory))]
 [assembly: EntryPointModule(typeof(RegressionDisagreementDiversityFactory))]
-[assembly: EntryPointModule(typeof(MultinDisagreementDiversityFactory))]
+[assembly: EntryPointModule(typeof(MultiDisagreementDiversityFactory))]
 
 namespace Microsoft.ML.Ensemble.EntryPoints
 {
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Ensemble.EntryPoints
     }
 
     [TlcModule.Component(Name = MultiDisagreementDiversityMeasure.LoadName, FriendlyName = DisagreementDiversityMeasure.UserName)]
-    public sealed class MultinDisagreementDiversityFactory : ISupportDiversityMeasureFactory<VBuffer<Single>>
+    public sealed class MultiDisagreementDiversityFactory : ISupportDiversityMeasureFactory<VBuffer<Single>>
     {
         public IDiversityMeasure<VBuffer<Single>> CreateComponent(IHostEnvironment env) => new MultiDisagreementDiversityMeasure();
     }

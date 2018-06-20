@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     public sealed class MulticlassDataPartitionEnsembleTrainer :
         EnsembleTrainerBase<VBuffer<Single>, EnsembleMultiClassPredictor,
         IMulticlassSubModelSelector, IMultiClassOutputCombiner, SignatureMultiClassClassifierTrainer>,
-        IModelCombiner<WeightedValue<TVectorPredictor>, TVectorPredictor>
+        IModelCombiner<TVectorPredictor, TVectorPredictor>
     {
         public const string LoadNameValue = "WeightedEnsembleMulticlass";
         public const string UserNameValue = "Multi-class Parallel Ensemble (bagging, stacking, etc)";
@@ -73,15 +73,11 @@ namespace Microsoft.ML.Runtime.Ensemble
             return new EnsembleMultiClassPredictor(Host, CreateModels<TVectorPredictor>(), combiner as IMultiClassOutputCombiner);
         }
 
-        public TVectorPredictor CombineModels(IEnumerable<WeightedValue<TVectorPredictor>> models)
+        public TVectorPredictor CombineModels(IEnumerable<TVectorPredictor> models)
         {
-            var weights = models.Select(m => m.Weight).ToArray();
-            if (weights.All(w => w == 1))
-                weights = null;
-
             var predictor = new EnsembleMultiClassPredictor(Host,
-                models.Select(k => new FeatureSubsetModel<TVectorPredictor>(k.Value)).ToArray(),
-                _outputCombiner.CreateComponent(Host), weights);
+                models.Select(k => new FeatureSubsetModel<TVectorPredictor>(k)).ToArray(),
+                _outputCombiner.CreateComponent(Host));
 
             return predictor;
         }

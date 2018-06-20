@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     using TScalarPredictor = IPredictorProducing<Single>;
     public sealed class RegressionEnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
        IRegressionSubModelSelector, IRegressionOutputCombiner, SignatureRegressorTrainer>,
-       IModelCombiner<WeightedValue<TScalarPredictor>, TScalarPredictor>
+       IModelCombiner<TScalarPredictor, TScalarPredictor>
     {
         public const string LoadNameValue = "EnsembleRegression";
         public const string UserNameValue = "Regression Ensemble (bagging, stacking, etc)";
@@ -67,18 +67,13 @@ namespace Microsoft.ML.Runtime.Ensemble
             return new EnsemblePredictor(Host, PredictionKind, CreateModels<TScalarPredictor>(), Combiner);
         }
 
-        public TScalarPredictor CombineModels(IEnumerable<WeightedValue<TScalarPredictor>> models)
+        public TScalarPredictor CombineModels(IEnumerable<TScalarPredictor> models)
         {
-            var weights = models.Select(m => m.Weight).ToArray();
-            if (weights.All(w => w == 1))
-                weights = null;
             var combiner = _outputCombiner.CreateComponent(Host);
-            var p = models.First().Value;
+            var p = models.First();
 
             var predictor = new EnsemblePredictor(Host, p.PredictionKind,
-                    models.Select(k => new FeatureSubsetModel<TScalarPredictor>(k.Value)).ToArray(),
-                    combiner,
-                    weights);
+                    models.Select(k => new FeatureSubsetModel<TScalarPredictor>(k)).ToArray(), combiner);
 
             return predictor;
         }

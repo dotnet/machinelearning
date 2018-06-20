@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     /// </summary>
     public sealed class EnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
         IBinarySubModelSelector, IBinaryOutputCombiner, SignatureBinaryClassifierTrainer>,
-        IModelCombiner<WeightedValue<TScalarPredictor>, TScalarPredictor>
+        IModelCombiner<TScalarPredictor, TScalarPredictor>
     {
         public const string LoadNameValue = "WeightedEnsemble";
         public const string UserNameValue = "Parallel Ensemble (bagging, stacking, etc)";
@@ -76,32 +76,24 @@ namespace Microsoft.ML.Runtime.Ensemble
             return new EnsemblePredictor(Host, PredictionKind, CreateModels<TScalarPredictor>(), Combiner);
         }
 
-        public TScalarPredictor CombineModels(IEnumerable<WeightedValue<TScalarPredictor>> models)
+        public TScalarPredictor CombineModels(IEnumerable<TScalarPredictor> models)
         {
-            var weights = models.Select(m => m.Weight).ToArray();
-            if (weights.All(w => w == 1))
-                weights = null;
             var combiner = _outputCombiner.CreateComponent(Host);
-            var p = models.First().Value;
+            var p = models.First();
 
             TScalarPredictor predictor = null;
             if (p is TDistPredictor)
             {
                 predictor = new EnsembleDistributionPredictor(Host, p.PredictionKind,
-                    models.Select(k => new FeatureSubsetModel<TDistPredictor>((TDistPredictor)k.Value)).ToArray(),
-                    combiner,
-                    weights);
+                    models.Select(k => new FeatureSubsetModel<TDistPredictor>((TDistPredictor)k)).ToArray(), combiner);
             }
             else
             {
                 predictor = new EnsemblePredictor(Host, p.PredictionKind,
-                    models.Select(k => new FeatureSubsetModel<TScalarPredictor>(k.Value)).ToArray(),
-                    combiner,
-                    weights);
+                    models.Select(k => new FeatureSubsetModel<TScalarPredictor>(k)).ToArray(), combiner);
             }
 
             return predictor;
         }
     }
-
 }

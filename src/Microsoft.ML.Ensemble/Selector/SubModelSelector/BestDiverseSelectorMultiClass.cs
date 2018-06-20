@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
     {
         public const string UserName = "Best Diverse Selector";
         public const string LoadName = "BestDiverseSelectorMultiClass";
-        protected override ISupportDiversityMeasureFactory<VBuffer<Single>> DefaultDiversityMetricType =>  new MultinDisagreementDiversityFactory();
+        protected override ISupportDiversityMeasureFactory<VBuffer<Single>> DefaultDiversityMetricType =>  new MultiDisagreementDiversityFactory();
 
         [TlcModule.Component(Name = BestDiverseSelectorMultiClass.LoadName, FriendlyName = UserName)]
         public sealed class Arguments : DiverseSelectorArguments, ISupportMulticlassSubModelSelectorFactory
