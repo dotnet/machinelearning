@@ -164,7 +164,7 @@ namespace Microsoft.ML.Scenarios
         {
             Assert.Equal(.96, metrics.AccuracyMacro, 2);
             Assert.Equal(.96, metrics.AccuracyMicro, 2);
-            Assert.Equal(.19, metrics.LogLoss, 2);
+            Assert.Equal(.19, metrics.LogLoss, 1);
             Assert.InRange(metrics.LogLossReduction, 80, 84);
         }
     }
