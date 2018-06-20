@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(TrainTestMacro), null, typeof(SignatureEntryPointModule), "TrainTestMacro")]
@@ -23,8 +24,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         public sealed class SubGraphOutput
         {
-            [Argument(ArgumentType.Required, HelpText = "The model", SortOrder = 1)]
-            public Var<IPredictorModel> Model;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
+            public Var<IPredictorModel> PredictorModel;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Transform model", SortOrder = 2)]
+            public Var<ITransformModel> TransformModel;
         }
 
         public sealed class Arguments
@@ -58,35 +62,49 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates whether to include and output training dataset metrics.", SortOrder = 9)]
             public Boolean IncludeTrainingMetrics = false;
+
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 10)]
+            public string LabelColumn = DefaultColumnNames.Label;
+
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 11)]
+            public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 12)]
+            public Optional<string> GroupColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
         }
 
         public sealed class Output
         {
-            [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.", SortOrder = 1)]
+            [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
+                "provided as the Input.TransformModel.", SortOrder = 1)]
             public IPredictorModel PredictorModel;
 
-            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 2)]
+            [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
+                "provided as the Input.TransformModel.", SortOrder = 2)]
+            public ITransformModel TransformModel;
+
+            [TlcModule.Output(Desc = "Warning dataset", SortOrder = 3)]
             public IDataView Warnings;
 
-            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 3)]
+            [TlcModule.Output(Desc = "Overall metrics dataset", SortOrder = 4)]
             public IDataView OverallMetrics;
 
-            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 4)]
+            [TlcModule.Output(Desc = "Per instance metrics dataset", SortOrder = 5)]
             public IDataView PerInstanceMetrics;
 
-            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 5)]
+            [TlcModule.Output(Desc = "Confusion matrix dataset", SortOrder = 6)]
             public IDataView ConfusionMatrix;
 
-            [TlcModule.Output(Desc = "Warning dataset for training", SortOrder = 6)]
+            [TlcModule.Output(Desc = "Warning dataset for training", SortOrder = 7)]
             public IDataView TrainingWarnings;
 
-            [TlcModule.Output(Desc = "Overall metrics dataset for training", SortOrder = 7)]
+            [TlcModule.Output(Desc = "Overall metrics dataset for training", SortOrder = 8)]
             public IDataView TrainingOverallMetrics;
 
-            [TlcModule.Output(Desc = "Per instance metrics dataset for training", SortOrder = 8)]
+            [TlcModule.Output(Desc = "Per instance metrics dataset for training", SortOrder = 9)]
             public IDataView TrainingPerInstanceMetrics;
 
-            [TlcModule.Output(Desc = "Confusion matrix dataset for training", SortOrder = 9)]
+            [TlcModule.Output(Desc = "Confusion matrix dataset for training", SortOrder = 10)]
             public IDataView TrainingConfusionMatrix;
         }
 
@@ -101,7 +119,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Parse the subgraph.
             var subGraphRunContext = new RunContext(env);
-            var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes, node.Catalog);
+            var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes, node.Catalog, input.LabelColumn,
+                input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null, input.WeightColumn.IsExplicit ? input.WeightColumn.Value : null);
 
             // Change the subgraph to use the training data as input.
             var varName = input.Inputs.Data.VarName;
@@ -117,10 +136,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
             subGraphRunContext.RemoveVariable(dataVariable);
 
             // Change the subgraph to use the model variable as output.
-            varName = input.Outputs.Model.VarName;
+            varName = input.Outputs.PredictorModel == null ? input.Outputs.TransformModel.VarName : input.Outputs.PredictorModel.VarName;
             if (!subGraphRunContext.TryGetVariable(varName, out dataVariable))
                 throw env.Except($"Invalid variable name '{varName}'.");
-            string outputVarName = node.GetOutputVariableName(nameof(Output.PredictorModel));
+
+            string outputVarName = input.Outputs.PredictorModel == null ? node.GetOutputVariableName(nameof(Output.TransformModel)) :
+                node.GetOutputVariableName(nameof(Output.PredictorModel));
+
             foreach (var subGraphNode in subGraphNodes)
                 subGraphNode.RenameOutputVariable(dataVariable.Name, outputVarName);
             subGraphRunContext.RemoveVariable(dataVariable);
@@ -136,59 +158,110 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var testingVar = node.GetInputVariable(nameof(input.TestingData));
             var exp = new Experiment(env);
 
-            //combine the predictor model with any potential transfrom model passed from the outer graph            
-            if (transformModelVarName != null && transformModelVarName.VariableName != null)
+            DatasetScorer.Output scoreNodeOutput = null;
+            ML.Models.DatasetTransformer.Output datasetTransformNodeOutput = null;
+            if (input.Outputs.PredictorModel == null)
             {
-                var modelCombine = new ML.Transforms.TwoHeterogeneousModelCombiner
+                //combine the predictor model with any potential transfrom model passed from the outer graph
+                if (transformModelVarName != null && transformModelVarName.VariableName != null)
                 {
-                    TransformModel = { VarName = transformModelVarName.VariableName },
+                    var modelCombine = new ML.Transforms.ModelCombiner
+                    {
+                        Models = new ArrayVar<ITransformModel>(
+                                new Var<ITransformModel>[] {
+                                    new Var<ITransformModel> { VarName = transformModelVarName.VariableName },
+                                    new Var<ITransformModel> { VarName = outputVarName} }
+                                )
+                    };
+
+                    var modelCombineOutput = exp.Add(modelCombine);
+                    outputVarName = modelCombineOutput.OutputModel.VarName;
+                }
+
+                var datasetTransformerNode = new Models.DatasetTransformer
+                {
+                    Data = { VarName = testingVar.ToJson() },
+                    TransformModel = { VarName = outputVarName }
+                };
+
+                datasetTransformNodeOutput = exp.Add(datasetTransformerNode);
+            }
+            else
+            {
+                //combine the predictor model with any potential transfrom model passed from the outer graph
+                if (transformModelVarName != null && transformModelVarName.VariableName != null)
+                {
+                    var modelCombine = new TwoHeterogeneousModelCombiner
+                    {
+                        TransformModel = { VarName = transformModelVarName.VariableName },
+                        PredictorModel = { VarName = outputVarName }
+                    };
+
+                    var modelCombineOutput = exp.Add(modelCombine);
+                    outputVarName = modelCombineOutput.PredictorModel.VarName;
+                }
+
+                // Add the scoring node for testing.
+                var scoreNode = new DatasetScorer
+                {
+                    Data = { VarName = testingVar.ToJson() },
                     PredictorModel = { VarName = outputVarName }
                 };
 
-                var modelCombineOutput = exp.Add(modelCombine);
-                outputVarName = modelCombineOutput.PredictorModel.VarName;
+                scoreNodeOutput = exp.Add(scoreNode);
             }
 
-            // Add the scoring node for testing.
-            var scoreNode = new ML.Transforms.DatasetScorer
-            {
-                Data = { VarName = testingVar.ToJson() },
-                PredictorModel = { VarName = outputVarName }
-            };
-            var scoreNodeOutput = exp.Add(scoreNode);
             subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
 
             // Do not double-add previous nodes.
             exp.Reset();
 
-            // REVIEW: we need to extract the proper label column name here to pass to the evaluators.
-            // This is where you would add code to do it.
+            // REVIEW: add similar support for NameColumn and FeatureColumn.
             var settings = new MacroUtils.EvaluatorSettings
             {
-                LabelColumn = DefaultColumnNames.Label
+                LabelColumn = input.LabelColumn,
+                WeightColumn = input.WeightColumn.IsExplicit ? input.WeightColumn.Value : null,
+                GroupColumn = input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null
             };
 
             string outVariableName;
 
             if (input.IncludeTrainingMetrics)
             {
-                // Add the scoring node for training.
-                var scoreNodeTraining = new ML.Transforms.DatasetScorer
+                DatasetScorer.Output scoreNodeTrainingOutput = null;
+                ML.Models.DatasetTransformer.Output datasetTransformNodeTrainingOutput = null;
+                if (input.Outputs.PredictorModel == null)
                 {
-                    Data = { VarName = trainingVar.ToJson() },
-                    PredictorModel = { VarName = outputVarName }
-                };
-                var scoreNodeTrainingOutput = exp.Add(scoreNodeTraining);
+                    var datasetTransformerNode = new Models.DatasetTransformer
+                    {
+                        Data = { VarName = testingVar.ToJson() },
+                        TransformModel = { VarName = outputVarName }
+                    };
+
+                    datasetTransformNodeTrainingOutput = exp.Add(datasetTransformerNode);
+                }
+                else
+                {
+                    // Add the scoring node for training.
+                    var scoreNodeTraining = new DatasetScorer
+                    {
+                        Data = { VarName = trainingVar.ToJson() },
+                        PredictorModel = { VarName = outputVarName }
+                    };
+                    scoreNodeTrainingOutput = exp.Add(scoreNodeTraining);
+                }
+
                 subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
 
                 // Do not double-add previous nodes.
                 exp.Reset();
 
-                // Add the evaluator node for training.                
+                // Add the evaluator node for training.
                 var evalInputOutputTraining = MacroUtils.GetEvaluatorInputOutput(input.Kind, settings);
                 var evalNodeTraining = evalInputOutputTraining.Item1;
                 var evalOutputTraining = evalInputOutputTraining.Item2;
-                evalNodeTraining.Data.VarName = scoreNodeTrainingOutput.ScoredData.VarName;
+                evalNodeTraining.Data.VarName = input.Outputs.PredictorModel == null ? datasetTransformNodeTrainingOutput.OutputData.VarName :
+                    scoreNodeTrainingOutput.ScoredData.VarName;
 
                 if (node.OutputMap.TryGetValue(nameof(Output.TrainingWarnings), out outVariableName))
                     evalOutputTraining.Warnings.VarName = outVariableName;
@@ -211,7 +284,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var evalInputOutput = MacroUtils.GetEvaluatorInputOutput(input.Kind, settings);
             var evalNode = evalInputOutput.Item1;
             var evalOutput = evalInputOutput.Item2;
-            evalNode.Data.VarName = scoreNodeOutput.ScoredData.VarName;
+            evalNode.Data.VarName = input.Outputs.PredictorModel == null ? datasetTransformNodeOutput.OutputData.VarName : scoreNodeOutput.ScoredData.VarName;
 
             if (node.OutputMap.TryGetValue(nameof(Output.Warnings), out outVariableName))
                 evalOutput.Warnings.VarName = outVariableName;

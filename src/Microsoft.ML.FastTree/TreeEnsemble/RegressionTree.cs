@@ -13,9 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-/*LOTUS
-using Microsoft.ML.Runtime.Model.LotusVNext;
-using LotusvNext.Expressions;*/
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Newtonsoft.Json.Linq;
@@ -108,22 +105,21 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             LteChild = buffer.ToIntArray(ref position);
             GtChild = buffer.ToIntArray(ref position);
             SplitFeatures = buffer.ToIntArray(ref position);
-            int[] categoricalNodeIndices = buffer.ToIntArray(ref position);
-            CategoricalSplit = GetCategoricalSplitFromIndices(categoricalNodeIndices);
-            if (categoricalNodeIndices?.Length > 0)
+            byte[] categoricalSplitAsBytes = buffer.ToByteArray(ref position);
+            CategoricalSplit = categoricalSplitAsBytes.Select(b => b > 0).ToArray();
+            if (CategoricalSplit.Any(b => b))
             {
                 CategoricalSplitFeatures = new int[NumNodes][];
                 CategoricalSplitFeatureRanges = new int[NumNodes][];
-                foreach (var index in categoricalNodeIndices)
+                for (int index = 0; index < NumNodes; index++)
                 {
-                    Contracts.Assert(CategoricalSplit[index]);
-
                     CategoricalSplitFeatures[index] = buffer.ToIntArray(ref position);
-                    CategoricalSplitFeatureRanges[index] = buffer.ToIntArray(ref position, 2);
+                    CategoricalSplitFeatureRanges[index] = buffer.ToIntArray(ref position);
                 }
             }
 
             Thresholds = buffer.ToUIntArray(ref position);
+            RawThresholds = buffer.ToFloatArray(ref position);
             _splitGain = buffer.ToDoubleArray(ref position);
             _gainPValue = buffer.ToDoubleArray(ref position);
             _previousLeafValue = buffer.ToDoubleArray(ref position);
@@ -131,6 +127,23 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         }
 
         private bool[] GetCategoricalSplitFromIndices(int[] indices)
+        {
+            bool[] categoricalSplit = new bool[NumNodes];
+            if (indices == null)
+                return categoricalSplit;
+
+            Contracts.Assert(indices.Length <= NumNodes);
+
+            foreach (int index in indices)
+            {
+                Contracts.Assert(index >= 0 && index < NumNodes);
+                categoricalSplit[index] = true;
+            }
+
+            return categoricalSplit;
+        }
+
+        private bool[] GetCategoricalSplitFromBytes(byte[] indices)
         {
             bool[] categoricalSplit = new bool[NumNodes];
             if (indices == null)
@@ -195,7 +208,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             LeafValues = leafValues;
             CategoricalSplitFeatures = categoricalSplitFeatures;
             CategoricalSplitFeatureRanges = new int[CategoricalSplitFeatures.Length][];
-            for(int i= 0; i < CategoricalSplitFeatures.Length; ++i)
+            for (int i = 0; i < CategoricalSplitFeatures.Length; ++i)
             {
                 if (CategoricalSplitFeatures[i] != null && CategoricalSplitFeatures[i].Length > 0)
                 {
@@ -503,6 +516,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 NumNodes * sizeof(int) +
                 CategoricalSplit.Length * sizeof(bool) +
                 Thresholds.SizeInBytes() +
+                RawThresholds.SizeInBytes() +
                 _splitGain.SizeInBytes() +
                 _gainPValue.SizeInBytes() +
                 _previousLeafValue.SizeInBytes() +
@@ -517,22 +531,22 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             LteChild.ToByteArray(buffer, ref position);
             GtChild.ToByteArray(buffer, ref position);
             SplitFeatures.ToByteArray(buffer, ref position);
+            CategoricalSplit.Length.ToByteArray(buffer, ref position);
             foreach (var split in CategoricalSplit)
                 Convert.ToByte(split).ToByteArray(buffer, ref position);
 
             if (CategoricalSplitFeatures != null)
             {
-                foreach (var splits in CategoricalSplitFeatures)
-                    splits.ToByteArray(buffer, ref position);
-            }
-
-            if (CategoricalSplitFeatureRanges != null)
-            {
-                foreach (var ranges in CategoricalSplitFeatureRanges)
-                    ranges.ToByteArray(buffer, ref position);
+                Contracts.AssertValue(CategoricalSplitFeatureRanges);
+                for (int i = 0; i < CategoricalSplitFeatures.Length; i++)
+                {
+                    CategoricalSplitFeatures[i].ToByteArray(buffer, ref position);
+                    CategoricalSplitFeatureRanges[i].ToByteArray(buffer, ref position);
+                }
             }
 
             Thresholds.ToByteArray(buffer, ref position);
+            RawThresholds.ToByteArray(buffer, ref position);
             _splitGain.ToByteArray(buffer, ref position);
             _gainPValue.ToByteArray(buffer, ref position);
             _previousLeafValue.ToByteArray(buffer, ref position);
@@ -1294,54 +1308,6 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             JToken gt = AsPfaCore(feat, GetGtChildForNode(node));
             return PfaUtils.If(PfaUtils.Call("<=", PfaUtils.Index(feat, SplitFeatures[node]), RawThresholds[node]), lte, gt);
         }
-
-        /*LOTUS
-        internal void SaveAsLotusVNext(LotusVNextContext ctx, string featuresVariableName, string treeOutputVariable)
-        {
-            ctx.AddExpression(SaveAsLotusVNext(0, featuresVariableName, treeOutputVariable));
-        }
-
-        private Expression SaveAsLotusVNext(int node, string featuresVariableName, string treeOutputVariable)
-        {
-            if (node < 0)
-            {
-                return LotusVNextUtils.MakeSet(treeOutputVariable,
-                    LotusVNextUtils.MakeFloatLiteral((float)LeafValue(~node)));
-            }
-
-            Expression cond;
-            if (CategoricalSplit[node])
-            {
-                cond = LotusVNextUtils.MakeCall("gt",
-                    LotusVNextUtils.MakeAttr(featuresVariableName, CategoricalSplitFeatures[node][0]),
-                    LotusVNextUtils.MakeFloatLiteral(0.5f)
-                );
-
-                for (int i = 1; i < CategoricalSplitFeatures[node].Length; i++)
-                {
-                    cond = LotusVNextUtils.MakeCall("or",
-                        cond,
-                        LotusVNextUtils.MakeCall("gt",
-                            LotusVNextUtils.MakeAttr(featuresVariableName, CategoricalSplitFeatures[node][i]),
-                            LotusVNextUtils.MakeFloatLiteral(0.5f)
-                        )
-                    );
-                }
-            }
-            else
-            {
-                cond = LotusVNextUtils.MakeCall("gt",
-                    LotusVNextUtils.MakeAttr(featuresVariableName, SplitFeature(node)),
-                    LotusVNextUtils.MakeFloatLiteral(RawThreshold(node))
-                );
-            }
-
-            return LotusVNextUtils.MakeIf(
-                cond,
-                new[] { SaveAsLotusVNext(GetGtChildForNode(node), featuresVariableName, treeOutputVariable) },
-                new[] { SaveAsLotusVNext(GetLteChildForNode(node), featuresVariableName, treeOutputVariable) }
-            );
-        }*/
 
         public FeatureToGainMap GainMap
         {

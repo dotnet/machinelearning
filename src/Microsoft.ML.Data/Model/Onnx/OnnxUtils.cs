@@ -153,7 +153,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
         private static AttributeProto MakeAttribute(string key, bool value) => MakeAttribute(key, value ? 1 : 0);
 
-        public static NodeProto MakeNode(string opType, List<string> inputs, List<string> outputs, string name)
+        public static NodeProto MakeNode(string opType, List<string> inputs, List<string> outputs, string name, string domain = null)
         {
             Contracts.CheckNonEmpty(opType, nameof(opType));
             Contracts.CheckValue(inputs, nameof(inputs));
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             node.Input.Add(inputs);
             node.Output.Add(outputs);
             node.Name = name;
-            node.Domain = "ai.onnx.ml";
+            node.Domain = domain ?? "ai.onnx.ml";
             return node;
         }
 
@@ -251,7 +251,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             }
         }
 
-        public static ModelProto MakeModel(List<NodeProto> nodes, string producerName, string name, string domain, List<ModelArgs> inputs,
+        public static ModelProto MakeModel(List<NodeProto> nodes, string producerName, string name,
+            string domain, string producerVersion, long modelVersion, List<ModelArgs> inputs,
             List<ModelArgs> outputs, List<ModelArgs> intermediateValues)
         {
             Contracts.CheckValue(nodes, nameof(nodes));
@@ -261,10 +262,16 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             Contracts.CheckNonEmpty(producerName, nameof(producerName));
             Contracts.CheckNonEmpty(name, nameof(name));
             Contracts.CheckNonEmpty(domain, nameof(domain));
+            Contracts.CheckNonEmpty(producerVersion, nameof(producerVersion));
 
             var model = new ModelProto();
             model.Domain = domain;
             model.ProducerName = producerName;
+            model.ProducerVersion = producerVersion;
+            model.IrVersion = (long)UniversalModelFormat.Onnx.Version.IrVersion;
+            model.ModelVersion = modelVersion;
+            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx.ml", Version = 1 });
+            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx", Version = 6 });
             model.Graph = new GraphProto();
             var graph = model.Graph;
             graph.Node.Add(nodes);

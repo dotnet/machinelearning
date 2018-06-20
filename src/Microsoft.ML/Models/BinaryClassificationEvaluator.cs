@@ -4,7 +4,6 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Models
@@ -66,7 +65,11 @@ namespace Microsoft.ML.Models
                     throw environment.Except($"Could not find ConfusionMatrix in the results returned in {nameof(BinaryClassificationEvaluator)} Evaluate.");
                 }
 
-                return BinaryClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
+                var metric = BinaryClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
+
+                Contracts.Check(metric.Count == 1, $"Exactly one metric set was expected but found {metric.Count} metrics");
+
+                return metric[0];
             }
         }
     }

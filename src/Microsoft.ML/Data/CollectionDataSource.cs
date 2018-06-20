@@ -52,6 +52,8 @@ namespace Microsoft.ML.Data
                 experiment.SetInput(_dataViewEntryPoint.Data, _dataView);
             }
 
+            public Var<IDataView> GetInputData() => null;
+
             public abstract IDataView GetDataView(IHostEnvironment environment);
         }
 

@@ -1,0 +1,5 @@
+---- PartitionedFileLoader ----
+3 columns:
+  L0: I4
+  Month: I4
+  Path: Text

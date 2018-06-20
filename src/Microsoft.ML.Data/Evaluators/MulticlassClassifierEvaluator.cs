@@ -853,7 +853,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw ch.Except("No overall metrics found");
 
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out IDataView conf))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except("No confusion matrix found");
 
             // Change the name of the Top-k-accuracy column.
             if (_outputTopKAcc != null)
@@ -875,27 +875,13 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(unweightedFold);
         }
 
-        protected override void PrintOverallResultsCore(IChannel ch, string filename, Dictionary<string, IDataView>[] metrics)
+        protected override IDataView CombineOverallMetricsCore(IDataView[] metrics)
         {
-            ch.AssertNonEmpty(metrics);
-
             var overallList = new List<IDataView>();
 
             for (int i = 0; i < metrics.Length; i++)
             {
-                var dict = metrics[i];
-                if (!dict.TryGetValue(MetricKinds.OverallMetrics, out IDataView idv))
-                    throw ch.Except("No overall metrics found");
-
-                // Add a fold-name column. We add it as a text column, since it is only used for saving the result summary file.
-                // We use the first column in the data view as an input column to the LambdaColumnMapper, because it must have an input.
-                // We use DvText.NA as the value of this column since for any stratified row the value will be non empty, so we can uniquely identify
-                // the overall row using this column.
-                var inputColName = idv.Schema.GetColumnName(0);
-                var inputColType = idv.Schema.GetColumnType(0);
-                idv = Utils.MarshalInvoke(EvaluateUtils.AddTextColumn<int>, inputColType.RawType, Host,
-                    idv, inputColName, MetricKinds.ColumnNames.FoldIndex, inputColType, string.Format("Fold {0}", i), "FoldName");
-
+                var idv = metrics[i];
                 if (!_outputPerClass)
                     idv = DropPerClassColumn(idv);
 
@@ -925,14 +911,15 @@ namespace Microsoft.ML.Runtime.Data
                     views[i] = idv;
                 }
             }
+            return base.CombineOverallMetricsCore(views);
+        }
 
-            var overall = AppendRowsDataView.Create(Host, views[0].Schema, views.ToArray());
-
+        protected override IDataView GetOverallResultsCore(IDataView overall)
+        {
             // Change the name of the Top-k-accuracy column.
             if (_outputTopKAcc != null)
                 overall = ChangeTopKAccColumnName(overall);
-
-            MetricWriter.PrintOverallMetrics(Host, ch, filename, overall, metrics.Length);
+            return overall;
         }
 
         private IDataView ChangeTopKAccColumnName(IDataView input)

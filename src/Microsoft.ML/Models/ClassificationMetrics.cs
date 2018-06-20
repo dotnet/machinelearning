@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Models
 {
@@ -17,36 +18,45 @@ namespace Microsoft.ML.Models
         {
         }
 
-        internal static ClassificationMetrics FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix)
+        internal static List<ClassificationMetrics> FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix, 
+            int confusionMatriceStartIndex = 0)
         {
             Contracts.AssertValue(env);
             env.AssertValue(overallMetrics);
             env.AssertValue(confusionMatrix);
 
             var metricsEnumerable = overallMetrics.AsEnumerable<SerializationClass>(env, true, ignoreMissingColumns: true);
-            var enumerator = metricsEnumerable.GetEnumerator();
-            if (!enumerator.MoveNext())
+            if (!metricsEnumerable.GetEnumerator().MoveNext())
             {
                 throw env.Except("The overall RegressionMetrics didn't have any rows.");
             }
 
-            SerializationClass metrics = enumerator.Current;
+            List<ClassificationMetrics> metrics = new List<ClassificationMetrics>();
+            var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
 
-            if (enumerator.MoveNext())
+            int Index = 0;
+            foreach (var metric in metricsEnumerable)
             {
-                throw env.Except("The overall RegressionMetrics contained more than 1 row.");
+                if (Index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
+                {
+                    throw env.Except("Confusion matrices didn't have enough matrices.");
+                }
+                
+                metrics.Add(
+                    new ClassificationMetrics()
+                    {
+                        AccuracyMicro = metric.AccuracyMicro,
+                        AccuracyMacro = metric.AccuracyMacro,
+                        LogLoss = metric.LogLoss,
+                        LogLossReduction = metric.LogLossReduction,
+                        TopKAccuracy = metric.TopKAccuracy,
+                        PerClassLogLoss = metric.PerClassLogLoss,
+                        ConfusionMatrix = confusionMatrices.Current
+                    });
+
             }
 
-            return new ClassificationMetrics()
-            {
-                AccuracyMicro = metrics.AccuracyMicro,
-                AccuracyMacro = metrics.AccuracyMacro,
-                LogLoss = metrics.LogLoss,
-                LogLossReduction = metrics.LogLossReduction,
-                TopKAccuracy = metrics.TopKAccuracy,
-                PerClassLogLoss = metrics.PerClassLogLoss,
-                ConfusionMatrix = ConfusionMatrix.Create(env, confusionMatrix)
-            };
+            return metrics;
         }
 
         /// <summary>
@@ -125,7 +135,7 @@ namespace Microsoft.ML.Models
         /// <summary>
         /// This class contains the public fields necessary to deserialize from IDataView.
         /// </summary>
-        private class SerializationClass
+        private sealed class SerializationClass
         {
 #pragma warning disable 649 // never assigned
             [ColumnName(MultiClassClassifierEvaluator.AccuracyMicro)]

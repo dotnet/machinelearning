@@ -41,7 +41,7 @@ namespace Microsoft.ML.Models
             });
         }
 
-        internal static ConfusionMatrix Create(IHostEnvironment env, IDataView confusionMatrix)
+        internal static List<ConfusionMatrix> Create(IHostEnvironment env, IDataView confusionMatrix)
         {
             Contracts.AssertValue(env);
             env.AssertValue(confusionMatrix);
@@ -51,27 +51,7 @@ namespace Microsoft.ML.Models
                 env.Except($"ConfusionMatrix data view did not contain a {nameof(MetricKinds.ColumnNames.Count)} column.");
             }
 
-            ColumnType type = confusionMatrix.Schema.GetColumnType(countColumn);
-            env.Assert(type.IsVector);
-
-            double[,] elements = new double[type.VectorSize, type.VectorSize];
-
             IRowCursor cursor = confusionMatrix.GetRowCursor(col => col == countColumn);
-            ValueGetter<VBuffer<double>> countGetter = cursor.GetGetter<VBuffer<double>>(countColumn);
-            VBuffer<double> countValues = default;
-
-            int valuesRowIndex = 0;
-            while (cursor.MoveNext())
-            {
-                countGetter(ref countValues);
-                for (int i = 0; i < countValues.Length; i++)
-                {
-                    elements[valuesRowIndex, i] = countValues.Values[i];
-                }
-
-                valuesRowIndex++;
-            }
-
             var slots = default(VBuffer<DvText>);
             confusionMatrix.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countColumn, ref slots);
             string[] classNames = new string[slots.Count];
@@ -80,7 +60,35 @@ namespace Microsoft.ML.Models
                 classNames[i] = slots.Values[i].ToString();
             }
 
-            return new ConfusionMatrix(elements, classNames);
+            ColumnType type = confusionMatrix.Schema.GetColumnType(countColumn);
+            env.Assert(type.IsVector);
+            ValueGetter<VBuffer<double>> countGetter = cursor.GetGetter<VBuffer<double>>(countColumn);
+            VBuffer<double> countValues = default;
+            List<ConfusionMatrix> confusionMatrices = new List<ConfusionMatrix>();
+            
+            int valuesRowIndex = 0;
+            double[,] elements = null;
+            while (cursor.MoveNext())
+            {
+                if(valuesRowIndex == 0)
+                    elements = new double[type.VectorSize, type.VectorSize];
+
+                countGetter(ref countValues);
+                for (int i = 0; i < countValues.Length; i++)
+                {
+                    elements[valuesRowIndex, i] = countValues.Values[i];
+                }
+
+                valuesRowIndex++;
+
+                if(valuesRowIndex == type.VectorSize)
+                {
+                    valuesRowIndex = 0;
+                    confusionMatrices.Add(new ConfusionMatrix(elements, classNames));
+                }
+            }
+
+            return confusionMatrices;
         }
 
         /// <summary>
