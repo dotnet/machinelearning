@@ -1,4 +1,4 @@
-project (LDANative)
+project (LdaNative)
 
 set(SOURCES
     alias_multinomial_rng_int.cpp
@@ -14,6 +14,6 @@ set(SOURCES
     utils.cpp
 )
 
-add_library(LDANative SHARED ${SOURCES} ${RESOURCES})
+add_library(LdaNative SHARED ${SOURCES} ${RESOURCES})
 
-install_library_and_symbols (LDANative)
+install_library_and_symbols (LdaNative)
