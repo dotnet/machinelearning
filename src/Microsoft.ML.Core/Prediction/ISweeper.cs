@@ -174,6 +174,11 @@ namespace Microsoft.ML.Runtime
         {
             return string.Join(" ", _parameterValues.Select(kvp => string.Format("{0}={1}", kvp.Value.Name, kvp.Value.ValueText)).ToArray());
         }
+
+        public override int GetHashCode()
+        {
+            return _hash;
+        }
     }
 
     /// <summary>

@@ -57,6 +57,7 @@
     <Compile Include="TreeEnsemble\Ensemble.cs" />
     <Compile Include="TreeEnsemble\QuantileRegressionTree.cs" />
     <Compile Include="TreeEnsemble\RegressionTree.cs" />
+    <Compile Include="TreeEnsemble\TreeEnsembleCombiner.cs" />
     <Compile Include="Training\Applications\GradientWrappers.cs" />
     <Compile Include="Training\Applications\ObjectiveFunction.cs" />
     <Compile Include="Training\BaggingProvider.cs" />
