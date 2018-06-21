@@ -18,6 +18,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
     using TScalarPredictor = IPredictorProducing<Single>;
+
     public sealed class BestDiverseSelectorRegression : BaseDiverseSelector<Single, RegressionDisagreementDiversityMeasure>, IRegressionSubModelSelector
     {
         public const string UserName = "Best Diverse Selector";

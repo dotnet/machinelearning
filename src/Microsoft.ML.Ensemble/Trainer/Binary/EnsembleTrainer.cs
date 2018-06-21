@@ -9,10 +9,8 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
 using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 

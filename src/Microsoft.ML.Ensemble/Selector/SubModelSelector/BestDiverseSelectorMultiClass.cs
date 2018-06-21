@@ -19,6 +19,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
+
     public sealed class BestDiverseSelectorMultiClass : BaseDiverseSelector<VBuffer<Single>, IDiversityMeasure<VBuffer<Single>>>, IMulticlassSubModelSelector
     {
         public const string UserName = "Best Diverse Selector";
