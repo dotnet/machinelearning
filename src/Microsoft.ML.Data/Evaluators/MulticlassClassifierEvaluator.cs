@@ -256,6 +256,8 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     get
                     {
+                        if (_numInstances == 0)
+                            return 0;
                         Double macroAvgAccuracy = 0;
                         int countOfNonEmptyClasses = 0;
                         for (int i = 0; i < _numClasses; ++i)
@@ -267,8 +269,7 @@ namespace Microsoft.ML.Runtime.Data
                             }
                         }
 
-                        Contracts.Assert(countOfNonEmptyClasses > 0);
-                        return macroAvgAccuracy / countOfNonEmptyClasses;
+                        return countOfNonEmptyClasses > 0 ? macroAvgAccuracy / countOfNonEmptyClasses : 0;
                     }
                 }
 

@@ -11,6 +11,8 @@ namespace Microsoft.ML.Models
     {
         /// <summary>
         /// Converts the model to ONNX format.
+        /// See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/OnnxTests.cs"/>
+        /// for an example.
         /// </summary>
         /// <param name="model">Model that needs to be converted to ONNX format.</param>
         public void Convert(PredictionModel model)
