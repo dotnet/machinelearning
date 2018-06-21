@@ -1,8 +1,6 @@
-﻿//------------------------------------------------------------------------------
-// <copyright company="Microsoft Corporation">
-//     Copyright (c) Microsoft Corporation. All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Float = System.Single;
 
@@ -27,7 +25,7 @@ using Microsoft.ML.Runtime.TextAnalytics;
     LdaTransform.UserName, LdaTransform.LoaderSignature)]
 
 /*
- * REVIEW taifengw(tfinley): So this would be my starting point. Much of the plumbing is already
+ * REVIEW: So this would be my starting point. Much of the plumbing is already
  * done, except for the parts indicated by "REVIEW taifengw(tfinley):" in comments. I have not
  * tried this at all, so I could have some horrifying bugs and oversights here.
  * 
@@ -481,7 +479,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 numVocabs[i] = 0;
             }
 
-            //taifengw: the current lda needs the memory allocation before feedin data, so needs two sweeping of the data, 
+            //the current lda needs the memory allocation before feedin data, so needs two sweeping of the data, 
             //one for the pre-calc memory, one for feedin data really
             //another solution can be prepare these two value externally and put them in the beginning of the input file.
             long[] corpusSize = new long[Infos.Length];
@@ -868,7 +866,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     int termFreq = GetFrequency(src.Values[i]);
                     if (termFreq < 0)
                     {
-                        // REVIEW tfinley(shonk): Should this log a warning message? And what should it produce?
+                        // REVIEW: Should this log a warning message? And what should it produce?
                         // It currently produces a vbuffer of all NA values.
                         // REVIEW shonk: Need a utility method to do this...
                         if (Utils.Size(values) < len)
@@ -886,7 +884,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     termNum++;
                 }
 
-                // REVIEW tfinley(shonk): Too much memory allocation here on each prediction.
+                // REVIEW: Too much memory allocation here on each prediction.
                 List<KeyValuePair<int, float>> retTopics;
                 if (src.IsDense)
                     retTopics = _ldaTrainer.TestDocDense(src.Values, termNum, numBurninIter, reset);
@@ -968,7 +966,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             return
                 (ref VBuffer<Float> dst) =>
                 {
-                    // REVIEW taifengw(tfinley): This will work, but there are opportunities for caching
+                    // REVIEW: This will work, but there are opportunities for caching
                     // based on input.Counter that are probably worthwhile given how long inference takes.
                     getSrc(ref src);
                     lda.Output(ref src, ref dst, numBurninIter, reset);

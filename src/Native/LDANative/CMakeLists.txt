@@ -14,12 +14,6 @@ set(SOURCES
     utils.cpp
 )
 
-if(WIN32)
-else()
-    set_property(SOURCE segment.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -msse4.1")
-    list(APPEND SOURCES ${VERSION_FILE_PATH})
-endif()
-
 add_library(LDANative SHARED ${SOURCES} ${RESOURCES})
 
 install_library_and_symbols (LDANative)
