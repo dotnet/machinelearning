@@ -1,0 +1,4 @@
+LightGBMBinary
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/iter	/lr	/nl	/mil	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.996313	0.982833	0.956175	0.995851	0.997768	0.975983	0.086938	90.64497	0.97561	0.987034	20	0.25	5	5	LightGBMBinary	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=LightGBMBinary{nl=5 mil=5 lr=0.25 iter=20 mb=255} cache=- dout=%Output% loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9} data=%Data% out=%Output% seed=1	/iter:20;/lr:0.25;/nl:5;/mil:5	
+

@@ -21,4 +21,8 @@
     <Folder Include="Properties\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="LightGBM" Version="2.1.2" />
+  </ItemGroup>
+
 </Project>
