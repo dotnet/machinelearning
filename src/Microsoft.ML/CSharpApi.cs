@@ -76,7 +76,7 @@ namespace Microsoft.ML
                 Add(input, output);
                 return output;
             }
-            
+
             public void Add(Microsoft.ML.Data.TextLoader input, Microsoft.ML.Data.TextLoader.Output output)
             {
                 _jsonNodes.Add(Serialize("Data.TextLoader", input, output));
