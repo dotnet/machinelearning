@@ -28,8 +28,6 @@ using System.Runtime.InteropServices;
     "OLS Linear Regression Executor",
     OlsLinearRegressionPredictor.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
-
 namespace Microsoft.ML.Runtime.Learners
 {
     public sealed class OlsLinearRegressionTrainer : TrainerBase<RoleMappedData, OlsLinearRegressionPredictor>
