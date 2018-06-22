@@ -109,11 +109,33 @@ namespace Microsoft.ML.Runtime.Model
             _open = new List<Entry>();
             if (needDir)
             {
-                DirTemp = GetTempPath();
+                DirTemp = GetShortTempPath();
                 Directory.CreateDirectory(DirTemp);
             }
             else
                 GC.SuppressFinalize(this);
+        }
+
+        private static string GetShortTempPath()
+        {
+            Guid guid = Guid.NewGuid();
+            var guidName = guid.ToString();
+            int index = guidName.IndexOf('-');
+            if (index < 0)
+                index = Math.Min(8, guidName.Length);
+            guidName = guidName.Substring(0, index);
+            var path = Path.Combine(Path.GetTempPath(), "TLC_" + guidName);
+            while (Directory.Exists(path))
+            {
+                guid = Guid.NewGuid();
+                guidName = guid.ToString();
+                index = guidName.IndexOf('-');
+                if (index < 0)
+                    index = Math.Min(8, guidName.Length);
+                guidName = guidName.Substring(0, index);
+                path = Path.Combine(Path.GetTempPath(), "TLC_" + guidName);
+            }
+            return Path.GetFullPath(path);
         }
 
         // REVIEW: This should use host environment functionality.
