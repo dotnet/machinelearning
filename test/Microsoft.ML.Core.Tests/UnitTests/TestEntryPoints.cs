@@ -1781,7 +1781,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointBinaryEnsemble()
         {
-            TestEntryPointRoutine("iris.txt", "Trainers.BinaryEnsemble");
+            TestEntryPointRoutine("iris.txt", "Trainers.BinaryClassifierEnsemble");
         }
 
         [Fact]

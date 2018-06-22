@@ -748,42 +748,5 @@ namespace Microsoft.ML.Runtime.RunTests
             MamlArgs = new[] { "xf=Copy{col=DupFeatures:Features} xf=MinMax{col=Features col=DupFeatures} norm=No", "col[Feature]=DupFeatures" },
             BaselineProgress = true
         };
-
-        public static PredictorAndArgs EnsembleRegression = new PredictorAndArgs
-        {
-            Trainer = new SubComponent("EnsembleRegression"),
-            Tag = "Default",
-        };
-
-        public static PredictorAndArgs EnsembleRegressionNumModels = new PredictorAndArgs
-        {
-            Trainer = new SubComponent("EnsembleRegression", "bp=OGD bp=FTR"),
-            Tag = "NumModels",
-        };
-
-        public static PredictorAndArgs EnsembleRegressionDiverseSelector = new PredictorAndArgs
-        {
-            Trainer = new SubComponent("EnsembleRegression", "pt = BestDiverseSelectorRegression"),
-            Tag = "DiverseRegression",
-        };
-
-        public static PredictorAndArgs EnsembleRegressionPerformanceSelector = new PredictorAndArgs
-        {
-            Trainer = new SubComponent("EnsembleRegression", "pt = BestPerformanceRegressionSelector"),
-            Tag = "PerformanceSelector",
-        };
-
-        public static PredictorAndArgs EnsembleRegressionAverageCombiner = new PredictorAndArgs
-        {
-            Trainer = new SubComponent("EnsembleRegression", "oc=Average"),
-            Tag = "Average",
-        };
-
-        public static PredictorAndArgs EnsembleRegressionStackingCombiner = new PredictorAndArgs
-        {
-            Trainer = new SubComponent("EnsembleRegression", "oc=RegressionStacking"),
-            Tag = "RegressionStacking",
-        };
-
     }
 }
