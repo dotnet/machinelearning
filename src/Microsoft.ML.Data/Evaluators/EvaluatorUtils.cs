@@ -893,7 +893,8 @@ namespace Microsoft.ML.Runtime.Data
             var views = list.ToArray();
             foreach (var keyCol in firstDvKeyWithNamesColumns)
                 ReconcileKeyValues(env, views, keyCol, TextType.Instance);
-            ReconcileKeyValues(env, views, labelColName, labelColKeyValuesType.ItemType);
+            if (labelColKeyValuesType != null)
+                ReconcileKeyValues(env, views, labelColName, labelColKeyValuesType.ItemType);
             foreach (var keyCol in firstDvKeyNoNamesColumns)
                 ReconcileKeyValuesWithNoNames(env, views, keyCol.Key, keyCol.Value);
             foreach (var vectorKeyCol in firstDvVectorKeyColumns)
@@ -904,7 +905,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     foreach (var keyCol in firstDvVectorKeyColumns.Prepend(labelColName))
                     {
-                        if (string.IsNullOrEmpty(keyCol))
+                        if (keyCol == labelColName && labelColKeyValuesType == null)
                             continue;
                         idv = new KeyToValueTransform(env, new KeyToValueTransform.Arguments() { Column = new[] { new KeyToValueTransform.Column() { Name = keyCol }, } }, idv);
                         var hidden = FindHiddenColumns(idv.Schema, keyCol);
