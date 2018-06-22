@@ -94,6 +94,33 @@ namespace Microsoft.ML.Runtime.Learners
             public bool EnforceNonNegativity = false;
         }
 
+        internal const string DetailedSummary = @"Logistic Regression is a classification method used to predict the value of a categorical dependent variable from its relationship to one or more independent variables assumed to have a logistic distribution. 
+If the dependent variable has only two possible values (success/failure), then the logistic regression is binary. 
+If the dependent variable has more than two possible values (blood type given diagnostic test results), then the logistic regression is multinomial.
+
+The optimization technique used for LogisticRegressionBinaryClassifier is the limited memory Broyden-Fletcher-Goldfarb-Shanno (L-BFGS). 
+Both the L-BFGS and regular BFGS algorithms use quasi-Newtonian methods to estimate the computationally intensive Hessian matrix in the equation used by Newton's method to calculate steps. 
+But the L-BFGS approximation uses only a limited amount of memory to compute the next step direction, so that it is especially suited for problems with a large number of variables. 
+The memory_size parameter specifies the number of past positions and gradients to store for use in the computation of the next step.
+
+This learner can use elastic net regularization: a linear combination of L1 (lasso) and L2 (ridge) regularizations. 
+Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information to supplement the data and that prevents overfitting by penalizing models with extreme coefficient values. 
+This can improve the generalization of the model learned by selecting the optimal complexity in the bias-variance tradeoff. Regularization works by adding the penalty that is associated with coefficient values to the error of the hypothesis. 
+An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less. L1 and L2 regularization have different effects and uses that are complementary in certain respects.
+
+l1_weight: can be applied to sparse models, when working with high-dimensional data. It pulls small weights associated features that are relatively unimportant towards 0. 
+l2_weight: is preferable for data that is not sparse. It pulls large weights towards zero. 
+
+Adding the ridge penalty to the regularization overcomes some of lasso's limitations. It can improve its predictive accuracy, for example, when the number of predictors is greater than the sample size. If x = l1_weight and y = l2_weight, ax + by = c defines the linear span of the regularization terms. 
+The default values of x and y are both 1. 
+An agressive regularization can harm predictive capacity by excluding important variables out of the model. So choosing the optimal values for the regularization parameters is important for the performance of the logistic regression model.
+
+<see href='http://en.wikipedia.org/wiki/L-BFGS'>Wikipedia: L-BFGS</see>.
+<see href='http://en.wikipedia.org/wiki/Logistic_regression'>Wikipedia: Logistic regression</see>.
+<see href='http://research.microsoft.com/apps/pubs/default.aspx?id=78900'>Scalable Training of L1-Regularized Log-Linear Models</see>.
+<see href='https://msdn.microsoft.com/en-us/magazine/dn904675.aspx'>Test Run - L1 and L2 Regularization for Machine Learning</see>.
+";
+
         protected int NumFeatures;
         protected VBuffer<Float> CurrentWeights;
         protected long NumGoodRows;
