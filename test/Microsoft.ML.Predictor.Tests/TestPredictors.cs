@@ -407,6 +407,24 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        [Fact]
+        [TestCategory("Binary")]
+        [TestCategory("LightGBM")]
+        public void LightGBMClassificationTest()
+        {
+            RunMTAThread(() =>
+            {
+                var learners = new[] { TestLearners.LightGBMClassifier };
+                var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+                foreach (var learner in learners)
+                {
+                    foreach (TestDataset dataset in binaryClassificationDatasets)
+                        Run_TrainTest(learner, dataset);
+                }
+            });
+            Done();
+        }
+
 
         [Fact]
         public void TestTreeEnsembleCombiner()

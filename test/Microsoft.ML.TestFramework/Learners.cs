@@ -267,6 +267,13 @@ namespace Microsoft.ML.Runtime.RunTests
             BaselineProgress = true,
         };
 
+        public static PredictorAndArgs LightGBMClassifier = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMBinary", "nl=5 mil=5 lr=0.25 iter=20 mb=255"),
+            Tag = "LightGBM",
+            BaselineProgress = true,
+        };
+
         public static PredictorAndArgs FastTreeWithCategoricalClassfier = new PredictorAndArgs
         {
             Trainer = new SubComponent("FastTreeBinaryClassification", "cat=+ nl=5 mil=5 lr=0.25 iter=20 mb=255"),
