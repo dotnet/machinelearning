@@ -552,14 +552,15 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static int[][] MapKeys(ISchema[] schemas, string columnName, bool isVec,
-            out int[] indices, out Dictionary<DvText, int> reconciledKeyNames)
+        private static int[][] MapKeys<T>(ISchema[] schemas, string columnName, bool isVec,
+            int[] indices, Dictionary<DvText, int> reconciledKeyNames)
         {
+            Contracts.AssertValue(indices);
+            Contracts.AssertValue(reconciledKeyNames);
+
             var dvCount = schemas.Length;
             var keyValueMappers = new int[dvCount][];
-            var keyNamesCur = default(VBuffer<DvText>);
-            indices = new int[dvCount];
-            reconciledKeyNames = new Dictionary<DvText, int>();
+            var keyNamesCur = default(VBuffer<T>);
             for (int i = 0; i < dvCount; i++)
             {
                 var schema = schemas[i];
@@ -567,10 +568,11 @@ namespace Microsoft.ML.Runtime.Data
                     throw Contracts.Except($"Schema number {i} does not contain column '{columnName}'");
 
                 var type = schema.GetColumnType(indices[i]);
+                var keyValueType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, indices[i]);
                 if (type.IsVector != isVec)
                     throw Contracts.Except($"Column '{columnName}' in schema number {i} does not have the correct type");
-                if (!schema.HasKeyNames(indices[i], type.ItemType.KeyCount))
-                    throw Contracts.Except($"Column '{columnName}' in schema number {i} does not have text key values");
+                if (keyValueType == null || keyValueType.ItemType.RawType != typeof(T))
+                    throw Contracts.Except($"Column '{columnName}' in schema number {i} does not have the correct type of key values");
                 if (!type.ItemType.IsKey || type.ItemType.RawKind != DataKind.U4)
                     throw Contracts.Except($"Column '{columnName}' must be a U4 key type, but is '{type.ItemType}'");
 
@@ -580,7 +582,7 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var kvp in keyNamesCur.Items(true))
                 {
                     var key = kvp.Key;
-                    var name = kvp.Value;
+                    var name = new DvText(kvp.Value.ToString());
                     if (!reconciledKeyNames.ContainsKey(name))
                         reconciledKeyNames[name] = reconciledKeyNames.Count;
                     keyValueMappers[i][key] = reconciledKeyNames[name];
@@ -595,17 +597,17 @@ namespace Microsoft.ML.Runtime.Data
         /// data view, with the union of the key values as the new key values. For each data view, the value in the output column is the value
         /// corresponding to the key value in the original column.
         /// </summary>
-        public static void ReconcileKeyValues(IHostEnvironment env, IDataView[] views, string columnName)
+        public static void ReconcileKeyValues(IHostEnvironment env, IDataView[] views, string columnName, ColumnType keyValueType)
         {
             Contracts.CheckNonEmpty(views, nameof(views));
             Contracts.CheckNonEmpty(columnName, nameof(columnName));
 
             var dvCount = views.Length;
 
-            Dictionary<DvText, int> keyNames;
-            int[] indices;
             // Create mappings from the original key types to the reconciled key type.
-            var keyValueMappers = MapKeys(views.Select(view => view.Schema).ToArray(), columnName, false, out indices, out keyNames);
+            var indices = new int[dvCount];
+            var keyNames = new Dictionary<DvText, int>();
+            var keyValueMappers = Utils.MarshalInvoke(MapKeys<int>, keyValueType.RawType, views.Select(view => view.Schema).ToArray(), columnName, false, indices, keyNames);
             var keyType = new KeyType(DataKind.U4, 0, keyNames.Count);
             var keyNamesVBuffer = new VBuffer<DvText>(keyNames.Count, keyNames.Keys.ToArray());
             ValueGetter<VBuffer<DvText>> keyValueGetter =
@@ -630,19 +632,50 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// This method takes an array of data views and a specified input key column, and adds a new output column to each of the data views.
+        /// First, we find the union set of the key values in the different data views. Next we define a new key column for each 
+        /// data view, with the union of the key values as the new key values. For each data view, the value in the output column is the value
+        /// corresponding to the key value in the original column.
+        /// </summary>
+        public static void ReconcileKeyValuesWithNoNames(IHostEnvironment env, IDataView[] views, string columnName, int keyCount)
+        {
+            Contracts.CheckNonEmpty(views, nameof(views));
+            Contracts.CheckNonEmpty(columnName, nameof(columnName));
+
+            var keyType = new KeyType(DataKind.U4, 0, keyCount);
+
+            // For each input data view, create the reconciled key column by wrapping it in a LambdaColumnMapper.
+            for (int i = 0; i < views.Length; i++)
+            {
+                if (!views[i].Schema.TryGetColumnIndex(columnName, out var index))
+                    throw env.Except($"Data view {i} doesn't contain a column '{columnName}'");
+                ValueMapper<uint, uint> mapper =
+                    (ref uint src, ref uint dst) =>
+                    {
+                        if (src == 0 || src > keyCount)
+                            dst = 0;
+                        else
+                            dst = src + 1;
+                    };
+                views[i] = LambdaColumnMapper.Create(env, "ReconcileKeyValues", views[i], columnName, columnName,
+                    views[i].Schema.GetColumnType(index), keyType, mapper);
+            }
+        }
+
+        /// <summary>
         /// This method is similar to <see cref="ReconcileKeyValues"/>, but it reconciles the key values over vector
         /// input columns.
         /// </summary>
-        public static void ReconcileVectorKeyValues(IHostEnvironment env, IDataView[] views, string columnName)
+        public static void ReconcileVectorKeyValues(IHostEnvironment env, IDataView[] views, string columnName, ColumnType keyValueType)
         {
             Contracts.CheckNonEmpty(views, nameof(views));
             Contracts.CheckNonEmpty(columnName, nameof(columnName));
 
             var dvCount = views.Length;
 
-            Dictionary<DvText, int> keyNames;
-            int[] columnIndices;
-            var keyValueMappers = MapKeys(views.Select(view => view.Schema).ToArray(), columnName, true, out columnIndices, out keyNames);
+            var keyNames = new Dictionary<DvText, int>();
+            var columnIndices = new int[dvCount];
+            var keyValueMappers = Utils.MarshalInvoke(MapKeys<int>, keyValueType.RawType, views.Select(view => view.Schema).ToArray(), columnName, true, columnIndices, keyNames);
             var keyType = new KeyType(DataKind.U4, 0, keyNames.Count);
             var keyNamesVBuffer = new VBuffer<DvText>(keyNames.Count, keyNames.Keys.ToArray());
             ValueGetter<VBuffer<DvText>> keyValueGetter =
@@ -736,7 +769,7 @@ namespace Microsoft.ML.Runtime.Data
             var foldDataViews = perInstance.Select(getPerInstance).ToArray();
             if (collate)
             {
-                var combined = AppendPerInstanceDataViews(env, foldDataViews, out variableSizeVectorColumnNames);
+                var combined = AppendPerInstanceDataViews(env, perInstance[0].Schema.Label?.Name, foldDataViews, out variableSizeVectorColumnNames);
                 return new[] { combined };
             }
             else
@@ -767,7 +800,8 @@ namespace Microsoft.ML.Runtime.Data
             return AppendRowsDataView.Create(env, overallList[0].Schema, overallList.ToArray());
         }
 
-        private static IDataView AppendPerInstanceDataViews(IHostEnvironment env, IEnumerable<IDataView> foldDataViews, out string[] variableSizeVectorColumnNames)
+        private static IDataView AppendPerInstanceDataViews(IHostEnvironment env, string labelColName,
+            IEnumerable<IDataView> foldDataViews, out string[] variableSizeVectorColumnNames)
         {
             Contracts.AssertValue(env);
             env.AssertValue(foldDataViews);
@@ -776,7 +810,9 @@ namespace Microsoft.ML.Runtime.Data
             // This is a dictionary from the column name to its vector size.
             var vectorSizes = new Dictionary<string, int>();
             var firstDvSlotNames = new Dictionary<string, VBuffer<DvText>>();
-            var firstDvKeyColumns = new List<string>();
+            ColumnType labelColKeyValuesType = null;
+            var firstDvKeyWithNamesColumns = new List<string>();
+            var firstDvKeyNoNamesColumns = new Dictionary<string, int>();
             var firstDvVectorKeyColumns = new List<string>();
             var variableSizeVectorColumnNamesList = new List<string>();
             var list = new List<IDataView>();
@@ -822,10 +858,20 @@ namespace Microsoft.ML.Runtime.Data
                         else
                             vectorSizes.Add(name, type.VectorSize);
                     }
-                    else if (dvNumber == 0 && dv.Schema.HasKeyNames(i, type.KeyCount))
+                    else if (dvNumber == 0 && name == labelColName)
                     {
                         // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
-                        firstDvKeyColumns.Add(name);
+                        labelColKeyValuesType = dv.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, i);
+                    }
+                    else if (dvNumber == 0 && dv.Schema.HasKeyNames(i, type.KeyCount))
+                        firstDvKeyWithNamesColumns.Add(name);
+                    else if (type.KeyCount > 0 && name != labelColName)
+                    {
+                        // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
+                        if (!firstDvKeyNoNamesColumns.ContainsKey(name))
+                            firstDvKeyNoNamesColumns[name] = type.KeyCount;
+                        if (firstDvKeyNoNamesColumns[name] < type.KeyCount)
+                            firstDvKeyNoNamesColumns[name] = type.KeyCount;
                     }
                 }
                 var idv = dv;
@@ -841,22 +887,32 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             variableSizeVectorColumnNames = variableSizeVectorColumnNamesList.ToArray();
-            if (variableSizeVectorColumnNamesList.Count == 0 && firstDvKeyColumns.Count == 0)
+            if (variableSizeVectorColumnNamesList.Count == 0 && labelColKeyValuesType == null)
                 return AppendRowsDataView.Create(env, null, list.ToArray());
 
             var views = list.ToArray();
-            foreach (var keyCol in firstDvKeyColumns)
-                ReconcileKeyValues(env, views, keyCol);
+            foreach (var keyCol in firstDvKeyWithNamesColumns)
+                ReconcileKeyValues(env, views, keyCol, TextType.Instance);
+            ReconcileKeyValues(env, views, labelColName, labelColKeyValuesType.ItemType);
+            foreach (var keyCol in firstDvKeyNoNamesColumns)
+                ReconcileKeyValuesWithNoNames(env, views, keyCol.Key, keyCol.Value);
             foreach (var vectorKeyCol in firstDvVectorKeyColumns)
-                ReconcileVectorKeyValues(env, views, vectorKeyCol);
+                ReconcileVectorKeyValues(env, views, vectorKeyCol, TextType.Instance);
 
             Func<IDataView, int, IDataView> keyToValue =
                 (idv, i) =>
                 {
-                    foreach (var keyCol in firstDvKeyColumns.Concat(firstDvVectorKeyColumns))
+                    foreach (var keyCol in firstDvVectorKeyColumns.Prepend(labelColName))
                     {
+                        if (string.IsNullOrEmpty(keyCol))
+                            continue;
                         idv = new KeyToValueTransform(env, new KeyToValueTransform.Arguments() { Column = new[] { new KeyToValueTransform.Column() { Name = keyCol }, } }, idv);
                         var hidden = FindHiddenColumns(idv.Schema, keyCol);
+                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = hidden.ToArray() }, idv);
+                    }
+                    foreach (var keyCol in firstDvKeyNoNamesColumns)
+                    {
+                        var hidden = FindHiddenColumns(idv.Schema, keyCol.Key);
                         idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = hidden.ToArray() }, idv);
                     }
                     return idv;
