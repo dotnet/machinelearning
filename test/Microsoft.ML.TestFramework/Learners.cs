@@ -269,7 +269,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         public static PredictorAndArgs LightGBMClassifier = new PredictorAndArgs
         {
-            Trainer = new SubComponent("LightGBMBinary", "nl=5 mil=5 lr=0.25 iter=20 mb=255"),
+            Trainer = new SubComponent("LightGBMBinary", "nt=1 nl=5 mil=5 lr=0.25 iter=20 mb=255"),
             Tag = "LightGBM",
             BaselineProgress = true,
         };
