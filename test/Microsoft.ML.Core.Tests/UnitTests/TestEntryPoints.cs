@@ -424,7 +424,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var regEnsemble = EnsembleCreator.CreateRegressionEnsemble(Env, regEnsembleInput).PredictorModel;
             var regScored =
                 ScoreModel.Score(Env,
-                new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = medEnsemble }).ScoredData;
+                new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = regEnsemble }).ScoredData;
 
             var zippedScores = ZipDataView.Create(Env, individualScores);
 

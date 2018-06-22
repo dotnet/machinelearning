@@ -490,16 +490,16 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Trainers.AveragedPerceptronBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.BinaryEnsemble.Output Add(Microsoft.ML.Trainers.BinaryEnsemble input)
+            public Microsoft.ML.Trainers.BinaryClassifierEnsemble.Output Add(Microsoft.ML.Trainers.BinaryClassifierEnsemble input)
             {
-                var output = new Microsoft.ML.Trainers.BinaryEnsemble.Output();
+                var output = new Microsoft.ML.Trainers.BinaryClassifierEnsemble.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.BinaryEnsemble input, Microsoft.ML.Trainers.BinaryEnsemble.Output output)
+            public void Add(Microsoft.ML.Trainers.BinaryClassifierEnsemble input, Microsoft.ML.Trainers.BinaryClassifierEnsemble.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.BinaryEnsemble", input, output));
+                _jsonNodes.Add(Serialize("Trainers.BinaryClassifierEnsemble", input, output));
             }
 
             public Microsoft.ML.Trainers.ClassificationEnsemble.Output Add(Microsoft.ML.Trainers.ClassificationEnsemble input)
@@ -4177,7 +4177,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Train binary ensemble.
         /// </summary>
-        public sealed partial class BinaryEnsemble : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class BinaryClassifierEnsemble : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
 
@@ -4261,18 +4261,18 @@ namespace Microsoft.ML
                 {
                     if (!(previousStep is ILearningPipelineDataStep dataStep))
                     {
-                        throw new InvalidOperationException($"{ nameof(BinaryEnsemble)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                        throw new InvalidOperationException($"{ nameof(BinaryClassifierEnsemble)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
                     }
 
                     TrainingData = dataStep.Data;
                 }
                 Output output = experiment.Add(this);
-                return new BinaryEnsemblePipelineStep(output);
+                return new BinaryClassifierEnsemblePipelineStep(output);
             }
 
-            private class BinaryEnsemblePipelineStep : ILearningPipelinePredictorStep
+            private class BinaryClassifierEnsemblePipelineStep : ILearningPipelinePredictorStep
             {
-                public BinaryEnsemblePipelineStep(Output output)
+                public BinaryClassifierEnsemblePipelineStep(Output output)
                 {
                     Model = output.PredictorModel;
                 }

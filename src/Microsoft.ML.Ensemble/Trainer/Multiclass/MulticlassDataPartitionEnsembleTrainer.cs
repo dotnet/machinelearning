@@ -39,17 +39,15 @@ namespace Microsoft.ML.Runtime.Ensemble
         {
             [Argument(ArgumentType.Multiple, HelpText = "Algorithm to prune the base learners for selective Ensemble", ShortName = "pt", SortOrder = 4)]
             [TGUI(Label = "Sub-Model Selector(pruning) Type", Description = "Algorithm to prune the base learners for selective Ensemble")]
-            public ISupportMulticlassSubModelSelectorFactory SubModelSelectorType;
+            public ISupportMulticlassSubModelSelectorFactory SubModelSelectorType = new AllSelectorMultiClassFactory();
 
             [Argument(ArgumentType.Multiple, HelpText = "Output combiner", ShortName = "oc", SortOrder = 5)]
             [TGUI(Label = "Output combiner", Description = "Output combiner type")]
-            public ISupportMulticlassOutputCombinerFactory OutputCombiner;
+            public ISupportMulticlassOutputCombinerFactory OutputCombiner = new MultiMedian.Arguments();
 
             public Arguments()
             {
                 BasePredictors = new[] { new SubComponent<ITrainer<RoleMappedData, TVectorPredictor>, SignatureMultiClassClassifierTrainer>("MultiClassLogisticRegression") };
-                OutputCombiner = new  MultiMedian.Arguments();
-                SubModelSelectorType = new AllSelectorMultiClassFactory();
             }
         }
 

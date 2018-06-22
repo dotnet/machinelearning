@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(RegressionStacking), typeof(RegressionStacking.Arguments), typeof(SignatureCombiner),
-    Stacking.UserName, RegressionStacking.LoadName)]
+    Stacking.UserName, RegressionStacking.LoaderSignature)]
 [assembly: LoadableClass(typeof(RegressionStacking), null, typeof(SignatureLoadModel),
     Stacking.UserName, RegressionStacking.LoadName)]
 

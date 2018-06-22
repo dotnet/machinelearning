@@ -4065,7 +4065,7 @@
       ]
     },
     {
-      "Name": "Trainers.BinaryEnsemble",
+      "Name": "Trainers.BinaryClassifierEnsemble",
       "Desc": "Train binary ensemble.",
       "FriendlyName": "Parallel Ensemble (bagging, stacking, etc)",
       "ShortName": null,

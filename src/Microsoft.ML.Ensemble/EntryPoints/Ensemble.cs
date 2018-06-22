@@ -13,7 +13,7 @@ namespace Microsoft.ML.Ensemble.EntryPoints
 {
     public static class Ensemble
     {
-        [TlcModule.EntryPoint(Name = "Trainers.BinaryEnsemble", Desc = "Train binary ensemble.", UserName = EnsembleTrainer.UserNameValue)]
+        [TlcModule.EntryPoint(Name = "Trainers.BinaryClassifierEnsemble", Desc = "Train binary ensemble.", UserName = EnsembleTrainer.UserNameValue)]
         public static CommonOutputs.BinaryClassificationOutput CreateBinaryEnsemble(IHostEnvironment env, EnsembleTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

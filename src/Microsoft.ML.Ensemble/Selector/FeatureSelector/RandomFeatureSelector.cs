@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
         public const string UserName = "Random Feature Selector";
         public const string LoadName = "RandomFeatureSelector";
 
-        [TlcModule.Component(Name = RandomFeatureSelector.LoadName, FriendlyName = RandomFeatureSelector.UserName)]
+        [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
         public sealed class Arguments: ISupportFeatureSelectorFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The proportion of features to be selected. The range is 0.0-1.0", ShortName = "fp", SortOrder = 50)]
