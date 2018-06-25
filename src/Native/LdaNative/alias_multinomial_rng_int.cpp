@@ -32,7 +32,6 @@ namespace wood
         
         // NOTE: use std::floor is too slow
         // here we guarantee sample * n_ is nonnegative, this makes cast work
-        //int idx = std::floor(sample * n_);
         int idx = sample / a_int_;
 
         if (n_ <= idx)
@@ -40,13 +39,11 @@ namespace wood
             idx = n_ - 1;
         }
 
-        // CHECK(idx < K.size()) << "sample = " << sample << ",a_int_ = " << a_int_ << ",idx=" << idx;
         // the following code is equivalent to 
         // return sample < V_[idx] ? idx : K_[idx];
         // but faster, see
         // http://stackoverflow.com/questions/6754454/speed-difference-between-if-else-and-ternary-operator-in-c
         int m = -(sample < alias_kv[idx].v_);
         return (idx & m) | (alias_kv[idx].k_ & ~m);
-        // return sample < V[idx] ? idx : K[idx];
     }
 }

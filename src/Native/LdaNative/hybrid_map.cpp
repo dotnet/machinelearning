@@ -22,7 +22,6 @@ namespace lda
         num_deleted_key_(0),
         external_rehash_buf_(nullptr)
     {
-        // CHECK(is_dense_) << "is_dense_ == 0";
     }
     hybrid_map::hybrid_map(int32_t *memory, int32_t is_dense, int32_t capacity, int32_t num_deleted_key
         , int32_t *external_rehash_buf_)

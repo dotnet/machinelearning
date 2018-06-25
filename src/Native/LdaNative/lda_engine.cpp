@@ -113,9 +113,6 @@ namespace lda {
 
         likelihood_in_iter_ = nullptr;
         beta_sum_ = beta_ * V_;
-
-        //set up some trainig parameter, e.g. topicNum, docNum, 
-        //model_block_.Read(meta_name);         
     }
 
 
@@ -220,9 +217,9 @@ namespace lda {
     void LdaEngine::InitializeBeforeTest()
     {
         // TODO:
-        // 1, Allocating space for word-topic-table and alias table according to the input data of SetModel interface (done)
-        // 2, Create multiple thread-specific sampler
-        // 3, set word_range_for_each_thread_
+        // Allocating space for word-topic-table and alias table according to the input data of SetModel interface (done)
+        // Create multiple thread-specific sampler
+        // set word_range_for_each_thread_
         // Adjust the alpha_sum_ parameter for each thread-specific sampler
         CTimer tmDebug(true);
         CheckFunction(0, tmDebug, "enter initializeBeforeTest", false);
@@ -296,7 +293,7 @@ namespace lda {
         CheckFunction(0, tmDebug, "create samplers", false);
 
         // build alias table
-        // 1, build alias table for the dense term,  beta_k_v_, which is shared by all the words
+        // build alias table for the dense term,  beta_k_v_, which is shared by all the words
         beta_mass_ = 0;
         std::vector<float> proportion(K_);
         for (int k = 0; k < K_; ++k)
@@ -306,7 +303,7 @@ namespace lda {
         }
         alias_rng_int_.SetProportionMass(proportion, beta_mass_, beta_k_v_, &beta_height_, samplers_[0]->rng());
 
-        // 2,  build alias table for the sparse term
+        // build alias table for the sparse term
         for (int thread_id = 0; thread_id < num_threads_; ++thread_id)
         {
             LightDocSampler &sampler = *(samplers_[thread_id]);
@@ -366,17 +363,6 @@ namespace lda {
 
     void LdaEngine::CheckFunction(int thread_id, CTimer &tmDebug, const char* msg, bool waitBarrier)
     {
-        /*if (thread_id == 0)
-        {
-        sprintf(tmDebug.m_szMessage, msg);
-        tmDebug.InnerTag();
-        system("pause");
-        }
-
-        if (waitBarrier)
-        {
-        process_barrier_->wait();
-        }*/
     }
 
     void LdaEngine::Training_Thread()
@@ -456,7 +442,7 @@ namespace lda {
             int32_t token_sweeped = 0;
             atomic_stats_->num_tokens_clock_ = 0;
             // build alias table
-            // 1, build alias table for the dense term,  beta_k_v_, which is shared by all the words
+            // build alias table for the dense term,  beta_k_v_, which is shared by all the words
             if (thread_id == 0)
             {
                 beta_mass_ = 0;
@@ -472,7 +458,7 @@ namespace lda {
             process_barrier_->wait();
             CheckFunction(thread_id, tmDebug, "built alias table dense - in function train_thread");
 
-            // 2,  build alias table for the sparse term
+            // build alias table for the sparse term
             sampler_.build_alias_table(word_range_for_each_thread_[thread_id], word_range_for_each_thread_[thread_id + 1], thread_id);
             process_barrier_->wait();
             CheckFunction(thread_id, tmDebug, "built alias table sparse - in function train_thread");
@@ -481,7 +467,7 @@ namespace lda {
             process_barrier_->wait();
             CheckFunction(thread_id, tmDebug, "EpochInit - in function train_thread");
 
-            //3. main part of the training - sampling over documents in this iteration
+            // main part of the training - sampling over documents in this iteration
             double iter_start = lda::get_time();
             int32_t doc_start_local = data_block_->Begin(thread_id);
             int32_t doc_end_local = data_block_->End(thread_id);
@@ -499,7 +485,6 @@ namespace lda {
             if (thread_id == 0)
             {
                 double seconds_this_iter = iter_end - iter_start;
-                //std::cout << "end sampling, thread = " << thread_id << ", elpased time = " << (seconds_this_iter) << std::endl;
 
                 printf("Iter: %04d", iter);
                 std::cout
@@ -513,7 +498,7 @@ namespace lda {
             process_barrier_->wait();
             CheckFunction(thread_id, tmDebug, "train(gibbs sampling) - in function train_thread");
 
-            //4. syncup global table
+            // syncup global table
             double sync_start = lda::get_time();
             for (int i = 0; i < num_threads_; ++i)
             {
@@ -583,9 +568,6 @@ namespace lda {
         LightDocSampler &sampler_ = *(samplers_[thread_id]);
         sampler_.AdaptAlphaSum(false);
 
-        //sampler_.build_word_topic_table(thread_id, num_threads_, model_block_);
-        //process_barrier_->wait();
-
         double init_start = lda::get_time();
         int32_t token_num = 0;
         int32_t doc_start = data_block_->Begin(thread_id);
@@ -604,24 +586,10 @@ namespace lda {
             token_num += sampler_.GlobalInit(doc.get());
         }
 
-        /*double init_end = lda::get_time();
-        printf("Thread ID = %d, token num = %d, Init took %fsec, Throughput: %f(token/sec)\n",
-        thread_id,
-        token_num,
-        init_end - init_start,
-        static_cast<double>(token_num) / (init_end - init_start));*/
-
         process_barrier_->wait();
 
-        /*if (thread_id == 0)
-        {
-        printf("Global Init OK");
-        printf("Start aggreating word_topic_delta, thread = %d\n", thread_id);
-        }
-        process_barrier_->wait();*/
-
         // build alias table
-        // 1, build alias table for the dense term,  beta_k_v_, which is shared by all the words
+        // build alias table for the dense term,  beta_k_v_, which is shared by all the words
         if (thread_id == 0)
         {
             beta_mass_ = 0;
@@ -633,21 +601,13 @@ namespace lda {
             }
 
             alias_rng_int_.SetProportionMass(proportion, beta_mass_, beta_k_v_, &beta_height_, sampler_.rng());
-            //std::cout << "Start build alias table" << std::endl;
         }
 
-        // 2,  build alias table for the sparse term
+        // build alias table for the sparse term
         double alias_start = lda::get_time();
         process_barrier_->wait();
         sampler_.build_alias_table(word_range_for_each_thread_[thread_id], word_range_for_each_thread_[thread_id + 1], thread_id);
         process_barrier_->wait();
-
-        /*double alias_end = lda::get_time();
-        if (thread_id == 0)
-        {
-        std::cout << "Elapsed time for building alias table: " << (alias_end - alias_start) << std::endl;
-        }
-        process_barrier_->wait();*/
 
         // print the log-likelihood before inference
         EvalLogLikelihood(true, thread_id, 0, sampler_);
@@ -739,24 +699,20 @@ namespace lda {
 
     int LdaEngine::FeedInData(int* term_id, int* term_freq, int32_t term_num, int32_t vocab_size)
     {
-        // bool b_ret = true;
         if (V_ == 0) //number vocab could be set in allocating model memory function
             V_ = vocab_size;
 
         //data_block represent for one doc
         return data_block_->Add(term_id, term_freq, term_num);
-        // return b_ret;
     }
 
     int LdaEngine::FeedInDataDense(int* term_freq, int32_t term_num, int32_t vocab_size)
     {
-        // bool b_ret = true;
         if (V_ == 0) //number vocab could be set in allocating model memory function
             V_ = vocab_size;
 
         //data_block represent for one doc
         return data_block_->AddDense(term_freq, term_num);
-        // return b_ret;
     }
 
     void LdaEngine::TestOneDoc(int* term_id, int* term_freq, int32_t term_num, int* pTopics, int* pProbs, int32_t& numTopicsMax, int32_t numBurnIter, bool reset)
@@ -787,7 +743,6 @@ namespace lda {
 
         // NOTE: in multi-threaded implementation, the dynamic memory allocation
         // may cause contention at OS heap lock
-        // int32_t *document_buffer = new int32_t[data_length];
         int64_t idx = 1;
         for (int i = 0; i < term_num; ++i)
         {
@@ -837,7 +792,6 @@ namespace lda {
 
         // NOTE: in multi-threaded implementation, the dynamic memory allocation
         // may cause contention at OS heap lock
-        // int32_t *document_buffer = new int32_t[data_length];
         int64_t idx = 1;
         for (int i = 0; i < term_num; ++i)
         {
@@ -861,7 +815,6 @@ namespace lda {
 
     void LdaEngine::GetDocTopic(int docID, int* pTopic, int* pProb, int32_t& numTopicReturn)
     {
-        //to be added by jinhui
         //get the current topic vector of the document
         int thread_id = 0;
         LightDocSampler &sampler = *(samplers_[thread_id]);
@@ -1030,7 +983,6 @@ namespace lda {
     {
         std::ofstream dt_stream;
         dt_stream.open(doc_topic_file, std::ios::out);
-        // CHECK(dt_stream.good()) << "Open doc_topic_file fail: " << doc_topic_file;
         assert(dt_stream.good());
 
         int32_t num_documents = data_block_->num_documents();
@@ -1080,8 +1032,6 @@ namespace lda {
                 wt_stream << w;
                 for (int t = 0; t < K_; ++t)
                 {
-                    // if (word_topic_table_[w * K_ + t])
-                    // if (word_topic_table_[(int64_t)w * K_ + t])
                     if (global_word_topic_table_[w][t] > 0)
                     {
                         wt_stream << " " << t << ":" << global_word_topic_table_[w][t];

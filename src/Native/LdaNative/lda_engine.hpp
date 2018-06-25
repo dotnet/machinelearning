@@ -61,8 +61,6 @@ namespace lda {
         void AllocateModelMemory(const LDADataBlock* data_block); //in this case, model memory is allocated according to the datablock;
         void AllocateModelMemory(int num_vocabs, int num_topics, int64_t nonzero_num);
         void AllocateModelMemory(int num_vocabs, int num_topics, int64_t mem_block_size, int64_t alias_mem_block_size);
-        //void SetNonzeroNum(int32_t word_id, int32_t nonzero_num);
-        //void FinallizeNonzero();
         void SetAlphaSum(float avgDocLength); //alphasum parameter is set by avgdoclength * alpha
 
         //IO, data

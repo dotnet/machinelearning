@@ -51,7 +51,6 @@ namespace lda
         float mass_;
         float n_kw_mass_;
         float beta_mass_;
-        // static std::vector<wood::alias_k_v> beta_kv_;
     };
 
     inline int32_t hybrid_alias_map::size() const
@@ -61,7 +60,7 @@ namespace lda
 
     inline int32_t hybrid_alias_map::next(wood::xorshift_rng &rng, int32_t beta_height, float beta_mass, std::vector<wood::alias_k_v> &beta_k_v, bool debug)
     {
-        //note: here we will set those unseen words' topic to 0. logicall we could set it to random as well.
+        //NOTE: here we will set those unseen words' topic to 0. logicall we could set it to random as well.
         if (capacity_ == 0)
         {
             return 0;
@@ -103,7 +102,6 @@ namespace lda
                 int32_t id = idx_[idx];
                 int32_t k_id = idx_[k];
 
-                // return n_kw_sample < v ? id : k_id;
                 int32_t m = -(n_kw_sample < v);
                 return (id & m) | (k_id & ~m);
 

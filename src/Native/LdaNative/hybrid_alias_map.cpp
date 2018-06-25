@@ -22,7 +22,6 @@ namespace lda
         n_kw_mass_(0.0),
         beta_mass_(0.0)
     {
-        // CHECK(is_dense_) << "is_dense_ == 0";
     }
     hybrid_alias_map::hybrid_alias_map(int32_t *memory, int32_t is_dense, int32_t capacity)
         :memory_(memory),

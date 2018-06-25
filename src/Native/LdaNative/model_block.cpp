@@ -98,7 +98,6 @@ namespace lda
             dict_[i].is_alias_dense_ = 0;
         }
 
-        // mem_block_size_ = nonzero_num * 2;        // TODO: power of 2, load factor of 2, key-value of 2
         mem_block_size_ = 2 * upper_bound(load_factor_ * nonzero_num);
         alias_mem_block_size_ = nonzero_num * 3; 
 
@@ -164,8 +163,6 @@ namespace lda
         {
             hot_thresh = num_topics_ / (2 * load_factor_);  //hybrid
         }
-        //const int32_t hot_thresh = 0;  // totally dense
-        //const int32_t hot_thresh = max_tf_thresh;  // totally sparse
         int32_t alias_hot_thresh;
         if (fullSparse)
         {
@@ -250,7 +247,6 @@ namespace lda
             // hybrid
             hot_thresh = num_topics_ / (2 * load_factor_);
         }
-        // hot_thresh = 0;  // totally dense
         int32_t alias_hot_thresh;
         if (fullSparse)
         {

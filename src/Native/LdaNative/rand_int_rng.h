@@ -14,7 +14,6 @@ namespace wood
         xorshift_rng()
         {
             jxr = 1234567;
-            // jxr = time(NULL);
         }
         ~xorshift_rng() {}
 

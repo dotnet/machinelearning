@@ -4,7 +4,7 @@
 
 #include "lda_engine.hpp"
 
-/// This file use to expose public API to be consumed by TLC.
+/// This file use to expose public API to be consumed by ML.NET.
 namespace lda {
 
     EXPORT_API(LdaEngine*) CreateEngine(int numTopic, int numVocab, float alphaSum, float beta, int numIter, int likelihoodInterval, int numThread, int mhstep, int maxDocToken)

@@ -204,7 +204,6 @@ namespace lda
     {
         int num_probes = 0;
         int32_t capacity_minus_one = capacity_ - 1;
-        //int32_t idx = hasher_(key) & capacity_minus_one;
         int32_t idx = key % capacity_;
         int32_t insert_pos = ILLEGAL_BUCKET;
         while (1)                                           // probe until something happens
@@ -234,7 +233,6 @@ namespace lda
             ++num_probes;                                // we are doing another probe
             idx = (idx + JUMP_(key, num_probes) & capacity_minus_one);
             assert(num_probes < capacity_); // && "Hashtable is full: an error in key_equal<> or hash<>");
-            //CHECK(num_probes < capacity_ && "Hashtable is full: an error in key_equal<> or hash<>") << " Key = " << key << ". Num of non-zero = " << nonzero_num();
         }
     }
 }

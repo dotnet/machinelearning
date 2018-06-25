@@ -113,7 +113,7 @@ namespace lda
         doc_topic_counter_.clear();
         doc->GetDocTopicCounter(doc_topic_counter_);
 
-        // note: do we have to assume this?
+        // NOTE: do we have to assume this?
         // probably first sort the topic vector according to the probs and keep the first numTopicsMax topics
         // We assume the numTopicsMax is not less than the length of current document?? or it should be maxiumly the toipc number
         // assert(numTopicsMax >= doc->size());
@@ -402,9 +402,6 @@ namespace lda
         float n_s_beta_sum;
         float n_t_beta_sum;
 
-        /*float proposal_s;
-        float proposal_t;*/
-
         float nominator;
         float denominator;
 
@@ -415,7 +412,6 @@ namespace lda
         for (int i = 0; i < mh_step_for_gs_; ++i)
         {
             int32_t t;
-            // n_tw proposal
             t = alias_k_v_[w].next(rng_, beta_height_, beta_mass_, beta_k_v_, false);
 
             rejection = rng_.rand_real();
@@ -428,7 +424,6 @@ namespace lda
 
             pi = std::min((float)1.0, nominator / denominator);
 
-            //s = rejection < pi ? t : s;
             m = -(rejection < pi);
             s = (t & m) | (s & ~m);
 
@@ -463,7 +458,6 @@ namespace lda
 
             pi = std::min((float)1.0, nominator / denominator);
 
-            //s = rejection < pi ? t : s;
             m = -(rejection < pi);
             s = (t & m) | (s & ~m);
         }
@@ -587,8 +581,6 @@ namespace lda
         one_doc_llh += (K_ - nonzero_num) * LogGamma(ll_alpha_);
         one_doc_llh -= LogGamma(num_tokens + ll_alpha_ * K_);
 
-        // CHECK_EQ(one_doc_llh, one_doc_llh) << "one_doc_llh is nan.";
-
         doc_ll += one_doc_llh;
         return doc_ll;
     }
@@ -615,7 +607,6 @@ namespace lda
                 for (int i = 0; i < capacity; ++i)
                 {
                     count = memory[i];
-                    // CHECK_LE(0, count) << "negative count. " << count;
                     total_count += count;
                     delta += LogGamma(count + beta_);
                 }
@@ -632,7 +623,6 @@ namespace lda
                     if (key[i] > 0)
                     {
                         count = value[i];
-                        // CHECK_LE(0, count) << "negative count. " << count;
                         total_count += count;
                         delta += LogGamma(count + beta_);
                         ++nonzero_num;
@@ -647,7 +637,6 @@ namespace lda
             }
         }
 
-        // CHECK_EQ(word_llh, word_llh) << "word_llh is nan.";
         return word_llh;
     }
 
@@ -655,19 +644,16 @@ namespace lda
     {
         std::ofstream wt_stream;
         wt_stream.open(dump_name, std::ios::out);
-        // CHECK(wt_stream.good()) << "Open word_topic_dump file: " << dump_name;
 
         for (int w = lower; w < upper; ++w)
         {
-            //taifeng: why not just a serialization of current hybrid_map? do we need to do a search?
+            //why not just a serialization of current hybrid_map? do we need to do a search?
             int nonzero_num = word_topic_table_[w].nonzero_num();
             if (nonzero_num)
             {
                 wt_stream << w;
                 for (int t = 0; t < K_; ++t)
                 {
-                    // if (word_topic_table_[w * K_ + t])
-                    // if (word_topic_table_[(int64_t)w * K_ + t])
                     if (word_topic_table_[w][t] > 0)
                     {
                         wt_stream << " " << t << ":" << word_topic_table_[w][t];

@@ -62,7 +62,6 @@ namespace lda
     int LDADataBlock::Add(int32_t* term_id, int32_t* term_freq, int32_t term_num)
     {
         int64_t data_length = 1;
-        // offset_buffer_[index_document_] = used_size_;
 
         int64_t idx = offset_buffer_[index_document_] + 1;
         for (int i = 0; i < term_num; ++i)
@@ -87,8 +86,7 @@ namespace lda
     int LDADataBlock::AddDense(int32_t* term_freq, int32_t term_num)
     {
         int64_t data_length = 1;
-        // offset_buffer_[index_document_] = used_size_;
-
+        
         int64_t idx = offset_buffer_[index_document_] + 1;
         for (int i = 0; i < term_num; ++i)
         {
@@ -113,9 +111,7 @@ namespace lda
     {
         std::shared_ptr<LDADocument> returned_ptr(
             new LDADocument(documents_buffer_ + offset_buffer_[index],
-            documents_buffer_ + offset_buffer_[index + 1]
-            )
-            );
+                documents_buffer_ + offset_buffer_[index + 1]));
         return returned_ptr;
     }
 }

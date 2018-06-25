@@ -154,7 +154,6 @@ namespace lda
     {
         int num_probes = 0;
         int32_t capacity_minus_one = capacity_ - 1;
-        //int32_t idx = hasher_(key) & capacity_minus_one;
         int32_t idx = key % capacity_;
         int32_t insert_pos = ILLEGAL_BUCKET;
         while (1)                                           // probe until something happens
