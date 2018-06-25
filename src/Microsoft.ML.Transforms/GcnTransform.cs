@@ -237,17 +237,17 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly ColInfoEx[] _exes;
 
-        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, params string[] inputColumns)
+        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, bool subMean = true, bool useStdDev = false, Float scale = 1, params string[] inputColumns)
         {
             var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
             for (int i = 0; i < inputColumns.Length; i++)
             {
                 inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
             }
-            return CreateGlobalContrastNormalizer(env, input, inputOutputColumns);
+            return CreateGlobalContrastNormalizer(env, input, subMean, useStdDev, scale, inputOutputColumns);
         }
 
-        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, params (string inputColumn, string outputColumn)[] inputOutputColumns)
+        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, bool subMean = true, bool useStdDev = false, Float scale = 1, params (string inputColumn, string outputColumn)[] inputOutputColumns)
         {
             GcnColumn[] cols = new GcnColumn[inputOutputColumns.Length];
             for (int i = 0; i < inputOutputColumns.Length; i++)
@@ -258,7 +258,10 @@ namespace Microsoft.ML.Runtime.Data
             }
             var args = new GcnArguments()
             {
-                Column = cols
+                Column = cols,
+                SubMean = subMean,
+                UseStdDev = useStdDev,
+                Scale = scale
             };
             return new LpNormNormalizerTransform(env, args, input);
         }
@@ -294,17 +297,17 @@ namespace Microsoft.ML.Runtime.Data
             SetMetadata();
         }
 
-        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, params string[] inputColumns)
+        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, NormalizerKind normKind = NormalizerKind.L2Norm, bool subMean = false, params string[] inputColumns)
         {
             var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
             for (int i = 0; i < inputColumns.Length; i++)
             {
                 inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
             }
-            return CreateLpNormNormalizer(env, input, inputOutputColumns);
+            return CreateLpNormNormalizer(env, input, normKind, subMean, inputOutputColumns);
         }
 
-        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, params (string inputColumn, string outputColumn)[] inputOutputColumns)
+        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, NormalizerKind normKind = NormalizerKind.L2Norm, bool subMean = false, params (string inputColumn, string outputColumn)[] inputOutputColumns)
         {
             Column[] cols = new Column[inputOutputColumns.Length];
             for (int i = 0; i < inputOutputColumns.Length; i++)

@@ -120,17 +120,21 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string UserName = "Categorical Hash Transform";
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, params string[] inputColumns)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, int hashBits = 16, uint seed = 314489979,
+            bool ordered = true, int invertHash = 0, CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Bag, 
+            params string[] inputColumns)
         {
             var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
             for (int i = 0; i < inputColumns.Length; i++)
             {
                 inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
             }
-            return Create(env, input, inputOutputColumns);
+            return Create(env, input, hashBits, seed, ordered, invertHash, outputKind, inputOutputColumns);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, params (string inputColumn, string outputColumn)[] inputOutputColumns)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, int hashBits = 16, uint seed = 314489979, 
+            bool ordered = true, int invertHash = 0, CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Bag, 
+            params(string inputColumn, string outputColumn)[] inputOutputColumns)
         {
             Column[] cols = new Column[inputOutputColumns.Length];
             for (int i = 0; i < inputOutputColumns.Length; i++)
@@ -141,7 +145,12 @@ namespace Microsoft.ML.Runtime.Data
             }
             var args = new Arguments()
             {
-                Column = cols
+                Column = cols,
+                HashBits = hashBits,
+                Seed = seed,
+                Ordered = ordered,
+                InvertHash = invertHash,
+                OutputKind = outputKind
             };
             return Create(env, args, input);
         }

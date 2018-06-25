@@ -537,12 +537,7 @@ namespace Microsoft.ML.Runtime.Data
                 Source = inputColumns
             };
 
-            var args = new Arguments()
-            {
-                Column = cols
-            };
-
-            _bindings = new Bindings(args.Column, null, Source.Schema);
+            _bindings = new Bindings(cols, null, Source.Schema);
         }
 
         /// <summary>

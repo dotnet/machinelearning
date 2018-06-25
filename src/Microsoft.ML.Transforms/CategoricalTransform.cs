@@ -118,17 +118,17 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string UserName = "Categorical Transform";
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, params string[] inputColumns)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, OutputKind outputKind = OutputKind.Ind, params string[] inputColumns)
         {
             var inputOutputColumns = new (string inputColumn, string outputColumn)[inputColumns.Length];
             for (int i = 0; i < inputColumns.Length; i++)
             {
                 inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
             }
-            return Create(env, input, inputOutputColumns);
+            return Create(env, input, outputKind, inputOutputColumns);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, params (string inputColumn, string outputColumn)[] inputOutputColumns)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, OutputKind outputKind = OutputKind.Ind, params (string inputColumn, string outputColumn)[] inputOutputColumns)
         {
             Column[] cols = new Column[inputOutputColumns.Length];
             for (int i = 0; i < inputOutputColumns.Length; i++)
@@ -139,7 +139,8 @@ namespace Microsoft.ML.Runtime.Data
             }
             var args = new Arguments()
             {
-                Column = cols
+                Column = cols,
+                OutputKind = outputKind
             };
             return Create(env, args, input);
         }
