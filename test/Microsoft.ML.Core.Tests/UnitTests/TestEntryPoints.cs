@@ -388,7 +388,14 @@ namespace Microsoft.ML.Runtime.RunTests
             var catalog = ModuleCatalog.CreateInstance(Env);
             var path = DeleteOutputPath(entryPointsSubDir, epListFile);
             File.WriteAllLines(path, catalog.AllEntryPoints()
-                .Select(x => string.Join("\t", x.Name, x.Description, x.Method.DeclaringType, x.Method.Name, x.InputType, x.OutputType).Replace(Environment.NewLine, "\\n "))
+                .Select(x => string.Join("\t", 
+                x.Name,
+                new string(x.Description.Where(c => !char.IsControl(c)).ToArray()), 
+                x.Method.DeclaringType,
+                x.Method.Name, 
+                x.InputType,
+                x.OutputType)
+                .Replace(Environment.NewLine, ""))
                 .OrderBy(x => x));
 
             CheckEquality(entryPointsSubDir, epListFile);
