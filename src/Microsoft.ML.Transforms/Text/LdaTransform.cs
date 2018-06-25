@@ -24,18 +24,6 @@ using Microsoft.ML.Runtime.TextAnalytics;
 [assembly: LoadableClass(typeof(LdaTransform), null, typeof(SignatureLoadDataTransform),
     LdaTransform.UserName, LdaTransform.LoaderSignature)]
 
-/*
- * REVIEW: So this would be my starting point. Much of the plumbing is already
- * done, except for the parts indicated by "REVIEW taifengw(tfinley):" in comments. I have not
- * tried this at all, so I could have some horrifying bugs and oversights here.
- * 
- * The major thing to be done is the stuff referring to LdaState. (This is a placeholder object.
- * I don't suggest you name it that or anything, but it's meant to convey the idea.)
- * 
- * You also probably want to *not* put this here, but to instead move this transform to whatever
- * assembly you're making. But I am not entirely certain where makes sense.
- */
-
 namespace Microsoft.ML.Runtime.TextAnalytics
 {
     /// <summary>
@@ -80,7 +68,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold of maximum count of tokens per doc", ShortName = "maxNumToken", SortOrder = 50)]
             public int NumMaxDocToken = 512;
 
-            // REVIEW wenhanw: Should change the default when multi-threading support is optimized.
+            // REVIEW: Should change the default when multi-threading support is optimized.
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of training threads. Default value depends on number of logical processors.", ShortName = "t", SortOrder = 50)]
             public int? NumThreads;
 

@@ -115,7 +115,7 @@ namespace lda {
         beta_sum_ = beta_ * V_;
 
         //set up some trainig parameter, e.g. topicNum, docNum, 
-        //model_block_.Read(meta_name); 		
+        //model_block_.Read(meta_name);         
     }
 
 

@@ -15,7 +15,7 @@
 namespace lda {
 
     double LogGamma(double xx);
-    double get_time();
+    double get_time();
 
     struct LDAEngineAtomics
     {
@@ -35,7 +35,7 @@ namespace lda {
     class CBlockedIntQueue
     {
     public:
-		void clear();
+        void clear();
         int pop();
         void push(int value);
 
