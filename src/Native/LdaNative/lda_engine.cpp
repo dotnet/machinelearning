@@ -29,6 +29,7 @@
 #include "windows.h"
 #elif defined(__APPLE__)
 #include <mach/mach_types.h>
+#include <mach/thread_act.h>
 #include <pthread.h>
 #else
 #include "sched.h"
