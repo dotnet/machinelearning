@@ -15,7 +15,7 @@
 namespace lda {
 
     double LogGamma(double xx);
-    double get_time();
+    double get_time();
 
     struct LDAEngineAtomics
     {
