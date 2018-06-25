@@ -28,6 +28,7 @@
 #ifdef _MSC_VER
 #include "windows.h"
 #elif defined(__APPLE__)
+#include <mach/mach_types.h>
 #include <pthread.h>
 #else
 #include "sched.h"
