@@ -309,8 +309,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 var ex = new ColInfoEx(Host, args.Column[i], args);
                 _exes[i] = ex;
                 _types[i] = new VectorType(NumberType.Float, ex.NumTopic);
-                // C.f. taifengw's shelveset. The following line should be defered in order to pass in numVocab.
-                // _ldas[i] = new LdaState(ex);
             }
             using (var ch = Host.Start("Train"))
             {
@@ -775,7 +773,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             {
                 Contracts.AssertValue(ectx);
 
-                // REVIEW taifengw(tfinley): Input the counts to your trainer here. This
+                // REVIEW: Input the counts to your trainer here. This
                 // is called multiple times.
 
                 int docSize = 0;
@@ -856,7 +854,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     {
                         // REVIEW: Should this log a warning message? And what should it produce?
                         // It currently produces a vbuffer of all NA values.
-                        // REVIEW shonk: Need a utility method to do this...
+                        // REVIEW: Need a utility method to do this...
                         if (Utils.Size(values) < len)
                             values = new Float[len];
                         for (int k = 0; k < len; k++)
