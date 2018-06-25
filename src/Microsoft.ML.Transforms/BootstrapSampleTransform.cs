@@ -76,6 +76,12 @@ namespace Microsoft.ML.Runtime.Data
             _poolSize = args.PoolSize;
         }
 
+        public BootstrapSampleTransform(IHostEnvironment env, IDataView input, bool complement = false, uint? seed = null, bool shuffleInput = true, int poolSize = 1000)
+            : this(env, new Arguments() { Complement = complement, Seed = seed, ShuffleInput = shuffleInput, PoolSize = poolSize }, input)
+        {
+            
+        }
+
         private BootstrapSampleTransform(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, input)
         {

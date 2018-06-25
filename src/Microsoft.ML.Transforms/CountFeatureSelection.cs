@@ -39,6 +39,16 @@ namespace Microsoft.ML.Runtime.Data
 
         internal static string RegistrationName = "CountFeatureSelectionTransform";
 
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, long count = 1, params string[] columns)
+        {
+            var args = new Arguments()
+            {
+                Column = columns,
+                Count = count
+            };
+            return Create(env, args, input);
+        }
+
         /// <summary>
         /// Create method corresponding to SignatureDataTransform.
         /// </summary>

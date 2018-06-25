@@ -72,6 +72,12 @@ namespace Microsoft.ML.Runtime.Data
         private readonly bool _complement;
         private const string RegistrationName = "MissingValueFilter";
 
+        public NAFilter(IHostEnvironment env, IDataView input, params string[] inputColumns)
+            : this(env, new Arguments() { Column = inputColumns}, input)
+        {
+
+        }
+
         public NAFilter(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, input)
         {

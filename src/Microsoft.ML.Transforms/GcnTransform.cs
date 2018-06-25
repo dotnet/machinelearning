@@ -237,6 +237,37 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly ColInfoEx[] _exes;
 
+        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, params string[] inputColumns)
+        {
+            var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
+            for (int i = 0; i < inputColumns.Length; i++)
+            {
+                inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
+            }
+            return CreateGlobalContrastNormalizer(env, input, inputOutputColumns);
+        }
+
+        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, params (string inputColumn, string outputColumn)[] inputOutputColumns)
+        {
+            GcnColumn[] cols = new GcnColumn[inputOutputColumns.Length];
+            for (int i = 0; i < inputOutputColumns.Length; i++)
+            {
+                cols[i] = new GcnColumn();
+                cols[i].Source = inputOutputColumns[i].inputColumn;
+                cols[i].Name = inputOutputColumns[i].outputColumn;
+            }
+            var args = new GcnArguments()
+            {
+                Column = cols
+            };
+            return new LpNormNormalizerTransform(env, args, input);
+        }
+
+        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, GcnArguments args)
+        {
+            return new LpNormNormalizerTransform(env, args, input);
+        }
+
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
@@ -263,9 +294,40 @@ namespace Microsoft.ML.Runtime.Data
             SetMetadata();
         }
 
+        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, params string[] inputColumns)
+        {
+            var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
+            for (int i = 0; i < inputColumns.Length; i++)
+            {
+                inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
+            }
+            return CreateLpNormNormalizer(env, input, inputOutputColumns);
+        }
+
+        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, params (string inputColumn, string outputColumn)[] inputOutputColumns)
+        {
+            Column[] cols = new Column[inputOutputColumns.Length];
+            for (int i = 0; i < inputOutputColumns.Length; i++)
+            {
+                cols[i] = new Column();
+                cols[i].Source = inputOutputColumns[i].inputColumn;
+                cols[i].Name = inputOutputColumns[i].outputColumn;
+            }
+            var args = new Arguments()
+            {
+                Column = cols
+            };
+            return new LpNormNormalizerTransform(env, args, input);
+        }
+
+        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, Arguments args)
+        {
+            return new LpNormNormalizerTransform(env, args, input);
+        }
+
         public LpNormNormalizerTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column,
-                input, TestIsFloatVector)
+        : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column,
+            input, TestIsFloatVector)
         {
             Host.AssertNonEmpty(Infos);
             Host.Assert(Infos.Length == Utils.Size(args.Column));

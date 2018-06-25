@@ -527,6 +527,28 @@ namespace Microsoft.ML.Runtime.Data
 
         public override ISchema Schema => _bindings;
 
+        public ConcatTransform(IHostEnvironment env, IDataView input, string outputColumn, params string[] inputColumns)
+            : base(env, RegistrationName, input)
+        {
+            var cols = new Column[1];
+            cols[0] = new Column()
+            {
+                Name = outputColumn,
+                Source = inputColumns
+            };
+
+            var args = new Arguments()
+            {
+                Column = cols
+            };
+            Host.CheckValue(args, nameof(args));
+            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            for (int i = 0; i < args.Column.Length; i++)
+                Host.CheckUserArg(Utils.Size(args.Column[i].Source) > 0, nameof(args.Column));
+
+            _bindings = new Bindings(args.Column, null, Source.Schema);
+        }
+
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
