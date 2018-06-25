@@ -27,6 +27,8 @@
 
 #ifdef _MSC_VER
 #include "windows.h"
+#elif defined(__APPLE__)
+#include <pthread.h>
 #else
 #include "sched.h"
 #endif
@@ -377,12 +379,17 @@ namespace lda {
         maskLL |= (1LL << (thread_id));
         DWORD_PTR mask = maskLL;
         SetThreadAffinityMask(GetCurrentThread(), mask);
-#elif !defined(__APPLE__)
+#elif defined(__APPLE__)
+        thread_port_t thread = pthread_mach_thread_np(pthread_self());
+        thread_affinity_policy_data_t policy = { thread_id };
+        thread_policy_set(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1);
+#else
         cpu_set_t set;
         CPU_ZERO(&set);
         CPU_SET(thread_id, &set);
         sched_setaffinity(0, sizeof(cpu_set_t), &set);
 #endif
+
         // Each thread builds a portion of word-topic table. We do this way because each word-topic row 
         // has a thread-specific buffer for rehashing
         process_barrier_->wait();
@@ -555,7 +562,11 @@ namespace lda {
         maskLL |= (1LL << (thread_id));
         DWORD_PTR mask = maskLL;
         SetThreadAffinityMask(GetCurrentThread(), mask);
-#elif !defined(__APPLE__)
+#elif defined(__APPLE__)
+        thread_port_t thread = pthread_mach_thread_np(pthread_self());
+        thread_affinity_policy_data_t policy = { thread_id };
+        thread_policy_set(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1);
+#else
         cpu_set_t set;
         CPU_ZERO(&set);
         CPU_SET(thread_id, &set);
