@@ -109,32 +109,22 @@ namespace Microsoft.ML.Runtime.Model
             _open = new List<Entry>();
             if (needDir)
             {
-                DirTemp = GetShortTempPath();
+                DirTemp = GetShortTempDir();
                 Directory.CreateDirectory(DirTemp);
             }
             else
                 GC.SuppressFinalize(this);
         }
 
-        private static string GetShortTempPath()
+        private static string GetShortTempDir()
         {
-            Guid guid = Guid.NewGuid();
-            var guidName = guid.ToString();
-            int index = guidName.IndexOf('-');
-            if (index < 0)
-                index = Math.Min(8, guidName.Length);
-            guidName = guidName.Substring(0, index);
-            var path = Path.Combine(Path.GetTempPath(), "TLC_" + guidName);
-            while (Directory.Exists(path))
+            var rnd = RandomUtils.Create();
+            string path;
+            do
             {
-                guid = Guid.NewGuid();
-                guidName = guid.ToString();
-                index = guidName.IndexOf('-');
-                if (index < 0)
-                    index = Math.Min(8, guidName.Length);
-                guidName = guidName.Substring(0, index);
-                path = Path.Combine(Path.GetTempPath(), "TLC_" + guidName);
+                path = Path.Combine(Path.GetTempPath(), "TLC_" + rnd.Next().ToString("X"));
             }
+            while (Directory.Exists(path));
             return Path.GetFullPath(path);
         }
 
@@ -254,7 +244,7 @@ namespace Microsoft.ML.Runtime.Model
             _ectx.CheckParam(!name.Contains(".."), nameof(name));
 
             // The gymnastics below are meant to deal with bad invocations including absolute paths, etc.
-            // That's why we go through it even if _dirTemp is null.
+            // That's why we go through it even if DirTemp is null.
             string root = Path.GetFullPath(DirTemp ?? @"x:\dummy");
             string entityPath = Path.Combine(root, dir ?? "", name);
             entityPath = Path.GetFullPath(entityPath);
