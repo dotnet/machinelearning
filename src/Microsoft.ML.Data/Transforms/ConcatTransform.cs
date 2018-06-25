@@ -541,10 +541,6 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Column = cols
             };
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
-            for (int i = 0; i < args.Column.Length; i++)
-                Host.CheckUserArg(Utils.Size(args.Column[i].Source) > 0, nameof(args.Column));
 
             _bindings = new Bindings(args.Column, null, Source.Schema);
         }
