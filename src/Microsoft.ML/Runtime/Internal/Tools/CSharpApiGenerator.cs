@@ -214,6 +214,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     classBase = $" : OneToOneColumn<{apiName}>, IOneToOneColumn";
                 else if (type.IsSubclassOf(typeof(ManyToOneColumn)))
                     classBase = $" : ManyToOneColumn<{apiName}>, IManyToOneColumn";
+
+                if (inputAttr.ShortName != null && inputAttr.SortOrder < 10)
+                {
+                    writer.WriteLine($@"[DebuggerDisplay(""{{{inputAttr.ShortName}}}"")]");
+                }
+
                 writer.WriteLine($"public sealed partial class {apiName}{classBase}");
                 writer.WriteLine("{");
                 writer.Indent();
