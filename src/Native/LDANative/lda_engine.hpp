@@ -73,7 +73,7 @@ namespace lda {
         int FeedInDataDense(int* term_freq, int32_t term_num, int32_t vocab_size);
 
         //IO, model 
-        // NOTE(jiyuan): assume pTopic and pProb are allocated outside the function
+        // NOTE: assume pTopic and pProb are allocated outside the function
         // the length returned will be capped by the pass-in initial value of length(usually it's the size of preallocated memory for pTopic&pProb
         void GetWordTopic(int32_t wordId, int32_t* pTopic, int32_t* pProb, int32_t& length);
         void SetWordTopic(int32_t wordId, int32_t* pTopic, int32_t* pProb, int32_t length);

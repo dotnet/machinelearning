@@ -219,7 +219,7 @@ namespace lda {
 
     void LdaEngine::InitializeBeforeTest()
     {
-        // TODO(jiyuan):
+        // TODO:
         // 1, Allocating space for word-topic-table and alias table according to the input data of SetModel interface (done)
         // 2, Create multiple thread-specific sampler
         // 3, set word_range_for_each_thread_
@@ -785,7 +785,7 @@ namespace lda {
             sampler.rng_restart();
         }
 
-        // NOTE(jiyuan): in multi-threaded implementation, the dynamic memory allocation
+        // NOTE: in multi-threaded implementation, the dynamic memory allocation
         // may cause contention at OS heap lock
         // int32_t *document_buffer = new int32_t[data_length];
         int64_t idx = 1;
@@ -835,7 +835,7 @@ namespace lda {
             sampler.rng_restart();
         }
 
-        // NOTE(jiyuan): in multi-threaded implementation, the dynamic memory allocation
+        // NOTE: in multi-threaded implementation, the dynamic memory allocation
         // may cause contention at OS heap lock
         // int32_t *document_buffer = new int32_t[data_length];
         int64_t idx = 1;
@@ -897,7 +897,7 @@ namespace lda {
         //cap the topic number here according to inpassed value of length
         int lengthCap = length;
 
-        // NOTE(jiyuan): we MUST check whether the word-topic row is empty before get its value
+        // NOTE: we MUST check whether the word-topic row is empty before get its value
         if (global_word_topic_table_[wordId].capacity() == 0)
         {
             length = 0;
@@ -922,7 +922,7 @@ namespace lda {
     // Compare by frequencies in descending order.
     bool CompareTerms(const std::pair<int, int> &term1, const std::pair<int, int> &term2)
     {
-        // REVIEW wenhanw(yaeld): consider changing this to impose a total order, since quicksort is not stable.
+        // REVIEW: consider changing this to impose a total order, since quicksort is not stable.
         return term2.second < term1.second;
     }
 
@@ -956,7 +956,7 @@ namespace lda {
     //function to support loading the topic_model model file
     void LdaEngine::SetWordTopic(int32_t wordId, int32_t* pTopic, int32_t* pProb, int32_t length)
     {
-        //Note: taifengw(jinhui) whether we should really use the "true" here
+        //NOTE: whether we should really use the "true" here
         model_block_->SetWordInfo(wordId, length, true);
         global_word_topic_table_[wordId] = model_block_->get_row(wordId, nullptr);
 
@@ -969,7 +969,7 @@ namespace lda {
 
     void LdaEngine::GetModelStat(int64_t &memBlockSize, int64_t &aliasMemBlockSize)
     {
-        //Note: taifengw, get the model's value at the end of training stage. try to save these two numbers to disk file
+        //NOTE: get the model's value at the end of training stage. try to save these two numbers to disk file
         model_block_->GetModelStat(memBlockSize, aliasMemBlockSize);
     }
 

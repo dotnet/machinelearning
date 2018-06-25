@@ -26,11 +26,11 @@ namespace wood
     
     int32_t AliasMultinomialRNGInt::Next(xorshift_rng& rng, std::vector<alias_k_v>& alias_kv)
     {
-        // NOTE(jiyuan): stl uniform_real_distribution generates the highest quality random numbers
+        // NOTE: stl uniform_real_distribution generates the highest quality random numbers
         // yet, the other two are much faster
         auto sample = rng.rand();
         
-        // NOTE(jiyuan): use std::floor is too slow
+        // NOTE: use std::floor is too slow
         // here we guarantee sample * n_ is nonnegative, this makes cast work
         //int idx = std::floor(sample * n_);
         int idx = sample / a_int_;

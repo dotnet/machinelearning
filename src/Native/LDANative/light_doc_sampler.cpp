@@ -113,7 +113,7 @@ namespace lda
         doc_topic_counter_.clear();
         doc->GetDocTopicCounter(doc_topic_counter_);
 
-        // note(taifengw), do we have to assume this?
+        // note: do we have to assume this?
         // probably first sort the topic vector according to the probs and keep the first numTopicsMax topics
         // We assume the numTopicsMax is not less than the length of current document?? or it should be maxiumly the toipc number
         // assert(numTopicsMax >= doc->size());

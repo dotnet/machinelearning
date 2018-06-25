@@ -64,7 +64,7 @@ namespace wood
 
             if (mass_sum > mass_int_)
             {
-                //Todo: Jiyuan, is this data type safe? more is int and mass_sum is in64
+                //Todo: is this data type safe? more is int and mass_sum is in64
                 int32_t more = (int32_t)(mass_sum - mass_int_);
 
                 int i = 0;
@@ -83,7 +83,7 @@ namespace wood
 
             if (mass_sum < mass_int_)
             {
-                //Todo: Jiyuan, is this data type safe? more is int and mass_sum is in64
+                //Todo: is this data type safe? more is int and mass_sum is in64
                 int32_t more = (int32_t)(mass_int_ - mass_sum);
 
                 int i = 0;
@@ -191,7 +191,7 @@ namespace wood
 
             if (mass_sum > mass_int_)
             {
-                //Todo: Jiyuan, is this data type safe? more is int and mass_sum is in64
+                //Todo: is this data type safe? more is int and mass_sum is in64
                 int32_t more = (int32_t)(mass_sum - mass_int_);
                 int i = 0;
                 int id = 0;
@@ -209,7 +209,7 @@ namespace wood
 
             if (mass_sum < mass_int_)
             {
-                //Todo: Jiyuan, is this data type safe? more is int and mass_sum is in64
+                //Todo: is this data type safe? more is int and mass_sum is in64
                 int32_t more = (int32_t)(mass_int_ - mass_sum);
                 int i = 0;
                 int id = 0;
@@ -324,7 +324,7 @@ namespace wood
 
             if (mass_sum > mass_int_)
             {
-                //Todo: Jiyuan, is this data type safe? more is int and mass_sum is in64
+                //Todo: is this data type safe? more is int and mass_sum is in64
                 int32_t more = (int32_t)(mass_sum - mass_int_);
 
                 int i = 0;
@@ -343,7 +343,7 @@ namespace wood
 
             if (mass_sum < mass_int_)
             {
-                //Todo: Jiyuan, is this data type safe? more is int and mass_sum is in64
+                //Todo: is this data type safe? more is int and mass_sum is in64
                 int32_t more = (int32_t)(mass_int_ - mass_sum);
 
                 int i = 0;

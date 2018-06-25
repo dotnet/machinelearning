@@ -36,7 +36,7 @@ namespace lda
 
         // must call set_memory after construction before use
         light_hash_map();
-        // NOTE(jiyuan): the size of mem_block_ = 2 * capacity_
+        // NOTE: the size of mem_block_ = 2 * capacity_
         light_hash_map(int32_t *mem_block, int32_t capacity);
         light_hash_map(int32_t capacity);
 
@@ -70,7 +70,7 @@ namespace lda
         // Returns a pair of positions: 1st where the object is, 2nd where
         // it would go if you wanted to insert it.  1st is ILLEGAL_BUCKET
         // if object is not found; 2nd is ILLEGAL_BUCKET if it is.
-        // Note: because of deletions where-to-insert is not trivial: it's the
+        // NOTE: because of deletions where-to-insert is not trivial: it's the
         // first deleted bucket we see, as long as we don't find the key later
         inline std::pair<int32_t, int32_t> find_position(const int32_t key) const;
 

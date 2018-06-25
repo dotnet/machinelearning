@@ -102,8 +102,8 @@ namespace lda
         mem_block_size_ = 2 * upper_bound(load_factor_ * nonzero_num);
         alias_mem_block_size_ = nonzero_num * 3; 
 
-        mem_block_ = new int32_t[mem_block_size_]();                // NOTE(jiyuan) : force to initialize the values to be zero
-        alias_mem_block_ = new int32_t[alias_mem_block_size_]();    // NOTE(jiyuan): force to initialize the values to be zero
+        mem_block_ = new int32_t[mem_block_size_]();                // NOTE: force to initialize the values to be zero
+        alias_mem_block_ = new int32_t[alias_mem_block_size_]();    // NOTE: force to initialize the values to be zero
     }
 
     void LDAModelBlock::Init(int32_t num_vocabs, int32_t num_topics, int64_t mem_block_size, int64_t alias_mem_block_size)
@@ -121,10 +121,10 @@ namespace lda
         }
 
         mem_block_size_ = mem_block_size;
-        mem_block_ = new int32_t[mem_block_size_]();   // NOTE(jiyuan) : force to initialize the values to be zero
+        mem_block_ = new int32_t[mem_block_size_]();   // NOTE : force to initialize the values to be zero
 
         alias_mem_block_size_ = alias_mem_block_size;
-        alias_mem_block_ = new int32_t[alias_mem_block_size_]();    //NOTE(jiyuan): force to initialize the values to be zero
+        alias_mem_block_ = new int32_t[alias_mem_block_size_]();    //NOTE: force to initialize the values to be zero
 
         std::cout << "mem_block_size = " << mem_block_size_ * 4 << std::endl;
         std::cout << "alias_mem_block_size = " << alias_mem_block_size_ * 4 << std::endl;
@@ -233,7 +233,7 @@ namespace lda
         alias_offset_ += alias_row_size;
     }
 
-    // NOTE(jiyuan): sometimes, we use totally sparse representation (in testing phase), fullSparse == true
+    // NOTE: sometimes, we use totally sparse representation (in testing phase), fullSparse == true
     // in other times, we use hybrid structure (in training phase), fullSparse == false
     void LDAModelBlock::InitModelBlockByTFS(bool fullSparse)
     {
@@ -329,10 +329,10 @@ namespace lda
         }
 
         mem_block_size_ = dict_[num_vocabs_ - 1].end_offset_;
-        mem_block_ = new int32_t[mem_block_size_]();                // NOTE(jiyuan) : force to initialize the values to be zero
+        mem_block_ = new int32_t[mem_block_size_]();                // NOTE: force to initialize the values to be zero
 
         alias_mem_block_size_ = dict_[num_vocabs_ - 1].alias_end_offset_;
-        alias_mem_block_ = new int32_t[alias_mem_block_size_]();    //NOTE(jiyuan): force to initialize the values to be zero
+        alias_mem_block_ = new int32_t[alias_mem_block_size_]();    //NOTE: force to initialize the values to be zero
 
         std::cout << "mem_block_size = " << mem_block_size_ * 4 << std::endl;
         std::cout << "alias_mem_block_size = " << alias_mem_block_size_ * 4 << std::endl;
@@ -454,7 +454,7 @@ namespace lda
         }
     }
 
-    // NOTE(jiyuan): we can re-use the dict_ variable here, but we deliberately not use it.
+    // NOTE: we can re-use the dict_ variable here, but we deliberately not use it.
     // This function should not change the internal state of model_block_
     void LDAModelBlock::GetModelStat(int64_t &mem_block_size, int64_t &alias_mem_block_size)
     {
