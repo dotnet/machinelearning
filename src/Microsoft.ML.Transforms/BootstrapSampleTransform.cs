@@ -76,6 +76,15 @@ namespace Microsoft.ML.Runtime.Data
             _poolSize = args.PoolSize;
         }
 
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="complement">Whether this is the out-of-bag sample, that is, all those rows that are not selected by the transform.</param>
+        /// <param name="seed">The random seed. If unspecified random state will be instead derived from the environment.</param>
+        /// <param name="shuffleInput">Whether we should attempt to shuffle the source data. By default on, but can be turned off for efficiency.</param>
+        /// <param name="poolSize">When shuffling the output, the number of output rows to keep in that pool. Note that shuffling of output is completely distinct from shuffling of input.</param>
         public BootstrapSampleTransform(IHostEnvironment env, IDataView input, bool complement = false, uint? seed = null, bool shuffleInput = true, int poolSize = 1000)
             : this(env, new Arguments() { Complement = complement, Seed = seed, ShuffleInput = shuffleInput, PoolSize = poolSize }, input)
         {

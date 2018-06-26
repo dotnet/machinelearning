@@ -540,6 +540,13 @@ namespace Microsoft.ML.Runtime.Data
 
         public override ISchema Schema => _bindings;
 
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Input columns to concatenate.</param>
         public ConcatTransform(IHostEnvironment env, IDataView input, string name, params string[] source)
             : this(env, new Arguments(name, source), input)
         {

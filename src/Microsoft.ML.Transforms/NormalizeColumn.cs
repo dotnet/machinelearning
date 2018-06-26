@@ -218,6 +218,13 @@ namespace Microsoft.ML.Runtime.Data
         public const string BinNormalizerShortName = "Bin";
         public const string SupervisedBinNormalizerShortName = "SupBin";
 
+        /// <summary>
+        /// A helper method to create MinMaxNormalizer transform for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         public static NormalizeTransform CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, string name, string source = null)
         {
             var args = new MinMaxArguments()
@@ -247,7 +254,15 @@ namespace Microsoft.ML.Runtime.Data
             return func;
         }
 
-        public static NormalizeTransform CreateMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool UseCdf = false)
+        /// <summary>
+        /// A helper method to create MeanVarNormalizer transform for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// /// <param name="useCdf">Whether to use CDF as the output.</param>
+        public static NormalizeTransform CreateMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool useCdf = false)
         {
             var args = new MeanVarArguments()
             {
@@ -256,7 +271,7 @@ namespace Microsoft.ML.Runtime.Data
                         Name = name
                     }
                 },
-                UseCdf = UseCdf
+                UseCdf = useCdf
             };
             return Create(env, args, input);
         }
@@ -277,7 +292,15 @@ namespace Microsoft.ML.Runtime.Data
             return func;
         }
 
-        public static NormalizeTransform CreateLogMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool UseCdf = true)
+        /// <summary>
+        /// A helper method to create LogMeanVarNormalizer transform for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// /// <param name="useCdf">Whether to use CDF as the output.</param>
+        public static NormalizeTransform CreateLogMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool useCdf = true)
         {
             var args = new LogMeanVarArguments()
             {
@@ -286,7 +309,7 @@ namespace Microsoft.ML.Runtime.Data
                         Name = name
                     }
                 },
-                UseCdf = UseCdf
+                UseCdf = useCdf
             };
             return Create(env, args, input);
         }

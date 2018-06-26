@@ -118,6 +118,14 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string UserName = "Categorical Transform";
 
+        /// <summary>
+        /// A helper method to create <see cref="CategoricalTransform"/> for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index).</param>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string name, string source = null, OutputKind outputKind = OutputKind.Ind)
         {
             var args = new Arguments()

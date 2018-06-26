@@ -72,6 +72,13 @@ namespace Microsoft.ML.Runtime.Data
         private readonly bool _complement;
         private const string RegistrationName = "MissingValueFilter";
 
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="complement">If true, keep only rows that contain NA values, and filter the rest.</param>
+        /// <param name="columns">Name of the columns. Only these columns will be used to filter rows having 'NA' values.</param>
         public NAFilter(IHostEnvironment env, IDataView input, bool complement = false, params string[] columns)
             : this(env, new Arguments() { Column = columns, Complement = complement }, input)
         {

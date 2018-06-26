@@ -119,7 +119,17 @@ namespace Microsoft.ML.Runtime.Data
             + "bag. If the input column is a vector, a single indicator bag is returned for it.";
 
         public const string UserName = "Categorical Hash Transform";
-        
+
+        /// <summary>
+        /// A helper method to create <see cref="CategoricalHashTransform"/> for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+        /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index).</param>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string name, string source =null, int hashBits = 16, int invertHash = 0, CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Bag)
         {
             var args = new Arguments()

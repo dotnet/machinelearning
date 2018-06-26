@@ -237,6 +237,16 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly ColInfoEx[] _exes;
 
+        /// <summary>
+        /// A helper method to create GlobalContrastNormalizer transform for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
+        /// <param name="scale">Scale features by this value.</param>
         public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, string name, string source = null, bool subMean = true, bool useStdDev = false, Float scale = 1)
         {
             var args = new GcnArguments()
@@ -279,6 +289,15 @@ namespace Microsoft.ML.Runtime.Data
             SetMetadata();
         }
 
+        /// <summary>
+        /// A helper method to create LpNormNormalizer transform for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        ///         /// <param name="normKind">The norm to use to normalize each sample.</param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, string name, string source = null, NormalizerKind normKind = NormalizerKind.L2Norm, bool subMean = false)
         {
             var args = new Arguments()

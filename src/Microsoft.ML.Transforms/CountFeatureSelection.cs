@@ -39,6 +39,14 @@ namespace Microsoft.ML.Runtime.Data
 
         internal static string RegistrationName = "CountFeatureSelectionTransform";
 
+        /// <summary>
+        /// A helper method to create CountFeatureSelection transform for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
+        /// <param name="columns">Columns to use for feature selection.</param>
+        /// <returns></returns>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, long count = 1, params string[] columns)
         {
             var args = new Arguments()
