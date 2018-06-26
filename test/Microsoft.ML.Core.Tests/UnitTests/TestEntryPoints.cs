@@ -1826,7 +1826,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointRegressionEnsemble()
         {
-            TestEntryPointRoutine(TestDatasets.winequality.trainFilename, "Trainers.EnsembleRegression", loader: TestDatasets.winequality.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.winequalitymacro.trainFilename, "Trainers.EnsembleRegression", loader: TestDatasets.winequalitymacro.loaderSettings);
         }
 
         [Fact]
