@@ -14832,6 +14832,388 @@
       ]
     },
     {
+      "Name": "Transforms.LightLda",
+      "Desc": "The LDA transform implements LightLDA, a state-of-the-art implementation of Latent Dirichlet Allocation.",
+      "FriendlyName": "Latent Dirichlet Allocation Transform",
+      "ShortName": "LightLda",
+      "Inputs": [
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "NumTopic",
+                  "Type": "Int",
+                  "Desc": "The number of topics in the LDA",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "AlphaSum",
+                  "Type": "Float",
+                  "Desc": "Dirichlet prior on document-topic vectors",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Beta",
+                  "Type": "Float",
+                  "Desc": "Dirichlet prior on vocab-topic vectors",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Mhstep",
+                  "Type": "Int",
+                  "Desc": "Number of Metropolis Hasting step",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "NumIterations",
+                  "Type": "Int",
+                  "Desc": "Number of iterations",
+                  "Aliases": [
+                    "iter"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "LikelihoodInterval",
+                  "Type": "Int",
+                  "Desc": "Compute log likelihood over local dataset on this iteration interval",
+                  "Aliases": [
+                    "llInterval"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "NumThreads",
+                  "Type": "Int",
+                  "Desc": "The number of training threads",
+                  "Aliases": [
+                    "t"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "NumMaxDocToken",
+                  "Type": "Int",
+                  "Desc": "The threshold of maximum count of tokens per doc",
+                  "Aliases": [
+                    "maxNumToken"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "NumSummaryTermPerTopic",
+                  "Type": "Int",
+                  "Desc": "The number of words to summarize the topic",
+                  "Aliases": [
+                    "ns"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "NumBurninIterations",
+                  "Type": "Int",
+                  "Desc": "The number of burn-in iterations",
+                  "Aliases": [
+                    "burninIter"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": 10
+                },
+                {
+                  "Name": "ResetRandomGenerator",
+                  "Type": "Bool",
+                  "Desc": "Reset the random number generator for each document",
+                  "Aliases": [
+                    "reset"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:srcs)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 49.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "NumTopic",
+          "Type": "Int",
+          "Desc": "The number of topics in the LDA",
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 100,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              20,
+              40,
+              100,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "NumMaxDocToken",
+          "Type": "Int",
+          "Desc": "The threshold of maximum count of tokens per doc",
+          "Aliases": [
+            "maxNumToken"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 512
+        },
+        {
+          "Name": "NumThreads",
+          "Type": "Int",
+          "Desc": "The number of training threads. Default value depends on number of logical processors.",
+          "Aliases": [
+            "t"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "AlphaSum",
+          "Type": "Float",
+          "Desc": "Dirichlet prior on document-topic vectors",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 100.0,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1,
+              10,
+              100,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "Beta",
+          "Type": "Float",
+          "Desc": "Dirichlet prior on vocab-topic vectors",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.01,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              0.01,
+              0.015,
+              0.07,
+              0.02
+            ]
+          }
+        },
+        {
+          "Name": "Mhstep",
+          "Type": "Int",
+          "Desc": "Number of Metropolis Hasting step",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 4,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              2,
+              4,
+              8,
+              16
+            ]
+          }
+        },
+        {
+          "Name": "NumIterations",
+          "Type": "Int",
+          "Desc": "Number of iterations",
+          "Aliases": [
+            "iter"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 200,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              100,
+              200,
+              300,
+              400
+            ]
+          }
+        },
+        {
+          "Name": "LikelihoodInterval",
+          "Type": "Int",
+          "Desc": "Compute log likelihood over local dataset on this iteration interval",
+          "Aliases": [
+            "llInterval"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 5
+        },
+        {
+          "Name": "NumSummaryTermPerTopic",
+          "Type": "Int",
+          "Desc": "The number of words to summarize the topic",
+          "Aliases": [
+            "ns"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10
+        },
+        {
+          "Name": "NumBurninIterations",
+          "Type": "Int",
+          "Desc": "The number of burn-in iterations",
+          "Aliases": [
+            "burninIter"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              10,
+              20,
+              30,
+              40
+            ]
+          }
+        },
+        {
+          "Name": "ResetRandomGenerator",
+          "Type": "Bool",
+          "Desc": "Reset the random number generator for each document",
+          "Aliases": [
+            "reset"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "OutputTopicWordSummary",
+          "Type": "Bool",
+          "Desc": "Whether to output the topic-word summary in text format",
+          "Aliases": [
+            "summary"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Transforms.LogMeanVarianceNormalizer",
       "Desc": "Normalizes the data based on the computed mean and variance of the logarithm of the data.",
       "FriendlyName": "LogMeanVar Normalizer",

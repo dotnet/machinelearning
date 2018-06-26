@@ -1006,6 +1006,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Transforms.LabelToFloatConverter", input, output));
             }
 
+            public Microsoft.ML.Transforms.LightLda.Output Add(Microsoft.ML.Transforms.LightLda input)
+            {
+                var output = new Microsoft.ML.Transforms.LightLda.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Transforms.LightLda input, Microsoft.ML.Transforms.LightLda.Output output)
+            {
+                _jsonNodes.Add(Serialize("Transforms.LightLda", input, output));
+            }
+
             public Microsoft.ML.Transforms.LogMeanVarianceNormalizer.Output Add(Microsoft.ML.Transforms.LogMeanVarianceNormalizer input)
             {
                 var output = new Microsoft.ML.Transforms.LogMeanVarianceNormalizer.Output();
@@ -11377,6 +11389,246 @@ namespace Microsoft.ML
             private class LabelToFloatConverterPipelineStep : ILearningPipelineDataStep
             {
                 public LabelToFloatConverterPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Transforms
+    {
+
+        public sealed partial class LdaTransformColumn : OneToOneColumn<LdaTransformColumn>, IOneToOneColumn
+        {
+            /// <summary>
+            /// The number of topics in the LDA
+            /// </summary>
+            public int? NumTopic { get; set; }
+
+            /// <summary>
+            /// Dirichlet prior on document-topic vectors
+            /// </summary>
+            public float? AlphaSum { get; set; }
+
+            /// <summary>
+            /// Dirichlet prior on vocab-topic vectors
+            /// </summary>
+            public float? Beta { get; set; }
+
+            /// <summary>
+            /// Number of Metropolis Hasting step
+            /// </summary>
+            public int? Mhstep { get; set; }
+
+            /// <summary>
+            /// Number of iterations
+            /// </summary>
+            public int? NumIterations { get; set; }
+
+            /// <summary>
+            /// Compute log likelihood over local dataset on this iteration interval
+            /// </summary>
+            public int? LikelihoodInterval { get; set; }
+
+            /// <summary>
+            /// The number of training threads
+            /// </summary>
+            public int? NumThreads { get; set; }
+
+            /// <summary>
+            /// The threshold of maximum count of tokens per doc
+            /// </summary>
+            public int? NumMaxDocToken { get; set; }
+
+            /// <summary>
+            /// The number of words to summarize the topic
+            /// </summary>
+            public int? NumSummaryTermPerTopic { get; set; }
+
+            /// <summary>
+            /// The number of burn-in iterations
+            /// </summary>
+            public int? NumBurninIterations { get; set; } = 10;
+
+            /// <summary>
+            /// Reset the random number generator for each document
+            /// </summary>
+            public bool? ResetRandomGenerator { get; set; }
+
+            /// <summary>
+            /// Name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+        }
+
+        /// <summary>
+        /// The LDA transform implements LightLDA, a state-of-the-art implementation of Latent Dirichlet Allocation.
+        /// </summary>
+        public sealed partial class LightLda : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+            public LightLda()
+            {
+            }
+            
+            public LightLda(params string[] inputColumns)
+            {
+                if (inputColumns != null)
+                {
+                    foreach (string input in inputColumns)
+                    {
+                        AddColumn(input);
+                    }
+                }
+            }
+            
+            public LightLda(params (string inputColumn, string outputColumn)[] inputOutputColumns)
+            {
+                if (inputOutputColumns != null)
+                {
+                    foreach (var inputOutput in inputOutputColumns)
+                    {
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
+                    }
+                }
+            }
+            
+            public void AddColumn(string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Transforms.LdaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LdaTransformColumn>.Create(inputColumn));
+                Column = list.ToArray();
+            }
+
+            public void AddColumn(string outputColumn, string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Transforms.LdaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LdaTransformColumn>.Create(outputColumn, inputColumn));
+                Column = list.ToArray();
+            }
+
+
+            /// <summary>
+            /// New column definition(s) (optional form: name:srcs)
+            /// </summary>
+            public LdaTransformColumn[] Column { get; set; }
+
+            /// <summary>
+            /// The number of topics in the LDA
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumTopic", new object[]{20, 40, 100, 200})]
+            public int NumTopic { get; set; } = 100;
+
+            /// <summary>
+            /// Dirichlet prior on document-topic vectors
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("AlphaSum", new object[]{1, 10, 100, 200})]
+            public float AlphaSum { get; set; } = 100f;
+
+            /// <summary>
+            /// Dirichlet prior on vocab-topic vectors
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("Beta", new object[]{0.01f, 0.015f, 0.07f, 0.02f})]
+            public float Beta { get; set; } = 0.01f;
+
+            /// <summary>
+            /// Number of Metropolis Hasting step
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("Mhstep", new object[]{2, 4, 8, 16})]
+            public int Mhstep { get; set; } = 4;
+
+            /// <summary>
+            /// Number of iterations
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[]{100, 200, 300, 400})]
+            public int NumIterations { get; set; } = 200;
+
+            /// <summary>
+            /// Compute log likelihood over local dataset on this iteration interval
+            /// </summary>
+            public int LikelihoodInterval { get; set; } = 5;
+
+            /// <summary>
+            /// The threshold of maximum count of tokens per doc
+            /// </summary>
+            public int NumMaxDocToken { get; set; } = 512;
+
+            /// <summary>
+            /// The number of training threads. Default value depends on number of logical processors.
+            /// </summary>
+            public int? NumThreads { get; set; }
+
+            /// <summary>
+            /// The number of words to summarize the topic
+            /// </summary>
+            public int NumSummaryTermPerTopic { get; set; } = 10;
+
+            /// <summary>
+            /// The number of burn-in iterations
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumBurninIterations", new object[]{10, 20, 30, 40})]
+            public int NumBurninIterations { get; set; } = 10;
+
+            /// <summary>
+            /// Reset the random number generator for each document
+            /// </summary>
+            public bool ResetRandomGenerator { get; set; } = false;
+
+            /// <summary>
+            /// Whether to output the topic-word summary in text format
+            /// </summary>
+            public bool OutputTopicWordSummary { get; set; } = false;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LightLda)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new LightLdaPipelineStep(output);
+            }
+
+            private class LightLdaPipelineStep : ILearningPipelineDataStep
+            {
+                public LightLdaPipelineStep(Output output)
                 {
                     Data = output.OutputData;
                     Model = output.Model;

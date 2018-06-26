@@ -1117,6 +1117,39 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void EntryPointLightLdaTransform()
+        {
+            string dataFile = DeleteOutputPath("SavePipe", "SavePipeTextLightLda-SampleText.txt");
+            File.WriteAllLines(dataFile, new[] {
+                "The quick brown fox jumps over the lazy dog.",
+                "The five boxing wizards jump quickly."
+            });
+
+            TestEntryPointPipelineRoutine(dataFile, "sep={ } col=T:TX:0-**",
+                new[]
+                {
+                    "Transforms.TextFeaturizer",
+                    "Transforms.LightLda"
+                },
+                new[]
+                {
+                   @"'Column': {
+                    'Name': 'T',
+                    'Source': [
+                        'T'
+                    ]
+
+                },
+                'VectorNormalizer': 'None'",
+                    @"'Column': [
+                      {
+                        'Name': 'T',
+                        'Source': 'T'
+                      }]"
+                });
+        }
+
+        [Fact]
         public void EntryPointAveragePerceptron()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.AveragedPerceptronBinaryClassifier");
