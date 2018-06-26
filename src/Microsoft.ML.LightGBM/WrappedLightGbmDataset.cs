@@ -34,13 +34,13 @@ namespace Microsoft.ML.Runtime.LightGBM
             {
                 double*[] ptrArrayValues = new double*[numCol];
                 int*[] ptrArrayIndices = new int*[numCol];
-                Parallel.For(0, numCol, i =>
+                for(int i = 0; i < numCol; i++)
                 {
                     gcValues[i] = GCHandle.Alloc(sampleValuePerColumn[i], GCHandleType.Pinned);
                     ptrArrayValues[i] = (double*)gcValues[i].AddrOfPinnedObject().ToPointer();
                     gcIndices[i] = GCHandle.Alloc(sampleIndicesPerColumn[i], GCHandleType.Pinned);
                     ptrArrayIndices[i] = (int*)gcIndices[i].AddrOfPinnedObject().ToPointer();
-                });
+                };
                 fixed (double** ptrValues = ptrArrayValues)
                 fixed (int** ptrIndices = ptrArrayIndices)
                 {
@@ -51,13 +51,13 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
             finally
             {
-                Parallel.For(0, numCol, i =>
+                for (int i = 0; i < numCol; i++)
                 {
                     if (gcValues[i].IsAllocated)
                         gcValues[i].Free();
                     if (gcIndices[i].IsAllocated)
                         gcIndices[i].Free();
-                });
+                };
             }
             SetLabel(labels);
             SetWeights(weights);

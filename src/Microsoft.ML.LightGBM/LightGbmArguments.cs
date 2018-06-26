@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 using Microsoft.ML.Runtime;
@@ -9,7 +10,6 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
-using System.Collections.Generic;
 
 [assembly: LoadableClass(typeof(LightGbmArguments.TreeBooster), typeof(LightGbmArguments.TreeBooster.Arguments),
     typeof(SignatureLightGBMBooster), "Tree Booster", "gbdt")]
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.LightGBM
 
     /// <summary>
     /// Parameters names comes from LightGBM library. 
-    /// See https://github.com/Microsoft/LightGBM/blob/master/docs/Parameters.md .
+    /// See https://github.com/Microsoft/LightGBM/blob/master/docs/Parameters.rst.
     /// </summary>
     public sealed class LightGbmArguments : LearnerInputBaseWithGroupId
     {
@@ -143,7 +143,8 @@ namespace Microsoft.ML.Runtime.LightGBM
                 public double RegAlpha = 0;
 
                 [Argument(ArgumentType.AtMostOnce,
-                    HelpText = "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).")]
+                    HelpText = "Control the balance of positive and negative weights, useful for unbalanced classes." +
+                    " A typical value to consider: sum(negative cases) / sum(positive cases).")]
                 public double ScalePosWeight = 1;
 
                 public virtual IBoosterParameter CreateComponent(IHostEnvironment env) => new TreeBooster(this);

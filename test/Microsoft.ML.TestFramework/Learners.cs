@@ -274,6 +274,48 @@ namespace Microsoft.ML.Runtime.RunTests
             BaselineProgress = true,
         };
 
+        public static PredictorAndArgs LightGBMGoss = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBM", "nt=1 iter=10 v=+ booster=goss lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMGoss",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMDart = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBM", "nt=1 iter=10 booster=dart lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMDart",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMMC = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMMC", "nt=1 iter=10 v=- lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMMC",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMReg = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 v=+ booster=gbdt{l1=0.2 l2=0.2} lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMReg",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMRegMae = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 em=mae v=+ lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMRegMae",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMRegRmse = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 em=rmse v=+ lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMRegRmse",
+            BaselineProgress = true,
+        };
+
         public static PredictorAndArgs FastTreeWithCategoricalClassfier = new PredictorAndArgs
         {
             Trainer = new SubComponent("FastTreeBinaryClassification", "cat=+ nl=5 mil=5 lr=0.25 iter=20 mb=255"),

@@ -562,12 +562,12 @@ namespace Microsoft.ML.Runtime.LightGBM
             int[] nonZeroCntPerColumn = new int[catMetaData.NumCol];
             int estimateNonZeroCnt = (int)(numSampleRow * density);
             estimateNonZeroCnt = Math.Max(1, estimateNonZeroCnt);
-            Parallel.For(0, catMetaData.NumCol, i =>
+            for(int i = 0; i < catMetaData.NumCol; i++)
             {
                 nonZeroCntPerColumn[i] = 0;
                 sampleValuePerColumn[i] = new double[estimateNonZeroCnt];
                 sampleIndicesPerColumn[i] = new int[estimateNonZeroCnt];
-            });
+            };
             using (var cursor = factory.Create())
             {
                 int step = 1;
