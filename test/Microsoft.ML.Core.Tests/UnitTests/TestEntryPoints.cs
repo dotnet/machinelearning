@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Core.Tests.UnitTests;
 using Microsoft.ML.Runtime.Data;
@@ -387,12 +388,14 @@ namespace Microsoft.ML.Runtime.RunTests
             var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
             var catalog = ModuleCatalog.CreateInstance(Env);
             var path = DeleteOutputPath(entryPointsSubDir, epListFile);
+
+            var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
             File.WriteAllLines(path, catalog.AllEntryPoints()
-                .Select(x => string.Join("\t", 
+                .Select(x => string.Join("\t",
                 x.Name,
-                new string(x.Description.Where(c => !char.IsControl(c)).ToArray()), 
+                regex.Replace(x.Description, ""),
                 x.Method.DeclaringType,
-                x.Method.Name, 
+                x.Method.Name,
                 x.InputType,
                 x.OutputType)
                 .Replace(Environment.NewLine, ""))
@@ -401,6 +404,15 @@ namespace Microsoft.ML.Runtime.RunTests
             CheckEquality(entryPointsSubDir, epListFile);
 
             var jObj = JsonManifestUtils.BuildAllManifests(Env, catalog);
+
+            //clean up the description from the new line characters
+            if (jObj[FieldNames.TopEntryPoints] != null && jObj[FieldNames.TopEntryPoints] is JArray)
+            {
+                foreach (JToken entry in jObj[FieldNames.TopEntryPoints].Children())
+                    if (entry[FieldNames.Desc] != null)
+                        entry[FieldNames.Desc] = regex.Replace(entry[FieldNames.Desc].ToString(), "");
+            }
+
             var jPath = DeleteOutputPath(entryPointsSubDir, manifestFile);
             using (var file = File.OpenWrite(jPath))
             using (var writer = new StreamWriter(file))

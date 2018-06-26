@@ -232,11 +232,9 @@ The SDCA method combines several of the best properties and capabilities of logi
 For more information on SDCA, see:
 <see href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</see>.
 <see href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</see>.
-
 Note that SDCA is a stochastic and streaming optimization algorithm. 
 The results depends on the order of the training data. For reproducible results, it is recommended that one sets `shuffle` to
 `False` and `NumThreads` to `1`.
-
 Elastic net regularization can be specified by the l2_weight and l1_weight parameters. Note that the l2_weight has an effect on the rate of convergence. 
 In general, the larger the l2_weight, the faster SDCA converges.";
 
