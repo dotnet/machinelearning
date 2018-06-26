@@ -886,10 +886,7 @@ namespace Microsoft.ML.Runtime.Data
                 list.Add(idv);
                 dvNumber++;
             }
-
             variableSizeVectorColumnNames = variableSizeVectorColumnNamesList.ToArray();
-            if (variableSizeVectorColumnNamesList.Count == 0 && labelColKeyValuesType == null)
-                return AppendRowsDataView.Create(env, null, list.ToArray());
 
             var views = list.ToArray();
             foreach (var keyCol in firstDvKeyWithNamesColumns)
