@@ -1814,19 +1814,19 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointBinaryEnsemble()
         {
-            TestEntryPointRoutine("iris.txt", "Trainers.BinaryClassifierEnsemble");
+            TestEntryPointRoutine("iris.txt", "Trainers.EnsembleBinaryClassifier");
         }
 
         [Fact]
         public void EntryPointClassificationEnsemble()
         {
-            TestEntryPointRoutine("iris.txt", "Trainers.ClassificationEnsemble");
+            TestEntryPointRoutine("iris.txt", "Trainers.EnsembleClassification");
         }
 
         [Fact]
         public void EntryPointRegressionEnsemble()
         {
-            TestEntryPointRoutine(TestDatasets.winequality.trainFilename, "Trainers.RegressionEnsemble", loader: TestDatasets.winequality.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.winequality.trainFilename, "Trainers.EnsembleRegression", loader: TestDatasets.winequality.loaderSettings);
         }
 
         [Fact]
