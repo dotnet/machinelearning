@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
 using Microsoft.ML.Runtime.PipelineInference;
 using Xunit;
 using Xunit.Abstractions;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -274,6 +275,11 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestRocketPipelineEngine()
         {
+            //Skip this test for macOS until engineering system installs OpenMP dependency for 
+            //native LightGBM library.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return;
+
             // Get datasets
             var pathData = GetDataPath("adult.train");
             var pathDataTest = GetDataPath("adult.test");
