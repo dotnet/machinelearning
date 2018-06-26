@@ -92,7 +92,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="seed">The random seed. If unspecified random state will be instead derived from the environment.</param>
         /// <param name="shuffleInput">Whether we should attempt to shuffle the source data. By default on, but can be turned off for efficiency.</param>
         /// <param name="poolSize">When shuffling the output, the number of output rows to keep in that pool. Note that shuffling of output is completely distinct from shuffling of input.</param>
-        public BootstrapSampleTransform(IHostEnvironment env, IDataView input, bool complement = Defaults.Complement, uint? seed = null, bool shuffleInput = Defaults.ShuffleInput, int poolSize = Defaults.PoolSize)
+        public BootstrapSampleTransform(IHostEnvironment env, 
+            IDataView input, 
+            bool complement = Defaults.Complement, 
+            uint? seed = null, 
+            bool shuffleInput = Defaults.ShuffleInput, 
+            int poolSize = Defaults.PoolSize)
             : this(env, new Arguments() { Complement = complement, Seed = seed, ShuffleInput = shuffleInput, PoolSize = poolSize }, input)
         {
             

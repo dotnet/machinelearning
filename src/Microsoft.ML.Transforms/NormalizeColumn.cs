@@ -271,7 +271,11 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// /// <param name="useCdf">Whether to use CDF as the output.</param>
-        public static NormalizeTransform CreateMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool useCdf = Defaults.MeanVarCdf)
+        public static NormalizeTransform CreateMeanVarNormalizer(IHostEnvironment env, 
+            IDataView input, 
+            string name, 
+            string source=null, 
+            bool useCdf = Defaults.MeanVarCdf)
         {
             var args = new MeanVarArguments()
             {
@@ -309,7 +313,11 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// /// <param name="useCdf">Whether to use CDF as the output.</param>
-        public static NormalizeTransform CreateLogMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool useCdf = Defaults.LogMeanVarCdf)
+        public static NormalizeTransform CreateLogMeanVarNormalizer(IHostEnvironment env, 
+            IDataView input, 
+            string name, 
+            string source=null, 
+            bool useCdf = Defaults.LogMeanVarCdf)
         {
             var args = new LogMeanVarArguments()
             {
@@ -339,7 +347,11 @@ namespace Microsoft.ML.Runtime.Data
             return func;
         }
 
-        public static NormalizeTransform CreateBinningNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, int numBins = Defaults.NumBins)
+        public static NormalizeTransform CreateBinningNormalizer(IHostEnvironment env, 
+            IDataView input, 
+            string name, 
+            string source=null, 
+            int numBins = Defaults.NumBins)
         {
             var args = new BinArguments()
             {
@@ -369,7 +381,13 @@ namespace Microsoft.ML.Runtime.Data
             return func;
         }
 
-        public static NormalizeTransform CreateBinningNormalizer(IHostEnvironment env, IDataView input, string labelColumn, string name, string source = null, int numBins = Defaults.NumBins, int minBinSize = Defaults.MinBinSize)
+        public static NormalizeTransform CreateSupervisedBinningNormalizer(IHostEnvironment env, 
+            IDataView input, 
+            string labelColumn, 
+            string name, 
+            string source = null, 
+            int numBins = Defaults.NumBins, 
+            int minBinSize = Defaults.MinBinSize)
         {
             var args = new SupervisedBinArguments()
             {

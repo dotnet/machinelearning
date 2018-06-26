@@ -256,7 +256,13 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, string name, string source = null, bool subMean = Defaults.GcnSubMean, bool useStdDev = Defaults.UseStdDev, Float scale = Defaults.Scale)
+        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, 
+            IDataView input, 
+            string name, 
+            string source = null, 
+            bool subMean = Defaults.GcnSubMean, 
+            bool useStdDev = Defaults.UseStdDev, 
+            Float scale = Defaults.Scale)
         {
             var args = new GcnArguments()
             {
@@ -307,7 +313,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         ///         /// <param name="normKind">The norm to use to normalize each sample.</param>
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
-        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, string name, string source = null, NormalizerKind normKind = Defaults.NormKind, bool subMean = Defaults.LpSubMean)
+        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, 
+            IDataView input, 
+            string name, 
+            string source = null, 
+            NormalizerKind normKind = Defaults.NormKind, 
+            bool subMean = Defaults.LpSubMean)
         {
             var args = new Arguments()
             {
