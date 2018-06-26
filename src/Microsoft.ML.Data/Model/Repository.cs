@@ -128,10 +128,10 @@ namespace Microsoft.ML.Runtime.Model
 
         private static bool EnsureDirectory(string path)
         {
-            var fullPath = Path.GetFullPath(Path.Combine(path, ".lock"));
+            path = Path.GetFullPath(Path.Combine(path, ".lock"));
             try
             {
-                using (var stream = new FileStream(fullPath, FileMode.CreateNew))
+                using (var stream = new FileStream(path, FileMode.CreateNew))
                     return true;
             }
             catch
