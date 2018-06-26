@@ -18,5 +18,6 @@
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="LdaNative" />
   </ItemGroup>
 </Project>

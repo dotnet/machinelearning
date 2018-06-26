@@ -1042,13 +1042,13 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointEvaluateRegression()
         {
-            var dataPath = GetDataPath(TestDatasets.winequality.trainFilename);
+            var dataPath = GetDataPath(TestDatasets.winequalitymacro.trainFilename);
             var warningsPath = DeleteOutputPath("warnings.idv");
             var overallMetricsPath = DeleteOutputPath("overall.idv");
             var instanceMetricsPath = DeleteOutputPath("instance.idv");
 
             RunTrainScoreEvaluate("Trainers.StochasticDualCoordinateAscentRegressor", "Models.RegressionEvaluator",
-                dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, loader: TestDatasets.winequality.loaderSettings);
+                dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, loader: TestDatasets.winequalitymacro.loaderSettings);
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), warningsPath))
                 Assert.Equal(0, CountRows(loader));
@@ -1075,7 +1075,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact()]
         public void EntryPointSDCARegression()
         {
-            TestEntryPointRoutine(TestDatasets.winequality.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.winequality.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.winequalitymacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.winequalitymacro.loaderSettings);
         }
 
         [Fact]
@@ -1117,6 +1117,39 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void EntryPointLightLdaTransform()
+        {
+            string dataFile = DeleteOutputPath("SavePipe", "SavePipeTextLightLda-SampleText.txt");
+            File.WriteAllLines(dataFile, new[] {
+                "The quick brown fox jumps over the lazy dog.",
+                "The five boxing wizards jump quickly."
+            });
+
+            TestEntryPointPipelineRoutine(dataFile, "sep={ } col=T:TX:0-**",
+                new[]
+                {
+                    "Transforms.TextFeaturizer",
+                    "Transforms.LightLda"
+                },
+                new[]
+                {
+                   @"'Column': {
+                    'Name': 'T',
+                    'Source': [
+                        'T'
+                    ]
+
+                },
+                'VectorNormalizer': 'None'",
+                    @"'Column': [
+                      {
+                        'Name': 'T',
+                        'Source': 'T'
+                      }]"
+                });
+        }
+
+        [Fact]
         public void EntryPointAveragePerceptron()
         {
             TestEntryPointRoutine("iris.txt", "Trainers.AveragedPerceptronBinaryClassifier");
@@ -1149,7 +1182,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact()]
         public void EntryPointPoissonRegression()
         {
-            TestEntryPointRoutine(TestDatasets.winequality.trainFilename, "Trainers.PoissonRegressor", loader: TestDatasets.winequality.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.winequalitymacro.trainFilename, "Trainers.PoissonRegressor", loader: TestDatasets.winequalitymacro.loaderSettings);
         }
 
         [Fact]

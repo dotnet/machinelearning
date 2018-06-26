@@ -515,6 +515,54 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Trainers.KMeansPlusPlusClusterer", input, output));
             }
 
+            public Microsoft.ML.Trainers.LightGbmBinaryClassifier.Output Add(Microsoft.ML.Trainers.LightGbmBinaryClassifier input)
+            {
+                var output = new Microsoft.ML.Trainers.LightGbmBinaryClassifier.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainers.LightGbmBinaryClassifier input, Microsoft.ML.Trainers.LightGbmBinaryClassifier.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainers.LightGbmBinaryClassifier", input, output));
+            }
+
+            public Microsoft.ML.Trainers.LightGbmClassifier.Output Add(Microsoft.ML.Trainers.LightGbmClassifier input)
+            {
+                var output = new Microsoft.ML.Trainers.LightGbmClassifier.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainers.LightGbmClassifier input, Microsoft.ML.Trainers.LightGbmClassifier.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainers.LightGbmClassifier", input, output));
+            }
+
+            public Microsoft.ML.Trainers.LightGbmRanker.Output Add(Microsoft.ML.Trainers.LightGbmRanker input)
+            {
+                var output = new Microsoft.ML.Trainers.LightGbmRanker.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainers.LightGbmRanker input, Microsoft.ML.Trainers.LightGbmRanker.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainers.LightGbmRanker", input, output));
+            }
+
+            public Microsoft.ML.Trainers.LightGbmRegressor.Output Add(Microsoft.ML.Trainers.LightGbmRegressor input)
+            {
+                var output = new Microsoft.ML.Trainers.LightGbmRegressor.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainers.LightGbmRegressor input, Microsoft.ML.Trainers.LightGbmRegressor.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainers.LightGbmRegressor", input, output));
+            }
+
             public Microsoft.ML.Trainers.LinearSvmBinaryClassifier.Output Add(Microsoft.ML.Trainers.LinearSvmBinaryClassifier input)
             {
                 var output = new Microsoft.ML.Trainers.LinearSvmBinaryClassifier.Output();
@@ -957,6 +1005,18 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Transforms.LabelToFloatConverter input, Microsoft.ML.Transforms.LabelToFloatConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.LabelToFloatConverter", input, output));
+            }
+
+            public Microsoft.ML.Transforms.LightLda.Output Add(Microsoft.ML.Transforms.LightLda input)
+            {
+                var output = new Microsoft.ML.Transforms.LightLda.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Transforms.LightLda input, Microsoft.ML.Transforms.LightLda.Output output)
+            {
+                _jsonNodes.Add(Serialize("Transforms.LightLda", input, output));
             }
 
             public Microsoft.ML.Transforms.LogMeanVarianceNormalizer.Output Add(Microsoft.ML.Transforms.LogMeanVarianceNormalizer input)
@@ -6401,6 +6461,840 @@ namespace Microsoft.ML
 
     namespace Trainers
     {
+        public enum LightGbmArgumentsEvalMetricType
+        {
+            DefaultMetric = 0,
+            Rmse = 1,
+            Mae = 2,
+            Logloss = 3,
+            Error = 4,
+            Merror = 5,
+            Mlogloss = 6,
+            Auc = 7,
+            Ndcg = 8,
+            Map = 9
+        }
+
+
+        /// <summary>
+        /// Train an LightGBM binary class model
+        /// </summary>
+        public sealed partial class LightGbmBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// Number of iterations.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[]{10, 20, 50, 100, 150, 200})]
+            public int NumBoostRound { get; set; } = 100;
+
+            /// <summary>
+            /// Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale:true)]
+            public double? LearningRate { get; set; }
+
+            /// <summary>
+            /// Maximum leaves for trees.
+            /// </summary>
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            public int? NumLeaves { get; set; }
+
+            /// <summary>
+            /// Minimum number of instances needed in a child.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[]{1, 10, 20, 50})]
+            public int? MinDataPerLeaf { get; set; }
+
+            /// <summary>
+            /// Max number of bucket bin for features.
+            /// </summary>
+            public int MaxBin { get; set; } = 255;
+
+            /// <summary>
+            /// Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public BoosterParameterFunction Booster { get; set; } = new GbdtBoosterParameterFunction();
+
+            /// <summary>
+            /// Verbose
+            /// </summary>
+            public bool VerboseEval { get; set; } = false;
+
+            /// <summary>
+            /// Printing running messages.
+            /// </summary>
+            public bool Silent { get; set; } = true;
+
+            /// <summary>
+            /// Number of parallel threads used to run LightGBM.
+            /// </summary>
+            public int? NThread { get; set; }
+
+            /// <summary>
+            /// Evaluation metrics.
+            /// </summary>
+            public LightGbmArgumentsEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsEvalMetricType.DefaultMetric;
+
+            /// <summary>
+            /// Use softmax loss for the multi classification.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[]{true, false})]
+            public bool? UseSoftmax { get; set; }
+
+            /// <summary>
+            /// Rounds of early stopping, 0 will disable it.
+            /// </summary>
+            public int EarlyStoppingRound { get; set; }
+
+            /// <summary>
+            /// Comma seperated list of gains associated to each relevance label.
+            /// </summary>
+            public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+
+            /// <summary>
+            /// Number of entries in a batch when loading data.
+            /// </summary>
+            public int BatchSize { get; set; } = 1048576;
+
+            /// <summary>
+            /// Enable categorical split or not.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[]{true, false})]
+            public bool? UseCat { get; set; }
+
+            /// <summary>
+            /// Enable missing value auto infer or not.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[]{true, false})]
+            public bool UseMissing { get; set; } = false;
+
+            /// <summary>
+            /// Min number of instances per categorical group.
+            /// </summary>
+            [TlcModule.Range(Inf = 0, Max = 2147483647)]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[]{10, 50, 100, 200})]
+            public int MinDataPerGroup { get; set; } = 100;
+
+            /// <summary>
+            /// Max number of categorical thresholds.
+            /// </summary>
+            [TlcModule.Range(Inf = 0, Max = 2147483647)]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[]{8, 16, 32, 64})]
+            public int MaxCatThreshold { get; set; } = 32;
+
+            /// <summary>
+            /// Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[]{1, 10, 20})]
+            public double CatSmooth { get; set; } = 10d;
+
+            /// <summary>
+            /// L2 Regularization for categorical split.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
+            public double CatL2 { get; set; } = 10d;
+
+            /// <summary>
+            /// Parallel LightGBM Learning Algorithm
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public ParallelLightGBM ParallelTrainer { get; set; } = new SingleParallelLightGBM();
+
+            /// <summary>
+            /// Column to use for example groupId
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LightGbmBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    TrainingData = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new LightGbmBinaryClassifierPipelineStep(output);
+            }
+
+            private class LightGbmBinaryClassifierPipelineStep : ILearningPipelinePredictorStep
+            {
+                public LightGbmBinaryClassifierPipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainers
+    {
+
+        /// <summary>
+        /// Train an LightGBM multi class model
+        /// </summary>
+        public sealed partial class LightGbmClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// Number of iterations.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[]{10, 20, 50, 100, 150, 200})]
+            public int NumBoostRound { get; set; } = 100;
+
+            /// <summary>
+            /// Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale:true)]
+            public double? LearningRate { get; set; }
+
+            /// <summary>
+            /// Maximum leaves for trees.
+            /// </summary>
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            public int? NumLeaves { get; set; }
+
+            /// <summary>
+            /// Minimum number of instances needed in a child.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[]{1, 10, 20, 50})]
+            public int? MinDataPerLeaf { get; set; }
+
+            /// <summary>
+            /// Max number of bucket bin for features.
+            /// </summary>
+            public int MaxBin { get; set; } = 255;
+
+            /// <summary>
+            /// Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public BoosterParameterFunction Booster { get; set; } = new GbdtBoosterParameterFunction();
+
+            /// <summary>
+            /// Verbose
+            /// </summary>
+            public bool VerboseEval { get; set; } = false;
+
+            /// <summary>
+            /// Printing running messages.
+            /// </summary>
+            public bool Silent { get; set; } = true;
+
+            /// <summary>
+            /// Number of parallel threads used to run LightGBM.
+            /// </summary>
+            public int? NThread { get; set; }
+
+            /// <summary>
+            /// Evaluation metrics.
+            /// </summary>
+            public LightGbmArgumentsEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsEvalMetricType.DefaultMetric;
+
+            /// <summary>
+            /// Use softmax loss for the multi classification.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[]{true, false})]
+            public bool? UseSoftmax { get; set; }
+
+            /// <summary>
+            /// Rounds of early stopping, 0 will disable it.
+            /// </summary>
+            public int EarlyStoppingRound { get; set; }
+
+            /// <summary>
+            /// Comma seperated list of gains associated to each relevance label.
+            /// </summary>
+            public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+
+            /// <summary>
+            /// Number of entries in a batch when loading data.
+            /// </summary>
+            public int BatchSize { get; set; } = 1048576;
+
+            /// <summary>
+            /// Enable categorical split or not.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[]{true, false})]
+            public bool? UseCat { get; set; }
+
+            /// <summary>
+            /// Enable missing value auto infer or not.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[]{true, false})]
+            public bool UseMissing { get; set; } = false;
+
+            /// <summary>
+            /// Min number of instances per categorical group.
+            /// </summary>
+            [TlcModule.Range(Inf = 0, Max = 2147483647)]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[]{10, 50, 100, 200})]
+            public int MinDataPerGroup { get; set; } = 100;
+
+            /// <summary>
+            /// Max number of categorical thresholds.
+            /// </summary>
+            [TlcModule.Range(Inf = 0, Max = 2147483647)]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[]{8, 16, 32, 64})]
+            public int MaxCatThreshold { get; set; } = 32;
+
+            /// <summary>
+            /// Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[]{1, 10, 20})]
+            public double CatSmooth { get; set; } = 10d;
+
+            /// <summary>
+            /// L2 Regularization for categorical split.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
+            public double CatL2 { get; set; } = 10d;
+
+            /// <summary>
+            /// Parallel LightGBM Learning Algorithm
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public ParallelLightGBM ParallelTrainer { get; set; } = new SingleParallelLightGBM();
+
+            /// <summary>
+            /// Column to use for example groupId
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LightGbmClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    TrainingData = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new LightGbmClassifierPipelineStep(output);
+            }
+
+            private class LightGbmClassifierPipelineStep : ILearningPipelinePredictorStep
+            {
+                public LightGbmClassifierPipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainers
+    {
+
+        /// <summary>
+        /// Train an LightGBM ranking model
+        /// </summary>
+        public sealed partial class LightGbmRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// Number of iterations.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[]{10, 20, 50, 100, 150, 200})]
+            public int NumBoostRound { get; set; } = 100;
+
+            /// <summary>
+            /// Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale:true)]
+            public double? LearningRate { get; set; }
+
+            /// <summary>
+            /// Maximum leaves for trees.
+            /// </summary>
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            public int? NumLeaves { get; set; }
+
+            /// <summary>
+            /// Minimum number of instances needed in a child.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[]{1, 10, 20, 50})]
+            public int? MinDataPerLeaf { get; set; }
+
+            /// <summary>
+            /// Max number of bucket bin for features.
+            /// </summary>
+            public int MaxBin { get; set; } = 255;
+
+            /// <summary>
+            /// Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public BoosterParameterFunction Booster { get; set; } = new GbdtBoosterParameterFunction();
+
+            /// <summary>
+            /// Verbose
+            /// </summary>
+            public bool VerboseEval { get; set; } = false;
+
+            /// <summary>
+            /// Printing running messages.
+            /// </summary>
+            public bool Silent { get; set; } = true;
+
+            /// <summary>
+            /// Number of parallel threads used to run LightGBM.
+            /// </summary>
+            public int? NThread { get; set; }
+
+            /// <summary>
+            /// Evaluation metrics.
+            /// </summary>
+            public LightGbmArgumentsEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsEvalMetricType.DefaultMetric;
+
+            /// <summary>
+            /// Use softmax loss for the multi classification.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[]{true, false})]
+            public bool? UseSoftmax { get; set; }
+
+            /// <summary>
+            /// Rounds of early stopping, 0 will disable it.
+            /// </summary>
+            public int EarlyStoppingRound { get; set; }
+
+            /// <summary>
+            /// Comma seperated list of gains associated to each relevance label.
+            /// </summary>
+            public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+
+            /// <summary>
+            /// Number of entries in a batch when loading data.
+            /// </summary>
+            public int BatchSize { get; set; } = 1048576;
+
+            /// <summary>
+            /// Enable categorical split or not.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[]{true, false})]
+            public bool? UseCat { get; set; }
+
+            /// <summary>
+            /// Enable missing value auto infer or not.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[]{true, false})]
+            public bool UseMissing { get; set; } = false;
+
+            /// <summary>
+            /// Min number of instances per categorical group.
+            /// </summary>
+            [TlcModule.Range(Inf = 0, Max = 2147483647)]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[]{10, 50, 100, 200})]
+            public int MinDataPerGroup { get; set; } = 100;
+
+            /// <summary>
+            /// Max number of categorical thresholds.
+            /// </summary>
+            [TlcModule.Range(Inf = 0, Max = 2147483647)]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[]{8, 16, 32, 64})]
+            public int MaxCatThreshold { get; set; } = 32;
+
+            /// <summary>
+            /// Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[]{1, 10, 20})]
+            public double CatSmooth { get; set; } = 10d;
+
+            /// <summary>
+            /// L2 Regularization for categorical split.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
+            public double CatL2 { get; set; } = 10d;
+
+            /// <summary>
+            /// Parallel LightGBM Learning Algorithm
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public ParallelLightGBM ParallelTrainer { get; set; } = new SingleParallelLightGBM();
+
+            /// <summary>
+            /// Column to use for example groupId
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRankingOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LightGbmRanker)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    TrainingData = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new LightGbmRankerPipelineStep(output);
+            }
+
+            private class LightGbmRankerPipelineStep : ILearningPipelinePredictorStep
+            {
+                public LightGbmRankerPipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainers
+    {
+
+        /// <summary>
+        /// LightGBM Regression
+        /// </summary>
+        public sealed partial class LightGbmRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// Number of iterations.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[]{10, 20, 50, 100, 150, 200})]
+            public int NumBoostRound { get; set; } = 100;
+
+            /// <summary>
+            /// Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale:true)]
+            public double? LearningRate { get; set; }
+
+            /// <summary>
+            /// Maximum leaves for trees.
+            /// </summary>
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            public int? NumLeaves { get; set; }
+
+            /// <summary>
+            /// Minimum number of instances needed in a child.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[]{1, 10, 20, 50})]
+            public int? MinDataPerLeaf { get; set; }
+
+            /// <summary>
+            /// Max number of bucket bin for features.
+            /// </summary>
+            public int MaxBin { get; set; } = 255;
+
+            /// <summary>
+            /// Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public BoosterParameterFunction Booster { get; set; } = new GbdtBoosterParameterFunction();
+
+            /// <summary>
+            /// Verbose
+            /// </summary>
+            public bool VerboseEval { get; set; } = false;
+
+            /// <summary>
+            /// Printing running messages.
+            /// </summary>
+            public bool Silent { get; set; } = true;
+
+            /// <summary>
+            /// Number of parallel threads used to run LightGBM.
+            /// </summary>
+            public int? NThread { get; set; }
+
+            /// <summary>
+            /// Evaluation metrics.
+            /// </summary>
+            public LightGbmArgumentsEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsEvalMetricType.DefaultMetric;
+
+            /// <summary>
+            /// Use softmax loss for the multi classification.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[]{true, false})]
+            public bool? UseSoftmax { get; set; }
+
+            /// <summary>
+            /// Rounds of early stopping, 0 will disable it.
+            /// </summary>
+            public int EarlyStoppingRound { get; set; }
+
+            /// <summary>
+            /// Comma seperated list of gains associated to each relevance label.
+            /// </summary>
+            public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+
+            /// <summary>
+            /// Number of entries in a batch when loading data.
+            /// </summary>
+            public int BatchSize { get; set; } = 1048576;
+
+            /// <summary>
+            /// Enable categorical split or not.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[]{true, false})]
+            public bool? UseCat { get; set; }
+
+            /// <summary>
+            /// Enable missing value auto infer or not.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[]{true, false})]
+            public bool UseMissing { get; set; } = false;
+
+            /// <summary>
+            /// Min number of instances per categorical group.
+            /// </summary>
+            [TlcModule.Range(Inf = 0, Max = 2147483647)]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[]{10, 50, 100, 200})]
+            public int MinDataPerGroup { get; set; } = 100;
+
+            /// <summary>
+            /// Max number of categorical thresholds.
+            /// </summary>
+            [TlcModule.Range(Inf = 0, Max = 2147483647)]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[]{8, 16, 32, 64})]
+            public int MaxCatThreshold { get; set; } = 32;
+
+            /// <summary>
+            /// Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[]{1, 10, 20})]
+            public double CatSmooth { get; set; } = 10d;
+
+            /// <summary>
+            /// L2 Regularization for categorical split.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
+            public double CatL2 { get; set; } = 10d;
+
+            /// <summary>
+            /// Parallel LightGBM Learning Algorithm
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public ParallelLightGBM ParallelTrainer { get; set; } = new SingleParallelLightGBM();
+
+            /// <summary>
+            /// Column to use for example groupId
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LightGbmRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    TrainingData = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new LightGbmRegressorPipelineStep(output);
+            }
+
+            private class LightGbmRegressorPipelineStep : ILearningPipelinePredictorStep
+            {
+                public LightGbmRegressorPipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainers
+    {
 
         /// <summary>
         /// Train a linear SVM.
@@ -10330,7 +11224,6 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        [DebuggerDisplay("{col}")]
         public sealed partial class LabelIndicatorTransformColumn : OneToOneColumn<LabelIndicatorTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -10511,6 +11404,252 @@ namespace Microsoft.ML
             private class LabelToFloatConverterPipelineStep : ILearningPipelineDataStep
             {
                 public LabelToFloatConverterPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Transforms
+    {
+
+        public sealed partial class LdaTransformColumn : OneToOneColumn<LdaTransformColumn>, IOneToOneColumn
+        {
+            /// <summary>
+            /// The number of topics in the LDA
+            /// </summary>
+            public int? NumTopic { get; set; }
+
+            /// <summary>
+            /// Dirichlet prior on document-topic vectors
+            /// </summary>
+            public float? AlphaSum { get; set; }
+
+            /// <summary>
+            /// Dirichlet prior on vocab-topic vectors
+            /// </summary>
+            public float? Beta { get; set; }
+
+            /// <summary>
+            /// Number of Metropolis Hasting step
+            /// </summary>
+            public int? Mhstep { get; set; }
+
+            /// <summary>
+            /// Number of iterations
+            /// </summary>
+            public int? NumIterations { get; set; }
+
+            /// <summary>
+            /// Compute log likelihood over local dataset on this iteration interval
+            /// </summary>
+            public int? LikelihoodInterval { get; set; }
+
+            /// <summary>
+            /// The number of training threads
+            /// </summary>
+            public int? NumThreads { get; set; }
+
+            /// <summary>
+            /// The threshold of maximum count of tokens per doc
+            /// </summary>
+            public int? NumMaxDocToken { get; set; }
+
+            /// <summary>
+            /// The number of words to summarize the topic
+            /// </summary>
+            public int? NumSummaryTermPerTopic { get; set; }
+
+<<<<<<< HEAD
+        [DebuggerDisplay("{col}")]
+        public sealed partial class LabelIndicatorTransformColumn : OneToOneColumn<LabelIndicatorTransformColumn>, IOneToOneColumn
+        {
+=======
+>>>>>>> master
+            /// <summary>
+            /// The number of burn-in iterations
+            /// </summary>
+            public int? NumBurninIterations { get; set; } = 10;
+
+            /// <summary>
+            /// Reset the random number generator for each document
+            /// </summary>
+            public bool? ResetRandomGenerator { get; set; }
+
+            /// <summary>
+            /// Name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+        }
+
+        /// <summary>
+        /// The LDA transform implements LightLDA, a state-of-the-art implementation of Latent Dirichlet Allocation.
+        /// </summary>
+        public sealed partial class LightLda : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+            public LightLda()
+            {
+            }
+            
+            public LightLda(params string[] inputColumns)
+            {
+                if (inputColumns != null)
+                {
+                    foreach (string input in inputColumns)
+                    {
+                        AddColumn(input);
+                    }
+                }
+            }
+            
+            public LightLda(params (string inputColumn, string outputColumn)[] inputOutputColumns)
+            {
+                if (inputOutputColumns != null)
+                {
+                    foreach (var inputOutput in inputOutputColumns)
+                    {
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
+                    }
+                }
+            }
+            
+            public void AddColumn(string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Transforms.LdaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LdaTransformColumn>.Create(inputColumn));
+                Column = list.ToArray();
+            }
+
+            public void AddColumn(string outputColumn, string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Transforms.LdaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LdaTransformColumn>.Create(outputColumn, inputColumn));
+                Column = list.ToArray();
+            }
+
+
+            /// <summary>
+            /// New column definition(s) (optional form: name:srcs)
+            /// </summary>
+            public LdaTransformColumn[] Column { get; set; }
+
+            /// <summary>
+            /// The number of topics in the LDA
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumTopic", new object[]{20, 40, 100, 200})]
+            public int NumTopic { get; set; } = 100;
+
+            /// <summary>
+            /// Dirichlet prior on document-topic vectors
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("AlphaSum", new object[]{1, 10, 100, 200})]
+            public float AlphaSum { get; set; } = 100f;
+
+            /// <summary>
+            /// Dirichlet prior on vocab-topic vectors
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("Beta", new object[]{0.01f, 0.015f, 0.07f, 0.02f})]
+            public float Beta { get; set; } = 0.01f;
+
+            /// <summary>
+            /// Number of Metropolis Hasting step
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("Mhstep", new object[]{2, 4, 8, 16})]
+            public int Mhstep { get; set; } = 4;
+
+            /// <summary>
+            /// Number of iterations
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[]{100, 200, 300, 400})]
+            public int NumIterations { get; set; } = 200;
+
+            /// <summary>
+            /// Compute log likelihood over local dataset on this iteration interval
+            /// </summary>
+            public int LikelihoodInterval { get; set; } = 5;
+
+            /// <summary>
+            /// The threshold of maximum count of tokens per doc
+            /// </summary>
+            public int NumMaxDocToken { get; set; } = 512;
+
+            /// <summary>
+            /// The number of training threads. Default value depends on number of logical processors.
+            /// </summary>
+            public int? NumThreads { get; set; }
+
+            /// <summary>
+            /// The number of words to summarize the topic
+            /// </summary>
+            public int NumSummaryTermPerTopic { get; set; } = 10;
+
+            /// <summary>
+            /// The number of burn-in iterations
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumBurninIterations", new object[]{10, 20, 30, 40})]
+            public int NumBurninIterations { get; set; } = 10;
+
+            /// <summary>
+            /// Reset the random number generator for each document
+            /// </summary>
+            public bool ResetRandomGenerator { get; set; } = false;
+
+            /// <summary>
+            /// Whether to output the topic-word summary in text format
+            /// </summary>
+            public bool OutputTopicWordSummary { get; set; } = false;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(LightLda)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new LightLdaPipelineStep(output);
+            }
+
+            private class LightLdaPipelineStep : ILearningPipelineDataStep
+            {
+                public LightLdaPipelineStep(Output output)
                 {
                     Data = output.OutputData;
                     Model = output.Model;
@@ -13743,6 +14882,258 @@ namespace Microsoft.ML
             internal override string ComponentName => "AutoMlState";
         }
 
+        public abstract class BoosterParameterFunction : ComponentKind {}
+
+
+
+        /// <summary>
+        /// Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866
+        /// </summary>
+        public sealed class DartBoosterParameterFunction : BoosterParameterFunction
+        {
+            /// <summary>
+            /// Drop ratio for trees. Range:(0,1).
+            /// </summary>
+            [TlcModule.Range(Inf = 0d, Max = 1d)]
+            public double DropRate { get; set; } = 0.1d;
+
+            /// <summary>
+            /// Max number of dropped tree in a boosting round.
+            /// </summary>
+            [TlcModule.Range(Inf = 0, Max = 2147483647)]
+            public int MaxDrop { get; set; } = 1;
+
+            /// <summary>
+            /// Probability for not perform dropping in a boosting round.
+            /// </summary>
+            [TlcModule.Range(Inf = 0d, Max = 1d)]
+            public double SkipDrop { get; set; } = 0.5d;
+
+            /// <summary>
+            /// True will enable xgboost dart mode.
+            /// </summary>
+            public bool XgboostDartMode { get; set; } = false;
+
+            /// <summary>
+            /// True will enable uniform drop.
+            /// </summary>
+            public bool UniformDrop { get; set; } = false;
+
+            /// <summary>
+            /// Use for binary classification when classes are not balanced.
+            /// </summary>
+            public bool UnbalancedSets { get; set; } = false;
+
+            /// <summary>
+            /// Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            public double MinSplitGain { get; set; }
+
+            /// <summary>
+            /// Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.
+            /// </summary>
+            [TlcModule.Range(Min = 0, Max = 2147483647)]
+            public int MaxDepth { get; set; }
+
+            /// <summary>
+            /// Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            public double MinChildWeight { get; set; } = 0.1d;
+
+            /// <summary>
+            /// Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.
+            /// </summary>
+            [TlcModule.Range(Min = 0, Max = 2147483647)]
+            public int SubsampleFreq { get; set; }
+
+            /// <summary>
+            /// Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].
+            /// </summary>
+            [TlcModule.Range(Inf = 0d, Max = 1d)]
+            public double Subsample { get; set; } = 1d;
+
+            /// <summary>
+            /// Subsample ratio of columns when constructing each tree. Range: (0,1].
+            /// </summary>
+            [TlcModule.Range(Inf = 0d, Max = 1d)]
+            public double FeatureFraction { get; set; } = 1d;
+
+            /// <summary>
+            /// L2 regularization term on weights, increasing this value will make model more conservative.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
+            public double RegLambda { get; set; } = 0.01d;
+
+            /// <summary>
+            /// L1 regularization term on weights, increase this value will make model more conservative.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
+            public double RegAlpha { get; set; }
+
+            /// <summary>
+            /// Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).
+            /// </summary>
+            public double ScalePosWeight { get; set; } = 1d;
+
+            internal override string ComponentName => "dart";
+        }
+
+
+
+        /// <summary>
+        /// Traditional Gradient Boosting Decision Tree.
+        /// </summary>
+        public sealed class GbdtBoosterParameterFunction : BoosterParameterFunction
+        {
+            /// <summary>
+            /// Use for binary classification when classes are not balanced.
+            /// </summary>
+            public bool UnbalancedSets { get; set; } = false;
+
+            /// <summary>
+            /// Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            public double MinSplitGain { get; set; }
+
+            /// <summary>
+            /// Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.
+            /// </summary>
+            [TlcModule.Range(Min = 0, Max = 2147483647)]
+            public int MaxDepth { get; set; }
+
+            /// <summary>
+            /// Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            public double MinChildWeight { get; set; } = 0.1d;
+
+            /// <summary>
+            /// Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.
+            /// </summary>
+            [TlcModule.Range(Min = 0, Max = 2147483647)]
+            public int SubsampleFreq { get; set; }
+
+            /// <summary>
+            /// Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].
+            /// </summary>
+            [TlcModule.Range(Inf = 0d, Max = 1d)]
+            public double Subsample { get; set; } = 1d;
+
+            /// <summary>
+            /// Subsample ratio of columns when constructing each tree. Range: (0,1].
+            /// </summary>
+            [TlcModule.Range(Inf = 0d, Max = 1d)]
+            public double FeatureFraction { get; set; } = 1d;
+
+            /// <summary>
+            /// L2 regularization term on weights, increasing this value will make model more conservative.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
+            public double RegLambda { get; set; } = 0.01d;
+
+            /// <summary>
+            /// L1 regularization term on weights, increase this value will make model more conservative.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
+            public double RegAlpha { get; set; }
+
+            /// <summary>
+            /// Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).
+            /// </summary>
+            public double ScalePosWeight { get; set; } = 1d;
+
+            internal override string ComponentName => "gbdt";
+        }
+
+
+
+        /// <summary>
+        /// Gradient-based One-Side Sampling.
+        /// </summary>
+        public sealed class GossBoosterParameterFunction : BoosterParameterFunction
+        {
+            /// <summary>
+            /// Retain ratio for large gradient instances.
+            /// </summary>
+            [TlcModule.Range(Inf = 0d, Max = 1d)]
+            public double TopRate { get; set; } = 0.2d;
+
+            /// <summary>
+            /// Retain ratio for small gradient instances.
+            /// </summary>
+            [TlcModule.Range(Inf = 0d, Max = 1d)]
+            public double OtherRate { get; set; } = 0.1d;
+
+            /// <summary>
+            /// Use for binary classification when classes are not balanced.
+            /// </summary>
+            public bool UnbalancedSets { get; set; } = false;
+
+            /// <summary>
+            /// Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            public double MinSplitGain { get; set; }
+
+            /// <summary>
+            /// Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.
+            /// </summary>
+            [TlcModule.Range(Min = 0, Max = 2147483647)]
+            public int MaxDepth { get; set; }
+
+            /// <summary>
+            /// Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            public double MinChildWeight { get; set; } = 0.1d;
+
+            /// <summary>
+            /// Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.
+            /// </summary>
+            [TlcModule.Range(Min = 0, Max = 2147483647)]
+            public int SubsampleFreq { get; set; }
+
+            /// <summary>
+            /// Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].
+            /// </summary>
+            [TlcModule.Range(Inf = 0d, Max = 1d)]
+            public double Subsample { get; set; } = 1d;
+
+            /// <summary>
+            /// Subsample ratio of columns when constructing each tree. Range: (0,1].
+            /// </summary>
+            [TlcModule.Range(Inf = 0d, Max = 1d)]
+            public double FeatureFraction { get; set; } = 1d;
+
+            /// <summary>
+            /// L2 regularization term on weights, increasing this value will make model more conservative.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
+            public double RegLambda { get; set; } = 0.01d;
+
+            /// <summary>
+            /// L1 regularization term on weights, increase this value will make model more conservative.
+            /// </summary>
+            [TlcModule.Range(Min = 0d)]
+            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
+            public double RegAlpha { get; set; }
+
+            /// <summary>
+            /// Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).
+            /// </summary>
+            public double ScalePosWeight { get; set; } = 1d;
+
+            internal override string ComponentName => "goss";
+        }
+
         public abstract class CalibratorTrainer : ComponentKind {}
 
 
@@ -15461,6 +16852,18 @@ namespace Microsoft.ML
             public bool AllLengths { get; set; } = true;
 
             internal override string ComponentName => "NGramHash";
+        }
+
+        public abstract class ParallelLightGBM : ComponentKind {}
+
+
+
+        /// <summary>
+        /// Single node machine learning process.
+        /// </summary>
+        public sealed class SingleParallelLightGBM : ParallelLightGBM
+        {
+            internal override string ComponentName => "Single";
         }
 
         public abstract class ParallelTraining : ComponentKind {}
