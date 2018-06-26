@@ -1,0 +1,106 @@
+maml.exe CV tr=FastRankRanking{t=1} strat=Strat threads=- norm=Warn prexf=rangefilter{col=Label min=20 max=25} prexf=term{col=Strat:Label} dout=%Output% loader=text{col=Features:R4:10-14 col=Label:R4:9 col=GroupId:TX:1} data=%Data% out=%Output% xf=term{col=Label} xf=hash{col=GroupId}
+  Bad value at line 9 in column Label
+Processed 501 rows with 1 bad values and 0 format errors
+  Bad value at line 9 in column Label
+Processed 501 rows with 1 bad values and 0 format errors
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+  Bad value at line 9 in column Features at slot 0
+  Bad value at line 9 in column Features at slot 1
+  Bad value at line 9 in column Features at slot 2
+  Bad value at line 9 in column Features at slot 3
+  Bad value at line 9 in column Features at slot 4
+  Bad value at line 9 in column Label
+Processed 501 rows with 6 bad values and 0 format errors
+Processed 40 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 10764 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+  Bad value at line 9 in column Features at slot 0
+  Bad value at line 9 in column Features at slot 1
+  Bad value at line 9 in column Features at slot 2
+  Bad value at line 9 in column Features at slot 3
+  Bad value at line 9 in column Features at slot 4
+  Bad value at line 9 in column Label
+Processed 501 rows with 6 bad values and 0 format errors
+  Bad value at line 9 in column Label
+Processed 501 rows with 1 bad values and 0 format errors
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+  Bad value at line 9 in column Features at slot 0
+  Bad value at line 9 in column Features at slot 1
+  Bad value at line 9 in column Features at slot 2
+  Bad value at line 9 in column Features at slot 3
+  Bad value at line 9 in column Features at slot 4
+  Bad value at line 9 in column Label
+Processed 501 rows with 6 bad values and 0 format errors
+Processed 32 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 6396 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+  Bad value at line 9 in column Features at slot 0
+  Bad value at line 9 in column Features at slot 1
+  Bad value at line 9 in column Features at slot 2
+  Bad value at line 9 in column Features at slot 3
+  Bad value at line 9 in column Features at slot 4
+  Bad value at line 9 in column Label
+Processed 501 rows with 6 bad values and 0 format errors
+NDCG@1:             0.000000
+NDCG@2:             0.000000
+NDCG@3:             0.000000
+DCG@1:              0.000000
+DCG@2:              0.000000
+DCG@3:              0.000000
+NDCG@1:             0.000000
+NDCG@2:             0.000000
+NDCG@3:             0.000000
+DCG@1:              0.000000
+DCG@2:              0.000000
+DCG@3:              0.000000
+
+OVERALL RESULTS
+---------------------------------------
+NDCG@1:             0.000000 (0.0000)
+NDCG@2:             0.000000 (0.0000)
+NDCG@3:             0.000000 (0.0000)
+DCG@1:              0.000000 (0.0000)
+DCG@2:              0.000000 (0.0000)
+DCG@3:              0.000000 (0.0000)
+
+---------------------------------------
+  Bad value at line 9 in column Features at slot 0
+  Bad value at line 9 in column Features at slot 1
+  Bad value at line 9 in column Features at slot 2
+  Bad value at line 9 in column Features at slot 3
+  Bad value at line 9 in column Features at slot 4
+  Bad value at line 9 in column Label
+Processed 501 rows with 6 bad values and 0 format errors
+  Bad value at line 9 in column Features at slot 0
+  Bad value at line 9 in column Features at slot 1
+  Bad value at line 9 in column Features at slot 2
+  Bad value at line 9 in column Features at slot 3
+  Bad value at line 9 in column Features at slot 4
+  Bad value at line 9 in column Label
+Processed 501 rows with 6 bad values and 0 format errors
+  Bad value at line 9 in column Features at slot 0
+  Bad value at line 9 in column Features at slot 1
+  Bad value at line 9 in column Features at slot 2
+  Bad value at line 9 in column Features at slot 3
+  Bad value at line 9 in column Features at slot 4
+  Bad value at line 9 in column Label
+Processed 501 rows with 6 bad values and 0 format errors
+  Bad value at line 9 in column Features at slot 0
+  Bad value at line 9 in column Features at slot 1
+  Bad value at line 9 in column Features at slot 2
+  Bad value at line 9 in column Features at slot 3
+  Bad value at line 9 in column Features at slot 4
+  Bad value at line 9 in column Label
+Processed 501 rows with 6 bad values and 0 format errors
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
