@@ -1686,13 +1686,13 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointEvaluateRegression()
         {
-            var dataPath = GetDataPath(TestDatasets.winequality.trainFilename);
+            var dataPath = GetDataPath(TestDatasets.winequalitymacro.trainFilename);
             var warningsPath = DeleteOutputPath("warnings.idv");
             var overallMetricsPath = DeleteOutputPath("overall.idv");
             var instanceMetricsPath = DeleteOutputPath("instance.idv");
 
             RunTrainScoreEvaluate("Trainers.StochasticDualCoordinateAscentRegressor", "Models.RegressionEvaluator",
-                dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, loader: TestDatasets.winequality.loaderSettings);
+                dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, loader: TestDatasets.winequalitymacro.loaderSettings);
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), warningsPath))
                 Assert.Equal(0, CountRows(loader));
@@ -1719,7 +1719,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact()]
         public void EntryPointSDCARegression()
         {
-            TestEntryPointRoutine(TestDatasets.winequality.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.winequality.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.winequalitymacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.winequalitymacro.loaderSettings);
         }
 
         [Fact]
@@ -1844,7 +1844,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointPoissonRegression()
         {
-            TestEntryPointRoutine(TestDatasets.winequality.trainFilename, "Trainers.PoissonRegressor", loader: TestDatasets.winequality.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.winequalitymacro.trainFilename, "Trainers.PoissonRegressor", loader: TestDatasets.winequalitymacro.loaderSettings);
         }
 
         [Fact]
