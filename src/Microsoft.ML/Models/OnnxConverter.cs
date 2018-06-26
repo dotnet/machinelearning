@@ -13,18 +13,18 @@ namespace Microsoft.ML.Models
         ///
         /// This API converts the model to ONNX format by inspecting the transform pipeline 
         /// from the end, checking for components that know how to save themselves as ONNX. 
-        /// The first data view in the transform pipeline that does not know how to save itself 
+        /// The first item in the transform pipeline that does not know how to save itself 
         /// as ONNX, is considered the "input" to the ONNX pipeline. (Ideally this would be the 
         /// original loader itself, but this may not be possible if the user used unsavable 
         /// transforms in defining the pipe.) All the columns in the source that are a type the 
-        /// ONNX knows what to deal with will be tracked. Intermediate transformations of the 
+        /// ONNX knows how to deal with will be tracked. Intermediate transformations of the 
         /// data appearing as new columns will appear in the output block of the ONNX, with names 
         /// derived from the corresponding column names. The ONNX json will be serialized to a 
         /// path defined through the Json option.
         ///
         /// This API supports the following arguments:
-        /// <see cref="Onnx"/> indicates the file to write the ONNX protocol buffer file to.
-        /// <see cref="Json"/> indicates the file to write the JSON representation of the ONNX model.
+        /// <see cref="Onnx"/> indicates the file to write the ONNX protocol buffer file to. This is optional.
+        /// <see cref="Json"/> indicates the file to write the JSON representation of the ONNX model. This is optional.
         /// <see cref="Name"/> indicates the name property in the ONNX model. If left unspecified, it will 
         /// be the extension-less name of the file specified in the onnx indicates the protocol buffer file
         /// to write the ONNX representation to.
