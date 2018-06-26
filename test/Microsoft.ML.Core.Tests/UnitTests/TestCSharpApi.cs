@@ -875,7 +875,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Assert.True(b);
                     double acc = 0;
                     getter(ref acc);
-                    Assert.Equal(0.96, acc, 2);
+                    Assert.Equal(0.94, acc, 2);
                     b = cursor.MoveNext();
                     Assert.False(b);
                 }
@@ -934,7 +934,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Assert.True(b);
                     double acc = 0;
                     getter(ref acc);
-                    Assert.Equal(0.71, acc, 2);
+                    Assert.Equal(0.76, acc, 2);
                     b = cursor.MoveNext();
                     Assert.False(b);
                 }
