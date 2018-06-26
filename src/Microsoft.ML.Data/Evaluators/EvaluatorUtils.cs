@@ -607,6 +607,7 @@ namespace Microsoft.ML.Runtime.Data
             // Create mappings from the original key types to the reconciled key type.
             var indices = new int[dvCount];
             var keyNames = new Dictionary<DvText, int>();
+            // We use MarshalInvoke so that we can call MapKeys with the correct generic: keyValueType.RawType.
             var keyValueMappers = Utils.MarshalInvoke(MapKeys<int>, keyValueType.RawType, views.Select(view => view.Schema).ToArray(), columnName, false, indices, keyNames);
             var keyType = new KeyType(DataKind.U4, 0, keyNames.Count);
             var keyNamesVBuffer = new VBuffer<DvText>(keyNames.Count, keyNames.Keys.ToArray());

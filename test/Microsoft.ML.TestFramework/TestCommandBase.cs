@@ -813,6 +813,22 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        [Fact]
+        public void CommandCrossValidationKeyLabelWithFloatKeyValues()
+        {
+            string pathData = GetDataPath(@"Train-Tiny-28x28.txt");
+            var summaryFile = CreateOutputPath("summary.txt");
+            var prFile = CreateOutputPath("pr.txt");
+            var metricsFile = MetricsPath();
+            // Use a custom name for the label and features to ensure that they are communicated to the scorer and evaluator.
+            const string extraArgs = "tr=mlr{t-} threads- norm=Warn";
+            // Need a transform that produces the label and features column to ensure that the columns are resolved appropriately.
+            const string loaderArgs = "loader=text{header+ col=Label:0 col=Features:1-*}";
+            TestCore("cv", pathData, loaderArgs, extraArgs);
+            //TestCore("cv", pathData, loaderArgs, extraArgs, summaryFile.Arg("sf"), prFile.Arg("eval", "pr"), metricsFile.Arg("dout"));
+            Done();
+        }
+
         [TestCategory(Cat)]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandCrossValidationVectorNoNames()
