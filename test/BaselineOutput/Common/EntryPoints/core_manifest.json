@@ -655,57 +655,6 @@
       ]
     },
     {
-      "Name": "Models.AnomalyPipelineEnsemble",
-      "Desc": "Combine anomaly detection models into an ensemble",
-      "FriendlyName": null,
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "Models",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "PredictorModel"
-          },
-          "Desc": "The models to combine into an ensemble",
-          "Aliases": [
-            "models"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "ModelCombiner",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Median",
-              "Average"
-            ]
-          },
-          "Desc": "The combiner used to combine the scores",
-          "Aliases": [
-            "combiner"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Average"
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "OutputKind": [
-        "IAnomalyDetectionOutput",
-        "ITrainerOutput"
-      ]
-    },
-    {
       "Name": "Models.BinaryClassificationEvaluator",
       "Desc": "Evaluates a binary classification scored dataset.",
       "FriendlyName": null,
@@ -1016,122 +965,6 @@
           },
           "Desc": "Confusion matrix dataset"
         }
-      ]
-    },
-    {
-      "Name": "Models.BinaryEnsemble",
-      "Desc": "Combine binary classifiers into an ensemble",
-      "FriendlyName": "Parallel Ensemble (bagging, stacking, etc)",
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "Models",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "PredictorModel"
-          },
-          "Desc": "The models to combine into an ensemble",
-          "Aliases": [
-            "models"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "ModelCombiner",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Median",
-              "Average",
-              "Vote"
-            ]
-          },
-          "Desc": "The combiner used to combine the scores",
-          "Aliases": [
-            "combiner"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Median"
-        },
-        {
-          "Name": "ValidatePipelines",
-          "Type": "Bool",
-          "Desc": "Whether to validate that all the pipelines are identical",
-          "Aliases": [
-            "validate"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": true
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "OutputKind": [
-        "IBinaryClassificationOutput",
-        "ITrainerOutput"
-      ]
-    },
-    {
-      "Name": "Models.BinaryPipelineEnsemble",
-      "Desc": "Combine binary classification models into an ensemble",
-      "FriendlyName": null,
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "Models",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "PredictorModel"
-          },
-          "Desc": "The models to combine into an ensemble",
-          "Aliases": [
-            "models"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "ModelCombiner",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Median",
-              "Average",
-              "Vote"
-            ]
-          },
-          "Desc": "The combiner used to combine the scores",
-          "Aliases": [
-            "combiner"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Median"
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "OutputKind": [
-        "IBinaryClassificationOutput",
-        "ITrainerOutput"
       ]
     },
     {
@@ -1862,43 +1695,6 @@
       ]
     },
     {
-      "Name": "Models.EnsembleSummary",
-      "Desc": "Summarize a pipeline ensemble predictor.",
-      "FriendlyName": null,
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The predictor to summarize",
-          "Aliases": [
-            "predictorModel"
-          ],
-          "Required": true,
-          "SortOrder": 150.0,
-          "IsNullable": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "Summaries",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
-          "Desc": "The summaries of the individual predictors"
-        },
-        {
-          "Name": "Stats",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
-          "Desc": "The model statistics of the individual predictors"
-        }
-      ]
-    },
-    {
       "Name": "Models.FixedPlattCalibrator",
       "Desc": "Apply a Platt calibrator with a fixed slope and offset to an input model",
       "FriendlyName": "Fixed Sigmoid Calibration",
@@ -1977,58 +1773,6 @@
       ],
       "OutputKind": [
         "ICalibratorOutput",
-        "ITrainerOutput"
-      ]
-    },
-    {
-      "Name": "Models.MultiClassPipelineEnsemble",
-      "Desc": "Combine multiclass classifiers into an ensemble",
-      "FriendlyName": null,
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "Models",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "PredictorModel"
-          },
-          "Desc": "The models to combine into an ensemble",
-          "Aliases": [
-            "models"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "ModelCombiner",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Median",
-              "Average",
-              "Vote"
-            ]
-          },
-          "Desc": "The combiner used to combine the scores",
-          "Aliases": [
-            "combiner"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Median"
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "OutputKind": [
-        "IMulticlassClassificationOutput",
         "ITrainerOutput"
       ]
     },
@@ -3079,69 +2823,6 @@
       ]
     },
     {
-      "Name": "Models.RegressionEnsemble",
-      "Desc": "Combine regression models into an ensemble",
-      "FriendlyName": "Regression Ensemble (bagging, stacking, etc)",
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "Models",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "PredictorModel"
-          },
-          "Desc": "The models to combine into an ensemble",
-          "Aliases": [
-            "models"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "ModelCombiner",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Median",
-              "Average"
-            ]
-          },
-          "Desc": "The combiner used to combine the scores",
-          "Aliases": [
-            "combiner"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Median"
-        },
-        {
-          "Name": "ValidatePipelines",
-          "Type": "Bool",
-          "Desc": "Whether to validate that all the pipelines are identical",
-          "Aliases": [
-            "validate"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": true
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "OutputKind": [
-        "IRegressionOutput",
-        "ITrainerOutput"
-      ]
-    },
-    {
       "Name": "Models.RegressionEvaluator",
       "Desc": "Evaluates a regression scored dataset.",
       "FriendlyName": null,
@@ -3261,57 +2942,6 @@
       ],
       "OutputKind": [
         "IEvaluatorOutput"
-      ]
-    },
-    {
-      "Name": "Models.RegressionPipelineEnsemble",
-      "Desc": "Combine regression models into an ensemble",
-      "FriendlyName": null,
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "Models",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "PredictorModel"
-          },
-          "Desc": "The models to combine into an ensemble",
-          "Aliases": [
-            "models"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "ModelCombiner",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Median",
-              "Average"
-            ]
-          },
-          "Desc": "The combiner used to combine the scores",
-          "Aliases": [
-            "combiner"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Median"
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "OutputKind": [
-        "IRegressionOutput",
-        "ITrainerOutput"
       ]
     },
     {
@@ -4061,612 +3691,6 @@
       ],
       "OutputKind": [
         "IBinaryClassificationOutput",
-        "ITrainerOutput"
-      ]
-    },
-    {
-      "Name": "Trainers.EnsembleBinaryClassifier",
-      "Desc": "Train binary ensemble.",
-      "FriendlyName": "Parallel Ensemble (bagging, stacking, etc)",
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "TrainingData",
-          "Type": "DataView",
-          "Desc": "The data to be used for training",
-          "Aliases": [
-            "data"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "SamplingType",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleSubsetSelector"
-          },
-          "Desc": "Sampling Type",
-          "Aliases": [
-            "st"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "BootstrapSelector",
-            "Settings": {
-              "FeatureSelector": {
-                "Name": "AllFeatureSelector"
-              }
-            }
-          }
-        },
-        {
-          "Name": "FeatureColumn",
-          "Type": "String",
-          "Desc": "Column to use for features",
-          "Aliases": [
-            "feat"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Features"
-        },
-        {
-          "Name": "NumModels",
-          "Type": "Int",
-          "Desc": "Number of models per batch. If not specified, will default to 50 if there is only one base predictor, or the number of base predictors otherwise.",
-          "Aliases": [
-            "nm"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": true,
-          "Default": null
-        },
-        {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "Column to use for labels",
-          "Aliases": [
-            "lab"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
-          "Name": "SubModelSelectorType",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleBinarySubModelSelector"
-          },
-          "Desc": "Algorithm to prune the base learners for selective Ensemble",
-          "Aliases": [
-            "pt"
-          ],
-          "Required": false,
-          "SortOrder": 4.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "AllSelector"
-          }
-        },
-        {
-          "Name": "OutputCombiner",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleBinaryOutputCombiner"
-          },
-          "Desc": "Output combiner",
-          "Aliases": [
-            "oc"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "Median"
-          }
-        },
-        {
-          "Name": "NormalizeFeatures",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "No",
-              "Warn",
-              "Auto",
-              "Yes"
-            ]
-          },
-          "Desc": "Normalize option for the feature column",
-          "Aliases": [
-            "norm"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "Caching",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Auto",
-              "Memory",
-              "Disk",
-              "None"
-            ]
-          },
-          "Desc": "Whether learner should cache input training data",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "TrainParallel",
-          "Type": "Bool",
-          "Desc": "All the base learners will run asynchronously if the value is true",
-          "Aliases": [
-            "tp"
-          ],
-          "Required": false,
-          "SortOrder": 106.0,
-          "IsNullable": false,
-          "Default": false
-        },
-        {
-          "Name": "BatchSize",
-          "Type": "Int",
-          "Desc": "Batch size",
-          "Aliases": [
-            "bs"
-          ],
-          "Required": false,
-          "SortOrder": 107.0,
-          "IsNullable": false,
-          "Default": -1
-        },
-        {
-          "Name": "ShowMetrics",
-          "Type": "Bool",
-          "Desc": "True, if metrics for each model need to be evaluated and shown in comparison table. This is done by using validation set if available or the training set",
-          "Aliases": [
-            "sm"
-          ],
-          "Required": false,
-          "SortOrder": 108.0,
-          "IsNullable": false,
-          "Default": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "InputKind": [
-        "ITrainerInputWithLabel",
-        "ITrainerInput"
-      ],
-      "OutputKind": [
-        "IBinaryClassificationOutput",
-        "ITrainerOutput"
-      ]
-    },
-    {
-      "Name": "Trainers.EnsembleClassification",
-      "Desc": "Train multiclass ensemble.",
-      "FriendlyName": "Parallel Ensemble (bagging, stacking, etc)",
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "TrainingData",
-          "Type": "DataView",
-          "Desc": "The data to be used for training",
-          "Aliases": [
-            "data"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "SamplingType",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleSubsetSelector"
-          },
-          "Desc": "Sampling Type",
-          "Aliases": [
-            "st"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "BootstrapSelector",
-            "Settings": {
-              "FeatureSelector": {
-                "Name": "AllFeatureSelector"
-              }
-            }
-          }
-        },
-        {
-          "Name": "FeatureColumn",
-          "Type": "String",
-          "Desc": "Column to use for features",
-          "Aliases": [
-            "feat"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Features"
-        },
-        {
-          "Name": "NumModels",
-          "Type": "Int",
-          "Desc": "Number of models per batch. If not specified, will default to 50 if there is only one base predictor, or the number of base predictors otherwise.",
-          "Aliases": [
-            "nm"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": true,
-          "Default": null
-        },
-        {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "Column to use for labels",
-          "Aliases": [
-            "lab"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
-          "Name": "SubModelSelectorType",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleMulticlassSubModelSelector"
-          },
-          "Desc": "Algorithm to prune the base learners for selective Ensemble",
-          "Aliases": [
-            "pt"
-          ],
-          "Required": false,
-          "SortOrder": 4.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "AllSelectorMultiClass"
-          }
-        },
-        {
-          "Name": "OutputCombiner",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleMulticlassOutputCombiner"
-          },
-          "Desc": "Output combiner",
-          "Aliases": [
-            "oc"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "MultiMedian"
-          }
-        },
-        {
-          "Name": "NormalizeFeatures",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "No",
-              "Warn",
-              "Auto",
-              "Yes"
-            ]
-          },
-          "Desc": "Normalize option for the feature column",
-          "Aliases": [
-            "norm"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "Caching",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Auto",
-              "Memory",
-              "Disk",
-              "None"
-            ]
-          },
-          "Desc": "Whether learner should cache input training data",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "TrainParallel",
-          "Type": "Bool",
-          "Desc": "All the base learners will run asynchronously if the value is true",
-          "Aliases": [
-            "tp"
-          ],
-          "Required": false,
-          "SortOrder": 106.0,
-          "IsNullable": false,
-          "Default": false
-        },
-        {
-          "Name": "BatchSize",
-          "Type": "Int",
-          "Desc": "Batch size",
-          "Aliases": [
-            "bs"
-          ],
-          "Required": false,
-          "SortOrder": 107.0,
-          "IsNullable": false,
-          "Default": -1
-        },
-        {
-          "Name": "ShowMetrics",
-          "Type": "Bool",
-          "Desc": "True, if metrics for each model need to be evaluated and shown in comparison table. This is done by using validation set if available or the training set",
-          "Aliases": [
-            "sm"
-          ],
-          "Required": false,
-          "SortOrder": 108.0,
-          "IsNullable": false,
-          "Default": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "InputKind": [
-        "ITrainerInputWithLabel",
-        "ITrainerInput"
-      ],
-      "OutputKind": [
-        "IMulticlassClassificationOutput",
-        "ITrainerOutput"
-      ]
-    },
-    {
-      "Name": "Trainers.EnsembleRegression",
-      "Desc": "Train regression ensemble.",
-      "FriendlyName": "Parallel Ensemble (bagging, stacking, etc)",
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "TrainingData",
-          "Type": "DataView",
-          "Desc": "The data to be used for training",
-          "Aliases": [
-            "data"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "SamplingType",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleSubsetSelector"
-          },
-          "Desc": "Sampling Type",
-          "Aliases": [
-            "st"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "BootstrapSelector",
-            "Settings": {
-              "FeatureSelector": {
-                "Name": "AllFeatureSelector"
-              }
-            }
-          }
-        },
-        {
-          "Name": "FeatureColumn",
-          "Type": "String",
-          "Desc": "Column to use for features",
-          "Aliases": [
-            "feat"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Features"
-        },
-        {
-          "Name": "NumModels",
-          "Type": "Int",
-          "Desc": "Number of models per batch. If not specified, will default to 50 if there is only one base predictor, or the number of base predictors otherwise.",
-          "Aliases": [
-            "nm"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": true,
-          "Default": null
-        },
-        {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "Column to use for labels",
-          "Aliases": [
-            "lab"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
-          "Name": "SubModelSelectorType",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleRegressionSubModelSelector"
-          },
-          "Desc": "Algorithm to prune the base learners for selective Ensemble",
-          "Aliases": [
-            "pt"
-          ],
-          "Required": false,
-          "SortOrder": 4.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "AllSelector"
-          }
-        },
-        {
-          "Name": "OutputCombiner",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleRegressionOutputCombiner"
-          },
-          "Desc": "Output combiner",
-          "Aliases": [
-            "oc"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "Median"
-          }
-        },
-        {
-          "Name": "NormalizeFeatures",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "No",
-              "Warn",
-              "Auto",
-              "Yes"
-            ]
-          },
-          "Desc": "Normalize option for the feature column",
-          "Aliases": [
-            "norm"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "Caching",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Auto",
-              "Memory",
-              "Disk",
-              "None"
-            ]
-          },
-          "Desc": "Whether learner should cache input training data",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "TrainParallel",
-          "Type": "Bool",
-          "Desc": "All the base learners will run asynchronously if the value is true",
-          "Aliases": [
-            "tp"
-          ],
-          "Required": false,
-          "SortOrder": 106.0,
-          "IsNullable": false,
-          "Default": false
-        },
-        {
-          "Name": "BatchSize",
-          "Type": "Int",
-          "Desc": "Batch size",
-          "Aliases": [
-            "bs"
-          ],
-          "Required": false,
-          "SortOrder": 107.0,
-          "IsNullable": false,
-          "Default": -1
-        },
-        {
-          "Name": "ShowMetrics",
-          "Type": "Bool",
-          "Desc": "True, if metrics for each model need to be evaluated and shown in comparison table. This is done by using validation set if available or the training set",
-          "Aliases": [
-            "sm"
-          ],
-          "Required": false,
-          "SortOrder": 108.0,
-          "IsNullable": false,
-          "Default": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "InputKind": [
-        "ITrainerInputWithLabel",
-        "ITrainerInput"
-      ],
-      "OutputKind": [
-        "IRegressionOutput",
         "ITrainerOutput"
       ]
     },
@@ -15808,6 +14832,388 @@
       ]
     },
     {
+      "Name": "Transforms.LightLda",
+      "Desc": "The LDA transform implements LightLDA, a state-of-the-art implementation of Latent Dirichlet Allocation.",
+      "FriendlyName": "Latent Dirichlet Allocation Transform",
+      "ShortName": "LightLda",
+      "Inputs": [
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "NumTopic",
+                  "Type": "Int",
+                  "Desc": "The number of topics in the LDA",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "AlphaSum",
+                  "Type": "Float",
+                  "Desc": "Dirichlet prior on document-topic vectors",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Beta",
+                  "Type": "Float",
+                  "Desc": "Dirichlet prior on vocab-topic vectors",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Mhstep",
+                  "Type": "Int",
+                  "Desc": "Number of Metropolis Hasting step",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "NumIterations",
+                  "Type": "Int",
+                  "Desc": "Number of iterations",
+                  "Aliases": [
+                    "iter"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "LikelihoodInterval",
+                  "Type": "Int",
+                  "Desc": "Compute log likelihood over local dataset on this iteration interval",
+                  "Aliases": [
+                    "llInterval"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "NumThreads",
+                  "Type": "Int",
+                  "Desc": "The number of training threads",
+                  "Aliases": [
+                    "t"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "NumMaxDocToken",
+                  "Type": "Int",
+                  "Desc": "The threshold of maximum count of tokens per doc",
+                  "Aliases": [
+                    "maxNumToken"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "NumSummaryTermPerTopic",
+                  "Type": "Int",
+                  "Desc": "The number of words to summarize the topic",
+                  "Aliases": [
+                    "ns"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "NumBurninIterations",
+                  "Type": "Int",
+                  "Desc": "The number of burn-in iterations",
+                  "Aliases": [
+                    "burninIter"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": 10
+                },
+                {
+                  "Name": "ResetRandomGenerator",
+                  "Type": "Bool",
+                  "Desc": "Reset the random number generator for each document",
+                  "Aliases": [
+                    "reset"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:srcs)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 49.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "NumTopic",
+          "Type": "Int",
+          "Desc": "The number of topics in the LDA",
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 100,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              20,
+              40,
+              100,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "NumMaxDocToken",
+          "Type": "Int",
+          "Desc": "The threshold of maximum count of tokens per doc",
+          "Aliases": [
+            "maxNumToken"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 512
+        },
+        {
+          "Name": "NumThreads",
+          "Type": "Int",
+          "Desc": "The number of training threads. Default value depends on number of logical processors.",
+          "Aliases": [
+            "t"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "AlphaSum",
+          "Type": "Float",
+          "Desc": "Dirichlet prior on document-topic vectors",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 100.0,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1,
+              10,
+              100,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "Beta",
+          "Type": "Float",
+          "Desc": "Dirichlet prior on vocab-topic vectors",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.01,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              0.01,
+              0.015,
+              0.07,
+              0.02
+            ]
+          }
+        },
+        {
+          "Name": "Mhstep",
+          "Type": "Int",
+          "Desc": "Number of Metropolis Hasting step",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 4,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              2,
+              4,
+              8,
+              16
+            ]
+          }
+        },
+        {
+          "Name": "NumIterations",
+          "Type": "Int",
+          "Desc": "Number of iterations",
+          "Aliases": [
+            "iter"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 200,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              100,
+              200,
+              300,
+              400
+            ]
+          }
+        },
+        {
+          "Name": "LikelihoodInterval",
+          "Type": "Int",
+          "Desc": "Compute log likelihood over local dataset on this iteration interval",
+          "Aliases": [
+            "llInterval"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 5
+        },
+        {
+          "Name": "NumSummaryTermPerTopic",
+          "Type": "Int",
+          "Desc": "The number of words to summarize the topic",
+          "Aliases": [
+            "ns"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10
+        },
+        {
+          "Name": "NumBurninIterations",
+          "Type": "Int",
+          "Desc": "The number of burn-in iterations",
+          "Aliases": [
+            "burninIter"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              10,
+              20,
+              30,
+              40
+            ]
+          }
+        },
+        {
+          "Name": "ResetRandomGenerator",
+          "Type": "Bool",
+          "Desc": "Reset the random number generator for each document",
+          "Aliases": [
+            "reset"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "OutputTopicWordSummary",
+          "Type": "Bool",
+          "Desc": "Whether to output the topic-word summary in text format",
+          "Aliases": [
+            "summary"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Transforms.LogMeanVarianceNormalizer",
       "Desc": "Normalizes the data based on the computed mean and variance of the logarithm of the data.",
       "FriendlyName": "LogMeanVar Normalizer",
@@ -19353,692 +18759,6 @@
               "Default": 5,
               "Range": {
                 "Inf": 0
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Kind": "EnsembleBinaryOutputCombiner",
-      "Components": [
-        {
-          "Name": "Average",
-          "Desc": null,
-          "FriendlyName": "Average",
-          "Settings": []
-        },
-        {
-          "Name": "Median",
-          "Desc": null,
-          "FriendlyName": "Median",
-          "Settings": []
-        },
-        {
-          "Name": "Stacking",
-          "Desc": null,
-          "FriendlyName": "Stacking",
-          "Settings": [
-            {
-              "Name": "ValidationDatasetProportion",
-              "Type": "Float",
-              "Desc": "The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set",
-              "Aliases": [
-                "vp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.3
-            }
-          ]
-        },
-        {
-          "Name": "Voting",
-          "Desc": null,
-          "FriendlyName": "Voting",
-          "Settings": []
-        },
-        {
-          "Name": "WeightedAverage",
-          "Desc": null,
-          "FriendlyName": "Stacking",
-          "Settings": [
-            {
-              "Name": "WeightageName",
-              "Type": {
-                "Kind": "Enum",
-                "Values": [
-                  "Accuracy",
-                  "Auc",
-                  "PosPrecision",
-                  "PosRecall",
-                  "NegPrecision",
-                  "NegRecall"
-                ]
-              },
-              "Desc": "The metric type to be used to find the weights for each model",
-              "Aliases": [
-                "wn"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": "Auc"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Kind": "EnsembleBinarySubModelSelector",
-      "Components": [
-        {
-          "Name": "AllSelector",
-          "Desc": null,
-          "FriendlyName": "All Selector",
-          "Settings": []
-        },
-        {
-          "Name": "BestDiverseSelector",
-          "Desc": null,
-          "FriendlyName": "Best Diverse Selector",
-          "Settings": [
-            {
-              "Name": "DiversityMetricType",
-              "Type": {
-                "Kind": "Component",
-                "ComponentKind": "EnsembleDiversityMeasure"
-              },
-              "Desc": "The metric type to be used to find the diversity among base learners",
-              "Aliases": [
-                "dm"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": null
-            },
-            {
-              "Name": "LearnersSelectionProportion",
-              "Type": "Float",
-              "Desc": "The proportion of best base learners to be selected. The range is 0.0-1.0",
-              "Aliases": [
-                "lp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.5
-            },
-            {
-              "Name": "ValidationDatasetProportion",
-              "Type": "Float",
-              "Desc": "The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set",
-              "Aliases": [
-                "vp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.3
-            }
-          ]
-        },
-        {
-          "Name": "BestPerformanceSelector",
-          "Desc": null,
-          "FriendlyName": "Best Performance Selector",
-          "Settings": [
-            {
-              "Name": "MetricName",
-              "Type": {
-                "Kind": "Enum",
-                "Values": [
-                  "Accuracy",
-                  "PosPrecName",
-                  "PosRecallName",
-                  "NegPrecName",
-                  "NegRecallName",
-                  "Auc",
-                  "LogLoss",
-                  "LogLossReduction",
-                  "F1",
-                  "AuPrc"
-                ]
-              },
-              "Desc": "The metric type to be used to find the best performance",
-              "Aliases": [
-                "mn"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": "Auc"
-            },
-            {
-              "Name": "LearnersSelectionProportion",
-              "Type": "Float",
-              "Desc": "The proportion of best base learners to be selected. The range is 0.0-1.0",
-              "Aliases": [
-                "lp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.5
-            },
-            {
-              "Name": "ValidationDatasetProportion",
-              "Type": "Float",
-              "Desc": "The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set",
-              "Aliases": [
-                "vp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.3
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Kind": "EnsembleDiversityMeasure",
-      "Components": [
-        {
-          "Name": "DisagreementDiversityMeasure",
-          "Desc": null,
-          "FriendlyName": "Disagreement Diversity Measure",
-          "Settings": []
-        },
-        {
-          "Name": "MultiDisagreementDiversityMeasure",
-          "Desc": null,
-          "FriendlyName": "Disagreement Diversity Measure",
-          "Settings": []
-        },
-        {
-          "Name": "RegressionDisagreementDiversityMeasure",
-          "Desc": null,
-          "FriendlyName": "Disagreement Diversity Measure",
-          "Settings": []
-        }
-      ]
-    },
-    {
-      "Kind": "EnsembleFeatureSelector",
-      "Components": [
-        {
-          "Name": "AllFeatureSelector",
-          "Desc": null,
-          "FriendlyName": "All Feature Selector",
-          "Settings": []
-        },
-        {
-          "Name": "RandomFeatureSelector",
-          "Desc": null,
-          "FriendlyName": "Random Feature Selector",
-          "Settings": [
-            {
-              "Name": "FeaturesSelectionProportion",
-              "Type": "Float",
-              "Desc": "The proportion of features to be selected. The range is 0.0-1.0",
-              "Aliases": [
-                "fp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.8
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Kind": "EnsembleMulticlassOutputCombiner",
-      "Components": [
-        {
-          "Name": "MultiAverage",
-          "Desc": null,
-          "FriendlyName": "Average",
-          "Settings": [
-            {
-              "Name": "Normalize",
-              "Type": "Bool",
-              "Desc": "Whether to normalize the output of base models before combining them",
-              "Aliases": [
-                "norm"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": true
-            }
-          ]
-        },
-        {
-          "Name": "MultiMedian",
-          "Desc": null,
-          "FriendlyName": "Median",
-          "Settings": [
-            {
-              "Name": "Normalize",
-              "Type": "Bool",
-              "Desc": "Whether to normalize the output of base models before combining them",
-              "Aliases": [
-                "norm"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": true
-            }
-          ]
-        },
-        {
-          "Name": "MultiStacking",
-          "Desc": null,
-          "FriendlyName": "Stacking",
-          "Settings": [
-            {
-              "Name": "ValidationDatasetProportion",
-              "Type": "Float",
-              "Desc": "The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set",
-              "Aliases": [
-                "vp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.3
-            }
-          ]
-        },
-        {
-          "Name": "MultiVoting",
-          "Desc": null,
-          "FriendlyName": "Voting",
-          "Settings": [
-            {
-              "Name": "Normalize",
-              "Type": "Bool",
-              "Desc": "Whether to normalize the output of base models before combining them",
-              "Aliases": [
-                "norm"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": true
-            }
-          ]
-        },
-        {
-          "Name": "MultiWeightedAverage",
-          "Desc": null,
-          "FriendlyName": "Multi Weighted Average",
-          "Settings": [
-            {
-              "Name": "WeightageName",
-              "Type": {
-                "Kind": "Enum",
-                "Values": [
-                  "AccuracyMicroAvg",
-                  "AccuracyMacroAvg"
-                ]
-              },
-              "Desc": "The metric type to be used to find the weights for each model",
-              "Aliases": [
-                "wn"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": "AccuracyMicroAvg"
-            },
-            {
-              "Name": "Normalize",
-              "Type": "Bool",
-              "Desc": "Whether to normalize the output of base models before combining them",
-              "Aliases": [
-                "norm"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Kind": "EnsembleMulticlassSubModelSelector",
-      "Components": [
-        {
-          "Name": "AllSelectorMultiClass",
-          "Desc": null,
-          "FriendlyName": "All Selector",
-          "Settings": []
-        },
-        {
-          "Name": "BestDiverseSelectorMultiClass",
-          "Desc": null,
-          "FriendlyName": "Best Diverse Selector",
-          "Settings": [
-            {
-              "Name": "DiversityMetricType",
-              "Type": {
-                "Kind": "Component",
-                "ComponentKind": "EnsembleDiversityMeasure"
-              },
-              "Desc": "The metric type to be used to find the diversity among base learners",
-              "Aliases": [
-                "dm"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": null
-            },
-            {
-              "Name": "LearnersSelectionProportion",
-              "Type": "Float",
-              "Desc": "The proportion of best base learners to be selected. The range is 0.0-1.0",
-              "Aliases": [
-                "lp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.5
-            },
-            {
-              "Name": "ValidationDatasetProportion",
-              "Type": "Float",
-              "Desc": "The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set",
-              "Aliases": [
-                "vp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.3
-            }
-          ]
-        },
-        {
-          "Name": "BestPerformanceSelectorMultiClass",
-          "Desc": null,
-          "FriendlyName": "Best Performance Selector",
-          "Settings": [
-            {
-              "Name": "MetricName",
-              "Type": {
-                "Kind": "Enum",
-                "Values": [
-                  "AccuracyMicro",
-                  "AccuracyMacro",
-                  "LogLoss",
-                  "LogLossReduction"
-                ]
-              },
-              "Desc": "The metric type to be used to find the best performance",
-              "Aliases": [
-                "mn"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": "AccuracyMicro"
-            },
-            {
-              "Name": "LearnersSelectionProportion",
-              "Type": "Float",
-              "Desc": "The proportion of best base learners to be selected. The range is 0.0-1.0",
-              "Aliases": [
-                "lp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.5
-            },
-            {
-              "Name": "ValidationDatasetProportion",
-              "Type": "Float",
-              "Desc": "The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set",
-              "Aliases": [
-                "vp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.3
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Kind": "EnsembleRegressionOutputCombiner",
-      "Components": [
-        {
-          "Name": "Average",
-          "Desc": null,
-          "FriendlyName": "Average",
-          "Settings": []
-        },
-        {
-          "Name": "Median",
-          "Desc": null,
-          "FriendlyName": "Median",
-          "Settings": []
-        },
-        {
-          "Name": "RegressionStacking",
-          "Desc": null,
-          "FriendlyName": "Stacking",
-          "Settings": [
-            {
-              "Name": "ValidationDatasetProportion",
-              "Type": "Float",
-              "Desc": "The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set",
-              "Aliases": [
-                "vp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.3
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Kind": "EnsembleRegressionSubModelSelector",
-      "Components": [
-        {
-          "Name": "AllSelector",
-          "Desc": null,
-          "FriendlyName": "All Selector",
-          "Settings": []
-        },
-        {
-          "Name": "BestDiverseSelectorRegression",
-          "Desc": null,
-          "FriendlyName": "Best Diverse Selector",
-          "Settings": [
-            {
-              "Name": "DiversityMetricType",
-              "Type": {
-                "Kind": "Component",
-                "ComponentKind": "EnsembleDiversityMeasure"
-              },
-              "Desc": "The metric type to be used to find the diversity among base learners",
-              "Aliases": [
-                "dm"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": null
-            },
-            {
-              "Name": "LearnersSelectionProportion",
-              "Type": "Float",
-              "Desc": "The proportion of best base learners to be selected. The range is 0.0-1.0",
-              "Aliases": [
-                "lp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.5
-            },
-            {
-              "Name": "ValidationDatasetProportion",
-              "Type": "Float",
-              "Desc": "The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set",
-              "Aliases": [
-                "vp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.3
-            }
-          ]
-        },
-        {
-          "Name": "BestPerformanceRegressionSelector",
-          "Desc": null,
-          "FriendlyName": "Best Performance Selector",
-          "Settings": [
-            {
-              "Name": "MetricName",
-              "Type": {
-                "Kind": "Enum",
-                "Values": [
-                  "L1",
-                  "L2",
-                  "Rms",
-                  "Loss",
-                  "RSquared"
-                ]
-              },
-              "Desc": "The metric type to be used to find the best performance",
-              "Aliases": [
-                "mn"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": "L1"
-            },
-            {
-              "Name": "LearnersSelectionProportion",
-              "Type": "Float",
-              "Desc": "The proportion of best base learners to be selected. The range is 0.0-1.0",
-              "Aliases": [
-                "lp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.5
-            },
-            {
-              "Name": "ValidationDatasetProportion",
-              "Type": "Float",
-              "Desc": "The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set",
-              "Aliases": [
-                "vp"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": 0.3
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Kind": "EnsembleSubsetSelector",
-      "Components": [
-        {
-          "Name": "AllInstanceSelector",
-          "Desc": null,
-          "FriendlyName": "All Instance Selector",
-          "Settings": [
-            {
-              "Name": "FeatureSelector",
-              "Type": {
-                "Kind": "Component",
-                "ComponentKind": "EnsembleFeatureSelector"
-              },
-              "Desc": "The Feature selector",
-              "Aliases": [
-                "fs"
-              ],
-              "Required": false,
-              "SortOrder": 1.0,
-              "IsNullable": false,
-              "Default": {
-                "Name": "AllFeatureSelector"
-              }
-            }
-          ]
-        },
-        {
-          "Name": "BootstrapSelector",
-          "Desc": null,
-          "FriendlyName": "Bootstrap Selector",
-          "Settings": [
-            {
-              "Name": "FeatureSelector",
-              "Type": {
-                "Kind": "Component",
-                "ComponentKind": "EnsembleFeatureSelector"
-              },
-              "Desc": "The Feature selector",
-              "Aliases": [
-                "fs"
-              ],
-              "Required": false,
-              "SortOrder": 1.0,
-              "IsNullable": false,
-              "Default": {
-                "Name": "AllFeatureSelector"
-              }
-            }
-          ]
-        },
-        {
-          "Name": "RandomPartitionSelector",
-          "Desc": null,
-          "FriendlyName": "Random Partition Selector",
-          "Settings": [
-            {
-              "Name": "FeatureSelector",
-              "Type": {
-                "Kind": "Component",
-                "ComponentKind": "EnsembleFeatureSelector"
-              },
-              "Desc": "The Feature selector",
-              "Aliases": [
-                "fs"
-              ],
-              "Required": false,
-              "SortOrder": 1.0,
-              "IsNullable": false,
-              "Default": {
-                "Name": "AllFeatureSelector"
               }
             }
           ]
