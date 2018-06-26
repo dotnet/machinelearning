@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public const string RegistrationName = "LightGBMBinaryPredictor";
         private static VersionInfo GetVersionInfo()
         {
-            // REVIEW tfinley(guoke): can we decouple the version from FastTree predictor version ?
+            // REVIEW: can we decouple the version from FastTree predictor version ?
             return new VersionInfo(
                 modelSignature: "LGBBINCL",
                 // verWrittenCur: 0x00010001, // Initial
@@ -126,7 +126,11 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// </summary>
     public static partial class LightGbm
     {
-        [TlcModule.EntryPoint(Name = "Trainers.LightGbmBinaryClassifier", Desc = "Train an LightGBM binary class model", UserName = LightGbmBinaryTrainer.Summary, ShortName = LightGbmBinaryTrainer.ShortName)]
+        [TlcModule.EntryPoint(
+            Name = "Trainers.LightGbmBinaryClassifier", 
+            Desc = "Train an LightGBM binary class model", 
+            UserName = LightGbmBinaryTrainer.Summary, 
+            ShortName = LightGbmBinaryTrainer.ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));

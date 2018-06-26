@@ -12,11 +12,11 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
 
 [assembly: LoadableClass(typeof(LightGbmArguments.TreeBooster), typeof(LightGbmArguments.TreeBooster.Arguments),
-    typeof(SignatureLightGBMBooster), "Tree Booster", "gbdt")]
+    typeof(SignatureLightGBMBooster), LightGbmArguments.TreeBooster.FriendlyName, LightGbmArguments.TreeBooster.Name)]
 [assembly: LoadableClass(typeof(LightGbmArguments.DartBooster), typeof(LightGbmArguments.DartBooster.Arguments),
-    typeof(SignatureLightGBMBooster), "Dropout Tree Booster", "dart")]
+    typeof(SignatureLightGBMBooster), LightGbmArguments.DartBooster.FriendlyName, LightGbmArguments.DartBooster.Name)]
 [assembly: LoadableClass(typeof(LightGbmArguments.GossBooster), typeof(LightGbmArguments.GossBooster.Arguments),
-    typeof(SignatureLightGBMBooster), "Gradient-based One-Size Sampling", "goss")]
+    typeof(SignatureLightGBMBooster), LightGbmArguments.GossBooster.FriendlyName, LightGbmArguments.GossBooster.Name)]
 
 [assembly: EntryPointModule(typeof(LightGbmArguments.TreeBooster.Arguments))]
 [assembly: EntryPointModule(typeof(LightGbmArguments.DartBooster.Arguments))]
@@ -84,7 +84,10 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         public sealed class TreeBooster : BoosterParameter<TreeBooster.Arguments>
         {
-            [TlcModule.Component(Name = "gbdt", FriendlyName = "Tree Booster", Desc = "Traditional Gradient Boosting Decision Tree.")]
+            public const string Name = "gbdt";
+            public const string FriendlyName = "Tree Booster";
+
+            [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Traditional Gradient Boosting Decision Tree.")]
             public class Arguments : ISupportBoosterParameterFactory
             {
                 [Argument(ArgumentType.AtMostOnce, HelpText = "Use for binary classification when classes are not balanced.", ShortName = "us")]
@@ -163,13 +166,16 @@ namespace Microsoft.ML.Runtime.LightGBM
             public override void UpdateParameters(Dictionary<string, string> res)
             {
                 base.UpdateParameters(res);
-                res["boosting_type"] = "gbdt";
+                res["boosting_type"] = Name;
             }
         }
 
         public class DartBooster : BoosterParameter<DartBooster.Arguments>
         {
-            [TlcModule.Component(Name = "dart", FriendlyName = "Dropout Tree Booster", Desc = "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866")]
+            public const string Name = "dart";
+            public const string FriendlyName = "Tree Dropout Tree Booster";
+
+            [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866")]
             public class Arguments : TreeBooster.Arguments
             {
                 [Argument(ArgumentType.AtMostOnce, HelpText = "Drop ratio for trees. Range:(0,1).")]
@@ -204,13 +210,16 @@ namespace Microsoft.ML.Runtime.LightGBM
             public override void UpdateParameters(Dictionary<string, string> res)
             {
                 base.UpdateParameters(res);
-                res["boosting_type"] = "dart";
+                res["boosting_type"] = Name;
             }
         }
 
         public class GossBooster : BoosterParameter<GossBooster.Arguments>
         {
-            [TlcModule.Component(Name = "goss", FriendlyName = "Gradient-based One-Size Sampling", Desc = "Gradient-based One-Side Sampling.")]
+            public const string Name = "goss";
+            public const string FriendlyName = "Gradient-based One-Size Sampling";
+
+            [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Gradient-based One-Side Sampling.")]
             public class Arguments : TreeBooster.Arguments
             {
                 [Argument(ArgumentType.AtMostOnce,
@@ -238,7 +247,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             public override void UpdateParameters(Dictionary<string, string> res)
             {
                 base.UpdateParameters(res);
-                res["boosting_type"] = "goss";
+                res["boosting_type"] = Name;
             }
         }
 

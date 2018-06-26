@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             int numEval = 0;
             BestIteration = -1;
             LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterGetEvalCounts(Handle, ref numEval));
-            // At most one metric in TLC.
+            // At most one metric in ML.NET.
             Contracts.Assert(numEval <= 1);
             if (numEval == 1)
                 _hasMetric = true;

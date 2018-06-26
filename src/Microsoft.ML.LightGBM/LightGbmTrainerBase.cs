@@ -352,11 +352,12 @@ namespace Microsoft.ML.Runtime.LightGBM
             lock (LightGbmShared.LockForMultiThreadingInside)
             {
                 ch.Info("LightGBM objective={0}", Options["objective"]);
-                Booster bst = WrappedLightGbmTraining.Train(ch, pch, Options, dtrain,
+                using (Booster bst = WrappedLightGbmTraining.Train(ch, pch, Options, dtrain,
                 dvalid: dvalid, numIteration: Args.NumBoostRound,
-                verboseEval: Args.VerboseEval, earlyStoppingRound: Args.EarlyStoppingRound);
-                TrainedEnsemble = bst.GetModel(catMetaData.CategoricalBoudaries);
-                bst.Dispose();
+                verboseEval: Args.VerboseEval, earlyStoppingRound: Args.EarlyStoppingRound))
+                {
+                    TrainedEnsemble = bst.GetModel(catMetaData.CategoricalBoudaries);
+                }
             }
         }
 
@@ -395,7 +396,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 hasGroup = true;
             }
             List<float> weightList = hasWeights ? new List<float>() : null;
-            List<ulong> groupsTlc = hasGroup ? new List<ulong>() : null;
+            List<ulong> cursorGroups = hasGroup ? new List<ulong>() : null;
 
             using (var cursor = factory.Create())
             {
@@ -413,7 +414,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                             weightList.Add(cursor.Weight);
                     }
                     if (hasGroup)
-                        groupsTlc.Add(cursor.Group);
+                        cursorGroups.Add(cursor.Group);
                 }
             }
             labels = labelList.ToArray();
@@ -428,7 +429,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 int lastGroup = -1;
                 for (int i = 0; i < numRow; ++i)
                 {
-                    if (i == 0 || groupsTlc[i] != groupsTlc[i - 1])
+                    if (i == 0 || cursorGroups[i] != cursorGroups[i - 1])
                     {
                         groupList.Add(1);
                         ++lastGroup;
@@ -497,7 +498,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        private void GetFeatureValueSparse(IChannel ch, FloatLabelCursor cursor, CategoricalMetaData catMetaData, IRandom rand, out int[] indices, out float[] featureValues, out int cnt)
+        private void GetFeatureValueSparse(IChannel ch, FloatLabelCursor cursor, 
+            CategoricalMetaData catMetaData, IRandom rand, out int[] indices, 
+            out float[] featureValues, out int cnt)
         {
             if (catMetaData.CategoricalBoudaries != null)
             {
