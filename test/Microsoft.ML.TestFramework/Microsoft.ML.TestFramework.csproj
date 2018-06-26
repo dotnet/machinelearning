@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
   </ItemGroup>
 </Project>

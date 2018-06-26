@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
-using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
 using Microsoft.ML.Runtime.PipelineInference;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,6 +26,11 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("EntryPoints")]
         public void TestLearn()
         {
+            //Skip this test for macOS until engineering system installs OpenMP dependency for 
+            //native LightGBM library.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return;
+
             using (var env = new TlcEnvironment())
             {
                 string pathData = GetDataPath("adult.train");
@@ -274,6 +280,11 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestRocketPipelineEngine()
         {
+            //Skip this test for macOS until engineering system installs OpenMP dependency for 
+            //native LightGBM library.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return;
+
             // Get datasets
             var pathData = GetDataPath("adult.train");
             var pathDataTest = GetDataPath("adult.test");
