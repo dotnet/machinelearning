@@ -4065,7 +4065,7 @@
       ]
     },
     {
-      "Name": "Trainers.BinaryClassifierEnsemble",
+      "Name": "Trainers.EnsembleBinaryClassifier",
       "Desc": "Train binary ensemble.",
       "FriendlyName": "Parallel Ensemble (bagging, stacking, etc)",
       "ShortName": null,
@@ -4267,7 +4267,7 @@
       ]
     },
     {
-      "Name": "Trainers.ClassificationEnsemble",
+      "Name": "Trainers.EnsembleClassification",
       "Desc": "Train multiclass ensemble.",
       "FriendlyName": "Parallel Ensemble (bagging, stacking, etc)",
       "ShortName": null,
@@ -4465,6 +4465,208 @@
       ],
       "OutputKind": [
         "IMulticlassClassificationOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
+      "Name": "Trainers.EnsembleRegression",
+      "Desc": "Train regression ensemble.",
+      "FriendlyName": "Parallel Ensemble (bagging, stacking, etc)",
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training",
+          "Aliases": [
+            "data"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "SamplingType",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "EnsembleSubsetSelector"
+          },
+          "Desc": "Sampling Type",
+          "Aliases": [
+            "st"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "BootstrapSelector",
+            "Settings": {
+              "FeatureSelector": {
+                "Name": "AllFeatureSelector"
+              }
+            }
+          }
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String",
+          "Desc": "Column to use for features",
+          "Aliases": [
+            "feat"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "NumModels",
+          "Type": "Int",
+          "Desc": "Number of models per batch. If not specified, will default to 50 if there is only one base predictor, or the number of base predictors otherwise.",
+          "Aliases": [
+            "nm"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "SubModelSelectorType",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "EnsembleRegressionSubModelSelector"
+          },
+          "Desc": "Algorithm to prune the base learners for selective Ensemble",
+          "Aliases": [
+            "pt"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "AllSelector"
+          }
+        },
+        {
+          "Name": "OutputCombiner",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "EnsembleRegressionOutputCombiner"
+          },
+          "Desc": "Output combiner",
+          "Aliases": [
+            "oc"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "Median"
+          }
+        },
+        {
+          "Name": "NormalizeFeatures",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "No",
+              "Warn",
+              "Auto",
+              "Yes"
+            ]
+          },
+          "Desc": "Normalize option for the feature column",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "Caching",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Auto",
+              "Memory",
+              "Disk",
+              "None"
+            ]
+          },
+          "Desc": "Whether learner should cache input training data",
+          "Aliases": [
+            "cache"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "TrainParallel",
+          "Type": "Bool",
+          "Desc": "All the base learners will run asynchronously if the value is true",
+          "Aliases": [
+            "tp"
+          ],
+          "Required": false,
+          "SortOrder": 106.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "BatchSize",
+          "Type": "Int",
+          "Desc": "Batch size",
+          "Aliases": [
+            "bs"
+          ],
+          "Required": false,
+          "SortOrder": 107.0,
+          "IsNullable": false,
+          "Default": -1
+        },
+        {
+          "Name": "ShowMetrics",
+          "Type": "Bool",
+          "Desc": "True, if metrics for each model need to be evaluated and shown in comparison table. This is done by using validation set if available or the training set",
+          "Aliases": [
+            "sm"
+          ],
+          "Required": false,
+          "SortOrder": 108.0,
+          "IsNullable": false,
+          "Default": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "InputKind": [
+        "ITrainerInputWithLabel",
+        "ITrainerInput"
+      ],
+      "OutputKind": [
+        "IRegressionOutput",
         "ITrainerOutput"
       ]
     },
@@ -12004,208 +12206,6 @@
       ],
       "InputKind": [
         "ITrainerInputWithWeight",
-        "ITrainerInputWithLabel",
-        "ITrainerInput"
-      ],
-      "OutputKind": [
-        "IRegressionOutput",
-        "ITrainerOutput"
-      ]
-    },
-    {
-      "Name": "Trainers.RegressionEnsemble",
-      "Desc": "Train regression ensemble.",
-      "FriendlyName": "Parallel Ensemble (bagging, stacking, etc)",
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "TrainingData",
-          "Type": "DataView",
-          "Desc": "The data to be used for training",
-          "Aliases": [
-            "data"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "SamplingType",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleSubsetSelector"
-          },
-          "Desc": "Sampling Type",
-          "Aliases": [
-            "st"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "BootstrapSelector",
-            "Settings": {
-              "FeatureSelector": {
-                "Name": "AllFeatureSelector"
-              }
-            }
-          }
-        },
-        {
-          "Name": "FeatureColumn",
-          "Type": "String",
-          "Desc": "Column to use for features",
-          "Aliases": [
-            "feat"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": "Features"
-        },
-        {
-          "Name": "NumModels",
-          "Type": "Int",
-          "Desc": "Number of models per batch. If not specified, will default to 50 if there is only one base predictor, or the number of base predictors otherwise.",
-          "Aliases": [
-            "nm"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": true,
-          "Default": null
-        },
-        {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "Column to use for labels",
-          "Aliases": [
-            "lab"
-          ],
-          "Required": false,
-          "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
-          "Name": "SubModelSelectorType",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleRegressionSubModelSelector"
-          },
-          "Desc": "Algorithm to prune the base learners for selective Ensemble",
-          "Aliases": [
-            "pt"
-          ],
-          "Required": false,
-          "SortOrder": 4.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "AllSelector"
-          }
-        },
-        {
-          "Name": "OutputCombiner",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "EnsembleRegressionOutputCombiner"
-          },
-          "Desc": "Output combiner",
-          "Aliases": [
-            "oc"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "Median"
-          }
-        },
-        {
-          "Name": "NormalizeFeatures",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "No",
-              "Warn",
-              "Auto",
-              "Yes"
-            ]
-          },
-          "Desc": "Normalize option for the feature column",
-          "Aliases": [
-            "norm"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "Caching",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "Auto",
-              "Memory",
-              "Disk",
-              "None"
-            ]
-          },
-          "Desc": "Whether learner should cache input training data",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "TrainParallel",
-          "Type": "Bool",
-          "Desc": "All the base learners will run asynchronously if the value is true",
-          "Aliases": [
-            "tp"
-          ],
-          "Required": false,
-          "SortOrder": 106.0,
-          "IsNullable": false,
-          "Default": false
-        },
-        {
-          "Name": "BatchSize",
-          "Type": "Int",
-          "Desc": "Batch size",
-          "Aliases": [
-            "bs"
-          ],
-          "Required": false,
-          "SortOrder": 107.0,
-          "IsNullable": false,
-          "Default": -1
-        },
-        {
-          "Name": "ShowMetrics",
-          "Type": "Bool",
-          "Desc": "True, if metrics for each model need to be evaluated and shown in comparison table. This is done by using validation set if available or the training set",
-          "Aliases": [
-            "sm"
-          ],
-          "Required": false,
-          "SortOrder": 108.0,
-          "IsNullable": false,
-          "Default": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        }
-      ],
-      "InputKind": [
         "ITrainerInputWithLabel",
         "ITrainerInput"
       ],

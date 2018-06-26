@@ -490,28 +490,40 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Trainers.AveragedPerceptronBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.BinaryClassifierEnsemble.Output Add(Microsoft.ML.Trainers.BinaryClassifierEnsemble input)
+            public Microsoft.ML.Trainers.EnsembleBinaryClassifier.Output Add(Microsoft.ML.Trainers.EnsembleBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.BinaryClassifierEnsemble.Output();
+                var output = new Microsoft.ML.Trainers.EnsembleBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.BinaryClassifierEnsemble input, Microsoft.ML.Trainers.BinaryClassifierEnsemble.Output output)
+            public void Add(Microsoft.ML.Trainers.EnsembleBinaryClassifier input, Microsoft.ML.Trainers.EnsembleBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.BinaryClassifierEnsemble", input, output));
+                _jsonNodes.Add(Serialize("Trainers.EnsembleBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.ClassificationEnsemble.Output Add(Microsoft.ML.Trainers.ClassificationEnsemble input)
+            public Microsoft.ML.Trainers.EnsembleClassification.Output Add(Microsoft.ML.Trainers.EnsembleClassification input)
             {
-                var output = new Microsoft.ML.Trainers.ClassificationEnsemble.Output();
+                var output = new Microsoft.ML.Trainers.EnsembleClassification.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.ClassificationEnsemble input, Microsoft.ML.Trainers.ClassificationEnsemble.Output output)
+            public void Add(Microsoft.ML.Trainers.EnsembleClassification input, Microsoft.ML.Trainers.EnsembleClassification.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.ClassificationEnsemble", input, output));
+                _jsonNodes.Add(Serialize("Trainers.EnsembleClassification", input, output));
+            }
+
+            public Microsoft.ML.Trainers.EnsembleRegression.Output Add(Microsoft.ML.Trainers.EnsembleRegression input)
+            {
+                var output = new Microsoft.ML.Trainers.EnsembleRegression.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainers.EnsembleRegression input, Microsoft.ML.Trainers.EnsembleRegression.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainers.EnsembleRegression", input, output));
             }
 
             public Microsoft.ML.Trainers.FastForestBinaryClassifier.Output Add(Microsoft.ML.Trainers.FastForestBinaryClassifier input)
@@ -704,18 +716,6 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Trainers.PoissonRegressor input, Microsoft.ML.Trainers.PoissonRegressor.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.PoissonRegressor", input, output));
-            }
-
-            public Microsoft.ML.Trainers.RegressionEnsemble.Output Add(Microsoft.ML.Trainers.RegressionEnsemble input)
-            {
-                var output = new Microsoft.ML.Trainers.RegressionEnsemble.Output();
-                Add(input, output);
-                return output;
-            }
-
-            public void Add(Microsoft.ML.Trainers.RegressionEnsemble input, Microsoft.ML.Trainers.RegressionEnsemble.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.RegressionEnsemble", input, output));
             }
 
             public Microsoft.ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output Add(Microsoft.ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier input)
@@ -4177,7 +4177,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Train binary ensemble.
         /// </summary>
-        public sealed partial class BinaryClassifierEnsemble : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class EnsembleBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
 
@@ -4261,18 +4261,18 @@ namespace Microsoft.ML
                 {
                     if (!(previousStep is ILearningPipelineDataStep dataStep))
                     {
-                        throw new InvalidOperationException($"{ nameof(BinaryClassifierEnsemble)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                        throw new InvalidOperationException($"{ nameof(EnsembleBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
                     }
 
                     TrainingData = dataStep.Data;
                 }
                 Output output = experiment.Add(this);
-                return new BinaryClassifierEnsemblePipelineStep(output);
+                return new EnsembleBinaryClassifierPipelineStep(output);
             }
 
-            private class BinaryClassifierEnsemblePipelineStep : ILearningPipelinePredictorStep
+            private class EnsembleBinaryClassifierPipelineStep : ILearningPipelinePredictorStep
             {
-                public BinaryClassifierEnsemblePipelineStep(Output output)
+                public EnsembleBinaryClassifierPipelineStep(Output output)
                 {
                     Model = output.PredictorModel;
                 }
@@ -4288,7 +4288,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Train multiclass ensemble.
         /// </summary>
-        public sealed partial class ClassificationEnsemble : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class EnsembleClassification : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
 
@@ -4372,18 +4372,129 @@ namespace Microsoft.ML
                 {
                     if (!(previousStep is ILearningPipelineDataStep dataStep))
                     {
-                        throw new InvalidOperationException($"{ nameof(ClassificationEnsemble)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                        throw new InvalidOperationException($"{ nameof(EnsembleClassification)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
                     }
 
                     TrainingData = dataStep.Data;
                 }
                 Output output = experiment.Add(this);
-                return new ClassificationEnsemblePipelineStep(output);
+                return new EnsembleClassificationPipelineStep(output);
             }
 
-            private class ClassificationEnsemblePipelineStep : ILearningPipelinePredictorStep
+            private class EnsembleClassificationPipelineStep : ILearningPipelinePredictorStep
             {
-                public ClassificationEnsemblePipelineStep(Output output)
+                public EnsembleClassificationPipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainers
+    {
+
+        /// <summary>
+        /// Train regression ensemble.
+        /// </summary>
+        public sealed partial class EnsembleRegression : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// Algorithm to prune the base learners for selective Ensemble
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleRegressionSubModelSelector SubModelSelectorType { get; set; } = new AllSelectorEnsembleRegressionSubModelSelector();
+
+            /// <summary>
+            /// Output combiner
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleRegressionOutputCombiner OutputCombiner { get; set; } = new MedianEnsembleRegressionOutputCombiner();
+
+            /// <summary>
+            /// Number of models per batch. If not specified, will default to 50 if there is only one base predictor, or the number of base predictors otherwise.
+            /// </summary>
+            public int? NumModels { get; set; }
+
+            /// <summary>
+            /// Batch size
+            /// </summary>
+            public int BatchSize { get; set; } = -1;
+
+            /// <summary>
+            /// Sampling Type
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EnsembleSubsetSelector SamplingType { get; set; } = new BootstrapSelectorEnsembleSubsetSelector();
+
+            /// <summary>
+            /// All the base learners will run asynchronously if the value is true
+            /// </summary>
+            public bool TrainParallel { get; set; } = false;
+
+            /// <summary>
+            /// True, if metrics for each model need to be evaluated and shown in comparison table. This is done by using validation set if available or the training set
+            /// </summary>
+            public bool ShowMetrics { get; set; } = false;
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(EnsembleRegression)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    TrainingData = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new EnsembleRegressionPipelineStep(output);
+            }
+
+            private class EnsembleRegressionPipelineStep : ILearningPipelinePredictorStep
+            {
+                public EnsembleRegressionPipelineStep(Output output)
                 {
                     Model = output.PredictorModel;
                 }
@@ -7880,117 +7991,6 @@ namespace Microsoft.ML
             private class PoissonRegressorPipelineStep : ILearningPipelinePredictorStep
             {
                 public PoissonRegressorPipelineStep(Output output)
-                {
-                    Model = output.PredictorModel;
-                }
-
-                public Var<IPredictorModel> Model { get; }
-            }
-        }
-    }
-
-    namespace Trainers
-    {
-
-        /// <summary>
-        /// Train regression ensemble.
-        /// </summary>
-        public sealed partial class RegressionEnsemble : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
-        {
-
-
-            /// <summary>
-            /// Algorithm to prune the base learners for selective Ensemble
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            public EnsembleRegressionSubModelSelector SubModelSelectorType { get; set; } = new AllSelectorEnsembleRegressionSubModelSelector();
-
-            /// <summary>
-            /// Output combiner
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            public EnsembleRegressionOutputCombiner OutputCombiner { get; set; } = new MedianEnsembleRegressionOutputCombiner();
-
-            /// <summary>
-            /// Number of models per batch. If not specified, will default to 50 if there is only one base predictor, or the number of base predictors otherwise.
-            /// </summary>
-            public int? NumModels { get; set; }
-
-            /// <summary>
-            /// Batch size
-            /// </summary>
-            public int BatchSize { get; set; } = -1;
-
-            /// <summary>
-            /// Sampling Type
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            public EnsembleSubsetSelector SamplingType { get; set; } = new BootstrapSelectorEnsembleSubsetSelector();
-
-            /// <summary>
-            /// All the base learners will run asynchronously if the value is true
-            /// </summary>
-            public bool TrainParallel { get; set; } = false;
-
-            /// <summary>
-            /// True, if metrics for each model need to be evaluated and shown in comparison table. This is done by using validation set if available or the training set
-            /// </summary>
-            public bool ShowMetrics { get; set; } = false;
-
-            /// <summary>
-            /// Column to use for labels
-            /// </summary>
-            public string LabelColumn { get; set; } = "Label";
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// Column to use for features
-            /// </summary>
-            public string FeatureColumn { get; set; } = "Features";
-
-            /// <summary>
-            /// Normalize option for the feature column
-            /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
-
-            /// <summary>
-            /// Whether learner should cache input training data
-            /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
-
-
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
-            {
-                /// <summary>
-                /// The trained model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
-
-            }
-            public Var<IDataView> GetInputData() => TrainingData;
-            
-            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
-            {
-                if (previousStep != null)
-                {
-                    if (!(previousStep is ILearningPipelineDataStep dataStep))
-                    {
-                        throw new InvalidOperationException($"{ nameof(RegressionEnsemble)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                    }
-
-                    TrainingData = dataStep.Data;
-                }
-                Output output = experiment.Add(this);
-                return new RegressionEnsemblePipelineStep(output);
-            }
-
-            private class RegressionEnsemblePipelineStep : ILearningPipelinePredictorStep
-            {
-                public RegressionEnsemblePipelineStep(Output output)
                 {
                     Model = output.PredictorModel;
                 }
