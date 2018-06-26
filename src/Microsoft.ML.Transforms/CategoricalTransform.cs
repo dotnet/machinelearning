@@ -38,15 +38,27 @@ namespace Microsoft.ML.Runtime.Data
     {
         public enum OutputKind : byte
         {
+            /// <summary>
+            /// Output is a bag (multi-set) vector
+            /// </summary>
             [TGUI(Label = "Output is a bag (multi-set) vector")]
             Bag = 1,
 
+            /// <summary>
+            /// Output is an indicator vector
+            /// </summary>
             [TGUI(Label = "Output is an indicator vector")]
             Ind = 2,
 
+            /// <summary>
+            /// Output is a key value
+            /// </summary>
             [TGUI(Label = "Output is a key value")]
             Key = 3,
 
+            /// <summary>
+            /// Output is binary encoded
+            /// </summary>
             [TGUI(Label = "Output is binary encoded")]
             Bin = 4,
         }
@@ -96,6 +108,11 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        private static class Defaults
+        {
+            public const OutputKind OutKind = OutputKind.Ind;
+        }
+
         public sealed class Arguments : TermTransform.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
@@ -103,7 +120,7 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
                 ShortName = "kind", SortOrder = 102)]
-            public OutputKind OutputKind = OutputKind.Ind;
+            public OutputKind OutputKind = Defaults.OutKind;
 
             public Arguments()
             {
@@ -125,8 +142,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index).</param>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string name, string source = null, OutputKind outputKind = OutputKind.Ind)
+        /// <param name="outputKind">The type of output expected.</param>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string name, string source = null, OutputKind outputKind = Defaults.OutKind)
         {
             var args = new Arguments()
             {

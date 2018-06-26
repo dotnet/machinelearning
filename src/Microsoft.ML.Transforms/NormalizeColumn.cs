@@ -135,12 +135,21 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        private static class Defaults
+        {
+            public const bool FixZero = true;
+            public const bool MeanVarCdf = false;
+            public const bool LogMeanVarCdf = true;
+            public const int NumBins = 1024;
+            public const int MinBinSize = 10;
+        }
+
         public abstract class FixZeroArgumentsBase : ArgumentsBase
         {
             // REVIEW: This only allows mapping either zero or min to zero. It might make sense to allow also max, midpoint and mean to be mapped to zero.
             // REVIEW: Convert this to bool? or even an enum{Auto, No, Yes}, and automatically map zero to zero when it is null/Auto.
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to map zero to zero, preserving sparsity", ShortName = "zero")]
-            public bool FixZero = true;
+            public bool FixZero = Defaults.FixZero;
         }
 
         public abstract class AffineArgumentsBase : FixZeroArgumentsBase
@@ -158,13 +167,13 @@ namespace Microsoft.ML.Runtime.Data
         public sealed class MeanVarArguments : AffineArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use CDF as the output", ShortName = "cdf")]
-            public bool UseCdf;
+            public bool UseCdf = Defaults.MeanVarCdf;
         }
 
         public sealed class LogMeanVarArguments : ArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use CDF as the output", ShortName = "cdf")]
-            public bool UseCdf = true;
+            public bool UseCdf = Defaults.LogMeanVarCdf;
 
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public LogNormalColumn[] Column;
@@ -179,7 +188,7 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of bins, power of 2 recommended", ShortName = "bins")]
             [TGUI(Label = "Max number of bins")]
-            public int NumBins = 1024;
+            public int NumBins = Defaults.NumBins;
 
             public override OneToOneColumn[] GetColumns() => Column;
         }
@@ -196,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
             public string LabelColumn;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Minimum number of examples per bin")]
-            public int MinBinSize = 10;
+            public int MinBinSize = Defaults.MinBinSize;
         }
 
         public const string MinMaxNormalizerSummary = "Normalizes the data based on the observed minimum and maximum values of the data.";
@@ -262,7 +271,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// /// <param name="useCdf">Whether to use CDF as the output.</param>
-        public static NormalizeTransform CreateMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool useCdf = false)
+        public static NormalizeTransform CreateMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool useCdf = Defaults.MeanVarCdf)
         {
             var args = new MeanVarArguments()
             {
@@ -300,7 +309,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// /// <param name="useCdf">Whether to use CDF as the output.</param>
-        public static NormalizeTransform CreateLogMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool useCdf = true)
+        public static NormalizeTransform CreateLogMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool useCdf = Defaults.LogMeanVarCdf)
         {
             var args = new LogMeanVarArguments()
             {
@@ -330,7 +339,7 @@ namespace Microsoft.ML.Runtime.Data
             return func;
         }
 
-        public static NormalizeTransform CreateBinningNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, int numBins = 1024)
+        public static NormalizeTransform CreateBinningNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, int numBins = Defaults.NumBins)
         {
             var args = new BinArguments()
             {
@@ -358,6 +367,22 @@ namespace Microsoft.ML.Runtime.Data
                 ch.Done();
             }
             return func;
+        }
+
+        public static NormalizeTransform CreateBinningNormalizer(IHostEnvironment env, IDataView input, string labelColumn, string name, string source = null, int numBins = Defaults.NumBins, int minBinSize = Defaults.MinBinSize)
+        {
+            var args = new SupervisedBinArguments()
+            {
+                Column = new[] { new BinColumn(){
+                        Source = source ?? name,
+                        Name = name
+                    }
+                },
+                LabelColumn = labelColumn,
+                NumBins = numBins,
+                MinBinSize = minBinSize
+            };
+            return Create(env, args, input);
         }
 
         /// <summary>

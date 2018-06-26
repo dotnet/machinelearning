@@ -86,6 +86,15 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        private static class Defaults
+        {
+            public const int HashBits = 16;
+            public const uint Seed = 314489979;
+            public const bool Ordered = true;
+            public const int InvertHash = 0;
+            public const CategoricalTransform.OutputKind OutputKind = CategoricalTransform.OutputKind.Bag;
+        }
+
         /// <summary>
         /// This class is a merger of <see cref="HashTransform.Arguments"/> and <see cref="KeyToVectorTransform.Arguments"/>
         /// with join option removed
@@ -97,22 +106,22 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = 16;
+            public int HashBits = Defaults.HashBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
-            public uint Seed = 314489979;
+            public uint Seed = Defaults.Seed;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the position of each term should be included in the hash", ShortName = "ord")]
-            public bool Ordered = true;
+            public bool Ordered = Defaults.Ordered;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int InvertHash;
+            public int InvertHash = Defaults.InvertHash;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
                 ShortName = "kind", SortOrder = 102)]
-            public CategoricalTransform.OutputKind OutputKind = CategoricalTransform.OutputKind.Bag;
+            public CategoricalTransform.OutputKind OutputKind = Defaults.OutputKind;
         }
 
         internal const string Summary = "Converts the categorical value into an indicator array by hashing the value and using the hash as an index in the "
@@ -129,8 +138,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
-        /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index).</param>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string name, string source =null, int hashBits = 16, int invertHash = 0, CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Bag)
+        /// <param name="outputKind">The type of output expected.</param>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string name, string source =null, int hashBits = Defaults.HashBits, int invertHash = Defaults.InvertHash, CategoricalTransform.OutputKind outputKind = Defaults.OutputKind)
         {
             var args = new Arguments()
             {
