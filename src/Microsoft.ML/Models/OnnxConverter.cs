@@ -10,8 +10,12 @@ namespace Microsoft.ML.Models
     public sealed partial class OnnxConverter
     {
         /// <summary>
-        ///
-        /// This API converts the model to ONNX format by inspecting the transform pipeline 
+        /// <see href="https://onnx.ai/">ONNX</see> is an intermediate representation format 
+        /// for machine learing models. It is used to make models portable such that you can 
+        /// train a model using ML.NET(or any ONNX compatible toolkit), convert it to ONNX and 
+        /// then the ONNX model can be converted into say, CoreML, TensorFlow or WinML model 
+        /// to run on the respective runtime.
+        /// This API converts an ML.NET model to ONNX format by inspecting the transform pipeline 
         /// from the end, checking for components that know how to save themselves as ONNX. 
         /// The first item in the transform pipeline that does not know how to save itself 
         /// as ONNX, is considered the "input" to the ONNX pipeline. (Ideally this would be the 
@@ -19,7 +23,7 @@ namespace Microsoft.ML.Models
         /// transforms in defining the pipe.) All the columns in the source that are a type the 
         /// ONNX knows how to deal with will be tracked. Intermediate transformations of the 
         /// data appearing as new columns will appear in the output block of the ONNX, with names 
-        /// derived from the corresponding column names. The ONNX json will be serialized to a 
+        /// derived from the corresponding column names. The ONNX JSON will be serialized to a 
         /// path defined through the Json option.
         ///
         /// This API supports the following arguments:
@@ -28,7 +32,7 @@ namespace Microsoft.ML.Models
         /// <see cref="Name"/> indicates the name property in the ONNX model. If left unspecified, it will 
         /// be the extension-less name of the file specified in the onnx indicates the protocol buffer file
         /// to write the ONNX representation to.
-        /// <see cref="Domain"/> indicates the domain name of the model. We use reverse domain name space indicators.
+        /// <see cref="Domain"/> indicates the domain name of the model. ONNX uses reverse domain name space indicators.
         /// For example com.microsoft.cognitiveservices. This is a required field.
         /// <see cref="InputsToDrop"/> is a string array of input column names to omit from the input mapping.
         /// A common scenario might be to drop the label column, for instance, since it may not be practically
@@ -48,9 +52,7 @@ namespace Microsoft.ML.Models
         /// Learners that can be exported to ONNX
         /// 1. FastTree
         /// 2. LightGBM
-        /// 3. LibSVM
-        /// 4. Multi Class Logistic Regression
-        /// 5. Logistic Regression
+        /// 3. Logistic Regression
         /// 
         /// See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/OnnxTests.cs"/>
         /// for an example on how to train a model and then convert that model to ONNX.
