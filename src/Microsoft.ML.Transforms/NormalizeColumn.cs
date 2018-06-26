@@ -218,28 +218,15 @@ namespace Microsoft.ML.Runtime.Data
         public const string BinNormalizerShortName = "Bin";
         public const string SupervisedBinNormalizerShortName = "SupBin";
 
-        public static NormalizeTransform CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, params string[] inputColumns)
+        public static NormalizeTransform CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, string name, string source = null)
         {
-            var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
-            for (int i = 0; i < inputColumns.Length; i++)
-            {
-                inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
-            }
-            return CreateMinMaxNormalizer(env, input, inputOutputColumns);
-        }
-
-        public static NormalizeTransform CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, params (string inputColumn, string outputColumn)[] inputOutputColumns)
-        {
-            AffineColumn[] cols = new AffineColumn[inputOutputColumns.Length];
-            for (int i = 0; i < inputOutputColumns.Length; i++)
-            {
-                cols[i] = new AffineColumn();
-                cols[i].Source = inputOutputColumns[i].inputColumn;
-                cols[i].Name = inputOutputColumns[i].outputColumn;
-            }
             var args = new MinMaxArguments()
             {
-                Column = cols
+                Column = new[] { new AffineColumn(){
+                        Source = source ?? name,
+                        Name = name
+                    }
+                }
             };
             return Create(env, args, input);
         }
@@ -260,28 +247,15 @@ namespace Microsoft.ML.Runtime.Data
             return func;
         }
 
-        public static NormalizeTransform CreateMeanVarNormalizer(IHostEnvironment env, IDataView input, bool UseCdf, params string[] inputColumns)
+        public static NormalizeTransform CreateMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool UseCdf = false)
         {
-            var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
-            for (int i = 0; i < inputColumns.Length; i++)
-            {
-                inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
-            }
-            return CreateMeanVarNormalizer(env, input, UseCdf, inputOutputColumns);
-        }
-
-        public static NormalizeTransform CreateMeanVarNormalizer(IHostEnvironment env, IDataView input, bool UseCdf, params (string inputColumn, string outputColumn)[] inputOutputColumns)
-        {
-            AffineColumn[] cols = new AffineColumn[inputOutputColumns.Length];
-            for (int i = 0; i < inputOutputColumns.Length; i++)
-            {
-                cols[i] = new AffineColumn();
-                cols[i].Source = inputOutputColumns[i].inputColumn;
-                cols[i].Name = inputOutputColumns[i].outputColumn;
-            }
             var args = new MeanVarArguments()
             {
-                Column = cols,
+                Column = new[] { new AffineColumn(){
+                        Source = source ?? name,
+                        Name = name
+                    }
+                },
                 UseCdf = UseCdf
             };
             return Create(env, args, input);
@@ -303,28 +277,15 @@ namespace Microsoft.ML.Runtime.Data
             return func;
         }
 
-        public static NormalizeTransform CreateLogMeanVarNormalizer(IHostEnvironment env, IDataView input, bool UseCdf = true, params string[] inputColumns)
+        public static NormalizeTransform CreateLogMeanVarNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, bool UseCdf = true)
         {
-            var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
-            for (int i = 0; i < inputColumns.Length; i++)
-            {
-                inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
-            }
-            return CreateLogMeanVarNormalizer(env, input, UseCdf, inputOutputColumns);
-        }
-
-        public static NormalizeTransform CreateLogMeanVarNormalizer(IHostEnvironment env, IDataView input, bool UseCdf = true, params (string inputColumn, string outputColumn)[] inputOutputColumns)
-        {
-            LogNormalColumn[] cols = new LogNormalColumn[inputOutputColumns.Length];
-            for (int i = 0; i < inputOutputColumns.Length; i++)
-            {
-                cols[i] = new LogNormalColumn();
-                cols[i].Source = inputOutputColumns[i].inputColumn;
-                cols[i].Name = inputOutputColumns[i].outputColumn;
-            }
             var args = new LogMeanVarArguments()
             {
-                Column = cols,
+                Column = new[] { new LogNormalColumn(){
+                        Source = source ?? name,
+                        Name = name
+                    }
+                },
                 UseCdf = UseCdf
             };
             return Create(env, args, input);
@@ -346,28 +307,15 @@ namespace Microsoft.ML.Runtime.Data
             return func;
         }
 
-        public static NormalizeTransform CreateBinningNormalizer(IHostEnvironment env, IDataView input, int numBins = 1024, params string[] inputColumns)
+        public static NormalizeTransform CreateBinningNormalizer(IHostEnvironment env, IDataView input, string name, string source=null, int numBins = 1024)
         {
-            var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
-            for (int i = 0; i < inputColumns.Length; i++)
-            {
-                inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
-            }
-            return CreateBinningNormalizer(env, input, numBins, inputOutputColumns);
-        }
-
-        public static NormalizeTransform CreateBinningNormalizer(IHostEnvironment env, IDataView input, int numBins = 1024, params (string inputColumn, string outputColumn)[] inputOutputColumns)
-        {
-            BinColumn[] cols = new BinColumn[inputOutputColumns.Length];
-            for (int i = 0; i < inputOutputColumns.Length; i++)
-            {
-                cols[i] = new BinColumn();
-                cols[i].Source = inputOutputColumns[i].inputColumn;
-                cols[i].Name = inputOutputColumns[i].outputColumn;
-            }
             var args = new BinArguments()
             {
-                Column = cols,
+                Column = new[] { new BinColumn(){
+                        Source = source ?? name,
+                        Name = name
+                    }
+                },
                 NumBins = numBins
             };
             return Create(env, args, input);

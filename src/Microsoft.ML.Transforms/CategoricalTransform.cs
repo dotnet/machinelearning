@@ -118,28 +118,15 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string UserName = "Categorical Transform";
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, OutputKind outputKind = OutputKind.Ind, params string[] inputColumns)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string name, string source = null, OutputKind outputKind = OutputKind.Ind)
         {
-            var inputOutputColumns = new (string inputColumn, string outputColumn)[inputColumns.Length];
-            for (int i = 0; i < inputColumns.Length; i++)
-            {
-                inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
-            }
-            return Create(env, input, outputKind, inputOutputColumns);
-        }
-
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, OutputKind outputKind = OutputKind.Ind, params (string inputColumn, string outputColumn)[] inputOutputColumns)
-        {
-            Column[] cols = new Column[inputOutputColumns.Length];
-            for (int i = 0; i < inputOutputColumns.Length; i++)
-            {
-                cols[i] = new Column();
-                cols[i].Source = inputOutputColumns[i].inputColumn;
-                cols[i].Name = inputOutputColumns[i].outputColumn;
-            }
             var args = new Arguments()
             {
-                Column = cols,
+                Column = new[] { new Column(){
+                        Source = source ?? name,
+                        Name = name
+                    }
+                },
                 OutputKind = outputKind
             };
             return Create(env, args, input);

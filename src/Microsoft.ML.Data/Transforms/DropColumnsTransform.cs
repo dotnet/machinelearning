@@ -237,14 +237,9 @@ namespace Microsoft.ML.Runtime.Data
         private const string DropRegistrationName = "DropColumns";
         private const string KeepRegistrationName = "KeepColumns";
 
-        public DropColumnsTransform CreateColumnDroper(IHostEnvironment env, IDataView input, params string[] columnsToDrop)
+        public DropColumnsTransform(IHostEnvironment env, IDataView input, params string[] columnsToDrop)
+         :this(env, new Arguments() { Column = columnsToDrop }, input)
         {
-            return new DropColumnsTransform(env, new Arguments() { Column = columnsToDrop }, input);
-        }
-
-        public static DropColumnsTransform CreateColumnSelector(IHostEnvironment env, IDataView input, params string[] columnsToKeep)
-        {
-            return new DropColumnsTransform(env, new KeepArguments() { Column = columnsToKeep }, input);
         }
 
         /// <summary>
@@ -392,5 +387,11 @@ namespace Microsoft.ML.Runtime.Data
                 return Input.GetGetter<TValue>(_bindings.ColMap[col]);
             }
         }
+    }
+
+    public class KeepColumnsTransform
+    {
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, params string[] columnsToKeep)
+            => new DropColumnsTransform(env, new DropColumnsTransform.KeepArguments() { Column = columnsToKeep }, input);
     }
 }

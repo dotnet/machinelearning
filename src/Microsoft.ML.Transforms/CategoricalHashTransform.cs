@@ -119,36 +119,17 @@ namespace Microsoft.ML.Runtime.Data
             + "bag. If the input column is a vector, a single indicator bag is returned for it.";
 
         public const string UserName = "Categorical Hash Transform";
-
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, int hashBits = 16, uint seed = 314489979,
-            bool ordered = true, int invertHash = 0, CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Bag, 
-            params string[] inputColumns)
+        
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string name, string source =null, int hashBits = 16, int invertHash = 0, CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Bag)
         {
-            var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
-            for (int i = 0; i < inputColumns.Length; i++)
-            {
-                inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
-            }
-            return Create(env, input, hashBits, seed, ordered, invertHash, outputKind, inputOutputColumns);
-        }
-
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, int hashBits = 16, uint seed = 314489979, 
-            bool ordered = true, int invertHash = 0, CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Bag, 
-            params(string inputColumn, string outputColumn)[] inputOutputColumns)
-        {
-            Column[] cols = new Column[inputOutputColumns.Length];
-            for (int i = 0; i < inputOutputColumns.Length; i++)
-            {
-                cols[i] = new Column();
-                cols[i].Source = inputOutputColumns[i].inputColumn;
-                cols[i].Name = inputOutputColumns[i].outputColumn;
-            }
             var args = new Arguments()
             {
-                Column = cols,
+                Column = new[] { new Column(){
+                    Source = source ?? name,
+                    Name = name
+                    }
+                },
                 HashBits = hashBits,
-                Seed = seed,
-                Ordered = ordered,
                 InvertHash = invertHash,
                 OutputKind = outputKind
             };

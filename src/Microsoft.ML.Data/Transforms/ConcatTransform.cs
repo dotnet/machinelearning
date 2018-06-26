@@ -90,6 +90,19 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Arguments : TransformInputBase
         {
+            public Arguments()
+            {
+            }
+
+            public Arguments(string name, params string[] source)
+            {
+                Column = new[] { new Column()
+                {
+                    Name = name,
+                    Source = source
+                }};
+            }
+
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
         }
@@ -527,17 +540,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public override ISchema Schema => _bindings;
 
-        public ConcatTransform(IHostEnvironment env, IDataView input, string outputColumn, params string[] inputColumns)
-            : base(env, RegistrationName, input)
+        public ConcatTransform(IHostEnvironment env, IDataView input, string name, params string[] source)
+            : this(env, new Arguments(name, source), input)
         {
-            var cols = new Column[1];
-            cols[0] = new Column()
-            {
-                Name = outputColumn,
-                Source = inputColumns
-            };
-
-            _bindings = new Bindings(cols, null, Source.Schema);
         }
 
         /// <summary>

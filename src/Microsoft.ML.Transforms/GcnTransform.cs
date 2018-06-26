@@ -237,37 +237,19 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly ColInfoEx[] _exes;
 
-        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, bool subMean = true, bool useStdDev = false, Float scale = 1, params string[] inputColumns)
+        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, string name, string source = null, bool subMean = true, bool useStdDev = false, Float scale = 1)
         {
-            var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
-            for (int i = 0; i < inputColumns.Length; i++)
-            {
-                inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
-            }
-            return CreateGlobalContrastNormalizer(env, input, subMean, useStdDev, scale, inputOutputColumns);
-        }
-
-        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, bool subMean = true, bool useStdDev = false, Float scale = 1, params (string inputColumn, string outputColumn)[] inputOutputColumns)
-        {
-            GcnColumn[] cols = new GcnColumn[inputOutputColumns.Length];
-            for (int i = 0; i < inputOutputColumns.Length; i++)
-            {
-                cols[i] = new GcnColumn();
-                cols[i].Source = inputOutputColumns[i].inputColumn;
-                cols[i].Name = inputOutputColumns[i].outputColumn;
-            }
             var args = new GcnArguments()
             {
-                Column = cols,
+                Column = new[] { new GcnColumn(){
+                        Source = source ?? name,
+                        Name = name
+                    }
+                },
                 SubMean = subMean,
                 UseStdDev = useStdDev,
                 Scale = scale
             };
-            return new LpNormNormalizerTransform(env, args, input);
-        }
-
-        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, IDataView input, GcnArguments args)
-        {
             return new LpNormNormalizerTransform(env, args, input);
         }
 
@@ -297,34 +279,18 @@ namespace Microsoft.ML.Runtime.Data
             SetMetadata();
         }
 
-        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, NormalizerKind normKind = NormalizerKind.L2Norm, bool subMean = false, params string[] inputColumns)
+        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, string name, string source = null, NormalizerKind normKind = NormalizerKind.L2Norm, bool subMean = false)
         {
-            var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
-            for (int i = 0; i < inputColumns.Length; i++)
-            {
-                inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
-            }
-            return CreateLpNormNormalizer(env, input, normKind, subMean, inputOutputColumns);
-        }
-
-        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, NormalizerKind normKind = NormalizerKind.L2Norm, bool subMean = false, params (string inputColumn, string outputColumn)[] inputOutputColumns)
-        {
-            Column[] cols = new Column[inputOutputColumns.Length];
-            for (int i = 0; i < inputOutputColumns.Length; i++)
-            {
-                cols[i] = new Column();
-                cols[i].Source = inputOutputColumns[i].inputColumn;
-                cols[i].Name = inputOutputColumns[i].outputColumn;
-            }
             var args = new Arguments()
             {
-                Column = cols
+                Column = new[] { new Column(){
+                        Source = source ?? name,
+                        Name = name
+                    }
+                },
+                SubMean = subMean,
+                NormKind = normKind
             };
-            return new LpNormNormalizerTransform(env, args, input);
-        }
-
-        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, IDataView input, Arguments args)
-        {
             return new LpNormNormalizerTransform(env, args, input);
         }
 

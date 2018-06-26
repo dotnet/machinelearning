@@ -64,30 +64,10 @@ namespace Microsoft.ML.Runtime.Data
 
         private const string RegistrationName = "CopyColumns";
 
-        public static CopyColumnsTransform Create(IHostEnvironment env, IDataView input, params string[] inputColumns)
+        public CopyColumnsTransform(IHostEnvironment env, IDataView input, string name, string source)
+            : this(env, new Arguments(){ Column = new[] { new Column() { Source = source, Name = name }}}, input)
         {
-            var inputOutputColumns = new(string inputColumn, string outputColumn)[inputColumns.Length];
-            for (int i = 0; i < inputColumns.Length; i++)
-            {
-                inputOutputColumns[i].inputColumn = inputOutputColumns[i].outputColumn = inputColumns[i];
-            }
-            return Create(env, input, inputOutputColumns);
-        }
-
-        public static CopyColumnsTransform Create(IHostEnvironment env, IDataView input, params (string inputColumn, string outputColumn)[] inputOutputColumns)
-        {
-            Column[] cols = new Column[inputOutputColumns.Length];
-            for (int i = 0; i < inputOutputColumns.Length; i++)
-            {
-                cols[i] = new Column();
-                cols[i].Source = inputOutputColumns[i].inputColumn;
-                cols[i].Name = inputOutputColumns[i].outputColumn;
-            }
-            var args = new Arguments()
-            {
-                Column = cols
-            };
-            return new CopyColumnsTransform(env,args,input);
+           
         }
 
         public CopyColumnsTransform(IHostEnvironment env, Arguments args, IDataView input)
