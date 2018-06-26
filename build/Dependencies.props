@@ -7,5 +7,6 @@
     <SystemCodeDomPackageVersion>4.4.0</SystemCodeDomPackageVersion>
     <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
     <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
+	<LightGBMPackageVersion>2.1.2.2</LightGBMPackageVersion>
   </PropertyGroup>
 </Project>
