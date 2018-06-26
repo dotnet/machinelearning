@@ -262,7 +262,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestCrossValidationMacro()
         {
-            var dataPath = GetDataPath(TestDatasets.winequality.trainFilename);
+            var dataPath = GetDataPath(TestDatasets.winequalitymacro.trainFilename);
             using (var env = new TlcEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
