@@ -13,4 +13,8 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="FastTreeNative" />
+  </ItemGroup>
 </Project>
