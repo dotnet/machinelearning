@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Model
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Runtime.Model
             }
         }
 
-        // These are the open entries that may contain streams into our _dirTemp.
+        // These are the open entries that may contain streams into our DirTemp.
         private List<Entry> _open;
 
         private bool _disposed;
@@ -108,10 +107,7 @@ namespace Microsoft.ML.Runtime.Model
             PathMap = new Dictionary<string, string>();
             _open = new List<Entry>();
             if (needDir)
-            {
                 DirTemp = GetShortTempDir();
-                Directory.CreateDirectory(DirTemp);
-            }
             else
                 GC.SuppressFinalize(this);
         }
@@ -123,16 +119,25 @@ namespace Microsoft.ML.Runtime.Model
             do
             {
                 path = Path.Combine(Path.GetTempPath(), "TLC_" + rnd.Next().ToString("X"));
+                path = Path.GetFullPath(path);
+                Directory.CreateDirectory(path);
             }
-            while (Directory.Exists(path));
-            return Path.GetFullPath(path);
+            while (!EnsureDirectory(path));
+            return path;
         }
 
-        // REVIEW: This should use host environment functionality.
-        private static string GetTempPath()
+        private static bool EnsureDirectory(string path)
         {
-            Guid guid = Guid.NewGuid();
-            return Path.GetFullPath(Path.Combine(Path.GetTempPath(), "TLC_" + guid.ToString()));
+            var fullPath = Path.GetFullPath(Path.Combine(path, ".lock"));
+            try
+            {
+                using (var stream = new FileStream(fullPath, FileMode.CreateNew))
+                    return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         ~Repository()
