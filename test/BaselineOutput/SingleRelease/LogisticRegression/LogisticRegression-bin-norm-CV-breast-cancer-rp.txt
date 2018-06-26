@@ -1,4 +1,0 @@
-LogisticRegression
-AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/l2	/ot	/nt	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.9945	0.969373	0.959559	0.952772	0.975316	0.977394	0.134393	85.57494	0.956039	0.988987	0.1	0.001	1	LogisticRegression	%Data%		%Output%	99	0	0	maml.exe CV tr=LogisticRegression{l1=1.0 l2=0.1 ot=1e-3 nt=1} threads=- dout=%Output% data=%Data% seed=1 xf=BinNormalizer{col=Features numBins=5}	/l2:0.1;/ot:0.001;/nt:1	
-

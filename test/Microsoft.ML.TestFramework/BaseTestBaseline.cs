@@ -26,11 +26,11 @@ namespace Microsoft.ML.Runtime.RunTests
     {
         private readonly ITestOutputHelper _output;
 
-        protected BaseTestBaseline(ITestOutputHelper helper): base(helper)
+        protected BaseTestBaseline(ITestOutputHelper helper) : base(helper)
         {
             _output = helper;
-            ITest test = (ITest)helper.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(helper); 
-            TestName = test.TestCase.TestMethod.Method.Name; 
+            ITest test = (ITest)helper.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(helper);
+            TestName = test.TestCase.TestMethod.Method.Name;
             Init();
         }
 
@@ -41,6 +41,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         internal const string RawSuffix = ".raw";
         private const string LogSuffix = ".log";
+        private readonly string _baselineRootDefaultRelativePath = Path.Combine(TestDir, "BaselineOutput");
         private readonly string _baselineRootRelPath = Path.Combine(TestDir, "BaselineOutput", BuildString); // Relative to Root.
         private readonly string _logRootRelPath = Path.Combine("Logs", BuildString); // Relative to OutDir.
         private readonly string ScopeRootRelPath = Path.Combine("Samples", "scope"); // Root of files required for Scope related tests. Used primarily for local runs
@@ -59,6 +60,8 @@ namespace Microsoft.ML.Runtime.RunTests
         private const string SourceRootUnixRegExp = @"\/[^\\\t ]+\/source\/[^\\\t ]+";
         private const string TestsRootUnixRegExp = @"\/[^\\\t ]+\/Tests\/[^\\\t ]+";
 
+        public const string CommonFolder = "Common";
+        public const string TestFolder = "BaselineOutput";
 #if DEBUG
         private const string BuildString = "SingleDebug";
         private const string Mode = "Debug";
@@ -84,6 +87,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         // Full paths to the directories.
         private string _baseDir;
+        private string _baseDefaultDir;
 
         // The writer to write to test log files.
         protected StreamWriter LogWriter;
@@ -96,12 +100,13 @@ namespace Microsoft.ML.Runtime.RunTests
         public void Init()
         {
             // Create the output and log directories.
-            Contracts.Check(Directory.Exists(Path.Combine(RootDir, TestDir, "BaselineOutput")));
+            Contracts.Check(Directory.Exists(Path.Combine(RootDir, TestDir, TestFolder)));
             string logDir = Path.Combine(OutDir, _logRootRelPath);
             Directory.CreateDirectory(logDir);
 
             // Find the sample data and baselines.
             _baseDir = Path.Combine(RootDir, _baselineRootRelPath);
+            _baseDefaultDir = Path.Combine(RootDir, _baselineRootDefaultRelativePath);
 
             string logPath = Path.Combine(logDir, TestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
@@ -217,22 +222,28 @@ namespace Microsoft.ML.Runtime.RunTests
             _output.WriteLine(fmt, args);
         }
 
-        protected string GetBaselineDir(string subDir)
-        {
-            Contracts.Assert(IsActive);
-            if (string.IsNullOrWhiteSpace(subDir))
-                return null;
-            return Path.GetFullPath(Path.Combine(_baseDir, subDir));
-            //return Path.Combine(_baseDir, subDir);
-        }
 
         protected string GetBaselinePath(string subDir, string name)
         {
             Contracts.Assert(IsActive);
             if (string.IsNullOrWhiteSpace(subDir))
                 return GetBaselinePath(name);
-            return Path.GetFullPath(Path.Combine(_baseDir, subDir, name));
-            //return Path.Combine(_baseDir, subDir, name);
+
+            // look into default folder in case if files for release and debug are the same.
+            var resultPath = Path.Combine(_baseDefaultDir, CommonFolder, subDir, name);
+            if (File.Exists(resultPath))
+                return Path.GetFullPath(resultPath);
+            var osString = Environment.OSVersion.ToString();
+            //look into OS specific folder.
+            resultPath = Path.Combine(_baseDefaultDir, osString, subDir, name);
+            if (File.Exists(resultPath))
+                return Path.GetFullPath(resultPath);
+            //look into configuration folder
+            resultPath = Path.Combine(_baseDefaultDir, BuildString, subDir, name);
+            if (File.Exists(resultPath))
+                return Path.GetFullPath(resultPath);
+            //look into combination of OS and configuration:
+            return Path.GetFullPath(Path.Combine(_baseDefaultDir, osString, subDir, name));
         }
 
         protected string GetBaselinePath(string name)
@@ -240,8 +251,21 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.Assert(IsActive);
             if (string.IsNullOrWhiteSpace(name))
                 return null;
-            //return Path.Combine(_baseDir, name);
-            return Path.GetFullPath(Path.Combine(_baseDir, name));
+            // look into default folder in case if files for release and debug are the same.
+            var resultPath = Path.Combine(_baseDefaultDir, CommonFolder, name);
+            if (File.Exists(resultPath))
+                return Path.GetFullPath(resultPath);
+            var osString = Environment.OSVersion.ToString();
+            //look into OS specific folder.
+            resultPath = Path.Combine(_baseDefaultDir, osString, name);
+            if (File.Exists(resultPath))
+                return Path.GetFullPath(resultPath);
+            //look into configuration folder
+            resultPath = Path.Combine(_baseDefaultDir, BuildString, name);
+            if (File.Exists(resultPath))
+                return Path.GetFullPath(resultPath);
+            //look into combination of OS and configuration:
+            return Path.GetFullPath(Path.Combine(_baseDefaultDir, osString, name));
         }
 
         // Inverts the _passed flag. Do not ever use this except in rare conditions. Eg. Recording failure of a test as a success.

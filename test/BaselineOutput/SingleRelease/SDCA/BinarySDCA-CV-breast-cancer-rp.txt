@@ -1,4 +1,0 @@
-SDCA
-AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/nt	/iter	/checkFreq	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.995303	0.957644	0.963068	0.914037	0.956125	0.979627	0.396109	57.39993	0.937587	0.990827	1	5	9	SDCA	%Data%		%Output%	99	0	0	maml.exe CV tr=SDCA{maxIterations=5 checkFreq=9 nt=1} threads=- dout=%Output% data=%Data% seed=1	/nt:1;/iter:5;/checkFreq:9	
-

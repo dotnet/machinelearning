@@ -1,4 +1,0 @@
-LinearSVM
-AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/lambda	/iter	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.995797	0.967789	0.961702	0.945607	0.970982	0.97973	0.084588	90.94354	0.953586	0.991453	0.03	100	LinearSVM	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=LinearSVM{iter=100 lambda=0.03} cali=PAV dout=%Output% data=%Data% out=%Output% seed=1	/lambda:0.03;/iter:100	
-

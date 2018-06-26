@@ -1,4 +1,0 @@
-SDCA
-AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/loss	/l2	/l1	/nt	/iter	/checkFreq	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.995696	0.881227	0.971014	0.666027	0.87562	0.981818	0.128343	86.19637	0.743675	0.991479	SmoothedHinge	1E-06	0.5	1	5	9	SDCA	%Data%		%Output%	99	0	0	maml.exe CV tr=SDCA{l2=1e-06 loss=SmoothedHinge l1=0.5 maxIterations=5 checkFreq=9 nt=1} threads=- dout=%Output% data=%Data% seed=1	/loss:SmoothedHinge;/l2:1E-06;/l1:0.5;/nt:1;/iter:5;/checkFreq:9	
-

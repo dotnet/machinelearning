@@ -1,4 +1,0 @@
-FastTreeBinaryClassification
-AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/lr	/dt	/nl	/mil	/iter	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.87196	0.830539	0.688912	0.515341	0.860937	0.928026	0.537244	31.88307	0.589618	0.670582	0.25	+	5	5	20	FastTreeBinaryClassification	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=FastTreeBinaryClassification{nl=5 mil=5 lr=0.25 iter=20 mb=255 dt+} dout=%Output% loader=Text{sep=, header+ col=Label:14 col=Cat:TX:1,3,5-9,13} data=%Data% out=%Output% seed=1 xf=Cat{col=Cat} xf=Concat{col=Features:Cat}	/lr:0.25;/dt:+;/nl:5;/mil:5;/iter:20	
-
