@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     for (int i = 0; i < datasets.Length; i++)
                     {
                         var outFile = string.Format("dataset-infer-schema-result-{0:00}.txt", i);
-                        string dataPath = GetOutputPath(Path.Combine("..", "Common", "Inference"), outFile);
+                        string dataPath = GetOutputPath(Path.Combine("..", CommonFolder, "Inference"), outFile);
                         var args = new InferSchemaCommand.Arguments()
                         {
                             DataFile = datasets[i],
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         var cmd = new InferSchemaCommand(Env, args);
                         cmd.Run();
 
-                        CheckEquality(Path.Combine("..", "Common", "Inference"), outFile);
+                        CheckEquality(Path.Combine("..", CommonFolder, "Inference"), outFile);
                     }
                 }
             }
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         var cmd = new InferRecipesCommand(Env, args);
                         cmd.Run();
 
-                        CheckEquality(Path.Combine("..", "Common", "Inference"), outFile);
+                        CheckEquality(Path.Combine("..", CommonFolder, "Inference"), outFile);
                     }
                 }
             }

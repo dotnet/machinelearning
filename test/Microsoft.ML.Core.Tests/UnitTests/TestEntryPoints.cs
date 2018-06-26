@@ -384,7 +384,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var epListFile = buildPrefix + "_ep-list.tsv";
             var manifestFile = buildPrefix + "_manifest.json";
 
-            var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
+            var entryPointsSubDir = Path.Combine("..", CommonFolder, "EntryPoints");
             var catalog = ModuleCatalog.CreateInstance(Env);
             var path = DeleteOutputPath(entryPointsSubDir, epListFile);
             File.WriteAllLines(path, catalog.AllEntryPoints()

@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
 
             var model = pipeline.Train<BreastCancerData, BreastCancerPrediction>();
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
+            var subDir = Path.Combine("..", "..", TestFolder, CommonFolder, "Onnx", "BinaryClassification", "BreastCancer");
             var onnxPath = GetOutputPath(subDir, "SaveModelToOnnxTest.pb");
             DeleteOutputPath(onnxPath);
 
