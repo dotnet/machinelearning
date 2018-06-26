@@ -26,6 +26,11 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("EntryPoints")]
         public void TestLearn()
         {
+            //Skip this test for macOS until engineering system installs OpenMP dependency for 
+            //native LightGBM library.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return;
+
             using (var env = new TlcEnvironment())
             {
                 string pathData = GetDataPath("adult.train");
