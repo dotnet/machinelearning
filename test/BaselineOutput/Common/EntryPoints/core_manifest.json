@@ -8685,6 +8685,245 @@
       ]
     },
     {
+      "Name": "Trainers.FieldAwareFactorizationMachineBinaryClassifier",
+      "Desc": "Train a field-aware factorization machine for binary classification",
+      "FriendlyName": "Field-aware Factorization Machine",
+      "ShortName": "ffm",
+      "Inputs": [
+        {
+          "Name": "LearningRate",
+          "Type": "Float",
+          "Desc": "Initial learning rate",
+          "Aliases": [
+            "lr"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": 0.1,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.001,
+            "Max": 1.0,
+            "IsLogScale": true
+          }
+        },
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training",
+          "Aliases": [
+            "data"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Iters",
+          "Type": "Int",
+          "Desc": "Number of training iterations",
+          "Aliases": [
+            "iter"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": 5,
+          "SweepRange": {
+            "RangeType": "Long",
+            "Min": 1,
+            "Max": 100
+          }
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String",
+          "Desc": "Column to use for features",
+          "Aliases": [
+            "feat"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "LatentDim",
+          "Type": "Int",
+          "Desc": "Latent space dimension",
+          "Aliases": [
+            "d"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": 20,
+          "SweepRange": {
+            "RangeType": "Long",
+            "Min": 4,
+            "Max": 100
+          }
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "LambdaLinear",
+          "Type": "Float",
+          "Desc": "Regularization coefficient of linear weights",
+          "Aliases": [
+            "lambdaLinear"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": 0.0001,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 1E-08,
+            "Max": 1.0,
+            "IsLogScale": true
+          }
+        },
+        {
+          "Name": "LambdaLatent",
+          "Type": "Float",
+          "Desc": "Regularization coefficient of latent weights",
+          "Aliases": [
+            "lambdaLatent"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": 0.0001,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 1E-08,
+            "Max": 1.0,
+            "IsLogScale": true
+          }
+        },
+        {
+          "Name": "NormalizeFeatures",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "No",
+              "Warn",
+              "Auto",
+              "Yes"
+            ]
+          },
+          "Desc": "Normalize option for the feature column",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "Norm",
+          "Type": "Bool",
+          "Desc": "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "Caching",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Auto",
+              "Memory",
+              "Disk",
+              "None"
+            ]
+          },
+          "Desc": "Whether learner should cache input training data",
+          "Aliases": [
+            "cache"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "Shuffle",
+          "Type": "Bool",
+          "Desc": "Whether to shuffle for each training iteration",
+          "Aliases": [
+            "shuf"
+          ],
+          "Required": false,
+          "SortOrder": 90.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "Verbose",
+          "Type": "Bool",
+          "Desc": "Report traning progress or not",
+          "Aliases": [
+            "verbose"
+          ],
+          "Required": false,
+          "SortOrder": 91.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "Radius",
+          "Type": "Float",
+          "Desc": "Radius of initial latent factors",
+          "Aliases": [
+            "rad"
+          ],
+          "Required": false,
+          "SortOrder": 110.0,
+          "IsNullable": false,
+          "Default": 0.5,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.1,
+            "Max": 1.0
+          }
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "InputKind": [
+        "ITrainerInputWithLabel",
+        "ITrainerInput"
+      ],
+      "OutputKind": [
+        "IBinaryClassificationOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
       "Name": "Trainers.GeneralizedAdditiveModelBinaryClassifier",
       "Desc": "Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It mantains no interactions between features.",
       "FriendlyName": "Generalized Additive Model for Binary Classification",

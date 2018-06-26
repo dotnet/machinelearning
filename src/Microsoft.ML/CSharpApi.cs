@@ -478,6 +478,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Trainers.FastTreeTweedieRegressor", input, output));
             }
 
+            public Microsoft.ML.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output Add(Microsoft.ML.Trainers.FieldAwareFactorizationMachineBinaryClassifier input)
+            {
+                var output = new Microsoft.ML.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainers.FieldAwareFactorizationMachineBinaryClassifier input, Microsoft.ML.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainers.FieldAwareFactorizationMachineBinaryClassifier", input, output));
+            }
+
             public Microsoft.ML.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output Add(Microsoft.ML.Trainers.GeneralizedAdditiveModelBinaryClassifier input)
             {
                 var output = new Microsoft.ML.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output();
@@ -5990,6 +6002,130 @@ namespace Microsoft.ML
             private class FastTreeTweedieRegressorPipelineStep : ILearningPipelinePredictorStep
             {
                 public FastTreeTweedieRegressorPipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainers
+    {
+
+        /// <summary>
+        /// Train a field-aware factorization machine for binary classification
+        /// </summary>
+        public sealed partial class FieldAwareFactorizationMachineBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// Initial learning rate
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.001f, 1f, isLogScale:true)]
+            public float LearningRate { get; set; } = 0.1f;
+
+            /// <summary>
+            /// Number of training iterations
+            /// </summary>
+            [TlcModule.SweepableLongParamAttribute("Iters", 1, 100)]
+            public int Iters { get; set; } = 5;
+
+            /// <summary>
+            /// Latent space dimension
+            /// </summary>
+            [TlcModule.SweepableLongParamAttribute("LatentDim", 4, 100)]
+            public int LatentDim { get; set; } = 20;
+
+            /// <summary>
+            /// Regularization coefficient of linear weights
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("LambdaLinear", 1E-08f, 1f, isLogScale:true)]
+            public float LambdaLinear { get; set; } = 0.0001f;
+
+            /// <summary>
+            /// Regularization coefficient of latent weights
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("LambdaLatent", 1E-08f, 1f, isLogScale:true)]
+            public float LambdaLatent { get; set; } = 0.0001f;
+
+            /// <summary>
+            /// Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length
+            /// </summary>
+            public bool Norm { get; set; } = true;
+
+            /// <summary>
+            /// Whether to shuffle for each training iteration
+            /// </summary>
+            public bool Shuffle { get; set; } = true;
+
+            /// <summary>
+            /// Report traning progress or not
+            /// </summary>
+            public bool Verbose { get; set; } = true;
+
+            /// <summary>
+            /// Radius of initial latent factors
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("Radius", 0.1f, 1f)]
+            public float Radius { get; set; } = 0.5f;
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FieldAwareFactorizationMachineBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    TrainingData = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new FieldAwareFactorizationMachineBinaryClassifierPipelineStep(output);
+            }
+
+            private class FieldAwareFactorizationMachineBinaryClassifierPipelineStep : ILearningPipelinePredictorStep
+            {
+                public FieldAwareFactorizationMachineBinaryClassifierPipelineStep(Output output)
                 {
                     Model = output.PredictorModel;
                 }
