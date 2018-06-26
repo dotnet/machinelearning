@@ -37,6 +37,21 @@ namespace Microsoft.ML.Models
         /// is currently not intelligent enough to drop intermediate calculations that produce this value: this will
         /// merely omit that value from the actual output.
         /// 
+        /// Transforms that can be exported to ONNX
+        /// 1. Concat
+        /// 2. KeyToVector
+        /// 3. NAReplace
+        /// 4. Normalize
+        /// 5. Term
+        /// 6. Categorical
+        /// 
+        /// Learners that can be exported to ONNX
+        /// 1. FastTree
+        /// 2. LightGBM
+        /// 3. LibSVM
+        /// 4. Multi Class Logistic Regression
+        /// 5. Logistic Regression
+        /// 
         /// See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/OnnxTests.cs"/>
         /// for an example on how to train a model and then convert that model to ONNX.
         /// </summary>
