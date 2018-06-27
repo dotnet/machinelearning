@@ -901,7 +901,7 @@ namespace Microsoft.ML.Runtime.Data
             Func<IDataView, int, IDataView> keyToValue =
                 (idv, i) =>
                 {
-                    foreach (var keyCol in firstDvVectorKeyColumns.Prepend(labelColName))
+                    foreach (var keyCol in firstDvVectorKeyColumns.Concat(firstDvKeyWithNamesColumns).Prepend(labelColName))
                     {
                         if (keyCol == labelColName && labelColKeyValuesType == null)
                             continue;
