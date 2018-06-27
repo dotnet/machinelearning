@@ -1555,25 +1555,33 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         private void RunTrainScoreEvaluate(string learner, string evaluator, string dataPath, string warningsPath, string overallMetricsPath,
-                    string instanceMetricsPath, string confusionMatrixPath = null, string loader = null)
+                    string instanceMetricsPath, string confusionMatrixPath = null, string loader = null, string transforms = null,
+                    string splitterInput = "AllData")
         {
-            string inputGraph = string.Format(@"
+            if (string.IsNullOrEmpty(transforms))
+                transforms = "";
+            loader = string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': '{0}'", loader);
+            var confusionMatrixVar = confusionMatrixPath != null ? ", 'ConfusionMatrix': '$ConfusionMatrix'" : "";
+            confusionMatrixPath = confusionMatrixPath != null ? string.Format(", 'ConfusionMatrix' : '{0}'", EscapePath(confusionMatrixPath)) : "";
+            var scorerModel = string.IsNullOrEmpty(transforms) ? "Model" : "CombinedModel";
+            string inputGraph = $@"
                 {{
                   'Nodes': [
                     {{
                       'Name': 'Data.CustomTextLoader',
                       'Inputs': {{
                         'InputFile': '$file'
-                        {8}
+                        {loader}
                       }},
                       'Outputs': {{
                         'Data': '$AllData'
                       }}
                     }},
+                    {transforms}
                     {{
                       'Name': 'Transforms.TrainTestDatasetSplitter',
                       'Inputs': {{
-                        'Data': '$AllData',
+                        'Data': '${splitterInput}',
                         'Fraction': 0.8
                       }},
                       'Outputs': {{
@@ -1582,7 +1590,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       }}
                     }},
                     {{
-                      'Name': '{0}',
+                      'Name': '{learner}',
                       'Inputs': {{
                         'TrainingData': '$TrainData'
                       }},
@@ -1601,7 +1609,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       }}
                     }},
                     {{
-                      'Name': '{1}',
+                      'Name': '{evaluator}',
                       'Inputs': {{
                         'Data': '$ScoredData'
                       }},
@@ -1609,23 +1617,20 @@ namespace Microsoft.ML.Runtime.RunTests
                         'Warnings': '$Warnings',
                         'OverallMetrics': '$OverallMetrics',
                         'PerInstanceMetrics': '$PerInstanceMetrics'
-                        {6}
+                        {confusionMatrixVar}
                       }}
                     }}
                   ],
                   'Inputs' : {{
-                    'file' : '{2}'
+                    'file' : '{EscapePath(dataPath)}'
                   }},
                   'Outputs' : {{
-                    'Warnings' : '{3}',
-                    'OverallMetrics' : '{4}',
-                    'PerInstanceMetrics' : '{5}'
-                    {7}
+                    'Warnings' : '{EscapePath(warningsPath)}',
+                    'OverallMetrics' : '{EscapePath(overallMetricsPath)}',
+                    'PerInstanceMetrics' : '{EscapePath(instanceMetricsPath)}'
+                    {confusionMatrixPath}
                   }}
-                }}", learner, evaluator, EscapePath(dataPath), EscapePath(warningsPath), EscapePath(overallMetricsPath), EscapePath(instanceMetricsPath),
-                confusionMatrixPath != null ? ", 'ConfusionMatrix': '$ConfusionMatrix'" : "",
-                confusionMatrixPath != null ? string.Format(", 'ConfusionMatrix' : '{0}'", EscapePath(confusionMatrixPath)) : "",
-                string.IsNullOrWhiteSpace(loader) ? "" : string.Format(",'CustomSchema': '{0}'", loader));
+                }}";
 
             var jsonPath = DeleteOutputPath("graph.json");
             File.WriteAllLines(jsonPath, new[] { inputGraph });
@@ -1702,6 +1707,81 @@ namespace Microsoft.ML.Runtime.RunTests
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), instanceMetricsPath))
                 Assert.Equal(975, CountRows(loader));
+        }
+
+        [Fact]
+        public void EntryPointEvaluateRanking()
+        {
+            var dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            var warningsPath = DeleteOutputPath("warnings.idv");
+            var overallMetricsPath = DeleteOutputPath("overall.idv");
+            var instanceMetricsPath = DeleteOutputPath("instance.idv");
+
+            var transforms = @"
+                      {
+                        'Inputs': {
+                            'Column': [
+                                {
+                                    'Name': 'GroupId',
+                                    'Source': 'Workclass'
+                                }
+                            ],
+                            'Data': '$AllData',
+                            'MaxNumTerms': 1000000,
+                            'Sort': 'Occurrence',
+                            'TextKeyValues': false
+                        },
+                        'Name': 'Transforms.TextToKeyConverter',
+                        'Outputs': {
+                            'Model': '$output_model1',
+                            'OutputData': '$output_data1'
+                        }
+                      },
+                      {
+                        'Name': 'Transforms.LabelColumnKeyBooleanConverter',
+                        'Inputs': {
+                            'Data': '$output_data1',
+                            'LabelColumn': 'Label',
+                            'TextKeyValues': false
+                        },
+                        'Outputs': {
+                            'Model': '$output_model2',
+                            'OutputData': '$output_data2'
+                        }
+                      },
+                      {
+                        'Name': 'Transforms.ColumnCopier',
+                        'Inputs': {
+                            'Column': [
+                              {
+                                'Name': 'Features',
+                                'Source': 'NumericFeatures'
+                              }
+                            ],
+                            'Data': '$output_data2'
+                        },
+                        'Outputs': {
+                            'Model': '$output_model3',
+                            'OutputData': '$output_data3'
+                        }
+                      },";
+
+            RunTrainScoreEvaluate("Trainers.FastTreeRanker", "Models.RankerEvaluator",
+                dataPath, warningsPath, overallMetricsPath, instanceMetricsPath,
+                splitterInput: "output_data3", transforms: transforms);
+
+            using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), warningsPath))
+                Assert.Equal(0, CountRows(loader));
+
+            using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), overallMetricsPath))
+                Assert.Equal(1, CountRows(loader));
+
+            using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), instanceMetricsPath))
+            {
+                Assert.Equal(103, CountRows(loader));
+                Assert.True(loader.Schema.TryGetColumnIndex("GroupId", out var groupCol));
+                Assert.True(loader.Schema.TryGetColumnIndex("Label", out var labelCol));
+            }
         }
 
         [Fact]
