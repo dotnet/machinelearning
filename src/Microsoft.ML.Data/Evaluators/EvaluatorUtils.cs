@@ -653,10 +653,10 @@ namespace Microsoft.ML.Runtime.Data
                 ValueMapper<uint, uint> mapper =
                     (ref uint src, ref uint dst) =>
                     {
-                        if (src == 0 || src > keyCount)
+                        if (src > keyCount)
                             dst = 0;
                         else
-                            dst = src + 1;
+                            dst = src;
                     };
                 views[i] = LambdaColumnMapper.Create(env, "ReconcileKeyValues", views[i], columnName, columnName,
                     views[i].Schema.GetColumnType(index), keyType, mapper);
@@ -866,7 +866,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                     else if (dvNumber == 0 && dv.Schema.HasKeyNames(i, type.KeyCount))
                         firstDvKeyWithNamesColumns.Add(name);
-                    else if (type.KeyCount > 0 && name != labelColName)
+                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema.HasKeyNames(i, type.KeyCount))
                     {
                         // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
                         if (!firstDvKeyNoNamesColumns.ContainsKey(name))
@@ -901,7 +901,7 @@ namespace Microsoft.ML.Runtime.Data
             Func<IDataView, int, IDataView> keyToValue =
                 (idv, i) =>
                 {
-                    foreach (var keyCol in firstDvVectorKeyColumns.Prepend(labelColName))
+                    foreach (var keyCol in firstDvVectorKeyColumns.Concat(firstDvKeyWithNamesColumns).Prepend(labelColName))
                     {
                         if (keyCol == labelColName && labelColKeyValuesType == null)
                             continue;
