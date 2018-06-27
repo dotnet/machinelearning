@@ -9,8 +9,9 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// This contains information about a column in an IDataView. It is essentially a convenience
-    /// cache containing the name, column index, and column type for the column.
+    /// This contains information about a column in an <see cref="IDataView"/>. It is essentially a convenience cache
+    /// containing the name, column index, and column type for the column. The intended usage is that users of <see cref="RoleMappedSchema"/>
+    /// to get the column index and type associated with 
     /// </summary>
     public sealed class ColumnInfo
     {
@@ -71,12 +72,20 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// Encapsulates an ISchema plus column role mapping information. It has convenience fields for
-    /// several common column roles, but can hold an arbitrary set of column infos. The convenience
-    /// fields are non-null iff there is a unique column with the corresponding role. When there are
-    /// no such columns or more than one such column, the field is null. The Has, HasUnique, and
-    /// HasMultiple methods provide some cardinality information.
-    /// Note that all columns assigned roles are guaranteed to be non-hidden in this schema.
+    /// Encapsulates an <see cref="ISchema"/> plus column role mapping information. The purpose of role mappings is to
+    /// provide information on what the intended usage is for. That is: while a given data view may have a column named
+    /// "Features", by itself that is insufficient: the trainer must be fed a role mapping that says that the role
+    /// mapping for features is filled by that "Features" column. This allows things like columns not named "Features"
+    /// to actually fill that role (as opposed to insisting on a hard coding, or having every trainer have to be
+    /// individually configured). Also, by being a one-to-many mapping, it is a way for learners that can consume
+    /// multiple features columns to consume that information.
+    ///
+    /// This class has convenience fields for several common column roles (se.g., <see cref="Feature"/>, <see
+    /// cref="Label"/>), but can hold an arbitrary set of column infos. The convenience fields are non-null iff there is
+    /// a unique column with the corresponding role. When there are no such columns or more than one such column, the
+    /// field is null. The <see cref="Has"/>, <see cref="HasUnique"/>, and <see cref="HasMultiple"/> methods provide
+    /// some cardinality information. Note that all columns assigned roles are guaranteed to be non-hidden in this
+    /// schema.
     /// </summary>
     public sealed class RoleMappedSchema
     {
@@ -85,18 +94,16 @@ namespace Microsoft.ML.Runtime.Data
         private const string GroupString = "Group";
         private const string WeightString = "Weight";
         private const string NameString = "Name";
-        private const string IdString = "Id";
         private const string FeatureContributionsString = "FeatureContributions";
 
         public struct ColumnRole
         {
-            public static ColumnRole Feature { get { return new ColumnRole(FeatureString); } }
-            public static ColumnRole Label { get { return new ColumnRole(LabelString); } }
-            public static ColumnRole Group { get { return new ColumnRole(GroupString); } }
-            public static ColumnRole Weight { get { return new ColumnRole(WeightString); } }
-            public static ColumnRole Name { get { return new ColumnRole(NameString); } }
-            public static ColumnRole Id { get { return new ColumnRole(IdString); } }
-            public static ColumnRole FeatureContributions { get { return new ColumnRole(FeatureContributionsString); } }
+            public static ColumnRole Feature => FeatureString;
+            public static ColumnRole Label => LabelString;
+            public static ColumnRole Group => GroupString;
+            public static ColumnRole Weight => WeightString;
+            public static ColumnRole Name => NameString;
+            public static ColumnRole FeatureContributions => FeatureContributionsString;
 
             public readonly string Value;
 
@@ -152,11 +159,6 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public readonly ColumnInfo Name;
 
-        /// <summary>
-        /// The Id column, when there is exactly one (null otherwise).
-        /// </summary>
-        public readonly ColumnInfo Id;
-
         // Maps from role to the associated column infos.
         private readonly Dictionary<string, IReadOnlyList<ColumnInfo>> _map;
 
@@ -194,9 +196,6 @@ namespace Microsoft.ML.Runtime.Data
                     case NameString:
                         Name = cols[0];
                         break;
-                    case IdString:
-                        Id = cols[0];
-                        break;
                     }
                 }
             }
@@ -224,8 +223,8 @@ namespace Microsoft.ML.Runtime.Data
 
         private static Dictionary<string, List<ColumnInfo>> MapFromNames(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles)
         {
-            Contracts.AssertValue(schema, "schema");
-            Contracts.AssertValue(roles, "roles");
+            Contracts.AssertValue(schema);
+            Contracts.AssertValue(roles);
 
             var map = new Dictionary<string, List<ColumnInfo>>();
             foreach (var kvp in roles)
@@ -241,8 +240,8 @@ namespace Microsoft.ML.Runtime.Data
 
         private static Dictionary<string, List<ColumnInfo>> MapFromNamesOpt(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles)
         {
-            Contracts.AssertValue(schema, "schema");
-            Contracts.AssertValue(roles, "roles");
+            Contracts.AssertValue(schema);
+            Contracts.AssertValue(roles);
 
             var map = new Dictionary<string, List<ColumnInfo>>();
             foreach (var kvp in roles)
@@ -334,6 +333,13 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        /// <summary>
+        /// Returns the <see cref="ColumnInfo"/> corresponding to <paramref name="role"/> if there is
+        /// exactly one such mapping, and otherwise throws an exception.
+        /// </summary>
+        /// <param name="role">The role to look up</param>
+        /// <returns>The info corresponding to that role, assuming there was only one column
+        /// mapped to that</returns>
         public ColumnInfo GetUniqueColumn(ColumnRole role)
         {
             var infos = GetColumns(role);
@@ -398,9 +404,9 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// Encapsulates an IDataView plus a corresponding RoleMappedSchema. Note that the schema of the
-    /// RoleMappedSchema is guaranteed to be the same schema of the IDataView, that is,
-    /// Data.Schema == Schema.Schema.
+    /// Encapsulates an <see cref="IDataView"/> plus a corresponding <see cref="RoleMappedSchema"/>.
+    /// Note that the schema of <see cref="RoleMappedSchema.Schema"/> of <see cref="Schema"/> is
+    /// guaranteed to equal the the <see cref="ISchematized.Schema"/> of <see cref="Data"/>.
     /// </summary>
     public sealed class RoleMappedData
     {

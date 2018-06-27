@@ -514,11 +514,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (autoNorm != NormalizeOption.Yes)
                 {
-                    var nn = trainer as ITrainerEx;
                     DvBool isNormalized = DvBool.False;
-                    if (nn == null || !nn.NeedNormalization ||
-                        (schema.TryGetMetadata(BoolType.Instance, MetadataUtils.Kinds.IsNormalized, featCol, ref isNormalized) &&
-                        isNormalized.IsTrue))
+                    if (trainer.NeedNormalization() != true || schema.IsNormalized(featCol))
                     {
                         ch.Info("Not adding a normalizer.");
                         return false;
@@ -530,20 +527,17 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
                 ch.Info("Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.");
-                // Quote the feature column name
-                string quotedFeatureColumnName = featureColumn;
-                StringBuilder sb = new StringBuilder();
-                if (CmdQuoter.QuoteValue(quotedFeatureColumnName, sb))
-                    quotedFeatureColumnName = sb.ToString();
-                var component = new SubComponent<IDataTransform, SignatureDataTransform>("MinMax", string.Format("col={{ name={0} source={0} }}", quotedFeatureColumnName));
-                var loader = view as IDataLoader;
-                if (loader != null)
-                {
-                    view = CompositeDataLoader.Create(env, loader,
-                        new KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>(null, component));
-                }
+                // REVIEW: This verbose constructor should be replaced with zeahmed's enhancements once #405 is committed.
+                IDataView ApplyNormalizer(IHostEnvironment innerEnv, IDataView input)
+                    => NormalizeTransform.Create(innerEnv, new NormalizeTransform.MinMaxArguments()
+                    {
+                        Column = new[] { new NormalizeTransform.AffineColumn { Source = featureColumn, Name = featureColumn } }
+                    }, input);
+
+                if (view is IDataLoader loader)
+                    view = CompositeDataLoader.ApplyTransform(env, loader, tag: null, creationArgs: null, ApplyNormalizer);
                 else
-                    view = component.CreateInstance(env, view);
+                    view = ApplyNormalizer(env, view);
                 return true;
             }
             return false;

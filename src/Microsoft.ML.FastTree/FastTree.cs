@@ -1338,14 +1338,13 @@ namespace Microsoft.ML.Runtime.FastTree
                     IDataView data = examples.Data;
 
                     // Convert the label column, if one exists.
-                    var labelInfo = examples.Schema.Label;
-                    if (labelInfo != null)
+                    var labelName = examples.Schema.Label?.Name;
+                    if (labelName != null)
                     {
                         var convArgs = new LabelConvertTransform.Arguments();
-                        var convCol = new LabelConvertTransform.Column() { Name = labelInfo.Name, Source = labelInfo.Name };
+                        var convCol = new LabelConvertTransform.Column() { Name = labelName, Source = labelName };
                         convArgs.Column = new LabelConvertTransform.Column[] { convCol };
                         data = new LabelConvertTransform(Host, convArgs, data);
-                        labelInfo = ColumnInfo.CreateFromName(data.Schema, convCol.Name, "converted label");
                     }
                     // Convert the group column, if one exists.
                     var groupInfo = examples.Schema.Group;
