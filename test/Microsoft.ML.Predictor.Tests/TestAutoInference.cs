@@ -26,11 +26,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("EntryPoints")]
         public void TestLearn()
         {
-            //Skip this test for macOS until engineering system installs OpenMP dependency for 
-            //native LightGBM library.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
-
             using (var env = new TlcEnvironment())
             {
                 string pathData = GetDataPath("adult.train");
@@ -280,11 +275,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestRocketPipelineEngine()
         {
-            //Skip this test for macOS until engineering system installs OpenMP dependency for 
-            //native LightGBM library.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
-
             // Get datasets
             var pathData = GetDataPath("adult.train");
             var pathDataTest = GetDataPath("adult.test");

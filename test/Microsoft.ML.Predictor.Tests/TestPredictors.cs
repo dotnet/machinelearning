@@ -413,11 +413,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("LightGBM")]
         public void LightGBMClassificationTest()
         {
-            //Skip this test for macOS until engineering system installs OpenMP dependency for 
-            //native LightGBM library.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
-
             var learners = new[] { TestLearners.LightGBMClassifier };
             var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
             foreach (var learner in learners)
@@ -433,11 +428,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Binary"), TestCategory("LightGBM")]
         public void GossLightGBMTest()
         {
-            //Skip this test for macOS until engineering system installs OpenMP dependency for 
-            //native LightGBM library.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
-
             var binaryPredictors = new[] { TestLearners.LightGBMGoss };
             var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
             RunAllTests(binaryPredictors, binaryClassificationDatasets, extraTag: "goss");
@@ -449,11 +439,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("LightGBM")]
         public void DartLightGBMTest()
         {
-            //Skip this test for macOS until engineering system installs OpenMP dependency for 
-            //native LightGBM library.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
-
             var binaryPredictors = new[] { TestLearners.LightGBMDart };
             var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
             RunAllTests(binaryPredictors, binaryClassificationDatasets, extraTag: "dart");
@@ -468,11 +453,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("LightGBM")]
         public void MultiClassifierLightGBMKeyLabelTest()
         {
-            //Skip this test for macOS until engineering system installs OpenMP dependency for 
-            //native LightGBM library.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
-
             var multiPredictors = new[] { TestLearners.LightGBMMC };
             var multiClassificationDatasets = new[] { TestDatasets.irisLoader };
             RunAllTests(multiPredictors, multiClassificationDatasets, extraTag: "key");
@@ -487,11 +467,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("LightGBM")]
         public void MultiClassifierLightGBMKeyLabelU404Test()
         {
-            //Skip this test for macOS until engineering system installs OpenMP dependency for 
-            //native LightGBM library.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
-
             var multiPredictors = new[] { TestLearners.LightGBMMC };
             var multiClassificationDatasets = new[] { TestDatasets.irisLoaderU404 };
             RunAllTests(multiPredictors, multiClassificationDatasets, extraTag: "keyU404");
@@ -506,11 +481,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("LightGBM")]
         public void RegressorLightGBMTest()
         {
-            //Skip this test for macOS until engineering system installs OpenMP dependency for 
-            //native LightGBM library.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
-
             var regPredictors = new[] { TestLearners.LightGBMReg };
             var regDatasets = new[] { TestDatasets.winequality };
             RunAllTests(regPredictors, regDatasets);
@@ -525,11 +495,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("LightGBM")]
         public void RegressorLightGBMMAETest()
         {
-            //Skip this test for macOS until engineering system installs OpenMP dependency for 
-            //native LightGBM library.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
-
             var regPredictors = new[] { TestLearners.LightGBMRegMae };
             var regDatasets = new[] { TestDatasets.winequality };
             RunAllTests(regPredictors, regDatasets, extraTag: "MAE");
@@ -544,11 +509,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("LightGBM")]
         public void RegressorLightGBMRMSETest()
         {
-            //Skip this test for macOS until engineering system installs OpenMP dependency for 
-            //native LightGBM library.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return;
-
             var regPredictors = new[] { TestLearners.LightGBMRegRmse };
             var regDatasets = new[] { TestDatasets.winequality };
             RunAllTests(regPredictors, regDatasets, extraTag: "RMSE");
