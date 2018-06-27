@@ -866,7 +866,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                     else if (dvNumber == 0 && dv.Schema.HasKeyNames(i, type.KeyCount))
                         firstDvKeyWithNamesColumns.Add(name);
-                    else if (type.KeyCount > 0 && name != labelColName)
+                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema.HasKeyNames(i, type.KeyCount))
                     {
                         // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
                         if (!firstDvKeyNoNamesColumns.ContainsKey(name))
