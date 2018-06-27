@@ -262,7 +262,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestCrossValidationMacro()
         {
-            var dataPath = GetDataPath(TestDatasets.winequality.trainFilename);
+            var dataPath = GetDataPath(TestDatasets.winequalitymacro.trainFilename);
             using (var env = new TlcEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
@@ -527,6 +527,89 @@ namespace Microsoft.ML.Runtime.RunTests
                         }
                     }
                     Assert.Equal(0, rowCount);
+                }
+
+                var warnings = experiment.GetOutput(crossValidateOutput.Warnings);
+                using (var cursor = warnings.GetRowCursor(col => true))
+                    Assert.False(cursor.MoveNext());
+            }
+        }
+
+        [Fact]
+        public void TestCrossValidationMacroMultiClassWithWarnings()
+        {
+            var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
+            using (var env = new TlcEnvironment(42))
+            {
+                var subGraph = env.CreateExperiment();
+
+                var nop = new ML.Transforms.NoOperation();
+                var nopOutput = subGraph.Add(nop);
+
+                var learnerInput = new ML.Trainers.LogisticRegressionClassifier
+                {
+                    TrainingData = nopOutput.OutputData,
+                    NumThreads = 1
+                };
+                var learnerOutput = subGraph.Add(learnerInput);
+
+                var experiment = env.CreateExperiment();
+                var importInput = new ML.Data.TextLoader(dataPath);
+                var importOutput = experiment.Add(importInput);
+
+                var filter = new ML.Transforms.RowRangeFilter();
+                filter.Data = importOutput.Data;
+                filter.Column = "Label";
+                filter.Min = 0;
+                filter.Max = 5;
+                var filterOutput = experiment.Add(filter);
+
+                var term = new ML.Transforms.TextToKeyConverter();
+                term.Column = new[]
+                {
+                    new ML.Transforms.TermTransformColumn()
+                    {
+                        Source = "Label", Name = "Strat", Sort = ML.Transforms.TermTransformSortOrder.Value
+                    }
+                };
+                term.Data = filterOutput.OutputData;
+                var termOutput = experiment.Add(term);
+
+                var crossValidate = new ML.Models.CrossValidator
+                {
+                    Data = termOutput.OutputData,
+                    Nodes = subGraph,
+                    Kind = ML.Models.MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer,
+                    TransformModel = null,
+                    StratificationColumn = "Strat"
+                };
+                crossValidate.Inputs.Data = nop.Data;
+                crossValidate.Outputs.PredictorModel = learnerOutput.PredictorModel;
+                var crossValidateOutput = experiment.Add(crossValidate);
+
+                experiment.Compile();
+                importInput.SetInput(env, experiment);
+                experiment.Run();
+                var warnings = experiment.GetOutput(crossValidateOutput.Warnings);
+
+                var schema = warnings.Schema;
+                var b = schema.TryGetColumnIndex("WarningText", out int warningCol);
+                Assert.True(b);
+                using (var cursor = warnings.GetRowCursor(col => col == warningCol))
+                {
+                    var getter = cursor.GetGetter<DvText>(warningCol);
+
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    var warning = default(DvText);
+                    getter(ref warning);
+                    Assert.Contains("test instances with class values not seen in the training set.", warning.ToString());
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    getter(ref warning);
+                    Assert.Contains("Detected columns of variable length: SortedScores, SortedClasses", warning.ToString());
+                    b = cursor.MoveNext();
+                    Assert.False(b);
                 }
             }
         }

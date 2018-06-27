@@ -1,0 +1,43 @@
+maml.exe TrainTest test=%Data% tr=LightGBMMC{nt=1 iter=10 v=- lr=0.2 mil=10 nl=20} dout=%Output% loader=Text{col=Label:TX:0 col=Features:1-*} data=%Data% out=%Output% seed=1 xf=Term{col=Label}
+Not adding a normalizer.
+Auto-tuning parameters: UseCat = False
+Auto-tuning parameters: UseSoftmax = False
+LightGBM objective=multiclassova
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    50 |     0 |     0 | 1.0000
+        1 ||     0 |    47 |     3 | 0.9400
+        2 ||     0 |     1 |    49 | 0.9800
+          ||========================
+Precision ||1.0000 |0.9792 |0.9423 |
+Accuracy(micro-avg): 0.973333
+Accuracy(macro-avg): 0.973333
+Log-loss:           0.196674
+Log-loss reduction: 82.097919
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.973333 (0.0000)
+Accuracy(macro-avg): 0.973333 (0.0000)
+Log-loss:           0.196674 (0.0000)
+Log-loss reduction: 82.097919 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Building term dictionary' started.
+[1] (%Time%)	150 examples	Total Terms: 3
+[1] 'Building term dictionary' finished in %Time%.
+[2] 'Loading data for LightGBM' started.
+[2] 'Loading data for LightGBM' finished in %Time%.
+[3] 'Training with LightGBM' started.
+[3] 'Training with LightGBM' finished in %Time%.
+[4] 'Saving model' started.
+[4] 'Saving model' finished in %Time%.

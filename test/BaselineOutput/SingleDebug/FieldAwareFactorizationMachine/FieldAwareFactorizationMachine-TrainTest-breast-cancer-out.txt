@@ -1,0 +1,51 @@
+maml.exe TrainTest test=%Data% tr=FieldAwareFactorizationMachine{d=5 shuf- norm-} col[Feature]=DupFeatures norm=No dout=%Output% data=%Data% out=%Output% seed=1 xf=Copy{col=DupFeatures:Features} xf=MinMax{col=Features col=DupFeatures}
+Not adding a normalizer.
+Warning: Skipped 16 examples with bad label/weight/features in training set
+Not training a calibrator because it is not needed.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      215 |       24 | 0.8996
+ negative ||        7 |      437 | 0.9842
+          ||======================
+Precision ||   0.9685 |   0.9479 |
+OVERALL 0/1 ACCURACY: 0.954612
+LOG LOSS/instance:  0.228754
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): 75.508177
+AUC:                0.982029
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.982029 (0.0000)
+Accuracy:           0.954612 (0.0000)
+Positive precision: 0.968468 (0.0000)
+Positive recall:    0.899582 (0.0000)
+Negative precision: 0.947939 (0.0000)
+Negative recall:    0.984234 (0.0000)
+Log-loss:           0.228754 (0.0000)
+Log-loss reduction: 75.508177 (0.0000)
+F1 Score:           0.932755 (0.0000)
+AUPRC:              0.980228 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Normalize' started.
+[1] (%Time%)	699 examples
+[1] 'Normalize' finished in %Time%.
+[2] 'Training' started.
+[2] (%Time%)	1 iterations, 683 examples	Training-loss: 0.306117119945184
+[2] (%Time%)	2 iterations, 683 examples	Training-loss: 0.193084570883075
+[2] (%Time%)	3 iterations, 683 examples	Training-loss: 0.173782368769797
+[2] (%Time%)	4 iterations, 683 examples	Training-loss: 0.163879262610855
+[2] (%Time%)	5 iterations, 683 examples	Training-loss: 0.157117446501075
+[2] 'Training' finished in %Time%.
+[3] 'Saving model' started.
+[3] 'Saving model' finished in %Time%.
