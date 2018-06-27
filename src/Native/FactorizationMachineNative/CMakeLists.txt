@@ -1,4 +1,4 @@
-﻿project (FactorizationMachineNative)
+project (FactorizationMachineNative)
 
 set(SOURCES
     FactorizationMachineCore.cpp
