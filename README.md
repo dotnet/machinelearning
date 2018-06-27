@@ -18,7 +18,7 @@ Along with these ML capabilities this first release of ML.NET also brings the fi
 
 ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
 
-The current release is 0.1. Check out the [release notes](docs/release-notes/0.1/release-0.1.md).
+The current release is 0.2. Check out the [release notes](docs/release-notes/0.2/release-0.2.md).
 
 First ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64 bit process.
 
@@ -66,7 +66,7 @@ Here's an example of code to train a model to predict sentiment from text sample
 
 ```C#
 var pipeline = new LearningPipeline();
-pipeline.Add(new TextLoader<SentimentData>(dataPath, separator: ","));
+pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>(separator: ','));
 pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
 pipeline.Add(new FastTreeBinaryClassifier());
 var model = pipeline.Train<SentimentData, SentimentPrediction>();
@@ -84,6 +84,9 @@ SentimentPrediction prediction = model.Predict(data);
 
 Console.WriteLine("prediction: " + prediction.Sentiment);
 ```
+## Samples
+
+We have a [repo of samples](https://github.com/dotnet/machinelearning-samples) that you can look at.
 
 ## License
 

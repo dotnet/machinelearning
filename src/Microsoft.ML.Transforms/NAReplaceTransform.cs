@@ -43,6 +43,7 @@ namespace Microsoft.ML.Runtime.Data
             Mean,
             Minimum,
             Maximum,
+            SpecifiedValue,
 
             [HideEnumValue]
             Def = DefaultValue,
@@ -53,8 +54,6 @@ namespace Microsoft.ML.Runtime.Data
             [HideEnumValue]
             Max = Maximum,
 
-            [HideEnumValue]
-            SpecifiedValue,
             [HideEnumValue]
             Val = SpecifiedValue,
             [HideEnumValue]

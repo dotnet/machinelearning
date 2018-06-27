@@ -1,4 +1,8 @@
-﻿using Microsoft.ML.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -102,7 +106,7 @@ namespace Microsoft.ML.Models
                 }
 
                 var experiment = environment.CreateExperiment();
-                
+
                 TrainingData = (loaders[0].ApplyStep(null, experiment) as ILearningPipelineDataStep).Data;
                 TestingData = (testData.ApplyStep(null, experiment) as ILearningPipelineDataStep).Data;
                 Nodes = subGraph;
@@ -110,7 +114,7 @@ namespace Microsoft.ML.Models
                 Inputs.Data = firstTransform.GetInputData();
                 Outputs.PredictorModel = null;
                 Outputs.TransformModel = lastTransformModel;
-                var crossValidateOutput = experiment.Add(this);
+                var trainTestNodeOutput = experiment.Add(this);
                 experiment.Compile();
                 foreach (ILearningPipelineLoader loader in loaders)
                     loader.SetInput(environment, experiment);
@@ -124,21 +128,27 @@ namespace Microsoft.ML.Models
                 {
                     trainTestOutput.BinaryClassificationMetrics = BinaryClassificationMetrics.FromMetrics(
                         environment,
-                        experiment.GetOutput(crossValidateOutput.OverallMetrics),
-                        experiment.GetOutput(crossValidateOutput.ConfusionMatrix)).FirstOrDefault();
+                        experiment.GetOutput(trainTestNodeOutput.OverallMetrics),
+                        experiment.GetOutput(trainTestNodeOutput.ConfusionMatrix)).FirstOrDefault();
                 }
                 else if (Kind == MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer)
                 {
                     trainTestOutput.ClassificationMetrics = ClassificationMetrics.FromMetrics(
                         environment,
-                        experiment.GetOutput(crossValidateOutput.OverallMetrics),
-                        experiment.GetOutput(crossValidateOutput.ConfusionMatrix)).FirstOrDefault();
+                        experiment.GetOutput(trainTestNodeOutput.OverallMetrics),
+                        experiment.GetOutput(trainTestNodeOutput.ConfusionMatrix)).FirstOrDefault();
                 }
                 else if (Kind == MacroUtilsTrainerKinds.SignatureRegressorTrainer)
                 {
                     trainTestOutput.RegressionMetrics = RegressionMetrics.FromOverallMetrics(
                         environment,
-                        experiment.GetOutput(crossValidateOutput.OverallMetrics)).FirstOrDefault();
+                        experiment.GetOutput(trainTestNodeOutput.OverallMetrics)).FirstOrDefault();
+                }
+                else if (Kind == MacroUtilsTrainerKinds.SignatureClusteringTrainer)
+                {
+                    trainTestOutput.ClusterMetrics = ClusterMetrics.FromOverallMetrics(
+                        environment,
+                        experiment.GetOutput(trainTestNodeOutput.OverallMetrics)).FirstOrDefault();
                 }
                 else
                 {
@@ -146,7 +156,7 @@ namespace Microsoft.ML.Models
                     throw Contracts.Except($"{Kind.ToString()} is not supported at the moment.");
                 }
 
-                ITransformModel model = experiment.GetOutput(crossValidateOutput.TransformModel);
+                ITransformModel model = experiment.GetOutput(trainTestNodeOutput.TransformModel);
                 BatchPredictionEngine<TInput, TOutput> predictor;
                 using (var memoryStream = new MemoryStream())
                 {
@@ -158,7 +168,7 @@ namespace Microsoft.ML.Models
 
                     trainTestOutput.PredictorModels = new PredictionModel<TInput, TOutput>(predictor, memoryStream);
                 }
-                
+
                 return trainTestOutput;
             }
         }
@@ -171,6 +181,7 @@ namespace Microsoft.ML.Models
         public BinaryClassificationMetrics BinaryClassificationMetrics;
         public ClassificationMetrics ClassificationMetrics;
         public RegressionMetrics RegressionMetrics;
+        public ClusterMetrics ClusterMetrics;
         public PredictionModel<TInput, TOutput> PredictorModels;
 
         //REVIEW: Add warnings and per instance results and implement 

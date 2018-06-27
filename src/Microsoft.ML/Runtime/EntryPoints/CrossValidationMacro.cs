@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
             public Var<IPredictorModel> PredictorModel;
-            
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model", SortOrder = 2)]
             public Var<ITransformModel> TransformModel;
         }
@@ -77,6 +77,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // (and the same for the TrainTest macro). I currently do not know how to do this, so this should be revisited in the future.
             [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 8)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
+
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 10)]
+            public string LabelColumn = DefaultColumnNames.Label;
+
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 11)]
+            public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 12)]
+            public Optional<string> GroupColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
         }
 
         // REVIEW: This output would be much better as an array of CommonOutputs.ClassificationEvaluateOutput,
@@ -104,7 +113,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView ConfusionMatrix;
         }
 
-
         public sealed class CombineMetricsInput
         {
             [Argument(ArgumentType.Multiple, HelpText = "Overall metrics datasets", SortOrder = 1)]
@@ -121,6 +129,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 5)]
             public string LabelColumn = DefaultColumnNames.Label;
+
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 6)]
+            public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 12)]
+            public Optional<string> GroupColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
 
             [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 6)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
@@ -189,7 +203,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var args = new TrainTestMacro.Arguments
                 {
                     Nodes = new JArray(graph.Select(n => n.ToJson()).ToArray()),
-                    TransformModel = null
+                    TransformModel = null,
+                    LabelColumn = input.LabelColumn,
+                    GroupColumn = input.GroupColumn,
+                    WeightColumn = input.WeightColumn
                 };
 
                 if (transformModelVarName != null)
@@ -219,7 +236,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 }
                 else
                     args.Outputs.TransformModel = null;
-                
+
                 // Set train/test trainer kind to match.
                 args.Kind = input.Kind;
 
@@ -357,10 +374,17 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             var combineArgs = new CombineMetricsInput();
             combineArgs.Kind = input.Kind;
+            combineArgs.LabelColumn = input.LabelColumn;
+            combineArgs.WeightColumn = input.WeightColumn;
+            combineArgs.GroupColumn = input.GroupColumn;
 
             // Set the input bindings for the CombineMetrics entry point.
             var combineInputBindingMap = new Dictionary<string, List<ParameterBinding>>();
             var combineInputMap = new Dictionary<ParameterBinding, VariableBinding>();
+
+            var warningsArray = new SimpleParameterBinding(nameof(combineArgs.Warnings));
+            combineInputBindingMap.Add(nameof(combineArgs.Warnings), new List<ParameterBinding> { warningsArray });
+            combineInputMap.Add(warningsArray, new SimpleVariableBinding(warningsOutput.OutputData.VarName));
             var overallArray = new SimpleParameterBinding(nameof(combineArgs.OverallMetrics));
             combineInputBindingMap.Add(nameof(combineArgs.OverallMetrics), new List<ParameterBinding> { overallArray });
             combineInputMap.Add(overallArray, new SimpleVariableBinding(overallMetricsOutput.OutputData.VarName));
@@ -384,10 +408,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var combineInstanceMetric = new Var<IDataView>();
             combineInstanceMetric.VarName = node.GetOutputVariableName(nameof(Output.PerInstanceMetrics));
             combineOutputMap.Add(nameof(Output.PerInstanceMetrics), combineInstanceMetric.VarName);
-            var combineConfusionMatrix = new Var<IDataView>();
-            combineConfusionMatrix.VarName = node.GetOutputVariableName(nameof(Output.ConfusionMatrix));
-            combineOutputMap.Add(nameof(TrainTestMacro.Output.ConfusionMatrix), combineConfusionMatrix.VarName);
-
+            if (confusionMatricesOutput != null)
+            {
+                var combineConfusionMatrix = new Var<IDataView>();
+                combineConfusionMatrix.VarName = node.GetOutputVariableName(nameof(Output.ConfusionMatrix));
+                combineOutputMap.Add(nameof(TrainTestMacro.Output.ConfusionMatrix), combineConfusionMatrix.VarName);
+            }
             subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
             subGraphNodes.Add(EntryPointNode.Create(env, "Models.CrossValidationResultsCombiner", combineArgs, node.Catalog, node.Context, combineInputBindingMap, combineInputMap, combineOutputMap));
             return new CommonOutputs.MacroOutput<Output>() { Nodes = subGraphNodes };
@@ -399,7 +425,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var eval = GetEvaluator(env, input.Kind);
 
             var perInst = EvaluateUtils.ConcatenatePerInstanceDataViews(env, eval, true, true, input.PerInstanceMetrics.Select(
-                idv => RoleMappedData.Create(idv, RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, input.LabelColumn))).ToArray(),
+                idv => RoleMappedData.CreateOpt(idv, new[]
+                {
+                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, input.LabelColumn),
+                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Weight, input.WeightColumn.Value),
+                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Group, input.GroupColumn.Value)
+                })).ToArray(),
                 out var variableSizeVectorColumnNames);
 
             var warnings = input.Warnings != null ? new List<IDataView>(input.Warnings) : new List<IDataView>();

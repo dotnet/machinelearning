@@ -92,5 +92,20 @@ namespace Microsoft.ML.Runtime.Transforms
                 OutputData = view
             };
         }
+
+        [TlcModule.EntryPoint(Name = "Transforms.LightLda", Desc = LdaTransform.Summary, UserName = LdaTransform.UserName, ShortName = LdaTransform.ShortName)]
+        public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LdaTransform.Arguments input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(input, nameof(input));
+
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LightLda", input);
+            var view = new LdaTransform(h, input, input.Data);
+            return new CommonOutputs.TransformOutput()
+            {
+                Model = new TransformModel(h, view, input.Data),
+                OutputData = view
+            };
+        }
     }
 }

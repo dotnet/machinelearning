@@ -343,6 +343,9 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <returns>standard test for the dataset</returns>
         private Test CreateStandardTest(Dataset dataset)
         {
+            if (Utils.Size(dataset.MaxDcg) == 0)
+                dataset.Skeleton.RecomputeMaxDcg(10);
+
             return new NdcgTest(
                 ConstructScoreTracker(dataset),
                 dataset.Ratings,
@@ -764,7 +767,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     {
                         // calculates the permutation that orders "scores" in descending order, without modifying "scores"
                         Array.Copy(_oneTwoThree, permutation, numDocuments);
-#if USE_FASTTREENATIVE2
+#if USE_FASTTREENATIVE
 
                         PermutationSort(permutation, scoresToUse, labels, numDocuments, begin);
                         // Get how far about baseline our current
@@ -815,12 +818,14 @@ namespace Microsoft.ML.Runtime.FastTree
                         if (!_trainDcg && (_costFunctionParam == 'c' || _useShiftedNdcg))
                         {
                             PermutationSort(permutation, scoresToUse, labels, numDocuments, begin);
-                            inverseMaxDcg = 1.0 / DCGCalculator.MaxDCGQuery(labels, begin, numDocuments, numDocuments, _labelCounts[query]);
+                            inverseMaxDcg = 1.0 / DcgCalculator.MaxDcgQuery(labels, begin, numDocuments, numDocuments, _labelCounts[query]);
                         }
-                        C_GetDerivatives(numDocuments, begin, pPermutation, pLabels,
+                        // A constant related to secondary labels, which does not exist in the current codebase.
+                        const bool secondaryIsolabelExclusive = false;
+                        GetDerivatives(numDocuments, begin, pPermutation, pLabels,
                                 pScores, pLambdas, pWeights, pDiscount,
                                 inverseMaxDcg, pGainLabels,
-                                _secondaryMetricShare, _secondaryIsolabelExclusive, secondaryInverseMaxDcg, pSecondaryGains,
+                                _secondaryMetricShare, secondaryIsolabelExclusive, secondaryInverseMaxDcg, pSecondaryGains,
                                 pSigmoidTable, _minScore, _maxScore, _sigmoidTable.Length, _scoreToSigmoidTableFactor,
                                 _costFunctionParam, _distanceWeight2, numActualResults, &lambdaSum, double.MinValue,
                                 _baselineAlphaCurrent, baselineDcgGap);
@@ -828,11 +833,11 @@ namespace Microsoft.ML.Runtime.FastTree
                         // For computing the "ideal" case of the DCGs.
                         if (_baselineDcg != null)
                         {
-                            if (scoresToUse == _scores)
-                                Array.Copy(_scores, begin, _scoresCopy, begin, numDocuments);
+                            if (scoresToUse == Scores)
+                                Array.Copy(Scores, begin, _scoresCopy, begin, numDocuments);
                             for (int i = begin; i < begin + numDocuments; ++i)
                             {
-                                _scoresCopy[i] += _gradient[i] / _weights[i];
+                                _scoresCopy[i] += Gradient[i] / Weights[i];
                             }
                             Array.Copy(_oneTwoThree, permutation, numDocuments);
                             PermutationSort(permutation, _scoresCopy, labels, numDocuments, begin);

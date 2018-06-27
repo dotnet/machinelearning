@@ -1,4 +1,8 @@
-﻿using Microsoft.ML.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -19,7 +23,7 @@ namespace Microsoft.ML.Models
         /// <typeparam name="TOutput">Class type that represents prediction schema.</typeparam>
         /// <param name="pipeline">Machine learning pipeline may contain loader, transforms and at least one trainer.</param>
         /// <returns>List containing metrics and predictor model for each fold</returns>
-        public CrossValidationOutput<TInput, TOutput> CrossValidate<TInput, TOutput>(LearningPipeline pipeline) 
+        public CrossValidationOutput<TInput, TOutput> CrossValidate<TInput, TOutput>(LearningPipeline pipeline)
             where TInput : class
             where TOutput : class, new()
         {
@@ -76,7 +80,7 @@ namespace Microsoft.ML.Models
                         {
                             PredictorModel = predictorModel
                         };
-                        
+
                         var scorerOutput = subGraph.Add(scorer);
                         lastTransformModel = scorerOutput.ScoringTransform;
                         step = new ScorerPipelineStep(scorerOutput.ScoredData, scorerOutput.ScoringTransform);
@@ -129,7 +133,7 @@ namespace Microsoft.ML.Models
                             experiment.GetOutput(crossValidateOutput.OverallMetrics),
                             experiment.GetOutput(crossValidateOutput.ConfusionMatrix), 2);
                     }
-                    else if(Kind == MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer)
+                    else if (Kind == MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer)
                     {
                         cvOutput.ClassificationMetrics = ClassificationMetrics.FromMetrics(
                             environment,
@@ -139,6 +143,12 @@ namespace Microsoft.ML.Models
                     else if (Kind == MacroUtilsTrainerKinds.SignatureRegressorTrainer)
                     {
                         cvOutput.RegressionMetrics = RegressionMetrics.FromOverallMetrics(
+                            environment,
+                            experiment.GetOutput(crossValidateOutput.OverallMetrics));
+                    }
+                    else if (Kind == MacroUtilsTrainerKinds.SignatureClusteringTrainer)
+                    {
+                        cvOutput.ClusterMetrics = ClusterMetrics.FromOverallMetrics(
                             environment,
                             experiment.GetOutput(crossValidateOutput.OverallMetrics));
                     }
@@ -174,6 +184,7 @@ namespace Microsoft.ML.Models
         public List<BinaryClassificationMetrics> BinaryClassificationMetrics;
         public List<ClassificationMetrics> ClassificationMetrics;
         public List<RegressionMetrics> RegressionMetrics;
+        public List<ClusterMetrics> ClusterMetrics;
         public PredictionModel<TInput, TOutput>[] PredictorModels;
 
         //REVIEW: Add warnings and per instance results and implement 
