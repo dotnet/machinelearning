@@ -822,7 +822,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var perInstFile = CreateOutputPath("perinst.txt");
                 // Create a copy of the label column and use it for stratification, in order to create different label counts in the different folds.
                 string extraArgs = $"tr=FastRankRanking{{t=1}} strat=Strat prexf=rangefilter{{col=Label min=20 max=25}} prexf=term{{col=Strat:Label}} xf=term{{col=Label}} xf=hash{{col=GroupId}} threads- norm=Warn dout={{{perInstFile.Path}}}";
-                string loaderArgs = "loader=text{col=Features:R4:10-14 col=Label:R4:9 col=GroupId:TX:1}";
+                string loaderArgs = "loader=text{col=Features:R4:10-14 col=Label:R4:9 col=GroupId:TX:1 header+}";
                 TestCore("cv", pathData, loaderArgs, extraArgs);
             });
             Done();
