@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
-using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
 using Microsoft.ML.Runtime.PipelineInference;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Xunit;
 using Xunit.Abstractions;
 

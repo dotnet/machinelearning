@@ -1,0 +1,45 @@
+maml.exe TrainTest test=%Data% tr=LightGBM{nt=1 iter=10 booster=dart lr=0.2 mil=10 nl=20} cache=- dout=%Output% loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9} data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Auto-tuning parameters: UseCat = False
+LightGBM objective=binary
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.3448 (241.0/(241.0+458.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      239 |        2 | 0.9917
+ negative ||       12 |      446 | 0.9738
+          ||======================
+Precision ||   0.9522 |   0.9955 |
+OVERALL 0/1 ACCURACY: 0.979971
+LOG LOSS/instance:  0.198312
+Test-set entropy (prior Log-Loss/instance): 0.929318
+LOG-LOSS REDUCTION (RIG): 78.660434
+AUC:                0.995996
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.995996 (0.0000)
+Accuracy:           0.979971 (0.0000)
+Positive precision: 0.952191 (0.0000)
+Positive recall:    0.991701 (0.0000)
+Negative precision: 0.995536 (0.0000)
+Negative recall:    0.973799 (0.0000)
+Log-loss:           0.198312 (0.0000)
+Log-loss reduction: 78.660434 (0.0000)
+F1 Score:           0.971545 (0.0000)
+AUPRC:              0.983584 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Loading data for LightGBM' started.
+[1] 'Loading data for LightGBM' finished in %Time%.
+[2] 'Training with LightGBM' started.
+[2] 'Training with LightGBM' finished in %Time%.
+[3] 'Saving model' started.
+[3] 'Saving model' finished in %Time%.

@@ -16,6 +16,7 @@ namespace Microsoft.ML.Runtime.RunTests
     using Microsoft.ML.Runtime.FastTree;
     using Microsoft.ML.Runtime.FastTree.Internal;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;
@@ -406,7 +407,134 @@ namespace Microsoft.ML.Runtime.RunTests
             });
             Done();
         }
+        
+        [Fact]
+        [TestCategory("Binary")]
+        [TestCategory("LightGBM")]
+        public void LightGBMClassificationTest()
+        {
+            var learners = new[] { TestLearners.LightGBMClassifier };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            foreach (var learner in learners)
+            {
+                foreach (TestDataset dataset in binaryClassificationDatasets)
+                    Run_TrainTest(learner, dataset);
+            }
 
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Binary"), TestCategory("LightGBM")]
+        public void GossLightGBMTest()
+        {
+            var binaryPredictors = new[] { TestLearners.LightGBMGoss };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, extraTag: "goss");
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Binary")]
+        [TestCategory("LightGBM")]
+        public void DartLightGBMTest()
+        {
+            var binaryPredictors = new[] { TestLearners.LightGBMDart };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, extraTag: "dart");
+            Done();
+        }
+
+        /// <summary>
+        /// A test for multi class classifiers.
+        /// </summary>
+        [Fact]
+        [TestCategory("Multiclass")]
+        [TestCategory("LightGBM")]
+        public void MultiClassifierLightGBMKeyLabelTest()
+        {
+            var multiPredictors = new[] { TestLearners.LightGBMMC };
+            var multiClassificationDatasets = new[] { TestDatasets.irisLoader };
+            RunAllTests(multiPredictors, multiClassificationDatasets, extraTag: "key");
+            Done();
+        }
+
+        /// <summary>
+        /// A test for multi class classifiers.
+        /// </summary>
+        [Fact]
+        [TestCategory("Multiclass")]
+        [TestCategory("LightGBM")]
+        public void MultiClassifierLightGBMKeyLabelU404Test()
+        {
+            var multiPredictors = new[] { TestLearners.LightGBMMC };
+            var multiClassificationDatasets = new[] { TestDatasets.irisLoaderU404 };
+            RunAllTests(multiPredictors, multiClassificationDatasets, extraTag: "keyU404");
+            Done();
+        }
+
+        /// <summary>
+        /// A test for regression.
+        /// </summary>
+        [Fact]
+        [TestCategory("Regression")]
+        [TestCategory("LightGBM")]
+        public void RegressorLightGBMTest()
+        {
+            var regPredictors = new[] { TestLearners.LightGBMReg };
+            var regDatasets = new[] { TestDatasets.winequality };
+            RunAllTests(regPredictors, regDatasets);
+            Done();
+        }
+
+        /// <summary>
+        /// A test for regression.
+        /// </summary>
+        [Fact]
+        [TestCategory("Regression")]
+        [TestCategory("LightGBM")]
+        public void RegressorLightGBMMAETest()
+        {
+            var regPredictors = new[] { TestLearners.LightGBMRegMae };
+            var regDatasets = new[] { TestDatasets.winequality };
+            RunAllTests(regPredictors, regDatasets, extraTag: "MAE");
+            Done();
+        }
+
+        /// <summary>
+        /// A test for regression.
+        /// </summary>
+        [Fact]
+        [TestCategory("Regression")]
+        [TestCategory("LightGBM")]
+        public void RegressorLightGBMRMSETest()
+        {
+            var regPredictors = new[] { TestLearners.LightGBMRegRmse };
+            var regDatasets = new[] { TestDatasets.winequality };
+            RunAllTests(regPredictors, regDatasets, extraTag: "RMSE");
+            Done();
+        }
+
+        /// <summary>
+        /// A test for ranking. The training does not seem to be accurate.
+        /// The evaluation is still based on nDCG which is not really convenient pair-wise ranking.
+        /// </summary>
+        [Fact(Skip = "Need to find ranking dataset.")]
+        [TestCategory("Ranking")]
+        [TestCategory("LightGBM")]
+        public void RankingLightGBMTest()
+        {
+            var args = new PredictorAndArgs
+            {
+                Trainer = new SubComponent("LightGBMRank",
+                    "nt=1 iter=20 v=+ mil=20 nl=20 lr=0.2")
+            };
+
+            var rankPredictors = new[] { args };
+            var rankDatasets = new[] { TestDatasets.MQ2008 };
+            RunAllTests(rankPredictors, rankDatasets);
+            Done();
+        }
 
         [Fact]
         public void TestTreeEnsembleCombiner()
