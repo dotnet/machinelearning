@@ -19981,6 +19981,17 @@
       ]
     },
     {
+      "Kind": "EnsembleBinaryDiversityMeasure",
+      "Components": [
+        {
+          "Name": "DisagreementDiversityMeasure",
+          "Desc": null,
+          "FriendlyName": "Disagreement Diversity Measure",
+          "Settings": []
+        }
+      ]
+    },
+    {
       "Kind": "EnsembleBinaryOutputCombiner",
       "Components": [
         {
@@ -20069,7 +20080,7 @@
               "Name": "DiversityMetricType",
               "Type": {
                 "Kind": "Component",
-                "ComponentKind": "EnsembleDiversityMeasure"
+                "ComponentKind": "EnsembleBinaryDiversityMeasure"
               },
               "Desc": "The metric type to be used to find the diversity among base learners",
               "Aliases": [
@@ -20078,7 +20089,9 @@
               "Required": false,
               "SortOrder": 50.0,
               "IsNullable": false,
-              "Default": null
+              "Default": {
+                "Name": "DisagreementDiversityMeasure"
+              }
             },
             {
               "Name": "LearnersSelectionProportion",
@@ -20166,29 +20179,6 @@
       ]
     },
     {
-      "Kind": "EnsembleDiversityMeasure",
-      "Components": [
-        {
-          "Name": "DisagreementDiversityMeasure",
-          "Desc": null,
-          "FriendlyName": "Disagreement Diversity Measure",
-          "Settings": []
-        },
-        {
-          "Name": "MultiDisagreementDiversityMeasure",
-          "Desc": null,
-          "FriendlyName": "Disagreement Diversity Measure",
-          "Settings": []
-        },
-        {
-          "Name": "RegressionDisagreementDiversityMeasure",
-          "Desc": null,
-          "FriendlyName": "Disagreement Diversity Measure",
-          "Settings": []
-        }
-      ]
-    },
-    {
       "Kind": "EnsembleFeatureSelector",
       "Components": [
         {
@@ -20215,6 +20205,17 @@
               "Default": 0.8
             }
           ]
+        }
+      ]
+    },
+    {
+      "Kind": "EnsembleMulticlassDiversityMeasure",
+      "Components": [
+        {
+          "Name": "MultiDisagreementDiversityMeasure",
+          "Desc": null,
+          "FriendlyName": "Disagreement Diversity Measure",
+          "Settings": []
         }
       ]
     },
@@ -20354,7 +20355,7 @@
               "Name": "DiversityMetricType",
               "Type": {
                 "Kind": "Component",
-                "ComponentKind": "EnsembleDiversityMeasure"
+                "ComponentKind": "EnsembleMulticlassDiversityMeasure"
               },
               "Desc": "The metric type to be used to find the diversity among base learners",
               "Aliases": [
@@ -20363,7 +20364,9 @@
               "Required": false,
               "SortOrder": 50.0,
               "IsNullable": false,
-              "Default": null
+              "Default": {
+                "Name": "MultiDisagreementDiversityMeasure"
+              }
             },
             {
               "Name": "LearnersSelectionProportion",
@@ -20445,6 +20448,17 @@
       ]
     },
     {
+      "Kind": "EnsembleRegressionDiversityMeasure",
+      "Components": [
+        {
+          "Name": "RegressionDisagreementDiversityMeasure",
+          "Desc": null,
+          "FriendlyName": "Disagreement Diversity Measure",
+          "Settings": []
+        }
+      ]
+    },
+    {
       "Kind": "EnsembleRegressionOutputCombiner",
       "Components": [
         {
@@ -20498,7 +20512,7 @@
               "Name": "DiversityMetricType",
               "Type": {
                 "Kind": "Component",
-                "ComponentKind": "EnsembleDiversityMeasure"
+                "ComponentKind": "EnsembleRegressionDiversityMeasure"
               },
               "Desc": "The metric type to be used to find the diversity among base learners",
               "Aliases": [
@@ -20507,7 +20521,9 @@
               "Required": false,
               "SortOrder": 50.0,
               "IsNullable": false,
-              "Default": null
+              "Default": {
+                "Name": "RegressionDisagreementDiversityMeasure"
+              }
             },
             {
               "Name": "LearnersSelectionProportion",

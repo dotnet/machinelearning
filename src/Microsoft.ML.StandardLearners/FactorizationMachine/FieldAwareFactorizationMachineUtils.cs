@@ -53,7 +53,6 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
     }
 
-
     internal sealed class FieldAwareFactorizationMachineScalarRowMapper : ISchemaBoundRowMapper
     {
         private readonly FieldAwareFactorizationMachinePredictor _pred;
