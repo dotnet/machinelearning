@@ -653,10 +653,10 @@ namespace Microsoft.ML.Runtime.Data
                 ValueMapper<uint, uint> mapper =
                     (ref uint src, ref uint dst) =>
                     {
-                        if (src == 0 || src > keyCount)
+                        if (src > keyCount)
                             dst = 0;
                         else
-                            dst = src + 1;
+                            dst = src;
                     };
                 views[i] = LambdaColumnMapper.Create(env, "ReconcileKeyValues", views[i], columnName, columnName,
                     views[i].Schema.GetColumnType(index), keyType, mapper);
