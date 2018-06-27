@@ -74,7 +74,6 @@ namespace Microsoft.ML.Runtime.Data
         public CopyColumnsTransform(IHostEnvironment env, IDataView input, string name, string source)
             : this(env, new Arguments(){ Column = new[] { new Column() { Source = source, Name = name }}}, input)
         {
-           
         }
 
         public CopyColumnsTransform(IHostEnvironment env, Arguments args, IDataView input)

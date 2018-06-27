@@ -100,7 +100,6 @@ namespace Microsoft.ML.Runtime.Data
             int poolSize = Defaults.PoolSize)
             : this(env, new Arguments() { Complement = complement, Seed = seed, ShuffleInput = shuffleInput, PoolSize = poolSize }, input)
         {
-            
         }
 
         private BootstrapSampleTransform(IHost host, ModelLoadContext ctx, IDataView input)

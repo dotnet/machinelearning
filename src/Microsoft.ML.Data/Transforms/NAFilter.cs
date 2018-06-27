@@ -87,7 +87,6 @@ namespace Microsoft.ML.Runtime.Data
         public NAFilter(IHostEnvironment env, IDataView input, bool complement = Defaults.Complement, params string[] columns)
             : this(env, new Arguments() { Column = columns, Complement = complement }, input)
         {
-
         }
 
         public NAFilter(IHostEnvironment env, Arguments args, IDataView input)
