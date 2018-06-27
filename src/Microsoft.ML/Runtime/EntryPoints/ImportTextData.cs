@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var host = env.Register("ImportTextData");
             env.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
-            var loader = host.CreateLoader(input.Arguments, new FileHandleSource(input.InputFile)); 
+            var loader = host.CreateLoader(input.Arguments, new FileHandleSource(input.InputFile));
             return new Output { Data = loader };
         }
     }

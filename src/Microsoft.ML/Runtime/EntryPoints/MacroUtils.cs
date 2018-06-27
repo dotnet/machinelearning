@@ -30,9 +30,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             public string LabelColumn { get; set; }
             public string NameColumn { get; set; }
-            public string ScoreColumn { get; set; }
-            public string[] StratColumn { get; set; }
             public string WeightColumn { get; set; }
+            public string GroupColumn { get; set; }
             public string FeatureColumn { get; set; }
 
             public EvaluatorSettings()
@@ -61,8 +60,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
-                            ScoreColumn = settings.ScoreColumn,
-                            StratColumn = settings.StratColumn,
                             WeightColumn = settings.WeightColumn
                         },
                         EvaluatorOutput = () => new Models.BinaryClassificationEvaluator.Output()
@@ -77,8 +74,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
-                            ScoreColumn = settings.ScoreColumn,
-                            StratColumn = settings.StratColumn,
                             WeightColumn = settings.WeightColumn
                         },
                         EvaluatorOutput = () => new Models.ClassificationEvaluator.Output()
@@ -93,9 +88,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
-                            ScoreColumn = settings.ScoreColumn,
-                            StratColumn = settings.StratColumn,
-                            WeightColumn = settings.WeightColumn
+                            WeightColumn = settings.WeightColumn,
+                            GroupIdColumn = settings.GroupColumn
                         },
                         EvaluatorOutput = () => new Models.RankerEvaluator.Output()
                     }
@@ -109,8 +103,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
-                            ScoreColumn = settings.ScoreColumn,
-                            StratColumn = settings.StratColumn,
                             WeightColumn = settings.WeightColumn
                         },
                         EvaluatorOutput = () => new Models.RegressionEvaluator.Output()
@@ -125,8 +117,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
-                            ScoreColumn = settings.ScoreColumn,
-                            StratColumn = settings.StratColumn,
                             WeightColumn = settings.WeightColumn,
                         },
                         EvaluatorOutput = () => new Models.MultiOutputRegressionEvaluator.Output()
@@ -141,8 +131,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
-                            ScoreColumn = settings.ScoreColumn,
-                            StratColumn = settings.StratColumn,
                             WeightColumn = settings.WeightColumn
                         },
                         EvaluatorOutput = () => new Models.AnomalyDetectionEvaluator.Output()
@@ -157,8 +145,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
-                            ScoreColumn = settings.ScoreColumn,
-                            StratColumn = settings.StratColumn,
                             WeightColumn = settings.WeightColumn,
                             FeatureColumn = settings.FeatureColumn
                         },

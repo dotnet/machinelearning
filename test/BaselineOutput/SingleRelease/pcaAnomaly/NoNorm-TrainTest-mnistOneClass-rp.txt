@@ -1,0 +1,4 @@
+pcaAnomaly
+AUC	DR @K FP	DR @P FPR	DR @NumPos	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.989524	1	0.9	0.9	pcaAnomaly	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=pcaAnomaly norm=No dout=%Output% data=%Data% out=%Output% seed=1		
+

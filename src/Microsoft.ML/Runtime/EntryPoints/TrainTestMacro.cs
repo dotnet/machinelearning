@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
             public Var<IPredictorModel> PredictorModel;
-            
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Transform model", SortOrder = 2)]
             public Var<ITransformModel> TransformModel;
         }
@@ -62,6 +62,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates whether to include and output training dataset metrics.", SortOrder = 9)]
             public Boolean IncludeTrainingMetrics = false;
+
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 10)]
+            public string LabelColumn = DefaultColumnNames.Label;
+
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 11)]
+            public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 12)]
+            public Optional<string> GroupColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
         }
 
         public sealed class Output
@@ -110,7 +119,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Parse the subgraph.
             var subGraphRunContext = new RunContext(env);
-            var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes, node.Catalog);
+            var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes, node.Catalog, input.LabelColumn,
+                input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null, input.WeightColumn.IsExplicit ? input.WeightColumn.Value : null);
 
             // Change the subgraph to use the training data as input.
             var varName = input.Inputs.Data.VarName;
@@ -130,7 +140,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (!subGraphRunContext.TryGetVariable(varName, out dataVariable))
                 throw env.Except($"Invalid variable name '{varName}'.");
 
-            string outputVarName = input.Outputs.PredictorModel == null ? node.GetOutputVariableName(nameof(Output.TransformModel)) : 
+            string outputVarName = input.Outputs.PredictorModel == null ? node.GetOutputVariableName(nameof(Output.TransformModel)) :
                 node.GetOutputVariableName(nameof(Output.PredictorModel));
 
             foreach (var subGraphNode in subGraphNodes)
@@ -206,11 +216,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Do not double-add previous nodes.
             exp.Reset();
 
-            // REVIEW: we need to extract the proper label column name here to pass to the evaluators.
-            // This is where you would add code to do it.
+            // REVIEW: add similar support for NameColumn and FeatureColumn.
             var settings = new MacroUtils.EvaluatorSettings
             {
-                LabelColumn = DefaultColumnNames.Label
+                LabelColumn = input.LabelColumn,
+                WeightColumn = input.WeightColumn.IsExplicit ? input.WeightColumn.Value : null,
+                GroupColumn = input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null
             };
 
             string outVariableName;
@@ -249,7 +260,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var evalInputOutputTraining = MacroUtils.GetEvaluatorInputOutput(input.Kind, settings);
                 var evalNodeTraining = evalInputOutputTraining.Item1;
                 var evalOutputTraining = evalInputOutputTraining.Item2;
-                evalNodeTraining.Data.VarName = input.Outputs.PredictorModel == null ? datasetTransformNodeTrainingOutput.OutputData.VarName : 
+                evalNodeTraining.Data.VarName = input.Outputs.PredictorModel == null ? datasetTransformNodeTrainingOutput.OutputData.VarName :
                     scoreNodeTrainingOutput.ScoredData.VarName;
 
                 if (node.OutputMap.TryGetValue(nameof(Output.TrainingWarnings), out outVariableName))

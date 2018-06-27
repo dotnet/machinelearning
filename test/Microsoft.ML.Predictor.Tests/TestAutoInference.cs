@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
-using Newtonsoft.Json.Linq;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
 using Microsoft.ML.Runtime.PipelineInference;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -408,6 +410,27 @@ namespace Microsoft.ML.Runtime.RunTests
                 // Make sure second object's set of changes didn't overwrite first object's
                 env.Check(!lr1.PipelineNode.SweepParams[0].RawValue.Equals(lr2.PipelineNode.SweepParams[0].RawValue));
                 env.Check(!sdca2.PipelineNode.SweepParams[0].RawValue.Equals(sdca1.PipelineNode.SweepParams[0].RawValue));
+            }
+        }
+
+        [Fact]
+        public void TestSupportedMetricsByName()
+        {
+            var names = new List<string>()
+            {
+                AutoInference.SupportedMetric.AccuracyMacro.Name,
+                AutoInference.SupportedMetric.AccuracyMicro.Name,
+                AutoInference.SupportedMetric.Auc.Name,
+                AutoInference.SupportedMetric.AuPrc.Name,
+                AutoInference.SupportedMetric.Dbi.Name,
+                AutoInference.SupportedMetric.F1.Name,
+                AutoInference.SupportedMetric.LogLossReduction.Name
+            };
+
+            foreach (var name in names)
+            {
+                var metric = AutoInference.SupportedMetric.ByName(name);
+                Assert.Equal(metric.Name, name);
             }
         }
 

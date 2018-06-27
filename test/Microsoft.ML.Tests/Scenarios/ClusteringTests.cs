@@ -1,4 +1,5 @@
 ﻿using Microsoft.ML.Data;
+using Microsoft.ML.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Trainers;
@@ -16,8 +17,8 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath(@"external/20newsgroups.txt");
 
-            var pipeline = new LearningPipeline();
-            pipeline.Add(new TextLoader(dataPath).CreateFrom<NewsData>(useHeader: false, allowQuotedStrings:true,  supportSparse:false));
+            var pipeline = new LearningPipeline(seed: 1, conc: 1);
+            pipeline.Add(new TextLoader(dataPath).CreateFrom<NewsData>(useHeader: false, allowQuotedStrings: true, supportSparse: false));
             pipeline.Add(new ColumnConcatenator("AllText", "Subject", "Content"));
             pipeline.Add(new TextFeaturizer("Features", "AllText")
             {
@@ -81,8 +82,8 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
         public void PredictClusters()
         {
             int n = 1000;
-            int k = 5;
-            var rand = new Random();
+            int k = 4;
+            var rand = new Random(1);
             var clusters = new ClusteringData[k];
             var data = new ClusteringData[n];
             for (int i = 0; i < k; i++)
@@ -94,7 +95,7 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
             for (int i = 0; i < n; i++)
             {
                 var index = rand.Next(0, k);
-                var shift = (rand.NextDouble() - 0.5) / k;
+                var shift = (rand.NextDouble() - 0.5) / 10;
                 data[i] = new ClusteringData
                 {
                     Points = new float[2]
@@ -104,7 +105,7 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
                     }
                 };
             }
-            var pipeline = new LearningPipeline();
+            var pipeline = new LearningPipeline(seed: 1, conc: 1);
             pipeline.Add(CollectionDataSource.Create(data));
             pipeline.Add(new KMeansPlusPlusClusterer() { K = k });
             var model = pipeline.Train<ClusteringData, ClusteringPrediction>();
@@ -116,6 +117,16 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
                 Assert.True(!labels.Contains(scores.SelectedClusterId));
                 labels.Add(scores.SelectedClusterId);
             }
+
+            var evaluator = new ClusterEvaluator();
+            var testData = CollectionDataSource.Create(clusters);
+            ClusterMetrics metrics = evaluator.Evaluate(model, testData);
+
+            //Label is not specified, so NMI would be equal to NaN
+            Assert.Equal(metrics.Nmi, double.NaN);
+            //Calculate dbi is false by default so Dbi would be 0
+            Assert.Equal(metrics.Dbi, (double)0.0);
+            Assert.Equal(metrics.AvgMinScore, (double)0.0, 5);
         }
     }
 }

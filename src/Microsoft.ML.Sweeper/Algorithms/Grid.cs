@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper;
+
+[assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureSweeper),
+    "Random Grid Sweeper", "RandomGridSweeper", "RandomGrid")]
+[assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureSweeperFromParameterList),
+    "Random Grid Sweeper", "RandomGridSweeperParamList", "RandomGridpl")]
 
 namespace Microsoft.ML.Runtime.Sweeper
 {
@@ -62,10 +64,10 @@ namespace Microsoft.ML.Runtime.Sweeper
             SweepParameters = sweepParameters;
         }
 
-        public virtual ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns)
+        public virtual ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns = null)
         {
             var prevParamSets = previousRuns?.Select(r => r.ParameterSet).ToList() ?? new List<ParameterSet>();
-            var result = new List<ParameterSet>();
+            var result = new HashSet<ParameterSet>();
             for (int i = 0; i < maxSweeps; i++)
             {
                 ParameterSet paramSet;
@@ -148,12 +150,12 @@ namespace Microsoft.ML.Runtime.Sweeper
             }
         }
 
-        public override ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns)
+        public override ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns = null)
         {
             if (_nGridPoints == 0)
                 return base.ProposeSweeps(maxSweeps, previousRuns);
 
-            var result = new List<ParameterSet>();
+            var result = new HashSet<ParameterSet>();
             var prevParamSets = (previousRuns != null)
                 ? previousRuns.Select(r => r.ParameterSet).ToList()
                 : new List<ParameterSet>();

@@ -1,0 +1,8 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Bias:R4:0
+#@   col=Weights:R4:1-9
+#@ }
+Bias	thickness	uniform_size	uniform_shape	adhesion	epit_size	bare_nuclei	bland_chromatin	normal_nucleoli	mitoses
+-6.186806	2.65800762	1.68089855	1.944068	1.42514718	0.8536965	2.9325006	1.74816787	1.58165014	0.595681
