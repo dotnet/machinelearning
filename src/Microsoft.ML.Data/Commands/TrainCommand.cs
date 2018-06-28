@@ -468,16 +468,11 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(dataPipe);
 
             var transforms = new List<IDataTransform>();
-            while (true)
+            while (dataPipe is IDataTransform xf)
             {
                 // REVIEW: a malicious user could construct a loop in the Source chain, that would
                 // cause this method to iterate forever (and throw something when the list overflows). There's 
                 // no way to insulate from ALL malicious behavior.
-
-                var xf = dataPipe as IDataTransform;
-                if (xf == null)
-                    break;
-
                 transforms.Add(xf);
                 dataPipe = xf.Source;
                 Contracts.AssertValue(dataPipe);
