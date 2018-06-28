@@ -13,7 +13,7 @@ namespace Microsoft.ML.Models
     public sealed partial class OneVersusAll
     {
         /// <summary>
-        /// One versus all learner (also in known as One vs the rest) is a multiclass learner with
+        /// One versus all learner (also known as One vs the rest) is a multiclass learner with
         /// strategy to fit one classifier per class. It picks each class and trains the provided 
         /// binary classifier against all the other classes. 
         /// See <a href="https://en.wikipedia.org/wiki/Multiclass_classification#One-vs.-rest">wikipedia</a> page.
