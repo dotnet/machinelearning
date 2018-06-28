@@ -16,12 +16,12 @@ namespace Microsoft.ML.Models
         /// One versus all learner (also in known as One vs the rest) is a multiclass learner with
         /// strategy to fit one classifier per class. It picks each class and trains the provided 
         /// binary classifier against all the other classes. 
-        /// See <a href="https://en.wikipedia.org/wiki/Multiclass_classification"/> (One-vs.-rest) section
+        /// See <a href="https://en.wikipedia.org/wiki/Multiclass_classification#One-vs.-rest">wikipedia</a> page.
         /// </summary>
         /// <param name="trainer">Underlying binary trainer</param>
         /// <param name="useProbabilities">"Use probabilities (vs. raw outputs) to identify top-score category</param>
-        /// See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/Scenarios/IrisPlantClassificationTests.cs"/>
-        /// for an example on how to train a OVA model.
+        /// See  TrainOva <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/Scenarios/IrisPlantClassificationTests.cs">unit test</a>
+        /// for an example on how to train a one versus all model.
         public static ILearningPipelineItem With(ITrainerInputWithLabel trainer, bool useProbabilities = true)
         {
             return new OvaPipelineItem(trainer, useProbabilities);
