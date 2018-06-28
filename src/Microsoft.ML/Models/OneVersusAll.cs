@@ -14,8 +14,8 @@ namespace Microsoft.ML.Models
     {
         /// <summary>
         /// One versus all learner (also in known as One vs the rest) is a multiclass learner with
-        /// strategy to fit one classifier per class. It picks each class and trains provided binary learner
-        /// against all the other classes. 
+        /// strategy to fit one classifier per class. It picks each class and trains the provided 
+        /// binary classifier against all the other classes. 
         /// See <a href="https://en.wikipedia.org/wiki/Multiclass_classification"/> (One-vs.-rest) section
         /// </summary>
         /// <param name="trainer">Underlying binary trainer</param>
