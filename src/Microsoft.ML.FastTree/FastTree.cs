@@ -1347,18 +1347,16 @@ namespace Microsoft.ML.Runtime.FastTree
                         data = new LabelConvertTransform(Host, convArgs, data);
                     }
                     // Convert the group column, if one exists.
-                    var groupInfo = examples.Schema.Group;
-                    if (groupInfo != null)
+                    if (examples.Schema.Group != null)
                     {
                         var convArgs = new ConvertTransform.Arguments();
                         var convCol = new ConvertTransform.Column
                         {
                             ResultType = DataKind.U8
                         };
-                        convCol.Name = convCol.Source = groupInfo.Name;
+                        convCol.Name = convCol.Source = examples.Schema.Group.Name;
                         convArgs.Column = new ConvertTransform.Column[] { convCol };
                         data = new ConvertTransform(Host, convArgs, data);
-                        groupInfo = ColumnInfo.CreateFromName(data.Schema, convCol.Name, "converted group id");
                     }
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the

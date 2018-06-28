@@ -522,7 +522,6 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
                 ch.Info("Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.");
-                // REVIEW: This verbose constructor should be replaced with zeahmed's enhancements once #405 is committed.
                 IDataView ApplyNormalizer(IHostEnvironment innerEnv, IDataView input)
                     => NormalizeTransform.Create(innerEnv, new NormalizeTransform.MinMaxArguments()
                     {
