@@ -1785,6 +1785,18 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void EntryPointLightGbmBinary()
+        {
+            TestEntryPointRoutine("breast-cancer.txt", "Trainers.LightGbmBinaryClassifier");
+        }
+
+        [Fact]
+        public void EntryPointLightGbmMultiClass()
+        {
+            TestEntryPointRoutine(GetDataPath(@"iris.txt"), "Trainers.LightGbmClassifier");
+        }
+
+        [Fact]
         public void EntryPointSdcaBinary()
         {
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.StochasticDualCoordinateAscentBinaryClassifier");
