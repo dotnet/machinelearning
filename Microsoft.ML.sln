@@ -54,36 +54,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Parquet", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Sweeper", "src\Microsoft.ML.Sweeper\Microsoft.ML.Sweeper.csproj", "{55C8122D-79EA-48AB-85D0-EB551FC1C427}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E20AF96D-3F66-4065-8A89-BEE479D74536}"
-	ProjectSection(SolutionItems) = preProject
-		docs\README.md = docs\README.md
-		docs\release-notes\0.1\release-0.1.md = docs\release-notes\0.1\release-0.1.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project-docs", "project-docs", "{52794B40-AB8A-41AF-9EF7-799C80D6E0BC}"
-	ProjectSection(SolutionItems) = preProject
-		docs\project-docs\contributing.md = docs\project-docs\contributing.md
-		docs\project-docs\developer-guide.md = docs\project-docs\developer-guide.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{76F579E4-B9D2-4A0C-A511-EEFA4B2B829F}"
-	ProjectSection(SolutionItems) = preProject
-		CONTRIBUTING.md = CONTRIBUTING.md
-		README.md = README.md
-		ROADMAP.md = ROADMAP.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "building", "building", "{DB751004-5D49-4B88-B78F-29CA9887087D}"
-	ProjectSection(SolutionItems) = preProject
-		docs\building\unix-instructions.md = docs\building\unix-instructions.md
-		docs\building\windows-instructions.md = docs\building\windows-instructions.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "specs", "specs", "{2DEFC784-F2B5-44EA-ABBB-0DCF3E689DAC}"
-	ProjectSection(SolutionItems) = preProject
-		docs\specs\mvp.md = docs\specs\mvp.md
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pkg", "pkg", "{D3D38B03-B557-484D-8348-8BADEE4DF592}"
 	ProjectSection(SolutionItems) = preProject
 		pkg\Directory.Build.props = pkg\Directory.Build.props
@@ -115,6 +85,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "netstandard2.0", "netstanda
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Sweeper.Tests", "test\Microsoft.ML.Sweeper.Tests\Microsoft.ML.Sweeper.Tests.csproj", "{3DEB504D-7A07-48CE-91A2-8047461CB3D4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.LightGBM", "src\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.csproj", "{001F3B4E-FBE4-4001-AFD2-A6A989CD1C25}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Ensemble", "src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj", "{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -222,6 +196,14 @@ Global
 		{3DEB504D-7A07-48CE-91A2-8047461CB3D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3DEB504D-7A07-48CE-91A2-8047461CB3D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3DEB504D-7A07-48CE-91A2-8047461CB3D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{001F3B4E-FBE4-4001-AFD2-A6A989CD1C25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{001F3B4E-FBE4-4001-AFD2-A6A989CD1C25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{001F3B4E-FBE4-4001-AFD2-A6A989CD1C25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{001F3B4E-FBE4-4001-AFD2-A6A989CD1C25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -249,9 +231,6 @@ Global
 		{B7B593C5-FB8C-4ADA-A638-5B53B47D087E} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{16BB1454-2108-40E5-B3A6-594654005303} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{55C8122D-79EA-48AB-85D0-EB551FC1C427} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
-		{52794B40-AB8A-41AF-9EF7-799C80D6E0BC} = {E20AF96D-3F66-4065-8A89-BEE479D74536}
-		{DB751004-5D49-4B88-B78F-29CA9887087D} = {E20AF96D-3F66-4065-8A89-BEE479D74536}
-		{2DEFC784-F2B5-44EA-ABBB-0DCF3E689DAC} = {E20AF96D-3F66-4065-8A89-BEE479D74536}
 		{DEC8F776-49F7-4D87-836C-FE4DC057D08C} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{6C95FC87-F5F2-4EEF-BB97-567F2F5DD141} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{7A9DB75F-2CA5-4184-9EF5-1F17EB39483F} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
@@ -260,6 +239,8 @@ Global
 		{487213C9-E8A9-4F94-85D7-28A05DBBFE3A} = {DEC8F776-49F7-4D87-836C-FE4DC057D08C}
 		{9252A8EB-ABFB-440C-AB4D-1D562753CE0F} = {487213C9-E8A9-4F94-85D7-28A05DBBFE3A}
 		{3DEB504D-7A07-48CE-91A2-8047461CB3D4} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
+		{001F3B4E-FBE4-4001-AFD2-A6A989CD1C25} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
