@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     {
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmClassifier", 
-            Desc = "Train a LightGBM multi class model. This API requires Microsoft.ML.LightGBM nuget.", 
+            Desc = "Train a LightGBM multi class model.", 
             UserName = LightGbmMulticlassTrainer.Summary, 
             ShortName = LightGbmMulticlassTrainer.ShortName)]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, LightGbmArguments input)

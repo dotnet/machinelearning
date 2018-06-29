@@ -122,7 +122,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     {
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmRegressor", 
-            Desc = LightGbmRegressorTrainer.Summary + ". This API requires Microsoft.ML.LightGBM nuget.", 
+            Desc = LightGbmRegressorTrainer.Summary, 
             UserName = LightGbmRegressorTrainer.UserNameValue, 
             ShortName = LightGbmRegressorTrainer.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, LightGbmArguments input)
