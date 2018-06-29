@@ -181,6 +181,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmClassifier", 
             Desc = "Train an LightGBM multi class model", 
+            Remarks = LightGbmMulticlassTrainer.Remarks,
             UserName = LightGbmMulticlassTrainer.Summary, 
             ShortName = LightGbmMulticlassTrainer.ShortName)]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, LightGbmArguments input)

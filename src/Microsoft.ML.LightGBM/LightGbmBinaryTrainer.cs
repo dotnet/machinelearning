@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(LightGbmArguments),
+[assembly: LoadableClass(LightGbmBinaryTrainer.UserName, typeof(LightGbmBinaryTrainer), typeof(LightGbmArguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     "LightGBM Binary Classification", LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
@@ -27,6 +27,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     {
         public const string LoaderSignature = "LightGBMBinaryExec";
         public const string RegistrationName = "LightGBMBinaryPredictor";
+        
         private static VersionInfo GetVersionInfo()
         {
             // REVIEW: can we decouple the version from FastTree predictor version ?
@@ -82,7 +83,7 @@ namespace Microsoft.ML.Runtime.LightGBM
 
     public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float, IPredictorWithFeatureWeights<float>>
     {
-        public const string Summary = "LightGBM Binary Classifier";
+        public const string UserName = "LightGBM Binary Classifier";
         public const string LoadNameValue = "LightGBMBinary";
         public const string ShortName = "LightGBM";
 
@@ -128,8 +129,9 @@ namespace Microsoft.ML.Runtime.LightGBM
     {
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmBinaryClassifier", 
-            Desc = "Train an LightGBM binary class model", 
-            UserName = LightGbmBinaryTrainer.Summary, 
+            Desc = "Train an LightGBM binary class model",
+            Remarks = LightGbmBinaryTrainer.Remarks,
+            UserName = LightGbmBinaryTrainer.UserName, 
             ShortName = LightGbmBinaryTrainer.ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmArguments input)
         {
