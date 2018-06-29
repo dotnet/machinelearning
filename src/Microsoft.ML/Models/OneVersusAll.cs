@@ -18,15 +18,17 @@ namespace Microsoft.ML.Models
         /// binary classifier against all the other classes. 
         /// See <a href="https://en.wikipedia.org/wiki/Multiclass_classification#One-vs.-rest">wikipedia</a> page.
         /// </summary>
-        /// <param name="trainer">Underlying binary trainer</param>
-        /// <param name="useProbabilities">"Use probabilities (vs. raw outputs) to identify top-score category</param>
-        ///
+        ///<example>
         /// In order to use it all you need to do is add it to pipeline as regular learner:
         /// 
         /// pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
-        /// 
+        /// </example>
+        /// <remarks>
         /// Underlying trainer suppose to be binary classfier. To check your options type BinaryClassifier
         /// and look on all available learners suggested by IntelliSense.
+        /// </remarks>
+        /// <param name="trainer">Underlying binary trainer</param>
+        /// <param name="useProbabilities">"Use probabilities (vs. raw outputs) to identify top-score category</param>
         public static ILearningPipelineItem With(ITrainerInputWithLabel trainer, bool useProbabilities = true)
         {
             return new OvaPipelineItem(trainer, useProbabilities);
