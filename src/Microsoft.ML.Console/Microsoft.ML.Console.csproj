@@ -3,10 +3,10 @@
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>CORECLR</DefineConstants>
-	<TargetFramework>netcoreapp2.0</TargetFramework>
-	<OutputType>Exe</OutputType>
-	<AssemblyName>MML</AssemblyName> 
-	<StartupObject>Microsoft.ML.Runtime.Tools.Console.Console</StartupObject>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>MML</AssemblyName> 
+    <StartupObject>Microsoft.ML.Runtime.Tools.Console.Console</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,7 +30,7 @@
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FactorizationMachineNative" />
-	<NativeAssemblyReference Include="LdaNative" />
+    <NativeAssemblyReference Include="LdaNative" />
   </ItemGroup>
   
 </Project>
