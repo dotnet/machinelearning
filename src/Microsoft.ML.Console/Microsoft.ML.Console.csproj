@@ -30,6 +30,7 @@
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FactorizationMachineNative" />
+	<NativeAssemblyReference Include="LdaNative" />
   </ItemGroup>
   
 </Project>
