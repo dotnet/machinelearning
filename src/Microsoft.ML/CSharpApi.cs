@@ -10348,7 +10348,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Concatenates two columns of the same item type.
+        /// Concatenates two or more columns of the same item type.
         /// </summary>
         public sealed partial class ColumnConcatenator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
