@@ -14367,7 +14367,7 @@
     },
     {
       "Name": "Transforms.ColumnConcatenator",
-      "Desc": "Concatenates two or more columns of the same item type.",
+      "Desc": "Concatenates one or more columns of the same item type.",
       "FriendlyName": "Concat Transform",
       "ShortName": "Concat",
       "Inputs": [
