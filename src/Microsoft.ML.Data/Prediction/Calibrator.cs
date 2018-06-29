@@ -296,7 +296,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             probToken = ctx.DeclareVar(prob, probExpression);
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumnName)
+        public bool SaveAsOnnx(IOnnxContext ctx, string[] outputNames, string featureColumnName)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(outputNames, nameof(outputNames));
@@ -658,7 +658,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             ctx.Hide(outputs);
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputs)
+        public bool SaveAsOnnx(IOnnxContext ctx, RoleMappedSchema schema, string[] outputs)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckParam(Utils.Size(outputs) == 2, nameof(outputs), "Expected this to have two outputs");
@@ -1429,7 +1429,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 PfaUtils.Call("+", -ParamB, PfaUtils.Call("*", -ParamA, input)));
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] scoreProbablityColumnNames, string featureColumnName)
+        public bool SaveAsOnnx(IOnnxContext ctx, string[] scoreProbablityColumnNames, string featureColumnName)
         {
             _host.CheckValue(ctx, nameof(ctx));
             _host.CheckValue(scoreProbablityColumnNames, nameof(scoreProbablityColumnNames));
@@ -1437,19 +1437,14 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
             string opType = "Affine";
             string linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
-            var node = OnnxUtils.MakeNode(opType, new List<string> { scoreProbablityColumnNames[0] },
+            var node = ctx.CreateNode(opType, new List<string> { scoreProbablityColumnNames[0] },
                 new List<string> { linearOutput }, ctx.GetNodeName(opType), "ai.onnx");
-
-            OnnxUtils.NodeAddAttributes(node, "alpha", ParamA * -1);
-            OnnxUtils.NodeAddAttributes(node, "beta", -0.0000001);
-
-            ctx.AddNode(node);
+            node.AddAttribute("alpha", ParamA * -1);
+            node.AddAttribute("beta", -0.0000001);
 
             opType = "Sigmoid";
-            node = OnnxUtils.MakeNode(opType, new List<string> { linearOutput },
+            node = ctx.CreateNode(opType, new List<string> { linearOutput },
                 new List<string> { scoreProbablityColumnNames[1] }, ctx.GetNodeName(opType), "ai.onnx");
-
-            ctx.AddNode(node);
 
             return true;
         }

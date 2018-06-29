@@ -9,4 +9,8 @@
     <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+  </ItemGroup>
+
 </Project>

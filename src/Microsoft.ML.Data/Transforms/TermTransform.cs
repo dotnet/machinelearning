@@ -681,7 +681,7 @@ namespace Microsoft.ML.Runtime.Data
             return PfaUtils.If(PfaUtils.Call("map.containsKey", cellRef, srcToken), PfaUtils.Index(cellRef, srcToken), -1);
         }
 
-        protected override bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+        protected override bool SaveAsOnnxCore(IOnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
         {
             if (!info.TypeSrc.ItemType.IsText)
                 return false;
@@ -690,11 +690,10 @@ namespace Microsoft.ML.Runtime.Data
             TermMap<DvText> map = (TermMap<DvText>)_termMap[iinfo].Map;
             map.GetTerms(ref terms);
             string opType = "LabelEncoder";
-            var node = OnnxUtils.MakeNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            OnnxUtils.NodeAddAttributes(node, "classes_strings", terms.DenseValues());
-            OnnxUtils.NodeAddAttributes(node, "default_int64", -1);
-            OnnxUtils.NodeAddAttributes(node, "default_string", DvText.Empty);
-            ctx.AddNode(node);
+            var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+            node.AddAttribute("classes_strings", terms.DenseValues());
+            node.AddAttribute("default_int64", -1);
+            node.AddAttribute("default_string", DvText.Empty);
             return true;
         }
 

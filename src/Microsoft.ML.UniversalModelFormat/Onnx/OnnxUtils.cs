@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +14,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// <summary>
     /// Contains methods to create ONNX models in protocol buffer.
     /// </summary>
-    public sealed class OnnxUtils
+    internal static class OnnxUtils
     {
         private static TypeProto MakeType(TypeProto typeProto, TensorProto.Types.DataType dataType,
             List<long> dims, List<bool> dimsParam)
@@ -169,11 +168,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             return node;
         }
 
-        public static NodeProto MakeNode(string opType, string inputs, string outputs, string name)
-        {
-            return MakeNode(opType, new List<string>() { inputs }, new List<string>() { outputs }, name);
-        }
-
         public static void NodeAddAttributes(NodeProto node, string argName, double value)
             => node.Attribute.Add(MakeAttribute(argName, value));
 
@@ -238,16 +232,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 DataType = dataType;
                 Dims = dims;
                 DimParams = dimParams;
-            }
-        }
-
-        public sealed class NodeProtoWrapper
-        {
-            public NodeProto Node;
-
-            public NodeProtoWrapper(NodeProto node)
-            {
-                Node = node;
             }
         }
 

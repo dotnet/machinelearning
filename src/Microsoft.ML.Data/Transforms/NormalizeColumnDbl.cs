@@ -577,10 +577,10 @@ namespace Microsoft.ML.Runtime.Data
                     public override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken)
                         => PfaUtils.Call("*", PfaUtils.Call("-", srcToken, Offset), Scale);
 
-                    public override bool OnnxInfo(OnnxContext ctx, OnnxUtils.NodeProtoWrapper nodeProtoWrapper, int featureCount)
+                    public override bool OnnxInfo(IOnnxContext ctx, IOnnxNode nodeProtoWrapper, int featureCount)
                     {
-                        OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "offset", Enumerable.Repeat(Offset, featureCount));
-                        OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "scale", Enumerable.Repeat(Scale, featureCount));
+                        nodeProtoWrapper.AddAttribute("offset", Enumerable.Repeat(Offset, featureCount));
+                        nodeProtoWrapper.AddAttribute("scale", Enumerable.Repeat(Scale, featureCount));
                         return true;
                     }
 
@@ -648,12 +648,12 @@ namespace Microsoft.ML.Runtime.Data
                         return PfaUtils.Call("a.zipmap", srcToken, scaleCell, PfaUtils.FuncRef(ctx.Pfa.EnsureMul(itemType)));
                     }
 
-                    public override bool OnnxInfo(OnnxContext ctx, OnnxUtils.NodeProtoWrapper nodeProtoWrapper, int featureCount)
+                    public override bool OnnxInfo(IOnnxContext ctx, IOnnxNode node, int featureCount)
                     {
-                        if (Offset != null)
-                            OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "offset", Offset);
 
-                        OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "scale", Scale);
+                        if (Offset != null)
+                            node.AddAttribute("offset", Offset);
+                        node.AddAttribute("scale", Scale);
                         return true;
                     }
 

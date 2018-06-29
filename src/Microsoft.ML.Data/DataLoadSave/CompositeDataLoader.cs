@@ -85,7 +85,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Returns the underlying data view of the composite loader.
         /// This can be used to programmatically explore the chain of transforms that's inside the composite loader.
         /// </summary>
-        internal IDataView View { get; }
+        public IDataView View { get; }
 
         /// <summary>
         /// Creates a loader according to the specified <paramref name="args"/>.

@@ -66,7 +66,9 @@ namespace Microsoft.ML.Runtime.Data
 
         JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
 
-        bool OnnxInfo(OnnxContext ctx, OnnxUtils.NodeProtoWrapper nodeProtoWrapper, int featureCount);
+        bool CanSaveOnnx { get; }
+
+        bool OnnxInfo(IOnnxContext ctx, IOnnxNode nodeProtoWrapper, int featureCount);
     }
 
     public sealed partial class NormalizeTransform : OneToOneTransformBase
@@ -306,7 +308,7 @@ namespace Microsoft.ML.Runtime.Data
             return _functions[iinfo].PfaInfo(ctx, srcToken);
         }
 
-        protected override bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+        protected override bool SaveAsOnnxCore(IOnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
         {
             Contracts.AssertValue(ctx);
             Contracts.Assert(0 <= iinfo && iinfo < Infos.Length);
@@ -316,11 +318,11 @@ namespace Microsoft.ML.Runtime.Data
             if (info.TypeSrc.ValueCount == 0)
                 return false;
 
-            string opType = "Scaler";
-            var node = OnnxUtils.MakeNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            if (_functions[iinfo].OnnxInfo(ctx, new OnnxUtils.NodeProtoWrapper(node), info.TypeSrc.ValueCount))
+            if (_functions[iinfo].CanSaveOnnx)
             {
-                ctx.AddNode(node);
+                string opType = "Scaler";
+                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+                _functions[iinfo].OnnxInfo(ctx, node, info.TypeSrc.ValueCount);
                 return true;
             }
 

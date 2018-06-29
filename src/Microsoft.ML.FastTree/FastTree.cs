@@ -3065,7 +3065,7 @@ The output of the ensemble produced by MART on a given instance is the sum of th
             Max
         }
 
-        public virtual bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        public virtual bool SaveAsOnnx(IOnnxContext ctx, string[] outputNames, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
@@ -3130,26 +3130,25 @@ The output of the ensemble produced by MART on a given instance is the sum of th
             }
 
             string opType = "TreeEnsembleRegressor";
-            var node = OnnxUtils.MakeNode(opType, new List<string> { featureColumn },
+            var node = ctx.CreateNode(opType, new List<string> { featureColumn },
                 new List<string>(outputNames), ctx.GetNodeName(opType));
 
-            OnnxUtils.NodeAddAttributes(node, "post_transform", PostTransform.None.GetDescription());
-            OnnxUtils.NodeAddAttributes(node, "n_targets", 1);
-            OnnxUtils.NodeAddAttributes(node, "base_values", new List<float>() { 0 });
-            OnnxUtils.NodeAddAttributes(node, "aggregate_function", AggregateFunction.Sum.GetDescription());
-            OnnxUtils.NodeAddAttributes(node, "nodes_treeids", nodesTreeids);
-            OnnxUtils.NodeAddAttributes(node, "nodes_nodeids", nodesIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_featureids", nodesFeatureIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_modes", nodeModes);
-            OnnxUtils.NodeAddAttributes(node, "nodes_values", nodesValues);
-            OnnxUtils.NodeAddAttributes(node, "nodes_truenodeids", nodesTrueNodeIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_falsenodeids", nodesFalseNodeIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_missing_value_tracks_true", missingValueTracksTrue);
-            OnnxUtils.NodeAddAttributes(node, "target_treeids", classTreeIds);
-            OnnxUtils.NodeAddAttributes(node, "target_nodeids", classNodeIds);
-            OnnxUtils.NodeAddAttributes(node, "target_ids", classIds);
-            OnnxUtils.NodeAddAttributes(node, "target_weights", classWeights);
-            ctx.AddNode(node);
+            node.AddAttribute("post_transform", PostTransform.None.GetDescription());
+            node.AddAttribute("n_targets", 1);
+            node.AddAttribute("base_values", new List<float>() { 0 });
+            node.AddAttribute("aggregate_function", AggregateFunction.Sum.GetDescription());
+            node.AddAttribute("nodes_treeids", nodesTreeids);
+            node.AddAttribute("nodes_nodeids", nodesIds);
+            node.AddAttribute("nodes_featureids", nodesFeatureIds);
+            node.AddAttribute("nodes_modes", nodeModes);
+            node.AddAttribute("nodes_values", nodesValues);
+            node.AddAttribute("nodes_truenodeids", nodesTrueNodeIds);
+            node.AddAttribute("nodes_falsenodeids", nodesFalseNodeIds);
+            node.AddAttribute("nodes_missing_value_tracks_true", missingValueTracksTrue);
+            node.AddAttribute("target_treeids", classTreeIds);
+            node.AddAttribute("target_nodeids", classNodeIds);
+            node.AddAttribute("target_ids", classIds);
+            node.AddAttribute("target_weights", classWeights);
 
             return true;
         }

@@ -241,13 +241,12 @@ namespace Microsoft.ML.Runtime.Data
                 PfaUtils.Call("cast.fanoutDouble", -1, 0, keyCount, false), PfaUtils.FuncRef("u." + funcName));
         }
 
-        protected override bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+        protected override bool SaveAsOnnxCore(IOnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
         {
             string opType = "OneHotEncoder";
-            var node = OnnxUtils.MakeNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            OnnxUtils.NodeAddAttributes(node, "cats_int64s", Enumerable.Range(1, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
-            OnnxUtils.NodeAddAttributes(node, "zeros", true);
-            ctx.AddNode(node);
+            var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+            node.AddAttribute("cats_int64s", Enumerable.Range(1, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
+            node.AddAttribute("zeros", true);
             return true;
         }
 

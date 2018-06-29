@@ -184,7 +184,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Writer.Write(_threshold);
         }
 
-        public override void SaveAsOnnx(OnnxContext ctx)
+        public override void SaveAsOnnx(IOnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSaveOnnx);
@@ -206,11 +206,9 @@ namespace Microsoft.ML.Runtime.Data
             if (Bindings.InfoCount >= 3 && ctx.ContainsColumn(outColumnNames[2]))
             {
                 string opType = "Binarizer";
-                var node = OnnxUtils.MakeNode(opType, new List<string> { ctx.GetVariableName(outColumnNames[2]) },
+                var node = ctx.CreateNode(opType, new List<string> { ctx.GetVariableName(outColumnNames[2]) },
                     new List<string> { ctx.GetVariableName(outColumnNames[0]) }, ctx.GetNodeName(opType));
-
-                OnnxUtils.NodeAddAttributes(node, "threshold", 0.5);
-                ctx.AddNode(node);
+                node.AddAttribute("threshold", 0.5);
             }
         }
 

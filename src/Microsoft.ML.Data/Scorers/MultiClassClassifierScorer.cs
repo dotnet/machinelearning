@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.Data
                 ((IBindableCanSavePfa)_bindable).SaveAsPfa(ctx, schema, outputNames);
             }
 
-            public bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
+            public bool SaveAsOnnx(IOnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
             {
                 Contracts.CheckValue(ctx, nameof(ctx));
                 Contracts.CheckValue(schema, nameof(schema));

@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Hide(outputNames);
         }
 
-        public virtual bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames) => false;
+        public virtual bool SaveAsOnnx(IOnnxContext ctx, RoleMappedSchema schema, string[] outputNames) => false;
 
         public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.DeclareVar(outputNames[0], scoreToken);
         }
 
-        public override bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
+        public override bool SaveAsOnnx(IOnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(schema, nameof(schema));
@@ -403,7 +403,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(ctx.TokenOrNullForName(outputNames[1]) == probToken.ToString());
         }
 
-        public override bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
+        public override bool SaveAsOnnx(IOnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(schema, nameof(schema));

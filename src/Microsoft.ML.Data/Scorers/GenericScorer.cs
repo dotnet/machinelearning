@@ -214,7 +214,7 @@ namespace Microsoft.ML.Runtime.Data
             pfaBindable.SaveAsPfa(ctx, schema, outColNames);
         }
 
-        public void SaveAsOnnx(OnnxContext ctx)
+        public void SaveAsOnnx(IOnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSaveOnnx);

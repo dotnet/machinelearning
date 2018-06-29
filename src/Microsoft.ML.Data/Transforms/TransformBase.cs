@@ -571,7 +571,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.DeclareVar(toDeclare.ToArray());
         }
 
-        public void SaveAsOnnx(OnnxContext ctx)
+        public void SaveAsOnnx(IOnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(CanSaveOnnx);
@@ -616,7 +616,7 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        protected virtual bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
+        protected virtual bool SaveAsOnnxCore(IOnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
             string dstVariableName) => false;
 
         public sealed override ISchema Schema => _bindings;

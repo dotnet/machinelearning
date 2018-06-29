@@ -839,19 +839,18 @@ namespace Microsoft.ML.Runtime.Learners
             return PfaUtils.Call("m.link.softmax", PfaUtils.Call("model.reg.linear", input, cellRef));
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
+        public bool SaveAsOnnx(IOnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
             string opType = "LinearClassifier";
-            var node = OnnxUtils.MakeNode(opType, new List<string> { featureColumn }, new List<string>(outputs), ctx.GetNodeName(opType));
+            var node = ctx.CreateNode(opType, new List<string> { featureColumn }, new List<string>(outputs), ctx.GetNodeName(opType));
             // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
-            OnnxUtils.NodeAddAttributes(node, "post_transform", 0);
-            OnnxUtils.NodeAddAttributes(node, "multi_class", true);
-            OnnxUtils.NodeAddAttributes(node, "coefficients", _weights.SelectMany(w => w.DenseValues()));
-            OnnxUtils.NodeAddAttributes(node, "intercepts", _biases);
-            OnnxUtils.NodeAddAttributes(node, "classlabels_strings", _labelNames);
-            ctx.AddNode(node);
+            node.AddAttribute("post_transform", 0);
+            node.AddAttribute("multi_class", true);
+            node.AddAttribute("coefficients", _weights.SelectMany(w => w.DenseValues()));
+            node.AddAttribute("intercepts", _biases);
+            node.AddAttribute("classlabels_strings", _labelNames);
             return true;
         }
 

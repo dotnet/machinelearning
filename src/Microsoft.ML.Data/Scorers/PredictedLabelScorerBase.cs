@@ -365,7 +365,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract JToken PredictedLabelPfa(string[] mapperOutputs);
 
-        public virtual void SaveAsOnnx(OnnxContext ctx)
+        public virtual void SaveAsOnnx(IOnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSaveOnnx);

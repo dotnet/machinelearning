@@ -13,7 +13,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// <summary>
     /// A context for defining a ONNX output.
     /// </summary>
-    public sealed class OnnxContext
+    internal sealed class OnnxContext : IOnnxContext
     {
         private readonly List<NodeProto> _nodes;
         private readonly List<OnnxUtils.ModelArgs> _inputs;
@@ -121,13 +121,21 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// Adds a node to the node list of the graph.
         /// </summary>
         /// <param name="node"></param>
-        public void AddNode(NodeProto node)
+        private void AddNode(NodeProto node)
         {
             _host.CheckValue(node, nameof(node));
             _host.Assert(!_nodeNames.Contains(node.Name));
 
             _nodeNames.Add(node.Name);
             _nodes.Add(node);
+        }
+
+        public IOnnxNode CreateNode(string opType, List<string> inputs,
+            List<string> outputs, string name, string domain = null)
+        {
+            var innerNode = OnnxUtils.MakeNode(opType, inputs, outputs, name, domain);
+            AddNode(innerNode);
+            return new OnnxNode(innerNode);
         }
 
         /// <summary>
