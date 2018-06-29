@@ -7320,7 +7320,7 @@ namespace Microsoft.ML
 
 
         /// <summary>
-        /// Train a LightGBM binary class model. This API requires Microsoft.ML.LightGBM nuget.
+        /// Train a LightGBM binary class model.
         /// </summary>
         public sealed partial class LightGbmBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
@@ -7525,7 +7525,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Train a LightGBM multi class model. This API requires Microsoft.ML.LightGBM nuget.
+        /// Train a LightGBM multi class model.
         /// </summary>
         public sealed partial class LightGbmClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
@@ -7730,7 +7730,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Train a LightGBM ranking model. This API requires Microsoft.ML.LightGBM nuget.
+        /// Train a LightGBM ranking model.
         /// </summary>
         public sealed partial class LightGbmRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
@@ -7935,7 +7935,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// LightGBM Regression. This API requires Microsoft.ML.LightGBM nuget.
+        /// LightGBM Regression
         /// </summary>
         public sealed partial class LightGbmRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
