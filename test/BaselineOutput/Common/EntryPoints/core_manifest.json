@@ -11641,7 +11641,7 @@
     },
     {
       "Name": "Trainers.LightGbmRanker",
-      "Desc": "Train an LightGBM ranking model. This API requires Microsoft.ML.LightGBM nuget.",
+      "Desc": "Train a LightGBM ranking model. This API requires Microsoft.ML.LightGBM nuget.",
       "FriendlyName": "LightGBM Ranking",
       "ShortName": "LightGBMRank",
       "Inputs": [

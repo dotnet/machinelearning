@@ -7720,7 +7720,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Train an LightGBM ranking model. This API requires Microsoft.ML.LightGBM nuget.
+        /// Train a LightGBM ranking model. This API requires Microsoft.ML.LightGBM nuget.
         /// </summary>
         public sealed partial class LightGbmRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {

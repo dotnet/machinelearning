@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     {
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmRanker", 
-            Desc = "Train an LightGBM ranking model. This API requires Microsoft.ML.LightGBM nuget.", 
+            Desc = "Train a LightGBM ranking model. This API requires Microsoft.ML.LightGBM nuget.", 
             UserName = LightGbmRankingTrainer.Summary, 
             ShortName = LightGbmRankingTrainer.ShortName)]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, LightGbmArguments input)
