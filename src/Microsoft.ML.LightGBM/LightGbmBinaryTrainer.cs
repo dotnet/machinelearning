@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     {
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmBinaryClassifier", 
-            Desc = "Train an LightGBM binary class model", 
+            Desc = "Train a LightGBM binary class model. This API requires Microsoft.ML.LightGBM nuget.", 
             UserName = LightGbmBinaryTrainer.Summary, 
             ShortName = LightGbmBinaryTrainer.ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmArguments input)

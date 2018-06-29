@@ -33,6 +33,18 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
+        public void TrainAndPredictLightGBMSentimentModelTest()
+        {
+            var pipeline = PreparePipeline(useLightGBM: true);
+            var model = pipeline.Train<SentimentData, SentimentPrediction>();
+            var testData = PrepareTextLoaderTestData();
+            var evaluator = new BinaryClassificationEvaluator();
+            var metrics = evaluator.Evaluate(model, testData);
+            ValidateExamples(model, useLightGBM: true);
+            ValidateBinaryMetrics(metrics, useLightGBM: true);
+        }
+
+        [Fact]
         public void TrainTestPredictSentimentModelTest()
         {
             var pipeline = PreparePipeline();
@@ -163,38 +175,71 @@ namespace Microsoft.ML.Scenarios
             Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
         }
 
-        private void ValidateBinaryMetrics(BinaryClassificationMetrics metrics)
+        private void ValidateBinaryMetrics(BinaryClassificationMetrics metrics, bool useLightGBM = false)
         {
-            Assert.Equal(.5556, metrics.Accuracy, 4);
-            Assert.Equal(.8, metrics.Auc, 1);
-            Assert.Equal(.87, metrics.Auprc, 2);
-            Assert.Equal(1, metrics.Entropy, 3);
-            Assert.Equal(.6923, metrics.F1Score, 4);
-            Assert.Equal(.969, metrics.LogLoss, 3);
-            Assert.Equal(3.083, metrics.LogLossReduction, 3);
-            Assert.Equal(1, metrics.NegativePrecision, 3);
-            Assert.Equal(.111, metrics.NegativeRecall, 3);
-            Assert.Equal(.529, metrics.PositivePrecision, 3);
-            Assert.Equal(1, metrics.PositiveRecall);
+            if (useLightGBM)
+            {
+                Assert.Equal(.6111, metrics.Accuracy, 4);
+                Assert.Equal(.8, metrics.Auc, 1);
+                Assert.Equal(.85, metrics.Auprc, 2);
+                Assert.Equal(1, metrics.Entropy, 3);
+                Assert.Equal(.72, metrics.F1Score, 4);
+                Assert.Equal(.952, metrics.LogLoss, 3);
+                Assert.Equal(4.777, metrics.LogLossReduction, 3);
+                Assert.Equal(1, metrics.NegativePrecision, 3);
+                Assert.Equal(.222, metrics.NegativeRecall, 3);
+                Assert.Equal(.562, metrics.PositivePrecision, 3);
+                Assert.Equal(1, metrics.PositiveRecall);
 
-            var matrix = metrics.ConfusionMatrix;
-            Assert.Equal(2, matrix.Order);
-            Assert.Equal(2, matrix.ClassNames.Count);
-            Assert.Equal("positive", matrix.ClassNames[0]);
-            Assert.Equal("negative", matrix.ClassNames[1]);
+                var matrix = metrics.ConfusionMatrix;
+                Assert.Equal(2, matrix.Order);
+                Assert.Equal(2, matrix.ClassNames.Count);
+                Assert.Equal("positive", matrix.ClassNames[0]);
+                Assert.Equal("negative", matrix.ClassNames[1]);
 
-            Assert.Equal(9, matrix[0, 0]);
-            Assert.Equal(9, matrix["positive", "positive"]);
-            Assert.Equal(0, matrix[0, 1]);
-            Assert.Equal(0, matrix["positive", "negative"]);
+                Assert.Equal(9, matrix[0, 0]);
+                Assert.Equal(9, matrix["positive", "positive"]);
+                Assert.Equal(0, matrix[0, 1]);
+                Assert.Equal(0, matrix["positive", "negative"]);
 
-            Assert.Equal(8, matrix[1, 0]);
-            Assert.Equal(8, matrix["negative", "positive"]);
-            Assert.Equal(1, matrix[1, 1]);
-            Assert.Equal(1, matrix["negative", "negative"]);
+                Assert.Equal(7, matrix[1, 0]);
+                Assert.Equal(7, matrix["negative", "positive"]);
+                Assert.Equal(2, matrix[1, 1]);
+                Assert.Equal(2, matrix["negative", "negative"]);
+            }
+            else
+            {
+                Assert.Equal(.5556, metrics.Accuracy, 4);
+                Assert.Equal(.8, metrics.Auc, 1);
+                Assert.Equal(.87, metrics.Auprc, 2);
+                Assert.Equal(1, metrics.Entropy, 3);
+                Assert.Equal(.6923, metrics.F1Score, 4);
+                Assert.Equal(.969, metrics.LogLoss, 3);
+                Assert.Equal(3.083, metrics.LogLossReduction, 3);
+                Assert.Equal(1, metrics.NegativePrecision, 3);
+                Assert.Equal(.111, metrics.NegativeRecall, 3);
+                Assert.Equal(.529, metrics.PositivePrecision, 3);
+                Assert.Equal(1, metrics.PositiveRecall);
+
+                var matrix = metrics.ConfusionMatrix;
+                Assert.Equal(2, matrix.Order);
+                Assert.Equal(2, matrix.ClassNames.Count);
+                Assert.Equal("positive", matrix.ClassNames[0]);
+                Assert.Equal("negative", matrix.ClassNames[1]);
+
+                Assert.Equal(9, matrix[0, 0]);
+                Assert.Equal(9, matrix["positive", "positive"]);
+                Assert.Equal(0, matrix[0, 1]);
+                Assert.Equal(0, matrix["positive", "negative"]);
+
+                Assert.Equal(8, matrix[1, 0]);
+                Assert.Equal(8, matrix["negative", "positive"]);
+                Assert.Equal(1, matrix[1, 1]);
+                Assert.Equal(1, matrix["negative", "negative"]);
+            }
         }
 
-        private LearningPipeline PreparePipeline()
+        private LearningPipeline PreparePipeline(bool useLightGBM = false)
         {
             var dataPath = GetDataPath(SentimentDataPath);
             var pipeline = new LearningPipeline();
@@ -236,18 +281,31 @@ namespace Microsoft.ML.Scenarios
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
             });
 
-            pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
+            if (useLightGBM)
+                pipeline.Add(new LightGbmBinaryClassifier() { NumLeaves = 5, NumBoostRound = 5, MinDataPerLeaf = 2 });
+            else
+                pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
+
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
             return pipeline;
         }
 
-        private void ValidateExamples(PredictionModel<SentimentData, SentimentPrediction> model)
+        private void ValidateExamples(PredictionModel<SentimentData, SentimentPrediction> model, bool useLightGBM = false)
         {
             var sentiments = GetTestData();
             var predictions = model.Predict(sentiments);
             Assert.Equal(2, predictions.Count());
-            Assert.True(predictions.ElementAt(0).Sentiment.IsFalse);
-            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+
+            if (useLightGBM)
+            {
+                Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
+                Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            }
+            else
+            {
+                Assert.True(predictions.ElementAt(0).Sentiment.IsFalse);
+                Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            }
         }
 
         private Data.TextLoader PrepareTextLoaderTestData()
