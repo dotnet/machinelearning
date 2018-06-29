@@ -4081,18 +4081,25 @@ namespace Microsoft.ML
     {
 
         /// <summary>
+        /// Averaged Perceptron Binary Classifier.
+        /// </summary>
+        /// <remarks>
         /// Perceptron is a classification algorithm that makes its predictions based on a linear function.
         /// I.e., for an instance with feature values f0, f1,..., f_D-1, , the prediction is given by the sign of sigma[0,D-1] ( w_i * f_i), where w_0, w_1,...,w_D-1 are the weights computed by the algorithm.
-        /// Perceptron is an online algorithm, i.e., it processes the instances in the training set one at a time.
+        ///   
+        /// <para>Perceptron is an online algorithm, i.e., it processes the instances in the training set one at a time.
         /// The weights are initialized to be 0, or some random values. Then, for each example in the training set, the value of sigma[0, D-1] (w_i * f_i) is computed. 
         /// If this value has the same sign as the label of the current example, the weights remain the same. If they have opposite signs,
         /// the weights vector is updated by either subtracting or adding (if the label is negative or positive, respectively) the feature vector of the current example,
         /// multiplied by a factor 0 < a <= 1, called the learning rate. In a generalization of this algorithm, the weights are updated by adding the feature vector multiplied by the learning rate, 
-        /// and by the gradient of some loss function (in the specific case described above, the loss is hinge-loss, whose gradient is 1 when it is non-zero).
-        /// In Averaged Perceptron (AKA voted-perceptron), the weight vectors are stored, 
+        /// and by the gradient of some loss function (in the specific case described above, the loss is hinge-loss, whose gradient is 1 when it is non-zero).</para>
+        ///   
+        /// <para>In Averaged Perceptron (AKA voted-perceptron), the weight vectors are stored, 
         /// together with a weight that counts the number of iterations it survived (this is equivalent to storing the weight vector after every iteration, regardless of whether it was updated or not).
-        /// The prediction is then calculated by taking the weighted average of all the sums sigma[0, D-1] (w_i * f_i) or the different weight vectors.
-        /// </summary>
+        /// The prediction is then calculated by taking the weighted average of all the sums sigma[0, D-1] (w_i * f_i) or the different weight vectors.</para>
+        /// </remarks>
+        /// <see href='https://en.wikipedia.org/wiki/Perceptron'>Wikipedia entry for Perceptron</see>
+        /// <see href='http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200'>Large Margin Classification Using the Perceptron Algorithm</see>
         public sealed partial class AveragedPerceptronBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -4599,6 +4606,27 @@ namespace Microsoft.ML
         /// <summary>
         /// Uses a random forest learner to perform binary classification.
         /// </summary>
+        /// <remarks>
+        /// Decision trees are non-parametric models that perform a sequence of simple tests on inputs. 
+        /// This decision procedure maps them to outputs found in the training dataset whose inputs were similar to the instance being processed. 
+        /// A decision is made at each node of the binary tree data structure based on a measure of similarity that maps each instance recursively through the branches of the tree until the appropriate leaf node is reached and the output decision returned.
+        /// <para>Decision trees have several advantages:</para>
+        /// <list type='bullet'>
+        /// <item>They are efficient in both computation and memory usage during training and prediction. </item>
+        /// <item>They can represent non-linear decision boundaries.</item>
+        /// <item>They perform integrated feature selection and classification. </item>
+        /// <item>They are resilient in the presence of noisy features.</item>
+        /// </list>
+        /// Fast forest is a random forest implementation. 
+        /// The model consists of an ensemble of decision trees. Each tree in a decision forest outputs a Gaussian distribution by way of prediction. 
+        /// An aggregation is performed over the ensemble of trees to find a Gaussian distribution closest to the combined distribution for all trees in the model.
+        /// This decision forest classifier consists of an ensemble of decision trees. 
+        /// Generally, ensemble models provide better coverage and accuracy than single decision trees. 
+        /// Each tree in a decision forest outputs a Gaussian distribution.
+        /// </remarks>
+        /// <see href='http://en.wikipedia.org/wiki/Random_forest'>Wikipedia: Random forest</see>
+        /// <see href='http://jmlr.org/papers/volume7/meinshausen06a/meinshausen06a.pdf'>Quantile regression forest</see>
+        /// <see href='https://blogs.technet.microsoft.com/machinelearning/2014/09/10/from-stumps-to-trees-to-forests/'>From Stumps to Trees to Forests</see>
         public sealed partial class FastForestBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -4892,6 +4920,27 @@ namespace Microsoft.ML
         /// <summary>
         /// Trains a random forest to fit target values using least-squares.
         /// </summary>
+        /// <remarks>
+        /// Decision trees are non-parametric models that perform a sequence of simple tests on inputs. 
+        /// This decision procedure maps them to outputs found in the training dataset whose inputs were similar to the instance being processed. 
+        /// A decision is made at each node of the binary tree data structure based on a measure of similarity that maps each instance recursively through the branches of the tree until the appropriate leaf node is reached and the output decision returned.
+        /// <para>Decision trees have several advantages:</para>
+        /// <list type='bullet'>
+        /// <item>They are efficient in both computation and memory usage during training and prediction. </item>
+        /// <item>They can represent non-linear decision boundaries.</item>
+        /// <item>They perform integrated feature selection and classification. </item>
+        /// <item>They are resilient in the presence of noisy features.</item>
+        /// </list>
+        /// Fast forest is a random forest implementation. 
+        /// The model consists of an ensemble of decision trees. Each tree in a decision forest outputs a Gaussian distribution by way of prediction. 
+        /// An aggregation is performed over the ensemble of trees to find a Gaussian distribution closest to the combined distribution for all trees in the model.
+        /// This decision forest classifier consists of an ensemble of decision trees. 
+        /// Generally, ensemble models provide better coverage and accuracy than single decision trees. 
+        /// Each tree in a decision forest outputs a Gaussian distribution.
+        /// </remarks>
+        /// <see href='http://en.wikipedia.org/wiki/Random_forest'>Wikipedia: Random forest</see>
+        /// <see href='http://jmlr.org/papers/volume7/meinshausen06a/meinshausen06a.pdf'>Quantile regression forest</see>
+        /// <see href='https://blogs.technet.microsoft.com/machinelearning/2014/09/10/from-stumps-to-trees-to-forests/'>From Stumps to Trees to Forests</see>
         public sealed partial class FastForestRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -5181,6 +5230,28 @@ namespace Microsoft.ML
         /// <summary>
         /// Uses a logit-boost boosted tree learner to perform binary classification.
         /// </summary>
+        /// <remarks>
+        /// <para>FastTrees is an implementation of FastRank. FastRank is an efficient implementation of the <see href='https://arxiv.org/abs/1505.01866'>MART</see> gradient boosting algorithm. 
+        /// Gradient boosting is a machine learning technique for regression problems. 
+        /// It builds each regression tree in a step-wise fashion, using a predefined loss function to measure the error for each step and corrects for it in the next. 
+        /// So this prediction model is actually an ensemble of weaker prediction models. In regression problems, boosting builds a series of of such trees in a step-wise fashion and then selects the optimal tree using an arbitrary differentiable loss function.</para>
+        ///    
+        /// <para>MART learns an ensemble of regression trees, which is a decision tree with scalar values in its leaves. 
+        /// A decision (or regression) tree is a binary tree-like flow chart, where at each interior node one decides which of the two child nodes to continue to based on one of the feature values from the input. 
+        /// At each leaf node, a value is returned. In the interior nodes, the decision is based on the test 'x <= v' where x is the value of the feature in the input sample and v is one of the possible values of this feature. 
+        /// The functions that can be produced by a regression tree are all the piece-wise constant functions.</para>
+        ///   
+        /// <para>The ensemble of trees is produced by computing, in each step, a regression tree that approximates the gradient of the loss function, and adding it to the previous tree with coefficients that minimize the loss of the new tree.
+        /// The output of the ensemble produced by MART on a given instance is the sum of the tree outputs.</para>
+        ///   
+        /// <list type='bullet'>
+        /// <item>In case of a binary classification problem, the output is converted to a probability by using some form of calibration.</item>
+        /// <item>In case of a regression problem, the output is the predicted value of the function.</item>
+        /// <item>In case of a ranking problem, the instances are ordered by the output value of the ensemble.</item>
+        /// </list>
+        /// <remarks>
+        /// <seealso href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</seealso>.
+        /// <seealso href='http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine.</seealso>.
         public sealed partial class FastTreeBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -5572,6 +5643,28 @@ namespace Microsoft.ML
         /// <summary>
         /// Trains gradient boosted decision trees to the LambdaRank quasi-gradient.
         /// </summary>
+        /// <remarks>
+        /// <para>FastTrees is an implementation of FastRank. FastRank is an efficient implementation of the <see href='https://arxiv.org/abs/1505.01866'>MART</see> gradient boosting algorithm. 
+        /// Gradient boosting is a machine learning technique for regression problems. 
+        /// It builds each regression tree in a step-wise fashion, using a predefined loss function to measure the error for each step and corrects for it in the next. 
+        /// So this prediction model is actually an ensemble of weaker prediction models. In regression problems, boosting builds a series of of such trees in a step-wise fashion and then selects the optimal tree using an arbitrary differentiable loss function.</para>
+        ///    
+        /// <para>MART learns an ensemble of regression trees, which is a decision tree with scalar values in its leaves. 
+        /// A decision (or regression) tree is a binary tree-like flow chart, where at each interior node one decides which of the two child nodes to continue to based on one of the feature values from the input. 
+        /// At each leaf node, a value is returned. In the interior nodes, the decision is based on the test 'x <= v' where x is the value of the feature in the input sample and v is one of the possible values of this feature. 
+        /// The functions that can be produced by a regression tree are all the piece-wise constant functions.</para>
+        ///   
+        /// <para>The ensemble of trees is produced by computing, in each step, a regression tree that approximates the gradient of the loss function, and adding it to the previous tree with coefficients that minimize the loss of the new tree.
+        /// The output of the ensemble produced by MART on a given instance is the sum of the tree outputs.</para>
+        ///   
+        /// <list type='bullet'>
+        /// <item>In case of a binary classification problem, the output is converted to a probability by using some form of calibration.</item>
+        /// <item>In case of a regression problem, the output is the predicted value of the function.</item>
+        /// <item>In case of a ranking problem, the instances are ordered by the output value of the ensemble.</item>
+        /// </list>
+        /// <remarks>
+        /// <seealso href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</seealso>.
+        /// <seealso href='http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine.</seealso>.
         public sealed partial class FastTreeRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -5998,6 +6091,28 @@ namespace Microsoft.ML
         /// <summary>
         /// Trains gradient boosted decision trees to fit target values using least-squares.
         /// </summary>
+        /// <remarks>
+        /// <para>FastTrees is an implementation of FastRank. FastRank is an efficient implementation of the <see href='https://arxiv.org/abs/1505.01866'>MART</see> gradient boosting algorithm. 
+        /// Gradient boosting is a machine learning technique for regression problems. 
+        /// It builds each regression tree in a step-wise fashion, using a predefined loss function to measure the error for each step and corrects for it in the next. 
+        /// So this prediction model is actually an ensemble of weaker prediction models. In regression problems, boosting builds a series of of such trees in a step-wise fashion and then selects the optimal tree using an arbitrary differentiable loss function.</para>
+        ///    
+        /// <para>MART learns an ensemble of regression trees, which is a decision tree with scalar values in its leaves. 
+        /// A decision (or regression) tree is a binary tree-like flow chart, where at each interior node one decides which of the two child nodes to continue to based on one of the feature values from the input. 
+        /// At each leaf node, a value is returned. In the interior nodes, the decision is based on the test 'x <= v' where x is the value of the feature in the input sample and v is one of the possible values of this feature. 
+        /// The functions that can be produced by a regression tree are all the piece-wise constant functions.</para>
+        ///   
+        /// <para>The ensemble of trees is produced by computing, in each step, a regression tree that approximates the gradient of the loss function, and adding it to the previous tree with coefficients that minimize the loss of the new tree.
+        /// The output of the ensemble produced by MART on a given instance is the sum of the tree outputs.</para>
+        ///   
+        /// <list type='bullet'>
+        /// <item>In case of a binary classification problem, the output is converted to a probability by using some form of calibration.</item>
+        /// <item>In case of a regression problem, the output is the predicted value of the function.</item>
+        /// <item>In case of a ranking problem, the instances are ordered by the output value of the ensemble.</item>
+        /// </list>
+        /// <remarks>
+        /// <seealso href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</seealso>.
+        /// <seealso href='http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine.</seealso>.
         public sealed partial class FastTreeRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -6382,7 +6497,8 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.
+        /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. 
+        /// This learner is a generalization of Poisson, compound Poisson, and gamma regression.
         /// </summary>
         public sealed partial class FastTreeTweedieRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
@@ -6775,6 +6891,15 @@ namespace Microsoft.ML
         /// <summary>
         /// Train a field-aware factorization machine for binary classification
         /// </summary>
+        /// <remarks>
+        /// Field Aware Factorization Machines use, in addition to the input variables, factorized parameters to model the interaction between pairs of variables.
+        /// The algorithm is particularly useful for high dimensional datasets which can be very sparse (e.g. click-prediction for advertising systems).
+        /// An advantage of FFM over SVMs is that the training data does not need to be stored in memory, and the coefficients can be optimized directly.
+        /// </remarks>
+        /// <see href='https://www.csie.ntu.edu.tw/~r01922136/slides/ffm.pdf'>Field Aware Factorization Machines</see>
+        /// <seealso href='http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf'>Field-aware Factorization Machines for CTR Prediction</seealso>
+        /// <seealso href='http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf'>Adaptive Subgradient Methods for Online Learning and Stochastic Optimization</seealso>
+        /// <seealso href='https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf'>An Improved Stochastic Gradient Method for Training Large-scale Field-aware Factorization Machine.</seealso>
         public sealed partial class FieldAwareFactorizationMachineBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7202,8 +7327,16 @@ namespace Microsoft.ML
 
 
         /// <summary>
-        /// K-means is a popular clustering algorithm. With K-means, the data is clustered into a specified number of clusters in order to minimize the within-cluster sum of squares. K-means++ improves upon K-means by using a better method for choosing the initial cluster centers.
+        /// KMeans++ clustering algorithm
         /// </summary>
+        /// <remarks>
+        /// <see href='https://en.wikipedia.org/wiki/K-means_clustering'>K-means</see> is a popular clustering algorithm.
+        /// With <see href='https://en.wikipedia.org/wiki/K-means%2b%2b'>K-means++</see>, the data is clustered into a specified number of clusters aiming to minimize the within-cluster sum of squares. 
+        /// K-means++ improves upon K-means by using the <see href='http://research.microsoft.com/apps/pubs/default.aspx?id=252149'>Yinyang K-Means</see> method for choosing the initial cluster centers.
+        /// YYK-Means accelerates K-Means up to an order of magnitude while producing exactly the same clustering results (modulo floating point precision issues).   
+        /// YYK-Means observes that there is a lot of redundancy across iterations in the KMeans algorithms – most points do not change their clusters during an iteration. 
+        /// It uses various bounding techniques to identify this redundancy and eliminate many distance computations and optimize centroid computations. 
+        /// <remarks>
         public sealed partial class KMeansPlusPlusClusterer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8843,6 +8976,14 @@ namespace Microsoft.ML
         /// <summary>
         /// Train an PCA Anomaly model.
         /// </summary>
+        /// <remarks>
+        /// <see href='https://en.wikipedia.org/wiki/Principal_component_analysis'>Principle Component Analysis (PCA)</see> is a dimensionality-reduction transform which computes the projection of the feature vector to onto a low-rank subspace.
+        /// Its training is done using the technique described in the paper: <see href='https://arxiv.org/pdf/1310.6304v2.pdf'>Combining Structured and Unstructured Randomness in Large Scale PCA</see>, 
+        /// and the paper <see href='https://arxiv.org/pdf/0909.4061v2.pdf'>Finding Structure with Randomness: Probabilistic Algorithms for Constructing Approximate Matrix Decompositions</see>
+        /// </remarks>
+        /// <see href='http://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf'>Randomized Methods for Computing the Singular Value Decomposition (SVD) of very large matrices</see>
+        /// <see href='https://arxiv.org/abs/0809.2274'>A randomized algorithm for principal component analysis</see>
+        /// <see href='http://users.cms.caltech.edu/~jtropp/papers/HMT11-Finding-Structure-SIREV.pdf'>Finding Structure with Randomness: Probabilistic Algorithms for Constructing Approximate Matrix Decompositions</see>
         public sealed partial class PcaAnomalyDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -17738,7 +17879,8 @@ namespace Microsoft.ML
 
 
         /// <summary>
-        /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.
+        /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. 
+        /// This learner is a generalization of Poisson, compound Poisson, and gamma regression.
         /// </summary>
         public sealed class FastTreeTweedieRegressionFastTreeTrainer : FastTreeTrainer
         {
