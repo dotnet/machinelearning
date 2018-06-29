@@ -20,8 +20,13 @@ namespace Microsoft.ML.Models
         /// </summary>
         /// <param name="trainer">Underlying binary trainer</param>
         /// <param name="useProbabilities">"Use probabilities (vs. raw outputs) to identify top-score category</param>
-        /// See  TrainOva <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/Scenarios/IrisPlantClassificationTests.cs">unit test</a>
-        /// for an example on how to train a one versus all model.
+        ///
+        /// In order to use it all you need to do is add it to pipeline as regular learner:
+        /// 
+        /// pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
+        /// 
+        /// Underlying trainer suppose to be binary classfier. To check your options type BinaryClassifier
+        /// and look on all available learners suggested by IntelliSense.
         public static ILearningPipelineItem With(ITrainerInputWithLabel trainer, bool useProbabilities = true)
         {
             return new OvaPipelineItem(trainer, useProbabilities);
