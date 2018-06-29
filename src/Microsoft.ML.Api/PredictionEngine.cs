@@ -29,7 +29,8 @@ namespace Microsoft.ML.Runtime.Api
         private readonly PipeEngine<TDst> _pipeEngine;
 
         internal BatchPredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null,
+            Dictionary<string, int[]> vectorSizes = null)
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(modelStream);
@@ -37,7 +38,7 @@ namespace Microsoft.ML.Runtime.Api
             Contracts.AssertValueOrNull(outputSchemaDefinition);
 
             // Initialize pipe.
-            _srcDataView = DataViewConstructionUtils.CreateFromEnumerable(env, new TSrc[] { }, inputSchemaDefinition);
+            _srcDataView = DataViewConstructionUtils.CreateFromEnumerable(env, new TSrc[] { }, inputSchemaDefinition, vectorSizes);
 
             // Load transforms.
             var pipe = env.LoadTransforms(modelStream, _srcDataView);

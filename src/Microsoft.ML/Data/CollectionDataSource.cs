@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
@@ -19,17 +20,23 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Creates pipeline data source. Support shuffle.
         /// </summary>
-        public static ILearningPipelineLoader Create<T>(IList<T> data) where T : class
+        public static ILearningPipelineLoader Create<T>(IList<T> data,
+            Dictionary<string, int[]> vectorSizes = null, bool inferVectorSizesFromCollection = false) where T : class
         {
-            return new ListDataSource<T>(data);
+            if (inferVectorSizesFromCollection && Utils.Size(vectorSizes) == 0)
+                vectorSizes = ComponentCreation.GetVectorSizes(data[0]);
+            return new ListDataSource<T>(data, vectorSizes);
         }
 
         /// <summary>
         /// Creates pipeline data source which can't be shuffled.
         /// </summary>
-        public static ILearningPipelineLoader Create<T>(IEnumerable<T> data) where T : class
+        public static ILearningPipelineLoader Create<T>(IEnumerable<T> data,
+            Dictionary<string, int[]> vectorSizes = null, bool inferVectorSizesFromCollection = false) where T : class
         {
-            return new EnumerableDataSource<T>(data);
+            if (inferVectorSizesFromCollection && Utils.Size(vectorSizes) == 0)
+                vectorSizes = ComponentCreation.GetVectorSizes(data.First());
+            return new EnumerableDataSource<T>(data, vectorSizes);
         }
 
         private abstract class BaseDataSource<TInput> : ILearningPipelineLoader where TInput : class
@@ -60,32 +67,36 @@ namespace Microsoft.ML.Data
         private class EnumerableDataSource<TInput> : BaseDataSource<TInput> where TInput : class
         {
             private readonly IEnumerable<TInput> _enumerableCollection;
+            private readonly Dictionary<string, int[]> _vectorSizes;
 
-            public EnumerableDataSource(IEnumerable<TInput> collection)
+            public EnumerableDataSource(IEnumerable<TInput> collection, Dictionary<string, int[]> vectorSizes = null)
             {
                 Contracts.CheckValue(collection, nameof(collection));
                 _enumerableCollection = collection;
+                _vectorSizes = vectorSizes;
             }
 
             public override IDataView GetDataView(IHostEnvironment environment)
             {
-                return ComponentCreation.CreateStreamingDataView(environment, _enumerableCollection);
+                return ComponentCreation.CreateStreamingDataView(environment, _enumerableCollection, vectorSizes: _vectorSizes);
             }
         }
 
         private class ListDataSource<TInput> : BaseDataSource<TInput> where TInput : class
         {
             private readonly IList<TInput> _listCollection;
+            private readonly Dictionary<string, int[]> _vectorSizes;
 
-            public ListDataSource(IList<TInput> collection)
+            public ListDataSource(IList<TInput> collection, Dictionary<string, int[]> vectorSizes = null)
             {
                 Contracts.CheckParamValue(Utils.Size(collection) > 0, collection, nameof(collection), "Must be non-empty");
                 _listCollection = collection;
+                _vectorSizes = vectorSizes;
             }
 
             public override IDataView GetDataView(IHostEnvironment environment)
             {
-                return ComponentCreation.CreateDataView(environment, _listCollection);
+                return ComponentCreation.CreateDataView(environment, _listCollection, vectorSizes: _vectorSizes);
             }
         }
 

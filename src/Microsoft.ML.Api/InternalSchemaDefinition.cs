@@ -30,21 +30,25 @@ namespace Microsoft.ML.Runtime.Api
             public readonly Delegate Generator;
             private readonly Dictionary<string, MetadataInfo> _metadata;
             public Dictionary<string, MetadataInfo> Metadata { get { return _metadata; } }
-            public Type ReturnType {get { return ReturnParameterInfo.ParameterType.GetElementType(); }}
+            public Type ReturnType { get { return ReturnParameterInfo.ParameterType.GetElementType(); } }
 
             public Column(string columnName, ColumnType columnType, FieldInfo fieldInfo) :
-                this(columnName, columnType, fieldInfo, null, null) { }
+                this(columnName, columnType, fieldInfo, null, null)
+            { }
 
             public Column(string columnName, ColumnType columnType, FieldInfo fieldInfo,
                 Dictionary<string, MetadataInfo> metadataInfos) :
-                this(columnName, columnType, fieldInfo, null, metadataInfos) { }
+                this(columnName, columnType, fieldInfo, null, metadataInfos)
+            { }
 
             public Column(string columnName, ColumnType columnType, Delegate generator) :
-                this(columnName, columnType, null, generator, null) { }
+                this(columnName, columnType, null, generator, null)
+            { }
 
             public Column(string columnName, ColumnType columnType, Delegate generator,
                 Dictionary<string, MetadataInfo> metadataInfos) :
-                this(columnName, columnType, null, generator, metadataInfos) { }
+                this(columnName, columnType, null, generator, metadataInfos)
+            { }
 
             private Column(string columnName, ColumnType columnType, FieldInfo fieldInfo = null,
                 Delegate generator = null, Dictionary<string, MetadataInfo> metadataInfos = null)
@@ -193,13 +197,14 @@ namespace Microsoft.ML.Runtime.Api
                 throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type for member {0}", name);
         }
 
-        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition = null)
+        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition = null,
+            Dictionary<string, int[]> vectorSizes = null)
         {
             Contracts.AssertValue(userType);
             Contracts.AssertValueOrNull(userSchemaDefinition);
 
             if (userSchemaDefinition == null)
-                userSchemaDefinition = SchemaDefinition.Create(userType);
+                userSchemaDefinition = SchemaDefinition.Create(userType, vectorSizes);
 
             Column[] dstCols = new Column[userSchemaDefinition.Count];
 
