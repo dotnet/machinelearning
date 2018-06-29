@@ -129,7 +129,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
         }
 
         private TransformInference.SuggestedTransform[] SampleTransforms(RecipeInference.SuggestedRecipe.SuggestedLearner learner,
-            PipelinePattern[] history, out long transformsBitMask, bool uniformRandomSampling = false)
+            PipelinePattern[] history, out long transformsBitMask, bool uniformRandomSampling = false,
+            Dictionary<string, ColumnPurpose> columnPurpose = null)
         {
             var sampledTransforms =
                 new List<TransformInference.SuggestedTransform>(
@@ -187,7 +188,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // cause an error in verification, since it isn't included in the original 
             // dependency mapping (i.e., its level isn't in the dictionary).
             sampledTransforms.AddRange(AutoMlUtils.GetFinalFeatureConcat(Env, FullyTransformedData,
-                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms));
+                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms, columnPurpose));
             transformsBitMask = mask;
 
             return sampledTransforms.ToArray();
@@ -202,7 +203,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 .Select(t=>AvailableLearners[t.Index]).ToArray();
         }
 
-        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates)
+        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates,
+            Dictionary<string, ColumnPurpose> columnPurpose = null)
         {
             var prevCandidates = history.ToArray();
 
@@ -220,10 +222,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         // number of candidates, using second stage logic.
                         UpdateLearners(GetTopLearners(prevCandidates));
                         _currentStage++;
-                        return GetNextCandidates(prevCandidates, numCandidates);
+                        return GetNextCandidates(prevCandidates, numCandidates, columnPurpose);
                     }
                     else
-                        return GetInitialPipelines(prevCandidates, remainingNum);
+                        return GetInitialPipelines(prevCandidates, remainingNum, columnPurpose);
                 case (int)Stages.Second:
                     // Second stage: Using top k learners, try random transform configurations.
                     var candidates = new List<PipelinePattern>();
@@ -233,7 +235,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                     // Get second stage candidates.
                     if (numSecondStageCandidates > 0)
-                        candidates.AddRange(NextCandidates(prevCandidates, numSecondStageCandidates, true, true));
+                        candidates.AddRange(NextCandidates(prevCandidates, numSecondStageCandidates, true, true, columnPurpose));
 
                     // Update stage when no more second stage trials to sample.
                     if (_remainingSecondStageTrials < 1)
@@ -242,22 +244,25 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     // If the number of requested candidates is smaller than remaining second stage candidates,
                     // draw candidates from remaining pool.
                     if (numThirdStageCandidates > 0)
-                        candidates.AddRange(NextCandidates(prevCandidates, numThirdStageCandidates));
+                        candidates.AddRange(NextCandidates(prevCandidates, numThirdStageCandidates, false, false, columnPurpose));
 
                     return candidates.ToArray();
                 default:
                     // Sample transforms according to weights and use hyperparameter optimization method.
                     // Third stage samples hyperparameters uniform randomly in KDO, fourth and above do not.
-                    return NextCandidates(prevCandidates, numCandidates);
+                    return NextCandidates(prevCandidates, numCandidates, false, false, columnPurpose);
             }
         }
 
-        private PipelinePattern[] GetInitialPipelines(IEnumerable<PipelinePattern> history, int numCandidates) =>
-            _secondaryEngines[_randomInit ? nameof(UniformRandomEngine) : nameof(DefaultsEngine)]
-                .GetNextCandidates(history, numCandidates);
+        private PipelinePattern[] GetInitialPipelines(IEnumerable<PipelinePattern> history, int numCandidates, Dictionary<string, ColumnPurpose> columnPurpose)
+        {
+            var engine = _secondaryEngines[_randomInit ? nameof(UniformRandomEngine) : nameof(DefaultsEngine)];
+            return engine.GetNextCandidates(history, numCandidates, columnPurpose);
+        }
 
         private PipelinePattern[] NextCandidates(PipelinePattern[] history, int numCandidates,
-            bool defaultHyperParams = false, bool uniformRandomTransforms = false)
+            bool defaultHyperParams = false, bool uniformRandomTransforms = false,
+            Dictionary<string, ColumnPurpose> columnPurpose = null)
         {
             const int maxNumberAttempts = 10;
             double[] learnerWeights = LearnerHistoryToWeights(history, IsMaximizingMetric);
@@ -294,8 +299,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 do
                 {   // Make sure transforms set is valid and have not seen pipeline before. 
                     // Repeat until passes or runs out of chances.
-                    pipeline = new PipelinePattern(SampleTransforms(learner, history,
-                        out var transformsBitMask, uniformRandomTransforms), learner, "", Env);
+                    pipeline = new PipelinePattern(
+                        SampleTransforms(learner, history, out var transformsBitMask, uniformRandomTransforms, columnPurpose), 
+                        learner, "", Env);
                     hashKey = GetHashKey(transformsBitMask, learner);
                     valid = PipelineVerifier(pipeline, transformsBitMask) && !VisitedPipelines.Contains(hashKey);
                     count++;

@@ -1559,7 +1559,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        public static SuggestedTransform[] InferTransforms(IHostEnvironment env, IDataView data, Arguments args)
+        public static SuggestedTransform[] InferTransforms(IHostEnvironment env, IDataView data, Arguments args,
+            Dictionary<string, ColumnPurpose> columnPurpose = null)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("InferTransforms");
@@ -1576,7 +1577,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // Infer column purposes from data sample.
             var piArgs = new PurposeInference.Arguments { MaxRowsToRead = MaxRowsToRead };
             var columnIndices = Enumerable.Range(0, dataSample.Schema.ColumnCount);
-            var piResult = PurposeInference.InferPurposes(env, dataSample, columnIndices, piArgs);
+            var piResult = PurposeInference.InferPurposes(env, dataSample, columnIndices, piArgs, columnPurpose);
             var purposes = piResult.Columns;
 
             // Infer transforms
@@ -1595,7 +1596,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 .Contains(t.AtomicGroupId)).ToArray();
         }
 
-        public static SuggestedTransform[] InferConcatNumericFeatures(IHostEnvironment env, IDataView data, Arguments args)
+        public static SuggestedTransform[] InferConcatNumericFeatures(IHostEnvironment env, IDataView data, Arguments args,
+            Dictionary<string, ColumnPurpose> columnPurpose = null)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("InferConcatNumericFeatures");
@@ -1608,7 +1610,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // Infer column purposes from data sample.
             var piArgs = new PurposeInference.Arguments { MaxRowsToRead = MaxRowsToRead };
             var columnIndices = Enumerable.Range(0, data.Schema.ColumnCount);
-            var piResult = PurposeInference.InferPurposes(env, data, columnIndices, piArgs);
+            var piResult = PurposeInference.InferPurposes(env, data, columnIndices, piArgs, columnPurpose);
             var purposes = piResult.Columns;
 
             var cols = purposes.Where(x => !data.Schema.IsHidden(x.ColumnIndex)

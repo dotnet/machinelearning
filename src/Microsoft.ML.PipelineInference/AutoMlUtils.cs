@@ -257,7 +257,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// (In other words, if there would be nothing for that concatenate transform to do.)
         /// </summary>
         private static TransformInference.SuggestedTransform[] GetFinalFeatureConcat(IHostEnvironment env,
-            IDataView dataSample, int[] excludedColumnIndices, int level, int atomicIdOffset)
+            IDataView dataSample, int[] excludedColumnIndices, int level, int atomicIdOffset,
+            Dictionary<string, ColumnPurpose> columnPurpose = null)
         {
             var finalArgs = new TransformInference.Arguments
             {
@@ -266,7 +267,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 ExcludedColumnIndices = excludedColumnIndices
             };
 
-            var featuresConcatTransforms = TransformInference.InferConcatNumericFeatures(env, dataSample, finalArgs);
+            var featuresConcatTransforms = TransformInference.InferConcatNumericFeatures(env, dataSample, finalArgs, columnPurpose);
 
             for (int i = 0; i < featuresConcatTransforms.Length; i++)
             {
@@ -282,7 +283,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// </summary>
         public static TransformInference.SuggestedTransform[] GetFinalFeatureConcat(IHostEnvironment env, IDataView data,
             AutoInference.DependencyMap dependencyMapping, TransformInference.SuggestedTransform[] selectedTransforms,
-            TransformInference.SuggestedTransform[] allTransforms)
+            TransformInference.SuggestedTransform[] allTransforms,
+            Dictionary<string, ColumnPurpose> columnPurpose = null)
         {
             int level = 1;
             int atomicGroupLimit = 0;
@@ -292,7 +294,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 atomicGroupLimit = allTransforms.Max(t => t.AtomicGroupId) + 1;
             }
             var excludedColumnIndices = GetExcludedColumnIndices(selectedTransforms, data, dependencyMapping);
-            return GetFinalFeatureConcat(env, data, excludedColumnIndices, level, atomicGroupLimit);
+            return GetFinalFeatureConcat(env, data, excludedColumnIndices, level, atomicGroupLimit, columnPurpose);
         }
 
         public static IDataView ApplyTransformSet(IHostEnvironment env, IDataView data, TransformInference.SuggestedTransform[] transforms)

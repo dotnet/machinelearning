@@ -208,6 +208,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             private TransformInference.SuggestedTransform[] _availableTransforms;
             private RecipeInference.SuggestedRecipe.SuggestedLearner[] _availableLearners;
             private DependencyMap _dependencyMapping;
+            private Dictionary<string, ColumnPurpose> _columnPurpose;
             public IPipelineOptimizer AutoMlEngine { get; set; }
             public PipelinePattern[] BatchCandidates { get; set; }
             public SupportedMetric Metric { get; }
@@ -370,7 +371,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 TransformInference.SuggestedTransform[] existingTransforms = null)
             {
                 // Infer transforms using experts
-                var levelTransforms = TransformInference.InferTransforms(_env, data, args);
+                var levelTransforms = TransformInference.InferTransforms(_env, data, args, this._columnPurpose);
 
                 // Retain only those transforms inferred which were also passed in.
                 if (existingTransforms != null)
@@ -378,11 +379,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 return levelTransforms;
             }
 
-            public void InferSearchSpace(int numTransformLevels)
+            public void InferSearchSpace(int numTransformLevels, Dictionary<string, ColumnPurpose> columnPurpose = null)
             {
                 var learners = RecipeInference.AllowedLearners(_env, TrainerKind).ToArray();
                 if (_requestedLearners != null && _requestedLearners.Length > 0)
                     learners = learners.Where(l => _requestedLearners.Contains(l.LearnerName)).ToArray();
+
+                this._columnPurpose = columnPurpose;
                 ComputeSearchSpace(numTransformLevels, learners, (b, c) => InferAndFilter(b, c));
             }
 
@@ -536,7 +539,26 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 var currentBatchSize = numberOfCandidates;
                 if (_terminator is IterationTerminator itr)
                     currentBatchSize = Math.Min(itr.RemainingIterations(_history), numberOfCandidates);
-                BatchCandidates = AutoMlEngine.GetNextCandidates(_sortedSampledElements.Select(kvp => kvp.Value), currentBatchSize);
+                BatchCandidates = AutoMlEngine.GetNextCandidates(
+                    _sortedSampledElements.Select(kvp => kvp.Value), 
+                    currentBatchSize,
+                    this._columnPurpose);
+
+                var h = _env.Register("AutoMlMlState");
+                using (var ch = h.Start("GetNextCandidates"))
+                {
+                    foreach (var pipeline in BatchCandidates)
+                    {
+                        ch.Info("AutoInference Suggested Transforms.");
+                        int transformK = 0;
+                        foreach (var transform in pipeline.Transforms)
+                        {
+                            transformK += 1;
+                            ch.Info($"Transform {transformK} : {transform.Transform.ToString()}");
+                        }
+                    }
+                }
+
                 return BatchCandidates;
             }
 

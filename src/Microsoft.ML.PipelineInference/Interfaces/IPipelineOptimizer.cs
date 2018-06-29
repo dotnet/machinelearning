@@ -21,7 +21,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
     /// </summary>
     public interface IPipelineOptimizer
     {
-        PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates);
+        PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates,
+            Dictionary<string, ColumnPurpose> columnPurpose = null);
 
         void SetSpace(TransformInference.SuggestedTransform[] availableTransforms,
             RecipeInference.SuggestedRecipe.SuggestedLearner[] availableLearners,
@@ -60,7 +61,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
             ProbUtils = new SweeperProbabilityUtils(host);
         }
 
-        public abstract PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates);
+        public abstract PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates,
+            Dictionary<string, ColumnPurpose> columnPurpose = null);
 
         public virtual void SetSpace(TransformInference.SuggestedTransform[] availableTransforms,
             RecipeInference.SuggestedRecipe.SuggestedLearner[] availableLearners,

@@ -3410,6 +3410,51 @@ namespace Microsoft.ML
             /// </summary>
             public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> CandidateOutputs { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
 
+            /// <summary>
+            /// Column(s) to use as purpose 'Ignore'
+            /// </summary>
+            public string[] IgnoreColumn { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as purpose 'Name'
+            /// </summary>
+            public string[] NameColumn { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as purpose 'Label'
+            /// </summary>
+            public string[] LabelColumn { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as purpose 'NumericFeature'
+            /// </summary>
+            public string[] NumericFeatureColumn { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as purpose 'CategoricalFeature'
+            /// </summary>
+            public string[] CategoricalFeatureColumn { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as purpose 'TextFeature'
+            /// </summary>
+            public string[] TextFeatureColumn { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as purpose 'Weight'
+            /// </summary>
+            public string[] WeightColumn { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as purpose 'GroupId'
+            /// </summary>
+            public string[] GroupIdColumn { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as purpose 'ImagePath'
+            /// </summary>
+            public string[] ImagePathColumn { get; set; }
+
 
             public sealed class Output
             {

@@ -33,7 +33,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
             _currentLearnerIndex = 0;
         }
 
-        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates)
+        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates,
+            Dictionary<string, ColumnPurpose> columnPurpose = null)
         {
             var candidates = new List<PipelinePattern>();
 
@@ -53,7 +54,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 do
                 {   // Make sure transforms set is valid. Repeat until passes verifier.
-                    pipeline = new PipelinePattern(SampleTransforms(out var transformsBitMask), learner, "", Env);
+                    pipeline = new PipelinePattern(SampleTransforms(out var transformsBitMask, columnPurpose), 
+                        learner, "", Env);
                     valid = PipelineVerifier(pipeline, transformsBitMask);
                     count++;
                 } while (!valid && count <= 1000);
@@ -69,7 +71,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return candidates.ToArray();
         }
 
-        private TransformInference.SuggestedTransform[] SampleTransforms(out long transformsBitMask)
+        private TransformInference.SuggestedTransform[] SampleTransforms(out long transformsBitMask,
+            Dictionary<string, ColumnPurpose> columnPurpose = null)
         {
             // For now, return all transforms.
             var sampledTransforms = AvailableTransforms.ToList();
@@ -77,7 +80,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             // Add final features concat transform.
             sampledTransforms.AddRange(AutoMlUtils.GetFinalFeatureConcat(Env, FullyTransformedData,
-                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms));
+                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms, columnPurpose));
 
             return sampledTransforms.ToArray();
         }

@@ -36,6 +36,33 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output datasets from previous iteration of sweep.", SortOrder = 7, Hide = true)]
             public IDataView[] CandidateOutputs;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Ignore'", SortOrder = 8, Hide = true)]
+            public string[] IgnoreColumn;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Name'", SortOrder = 9, Hide = true)]
+            public string[] NameColumn;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Label'", SortOrder = 10, Hide = true)]
+            public string[] LabelColumn;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'NumericFeature'", SortOrder = 11, Hide = true)]
+            public string[] NumericFeatureColumn;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'CategoricalFeature'", SortOrder = 12, Hide = true)]
+            public string[] CategoricalFeatureColumn;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'TextFeature'", SortOrder = 13, Hide = true)]
+            public string[] TextFeatureColumn;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Weight'", SortOrder = 14, Hide = true)]
+            public string[] WeightColumn;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'GroupId'", SortOrder = 15, Hide = true)]
+            public string[] GroupIdColumn;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'ImagePath'", SortOrder = 16, Hide = true)]
+            public string[] ImagePathColumn;
         }
 
         public sealed class Output
@@ -88,6 +115,68 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new Output { Results = outputView, State = autoMlState };
         }
 
+        private static Dictionary<string, ColumnPurpose> SetColumnPurpose(Arguments input)
+        {
+            var columnPurpose = new Dictionary<string, ColumnPurpose>();
+            if (input.IgnoreColumn != null)
+            {
+                foreach (var colName in input.IgnoreColumn)
+                {
+                    columnPurpose.Add(colName, ColumnPurpose.Ignore);
+                }
+            }
+            if (input.NameColumn != null)
+            {
+                foreach (var colName in input.NameColumn)
+                {
+                    columnPurpose.Add(colName, ColumnPurpose.Name);
+                }
+            }
+            if (input.LabelColumn != null)
+            {
+                foreach (var colName in input.LabelColumn)
+                {
+                    columnPurpose.Add(colName, ColumnPurpose.Label);
+                }
+            }
+            if (input.NumericFeatureColumn != null)
+            {
+                foreach (var colName in input.NumericFeatureColumn)
+                {
+                    columnPurpose.Add(colName, ColumnPurpose.NumericFeature);
+                }
+            }
+            if (input.CategoricalFeatureColumn != null)
+            {
+                foreach (var colName in input.CategoricalFeatureColumn)
+                {
+                    columnPurpose.Add(colName, ColumnPurpose.CategoricalFeature);
+                }
+            }
+            if (input.TextFeatureColumn != null)
+            {
+                foreach (var colName in input.TextFeatureColumn)
+                {
+                    columnPurpose.Add(colName, ColumnPurpose.TextFeature);
+                }
+            }
+            if (input.GroupIdColumn != null)
+            {
+                foreach (var colName in input.GroupIdColumn)
+                {
+                    columnPurpose.Add(colName, ColumnPurpose.GroupId);
+                }
+            }
+            if (input.ImagePathColumn != null)
+            {
+                foreach (var colName in input.ImagePathColumn)
+                {
+                    columnPurpose.Add(colName, ColumnPurpose.ImagePath);
+                }
+            }
+            return columnPurpose;
+        }
+
         [TlcModule.EntryPoint(Desc = "AutoML pipeline sweeping optimzation macro.", Name = "Models.PipelineSweeper")]
         public static CommonOutputs.MacroOutput<Output> PipelineSweep(
             IHostEnvironment env,
@@ -97,6 +186,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.Check(input.StateArguments != null || input.State is AutoInference.AutoMlMlState,
                 "Must have a valid AutoML State, or pass arguments to create one.");
             env.Check(input.BatchSize > 0, "Batch size must be > 0.");
+
+            // Get the user-defined column purposes (if any)
+            var columnPurpose = SetColumnPurpose(input);
 
             // If no current state, create object and set data.
             if (input.State == null)
@@ -133,7 +225,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Make sure search space is defined. If not, infer,
             // with default number of transform levels.
             if (!autoMlState.IsSearchSpaceDefined())
-                autoMlState.InferSearchSpace(numTransformLevels: 1);
+                autoMlState.InferSearchSpace(numTransformLevels: 1, columnPurpose);
 
             // Extract performance summaries and assign to previous candidate pipelines.
             foreach (var pipeline in autoMlState.BatchCandidates)
