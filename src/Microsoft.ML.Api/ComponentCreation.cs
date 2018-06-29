@@ -55,6 +55,26 @@ namespace Microsoft.ML.Runtime.Api
             return TrainUtils.CreateExamples(data, label, features, group, weight, name: null, custom: custom);
         }
 
+        public static Dictionary<string, int[]> GetVectorSizes<T>(T example)
+        {
+            var results = new Dictionary<string, int[]>();
+            var type = example.GetType();
+            foreach (var fieldInfo in type.GetFields())
+            {
+                if (fieldInfo.FieldType.IsArray)
+                {
+                    var obj = fieldInfo.GetValue(example);
+                    var arr = (System.Array)obj;
+                    int rank = (arr).Rank;
+                    int[] dims = new int[rank];
+                    for (int i = 0; i < rank; i++)
+                        dims[i] = arr.GetLength(i);
+                    results.Add(fieldInfo.Name, dims);
+                }
+            }
+            return results;
+        }
+
         /// <summary>
         /// Create a new <see cref="IDataView"/> over an in-memory collection of the items of user-defined type.
         /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
@@ -71,14 +91,16 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="data">The data to wrap around.</param>
         /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
         /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
+        /// <param name="vectorSizes">Dictionary which contains name vector fields and their dimensions.</param>
         /// <returns>The constructed <see cref="IDataView"/>.</returns>
-        public static IDataView CreateDataView<TRow>(this IHostEnvironment env, IList<TRow> data, SchemaDefinition schemaDefinition = null)
+        public static IDataView CreateDataView<TRow>(this IHostEnvironment env, IList<TRow> data, SchemaDefinition schemaDefinition = null,
+            Dictionary<string, int[]> vectorSizes = null)
             where TRow : class
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
             env.CheckValueOrNull(schemaDefinition);
-            return DataViewConstructionUtils.CreateFromList(env, data, schemaDefinition);
+            return DataViewConstructionUtils.CreateFromList(env, data, schemaDefinition, vectorSizes);
         }
 
         /// <summary>
@@ -98,14 +120,16 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="data">The data to wrap around.</param>
         /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
         /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
+        /// <param name="vectorSizes"></param>
         /// <returns>The constructed <see cref="IDataView"/>.</returns>
-        public static IDataView CreateStreamingDataView<TRow>(this IHostEnvironment env, IEnumerable<TRow> data, SchemaDefinition schemaDefinition = null)
+        public static IDataView CreateStreamingDataView<TRow>(this IHostEnvironment env, IEnumerable<TRow> data,
+            SchemaDefinition schemaDefinition = null, Dictionary<string, int[]> vectorSizes = null)
             where TRow : class
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
             env.CheckValueOrNull(schemaDefinition);
-            return DataViewConstructionUtils.CreateFromEnumerable(env, data, schemaDefinition);
+            return DataViewConstructionUtils.CreateFromEnumerable(env, data, schemaDefinition, vectorSizes);
         }
 
         /// <summary>
@@ -116,8 +140,10 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
         /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
         /// <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
+        /// <param name="vectorSizes"></param>
         public static BatchPredictionEngine<TSrc, TDst> CreateBatchPredictionEngine<TSrc, TDst>(this IHostEnvironment env, Stream modelStream,
-            bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null,
+            Dictionary<string, int[]> vectorSizes = null)
             where TSrc : class
             where TDst : class, new()
         {
@@ -125,7 +151,7 @@ namespace Microsoft.ML.Runtime.Api
             env.CheckValue(modelStream, nameof(modelStream));
             env.CheckValueOrNull(inputSchemaDefinition);
             env.CheckValueOrNull(outputSchemaDefinition);
-            return new BatchPredictionEngine<TSrc, TDst>(env, modelStream, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
+            return new BatchPredictionEngine<TSrc, TDst>(env, modelStream, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, vectorSizes);
         }
 
         /// <summary>

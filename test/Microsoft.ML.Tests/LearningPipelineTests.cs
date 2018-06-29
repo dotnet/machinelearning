@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -116,7 +117,6 @@ namespace Microsoft.ML.EntryPoints.Tests
         public class BooleanLabelData
         {
             [ColumnName("Features")]
-            [VectorType(2)]
             public float[] Features;
 
             [ColumnName("Label")]
@@ -129,13 +129,15 @@ namespace Microsoft.ML.EntryPoints.Tests
             var data = new BooleanLabelData[1];
             data[0] = new BooleanLabelData
             {
-                Features = new float[] { 0.0f, 1.0f },
+                Features = new float[4] { 0.0f, 1.0f, 2.0f, 3.0f },
                 Label = false
             };
             var pipeline = new LearningPipeline();
-            pipeline.Add(CollectionDataSource.Create(data));
+            var vectorSizes = new Dictionary<string, int[]>();
+            vectorSizes.Add("Features", new int[1] { 4 });
+            pipeline.Add(CollectionDataSource.Create(data, vectorSizes));
             pipeline.Add(new FastForestBinaryClassifier());
-            var model = pipeline.Train<Data, Prediction>();
+            var model = pipeline.Train<BooleanLabelData, Prediction>(vectorSizes);
         }
 
         public class NullableBooleanLabelData

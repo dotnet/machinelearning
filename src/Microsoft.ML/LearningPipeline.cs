@@ -158,7 +158,7 @@ namespace Microsoft.ML
         /// Please see https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet/get-started/windows for more details on output type.
         /// </typeparam>
         /// <returns>PredictionModel object. This is the model object used for prediction on new instances. </returns>
-        public PredictionModel<TInput, TOutput> Train<TInput, TOutput>()
+        public PredictionModel<TInput, TOutput> Train<TInput, TOutput>(Dictionary<string, int[]> vectorSizes = null)
             where TInput : class
             where TOutput : class, new()
         {
@@ -238,7 +238,7 @@ namespace Microsoft.ML
 
                     memoryStream.Position = 0;
 
-                    predictor = environment.CreateBatchPredictionEngine<TInput, TOutput>(memoryStream);
+                    predictor = environment.CreateBatchPredictionEngine<TInput, TOutput>(memoryStream, vectorSizes: vectorSizes);
 
                     return new PredictionModel<TInput, TOutput>(predictor, memoryStream);
                 }

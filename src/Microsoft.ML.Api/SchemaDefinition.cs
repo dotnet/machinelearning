@@ -312,8 +312,9 @@ namespace Microsoft.ML.Runtime.Api
         /// Create a schema definition by enumerating all public fields of the given type.
         /// </summary>
         /// <param name="userType">The type to base the schema on.</param>
+        /// <param name="vectorSizes"></param>
         /// <returns>The generated schema definition.</returns>
-        public static SchemaDefinition Create(Type userType)
+        public static SchemaDefinition Create(Type userType, Dictionary<string, int[]> vectorSizes = null)
         {
             // REVIEW: This will have to be updated whenever we start
             // supporting properties and not just fields.
@@ -358,10 +359,17 @@ namespace Microsoft.ML.Runtime.Api
                 ColumnType columnType;
                 var vectorAttr = fieldInfo.GetCustomAttribute<VectorTypeAttribute>();
                 if (vectorAttr != null && !isVector)
+
                     throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with VectorType attribute, but does not appear to be a vector type", fieldInfo.Name);
                 if (isVector)
                 {
-                    int[] dims = vectorAttr?.Dims;
+                    int[] dims = null;
+                    if (vectorAttr != null)
+                        dims = vectorAttr?.Dims;
+                    if (vectorSizes != null && vectorSizes.ContainsKey(fieldInfo.Name))
+                        dims = vectorSizes[fieldInfo.Name];
+                    if (dims == null)
+                        throw Contracts.ExceptParam(nameof(userType), "Please mark {0} with VectorType attribute or pass it size through vectorSize paramater", fieldInfo.Name);
                     if (dims != null && dims.Any(d => d < 0))
                         throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
                     if (Utils.Size(dims) == 0)

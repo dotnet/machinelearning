@@ -17,28 +17,24 @@ namespace Microsoft.ML.Runtime.Api
     internal static class DataViewConstructionUtils
     {
         public static IDataView CreateFromList<TRow>(IHostEnvironment env, IList<TRow> data,
-            SchemaDefinition schemaDefinition = null)
+            SchemaDefinition schemaDefinition = null, Dictionary<string, int[]> vectorSizes = null)
             where TRow : class
         {
             Contracts.AssertValue(env);
             env.AssertValue(data);
             env.AssertValueOrNull(schemaDefinition);
-            var internalSchemaDefn = schemaDefinition == null
-                ? InternalSchemaDefinition.Create(typeof(TRow))
-                : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
+            var internalSchemaDefn = InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition, vectorSizes);
             return new ListDataView<TRow>(env, data, internalSchemaDefn);
         }
 
         public static StreamingDataView<TRow> CreateFromEnumerable<TRow>(IHostEnvironment env, IEnumerable<TRow> data,
-            SchemaDefinition schemaDefinition = null)
+            SchemaDefinition schemaDefinition = null, Dictionary<string, int[]> vectorSizes = null)
             where TRow : class
         {
             Contracts.AssertValue(env);
             env.AssertValue(data);
             env.AssertValueOrNull(schemaDefinition);
-            var internalSchemaDefn = schemaDefinition == null
-                ? InternalSchemaDefinition.Create(typeof(TRow))
-                : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
+            var internalSchemaDefn = InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition, vectorSizes);
             return new StreamingDataView<TRow>(env, data, internalSchemaDefn);
         }
 
@@ -218,7 +214,7 @@ namespace Microsoft.ML.Runtime.Api
                     return (ValueGetter<DvBool>)((ref DvBool dst) =>
                     {
                         peek(GetCurrentRowObject(), Position, ref buf);
-                        dst =  (DvBool)buf;
+                        dst = (DvBool)buf;
                     });
                 }
 
