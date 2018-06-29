@@ -1,0 +1,5 @@
+---- PartitionedFileLoader ----
+3 columns:
+  L0: Text
+  Year: Text
+  Month: Text

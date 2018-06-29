@@ -381,6 +381,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Set the input bindings for the CombineMetrics entry point.
             var combineInputBindingMap = new Dictionary<string, List<ParameterBinding>>();
             var combineInputMap = new Dictionary<ParameterBinding, VariableBinding>();
+
+            var warningsArray = new SimpleParameterBinding(nameof(combineArgs.Warnings));
+            combineInputBindingMap.Add(nameof(combineArgs.Warnings), new List<ParameterBinding> { warningsArray });
+            combineInputMap.Add(warningsArray, new SimpleVariableBinding(warningsOutput.OutputData.VarName));
             var overallArray = new SimpleParameterBinding(nameof(combineArgs.OverallMetrics));
             combineInputBindingMap.Add(nameof(combineArgs.OverallMetrics), new List<ParameterBinding> { overallArray });
             combineInputMap.Add(overallArray, new SimpleVariableBinding(overallMetricsOutput.OutputData.VarName));

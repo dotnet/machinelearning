@@ -1,0 +1,76 @@
+maml.exe TrainTest test=%Data% tr=pcaAnomaly norm=No dout=%Output% data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Not training a calibrator because it is not needed.
+50 Top-scored Results
+=================================================
+Instance    Anomaly Score     Labeled
+69              0.8341           5
+70              0.7756           1
+48              0.7316           5
+72              0.7184           7
+74              0.6831           4
+87              0.6784           1
+61              0.6754           6
+17              0.6731           0
+22              0.6632           9
+102             0.6629           1
+46              0.6559           0
+37              0.6169           0
+76              0.6153           0
+12              0.5829           0
+109             0.5751           0
+60              0.5704           0
+25              0.5697           0
+21              0.5682           0
+83              0.5649           6
+10              0.5587           0
+44               0.556           0
+29              0.5546           0
+35              0.5544           0
+66              0.5534           0
+54              0.5529           0
+27              0.5521           0
+6               0.5503           0
+52              0.5492           0
+30              0.5469           0
+113             0.5458           0
+94              0.5442           0
+40              0.5439           0
+79              0.5364           0
+103             0.5301           0
+64              0.5299           0
+58              0.5296           0
+9               0.5289           0
+3               0.5263           0
+78              0.5259           0
+5               0.5245           0
+47              0.5233           0
+23              0.5228           0
+114             0.5201           0
+110             0.5201           0
+82              0.5188           0
+111             0.5146           0
+101             0.5131           0
+32              0.5108           0
+88              0.5106           0
+24              0.5095           0
+Detection rate at 10 false positives: 1.000000
+Detection rate at 0.01 false positive rate: 0.900000
+Detection rate at 10 positive predictions: 0.900000
+Threshold @K FP:    0.558688
+Threshold @P FPR:   0.655883
+Threshold @NumPos:  0.662917
+AUC:                0.989524
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.989524 (0.0000)
+DR @K FP:           1.000000 (0.0000)
+DR @P FPR:          0.900000 (0.0000)
+DR @NumPos:         0.900000 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

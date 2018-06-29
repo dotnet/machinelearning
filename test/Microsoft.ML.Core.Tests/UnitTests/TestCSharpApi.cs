@@ -262,7 +262,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestCrossValidationMacro()
         {
-            var dataPath = GetDataPath(TestDatasets.winequality.trainFilename);
+            var dataPath = GetDataPath(TestDatasets.winequalitymacro.trainFilename);
             using (var env = new TlcEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
@@ -303,14 +303,14 @@ namespace Microsoft.ML.Runtime.RunTests
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(11) },
-                            Type = DataKind.Num
+                            Type = ML.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Features",
                             Source = new [] { new TextLoaderRange(0,10) },
-                            Type = DataKind.Num
+                            Type = ML.Data.DataKind.Num
                         }
                     }
                     }
@@ -528,6 +528,89 @@ namespace Microsoft.ML.Runtime.RunTests
                     }
                     Assert.Equal(0, rowCount);
                 }
+
+                var warnings = experiment.GetOutput(crossValidateOutput.Warnings);
+                using (var cursor = warnings.GetRowCursor(col => true))
+                    Assert.False(cursor.MoveNext());
+            }
+        }
+
+        [Fact]
+        public void TestCrossValidationMacroMultiClassWithWarnings()
+        {
+            var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
+            using (var env = new TlcEnvironment(42))
+            {
+                var subGraph = env.CreateExperiment();
+
+                var nop = new ML.Transforms.NoOperation();
+                var nopOutput = subGraph.Add(nop);
+
+                var learnerInput = new ML.Trainers.LogisticRegressionClassifier
+                {
+                    TrainingData = nopOutput.OutputData,
+                    NumThreads = 1
+                };
+                var learnerOutput = subGraph.Add(learnerInput);
+
+                var experiment = env.CreateExperiment();
+                var importInput = new ML.Data.TextLoader(dataPath);
+                var importOutput = experiment.Add(importInput);
+
+                var filter = new ML.Transforms.RowRangeFilter();
+                filter.Data = importOutput.Data;
+                filter.Column = "Label";
+                filter.Min = 0;
+                filter.Max = 5;
+                var filterOutput = experiment.Add(filter);
+
+                var term = new ML.Transforms.TextToKeyConverter();
+                term.Column = new[]
+                {
+                    new ML.Transforms.TermTransformColumn()
+                    {
+                        Source = "Label", Name = "Strat", Sort = ML.Transforms.TermTransformSortOrder.Value
+                    }
+                };
+                term.Data = filterOutput.OutputData;
+                var termOutput = experiment.Add(term);
+
+                var crossValidate = new ML.Models.CrossValidator
+                {
+                    Data = termOutput.OutputData,
+                    Nodes = subGraph,
+                    Kind = ML.Models.MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer,
+                    TransformModel = null,
+                    StratificationColumn = "Strat"
+                };
+                crossValidate.Inputs.Data = nop.Data;
+                crossValidate.Outputs.PredictorModel = learnerOutput.PredictorModel;
+                var crossValidateOutput = experiment.Add(crossValidate);
+
+                experiment.Compile();
+                importInput.SetInput(env, experiment);
+                experiment.Run();
+                var warnings = experiment.GetOutput(crossValidateOutput.Warnings);
+
+                var schema = warnings.Schema;
+                var b = schema.TryGetColumnIndex("WarningText", out int warningCol);
+                Assert.True(b);
+                using (var cursor = warnings.GetRowCursor(col => col == warningCol))
+                {
+                    var getter = cursor.GetGetter<DvText>(warningCol);
+
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    var warning = default(DvText);
+                    getter(ref warning);
+                    Assert.Contains("test instances with class values not seen in the training set.", warning.ToString());
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    getter(ref warning);
+                    Assert.Contains("Detected columns of variable length: SortedScores, SortedClasses", warning.ToString());
+                    b = cursor.MoveNext();
+                    Assert.False(b);
+                }
             }
         }
 
@@ -666,7 +749,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 importInput.Arguments.Column = new TextLoaderColumn[]
                 {
                     new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
-                    new TextLoaderColumn { Name = "Workclass", Source = new[] { new TextLoaderRange(1) }, Type = DataKind.Text },
+                    new TextLoaderColumn { Name = "Workclass", Source = new[] { new TextLoaderRange(1) }, Type = ML.Data.DataKind.Text },
                     new TextLoaderColumn { Name = "Features", Source = new[] { new TextLoaderRange(9, 14) } }
                 };
                 var importOutput = experiment.Add(importInput);
@@ -793,6 +876,65 @@ namespace Microsoft.ML.Runtime.RunTests
                     double acc = 0;
                     getter(ref acc);
                     Assert.Equal(0.96, acc, 2);
+                    b = cursor.MoveNext();
+                    Assert.False(b);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestOvaMacroWithUncalibratedLearner()
+        {
+            var dataPath = GetDataPath(@"iris.txt");
+            using (var env = new TlcEnvironment(42))
+            {
+                // Specify subgraph for OVA
+                var subGraph = env.CreateExperiment();
+                var learnerInput = new Trainers.AveragedPerceptronBinaryClassifier { Shuffle = false };
+                var learnerOutput = subGraph.Add(learnerInput);
+                // Create pipeline with OVA and multiclass scoring.
+                var experiment = env.CreateExperiment();
+                var importInput = new ML.Data.TextLoader(dataPath);
+                importInput.Arguments.Column = new TextLoaderColumn[]
+                {
+                    new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
+                    new TextLoaderColumn { Name = "Features", Source = new[] { new TextLoaderRange(1,4) } }
+                };
+                var importOutput = experiment.Add(importInput);
+                var oneVersusAll = new Models.OneVersusAll
+                {
+                    TrainingData = importOutput.Data,
+                    Nodes = subGraph,
+                    UseProbabilities = true,
+                };
+                var ovaOutput = experiment.Add(oneVersusAll);
+                var scoreInput = new ML.Transforms.DatasetScorer
+                {
+                    Data = importOutput.Data,
+                    PredictorModel = ovaOutput.PredictorModel
+                };
+                var scoreOutput = experiment.Add(scoreInput);
+                var evalInput = new ML.Models.ClassificationEvaluator
+                {
+                    Data = scoreOutput.ScoredData
+                };
+                var evalOutput = experiment.Add(evalInput);
+                experiment.Compile();
+                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                experiment.Run();
+
+                var data = experiment.GetOutput(evalOutput.OverallMetrics);
+                var schema = data.Schema;
+                var b = schema.TryGetColumnIndex(MultiClassClassifierEvaluator.AccuracyMacro, out int accCol);
+                Assert.True(b);
+                using (var cursor = data.GetRowCursor(col => col == accCol))
+                {
+                    var getter = cursor.GetGetter<double>(accCol);
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    double acc = 0;
+                    getter(ref acc);
+                    Assert.Equal(0.71, acc, 2);
                     b = cursor.MoveNext();
                     Assert.False(b);
                 }

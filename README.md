@@ -84,6 +84,9 @@ SentimentPrediction prediction = model.Predict(data);
 
 Console.WriteLine("prediction: " + prediction.Sentiment);
 ```
+## Samples
+
+We have a [repo of samples](https://github.com/dotnet/machinelearning-samples) that you can look at.
 
 ## License
 

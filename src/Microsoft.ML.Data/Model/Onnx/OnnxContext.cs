@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly string _producerVersion;
         private readonly long _modelVersion;
 
-        public OnnxContext(IHostEnvironment env, string name, string producerName, 
+        public OnnxContext(IHostEnvironment env, string name, string producerName,
             string producerVersion, long modelVersion, string domain)
         {
             Contracts.CheckValue(env, nameof(env));

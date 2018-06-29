@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// compensates by inserting <c>\n</c> line feed characters at the end of every
     /// input line, including the last one.
     /// </summary>
-    public class TextReaderStream : Stream
+    public sealed class TextReaderStream : Stream
     {
         private readonly TextReader _baseReader;
         private readonly Encoding _encoding;
@@ -38,19 +38,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public override bool CanWrite => false;
 
         public override long Length
-        {
-            get
-            {
-                throw Contracts.ExceptNotSupp("Stream cannot determine length.");
-            }
-        }
+            => throw Contracts.ExceptNotSupp("Stream cannot determine length.");
 
         public override long Position
         {
-            get
-            {
-                return _position;
-            }
+            get => _position;
             set
             {
                 if (value != Position)
@@ -96,6 +88,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         protected override void Dispose(bool disposing)
         {
             _baseReader.Dispose();
+            base.Dispose(disposing);
         }
 
         public override void Flush()
@@ -182,18 +175,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         public override long Seek(long offset, SeekOrigin origin)
-        {
-            throw Contracts.ExceptNotSupp("Stream cannot seek.");
-        }
+            => throw Contracts.ExceptNotSupp("Stream cannot seek.");
 
         public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw Contracts.ExceptNotSupp("Stream is not writable.");
-        }
+            => throw Contracts.ExceptNotSupp("Stream is not writable.");
 
         public override void SetLength(long value)
-        {
-            throw Contracts.ExceptNotSupp("Stream is not writable.");
-        }
+            => throw Contracts.ExceptNotSupp("Stream is not writable.");
     }
 }

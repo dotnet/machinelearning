@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             }
         }
 
-        public static ModelProto MakeModel(List<NodeProto> nodes, string producerName, string name, 
+        public static ModelProto MakeModel(List<NodeProto> nodes, string producerName, string name,
             string domain, string producerVersion, long modelVersion, List<ModelArgs> inputs,
             List<ModelArgs> outputs, List<ModelArgs> intermediateValues)
         {
