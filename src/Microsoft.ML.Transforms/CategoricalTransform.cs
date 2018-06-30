@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(columnOutputKinds, nameof(columnOutputKinds));
             Contracts.CheckParam(columns.Length == columnOutputKinds.Count, nameof(columns));
 
-            using (var ch = h.Start("Create Tranform Core"))
+            using (var ch = h.Start("Create Transform Core"))
             {
                 // Create the KeyToVectorTransform, if needed.
                 List<KeyToVectorTransform.Column> cols = new List<KeyToVectorTransform.Column>();
