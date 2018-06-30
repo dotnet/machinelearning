@@ -7,7 +7,7 @@ using BenchmarkDotNet.Running;
 
 namespace PerformanceTests
 {
-    public unsafe class SsePerf
+    public class SsePerf
     {
         internal const int EXP_MAX = 127;
         internal const int EXP_MIN = 0;
@@ -24,9 +24,6 @@ namespace PerformanceTests
         private readonly int len = 23;
         private readonly int expRange = EXP_MAX / 2;
         private readonly int seed = 2;
-        private unsafe float* psrc, pdst;
-        private unsafe int* pidx;
-
 
         public SsePerf()
         {
@@ -44,15 +41,6 @@ namespace PerformanceTests
             for (int i = 0; i < idxlen; i++)
             {
                 idx[i] = rand.Next(0, len);
-            }
-
-            fixed (float* a = &src[0])
-            fixed (float* b = &dst[0])
-            fixed (int* c = &idx[0])
-            {
-                psrc = a;
-                pdst = b;
-                pidx = c;
             }
         }
 
@@ -90,31 +78,65 @@ namespace PerformanceTests
         internal unsafe static extern void NativeMulElementWiseU(/*_In_ const*/ float* ps1, /*_In_ const*/ float* ps2, /*_Inout_*/ float* pd, int c);
 
         [Benchmark]
-        public unsafe float NativeDotUPerf() => NativeDotU(psrc, pdst, len);
+        public unsafe float NativeDotUPerf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            {
+                return NativeDotU(psrc, pdst, len);
+            }
+        }
 
         [Benchmark]
         public float MyDotUPerf() => IntrinsicsUtils.DotU(src, dst);
 
         [Benchmark]
-        public unsafe float NativeDotSUPerf() => NativeDotSU(psrc, pdst, pidx, idxlen);
+        public unsafe float NativeDotSUPerf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            fixed (int* pidx = idx)
+            {
+                return NativeDotSU(psrc, pdst, pidx, idxlen);
+            }
+        }
 
         [Benchmark]
         public float MyDotSUPerf() => IntrinsicsUtils.DotSU(src, dst, idx);
 
         [Benchmark]
-        public unsafe float NativeSumSqUPerf() => NativeSumSqU(psrc, len);
+        public unsafe float NativeSumSqUPerf()
+        {
+            fixed (float* psrc = src)
+            {
+                return NativeSumSqU(psrc, len);
+            }
+        }
 
         [Benchmark]
         public float MySumSqUPerf() => IntrinsicsUtils.SumSqU(src);
 
         [Benchmark]
-        public unsafe float NativeDist2Perf() => NativeDist2(psrc, pdst, len);
+        public unsafe float NativeDist2Perf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            {
+                return NativeDist2(psrc, pdst, len);
+            }
+        }
 
         [Benchmark]
         public float MyDist2Perf() => IntrinsicsUtils.Dist2(src, dst);
 
         [Benchmark]
-        public unsafe float NativeSumAbsUPerf() => NativeSumAbsU(psrc, len);
+        public unsafe float NativeSumAbsUPerf()
+        {
+            fixed (float* psrc = src)
+            {
+                return NativeSumAbsU(psrc, len);
+            }
+        }
 
         [Benchmark]
         public float MySumAbsqUPerf() => IntrinsicsUtils.SumAbsU(src);
