@@ -301,8 +301,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       'Inputs': {
                         'TrainingData': '$TrainingData',
                         'TestingData': '$TestingData',
-                        'IgnoreColumn': ['workclass', 'education', 'marital_status', 'occupation', 'relationship', 'ethnicity', 'sex'],
-                        'NumericFeatureColumn': ['age'],
+                        'IgnoreColumn': ['age', 'fnlwgt', 'education_num', 'native_country'],
                         'LabelColumn': ['IsOver50K'],
                         'StateArguments': {
                             'Name': 'AutoMlState',
@@ -343,7 +342,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var allPipelines = autoMlState.GetAllEvaluatedPipelines();
             var bestPipeline = autoMlState.GetBestPipeline();
             Assert.Equal(allPipelines.Length, numIterations);
-            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.1);
+            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.87);
 
             var results = runner.GetOutput<IDataView>("ResultsOut");
             Assert.NotNull(results);
@@ -423,7 +422,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var allPipelines = autoMlState.GetAllEvaluatedPipelines();
             var bestPipeline = autoMlState.GetBestPipeline();
             Assert.Equal(allPipelines.Length, numIterations);
-            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.1);
+            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.87);
 
             var results = runner.GetOutput<IDataView>("ResultsOut");
             Assert.NotNull(results);
@@ -504,7 +503,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var allPipelines = autoMlState.GetAllEvaluatedPipelines();
             var bestPipeline = autoMlState.GetBestPipeline();
             Assert.Equal(allPipelines.Length, numIterations);
-            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.1);
+            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.86);
 
             var results = runner.GetOutput<IDataView>("ResultsOut");
             Assert.NotNull(results);
