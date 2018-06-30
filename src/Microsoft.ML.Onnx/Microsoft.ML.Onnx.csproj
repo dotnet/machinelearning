@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML</IncludeInPackage>
+    <RootNamespace>Microsoft.ML.Runtime.Model.Onnx</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
