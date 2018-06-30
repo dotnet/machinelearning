@@ -8,75 +8,102 @@ using Microsoft.ML.Runtime.Data;
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
     /// <summary>
-    /// A context for defining a ONNX output. This is iteratively given to exportable components
-    /// via the <see cref="ICanSaveOnnx"/> interface and subinterfaces, that attempt to express
-    /// their operations as ONNX nodes, if they can. At the point that it is given to a component,
-    /// all other components up to that component have already attempted to express themselves in
+    /// A context for defining a ONNX output. The context internally contains the model-in-progress being built. This
+    /// same context object is iteratively given to exportable components via the <see cref="ICanSaveOnnx"/> interface
+    /// and subinterfaces, that attempt to express their operations as ONNX nodes, if they can. At the point that it is
+    /// given to a component, all other components up to that component have already attempted to express themselves in
     /// this context, with their outputs possibly available in the ONNX graph.
+    /// 
+    /// 
     /// </summary>
     public interface IOnnxContext
     {
+        /// <summary>
+        /// Generates a unique name for the node based on a prefix.
+        /// </summary>
+        /// <param name="prefix">The prefix for the node</param>
+        /// <returns>A name that has not yet been returned from this function, starting with <paramref name="prefix"/></returns>
+        string GetNodeName(string prefix);
+
+        /// <summary>
+        /// Looks up whether a given data view column has a mapping in the ONNX context. Once confirmed, callers can
+        /// safely call <see cref="GetVariableName(string)"/>.
+        /// </summary>
+        /// <param name="colName">The data view column name</param>
+        /// <returns>Whether the column is mapped in this context</returns>
         bool ContainsColumn(string colName);
 
         /// <summary>
-        /// Stops tracking a column. If removeVariable is true then it also removes the 
-        /// variable associated with it, this is useful in the event where an output variable is 
-        /// created before realizing the transform cannot actually save as ONNX.
+        /// Stops tracking a column.
         /// </summary>
-        /// <param name="colName">IDataView column name to stop tracking</param>
-        /// <param name="removeVariable">Remove associated ONNX variable at the time.</param>
-        void RemoveColumn(string colName, bool removeVariable);
+        /// <param name="colName">Column name to stop tracking</param>
+        /// <param name="removeVariable">Remove associated ONNX variable. This is useful in the event where an output
+        /// variable is created through <see cref="AddIntermediateVariable(ColumnType, string, bool)"/>before realizing
+        /// the transform cannot actually save as ONNX.</param>
+        void RemoveColumn(string colName, bool removeVariable = false);
 
         /// <summary>
-        /// Removes an ONNX variable. If removeColumn is true then it also removes the 
-        /// tracking for the <see cref="IDataView"/> column associated with it.
+        /// Removes an ONNX variable. If removeColumn is true then it also removes the tracking for the <see
+        /// cref="IDataView"/> column associated with it.
         /// </summary>
-        /// <param name="variableName">ONNX variable to remove.</param>
+        /// <param name="variableName">ONNX variable to remove. Note that this is an ONNX variable name, not an <see
+        /// cref="IDataView"/> column name</param>
         /// <param name="removeColumn">IDataView column to stop tracking</param>
         void RemoveVariable(string variableName, bool removeColumn);
 
         /// <summary>
-        /// Generates a unique name for the node based on a prefix.
+        /// ONNX variables are referred to by name. At each stage of a ML.NET pipeline, the corresponding
+        /// <see cref="IDataView"/>'s column names will map to a variable in the ONNX graph if the intermediate steps
+        /// used to calculate that value are things we knew how to save as ONNX. Retrieves the variable name that maps
+        /// to the <see cref="IDataView"/> column name at a given point in the pipeline execution. Callers should
+        /// probably confirm with <see cref="ContainsColumn(string)"/> whether a mapping for that data view column
+        /// already exists.
         /// </summary>
-        string GetNodeName(string prefix);
-
-        /// <summary>
-        /// Retrieves the variable name that maps to the IDataView column name at a 
-        /// given point in the pipeline execution.
-        /// </summary>
-        /// <returns>Column Name mapping.</returns>
+        /// <param name="colName">The data view column name</param>
+        /// <returns>The ONNX variable name corresponding to that data view column</returns>
         string GetVariableName(string colName);
 
         /// <summary>
-        /// Retrieves the variable name that maps to the IDataView column name at a 
-        /// given point in the pipeline execution.
+        /// Establishes a new mapping from an data view column in the context, if necessary generates a unique name, and
+        /// returns that newly allocated name.
         /// </summary>
-        /// <returns>Column Name mapping.</returns>
-        string TryGetVariableName(string colName);
-
-        /// <summary>
-        /// Adds an intermediate column to the list.
-        /// </summary>
+        /// <param name="type">The data view type associated with this column name</param>
+        /// <param name="colName">The data view column name</param>
+        /// <param name="skip">Whether we should skip the process of establishing the mapping from data view column to
+        /// ONNX variable name.</param>
+        /// <returns>The returned value is the name of the variable corresponding </returns>
         string AddIntermediateVariable(ColumnType type, string colName, bool skip = false);
 
         /// <summary>
-        /// Creates an ONNX node of
+        /// Creates an ONNX node 
         /// </summary>
         /// <param name="opType">The name of the ONNX operator to apply</param>
         /// <param name="inputs">The names of the variables as inputs</param>
         /// <param name="outputs">The names of the variables to create as outputs,
-        /// which ought to have been something </param>
-        /// <param name="name"></param>
-        /// <param name="domain"></param>
-        /// <returns></returns>
-        IOnnxNode CreateNode(string opType, List<string> inputs,
-            List<string> outputs, string name, string domain = null);
+        /// which ought to have been something returned from <see cref="AddIntermediateVariable(ColumnType, string, bool)"/></param>
+        /// <param name="name">The name of the operator, which ought to be something returned from <see cref="GetNodeName(string)"/></param>
+        /// <param name="domain">The domain of the ONNX operator, if non-default</param>
+        /// <returns>A node added to the in-progress ONNX graph, that attributes can be set on</returns>
+        IOnnxNode CreateNode(string opType, IEnumerable<string> inputs,
+            IEnumerable<string> outputs, string name, string domain = null);
     }
 
     public static class OnnxContextExtensions
     {
+        /// <summary>
+        /// Convenience alternative to <see cref="IOnnxContext.CreateNode(string, IEnumerable{string}, IEnumerable{string}, string, string)"/>
+        /// for the case where there is exactly one input and output.
+        /// </summary>
+        /// <param name="ctx">The ONNX save context</param>
+        /// <param name="opType">The name of the ONNX operator to apply</param>
+        /// <param name="input">The name of the variable as input</param>
+        /// <param name="output">The name of the variable as output,
+        /// which ought to have been something returned from <see cref="IOnnxContext.AddIntermediateVariable(ColumnType, string, bool)"/></param>
+        /// <param name="name">The name of the operator, which ought to be something returned from <see cref="IOnnxContext.GetNodeName(string)"/></param>
+        /// <param name="domain">The domain of the ONNX operator, if non-default</param>
+        /// <returns>A node added to the in-progress ONNX graph, that attributes can be set on</returns>
         public static IOnnxNode CreateNode(this IOnnxContext ctx,
-            string opType, string inputs, string outputs, string name)
-            => ctx.CreateNode(opType, new List<string>() { inputs }, new List<string>() { outputs }, name);
+            string opType, string input, string output, string name, string domain = null)
+            => ctx.CreateNode(opType, new[] { input }, new[] { output }, name, domain);
     }
 }

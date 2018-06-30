@@ -3130,8 +3130,7 @@ The output of the ensemble produced by MART on a given instance is the sum of th
             }
 
             string opType = "TreeEnsembleRegressor";
-            var node = ctx.CreateNode(opType, new List<string> { featureColumn },
-                new List<string>(outputNames), ctx.GetNodeName(opType));
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputNames, ctx.GetNodeName(opType));
 
             node.AddAttribute("post_transform", PostTransform.None.GetDescription());
             node.AddAttribute("n_targets", 1);

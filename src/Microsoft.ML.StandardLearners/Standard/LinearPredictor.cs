@@ -236,7 +236,7 @@ namespace Microsoft.ML.Runtime.Learners
             Host.Check(Utils.Size(outputs) == 1);
 
             string opType = "LinearRegressor";
-            var node = ctx.CreateNode(opType, new List<string> { featureColumn }, new List<string> (outputs), ctx.GetNodeName(opType));
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
             // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
             node.AddAttribute("post_transform", 0);
             node.AddAttribute("targets", 1);

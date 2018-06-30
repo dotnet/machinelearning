@@ -17,10 +17,13 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     {
         private readonly List<NodeProto> _nodes;
         private readonly List<OnnxUtils.ModelArgs> _inputs;
+        // The map from IDataView column names to variable names.
         private readonly List<OnnxUtils.ModelArgs> _intermediateValues;
         private readonly List<OnnxUtils.ModelArgs> _outputs;
         private readonly Dictionary<string, string> _columnNameMap;
-        private readonly HashSet<string> _variableMap;
+        // All existing variable names. New variables must not exist in this set.
+        private readonly HashSet<string> _variableNames;
+        // All existing node names. New node names must not alrady exist in this set.
         private readonly HashSet<string> _nodeNames;
         private readonly string _name;
         private readonly string _producerName;
@@ -42,7 +45,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             _inputs = new List<OnnxUtils.ModelArgs>();
             _outputs = new List<OnnxUtils.ModelArgs>();
             _columnNameMap = new Dictionary<string, string>();
-            _variableMap = new HashSet<string>();
+            _variableNames = new HashSet<string>();
             _nodeNames = new HashSet<string>();
             _name = name;
             _producerName = producerName;
@@ -102,10 +105,10 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
             string columnName = _columnNameMap.Single(kvp => string.Compare(kvp.Value, variableName) == 0).Key;
 
-            Contracts.Assert(_variableMap.Contains(columnName));
+            Contracts.Assert(_variableNames.Contains(columnName));
 
             _columnNameMap.Remove(columnName);
-            _variableMap.Remove(columnName);
+            _variableNames.Remove(columnName);
         }
 
         /// <summary>
@@ -114,7 +117,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public string GetNodeName(string prefix)
         {
             _host.CheckValue(prefix, nameof(prefix));
-            return GetUniqueName(prefix, c => _nodeNames.Contains(c));
+            return GetUniqueName(prefix, _nodeNames.Contains);
         }
 
         /// <summary>
@@ -130,8 +133,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             _nodes.Add(node);
         }
 
-        public IOnnxNode CreateNode(string opType, List<string> inputs,
-            List<string> outputs, string name, string domain = null)
+        public IOnnxNode CreateNode(string opType, IEnumerable<string> inputs,
+            IEnumerable<string> outputs, string name, string domain = null)
         {
             var innerNode = OnnxUtils.MakeNode(opType, inputs, outputs, name, domain);
             AddNode(innerNode);
@@ -176,7 +179,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         {
             if (_columnNameMap.ContainsKey(colName))
                 return GetVariableName(colName);
-
             return null;
         }
 
@@ -189,13 +191,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private string AddVariable(string colName)
         {
             _host.CheckValue(colName, nameof(colName));
-
-            if (!_columnNameMap.ContainsKey(colName))
-                _columnNameMap.Add(colName, colName);
-            else
-                _columnNameMap[colName] = GetUniqueName(colName, s => _variableMap.Contains(s));
-
-            _variableMap.Add(_columnNameMap[colName]);
+            _columnNameMap[colName] = GetUniqueName(colName, _variableNames.Contains);
+            _variableNames.Add(_columnNameMap[colName]);
             return _columnNameMap[colName];
         }
 
@@ -204,17 +201,13 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         public string AddIntermediateVariable(ColumnType type, string colName, bool skip = false)
         {
-
             colName = AddVariable(colName);
-
-            //Let the runtime figure the shape.
+            // Let the runtime figure the shape.
             if (!skip)
             {
                 _host.CheckValue(type, nameof(type));
-
                 _intermediateValues.Add(OnnxUtils.GetModelArgs(type, colName));
             }
-
             return colName;
         }
 

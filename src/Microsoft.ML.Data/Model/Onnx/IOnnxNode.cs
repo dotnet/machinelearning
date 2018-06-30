@@ -11,7 +11,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 {
     /// <summary>
     /// An abstraction for an ONNX node as created by
-    /// <see cref="IOnnxContext.CreateNode(string, List{string}, List{string}, string, string)"/>.
+    /// <see cref="IOnnxContext.CreateNode(string, IEnumerable{string}, IEnumerable{string}, string, string)"/>.
     /// That method creates a with inputs and outputs, but this object can modify the node further
     /// by adding attributes (in ONNX parlance, attributes are more or less constant parameterizations).
     /// </summary>

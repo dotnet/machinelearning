@@ -152,7 +152,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
         private static AttributeProto MakeAttribute(string key, bool value) => MakeAttribute(key, value ? 1 : 0);
 
-        public static NodeProto MakeNode(string opType, List<string> inputs, List<string> outputs, string name, string domain = null)
+        public static NodeProto MakeNode(string opType, IEnumerable<string> inputs, IEnumerable<string> outputs, string name, string domain = null)
         {
             Contracts.CheckNonEmpty(opType, nameof(opType));
             Contracts.CheckValue(inputs, nameof(inputs));

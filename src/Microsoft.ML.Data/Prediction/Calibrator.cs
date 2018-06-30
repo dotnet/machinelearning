@@ -1437,14 +1437,14 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
             string opType = "Affine";
             string linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
-            var node = ctx.CreateNode(opType, new List<string> { scoreProbablityColumnNames[0] },
-                new List<string> { linearOutput }, ctx.GetNodeName(opType), "ai.onnx");
+            var node = ctx.CreateNode(opType, new[] { scoreProbablityColumnNames[0] },
+                new[] { linearOutput }, ctx.GetNodeName(opType), "ai.onnx");
             node.AddAttribute("alpha", ParamA * -1);
             node.AddAttribute("beta", -0.0000001);
 
             opType = "Sigmoid";
-            node = ctx.CreateNode(opType, new List<string> { linearOutput },
-                new List<string> { scoreProbablityColumnNames[1] }, ctx.GetNodeName(opType), "ai.onnx");
+            node = ctx.CreateNode(opType, new[] { linearOutput },
+                new[] { scoreProbablityColumnNames[1] }, ctx.GetNodeName(opType), "ai.onnx");
 
             return true;
         }
