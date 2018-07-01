@@ -45,8 +45,8 @@ namespace Intrinsics
             unsafe
             {
 
-                fixed (float* psrc = &src[0])
-                fixed (float* pdst = &dst[0])
+                fixed (float* psrc = src)
+                fixed (float* pdst = dst)
                 {
                     float* pSrcCurrent = psrc;
                     float* pDstCurrent = pdst;
@@ -120,9 +120,9 @@ namespace Intrinsics
             unsafe
             {
 
-                fixed (float* psrc = &src[0])
-                fixed (float* pdst = &dst[0])
-                fixed (int* pidx = &idx[0])
+                fixed (float* psrc = src)
+                fixed (float* pdst = dst)
+                fixed (int* pidx = idx)
                 {
                     float* pSrcCurrent = psrc;
                     float* pDstCurrent = pdst;
@@ -195,7 +195,7 @@ namespace Intrinsics
             unsafe
             {
 
-                fixed (float* psrc = &src[0])
+                fixed (float* psrc = src)
                 {
                     float* pSrcCurrent = psrc;
                     float* pEnd = psrc + src.Length;
@@ -257,8 +257,8 @@ namespace Intrinsics
         {
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                fixed (float* pdst = &dst[0])
+                fixed (float* psrc = src)
+                fixed (float* pdst = dst)
                 {
                     float* pSrcCurrent = psrc;
                     float* pDstCurrent = pdst;
@@ -310,9 +310,9 @@ namespace Intrinsics
         {
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                fixed (int* pidx = &idx[0])
-                fixed (float* pdst = &dst[0])
+                fixed (float* psrc = src)
+                fixed (int* pidx = idx)
+                fixed (float* pdst = dst)
                 {
                     float* pSrcCurrent = psrc;
                     int* pIdxCurrent = pidx;
@@ -363,8 +363,8 @@ namespace Intrinsics
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                fixed (float* pdst = &dst[0])
+                fixed (float* psrc = src)
+                fixed (float* pdst = dst)
                 {
                     float* pSrcCurrent = psrc;
                     float* pDstCurrent = pdst;
@@ -420,9 +420,9 @@ namespace Intrinsics
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                fixed (int* pidx = &idx[0])
-                fixed (float* pdst = &dst[0])
+                fixed (float* psrc = src)
+                fixed (int* pidx = idx)
+                fixed (float* pdst = dst)
                 {
                     float* pSrcCurrent = psrc;
                     int* pIdxCurrent = pidx;
@@ -474,7 +474,7 @@ namespace Intrinsics
 
             unsafe
             {
-                fixed (float* pdst = &dst[0])
+                fixed (float* pdst = dst)
                 {
                     float* pDstCurrent = pdst;
                     float* pEnd = pdst + dst.Length;
@@ -523,8 +523,8 @@ namespace Intrinsics
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                fixed (float* pdst = &dst[0])
+                fixed (float* psrc = src)
+                fixed (float* pdst = dst)
                 {
                     float* pSrcCurrent = psrc;
                     float* pDstCurrent = pdst;
@@ -602,7 +602,7 @@ namespace Intrinsics
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
+                fixed (float* psrc = src)
                 {
                     float* pSrcCurrent = psrc;
                     float* pEnd = psrc + src.Length;
@@ -665,7 +665,7 @@ namespace Intrinsics
             {
                 fixed (float* psrc1 = &src1[0])
                 fixed (float* psrc2 = &src2[0])
-                fixed (float* pdst = &dst[0])
+                fixed (float* pdst = dst)
                 {
                     float* pSrc1Current = psrc1;
                     float* pSrc2Current = psrc2;

@@ -77,8 +77,8 @@ namespace IntrinsicsTests
                 dst[i] = NextFloat(rand, expRange);
             }
 
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
             {
                 // act
                 var nativeOutput = NativeDotU(psrc, pdst, len);
@@ -115,9 +115,9 @@ namespace IntrinsicsTests
                 idx[i] = rand.Next(0, len);
             }
 
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
-            fixed (int* pidx = &idx[0])
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            fixed (int* pidx = idx)
             {
                 // act
                 var nativeOutput = NativeDotSU(psrc, pdst, pidx, idxlen);
@@ -145,7 +145,7 @@ namespace IntrinsicsTests
                 src[i] = NextFloat(rand, expRange);
             }
 
-            fixed (float* psrc = &src[0])
+            fixed (float* psrc = src)
             {
                 // act
                 var nativeOutput = NativeSumSqU(psrc, len);
@@ -177,8 +177,8 @@ namespace IntrinsicsTests
 
             float[] nativeOutput = dst;
 
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
             fixed (float* pnative = &nativeOutput[0])
             {
                 // act
@@ -220,9 +220,9 @@ namespace IntrinsicsTests
 
             float[] nativeOutput = dst;
 
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
-            fixed (int* pidx = &idx[0])
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            fixed (int* pidx = idx)
             fixed (float* pnative = &nativeOutput[0])
             {
                 // act
@@ -257,8 +257,8 @@ namespace IntrinsicsTests
 
             float[] nativeOutput = dst;
 
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
             fixed (float* pnative = &nativeOutput[0])
             {
                 // act
@@ -300,9 +300,9 @@ namespace IntrinsicsTests
 
             float[] nativeOutput = dst;
 
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
-            fixed (int* pidx = &idx[0])
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            fixed (int* pidx = idx)
             fixed (float* pnative = &nativeOutput[0])
             {
                 // act
@@ -335,7 +335,7 @@ namespace IntrinsicsTests
 
             float[] nativeOutput = dst;
 
-            fixed (float* pdst = &dst[0])
+            fixed (float* pdst = dst)
             fixed (float* pnative = &nativeOutput[0])
             {
                 // act
@@ -368,8 +368,8 @@ namespace IntrinsicsTests
                 dst[i] = NextFloat(rand, expRange);
             }
 
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
             {
                 // act
                 var nativeOutput = NativeDist2(psrc, pdst, len);
@@ -397,7 +397,7 @@ namespace IntrinsicsTests
                 src[i] = NextFloat(rand, expRange);
             }
 
-            fixed (float* psrc = &src[0])
+            fixed (float* psrc = src)
             {
                 // act
                 var nativeOutput = NativeSumAbsU(psrc, len);
@@ -433,7 +433,7 @@ namespace IntrinsicsTests
 
             fixed (float* psrc1 = &src1[0])
             fixed (float* psrc2 = &src2[0])
-            fixed (float* pdst = &dst[0])
+            fixed (float* pdst = dst)
             fixed (float* pnative = &nativeOutput[0])
             {
                 // act
