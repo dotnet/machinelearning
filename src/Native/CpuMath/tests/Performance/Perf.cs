@@ -18,17 +18,21 @@ namespace PerformanceTests
             return (float)(mantissa * exponent);
         }
 
-        private float[] src, dst;
+        private float[] src, dst, original, src1, src2;
         private int[] idx;
         private readonly int idxlen = 23;
         private readonly int len = 23;
         private readonly int expRange = EXP_MAX / 2;
         private readonly int seed = 2;
+        private readonly float scale = 1.11f;
 
         public SsePerf()
         {
             src = new float[len];
             dst = new float[len];
+            src1 = new float[len];
+            src2 = new float[len];
+            original = new float[len];
             Random rand = new Random(seed);
             idx = new int[idxlen];
 
@@ -36,6 +40,9 @@ namespace PerformanceTests
             {
                 src[i] = NextFloat(rand, expRange);
                 dst[i] = NextFloat(rand, expRange);
+                original[i] = dst[i];
+                src1[i] = NextFloat(rand, expRange);
+                src2[i] = NextFloat(rand, expRange);
             }
 
             for (int i = 0; i < idxlen; i++)
@@ -77,6 +84,12 @@ namespace PerformanceTests
         [DllImport("CpuMathNative", EntryPoint = "MulElementWiseU"), SuppressUnmanagedCodeSecurity]
         internal unsafe static extern void NativeMulElementWiseU(/*_In_ const*/ float* ps1, /*_In_ const*/ float* ps2, /*_Inout_*/ float* pd, int c);
 
+        [GlobalCleanup]
+        public void GlobalCleanup()
+        {
+            original.CopyTo(dst, 0);
+        }
+
         [Benchmark]
         public unsafe float NativeDotUPerf()
         {
@@ -117,6 +130,72 @@ namespace PerformanceTests
         public float MySumSqUPerf() => IntrinsicsUtils.SumSqU(src);
 
         [Benchmark]
+        public unsafe void NativeAddUPerf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            {
+                NativeAddU(psrc, pdst, len);
+            }
+        }
+
+        [Benchmark]
+        public void MyAddUPerf() => IntrinsicsUtils.AddU(src, dst);
+
+        [Benchmark]
+        public unsafe void NativeAddSUPerf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            fixed (int* pidx = idx)
+            {
+                NativeAddSU(psrc, pidx, pdst, idxlen);
+            }
+        }
+
+        [Benchmark]
+        public void MyAddSUPerf() => IntrinsicsUtils.AddSU(src, idx, dst);
+
+        [Benchmark]
+        public unsafe void NativeAddScaleUPerf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            {
+                NativeAddScaleU(scale, psrc, pdst, len);
+            }
+        }
+
+        [Benchmark]
+        public void MyAddScaleUPerf() => IntrinsicsUtils.AddScaleU(scale, src, dst);
+
+        [Benchmark]
+        public unsafe void NativeAddScaleSUPerf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            fixed (int* pidx = idx)
+            {
+                NativeAddScaleSU(scale, psrc, pidx, pdst, idxlen);
+            }
+        }
+
+        [Benchmark]
+        public void MyAddScaleSUPerf() => IntrinsicsUtils.AddScaleSU(scale, src, idx, dst);
+
+        [Benchmark]
+        public unsafe void NativeScaleUPerf()
+        {
+            fixed (float* pdst = dst)
+            {
+                NativeScaleU(scale, pdst, len);
+            }
+        }
+
+        [Benchmark]
+        public void MyScaleUPerf() => IntrinsicsUtils.ScaleU(scale, dst);
+
+        [Benchmark]
         public unsafe float NativeDist2Perf()
         {
             fixed (float* psrc = src)
@@ -140,6 +219,20 @@ namespace PerformanceTests
 
         [Benchmark]
         public float MySumAbsqUPerf() => IntrinsicsUtils.SumAbsU(src);
+
+        [Benchmark]
+        public unsafe void NativeMulElementWiseUPerf()
+        {
+            fixed (float* psrc1 = src1)
+            fixed (float* psrc2 = src2)
+            fixed (float* pdst = dst)
+            {
+                NativeMulElementWiseU(psrc1, psrc2, pdst, len);
+            }
+        }
+
+        [Benchmark]
+        public void MyMulElementWiseUPerf() => IntrinsicsUtils.MulElementWiseU(src1, src2, dst);
     }
 
     public class Perf
