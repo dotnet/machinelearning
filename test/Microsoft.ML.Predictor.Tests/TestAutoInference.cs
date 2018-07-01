@@ -342,7 +342,11 @@ namespace Microsoft.ML.Runtime.RunTests
             var allPipelines = autoMlState.GetAllEvaluatedPipelines();
             var bestPipeline = autoMlState.GetBestPipeline();
             Assert.Equal(allPipelines.Length, numIterations);
-            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.87);
+
+            var trainAuc = bestPipeline.PerformanceSummary.TrainingMetricValue;
+            var testAuc = bestPipeline.PerformanceSummary.MetricValue;
+            Assert.True((0.91 < trainAuc) && (trainAuc < 0.92));
+            Assert.True((0.87 < testAuc) && (testAuc < 0.88));
 
             var results = runner.GetOutput<IDataView>("ResultsOut");
             Assert.NotNull(results);
@@ -422,7 +426,11 @@ namespace Microsoft.ML.Runtime.RunTests
             var allPipelines = autoMlState.GetAllEvaluatedPipelines();
             var bestPipeline = autoMlState.GetBestPipeline();
             Assert.Equal(allPipelines.Length, numIterations);
-            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.87);
+
+            var trainAuc = bestPipeline.PerformanceSummary.TrainingMetricValue;
+            var testAuc = bestPipeline.PerformanceSummary.MetricValue;
+            Assert.True((0.91 < trainAuc) && (trainAuc < 0.92));
+            Assert.True((0.87 < testAuc) && (testAuc < 0.88));
 
             var results = runner.GetOutput<IDataView>("ResultsOut");
             Assert.NotNull(results);
@@ -503,7 +511,11 @@ namespace Microsoft.ML.Runtime.RunTests
             var allPipelines = autoMlState.GetAllEvaluatedPipelines();
             var bestPipeline = autoMlState.GetBestPipeline();
             Assert.Equal(allPipelines.Length, numIterations);
-            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.86);
+
+            var trainAuc = bestPipeline.PerformanceSummary.TrainingMetricValue;
+            var testAuc = bestPipeline.PerformanceSummary.MetricValue;
+            Assert.True((0.91 < trainAuc) && (trainAuc < 0.92));
+            Assert.True((0.86 < testAuc) && (testAuc < 0.87));
 
             var results = runner.GetOutput<IDataView>("ResultsOut");
             Assert.NotNull(results);
