@@ -131,7 +131,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg=false)
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
-            int numLeaves = int.Parse(string.Format(CultureInfo.InvariantCulture, "{0}", Options["num_leaves"]));
+            int numLeaves = (int)Options["num_leaves"];
             int minDataPerLeaf = Args.MinDataPerLeaf ?? DefaultMinDataPerLeaf(numRow, numLeaves, _numClass);
             Options["min_data_per_leaf"] = minDataPerLeaf;
             if (!hiddenMsg)

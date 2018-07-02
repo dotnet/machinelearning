@@ -33,12 +33,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             double bestScore = double.MaxValue;
             double factorToSmallerBetter = 1.0;
 
-            if (earlyStoppingRound > 0 && ((string)parameters["metric"] == "auc"
-                || (string)parameters["metric"] == "ndcg"
-                || (string)parameters["metric"] == "map"))
-            {
+            var metric = (string)parameters["metric"];
+            if (earlyStoppingRound > 0 && (metric == "auc" || metric == "ndcg" || metric == "map"))
                 factorToSmallerBetter = -1.0;
-            }
 
             const int evalFreq = 50;
 

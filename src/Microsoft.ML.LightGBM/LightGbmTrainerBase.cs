@@ -281,7 +281,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             {
                 var catIndices = ConstructCategoricalFeatureMetaData(categoricalFeatures, rawNumCol, ref catMetaData);
                 // Set categorical features
-                Options["categorical_feature"] = String.Join(",", catIndices);
+                Options["categorical_feature"] = string.Join(",", catIndices);
             }
             return catMetaData;
         }
