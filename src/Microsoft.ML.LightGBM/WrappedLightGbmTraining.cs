@@ -33,9 +33,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             double bestScore = double.MaxValue;
             double factorToSmallerBetter = 1.0;
 
-            if (earlyStoppingRound > 0 && (parameters["metric"].ToString() == "auc"
-                || parameters["metric"].ToString() == "ndcg"
-                || parameters["metric"].ToString() == "map"))
+            if (earlyStoppingRound > 0 && ((string)parameters["metric"] == "auc"
+                || (string)parameters["metric"] == "ndcg"
+                || (string)parameters["metric"] == "map"))
             {
                 factorToSmallerBetter = -1.0;
             }
