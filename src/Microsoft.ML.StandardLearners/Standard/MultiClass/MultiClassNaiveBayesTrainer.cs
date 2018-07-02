@@ -130,8 +130,8 @@ It also assumes that the features are strictly independent.
             return _predictor;
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.NaiveBayesClassifier", 
-            Desc = "Train a MultiClassNaiveBayesTrainer.", 
+        [TlcModule.EntryPoint(Name = "Trainers.NaiveBayesClassifier",
+            Desc = "Train a MultiClassNaiveBayesTrainer.",
             UserName = UserName, ShortName = ShortName)]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments input)
         {

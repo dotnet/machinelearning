@@ -961,10 +961,10 @@ namespace Microsoft.ML.Runtime.Learners
     /// </summary>
     public partial class LogisticRegression
     {
-        [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionClassifier", 
-            Desc = Summary, 
+        [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionClassifier",
+            Desc = Summary,
             Remarks = MulticlassLogisticRegression.Remarks,
-            UserName = MulticlassLogisticRegression.UserNameValue, 
+            UserName = MulticlassLogisticRegression.UserNameValue,
             ShortName = MulticlassLogisticRegression.ShortName)]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Arguments input)
         {

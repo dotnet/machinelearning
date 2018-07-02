@@ -338,10 +338,10 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public static partial class FastTree
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastTreeBinaryClassifier", 
-            Desc = FastTreeBinaryClassificationTrainer.Summary, 
-            Remarks = FastTreeBinaryClassificationTrainer.Remarks, 
-            UserName = FastTreeBinaryClassificationTrainer.UserNameValue, 
+        [TlcModule.EntryPoint(Name = "Trainers.FastTreeBinaryClassifier",
+            Desc = FastTreeBinaryClassificationTrainer.Summary,
+            Remarks = FastTreeBinaryClassificationTrainer.Remarks,
+            UserName = FastTreeBinaryClassificationTrainer.UserNameValue,
             ShortName = FastTreeBinaryClassificationTrainer.ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastTreeBinaryClassificationTrainer.Arguments input)
         {

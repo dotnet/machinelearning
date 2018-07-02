@@ -386,10 +386,10 @@ namespace Microsoft.ML.Runtime.Learners
     /// </summary>
     public static partial class Sdca
     {
-        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentClassifier", 
-            Desc = SdcaMultiClassTrainer.Summary, 
+        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentClassifier",
+            Desc = SdcaMultiClassTrainer.Summary,
             Remarks = SdcaMultiClassTrainer.Remarks,
-            UserName = SdcaMultiClassTrainer.UserNameValue, 
+            UserName = SdcaMultiClassTrainer.UserNameValue,
             ShortName = SdcaMultiClassTrainer.ShortName)]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, SdcaMultiClassTrainer.Arguments input)
         {

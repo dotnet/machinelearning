@@ -12,7 +12,7 @@ namespace Microsoft.ML.Runtime.FastTree
         where TArgs : FastForestArgumentsBase, new()
         where TPredictor : IPredictorProducing<Float>
     {
-        new internal const string Remarks = @"<remarks>
+        internal new const string Remarks = @"<remarks>
 Decision trees are non-parametric models that perform a sequence of simple tests on inputs. 
 This decision procedure maps them to outputs found in the training dataset whose inputs were similar to the instance being processed. 
 A decision is made at each node of the binary tree data structure based on a measure of similarity that maps each instance recursively through the branches of the tree until the appropriate leaf node is reached and the output decision returned.

@@ -280,10 +280,10 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public static partial class FastForest
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastForestRegressor", 
-            Desc = FastForestRegression.Summary, 
+        [TlcModule.EntryPoint(Name = "Trainers.FastForestRegressor",
+            Desc = FastForestRegression.Summary,
             Remarks = FastForestRegression.Remarks,
-            UserName = FastForestRegression.LoadNameValue, 
+            UserName = FastForestRegression.LoadNameValue,
             ShortName = FastForestRegression.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastForestRegression.Arguments input)
         {

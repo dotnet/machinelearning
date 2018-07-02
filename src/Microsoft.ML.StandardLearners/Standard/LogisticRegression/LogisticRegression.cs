@@ -386,10 +386,10 @@ namespace Microsoft.ML.Runtime.Learners
                 new PlattCalibrator(Host, -1, 0));
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionBinaryClassifier", 
-            Desc = Summary, 
+        [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionBinaryClassifier",
+            Desc = Summary,
             Remarks = Remarks,
-            UserName = UserNameValue, 
+            UserName = UserNameValue,
             ShortName = ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
