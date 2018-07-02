@@ -90,6 +90,19 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Arguments : TransformInputBase
         {
+            public Arguments()
+            {
+            }
+
+            public Arguments(string name, params string[] source)
+            {
+                Column = new[] { new Column()
+                {
+                    Name = name,
+                    Source = source
+                }};
+            }
+
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
         }
@@ -526,6 +539,18 @@ namespace Microsoft.ML.Runtime.Data
         public bool CanSaveOnnx => true;
 
         public override ISchema Schema => _bindings;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Input columns to concatenate.</param>
+        public ConcatTransform(IHostEnvironment env, IDataView input, string name, params string[] source)
+            : this(env, new Arguments(name, source), input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
