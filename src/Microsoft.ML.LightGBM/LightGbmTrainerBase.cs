@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         protected FastTree.Internal.Ensemble TrainedEnsemble;
 
         internal const string Remarks = @"<remarks>Light GBM is an open source implementation of boosted trees.</remarks>
-<see href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</see>";
+<a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a>";
 
         #endregion
 

@@ -39,8 +39,8 @@ namespace Microsoft.ML.Runtime.FastTree
         public const string Summary = @"Trains gradient boosted decision trees to fit target values using a Tweedie loss function. 
 This learner is a generalization of Poisson, compound Poisson, and gamma regression.";
         new public const string Remarks = @"<remarks>
-<see href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</see>
-<see href='http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine</see>
+<a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</a>
+<a href='http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine</a>
 </remarks>";
 
         public const string ShortName = "fttweedie";

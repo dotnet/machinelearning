@@ -43,11 +43,11 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 Field Aware Factorization Machines use, in addition to the input variables, factorized parameters to model the interaction between pairs of variables.
 The algorithm is particularly useful for high dimensional datasets which can be very sparse (e.g. click-prediction for advertising systems).
 An advantage of FFM over SVMs is that the training data does not need to be stored in memory, and the coefficients can be optimized directly.
-</remarks>
-<see href='https://www.csie.ntu.edu.tw/~r01922136/slides/ffm.pdf'>Field Aware Factorization Machines</see>
-<seealso href='http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf'>Field-aware Factorization Machines for CTR Prediction</seealso>
-<seealso href='http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf'>Adaptive Subgradient Methods for Online Learning and Stochastic Optimization</seealso>
-<seealso href='https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf'>An Improved Stochastic Gradient Method for Training Large-scale Field-aware Factorization Machine.</seealso>";
+<a href='https://www.csie.ntu.edu.tw/~r01922136/slides/ffm.pdf'>Field Aware Factorization Machines</a>
+<a href='http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf'>Field-aware Factorization Machines for CTR Prediction</a>
+<a href='http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf'>Adaptive Subgradient Methods for Online Learning and Stochastic Optimization</a>
+<a href='https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf'>An Improved Stochastic Gradient Method for Training Large-scale Field-aware Factorization Machine.</a>
+</remarks>";
 
         public sealed class Arguments : LearnerInputBaseWithLabel
         {

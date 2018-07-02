@@ -29,10 +29,10 @@ An aggregation is performed over the ensemble of trees to find a Gaussian distri
 This decision forest classifier consists of an ensemble of decision trees. 
 Generally, ensemble models provide better coverage and accuracy than single decision trees. 
 Each tree in a decision forest outputs a Gaussian distribution.
-</remarks>
-<see href='http://en.wikipedia.org/wiki/Random_forest'>Wikipedia: Random forest</see>
-<see href='http://jmlr.org/papers/volume7/meinshausen06a/meinshausen06a.pdf'>Quantile regression forest</see>
-<see href='https://blogs.technet.microsoft.com/machinelearning/2014/09/10/from-stumps-to-trees-to-forests/'>From Stumps to Trees to Forests</see>";
+<a href='http://en.wikipedia.org/wiki/Random_forest'>Wikipedia: Random forest</a>
+<a href='http://jmlr.org/papers/volume7/meinshausen06a/meinshausen06a.pdf'>Quantile regression forest</a>
+<a href='https://blogs.technet.microsoft.com/machinelearning/2014/09/10/from-stumps-to-trees-to-forests/'>From Stumps to Trees to Forests</a>
+</remarks>";
 
         private readonly bool _quantileEnabled;
 
