@@ -1096,7 +1096,11 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public static partial class FastTree
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastTreeRanker", Desc = FastTreeRankingTrainer.Summary, UserName = FastTreeRankingTrainer.UserNameValue, ShortName = FastTreeRankingTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FastTreeRanker", 
+            Desc = FastTreeRankingTrainer.Summary, 
+            Remarks = FastTreeRankingTrainer.Remarks,
+            UserName = FastTreeRankingTrainer.UserNameValue, 
+            ShortName = FastTreeRankingTrainer.ShortName)]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, FastTreeRankingTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

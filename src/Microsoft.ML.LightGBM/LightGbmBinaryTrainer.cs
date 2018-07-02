@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(LightGbmArguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
-    "LightGBM Binary Classification", LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
+    LightGbmBinaryTrainer.UserName, LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 [assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(LightGbmBinaryPredictor), null, typeof(SignatureLoadModel),
     "LightGBM Binary Executor",
@@ -27,6 +27,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     {
         public const string LoaderSignature = "LightGBMBinaryExec";
         public const string RegistrationName = "LightGBMBinaryPredictor";
+        
         private static VersionInfo GetVersionInfo()
         {
             // REVIEW: can we decouple the version from FastTree predictor version ?
@@ -82,9 +83,10 @@ namespace Microsoft.ML.Runtime.LightGBM
 
     public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float, IPredictorWithFeatureWeights<float>>
     {
-        public const string Summary = "LightGBM Binary Classifier";
-        public const string LoadNameValue = "LightGBMBinary";
-        public const string ShortName = "LightGBM";
+        internal const string UserName = "LightGBM Binary Classifier";
+        internal const string LoadNameValue = "LightGBMBinary";
+        internal const string ShortName = "LightGBM";
+        internal const string Summary = "Train a LightGBM binary classification model.";
 
         public LightGbmBinaryTrainer(IHostEnvironment env, LightGbmArguments args)
             : base(env, args, PredictionKind.BinaryClassification, "LGBBINCL")
@@ -122,14 +124,15 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
 
     /// <summary>
-    /// A component to train an LightGBM model.
+    /// A component to train a LightGBM model.
     /// </summary>
     public static partial class LightGbm
     {
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmBinaryClassifier", 
-            Desc = "Train a LightGBM binary class model.", 
-            UserName = LightGbmBinaryTrainer.Summary, 
+            Desc = LightGbmBinaryTrainer.Summary,
+            Remarks = LightGbmBinaryTrainer.Remarks,
+            UserName = LightGbmBinaryTrainer.UserName, 
             ShortName = LightGbmBinaryTrainer.ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmArguments input)
         {
