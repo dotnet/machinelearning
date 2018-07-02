@@ -45,6 +45,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         protected IDataView OriginalData;
         protected IDataView FullyTransformedData;
         protected AutoInference.DependencyMap DependencyMapping;
+        protected Dictionary<string, ColumnPurpose> columnPurpose;
         protected readonly IHostEnvironment Env;
         protected readonly IHost Host;
         protected readonly Dictionary<long, bool> TransformsMaskValidity;

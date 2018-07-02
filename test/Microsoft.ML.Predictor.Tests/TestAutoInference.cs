@@ -301,8 +301,8 @@ namespace Microsoft.ML.Runtime.RunTests
                       'Inputs': {
                         'TrainingData': '$TrainingData',
                         'TestingData': '$TestingData',
-                        'IgnoreColumn': ['age', 'fnlwgt', 'education_num', 'native_country'],
-                        'LabelColumn': ['IsOver50K'],
+                        'IgnoreColumns': ['age', 'fnlwgt', 'education_num', 'native_country'],
+                        'LabelColumns': ['IsOver50K'],
                         'StateArguments': {
                             'Name': 'AutoMlState',
                             'Settings': {
@@ -385,8 +385,8 @@ namespace Microsoft.ML.Runtime.RunTests
                       'Inputs': {
                         'TrainingData': '$TrainingData',
                         'TestingData': '$TestingData',
-                        'IgnoreColumn': ['age', 'fnlwgt', 'education_num', 'native_country'],
-                        'LabelColumn': ['IsOver50K'],
+                        'IgnoreColumns': ['age', 'fnlwgt', 'education_num', 'native_country'],
+                        'LabelColumns': ['IsOver50K'],
                         'StateArguments': {
                             'Name': 'AutoMlState',
                             'Settings': {
@@ -470,8 +470,8 @@ namespace Microsoft.ML.Runtime.RunTests
                       'Inputs': {
                         'TrainingData': '$TrainingData',
                         'TestingData': '$TestingData',
-                        'IgnoreColumn': ['age', 'fnlwgt', 'education_num', 'native_country'],
-                        'LabelColumn': ['IsOver50K'],
+                        'IgnoreColumns': ['age', 'fnlwgt', 'education_num', 'native_country'],
+                        'LabelColumns': ['IsOver50K'],
                         'StateArguments': {
                             'Name': 'AutoMlState',
                             'Settings': {

@@ -31,12 +31,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {}
 
         public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates,
-            Dictionary<string, ColumnPurpose> columnPurpose = null)
+            Dictionary<string, ColumnPurpose> colPurpose = null)
         {
-            return GetRandomPipelines(numberOfCandidates, columnPurpose);
+            columnPurpose = colPurpose;
+            return GetRandomPipelines(numberOfCandidates);
         }
 
-        private PipelinePattern[] GetRandomPipelines(int numOfPipelines, Dictionary<string, ColumnPurpose> columnPurpose = null)
+        private PipelinePattern[] GetRandomPipelines(int numOfPipelines)
         {
             Host.Check(AvailableLearners.All(l => l.PipelineNode != null));
             Host.Check(AvailableTransforms.All(t => t.PipelineNode != null));

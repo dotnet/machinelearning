@@ -129,8 +129,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         }
 
         private TransformInference.SuggestedTransform[] SampleTransforms(RecipeInference.SuggestedRecipe.SuggestedLearner learner,
-            PipelinePattern[] history, out long transformsBitMask, bool uniformRandomSampling = false,
-            Dictionary<string, ColumnPurpose> columnPurpose = null)
+            PipelinePattern[] history, out long transformsBitMask, bool uniformRandomSampling = false)
         {
             var sampledTransforms =
                 new List<TransformInference.SuggestedTransform>(
@@ -204,9 +203,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
         }
 
         public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates,
-            Dictionary<string, ColumnPurpose> columnPurpose = null)
+            Dictionary<string, ColumnPurpose> colPurpose = null)
         {
             var prevCandidates = history.ToArray();
+            columnPurpose = colPurpose;
 
             switch (_currentStage)
             {
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         return GetNextCandidates(prevCandidates, numCandidates, columnPurpose);
                     }
                     else
-                        return GetInitialPipelines(prevCandidates, remainingNum, columnPurpose);
+                        return GetInitialPipelines(prevCandidates, remainingNum);
                 case (int)Stages.Second:
                     // Second stage: Using top k learners, try random transform configurations.
                     var candidates = new List<PipelinePattern>();
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                     // Get second stage candidates.
                     if (numSecondStageCandidates > 0)
-                        candidates.AddRange(NextCandidates(prevCandidates, numSecondStageCandidates, true, true, columnPurpose));
+                        candidates.AddRange(NextCandidates(prevCandidates, numSecondStageCandidates, true, true));
 
                     // Update stage when no more second stage trials to sample.
                     if (_remainingSecondStageTrials < 1)
@@ -244,25 +244,24 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     // If the number of requested candidates is smaller than remaining second stage candidates,
                     // draw candidates from remaining pool.
                     if (numThirdStageCandidates > 0)
-                        candidates.AddRange(NextCandidates(prevCandidates, numThirdStageCandidates, false, false, columnPurpose));
+                        candidates.AddRange(NextCandidates(prevCandidates, numThirdStageCandidates, false, false));
 
                     return candidates.ToArray();
                 default:
                     // Sample transforms according to weights and use hyperparameter optimization method.
                     // Third stage samples hyperparameters uniform randomly in KDO, fourth and above do not.
-                    return NextCandidates(prevCandidates, numCandidates, false, false, columnPurpose);
+                    return NextCandidates(prevCandidates, numCandidates, false, false);
             }
         }
 
-        private PipelinePattern[] GetInitialPipelines(IEnumerable<PipelinePattern> history, int numCandidates, Dictionary<string, ColumnPurpose> columnPurpose)
+        private PipelinePattern[] GetInitialPipelines(IEnumerable<PipelinePattern> history, int numCandidates)
         {
             var engine = _secondaryEngines[_randomInit ? nameof(UniformRandomEngine) : nameof(DefaultsEngine)];
             return engine.GetNextCandidates(history, numCandidates, columnPurpose);
         }
 
         private PipelinePattern[] NextCandidates(PipelinePattern[] history, int numCandidates,
-            bool defaultHyperParams = false, bool uniformRandomTransforms = false,
-            Dictionary<string, ColumnPurpose> columnPurpose = null)
+            bool defaultHyperParams = false, bool uniformRandomTransforms = false)
         {
             const int maxNumberAttempts = 10;
             double[] learnerWeights = LearnerHistoryToWeights(history, IsMaximizingMetric);
@@ -300,7 +299,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 {   // Make sure transforms set is valid and have not seen pipeline before. 
                     // Repeat until passes or runs out of chances.
                     pipeline = new PipelinePattern(
-                        SampleTransforms(learner, history, out var transformsBitMask, uniformRandomTransforms, columnPurpose), 
+                        SampleTransforms(learner, history, out var transformsBitMask, uniformRandomTransforms), 
                         learner, "", Env);
                     hashKey = GetHashKey(transformsBitMask, learner);
                     valid = PipelineVerifier(pipeline, transformsBitMask) && !VisitedPipelines.Contains(hashKey);

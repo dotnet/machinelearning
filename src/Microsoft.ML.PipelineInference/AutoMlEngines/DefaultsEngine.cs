@@ -34,9 +34,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
         }
 
         public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates,
-            Dictionary<string, ColumnPurpose> columnPurpose = null)
+            Dictionary<string, ColumnPurpose> colPurpose = null)
         {
             var candidates = new List<PipelinePattern>();
+            columnPurpose = colPurpose;
 
             while (candidates.Count < numCandidates)
             {
@@ -54,7 +55,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 do
                 {   // Make sure transforms set is valid. Repeat until passes verifier.
-                    pipeline = new PipelinePattern(SampleTransforms(out var transformsBitMask, columnPurpose), 
+                    pipeline = new PipelinePattern(SampleTransforms(out var transformsBitMask), 
                         learner, "", Env);
                     valid = PipelineVerifier(pipeline, transformsBitMask);
                     count++;
@@ -71,8 +72,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return candidates.ToArray();
         }
 
-        private TransformInference.SuggestedTransform[] SampleTransforms(out long transformsBitMask,
-            Dictionary<string, ColumnPurpose> columnPurpose = null)
+        private TransformInference.SuggestedTransform[] SampleTransforms(out long transformsBitMask)
         {
             // For now, return all transforms.
             var sampledTransforms = AvailableTransforms.ToList();

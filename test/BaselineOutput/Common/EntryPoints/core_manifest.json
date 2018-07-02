@@ -2729,7 +2729,7 @@
           "Default": null
         },
         {
-          "Name": "IgnoreColumn",
+          "Name": "IgnoreColumns",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
@@ -2741,7 +2741,7 @@
           "Default": null
         },
         {
-          "Name": "NameColumn",
+          "Name": "NameColumns",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
@@ -2753,7 +2753,7 @@
           "Default": null
         },
         {
-          "Name": "LabelColumn",
+          "Name": "LabelColumns",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
@@ -2765,7 +2765,7 @@
           "Default": null
         },
         {
-          "Name": "NumericFeatureColumn",
+          "Name": "NumericFeatureColumns",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
@@ -2777,7 +2777,7 @@
           "Default": null
         },
         {
-          "Name": "CategoricalFeatureColumn",
+          "Name": "CategoricalFeatureColumns",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
@@ -2789,7 +2789,7 @@
           "Default": null
         },
         {
-          "Name": "TextFeatureColumn",
+          "Name": "TextFeatureColumns",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
@@ -2801,7 +2801,7 @@
           "Default": null
         },
         {
-          "Name": "WeightColumn",
+          "Name": "WeightColumns",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
@@ -2813,7 +2813,7 @@
           "Default": null
         },
         {
-          "Name": "GroupIdColumn",
+          "Name": "GroupIdColumns",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
@@ -2825,7 +2825,7 @@
           "Default": null
         },
         {
-          "Name": "ImagePathColumn",
+          "Name": "ImagePathColumns",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"

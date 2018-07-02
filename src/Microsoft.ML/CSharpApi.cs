@@ -3413,47 +3413,47 @@ namespace Microsoft.ML
             /// <summary>
             /// Column(s) to use as purpose 'Ignore'
             /// </summary>
-            public string[] IgnoreColumn { get; set; }
+            public string[] IgnoreColumns { get; set; }
 
             /// <summary>
             /// Column(s) to use as purpose 'Name'
             /// </summary>
-            public string[] NameColumn { get; set; }
+            public string[] NameColumns { get; set; }
 
             /// <summary>
             /// Column(s) to use as purpose 'Label'
             /// </summary>
-            public string[] LabelColumn { get; set; }
+            public string[] LabelColumns { get; set; }
 
             /// <summary>
             /// Column(s) to use as purpose 'NumericFeature'
             /// </summary>
-            public string[] NumericFeatureColumn { get; set; }
+            public string[] NumericFeatureColumns { get; set; }
 
             /// <summary>
             /// Column(s) to use as purpose 'CategoricalFeature'
             /// </summary>
-            public string[] CategoricalFeatureColumn { get; set; }
+            public string[] CategoricalFeatureColumns { get; set; }
 
             /// <summary>
             /// Column(s) to use as purpose 'TextFeature'
             /// </summary>
-            public string[] TextFeatureColumn { get; set; }
+            public string[] TextFeatureColumns { get; set; }
 
             /// <summary>
             /// Column(s) to use as purpose 'Weight'
             /// </summary>
-            public string[] WeightColumn { get; set; }
+            public string[] WeightColumns { get; set; }
 
             /// <summary>
             /// Column(s) to use as purpose 'GroupId'
             /// </summary>
-            public string[] GroupIdColumn { get; set; }
+            public string[] GroupIdColumns { get; set; }
 
             /// <summary>
             /// Column(s) to use as purpose 'ImagePath'
             /// </summary>
-            public string[] ImagePathColumn { get; set; }
+            public string[] ImagePathColumns { get; set; }
 
 
             public sealed class Output

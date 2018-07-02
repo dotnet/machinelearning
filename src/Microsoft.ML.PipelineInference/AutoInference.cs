@@ -205,6 +205,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             private IDataView _transformedData;
             private ITerminator _terminator;
             private string[] _requestedLearners;
+            private int _pipelineId;
             private TransformInference.SuggestedTransform[] _availableTransforms;
             private RecipeInference.SuggestedRecipe.SuggestedLearner[] _availableLearners;
             private DependencyMap _dependencyMapping;
@@ -371,7 +372,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 TransformInference.SuggestedTransform[] existingTransforms = null)
             {
                 // Infer transforms using experts
-                var levelTransforms = TransformInference.InferTransforms(_env, data, args, this._columnPurpose);
+                var levelTransforms = TransformInference.InferTransforms(_env, data, args, _columnPurpose);
 
                 // Retain only those transforms inferred which were also passed in.
                 if (existingTransforms != null)
@@ -385,7 +386,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 if (_requestedLearners != null && _requestedLearners.Length > 0)
                     learners = learners.Where(l => _requestedLearners.Contains(l.LearnerName)).ToArray();
 
-                this._columnPurpose = columnPurpose;
+                _columnPurpose = columnPurpose;
                 ComputeSearchSpace(numTransformLevels, learners, (b, c) => InferAndFilter(b, c));
             }
 
@@ -542,20 +543,19 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 BatchCandidates = AutoMlEngine.GetNextCandidates(
                     _sortedSampledElements.Select(kvp => kvp.Value), 
                     currentBatchSize,
-                    this._columnPurpose);
+                    _columnPurpose);
 
-                var h = _env.Register("AutoMlMlState");
-                using (var ch = h.Start("GetNextCandidates"))
+                using (var ch = _host.Start("Print suggested transforms"))
                 {
                     foreach (var pipeline in BatchCandidates)
                     {
-                        ch.Info("AutoInference Suggested Transforms.");
+                        ch.Info($"AutoInference Pipeline : {_pipelineId++}");
                         int transformK = 0;
                         foreach (var transform in pipeline.Transforms)
                         {
-                            transformK += 1;
-                            ch.Info($"Transform {transformK} : {transform.Transform.ToString()}");
+                            ch.Info($"AutoInference Transform {transformK++} : {transform.Transform}");
                         }
+                        ch.Info($"AutoInference Learner : {pipeline.Learner}");
                     }
                 }
 

@@ -38,31 +38,31 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView[] CandidateOutputs;
 
             [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Ignore'", SortOrder = 8, Hide = true)]
-            public string[] IgnoreColumn;
+            public string[] IgnoreColumns;
 
             [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Name'", SortOrder = 9, Hide = true)]
-            public string[] NameColumn;
+            public string[] NameColumns;
 
             [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Label'", SortOrder = 10, Hide = true)]
-            public string[] LabelColumn;
+            public string[] LabelColumns;
 
             [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'NumericFeature'", SortOrder = 11, Hide = true)]
-            public string[] NumericFeatureColumn;
+            public string[] NumericFeatureColumns;
 
             [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'CategoricalFeature'", SortOrder = 12, Hide = true)]
-            public string[] CategoricalFeatureColumn;
+            public string[] CategoricalFeatureColumns;
 
             [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'TextFeature'", SortOrder = 13, Hide = true)]
-            public string[] TextFeatureColumn;
+            public string[] TextFeatureColumns;
 
             [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Weight'", SortOrder = 14, Hide = true)]
-            public string[] WeightColumn;
+            public string[] WeightColumns;
 
             [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'GroupId'", SortOrder = 15, Hide = true)]
-            public string[] GroupIdColumn;
+            public string[] GroupIdColumns;
 
             [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'ImagePath'", SortOrder = 16, Hide = true)]
-            public string[] ImagePathColumn;
+            public string[] ImagePathColumns;
         }
 
         public sealed class Output
@@ -115,60 +115,60 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new Output { Results = outputView, State = autoMlState };
         }
 
-        private static Dictionary<string, ColumnPurpose> SetColumnPurpose(IHostEnvironment env, Arguments input)
+        private static Dictionary<string, ColumnPurpose> GetColumnPurpose(IHostEnvironment env, Arguments input)
         {
             var columnPurpose = new Dictionary<string, ColumnPurpose>();
-            if (input.IgnoreColumn != null)
+            if (input.IgnoreColumns != null)
             {
-                foreach (var colName in input.IgnoreColumn)
+                foreach (var colName in input.IgnoreColumns)
                 {
                     columnPurpose.Add(colName, ColumnPurpose.Ignore);
                 }
             }
-            if (input.NameColumn != null)
+            if (input.NameColumns != null)
             {
-                env.Check(input.NameColumn.Length == 1, "NameColumn expected one column name to be specified.");
-                columnPurpose.Add(input.NameColumn[0], ColumnPurpose.Name);
+                env.Check(input.NameColumns.Length == 1, "NameColumn expected one column name to be specified.");
+                columnPurpose.Add(input.NameColumns[0], ColumnPurpose.Name);
             }
-            if (input.LabelColumn != null)
+            if (input.LabelColumns != null)
             {
-                env.Check(input.LabelColumn.Length == 1, "LabelColumn expected one column name to be specified.");
-                columnPurpose.Add(input.LabelColumn[0], ColumnPurpose.Label);
+                env.Check(input.LabelColumns.Length == 1, "LabelColumn expected one column name to be specified.");
+                columnPurpose.Add(input.LabelColumns[0], ColumnPurpose.Label);
             }
-            if (input.NumericFeatureColumn != null)
+            if (input.NumericFeatureColumns != null)
             {
-                foreach (var colName in input.NumericFeatureColumn)
+                foreach (var colName in input.NumericFeatureColumns)
                 {
                     columnPurpose.Add(colName, ColumnPurpose.NumericFeature);
                 }
             }
-            if (input.CategoricalFeatureColumn != null)
+            if (input.CategoricalFeatureColumns != null)
             {
-                foreach (var colName in input.CategoricalFeatureColumn)
+                foreach (var colName in input.CategoricalFeatureColumns)
                 {
                     columnPurpose.Add(colName, ColumnPurpose.CategoricalFeature);
                 }
             }
-            if (input.TextFeatureColumn != null)
+            if (input.TextFeatureColumns != null)
             {
-                foreach (var colName in input.TextFeatureColumn)
+                foreach (var colName in input.TextFeatureColumns)
                 {
                     columnPurpose.Add(colName, ColumnPurpose.TextFeature);
                 }
             }
-            if (input.WeightColumn != null)
+            if (input.WeightColumns != null)
             {
-                env.Check(input.WeightColumn.Length == 1, "WeightColumn expected one column name to be specified.");
-                columnPurpose.Add(input.WeightColumn[0], ColumnPurpose.Weight);
+                env.Check(input.WeightColumns.Length == 1, "WeightColumn expected one column name to be specified.");
+                columnPurpose.Add(input.WeightColumns[0], ColumnPurpose.Weight);
             }
-            if (input.GroupIdColumn != null)
+            if (input.GroupIdColumns != null)
             {
-                env.Check(input.GroupIdColumn.Length == 1, "GroupIdColumn expected one column name to be specified.");
-                columnPurpose.Add(input.GroupIdColumn[0], ColumnPurpose.GroupId);
+                env.Check(input.GroupIdColumns.Length == 1, "GroupIdColumn expected one column name to be specified.");
+                columnPurpose.Add(input.GroupIdColumns[0], ColumnPurpose.GroupId);
             }
-            if (input.ImagePathColumn != null)
+            if (input.ImagePathColumns != null)
             {
-                foreach (var colName in input.ImagePathColumn)
+                foreach (var colName in input.ImagePathColumns)
                 {
                     columnPurpose.Add(colName, ColumnPurpose.ImagePath);
                 }
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.Check(input.BatchSize > 0, "Batch size must be > 0.");
 
             // Get the user-defined column purposes (if any)
-            var columnPurpose = SetColumnPurpose(env, input);
+            var columnPurpose = GetColumnPurpose(env, input);
 
             // If no current state, create object and set data.
             if (input.State == null)
