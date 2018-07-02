@@ -31,7 +31,7 @@ namespace Microsoft.ML.Models
         /// <param name="trainer">Underlying binary trainer</param>
         /// <param name="useProbabilities">"Use probabilities (vs. raw outputs) to identify top-score category.
         /// By specifying it to false, you can tell One-versus-all to not use the probabilities but instead
-        /// the raw uncalibrated scores from each predictor.This is generally not recommended, since these quantities
+        /// the raw uncalibrated scores from each predictor. This is generally not recommended, since these quantities
         /// are not meant to be comparable from one predictor to another, unlike calibrated probabilities.</param>
         public static ILearningPipelineItem With(ITrainerInputWithLabel trainer, bool useProbabilities = true)
         {
