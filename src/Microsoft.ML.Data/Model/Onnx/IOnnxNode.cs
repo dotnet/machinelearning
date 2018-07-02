@@ -18,16 +18,17 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     public interface IOnnxNode
     {
         void AddAttribute(string argName, double value);
-        void AddAttribute(string argName, IEnumerable<double> value);
-        void AddAttribute(string argName, IEnumerable<float> value);
-        void AddAttribute(string argName, IEnumerable<bool> value);
         void AddAttribute(string argName, long value);
-        void AddAttribute(string argName, IEnumerable<long> value);
         void AddAttribute(string argName, DvText value);
-        void AddAttribute(string argName, string[] value);
-        void AddAttribute(string argName, IEnumerable<DvText> value);
-        void AddAttribute(string argName, IEnumerable<string> value);
         void AddAttribute(string argName, string value);
         void AddAttribute(string argName, bool value);
+
+        void AddAttribute(string argName, IEnumerable<double> value);
+        void AddAttribute(string argName, IEnumerable<float> value);
+        void AddAttribute(string argName, IEnumerable<long> value);
+        void AddAttribute(string argName, IEnumerable<DvText> value);
+        void AddAttribute(string argName, string[] value);
+        void AddAttribute(string argName, IEnumerable<string> value);
+        void AddAttribute(string argName, IEnumerable<bool> value);
     }
 }
