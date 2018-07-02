@@ -523,10 +523,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 ch.Info("Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.");
                 IDataView ApplyNormalizer(IHostEnvironment innerEnv, IDataView input)
-                    => NormalizeTransform.Create(innerEnv, new NormalizeTransform.MinMaxArguments()
-                    {
-                        Column = new[] { new NormalizeTransform.AffineColumn { Source = featureColumn, Name = featureColumn } }
-                    }, input);
+                    => NormalizeTransform.CreateMinMaxNormalizer(innerEnv, input, featureColumn);
 
                 if (view is IDataLoader loader)
                     view = CompositeDataLoader.ApplyTransform(env, loader, tag: null, creationArgs: null, ApplyNormalizer);
