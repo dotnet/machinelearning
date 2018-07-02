@@ -78,16 +78,16 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 8)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 10)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 9)]
             public string LabelColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 11)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 10)]
             public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 12)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 11)]
             public Optional<string> GroupColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 12)]
             public Optional<string> NameColumn = Optional<string>.Implicit(DefaultColumnNames.Name);
         }
 
@@ -130,19 +130,19 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Multiple, HelpText = "Warning datasets", SortOrder = 4)]
             public IDataView[] Warnings;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 5)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 6)]
             public string LabelColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 7)]
             public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 12)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 8)]
             public Optional<string> GroupColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 9)]
             public Optional<string> NameColumn = Optional<string>.Implicit(DefaultColumnNames.Name);
 
-            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 6)]
+            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 5)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
         }
 
@@ -496,22 +496,22 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             switch (kind)
             {
-            case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
-                return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer:
-                return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
-                return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureRankerTrainer:
-                return new RankerMamlEvaluator(env, new RankerMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
-                return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureClusteringTrainer:
-                return new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
-                return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
-            default:
-                throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
+                case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
+                    return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer:
+                    return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
+                    return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureRankerTrainer:
+                    return new RankerMamlEvaluator(env, new RankerMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
+                    return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureClusteringTrainer:
+                    return new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments());
+                case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
+                    return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
+                default:
+                    throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
             }
         }
     }

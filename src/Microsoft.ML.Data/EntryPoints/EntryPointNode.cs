@@ -510,60 +510,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 throw _host.Except($"The following required inputs were not provided: {String.Join(", ", missing)}");
 
             var inputInstance = _inputBuilder.GetInstance();
-            var warning = "Different {0} column specified in trainer and in macro: '{1}', '{2}'." +
-                        " Using column '{2}'. To column use '{1}' instead, please specify this name in" +
-                        "the trainer node arguments.";
-            if (!string.IsNullOrEmpty(label) && Utils.Size(_entryPoint.InputKinds) > 0 &&
-                _entryPoint.InputKinds.Contains(typeof(CommonInputs.ITrainerInputWithLabel)))
-            {
-                var labelColField = _inputBuilder.GetFieldNameOrNull("LabelColumn");
-                ch.AssertNonEmpty(labelColField);
-                var labelColFieldType = _inputBuilder.GetFieldTypeOrNull(labelColField);
-                ch.Assert(labelColFieldType == typeof(string));
-                var inputLabel = inputInstance.GetType().GetField(labelColField).GetValue(inputInstance);
-                if (label != (string)inputLabel)
-                    ch.Warning(warning, "label", label, inputLabel);
-                else
-                    _inputBuilder.TrySetValue(labelColField, label);
-            }
-            if (!string.IsNullOrEmpty(group) && Utils.Size(_entryPoint.InputKinds) > 0 &&
-                _entryPoint.InputKinds.Contains(typeof(CommonInputs.ITrainerInputWithGroupId)))
-            {
-                var groupColField = _inputBuilder.GetFieldNameOrNull("GroupIdColumn");
-                ch.AssertNonEmpty(groupColField);
-                var groupColFieldType = _inputBuilder.GetFieldTypeOrNull(groupColField);
-                ch.Assert(groupColFieldType == typeof(string));
-                var inputGroup = inputInstance.GetType().GetField(groupColField).GetValue(inputInstance);
-                if (group != (Optional<string>)inputGroup)
-                    ch.Warning(warning, "group Id", group, inputGroup);
-                else
-                    _inputBuilder.TrySetValue(groupColField, group);
-            }
-            if (!string.IsNullOrEmpty(weight) && Utils.Size(_entryPoint.InputKinds) > 0 &&
-                (_entryPoint.InputKinds.Contains(typeof(CommonInputs.ITrainerInputWithWeight)) ||
-                _entryPoint.InputKinds.Contains(typeof(CommonInputs.IUnsupervisedTrainerWithWeight))))
-            {
-                var weightColField = _inputBuilder.GetFieldNameOrNull("WeightColumn");
-                ch.AssertNonEmpty(weightColField);
-                var weightColFieldType = _inputBuilder.GetFieldTypeOrNull(weightColField);
-                ch.Assert(weightColFieldType == typeof(string));
-                var inputWeight = inputInstance.GetType().GetField(weightColField).GetValue(inputInstance);
-                if (weight != (Optional<string>)inputWeight)
-                    ch.Warning(warning, "weight", weight, inputWeight);
-                else
-                    _inputBuilder.TrySetValue(weightColField, weight);
-            }
-            var nameColField = _inputBuilder.GetFieldNameOrNull("NameColumn");
-            if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(nameColField))
-            {
-                var nameColFieldType = _inputBuilder.GetFieldTypeOrNull(nameColField);
-                ch.Assert(nameColFieldType == typeof(string));
-                var inputName = inputInstance.GetType().GetField(nameColField).GetValue(inputInstance);
-                if (name != (Optional<string>)inputName)
-                    ch.Warning(warning, "name", name, inputName);
-                else
-                    _inputBuilder.TrySetValue(nameColField, weight);
-            }
+            SetColumnArgument(ch, inputInstance, "LabelColumn", label, "label", typeof(CommonInputs.ITrainerInputWithLabel));
+            SetColumnArgument(ch, inputInstance, "GroupIdColumn", group, "group Id", typeof(CommonInputs.ITrainerInputWithGroupId));
+            SetColumnArgument(ch, inputInstance, "WeightColumn", weight, "weight", typeof(CommonInputs.ITrainerInputWithWeight), typeof(CommonInputs.IUnsupervisedTrainerWithWeight));
+            SetColumnArgument(ch, inputInstance, "NameColumn", name, "name");
 
             // Validate outputs.
             _outputHelper = new OutputHelper(_host, _entryPoint.OutputType);
@@ -577,6 +527,38 @@ namespace Microsoft.ML.Runtime.EntryPoints
             Checkpoint = checkpoint;
             StageId = stageId;
             Cost = cost;
+        }
+
+        private void SetColumnArgument(IChannel ch, object inputInstance, string argName, string colName, string columnRole, params Type[] inputKinds)
+        {
+            Contracts.AssertValue(ch);
+            ch.AssertValue(inputInstance);
+            ch.AssertNonEmpty(argName);
+            ch.AssertValueOrNull(colName);
+            ch.AssertNonEmpty(columnRole);
+            ch.AssertValueOrNull(inputKinds);
+
+            var colField = _inputBuilder.GetFieldNameOrNull(argName);
+            if (string.IsNullOrEmpty(colField))
+                return;
+
+            const string warning = "Different {0} column specified in trainer and in macro: '{1}', '{2}'." +
+                " Using column '{2}'. To column use '{1}' instead, please specify this name in" +
+                "the trainer node arguments.";
+            if (!string.IsNullOrEmpty(colName) && Utils.Size(_entryPoint.InputKinds) > 0 &&
+                (Utils.Size(inputKinds) == 0 || _entryPoint.InputKinds.Intersect(inputKinds).Any()))
+            {
+                ch.AssertNonEmpty(colField);
+                var colFieldType = _inputBuilder.GetFieldTypeOrNull(colField);
+                ch.Assert(colFieldType == typeof(string));
+                var inputColName = inputInstance.GetType().GetField(colField).GetValue(inputInstance);
+                ch.Assert(inputColName is string || inputColName is Optional<string>);
+                var str = inputColName is string ? (string)inputColName : ((Optional<string>)inputColName).Value;
+                if (colName != str)
+                    ch.Warning(warning, columnRole, colName, inputColName);
+                else
+                    _inputBuilder.TrySetValue(colField, colName);
+            }
         }
 
         public static EntryPointNode Create(

@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 12)]
             public Optional<string> GroupColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 13)]
             public Optional<string> NameColumn = Optional<string>.Implicit(DefaultColumnNames.Name);
         }
 
