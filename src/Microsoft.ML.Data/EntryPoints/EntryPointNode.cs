@@ -475,7 +475,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         private EntryPointNode(IHostEnvironment env, IChannel ch, ModuleCatalog moduleCatalog, RunContext context,
             string id, string entryPointName, JObject inputs, JObject outputs, bool checkpoint = false,
-            string stageId = "", float cost = float.NaN, string label = null, string group = null, string weight = null)
+            string stageId = "", float cost = float.NaN, string label = null, string group = null, string weight = null, string name = null)
         {
             Contracts.AssertValue(env);
             env.AssertNonEmpty(id);
@@ -535,9 +535,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 ch.Assert(groupColFieldType == typeof(string));
                 var inputGroup = inputInstance.GetType().GetField(groupColField).GetValue(inputInstance);
                 if (group != (Optional<string>)inputGroup)
-                    ch.Warning(warning, "group Id", label, inputGroup);
+                    ch.Warning(warning, "group Id", group, inputGroup);
                 else
-                    _inputBuilder.TrySetValue(groupColField, label);
+                    _inputBuilder.TrySetValue(groupColField, group);
             }
             if (!string.IsNullOrEmpty(weight) && Utils.Size(_entryPoint.InputKinds) > 0 &&
                 (_entryPoint.InputKinds.Contains(typeof(CommonInputs.ITrainerInputWithWeight)) ||
@@ -549,9 +549,20 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 ch.Assert(weightColFieldType == typeof(string));
                 var inputWeight = inputInstance.GetType().GetField(weightColField).GetValue(inputInstance);
                 if (weight != (Optional<string>)inputWeight)
-                    ch.Warning(warning, "weight", label, inputWeight);
+                    ch.Warning(warning, "weight", weight, inputWeight);
                 else
-                    _inputBuilder.TrySetValue(weightColField, label);
+                    _inputBuilder.TrySetValue(weightColField, weight);
+            }
+            var nameColField = _inputBuilder.GetFieldNameOrNull("NameColumn");
+            if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(nameColField))
+            {
+                var nameColFieldType = _inputBuilder.GetFieldTypeOrNull(nameColField);
+                ch.Assert(nameColFieldType == typeof(string));
+                var inputName = inputInstance.GetType().GetField(nameColField).GetValue(inputInstance);
+                if (name != (Optional<string>)inputName)
+                    ch.Warning(warning, "name", name, inputName);
+                else
+                    _inputBuilder.TrySetValue(nameColField, weight);
             }
 
             // Validate outputs.
@@ -902,7 +913,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         public static List<EntryPointNode> ValidateNodes(IHostEnvironment env, RunContext context, JArray nodes,
-            ModuleCatalog moduleCatalog, string label = null, string group = null, string weight = null)
+            ModuleCatalog moduleCatalog, string label = null, string group = null, string weight = null, string name = null)
         {
             Contracts.AssertValue(env);
             env.AssertValue(context);
@@ -918,7 +929,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     if (node == null)
                         throw env.Except("Unexpected node token: '{0}'", nodes[i]);
 
-                    string name = node[FieldNames.Name].Value<string>();
+                    string nodeName = node[FieldNames.Name].Value<string>();
                     var inputs = node[FieldNames.Inputs] as JObject;
                     if (inputs == null && node[FieldNames.Inputs] != null)
                         throw env.Except("Unexpected {0} token: '{1}'", FieldNames.Inputs, node[FieldNames.Inputs]);
@@ -927,7 +938,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     if (outputs == null && node[FieldNames.Outputs] != null)
                         throw env.Except("Unexpected {0} token: '{1}'", FieldNames.Outputs, node[FieldNames.Outputs]);
 
-                    var id = context.GenerateId(name);
+                    var id = context.GenerateId(nodeName);
                     var unexpectedFields = node.Properties().Where(
                         x => x.Name != FieldNames.Name && x.Name != FieldNames.Inputs && x.Name != FieldNames.Outputs
                         && x.Name != FieldNames.StageId && x.Name != FieldNames.Checkpoint && x.Name != FieldNames.Cost);
@@ -942,7 +953,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         ch.Warning("Node '{0}' has unexpected fields that are ignored: {1}", id, string.Join(", ", unexpectedFields.Select(x => x.Name)));
                     }
 
-                    result.Add(new EntryPointNode(env, ch, moduleCatalog, context, id, name, inputs, outputs, checkpoint, stageId, cost, label, group, weight));
+                    result.Add(new EntryPointNode(env, ch, moduleCatalog, context, id, nodeName, inputs, outputs, checkpoint, stageId, cost, label, group, weight, name));
                 }
 
                 ch.Done();
