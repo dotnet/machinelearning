@@ -13,9 +13,10 @@ namespace Microsoft.ML.Models
     public sealed partial class OneVersusAll
     {
         /// <summary>
-        /// One versus all learner (also known as One vs the rest) is a multiclass learner with
-        /// strategy to fit one classifier per class. For each class it trains the provided 
-        /// binary classifier against all the other classes. 
+        /// One-versus-all, OvA, learner (also known as One-vs.-rest, "OvR") is a multi-class learner 
+        /// with the strategy to fit one binary classifier per class in the dataset.
+        /// It trains the provided binary classifier for each class against the other classes, where the current 
+        /// class is treated as the positive labels and examples in other classes are treated as the negative classes.
         /// See <a href="https://en.wikipedia.org/wiki/Multiclass_classification#One-vs.-rest">wikipedia</a> page.
         /// </summary>
         ///<example>
@@ -24,11 +25,14 @@ namespace Microsoft.ML.Models
         /// pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
         /// </example>
         /// <remarks>
-        /// Underlying trainer suppose to be binary classfier. To check your options type BinaryClassifier
-        /// and look on all available learners suggested by IntelliSense.
+        /// The base trainer must be a binary classifier. To check the available binary classifiers, type BinaryClassifiers,
+        /// and look at the available binary learners as suggested by IntelliSense.
         /// </remarks>
         /// <param name="trainer">Underlying binary trainer</param>
-        /// <param name="useProbabilities">"Use probabilities (vs. raw outputs) to identify top-score category</param>
+        /// <param name="useProbabilities">"Use probabilities (vs. raw outputs) to identify top-score category.
+        /// By specifying it to false, you can tell One-versus-all to not use the probabilities but instead
+        /// the raw uncalibrated scores from each predictor.This is generally not recommended, since these quantities
+        /// are not meant to be comparable from one predictor to another, unlike calibrated probabilities.</param>
         public static ILearningPipelineItem With(ITrainerInputWithLabel trainer, bool useProbabilities = true)
         {
             return new OvaPipelineItem(trainer, useProbabilities);
