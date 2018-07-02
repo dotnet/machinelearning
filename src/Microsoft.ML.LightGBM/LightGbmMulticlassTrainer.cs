@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -130,9 +131,9 @@ namespace Microsoft.ML.Runtime.LightGBM
         protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg=false)
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
-            int numLeaves = int.Parse(Options["num_leaves"]);
+            int numLeaves = (int)Options["num_leaves"];
             int minDataPerLeaf = Args.MinDataPerLeaf ?? DefaultMinDataPerLeaf(numRow, numLeaves, _numClass);
-            Options["min_data_per_leaf"] = minDataPerLeaf.ToString();
+            Options["min_data_per_leaf"] = minDataPerLeaf;
             if (!hiddenMsg)
             {
                 if (!Args.LearningRate.HasValue)
@@ -149,7 +150,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             Host.AssertValue(ch);
             ch.Assert(PredictionKind == PredictionKind.MultiClassClassification);
             ch.Assert(_numClass > 1);
-            Options["num_class"] = _numClass.ToString();
+            Options["num_class"] = _numClass;
             bool useSoftmax = false;
 
             if (Args.UseSoftmax.HasValue)

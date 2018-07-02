@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// Train and return a booster.
         /// </summary>
         public static Booster Train(IChannel ch, IProgressChannel pch,
-            Dictionary<string, string> parameters, Dataset dtrain, Dataset dvalid = null, int numIteration = 100,
+            Dictionary<string, object> parameters, Dataset dtrain, Dataset dvalid = null, int numIteration = 100,
             bool verboseEval = true, int earlyStoppingRound = 0)
         {
             // create Booster.
@@ -33,12 +33,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             double bestScore = double.MaxValue;
             double factorToSmallerBetter = 1.0;
 
-            if (earlyStoppingRound > 0 && (parameters["metric"] == "auc"
-                || parameters["metric"] == "ndcg"
-                || parameters["metric"] == "map"))
-            {
+            var metric = (string)parameters["metric"];
+            if (earlyStoppingRound > 0 && (metric == "auc" || metric == "ndcg" || metric == "map"))
                 factorToSmallerBetter = -1.0;
-            }
 
             const int evalFreq = 50;
 
