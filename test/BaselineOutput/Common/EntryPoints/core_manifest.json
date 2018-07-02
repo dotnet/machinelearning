@@ -1489,42 +1489,6 @@
           "Default": null
         },
         {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "The label column name",
-          "Aliases": [
-            "Label"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
-          "Name": "WeightColumn",
-          "Type": "String",
-          "Desc": "Column to use for example weight",
-          "Aliases": [
-            "weight"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Weight"
-        },
-        {
-          "Name": "NameColumn",
-          "Type": "String",
-          "Desc": "Name column name",
-          "Aliases": [
-            "name"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Name"
-        },
-        {
           "Name": "Kind",
           "Type": {
             "Kind": "Enum",
@@ -1540,9 +1504,33 @@
           },
           "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
           "Required": true,
-          "SortOrder": 6.0,
+          "SortOrder": 5.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "The label column name",
+          "Aliases": [
+            "Label"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 7.0,
+          "IsNullable": false,
+          "Default": "Weight"
         },
         {
           "Name": "GroupColumn",
@@ -1552,9 +1540,21 @@
             "group"
           ],
           "Required": false,
-          "SortOrder": 12.0,
+          "SortOrder": 8.0,
           "IsNullable": false,
           "Default": "GroupId"
+        },
+        {
+          "Name": "NameColumn",
+          "Type": "String",
+          "Desc": "Name column name",
+          "Aliases": [
+            "name"
+          ],
+          "Required": false,
+          "SortOrder": 9.0,
+          "IsNullable": false,
+          "Default": "Name"
         }
       ],
       "Outputs": [
@@ -1677,18 +1677,6 @@
           "Default": null
         },
         {
-          "Name": "NameColumn",
-          "Type": "String",
-          "Desc": "Name column name",
-          "Aliases": [
-            "name"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Name"
-        },
-        {
           "Name": "NumFolds",
           "Type": "Int",
           "Desc": "Number of folds in k-fold cross-validation",
@@ -1728,7 +1716,7 @@
             "lab"
           ],
           "Required": false,
-          "SortOrder": 10.0,
+          "SortOrder": 9.0,
           "IsNullable": false,
           "Default": "Label"
         },
@@ -1740,7 +1728,7 @@
             "weight"
           ],
           "Required": false,
-          "SortOrder": 11.0,
+          "SortOrder": 10.0,
           "IsNullable": false,
           "Default": "Weight"
         },
@@ -1752,9 +1740,21 @@
             "group"
           ],
           "Required": false,
-          "SortOrder": 12.0,
+          "SortOrder": 11.0,
           "IsNullable": false,
           "Default": "GroupId"
+        },
+        {
+          "Name": "NameColumn",
+          "Type": "String",
+          "Desc": "Name column name",
+          "Aliases": [
+            "name"
+          ],
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": "Name"
         }
       ],
       "Outputs": [
@@ -3614,18 +3614,6 @@
           "IsNullable": false
         },
         {
-          "Name": "NameColumn",
-          "Type": "String",
-          "Desc": "Name column name",
-          "Aliases": [
-            "name"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Name"
-        },
-        {
           "Name": "Kind",
           "Type": {
             "Kind": "Enum",
@@ -3698,6 +3686,18 @@
           "SortOrder": 12.0,
           "IsNullable": false,
           "Default": "GroupId"
+        },
+        {
+          "Name": "NameColumn",
+          "Type": "String",
+          "Desc": "Name column name",
+          "Aliases": [
+            "name"
+          ],
+          "Required": false,
+          "SortOrder": 13.0,
+          "IsNullable": false,
+          "Default": "Name"
         }
       ],
       "Outputs": [
