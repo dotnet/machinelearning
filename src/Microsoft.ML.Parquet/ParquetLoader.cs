@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Parquet;
@@ -88,46 +89,27 @@ namespace Microsoft.ML.Runtime.Data
         internal const string ShortName = "Parquet";
         internal const string ModelSignature = "PARQELDR";
 
+        private const string SchemaCtxName = "Schema.idv";
+
         private readonly IHost _host;
         private readonly Stream _parquetStream;
         private readonly ParquetOptions _parquetOptions;
         private readonly int _columnChunkReadSize;
         private readonly Column[] _columnsLoaded;
-        private readonly DataSet _schemaDataSet;
         private const int _defaultColumnChunkReadSize = 1000000;
 
         private bool _disposed;
+        private long? _rowCount;
 
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: ModelSignature,
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Add Schema to Model Context
+                verReadableCur: 0x00010002,
+                verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature);
-        }
-
-        public static ParquetLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            IHost host = env.Register(LoaderName);
-
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            env.CheckValue(files, nameof(files));
-
-            // *** Binary format ***
-            // int: cached chunk size
-            // bool: TreatBigIntegersAsDates flag
-
-            Arguments args = new Arguments
-            {
-                ColumnChunkReadSize = ctx.Reader.ReadInt32(),
-                TreatBigIntegersAsDates = ctx.Reader.ReadBoolean()
-            };
-            return host.Apply("Loading Model",
-                ch => new ParquetLoader(args, host, OpenStream(files)));
         }
 
         public ParquetLoader(IHostEnvironment env, Arguments args, IMultiStreamSource files)
@@ -165,6 +147,8 @@ namespace Microsoft.ML.Runtime.Data
                     TreatBigIntegersAsDates = args.TreatBigIntegersAsDates
                 };
 
+                DataSet schemaDataSet;
+
                 try
                 {
                     // We only care about the schema so ignore the rows.
@@ -173,7 +157,8 @@ namespace Microsoft.ML.Runtime.Data
                         Count = 0,
                         Offset = 0
                     };
-                    _schemaDataSet = ParquetReader.Read(stream, _parquetOptions, readerOptions);
+                    schemaDataSet = ParquetReader.Read(stream, _parquetOptions, readerOptions);
+                    _rowCount = schemaDataSet.TotalRowCount;
                 }
                 catch (Exception ex)
                 {
@@ -181,9 +166,78 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 _columnChunkReadSize = args.ColumnChunkReadSize;
-                InitColumns(ch, out _columnsLoaded);
+                _columnsLoaded = InitColumns(schemaDataSet);
                 Schema = CreateSchema(_host, _columnsLoaded);
             }
+        }
+
+        private ParquetLoader(IHost host, ModelLoadContext ctx, IMultiStreamSource files)
+        {
+            Contracts.AssertValue(host);
+            _host = host;
+            _host.AssertValue(ctx);
+            _host.AssertValue(files);
+
+            // *** Binary format ***
+            // int: cached chunk size
+            // bool: TreatBigIntegersAsDates flag
+            // Schema of the loader
+
+            _columnChunkReadSize = ctx.Reader.ReadInt32();
+            bool treatBigIntegersAsDates = ctx.Reader.ReadBoolean();
+
+            // Load the schema
+            byte[] buffer = null;
+            if (!ctx.TryLoadBinaryStream(SchemaCtxName, r => buffer = r.ReadByteArray()))
+                throw _host.ExceptDecode();
+            BinaryLoader loader = null;
+            var strm = new MemoryStream(buffer, writable: false);
+            loader = new BinaryLoader(_host, new BinaryLoader.Arguments(), strm);
+            Schema = loader.Schema;
+
+            // Only load Parquest related data if a file is present. Otherwise, just the Schema is valid.
+            if (files.Count > 0)
+            {
+                _parquetOptions = new ParquetOptions()
+                {
+                    TreatByteArrayAsString = true,
+                    TreatBigIntegersAsDates = treatBigIntegersAsDates
+                };
+
+                _parquetStream = OpenStream(files);
+                DataSet schemaDataSet;
+
+                try
+                {
+                    // We only care about the schema so ignore the rows.
+                    ReaderOptions readerOptions = new ReaderOptions()
+                    {
+                        Count = 0,
+                        Offset = 0
+                    };
+                    schemaDataSet = ParquetReader.Read(_parquetStream, _parquetOptions, readerOptions);
+                    _rowCount = schemaDataSet.TotalRowCount;
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidDataException("Cannot read Parquet file", ex);
+                }
+
+                _columnsLoaded = InitColumns(schemaDataSet);
+            }
+        }
+
+        public static ParquetLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            IHost host = env.Register(LoaderName);
+
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            env.CheckValue(files, nameof(files));
+
+            return host.Apply("Loading Model",
+                ch => new ParquetLoader(host, ctx, files));
         }
 
         /// <summary>
@@ -191,18 +245,17 @@ namespace Microsoft.ML.Runtime.Data
         /// Composite data fields are flattened; for example, a Map Field in Parquet is flattened into a Key column and a Value
         /// column.
         /// </summary>
-        /// <param name="ch">Communication channel for error reporting.</param>
-        /// <param name="cols">The array of flattened columns instantiated from the parquet file.</param>
-        private void InitColumns(IChannel ch, out Column[] cols)
+        /// <param name="dataSet">The schema data set.</param>
+        /// <returns>The array of flattened columns instantiated from the parquet file.</returns>
+        private Column[] InitColumns(DataSet dataSet)
         {
-            cols = null;
             List<Column> columnsLoaded = new List<Column>();
 
-            foreach (var parquetField in _schemaDataSet.Schema.Fields)
+            foreach (var parquetField in dataSet.Schema.Fields)
             {
                 FlattenFields(parquetField, ref columnsLoaded, false);
             }
-            cols = columnsLoaded.ToArray();
+            return columnsLoaded.ToArray();
         }
 
         private void FlattenFields(Field field, ref List<Column> cols, bool isRepeatable)
@@ -326,7 +379,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public long? GetRowCount(bool lazy = true)
         {
-            return _schemaDataSet.TotalRowCount;
+            return _rowCount;
         }
 
         public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
@@ -353,9 +406,22 @@ namespace Microsoft.ML.Runtime.Data
             // *** Binary format ***
             // int: cached chunk size
             // bool: TreatBigIntegersAsDates flag
+            // Schema of the loader
 
             ctx.Writer.Write(_columnChunkReadSize);
             ctx.Writer.Write(_parquetOptions.TreatBigIntegersAsDates);
+
+            // Save the schema
+            var noRows = new EmptyDataView(_host, Schema);
+            var saverArgs = new BinarySaver.Arguments();
+            saverArgs.Silent = true;
+            var saver = new BinarySaver(_host, saverArgs);
+            using (var strm = new MemoryStream())
+            {
+                var allColumns = Enumerable.Range(0, Schema.ColumnCount).ToArray();
+                saver.SaveData(strm, noRows, allColumns);
+                ctx.SaveBinaryStream(SchemaCtxName, w => w.WriteByteArray(strm.ToArray()));
+            }
         }
 
         private sealed class Cursor : RootCursorBase, IRowCursor
@@ -377,6 +443,8 @@ namespace Microsoft.ML.Runtime.Data
                : base(parent._host)
             {
                 Ch.AssertValue(predicate);
+                Ch.AssertValue(parent._parquetStream);
+
                 _loader = parent;
                 _fileStream = parent._parquetStream;
                 _parquetConversions = new ParquetConversions(Ch);
