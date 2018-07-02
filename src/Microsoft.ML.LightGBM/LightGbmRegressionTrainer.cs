@@ -116,13 +116,13 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
 
     /// <summary>
-    /// A component to train an LightGBM model.
+    /// A component to train a LightGBM model.
     /// </summary>
     public static partial class LightGbm
     {
-        [TlcModule.EntryPoint(
-            Name = "Trainers.LightGbmRegressor", 
+        [TlcModule.EntryPoint(Name = "Trainers.LightGbmRegressor", 
             Desc = LightGbmRegressorTrainer.Summary, 
+            Remarks = LightGbmRegressorTrainer.Remarks,
             UserName = LightGbmRegressorTrainer.UserNameValue, 
             ShortName = LightGbmRegressorTrainer.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, LightGbmArguments input)

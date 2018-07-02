@@ -284,7 +284,11 @@ namespace Microsoft.ML.Runtime.PCA
             }
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector", Desc = "Train an PCA Anomaly model.", UserName = UserNameValue, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector", 
+            Desc = "Train an PCA Anomaly model.",
+            Remarks = PcaPredictor.Remarks,
+            UserName = UserNameValue, 
+            ShortName = ShortName)]
         public static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -312,6 +316,14 @@ namespace Microsoft.ML.Runtime.PCA
     {
         public const string LoaderSignature = "pcaAnomExec";
         public const string RegistrationName = "PCAPredictor";
+        internal const string Remarks = @"<remarks>
+<a href='https://en.wikipedia.org/wiki/Principal_component_analysis'>Principle Component Analysis (PCA)</a> is a dimensionality-reduction transform which computes the projection of the feature vector to onto a low-rank subspace.
+Its training is done using the technique described in the paper: <a href='https://arxiv.org/pdf/1310.6304v2.pdf'>Combining Structured and Unstructured Randomness in Large Scale PCA</a>, 
+and the paper <see href='https://arxiv.org/pdf/0909.4061v2.pdf'>Finding Structure with Randomness: Probabilistic Algorithms for Constructing Approximate Matrix Decompositions</see>
+<a href='http://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf'>Randomized Methods for Computing the Singular Value Decomposition (SVD) of very large matrices</a>
+<a href='https://arxiv.org/abs/0809.2274'>A randomized algorithm for principal component analysis</a>
+<a href='http://users.cms.caltech.edu/~jtropp/papers/HMT11-Finding-Structure-SIREV.pdf'>Finding Structure with Randomness: Probabilistic Algorithms for Constructing Approximate Matrix Decompositions</a>
+</remarks>";
 
         private static VersionInfo GetVersionInfo()
         {
