@@ -13,10 +13,26 @@ namespace Microsoft.ML.Models
     public sealed partial class OneVersusAll
     {
         /// <summary>
-        /// Create OneVersusAll multiclass trainer.
+        /// One-versus-all, OvA, learner (also known as One-vs.-rest, "OvR") is a multi-class learner 
+        /// with the strategy to fit one binary classifier per class in the dataset.
+        /// It trains the provided binary classifier for each class against the other classes, where the current 
+        /// class is treated as the positive labels and examples in other classes are treated as the negative classes.
+        /// See <a href="https://en.wikipedia.org/wiki/Multiclass_classification#One-vs.-rest">wikipedia</a> page.
         /// </summary>
+        ///<example>
+        /// In order to use it all you need to do is add it to pipeline as regular learner:
+        /// 
+        /// pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
+        /// </example>
+        /// <remarks>
+        /// The base trainer must be a binary classifier. To check the available binary classifiers, type BinaryClassifiers,
+        /// and look at the available binary learners as suggested by IntelliSense.
+        /// </remarks>
         /// <param name="trainer">Underlying binary trainer</param>
-        /// <param name="useProbabilities">"Use probabilities (vs. raw outputs) to identify top-score category</param>
+        /// <param name="useProbabilities">"Use probabilities (vs. raw outputs) to identify top-score category.
+        /// By specifying it to false, you can tell One-versus-all to not use the probabilities but instead
+        /// the raw uncalibrated scores from each predictor. This is generally not recommended, since these quantities
+        /// are not meant to be comparable from one predictor to another, unlike calibrated probabilities.</param>
         public static ILearningPipelineItem With(ITrainerInputWithLabel trainer, bool useProbabilities = true)
         {
             return new OvaPipelineItem(trainer, useProbabilities);
