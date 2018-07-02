@@ -29,9 +29,9 @@ namespace Microsoft.ML.Runtime.TextAnalytics
     /// <summary>
     /// LightLDA transform: Big Topic Models on Modest Compute Clusters.
     /// <see href="http://arxiv.org/abs/1412.1576">LightLDA</see> is an implementation of Latent Dirichlet Allocation (LDA).
-    /// Previos implementations of LDA such as SparseLDA or AliasLDA allow to achieve massive data and model scales,
+    /// Previous implementations of LDA such as SparseLDA or AliasLDA allow to achieve massive data and model scales,
     /// for example models with tens of billions of parameters to be inferred from billions of documents.
-    /// However this requires using cluster up to thousands of machines with all ensuing costs to setup and maintain.
+    /// However this requires using cluster of thousands of machines with all ensuing costs to setup and maintain.
     /// LightLDA solves this problem in a more cost-effective manner by providing an implementation 
     /// that is efﬁcient enough for modest clusters with at most tens of machines... 
     /// For more details please see original LightLDA paper: 
