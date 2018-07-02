@@ -545,7 +545,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     currentBatchSize,
                     _columnPurpose);
 
-                using (var ch = _host.Start("Print suggested transforms"))
+                using (var ch = _host.Start("Suggested Pipeline"))
                 {
                     foreach (var pipeline in BatchCandidates)
                     {

@@ -244,13 +244,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     // If the number of requested candidates is smaller than remaining second stage candidates,
                     // draw candidates from remaining pool.
                     if (numThirdStageCandidates > 0)
-                        candidates.AddRange(NextCandidates(prevCandidates, numThirdStageCandidates, false, false));
+                        candidates.AddRange(NextCandidates(prevCandidates, numThirdStageCandidates));
 
                     return candidates.ToArray();
                 default:
                     // Sample transforms according to weights and use hyperparameter optimization method.
                     // Third stage samples hyperparameters uniform randomly in KDO, fourth and above do not.
-                    return NextCandidates(prevCandidates, numCandidates, false, false);
+                    return NextCandidates(prevCandidates, numCandidates);
             }
         }
 
