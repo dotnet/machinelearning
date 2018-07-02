@@ -127,7 +127,11 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// </summary>
     public static partial class LightGbm
     {
-        [TlcModule.EntryPoint(Name = "Trainers.LightGbmRanker", Desc = "Train an LightGBM ranking model", UserName = LightGbmRankingTrainer.Summary, ShortName = LightGbmRankingTrainer.ShortName)]
+        [TlcModule.EntryPoint(
+            Name = "Trainers.LightGbmRanker", 
+            Desc = "Train a LightGBM ranking model.", 
+            UserName = LightGbmRankingTrainer.Summary, 
+            ShortName = LightGbmRankingTrainer.ShortName)]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));
