@@ -16416,6 +16416,15 @@ namespace Microsoft.ML
             internal override string ComponentName => "UP";
         }
 
+        public abstract class EnsembleBinaryDiversityMeasure : ComponentKind {}
+
+
+
+        public sealed class DisagreementDiversityMeasureEnsembleBinaryDiversityMeasure : EnsembleBinaryDiversityMeasure
+        {
+            internal override string ComponentName => "DisagreementDiversityMeasure";
+        }
+
         public abstract class EnsembleBinaryOutputCombiner : ComponentKind {}
 
 
@@ -16490,7 +16499,7 @@ namespace Microsoft.ML
             /// The metric type to be used to find the diversity among base learners
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
-            public EnsembleDiversityMeasure DiversityMetricType { get; set; }
+            public EnsembleBinaryDiversityMeasure DiversityMetricType { get; set; } = new DisagreementDiversityMeasureEnsembleBinaryDiversityMeasure();
 
             /// <summary>
             /// The proportion of best base learners to be selected. The range is 0.0-1.0
@@ -16541,29 +16550,6 @@ namespace Microsoft.ML
             internal override string ComponentName => "BestPerformanceSelector";
         }
 
-        public abstract class EnsembleDiversityMeasure : ComponentKind {}
-
-
-
-        public sealed class DisagreementDiversityMeasureEnsembleDiversityMeasure : EnsembleDiversityMeasure
-        {
-            internal override string ComponentName => "DisagreementDiversityMeasure";
-        }
-
-
-
-        public sealed class MultiDisagreementDiversityMeasureEnsembleDiversityMeasure : EnsembleDiversityMeasure
-        {
-            internal override string ComponentName => "MultiDisagreementDiversityMeasure";
-        }
-
-
-
-        public sealed class RegressionDisagreementDiversityMeasureEnsembleDiversityMeasure : EnsembleDiversityMeasure
-        {
-            internal override string ComponentName => "RegressionDisagreementDiversityMeasure";
-        }
-
         public abstract class EnsembleFeatureSelector : ComponentKind {}
 
 
@@ -16583,6 +16569,15 @@ namespace Microsoft.ML
             public float FeaturesSelectionProportion { get; set; } = 0.8f;
 
             internal override string ComponentName => "RandomFeatureSelector";
+        }
+
+        public abstract class EnsembleMulticlassDiversityMeasure : ComponentKind {}
+
+
+
+        public sealed class MultiDisagreementDiversityMeasureEnsembleMulticlassDiversityMeasure : EnsembleMulticlassDiversityMeasure
+        {
+            internal override string ComponentName => "MultiDisagreementDiversityMeasure";
         }
 
         public abstract class EnsembleMulticlassOutputCombiner : ComponentKind {}
@@ -16675,7 +16670,7 @@ namespace Microsoft.ML
             /// The metric type to be used to find the diversity among base learners
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
-            public EnsembleDiversityMeasure DiversityMetricType { get; set; }
+            public EnsembleMulticlassDiversityMeasure DiversityMetricType { get; set; } = new MultiDisagreementDiversityMeasureEnsembleMulticlassDiversityMeasure();
 
             /// <summary>
             /// The proportion of best base learners to be selected. The range is 0.0-1.0
@@ -16718,6 +16713,15 @@ namespace Microsoft.ML
             public float ValidationDatasetProportion { get; set; } = 0.3f;
 
             internal override string ComponentName => "BestPerformanceSelectorMultiClass";
+        }
+
+        public abstract class EnsembleRegressionDiversityMeasure : ComponentKind {}
+
+
+
+        public sealed class RegressionDisagreementDiversityMeasureEnsembleRegressionDiversityMeasure : EnsembleRegressionDiversityMeasure
+        {
+            internal override string ComponentName => "RegressionDisagreementDiversityMeasure";
         }
 
         public abstract class EnsembleRegressionOutputCombiner : ComponentKind {}
@@ -16765,7 +16769,7 @@ namespace Microsoft.ML
             /// The metric type to be used to find the diversity among base learners
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
-            public EnsembleDiversityMeasure DiversityMetricType { get; set; }
+            public EnsembleRegressionDiversityMeasure DiversityMetricType { get; set; } = new RegressionDisagreementDiversityMeasureEnsembleRegressionDiversityMeasure();
 
             /// <summary>
             /// The proportion of best base learners to be selected. The range is 0.0-1.0

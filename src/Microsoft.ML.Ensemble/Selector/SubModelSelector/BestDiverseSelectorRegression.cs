@@ -7,10 +7,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 
 [assembly: LoadableClass(typeof(BestDiverseSelectorRegression), typeof(BestDiverseSelectorRegression.Arguments),
     typeof(SignatureEnsembleSubModelSelector), BestDiverseSelectorRegression.UserName, BestDiverseSelectorRegression.LoadName)]
@@ -24,16 +26,17 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         public const string UserName = "Best Diverse Selector";
         public const string LoadName = "BestDiverseSelectorRegression";
 
-        protected override ISupportDiversityMeasureFactory<float> DefaultDiversityMetricType => new RegressionDisagreementDiversityFactory();
-
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
         public sealed class Arguments : DiverseSelectorArguments, ISupportRegressionSubModelSelectorFactory
         {
+            [Argument(ArgumentType.Multiple, HelpText = "The metric type to be used to find the diversity among base learners", ShortName = "dm", SortOrder = 50)]
+            [TGUI(Label = "Diversity Measure Type")]
+            public ISupportRegressionDiversityMeasureFactory DiversityMetricType = new RegressionDisagreementDiversityFactory();
             public IRegressionSubModelSelector CreateComponent(IHostEnvironment env) => new BestDiverseSelectorRegression(env, this);
         }
 
         public BestDiverseSelectorRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, LoadName)
+            : base(env, args, LoadName, args.DiversityMetricType)
         {
         }
 
