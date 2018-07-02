@@ -11,9 +11,9 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(LightGbmBinaryTrainer.UserName, typeof(LightGbmBinaryTrainer), typeof(LightGbmArguments),
+[assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(LightGbmArguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
-    "LightGBM Binary Classification", LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
+    LightGbmBinaryTrainer.UserName, LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 [assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(LightGbmBinaryPredictor), null, typeof(SignatureLoadModel),
     "LightGBM Binary Executor",
@@ -83,9 +83,10 @@ namespace Microsoft.ML.Runtime.LightGBM
 
     public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float, IPredictorWithFeatureWeights<float>>
     {
-        public const string UserName = "LightGBM Binary Classifier";
-        public const string LoadNameValue = "LightGBMBinary";
-        public const string ShortName = "LightGBM";
+        internal const string UserName = "LightGBM Binary Classifier";
+        internal const string LoadNameValue = "LightGBMBinary";
+        internal const string ShortName = "LightGBM";
+        internal const string Summary = "Train an LightGBM binary classification model";
 
         public LightGbmBinaryTrainer(IHostEnvironment env, LightGbmArguments args)
             : base(env, args, PredictionKind.BinaryClassification, "LGBBINCL")
@@ -129,7 +130,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     {
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmBinaryClassifier", 
-            Desc = "Train an LightGBM binary class model",
+            Desc = LightGbmBinaryTrainer.Summary,
             Remarks = LightGbmBinaryTrainer.Remarks,
             UserName = LightGbmBinaryTrainer.UserName, 
             ShortName = LightGbmBinaryTrainer.ShortName)]

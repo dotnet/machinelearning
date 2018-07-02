@@ -33,14 +33,16 @@ namespace Microsoft.ML.Runtime.KMeans
         public const string LoadNameValue = "KMeansPlusPlus";
         internal const string UserNameValue = "KMeans++ Clustering";
         internal const string ShortName = "KM";
-        internal const string Summary = "KMeans++ clustering algorithm";
+        internal const string Summary = "K-means is a popular clustering algorithm. With K-means, the data is clustered into a specified "
+            + "number of clusters in order to minimize the within-cluster sum of squares. K-means++ improves upon K-means by using a better "
+            + "method for choosing the initial cluster centers.";
         internal const string Remarks = @"<remarks>
-<a href='https://en.wikipedia.org/wiki/K-means_clustering'>K-means</a> is a popular clustering algorithm.
-With <a href='https://en.wikipedia.org/wiki/K-means%2b%2b'>K-means++</a>, the data is clustered into a specified number of clusters aiming to minimize the within-cluster sum of squares. 
 K-means++ improves upon K-means by using the <a href='http://research.microsoft.com/apps/pubs/default.aspx?id=252149'>Yinyang K-Means</a> method for choosing the initial cluster centers.
 YYK-Means accelerates K-Means up to an order of magnitude while producing exactly the same clustering results (modulo floating point precision issues).   
 YYK-Means observes that there is a lot of redundancy across iterations in the KMeans algorithms and most points do not change their clusters during an iteration. 
 It uses various bounding techniques to identify this redundancy and eliminate many distance computations and optimize centroid computations. 
+<a href='https://en.wikipedia.org/wiki/K-means_clustering'>K-means</a>.
+<a href='https://en.wikipedia.org/wiki/K-means%2b%2b'>K-means++</a>
 </remarks>";
 
         public enum InitAlgorithm

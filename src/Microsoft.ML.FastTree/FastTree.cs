@@ -83,7 +83,7 @@ namespace Microsoft.ML.Runtime.FastTree
         protected string InnerArgs => CmdParser.GetSettings(Host, Args, new TArgs());
 
         internal const string Remarks = @"<remarks>
-<para>FastTrees is an implementation of FastRank. FastRank is an efficient implementation of the <a href='https://arxiv.org/abs/1505.01866'>MART</a> gradient boosting algorithm. 
+<para>FastTrees is an efficient implementation of the <a href='https://arxiv.org/abs/1505.01866'>MART</a> gradient boosting algorithm. 
 Gradient boosting is a machine learning technique for regression problems. 
 It builds each regression tree in a step-wise fashion, using a predefined loss function to measure the error for each step and corrects for it in the next. 
 So this prediction model is actually an ensemble of weaker prediction models. In regression problems, boosting builds a series of of such trees in a step-wise fashion and then selects the optimal tree using an arbitrary differentiable loss function.

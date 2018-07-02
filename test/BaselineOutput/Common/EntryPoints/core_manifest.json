@@ -10490,7 +10490,7 @@
     },
     {
       "Name": "Trainers.KMeansPlusPlusClusterer",
-      "Desc": "KMeans++ clustering algorithm",
+      "Desc": "K-means is a popular clustering algorithm. With K-means, the data is clustered into a specified number of clusters in order to minimize the within-cluster sum of squares. K-means++ improves upon K-means by using a better method for choosing the initial cluster centers.",
       "FriendlyName": "KMeans++ Clustering",
       "ShortName": "KM",
       "Inputs": [
@@ -23422,7 +23422,7 @@
         },
         {
           "Name": "FastTreeTweedieRegression",
-          "Desc": "Trains gradient boosted decision trees to fit target values using a Tweedie loss function. \r\nThis learner is a generalization of Poisson, compound Poisson, and gamma regression.",
+          "Desc": "Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.",
           "FriendlyName": "FastTree (Boosted Trees) Tweedie Regression",
           "Settings": [
             {

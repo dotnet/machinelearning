@@ -233,15 +233,14 @@ The SDCA method combines several of the best properties and capabilities of logi
 </para>
 <para>
 Note that SDCA is a stochastic and streaming optimization algorithm. 
-The results depends on the order of the training data. For reproducible results, it is recommended that one sets <paramref>shuffle</paramref> to
-False and <paramref>NumThreads</paramref> to 1.
-Elastic net regularization can be specified by the l2_weight and l1_weight parameters. Note that the <paramref>l2_weight</paramref> has an effect on the rate of convergence. 
-In general, the larger the l2_weight, the faster SDCA converges.
+The results depends on the order of the training data. For reproducible results, it is recommended that one sets <paramref name='Shuffle'/> to
+False and <paramref name='NumThreads'/> to 1.
+Elastic net regularization can be specified by the <paramref name='L2Const'/> and <paramref name='L1Threshold'/> parameters. Note that the <paramref name='L2Const'/> has an effect on the rate of convergence. 
+In general, the larger the <paramref name='L2Const'/>, the faster SDCA converges.
 </para>
-</remarks>
-<seealso href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</seealso>.
-<seealso href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</seealso>.
-";
+<a href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</a>.
+<a href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</a>.
+</remarks>";
 
         // The order of these matter, since they are used as indices into arrays.
         protected enum MetricKind

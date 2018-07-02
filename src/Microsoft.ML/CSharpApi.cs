@@ -5233,7 +5233,7 @@ namespace Microsoft.ML
         /// Uses a logit-boost boosted tree learner to perform binary classification.
         /// </summary>
         /// <remarks>
-        /// <para>FastTrees is an implementation of FastRank. FastRank is an efficient implementation of the <a href='https://arxiv.org/abs/1505.01866'>MART</a> gradient boosting algorithm. 
+        /// <para>FastTrees is an efficient implementation of the <a href='https://arxiv.org/abs/1505.01866'>MART</a> gradient boosting algorithm. 
         /// Gradient boosting is a machine learning technique for regression problems. 
         /// It builds each regression tree in a step-wise fashion, using a predefined loss function to measure the error for each step and corrects for it in the next. 
         /// So this prediction model is actually an ensemble of weaker prediction models. In regression problems, boosting builds a series of of such trees in a step-wise fashion and then selects the optimal tree using an arbitrary differentiable loss function.
@@ -5648,7 +5648,7 @@ namespace Microsoft.ML
         /// Trains gradient boosted decision trees to the LambdaRank quasi-gradient.
         /// </summary>
         /// <remarks>
-        /// <para>FastTrees is an implementation of FastRank. FastRank is an efficient implementation of the <a href='https://arxiv.org/abs/1505.01866'>MART</a> gradient boosting algorithm. 
+        /// <para>FastTrees is an efficient implementation of the <a href='https://arxiv.org/abs/1505.01866'>MART</a> gradient boosting algorithm. 
         /// Gradient boosting is a machine learning technique for regression problems. 
         /// It builds each regression tree in a step-wise fashion, using a predefined loss function to measure the error for each step and corrects for it in the next. 
         /// So this prediction model is actually an ensemble of weaker prediction models. In regression problems, boosting builds a series of of such trees in a step-wise fashion and then selects the optimal tree using an arbitrary differentiable loss function.
@@ -6098,7 +6098,7 @@ namespace Microsoft.ML
         /// Trains gradient boosted decision trees to fit target values using least-squares.
         /// </summary>
         /// <remarks>
-        /// <para>FastTrees is an implementation of FastRank. FastRank is an efficient implementation of the <a href='https://arxiv.org/abs/1505.01866'>MART</a> gradient boosting algorithm. 
+        /// <para>FastTrees is an efficient implementation of the <a href='https://arxiv.org/abs/1505.01866'>MART</a> gradient boosting algorithm. 
         /// Gradient boosting is a machine learning technique for regression problems. 
         /// It builds each regression tree in a step-wise fashion, using a predefined loss function to measure the error for each step and corrects for it in the next. 
         /// So this prediction model is actually an ensemble of weaker prediction models. In regression problems, boosting builds a series of of such trees in a step-wise fashion and then selects the optimal tree using an arbitrary differentiable loss function.
@@ -6505,8 +6505,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. 
-        /// This learner is a generalization of Poisson, compound Poisson, and gamma regression.
+        /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.
         /// </summary>
         public sealed partial class FastTreeTweedieRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
@@ -7335,15 +7334,15 @@ namespace Microsoft.ML
 
 
         /// <summary>
-        /// KMeans++ clustering algorithm
+        /// K-means is a popular clustering algorithm. With K-means, the data is clustered into a specified number of clusters in order to minimize the within-cluster sum of squares. K-means++ improves upon K-means by using a better method for choosing the initial cluster centers.
         /// </summary>
         /// <remarks>
-        /// <a href='https://en.wikipedia.org/wiki/K-means_clustering'>K-means</a> is a popular clustering algorithm.
-        /// With <a href='https://en.wikipedia.org/wiki/K-means%2b%2b'>K-means++</a>, the data is clustered into a specified number of clusters aiming to minimize the within-cluster sum of squares. 
         /// K-means++ improves upon K-means by using the <a href='http://research.microsoft.com/apps/pubs/default.aspx?id=252149'>Yinyang K-Means</a> method for choosing the initial cluster centers.
         /// YYK-Means accelerates K-Means up to an order of magnitude while producing exactly the same clustering results (modulo floating point precision issues).   
         /// YYK-Means observes that there is a lot of redundancy across iterations in the KMeans algorithms and most points do not change their clusters during an iteration. 
         /// It uses various bounding techniques to identify this redundancy and eliminate many distance computations and optimize centroid computations. 
+        /// <a href='https://en.wikipedia.org/wiki/K-means_clustering'>K-means</a>.
+        /// <a href='https://en.wikipedia.org/wiki/K-means%2b%2b'>K-means++</a>
         /// </remarks>
         public sealed partial class KMeansPlusPlusClusterer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
@@ -7461,10 +7460,10 @@ namespace Microsoft.ML
 
 
         /// <summary>
-        /// Train an LightGBM binary class model
+        /// Train an LightGBM binary classification model
         /// </summary>
-        /// <remarks>Light GBM is an open source implementation of boosted trees.</remarks>
-        /// <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a>
+        /// <remarks>Light GBM is an open source implementation of boosted trees.
+        /// <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a></remarks>
         public sealed partial class LightGbmBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7670,8 +7669,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Train an LightGBM multi class model
         /// </summary>
-        /// <remarks>Light GBM is an open source implementation of boosted trees.</remarks>
-        /// <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a>
+        /// <remarks>Light GBM is an open source implementation of boosted trees.
+        /// <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a></remarks>
         public sealed partial class LightGbmClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7877,8 +7876,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Train an LightGBM ranking model
         /// </summary>
-        /// <remarks>Light GBM is an open source implementation of boosted trees.</remarks>
-        /// <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a>
+        /// <remarks>Light GBM is an open source implementation of boosted trees.
+        /// <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a></remarks>
         public sealed partial class LightGbmRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8084,8 +8083,8 @@ namespace Microsoft.ML
         /// <summary>
         /// LightGBM Regression
         /// </summary>
-        /// <remarks>Light GBM is an open source implementation of boosted trees.</remarks>
-        /// <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a>
+        /// <remarks>Light GBM is an open source implementation of boosted trees.
+        /// <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a></remarks>
         public sealed partial class LightGbmRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -9275,15 +9274,14 @@ namespace Microsoft.ML
         /// </para>
         /// <para>
         /// Note that SDCA is a stochastic and streaming optimization algorithm. 
-        /// The results depends on the order of the training data. For reproducible results, it is recommended that one sets <paramref>shuffle</paramref> to
-        /// False and <paramref>NumThreads</paramref> to 1.
-        /// Elastic net regularization can be specified by the l2_weight and l1_weight parameters. Note that the <paramref>l2_weight</paramref> has an effect on the rate of convergence. 
-        /// In general, the larger the l2_weight, the faster SDCA converges.
+        /// The results depends on the order of the training data. For reproducible results, it is recommended that one sets <paramref name='Shuffle'/> to
+        /// False and <paramref name='NumThreads'/> to 1.
+        /// Elastic net regularization can be specified by the <paramref name='L2Const'/> and <paramref name='L1Threshold'/> parameters. Note that the <paramref name='L2Const'/> has an effect on the rate of convergence. 
+        /// In general, the larger the <paramref name='L2Const'/>, the faster SDCA converges.
         /// </para>
+        /// <a href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</a>.
+        /// <a href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</a>.
         /// </remarks>
-        /// <seealso href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</seealso>.
-        /// <seealso href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</seealso>.
-        /// 
         public sealed partial class StochasticDualCoordinateAscentBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -9436,15 +9434,14 @@ namespace Microsoft.ML
         /// </para>
         /// <para>
         /// Note that SDCA is a stochastic and streaming optimization algorithm. 
-        /// The results depends on the order of the training data. For reproducible results, it is recommended that one sets <paramref>shuffle</paramref> to
-        /// False and <paramref>NumThreads</paramref> to 1.
-        /// Elastic net regularization can be specified by the l2_weight and l1_weight parameters. Note that the <paramref>l2_weight</paramref> has an effect on the rate of convergence. 
-        /// In general, the larger the l2_weight, the faster SDCA converges.
+        /// The results depends on the order of the training data. For reproducible results, it is recommended that one sets <paramref name='Shuffle'/> to
+        /// False and <paramref name='NumThreads'/> to 1.
+        /// Elastic net regularization can be specified by the <paramref name='L2Const'/> and <paramref name='L1Threshold'/> parameters. Note that the <paramref name='L2Const'/> has an effect on the rate of convergence. 
+        /// In general, the larger the <paramref name='L2Const'/>, the faster SDCA converges.
         /// </para>
+        /// <a href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</a>.
+        /// <a href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</a>.
         /// </remarks>
-        /// <seealso href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</seealso>.
-        /// <seealso href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</seealso>.
-        /// 
         public sealed partial class StochasticDualCoordinateAscentClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -9581,15 +9578,14 @@ namespace Microsoft.ML
         /// </para>
         /// <para>
         /// Note that SDCA is a stochastic and streaming optimization algorithm. 
-        /// The results depends on the order of the training data. For reproducible results, it is recommended that one sets <paramref>shuffle</paramref> to
-        /// False and <paramref>NumThreads</paramref> to 1.
-        /// Elastic net regularization can be specified by the l2_weight and l1_weight parameters. Note that the <paramref>l2_weight</paramref> has an effect on the rate of convergence. 
-        /// In general, the larger the l2_weight, the faster SDCA converges.
+        /// The results depends on the order of the training data. For reproducible results, it is recommended that one sets <paramref name='Shuffle'/> to
+        /// False and <paramref name='NumThreads'/> to 1.
+        /// Elastic net regularization can be specified by the <paramref name='L2Const'/> and <paramref name='L1Threshold'/> parameters. Note that the <paramref name='L2Const'/> has an effect on the rate of convergence. 
+        /// In general, the larger the <paramref name='L2Const'/>, the faster SDCA converges.
         /// </para>
+        /// <a href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</a>.
+        /// <a href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</a>.
         /// </remarks>
-        /// <seealso href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</seealso>.
-        /// <seealso href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</seealso>.
-        /// 
         public sealed partial class StochasticDualCoordinateAscentRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -17950,8 +17946,7 @@ namespace Microsoft.ML
 
 
         /// <summary>
-        /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. 
-        /// This learner is a generalization of Poisson, compound Poisson, and gamma regression.
+        /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.
         /// </summary>
         public sealed class FastTreeTweedieRegressionFastTreeTrainer : FastTreeTrainer
         {
