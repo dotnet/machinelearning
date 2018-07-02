@@ -407,7 +407,7 @@ namespace Microsoft.ML.Runtime.RunTests
             });
             Done();
         }
-        
+
         [Fact]
         [TestCategory("Binary")]
         [TestCategory("LightGBM")]

@@ -7667,7 +7667,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Train an LightGBM multi class model
+        /// Train a LightGBM multi class model.
         /// </summary>
         /// <remarks>Light GBM is an open source implementation of boosted trees.
         /// <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a></remarks>
@@ -7874,7 +7874,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Train an LightGBM ranking model
+        /// Train a LightGBM ranking model.
         /// </summary>
         /// <remarks>Light GBM is an open source implementation of boosted trees.
         /// <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a></remarks>
