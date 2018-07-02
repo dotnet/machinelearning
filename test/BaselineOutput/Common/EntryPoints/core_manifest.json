@@ -10675,7 +10675,7 @@
     },
     {
       "Name": "Trainers.LightGbmBinaryClassifier",
-      "Desc": "Train a LightGBM binary class model.",
+      "Desc": "Train a LightGBM binary classification model.",
       "FriendlyName": "LightGBM Binary Classifier",
       "ShortName": "LightGBM",
       "Inputs": [

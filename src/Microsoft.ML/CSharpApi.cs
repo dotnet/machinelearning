@@ -7460,7 +7460,7 @@ namespace Microsoft.ML
 
 
         /// <summary>
-        /// Train an LightGBM binary classification model
+        /// Train a LightGBM binary classification model.
         /// </summary>
         /// <remarks>Light GBM is an open source implementation of boosted trees.
         /// <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a></remarks>

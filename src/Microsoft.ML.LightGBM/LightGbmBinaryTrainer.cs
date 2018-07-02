@@ -86,7 +86,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         internal const string UserName = "LightGBM Binary Classifier";
         internal const string LoadNameValue = "LightGBMBinary";
         internal const string ShortName = "LightGBM";
-        internal const string Summary = "Train an LightGBM binary classification model";
+        internal const string Summary = "Train a LightGBM binary classification model.";
 
         public LightGbmBinaryTrainer(IHostEnvironment env, LightGbmArguments args)
             : base(env, args, PredictionKind.BinaryClassification, "LGBBINCL")
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
 
     /// <summary>
-    /// A component to train an LightGBM model.
+    /// A component to train a LightGBM model.
     /// </summary>
     public static partial class LightGbm
     {

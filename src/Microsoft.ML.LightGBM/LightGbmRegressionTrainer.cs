@@ -116,7 +116,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
 
     /// <summary>
-    /// A component to train an LightGBM model.
+    /// A component to train a LightGBM model.
     /// </summary>
     public static partial class LightGbm
     {

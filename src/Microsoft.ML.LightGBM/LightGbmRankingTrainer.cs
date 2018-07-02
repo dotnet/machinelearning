@@ -123,13 +123,13 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
 
     /// <summary>
-    /// A component to train an LightGBM model.
+    /// A component to train a LightGBM model.
     /// </summary>
     public static partial class LightGbm
     {
         [TlcModule.EntryPoint(Name = "Trainers.LightGbmRanker", 
             Remarks = LightGbmMulticlassTrainer.Remarks,
-            Desc = "Train an LightGBM ranking model", 
+            Desc = "Train a LightGBM ranking model.", 
             UserName = LightGbmRankingTrainer.UserName, 
             ShortName = LightGbmRankingTrainer.ShortName)]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, LightGbmArguments input)
