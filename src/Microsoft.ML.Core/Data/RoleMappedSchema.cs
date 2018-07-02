@@ -12,7 +12,8 @@ namespace Microsoft.ML.Runtime.Data
     /// This contains information about a column in an <see cref="IDataView"/>. It is essentially a convenience cache
     /// containing the name, column index, and column type for the column. The intended usage is that users of <see cref="RoleMappedSchema"/>
     /// will have a convenient method of getting the index and type without having to separately query it through the <see cref="ISchema"/>,
-    /// since practically the first thing a consumer of a <see cref="RoleMappedSchema"/> will want to do once they get a mappping is
+    /// since practically the first thing a consumer of a <see cref="RoleMappedSchema"/> will want to do once they get a mappping is get
+    /// the type and index of the corresponding column.
     /// </summary>
     public sealed class ColumnInfo
     {

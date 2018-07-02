@@ -337,6 +337,8 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Returns whether a column has the <see cref="Kinds.IsNormalized"/> metadata set to true.
+        /// That metadata should be set when the data has undergone transforms that would render it
+        /// "normalized."
         /// </summary>
         /// <param name="schema">The schema to query</param>
         /// <param name="col">Which column in the schema to query</param>

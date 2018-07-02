@@ -388,6 +388,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             // REVIEW: The role mapped data has the ability to have multiple columns fill the role of features, which is
             // useful in some trainers that are nonetheless parameteric and can therefore benefit from normalization.
+            Contracts.CheckValue(schema, nameof(schema));
             var featInfo = schema.Feature;
             return featInfo == null ? default(bool?) : schema.Schema.IsNormalized(featInfo.Index);
         }
