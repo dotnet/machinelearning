@@ -373,9 +373,9 @@ namespace Microsoft.ML.Runtime.RunTests
                         foldGetter(ref fold);
                         Assert.True(fold.EqualsStr("Standard Deviation"));
                         if (w == 1)
-                            Assert.Equal(0.002827, stdev, 6);
+                            Assert.Equal(0.004557, stdev, 6);
                         else
-                            Assert.Equal(0.002376, stdev, 6);
+                            Assert.Equal(0.000393, stdev, 6);
                         isWeightedGetter(ref isWeighted);
                         Assert.True(isWeighted.IsTrue == (w == 1));
                     }

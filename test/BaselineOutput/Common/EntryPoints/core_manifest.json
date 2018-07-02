@@ -1513,6 +1513,18 @@
           "Default": "Weight"
         },
         {
+          "Name": "NameColumn",
+          "Type": "String",
+          "Desc": "Name column name",
+          "Aliases": [
+            "name"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Name"
+        },
+        {
           "Name": "Kind",
           "Type": {
             "Kind": "Enum",
@@ -1663,6 +1675,18 @@
           "SortOrder": 6.0,
           "IsNullable": false,
           "Default": null
+        },
+        {
+          "Name": "NameColumn",
+          "Type": "String",
+          "Desc": "Name column name",
+          "Aliases": [
+            "name"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Name"
         },
         {
           "Name": "NumFolds",
@@ -3588,6 +3612,18 @@
           "Required": true,
           "SortOrder": 6.0,
           "IsNullable": false
+        },
+        {
+          "Name": "NameColumn",
+          "Type": "String",
+          "Desc": "Name column name",
+          "Aliases": [
+            "name"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Name"
         },
         {
           "Name": "Kind",
