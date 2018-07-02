@@ -53,16 +53,25 @@ namespace Microsoft.ML.Runtime.Data
             LInf = 3
         }
 
+        private static class Defaults
+        {
+            public const NormalizerKind NormKind = NormalizerKind.L2Norm;
+            public const bool LpSubMean = false;
+            public const bool GcnSubMean = true;
+            public const bool UseStdDev = false;
+            public const Float Scale = 1;
+        }
+
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The norm to use to normalize each sample", ShortName = "norm", SortOrder = 1)]
-            public NormalizerKind NormKind = NormalizerKind.L2Norm;
+            public NormalizerKind NormKind = Defaults.NormKind;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Subtract mean from each value before normalizing", SortOrder = 2)]
-            public bool SubMean = false;
+            public bool SubMean = Defaults.LpSubMean;
         }
 
         public sealed class GcnArguments : TransformInputBase
@@ -71,13 +80,13 @@ namespace Microsoft.ML.Runtime.Data
             public GcnColumn[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Subtract mean from each value before normalizing", SortOrder = 1)]
-            public bool SubMean = true;
+            public bool SubMean = Defaults.GcnSubMean;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize by standard deviation rather than L2 norm", ShortName = "useStd")]
-            public bool UseStdDev = false;
+            public bool UseStdDev = Defaults.UseStdDev;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scale features by this value")]
-            public Float Scale = 1;
+            public Float Scale = Defaults.Scale;
         }
 
         public abstract class ColumnBase : OneToOneColumn
@@ -238,6 +247,38 @@ namespace Microsoft.ML.Runtime.Data
         private readonly ColInfoEx[] _exes;
 
         /// <summary>
+        /// A helper method to create GlobalContrastNormalizer transform for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
+        /// <param name="scale">Scale features by this value.</param>
+        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, 
+            IDataView input, 
+            string name, 
+            string source = null, 
+            bool subMean = Defaults.GcnSubMean, 
+            bool useStdDev = Defaults.UseStdDev, 
+            Float scale = Defaults.Scale)
+        {
+            var args = new GcnArguments()
+            {
+                Column = new[] { new GcnColumn(){
+                        Source = source ?? name,
+                        Name = name
+                    }
+                },
+                SubMean = subMean,
+                UseStdDev = useStdDev,
+                Scale = scale
+            };
+            return new LpNormNormalizerTransform(env, args, input);
+        }
+
+        /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
         public LpNormNormalizerTransform(IHostEnvironment env, GcnArguments args, IDataView input)
@@ -263,9 +304,38 @@ namespace Microsoft.ML.Runtime.Data
             SetMetadata();
         }
 
+        /// <summary>
+        /// A helper method to create LpNormNormalizer transform for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        ///         /// <param name="normKind">The norm to use to normalize each sample.</param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, 
+            IDataView input, 
+            string name, 
+            string source = null, 
+            NormalizerKind normKind = Defaults.NormKind, 
+            bool subMean = Defaults.LpSubMean)
+        {
+            var args = new Arguments()
+            {
+                Column = new[] { new Column(){
+                        Source = source ?? name,
+                        Name = name
+                    }
+                },
+                SubMean = subMean,
+                NormKind = normKind
+            };
+            return new LpNormNormalizerTransform(env, args, input);
+        }
+
         public LpNormNormalizerTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column,
-                input, TestIsFloatVector)
+        : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column,
+            input, TestIsFloatVector)
         {
             Host.AssertNonEmpty(Infos);
             Host.Assert(Infos.Length == Utils.Size(args.Column));

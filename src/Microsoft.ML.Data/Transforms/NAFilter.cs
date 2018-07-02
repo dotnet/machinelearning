@@ -28,13 +28,18 @@ namespace Microsoft.ML.Runtime.Data
 {
     public sealed class NAFilter : FilterBase
     {
+        private static class Defaults
+        {
+            public const bool Complement = false;
+        }
+
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column", ShortName = "col", SortOrder = 1)]
             public string[] Column;
 
             [Argument(ArgumentType.Multiple, HelpText = "If true, keep only rows that contain NA values, and filter the rest.")]
-            public bool Complement;
+            public bool Complement = Defaults.Complement;
         }
 
         private sealed class ColInfo
@@ -71,6 +76,18 @@ namespace Microsoft.ML.Runtime.Data
         private readonly Dictionary<int, int> _srcIndexToInfoIndex;
         private readonly bool _complement;
         private const string RegistrationName = "MissingValueFilter";
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="complement">If true, keep only rows that contain NA values, and filter the rest.</param>
+        /// <param name="columns">Name of the columns. Only these columns will be used to filter rows having 'NA' values.</param>
+        public NAFilter(IHostEnvironment env, IDataView input, bool complement = Defaults.Complement, params string[] columns)
+            : this(env, new Arguments() { Column = columns, Complement = complement }, input)
+        {
+        }
 
         public NAFilter(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, input)
