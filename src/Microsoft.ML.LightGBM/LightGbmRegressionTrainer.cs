@@ -120,7 +120,11 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// </summary>
     public static partial class LightGbm
     {
-        [TlcModule.EntryPoint(Name = "Trainers.LightGbmRegressor", Desc = LightGbmRegressorTrainer.Summary, UserName = LightGbmRegressorTrainer.UserNameValue, ShortName = LightGbmRegressorTrainer.ShortName)]
+        [TlcModule.EntryPoint(
+            Name = "Trainers.LightGbmRegressor", 
+            Desc = LightGbmRegressorTrainer.Summary, 
+            UserName = LightGbmRegressorTrainer.UserNameValue, 
+            ShortName = LightGbmRegressorTrainer.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));
