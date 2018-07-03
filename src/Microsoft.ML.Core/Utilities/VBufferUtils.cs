@@ -1147,11 +1147,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// storing the result in <paramref name="dst"/>, overwriting any of its existing contents.
         /// The contents of <paramref name="dst"/> do not affect calculation. If you instead wish
         /// to calculate a function that reads and writes <paramref name="dst"/>, see
-        /// <see cref="ApplyWith"/> and <see cref="ApplyWithEitherDefined"/>. Post-operation,
+        /// <see cref="ApplyWith{TSrc,TDst}"/> and <see cref="ApplyWithEitherDefined{TSrc,TDst}"/>. Post-operation,
         /// <paramref name="dst"/> will be dense iff <paramref name="src"/> is dense.
         /// </summary>
-        /// <seealso cref="ApplyWith"/>
-        /// <seealso cref="ApplyWithEitherDefined"/>
+        /// <seealso cref="ApplyWith{TSrc,TDst}"/>
+        /// <seealso cref="ApplyWithEitherDefined{TSrc,TDst}"/>
         public static void ApplyIntoEitherDefined<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, Func<int, TSrc, TDst> func)
         {
             Contracts.CheckValue(func, nameof(func));
