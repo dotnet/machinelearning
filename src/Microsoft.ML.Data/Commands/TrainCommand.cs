@@ -172,7 +172,7 @@ namespace Microsoft.ML.Runtime.Data
                     ch.Trace("Constructing the validation pipeline");
                     IDataView validPipe = CreateRawLoader(dataFile: Args.ValidationFile);
                     validPipe = ApplyTransformUtils.ApplyAllTransformsToData(Host, view, validPipe);
-                    validData = RoleMappedData.Create(validPipe, data.Schema.GetColumnRoleNames());
+                    validData = new RoleMappedData(validPipe, data.Schema.GetColumnRoleNames());
                 }
             }
 
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Runtime.Data
                 var prefetch = data.Schema.GetColumnRoles().Select(kc => kc.Value.Index).ToArray();
                 var cacheView = new CacheDataView(env, data.Data, prefetch);
                 // Because the prefetching worked, we know that these are valid columns.
-                data = RoleMappedData.Create(cacheView, data.Schema.GetColumnRoleNames());
+                data = new RoleMappedData(cacheView, data.Schema.GetColumnRoleNames());
             }
             else
                 ch.Trace("Not caching");
@@ -590,7 +590,7 @@ namespace Microsoft.ML.Runtime.Data
             if (custom != null)
                 list.AddRange(custom);
 
-            return RoleMappedSchema.CreateOpt(schema, list);
+            return new RoleMappedSchema(schema, list, opt: true);
         }
 
         /// <summary>
@@ -623,7 +623,7 @@ namespace Microsoft.ML.Runtime.Data
             if (custom != null)
                 list.AddRange(custom);
 
-            return RoleMappedData.Create(view, list);
+            return new RoleMappedData(view, list);
         }
 
         /// <summary>
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Runtime.Data
             if (custom != null)
                 list.AddRange(custom);
 
-            return RoleMappedData.CreateOpt(view, list);
+            return new RoleMappedData(view, list, opt: true);
         }
 
         private static KeyValuePair<ColumnRole, T> Pair<T>(ColumnRole kind, T value)

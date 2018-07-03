@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.Api
             {
                 var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, modelStream);
                 pipe = roles != null
-                    ? env.CreateDefaultScorer(RoleMappedData.CreateOpt(pipe, roles), predictor)
+                    ? env.CreateDefaultScorer(new RoleMappedData(pipe, roles, opt: true), predictor)
                     : env.CreateDefaultScorer(env.CreateExamples(pipe, "Features"), predictor);
             }
 

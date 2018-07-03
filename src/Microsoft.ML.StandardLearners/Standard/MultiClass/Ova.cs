@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Learners
             var roles = data.Schema.GetColumnRoleNames()
                 .Where(kvp => kvp.Key.Value != CR.Label.Value)
                 .Prepend(CR.Label.Bind(dstName));
-            var td = RoleMappedData.Create(view, roles);
+            var td = new RoleMappedData(view, roles);
 
             trainer.Train(td);
 

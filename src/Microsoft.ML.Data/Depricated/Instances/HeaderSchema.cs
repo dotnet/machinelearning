@@ -379,8 +379,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 if (size > 0)
                     Array.Copy(names, _names, size);
 
-                _schema = RoleMappedSchema.Create(new FeatureNameCollectionSchema(this),
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, RoleMappedSchema.ColumnRole.Feature.Value));
+                // REVIEW: This seems wrong. The default feature column name is "Features" yet the role is named "Feature".
+                _schema = new RoleMappedSchema(new FeatureNameCollectionSchema(this), opt: false,
+                    RoleMappedSchema.ColumnRole.Feature.Bind(RoleMappedSchema.ColumnRole.Feature.Value));
             }
 
             public override int Count => _count;
@@ -470,8 +471,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 }
                 Contracts.Assert(cv == cnn);
 
-                _schema = RoleMappedSchema.Create(new FeatureNameCollectionSchema(this),
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, RoleMappedSchema.ColumnRole.Feature.Value));
+                // REVIEW: This seems wrong. The default feature column name is "Features" yet the role is named "Feature".
+                _schema = new RoleMappedSchema(new FeatureNameCollectionSchema(this), opt: false,
+                    RoleMappedSchema.ColumnRole.Feature.Bind(RoleMappedSchema.ColumnRole.Feature.Value));
             }
 
             /// <summary>

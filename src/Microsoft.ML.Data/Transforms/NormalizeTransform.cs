@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.Data
             env.AssertValue(featInfo); // Should be defined, if FEaturesAreNormalized returned a definite value.
 
             var view = CreateMinMaxNormalizer(env, data.Data, name: featInfo.Name);
-            data = RoleMappedData.Create(view, data.Schema.GetColumnRoleNames());
+            data = new RoleMappedData(view, data.Schema.GetColumnRoleNames());
             return true;
         }
 

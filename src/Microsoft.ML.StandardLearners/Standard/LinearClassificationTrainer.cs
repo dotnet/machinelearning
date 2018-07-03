@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.Learners
             ch.Assert(idvToFeedTrain.CanShuffle);
 
             var roles = examples.Schema.GetColumnRoleNames();
-            var examplesToFeedTrain = RoleMappedData.Create(idvToFeedTrain, roles);
+            var examplesToFeedTrain = new RoleMappedData(idvToFeedTrain, roles);
 
             ch.Assert(examplesToFeedTrain.Schema.Label != null);
             ch.Assert(examplesToFeedTrain.Schema.Feature != null);

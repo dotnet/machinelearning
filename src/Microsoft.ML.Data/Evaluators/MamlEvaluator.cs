@@ -95,7 +95,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public Dictionary<string, IDataView> Evaluate(RoleMappedData data)
         {
-            data = RoleMappedData.Create(data.Data, GetInputColumnRoles(data.Schema, needStrat: true));
+            data = new RoleMappedData(data.Data, GetInputColumnRoles(data.Schema, needStrat: true));
             return Evaluator.Evaluate(data);
         }
 
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(scoredData);
 
             var schema = scoredData.Schema;
-            var dataEval = RoleMappedData.Create(scoredData.Data, GetInputColumnRoles(schema));
+            var dataEval = new RoleMappedData(scoredData.Data, GetInputColumnRoles(schema));
             return Evaluator.GetPerInstanceMetrics(dataEval);
         }
 
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Runtime.Data
         public IDataView GetPerInstanceDataViewToSave(RoleMappedData perInstance)
         {
             Host.CheckValue(perInstance, nameof(perInstance));
-            var data = RoleMappedData.Create(perInstance.Data, GetInputColumnRoles(perInstance.Schema, needName: true));
+            var data = new RoleMappedData(perInstance.Data, GetInputColumnRoles(perInstance.Schema, needName: true));
             return WrapPerInstance(data);
         }
 

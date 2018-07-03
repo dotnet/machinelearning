@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             ColumnInfo colInfo;
             if (!TryCreateFromName(schema, name, out colInfo))
-                throw Contracts.ExceptParam(nameof(name), "{0} column '{1}' not found", descName, name);
+                throw Contracts.ExceptParam(nameof(name), $"{descName} column '{name}' not found");
 
             return colInfo;
         }
@@ -116,50 +116,44 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             public static implicit operator ColumnRole(string value)
-            {
-                return new ColumnRole(value);
-            }
+                => new ColumnRole(value);
 
             public KeyValuePair<ColumnRole, string> Bind(string name)
-            {
-                return new KeyValuePair<ColumnRole, string>(this, name);
-            }
+                => new KeyValuePair<ColumnRole, string>(this, name);
         }
 
         public static KeyValuePair<ColumnRole, string> CreatePair(ColumnRole role, string name)
-        {
-            return new KeyValuePair<ColumnRole, string>(role, name);
-        }
+            => new KeyValuePair<ColumnRole, string>(role, name);
 
         /// <summary>
-        /// The source ISchema.
+        /// The source <see cref="ISchema"/>.
         /// </summary>
-        public readonly ISchema Schema;
+        public ISchema Schema { get; }
 
         /// <summary>
         /// The Feature column, when there is exactly one (null otherwise).
         /// </summary>
-        public readonly ColumnInfo Feature;
+        public ColumnInfo Feature { get; }
 
         /// <summary>
         /// The Label column, when there is exactly one (null otherwise).
         /// </summary>
-        public readonly ColumnInfo Label;
+        public ColumnInfo Label { get; }
 
         /// <summary>
         /// The Group column, when there is exactly one (null otherwise).
         /// </summary>
-        public readonly ColumnInfo Group;
+        public ColumnInfo Group { get; }
 
         /// <summary>
         /// The Weight column, when there is exactly one (null otherwise).
         /// </summary>
-        public readonly ColumnInfo Weight;
+        public ColumnInfo Weight { get; }
 
         /// <summary>
         /// The Name column, when there is exactly one (null otherwise).
         /// </summary>
-        public readonly ColumnInfo Name;
+        public ColumnInfo Name { get; }
 
         // Maps from role to the associated column infos.
         private readonly Dictionary<string, IReadOnlyList<ColumnInfo>> _map;
@@ -183,21 +177,21 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (kvp.Key)
                     {
-                    case FeatureString:
-                        Feature = cols[0];
-                        break;
-                    case LabelString:
-                        Label = cols[0];
-                        break;
-                    case GroupString:
-                        Group = cols[0];
-                        break;
-                    case WeightString:
-                        Weight = cols[0];
-                        break;
-                    case NameString:
-                        Name = cols[0];
-                        break;
+                        case FeatureString:
+                            Feature = cols[0];
+                            break;
+                        case LabelString:
+                            Label = cols[0];
+                            break;
+                        case GroupString:
+                            Group = cols[0];
+                            break;
+                        case WeightString:
+                            Weight = cols[0];
+                            break;
+                        case NameString:
+                            Name = cols[0];
+                            break;
                     }
                 }
             }
@@ -214,8 +208,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertNonEmpty(role.Value);
             Contracts.AssertValue(info);
 
-            List<ColumnInfo> list;
-            if (!map.TryGetValue(role.Value, out list))
+            if (!map.TryGetValue(role.Value, out var list))
             {
                 list = new List<ColumnInfo>();
                 map.Add(role.Value, list);
@@ -223,7 +216,7 @@ namespace Microsoft.ML.Runtime.Data
             list.Add(info);
         }
 
-        private static Dictionary<string, List<ColumnInfo>> MapFromNames(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles)
+        private static Dictionary<string, List<ColumnInfo>> MapFromNames(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
         {
             Contracts.AssertValue(schema);
             Contracts.AssertValue(roles);
@@ -231,28 +224,13 @@ namespace Microsoft.ML.Runtime.Data
             var map = new Dictionary<string, List<ColumnInfo>>();
             foreach (var kvp in roles)
             {
-                Contracts.CheckNonEmpty(kvp.Key.Value, nameof(roles), "Bad column role");
-                if (string.IsNullOrEmpty(kvp.Value))
-                    continue;
-                var info = ColumnInfo.CreateFromName(schema, kvp.Value, kvp.Key.Value);
-                Add(map, kvp.Key.Value, info);
-            }
-            return map;
-        }
-
-        private static Dictionary<string, List<ColumnInfo>> MapFromNamesOpt(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles)
-        {
-            Contracts.AssertValue(schema);
-            Contracts.AssertValue(roles);
-
-            var map = new Dictionary<string, List<ColumnInfo>>();
-            foreach (var kvp in roles)
-            {
-                Contracts.CheckNonEmpty(kvp.Key.Value, nameof(roles), "Bad column role");
+                Contracts.AssertNonEmpty(kvp.Key.Value);
                 if (string.IsNullOrEmpty(kvp.Value))
                     continue;
                 ColumnInfo info;
-                if (!ColumnInfo.TryCreateFromName(schema, kvp.Value, out info))
+                if (!opt)
+                    info = ColumnInfo.CreateFromName(schema, kvp.Value, kvp.Key.Value);
+                else if (!ColumnInfo.TryCreateFromName(schema, kvp.Value, out info))
                     continue;
                 Add(map, kvp.Key.Value, info);
             }
@@ -263,27 +241,19 @@ namespace Microsoft.ML.Runtime.Data
         /// Returns whether there are any columns with the given column role.
         /// </summary>
         public bool Has(ColumnRole role)
-        {
-            return role.Value != null && _map.ContainsKey(role.Value);
-        }
+            => _map.ContainsKey(role.Value);
 
         /// <summary>
         /// Returns whether there is exactly one column of the given role.
         /// </summary>
         public bool HasUnique(ColumnRole role)
-        {
-            IReadOnlyList<ColumnInfo> cols;
-            return role.Value != null && _map.TryGetValue(role.Value, out cols) && cols.Count == 1;
-        }
+            => _map.TryGetValue(role.Value, out var cols) && cols.Count == 1;
 
         /// <summary>
         /// Returns whether there are two or more columns of the given role.
         /// </summary>
         public bool HasMultiple(ColumnRole role)
-        {
-            IReadOnlyList<ColumnInfo> cols;
-            return role.Value != null && _map.TryGetValue(role.Value, out cols) && cols.Count > 1;
-        }
+            => _map.TryGetValue(role.Value, out var cols) && cols.Count > 1;
 
         /// <summary>
         /// If there are columns of the given role, this returns the infos as a readonly list. Otherwise,
@@ -291,8 +261,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public IReadOnlyList<ColumnInfo> GetColumns(ColumnRole role)
         {
-            IReadOnlyList<ColumnInfo> list;
-            if (role.Value != null && _map.TryGetValue(role.Value, out list))
+            if (_map.TryGetValue(role.Value, out var list))
                 return list;
             return null;
         }
@@ -327,8 +296,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public IEnumerable<KeyValuePair<ColumnRole, string>> GetColumnRoleNames(ColumnRole role)
         {
-            IReadOnlyList<ColumnInfo> list;
-            if (role.Value != null && _map.TryGetValue(role.Value, out list))
+            if (_map.TryGetValue(role.Value, out var list))
             {
                 foreach (var info in list)
                     yield return new KeyValuePair<ColumnRole, string>(role, info.Name);
@@ -363,8 +331,39 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Constructor from the given schema with no column role assignments.
+        /// </summary>
+        /// <param name="schema">The schema for which we could build a role mapping</param>
+        public RoleMappedSchema(ISchema schema)
+            : this(Contracts.CheckRef(schema, nameof(schema)), new Dictionary<string, List<ColumnInfo>>())
+        {
+        }
+
+        /// <summary>
+        /// Constructor from the given schema and role/column-name pairs.
+        /// This skips null or empty column-names. It will also skip column-names that are not
+        /// found in the schema if <paramref name="opt"/> is true.
+        /// </summary>
+        public RoleMappedSchema(ISchema schema, bool opt, params KeyValuePair<ColumnRole, string>[] roles)
+            : this(Contracts.CheckRef(schema, nameof(schema)), Contracts.CheckRef(roles, nameof(roles)), opt)
+        {
+        }
+
+        /// <summary>
+        /// Creates a RoleMappedSchema from the given schema and role/column-name pairs.
+        /// This skips null or empty column-names. It will also skip column-names that are not
+        /// found in the schema if <paramref name="opt"/> is true.
+        /// </summary>
+        public RoleMappedSchema(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
+            : this(Contracts.CheckRef(schema, nameof(schema)),
+                  MapFromNames(schema, Contracts.CheckRef(roles, nameof(roles)), opt))
+        {
+        }
+
+        /// <summary>
         /// Creates a RoleMappedSchema from the given schema with no column role assignments.
         /// </summary>
+        [Obsolete("Please shift to using the constructor")]
         public static RoleMappedSchema Create(ISchema schema)
         {
             Contracts.CheckValue(schema, nameof(schema));
@@ -375,6 +374,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Creates a RoleMappedSchema from the given schema and role/column-name pairs.
         /// This skips null or empty column-names.
         /// </summary>
+        [Obsolete("Please shift to using the constructor with opt: false")]
         public static RoleMappedSchema Create(ISchema schema, params KeyValuePair<ColumnRole, string>[] roles)
         {
             Contracts.CheckValue(schema, nameof(schema));
@@ -386,6 +386,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Creates a RoleMappedSchema from the given schema and role/column-name pairs.
         /// This skips null or empty column-names.
         /// </summary>
+        [Obsolete("Please shift to using the constructor")]
         public static RoleMappedSchema Create(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles)
         {
             Contracts.CheckValue(schema, nameof(schema));
@@ -397,11 +398,12 @@ namespace Microsoft.ML.Runtime.Data
         /// Creates a RoleMappedSchema from the given schema and role/column-name pairs.
         /// This skips null or empty column-names, or column-names that are not found in the schema.
         /// </summary>
+        [Obsolete("Please shift to using the constructor with opt: true")]
         public static RoleMappedSchema CreateOpt(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(roles, nameof(roles));
-            return new RoleMappedSchema(schema, MapFromNamesOpt(schema, roles));
+            return new RoleMappedSchema(schema, MapFromNames(schema, roles, opt: true));
         }
     }
 
@@ -415,7 +417,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The data.
         /// </summary>
-        public readonly IDataView Data;
+        public IDataView Data { get; }
 
         /// <summary>
         /// The role mapped schema. Note that Schema.Schema is guaranteed to be the same as Data.Schema.
@@ -434,6 +436,35 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Creates a RoleMappedData from the given data with no column role assignments.
         /// </summary>
+        public RoleMappedData(IDataView data)
+            : this(Contracts.CheckRef(data, nameof(data)), new RoleMappedSchema(data.Schema))
+        {
+        }
+
+        /// <summary>
+        /// Creates a RoleMappedData from the given schema and role/column-name pairs.
+        /// This skips null or empty column-names. It will also skip column-names that are not
+        /// found in the schema if <paramref name="opt"/> is true.
+        /// </summary>
+        public RoleMappedData(IDataView data, bool opt, params KeyValuePair<RoleMappedSchema.ColumnRole, string>[] roles)
+            : this(Contracts.CheckRef(data, nameof(data)), new RoleMappedSchema(data.Schema, Contracts.CheckRef(roles, nameof(roles)), opt))
+        {
+        }
+
+        /// <summary>
+        /// Creates a RoleMappedData from the given schema and role/column-name pairs.
+        /// This skips null or empty column-names. It will also skip column-names that are not
+        /// found in the schema if <paramref name="opt"/> is true.
+        /// </summary>
+        public RoleMappedData(IDataView data, IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> roles, bool opt = false)
+            : this(Contracts.CheckRef(data, nameof(data)), new RoleMappedSchema(data.Schema, Contracts.CheckRef(roles, nameof(roles)), opt))
+        {
+        }
+
+        /// <summary>
+        /// Creates a RoleMappedData from the given data with no column role assignments.
+        /// </summary>
+        [Obsolete("Use the corresponding constructor instead")]
         public static RoleMappedData Create(IDataView data)
         {
             Contracts.CheckValue(data, nameof(data));
@@ -444,6 +475,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Creates a RoleMappedData from the given schema and role/column-name pairs.
         /// This skips null or empty column-names.
         /// </summary>
+        [Obsolete("Use the corresponding constructor instead")]
         public static RoleMappedData Create(IDataView data, params KeyValuePair<RoleMappedSchema.ColumnRole, string>[] roles)
         {
             Contracts.CheckValue(data, nameof(data));
@@ -455,6 +487,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Creates a RoleMappedData from the given schema and role/column-name pairs.
         /// This skips null or empty column-names.
         /// </summary>
+        [Obsolete("Use the corresponding constructor instead")]
         public static RoleMappedData Create(IDataView data, IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> roles)
         {
             Contracts.CheckValue(data, nameof(data));
@@ -466,6 +499,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Creates a RoleMappedData from the given schema and role/column-name pairs.
         /// This skips null or empty column-names, or column-names that are not found in the schema.
         /// </summary>
+        [Obsolete("Use the corresponding constructor instead with opt: false")]
         public static RoleMappedData CreateOpt(IDataView data, IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> roles)
         {
             Contracts.CheckValue(data, nameof(data));

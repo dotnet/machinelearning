@@ -172,7 +172,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             {
                 RoleMappedData data;
                 if (trainSchema != null)
-                    data = RoleMappedData.Create(end, trainSchema.GetColumnRoleNames());
+                    data = new RoleMappedData(end, trainSchema.GetColumnRoleNames());
                 else
                 {
                     // We had a predictor, but no roles stored in the model. Just suppose

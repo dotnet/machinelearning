@@ -108,7 +108,7 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     var roles = ModelFileUtils.LoadRoleMappingsOrNull(_host, fs);
                     scorer = roles != null
-                        ? _host.CreateDefaultScorer(RoleMappedData.CreateOpt(transformPipe, roles), pred)
+                        ? _host.CreateDefaultScorer(new RoleMappedData(transformPipe, roles, opt: true), pred)
                         : _host.CreateDefaultScorer(_host.CreateExamples(transformPipe, "Features"), pred);
                 }
 

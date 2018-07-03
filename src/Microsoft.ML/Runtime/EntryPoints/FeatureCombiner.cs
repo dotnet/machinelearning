@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             using (var ch = host.Start(featureCombiner))
             {
                 var viewTrain = input.Data;
-                var rms = RoleMappedSchema.Create(viewTrain.Schema, input.GetRoles());
+                var rms = new RoleMappedSchema(viewTrain.Schema, input.GetRoles());
                 var feats = rms.GetColumns(RoleMappedSchema.ColumnRole.Feature);
                 if (Utils.Size(feats) == 0)
                     throw ch.Except("No feature columns specified");

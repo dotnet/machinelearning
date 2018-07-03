@@ -185,7 +185,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 bldr.AddColumn("Features", NumberType.Float, features);
 
                 var view = bldr.GetDataView();
-                var rmd = RoleMappedData.Create(view, ColumnRole.Label.Bind("Label"), ColumnRole.Feature.Bind("Features"));
+                var rmd = new RoleMappedData(view, opt: false, ColumnRole.Label.Bind("Label"), ColumnRole.Feature.Bind("Features"));
 
                 var trainer = BasePredictorType.CreateInstance(host);
                 if (trainer is ITrainerEx ex && ex.NeedNormalization)

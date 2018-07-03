@@ -184,7 +184,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         Data = roleMappedData.Data,
                         Caching = cachingType.Value
                     }).OutputData;
-                    cachedRoleMappedData = RoleMappedData.Create(cacheView, roleMappedData.Schema.GetColumnRoleNames());
+                    cachedRoleMappedData = new RoleMappedData(cacheView, roleMappedData.Schema.GetColumnRoleNames());
                 }
 
                 var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, "Train", calibrator, maxCalibrationExamples);

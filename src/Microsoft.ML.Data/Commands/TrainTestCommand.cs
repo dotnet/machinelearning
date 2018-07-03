@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.Data
                     ch.Trace("Constructing the validation pipeline");
                     IDataView validPipe = CreateRawLoader(dataFile: Args.ValidationFile);
                     validPipe = ApplyTransformUtils.ApplyAllTransformsToData(Host, trainPipe, validPipe);
-                    validData = RoleMappedData.Create(validPipe, data.Schema.GetColumnRoleNames());
+                    validData = new RoleMappedData(validPipe, data.Schema.GetColumnRoleNames());
                 }
             }
 

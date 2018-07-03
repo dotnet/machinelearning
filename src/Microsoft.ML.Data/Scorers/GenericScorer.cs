@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(roles);
                 Contracts.AssertValueOrNull(suffix);
 
-                var mapper = bindable.Bind(env, RoleMappedSchema.Create(input, roles));
+                var mapper = bindable.Bind(env, new RoleMappedSchema(input, roles));
                 // We don't actually depend on this invariant, but if this assert fires it means the bindable
                 // did the wrong thing.
                 Contracts.Assert(mapper.InputSchema.Schema == input);

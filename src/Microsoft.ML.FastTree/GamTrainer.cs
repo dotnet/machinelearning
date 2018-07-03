@@ -992,8 +992,8 @@ namespace Microsoft.ML.Runtime.FastTree
                         var builder = new ArrayDataViewBuilder(pred.Host);
                         builder.AddColumn("Label", NumberType.Float, _labels);
                         builder.AddColumn("Score", NumberType.Float, _scores);
-                        _dataForEvaluator = RoleMappedData.Create(builder.GetDataView(), RoleMappedSchema.ColumnRole.Label.Bind("Label"),
-                            RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, "Score"));
+                        _dataForEvaluator = new RoleMappedData(builder.GetDataView(), opt: false, RoleMappedSchema.ColumnRole.Label.Bind("Label"),
+                            new RoleMappedSchema.ColumnRole(MetadataUtils.Const.ScoreValueKind.Score).Bind("Score"));
                     }
 
                     _data.Schema.Schema.TryGetColumnIndex(DefaultColumnNames.Features, out int featureIndex);
@@ -1196,7 +1196,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 }
                 var pred = rawPred as GamPredictorBase;
                 ch.CheckUserArg(pred != null, nameof(Args.InputModelFile), "Predictor was not a " + nameof(GamPredictorBase));
-                var data = RoleMappedData.CreateOpt(loader, schema.GetColumnRoleNames());
+                var data = new RoleMappedData(loader, schema.GetColumnRoleNames(), opt: true);
                 if (hadCalibrator && !string.IsNullOrWhiteSpace(Args.OutputModelFile))
                     ch.Warning("If you save the GAM model, only the GAM model, not the wrapping calibrator, will be saved.");
 
