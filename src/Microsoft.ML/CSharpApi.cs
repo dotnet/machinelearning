@@ -2510,6 +2510,11 @@ namespace Microsoft.ML
             public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
 
             /// <summary>
+            /// Name column name
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> NameColumn { get; set; }
+
+            /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
             /// </summary>
             public MacroUtilsTrainerKinds Kind { get; set; } = MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
@@ -2628,6 +2633,11 @@ namespace Microsoft.ML
             /// Column to use for grouping
             /// </summary>
             public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
+
+            /// <summary>
+            /// Name column name
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> NameColumn { get; set; }
 
 
             public sealed class Output
@@ -4019,6 +4029,11 @@ namespace Microsoft.ML
             /// Column to use for grouping
             /// </summary>
             public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
+
+            /// <summary>
+            /// Name column name
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> NameColumn { get; set; }
 
 
             public sealed class Output
