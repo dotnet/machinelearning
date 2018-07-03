@@ -463,9 +463,9 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public static partial class FastTree
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastTreeTweedieRegressor", 
-            Desc = FastTreeTweedieTrainer.Summary, 
-            UserName = FastTreeTweedieTrainer.UserNameValue, 
+        [TlcModule.EntryPoint(Name = "Trainers.FastTreeTweedieRegressor",
+            Desc = FastTreeTweedieTrainer.Summary,
+            UserName = FastTreeTweedieTrainer.UserNameValue,
             ShortName = FastTreeTweedieTrainer.ShortName)]
         public static CommonOutputs.RegressionOutput TrainTweedieRegression(IHostEnvironment env, FastTreeTweedieTrainer.Arguments input)
         {

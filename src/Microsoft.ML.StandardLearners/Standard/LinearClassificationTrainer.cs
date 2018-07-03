@@ -189,7 +189,7 @@ namespace Microsoft.ML.Runtime.Learners
             public int? MaxIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", null, isBool:true)]
+            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", null, isBool: true)]
             public bool Shuffle = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.", NullName = "<Auto>", ShortName = "checkFreq")]
@@ -1507,7 +1507,7 @@ In general, the larger the <paramref name='L2Const'/>, the faster SDCA converges
             public Double InitLearningRate = 0.01;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", null, isBool:true)]
+            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", null, isBool: true)]
             public bool Shuffle = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
@@ -1795,10 +1795,10 @@ In general, the larger the <paramref name='L2Const'/>, the faster SDCA converges
     /// </summary>
     public static partial class Sdca
     {
-        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier", 
+        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier",
             Desc = "Train an SDCA binary model.",
             Remarks = LinearClassificationTrainer.Remarks,
-            UserName = LinearClassificationTrainer.UserNameValue, 
+            UserName = LinearClassificationTrainer.UserNameValue,
             ShortName = LinearClassificationTrainer.LoadNameValue)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LinearClassificationTrainer.Arguments input)
         {

@@ -256,12 +256,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env, 
-            IDataView input, 
-            string name, 
-            string source = null, 
-            bool subMean = Defaults.GcnSubMean, 
-            bool useStdDev = Defaults.UseStdDev, 
+        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env,
+            IDataView input,
+            string name,
+            string source = null,
+            bool subMean = Defaults.GcnSubMean,
+            bool useStdDev = Defaults.UseStdDev,
             Float scale = Defaults.Scale)
         {
             var args = new GcnArguments()
@@ -313,11 +313,11 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         ///         /// <param name="normKind">The norm to use to normalize each sample.</param>
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
-        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env, 
-            IDataView input, 
-            string name, 
-            string source = null, 
-            NormalizerKind normKind = Defaults.NormKind, 
+        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env,
+            IDataView input,
+            string name,
+            string source = null,
+            NormalizerKind normKind = Defaults.NormKind,
             bool subMean = Defaults.LpSubMean)
         {
             var args = new Arguments()
@@ -439,14 +439,61 @@ namespace Microsoft.ML.Runtime.Data
             {
                 switch (ex.NormKind)
                 {
+                    case NormalizerKind.StdDev:
+                        del =
+                            (ref VBuffer<Float> dst) =>
+                            {
+                                getSrc(ref src);
+                                Float mean = Mean(src.Values, src.Count, src.Length);
+                                Float divisor = StdDev(src.Values, src.Count, src.Length, mean);
+                                FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                            };
+                        return del;
+                    case NormalizerKind.L2Norm:
+                        del =
+                           (ref VBuffer<Float> dst) =>
+                           {
+                               getSrc(ref src);
+                               Float mean = Mean(src.Values, src.Count, src.Length);
+                               Float divisor = L2Norm(src.Values, src.Count, mean);
+                               FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                           };
+                        return del;
+                    case NormalizerKind.L1Norm:
+                        del =
+                           (ref VBuffer<Float> dst) =>
+                           {
+                               getSrc(ref src);
+                               Float mean = Mean(src.Values, src.Count, src.Length);
+                               Float divisor = L1Norm(src.Values, src.Count, mean);
+                               FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                           };
+                        return del;
+                    case NormalizerKind.LInf:
+                        del =
+                           (ref VBuffer<Float> dst) =>
+                           {
+                               getSrc(ref src);
+                               Float mean = Mean(src.Values, src.Count, src.Length);
+                               Float divisor = LInfNorm(src.Values, src.Count, mean);
+                               FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                           };
+                        return del;
+                    default:
+                        Host.Assert(false, "Unsupported normalizer type");
+                        goto case NormalizerKind.L2Norm;
+                }
+            }
+
+            switch (ex.NormKind)
+            {
                 case NormalizerKind.StdDev:
                     del =
                         (ref VBuffer<Float> dst) =>
                         {
                             getSrc(ref src);
-                            Float mean = Mean(src.Values, src.Count, src.Length);
-                            Float divisor = StdDev(src.Values, src.Count, src.Length, mean);
-                            FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                            Float divisor = StdDev(src.Values, src.Count, src.Length);
+                            FillValues(Host, ref src, ref dst, divisor, scale);
                         };
                     return del;
                 case NormalizerKind.L2Norm:
@@ -454,9 +501,8 @@ namespace Microsoft.ML.Runtime.Data
                        (ref VBuffer<Float> dst) =>
                        {
                            getSrc(ref src);
-                           Float mean = Mean(src.Values, src.Count, src.Length);
-                           Float divisor = L2Norm(src.Values, src.Count, mean);
-                           FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                           Float divisor = L2Norm(src.Values, src.Count);
+                           FillValues(Host, ref src, ref dst, divisor, scale);
                        };
                     return del;
                 case NormalizerKind.L1Norm:
@@ -464,9 +510,8 @@ namespace Microsoft.ML.Runtime.Data
                        (ref VBuffer<Float> dst) =>
                        {
                            getSrc(ref src);
-                           Float mean = Mean(src.Values, src.Count, src.Length);
-                           Float divisor = L1Norm(src.Values, src.Count, mean);
-                           FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                           Float divisor = L1Norm(src.Values, src.Count);
+                           FillValues(Host, ref src, ref dst, divisor, scale);
                        };
                     return del;
                 case NormalizerKind.LInf:
@@ -474,58 +519,13 @@ namespace Microsoft.ML.Runtime.Data
                        (ref VBuffer<Float> dst) =>
                        {
                            getSrc(ref src);
-                           Float mean = Mean(src.Values, src.Count, src.Length);
-                           Float divisor = LInfNorm(src.Values, src.Count, mean);
-                           FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                           Float divisor = LInfNorm(src.Values, src.Count);
+                           FillValues(Host, ref src, ref dst, divisor, scale);
                        };
                     return del;
                 default:
                     Host.Assert(false, "Unsupported normalizer type");
                     goto case NormalizerKind.L2Norm;
-                }
-            }
-
-            switch (ex.NormKind)
-            {
-            case NormalizerKind.StdDev:
-                del =
-                    (ref VBuffer<Float> dst) =>
-                    {
-                        getSrc(ref src);
-                        Float divisor = StdDev(src.Values, src.Count, src.Length);
-                        FillValues(Host, ref src, ref dst, divisor, scale);
-                    };
-                return del;
-            case NormalizerKind.L2Norm:
-                del =
-                   (ref VBuffer<Float> dst) =>
-                   {
-                       getSrc(ref src);
-                       Float divisor = L2Norm(src.Values, src.Count);
-                       FillValues(Host, ref src, ref dst, divisor, scale);
-                   };
-                return del;
-            case NormalizerKind.L1Norm:
-                del =
-                   (ref VBuffer<Float> dst) =>
-                   {
-                       getSrc(ref src);
-                       Float divisor = L1Norm(src.Values, src.Count);
-                       FillValues(Host, ref src, ref dst, divisor, scale);
-                   };
-                return del;
-            case NormalizerKind.LInf:
-                del =
-                   (ref VBuffer<Float> dst) =>
-                   {
-                       getSrc(ref src);
-                       Float divisor = LInfNorm(src.Values, src.Count);
-                       FillValues(Host, ref src, ref dst, divisor, scale);
-                   };
-                return del;
-            default:
-                Host.Assert(false, "Unsupported normalizer type");
-                goto case NormalizerKind.L2Norm;
             }
         }
 

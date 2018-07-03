@@ -131,10 +131,10 @@ namespace Microsoft.ML.Runtime.Learners
     /// </summary>
     public static partial class Sdca
     {
-        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentRegressor", 
+        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentRegressor",
             Desc = SdcaRegressionTrainer.Summary,
             Remarks = SdcaRegressionTrainer.Remarks,
-            UserName = SdcaRegressionTrainer.UserNameValue, 
+            UserName = SdcaRegressionTrainer.UserNameValue,
             ShortName = SdcaRegressionTrainer.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, SdcaRegressionTrainer.Arguments input)
         {

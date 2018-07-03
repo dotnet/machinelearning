@@ -233,10 +233,10 @@ It uses various bounding techniques to identify this redundancy and eliminate ma
             return Math.Max(1, maxThreads);
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.KMeansPlusPlusClusterer", 
+        [TlcModule.EntryPoint(Name = "Trainers.KMeansPlusPlusClusterer",
             Desc = Summary,
             Remarks = Remarks,
-            UserName = UserNameValue, 
+            UserName = UserNameValue,
             ShortName = ShortName)]
         public static CommonOutputs.ClusteringOutput TrainKMeans(IHostEnvironment env, Arguments input)
         {

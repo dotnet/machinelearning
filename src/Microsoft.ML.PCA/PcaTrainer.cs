@@ -284,10 +284,10 @@ namespace Microsoft.ML.Runtime.PCA
             }
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector", 
+        [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector",
             Desc = "Train an PCA Anomaly model.",
             Remarks = PcaPredictor.Remarks,
-            UserName = UserNameValue, 
+            UserName = UserNameValue,
             ShortName = ShortName)]
         public static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Arguments input)
         {

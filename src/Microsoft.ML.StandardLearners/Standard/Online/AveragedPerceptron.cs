@@ -110,10 +110,10 @@ The prediction is then calculated by taking the weighted average of all the sums
             return new LinearBinaryPredictor(Host, ref weights, bias);
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier", 
+        [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier",
             Desc = Summary,
             Remarks = Remarks,
-            UserName = UserNameValue, 
+            UserName = UserNameValue,
             ShortName = ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {

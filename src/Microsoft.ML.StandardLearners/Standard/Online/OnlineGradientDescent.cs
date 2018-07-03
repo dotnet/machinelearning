@@ -94,7 +94,7 @@ and an option to update the weight vector using the average of the vectors seen 
             return new LinearRegressionPredictor(Host, ref weights, bias);
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.OnlineGradientDescentRegressor", 
+        [TlcModule.EntryPoint(Name = "Trainers.OnlineGradientDescentRegressor",
             Desc = "Train a Online gradient descent perceptron.",
             Remarks = Remarks,
             UserName = UserNameValue,

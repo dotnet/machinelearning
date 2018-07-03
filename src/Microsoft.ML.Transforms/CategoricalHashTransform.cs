@@ -139,12 +139,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
         /// <param name="outputKind">The type of output expected.</param>
-        public static IDataTransform Create(IHostEnvironment env, 
-            IDataView input, 
-            string name, 
-            string source =null, 
-            int hashBits = Defaults.HashBits, 
-            int invertHash = Defaults.InvertHash, 
+        public static IDataTransform Create(IHostEnvironment env,
+            IDataView input,
+            string name,
+            string source = null,
+            int hashBits = Defaults.HashBits,
+            int invertHash = Defaults.InvertHash,
             CategoricalTransform.OutputKind outputKind = Defaults.OutputKind)
         {
             var args = new Arguments()
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 return CategoricalTransform.CreateTransformCore(
-                    args.OutputKind,args.Column,
+                    args.OutputKind, args.Column,
                     args.Column.Select(col => col.OutputKind).ToList(),
                     new HashTransform(h, hashArgs, input),
                     h,
