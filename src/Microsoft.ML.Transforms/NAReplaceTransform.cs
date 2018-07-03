@@ -601,7 +601,7 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        protected override bool SaveAsOnnxCore(IOnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+        protected override bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
         {
             DataKind rawKind;
             var type = Infos[iinfo].TypeSrc;

@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.Learners
             return PfaUtils.Call("model.reg.linear", input, cellRef);
         }
 
-        public bool SaveAsOnnx(IOnnxContext ctx, string[] outputs, string featureColumn)
+        public bool SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Check(Utils.Size(outputs) == 1);

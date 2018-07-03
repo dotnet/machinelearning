@@ -13,7 +13,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// <summary>
     /// A context for defining a ONNX output.
     /// </summary>
-    internal sealed class OnnxContext : IOnnxContext
+    internal sealed class OnnxContextImpl : OnnxContext
     {
         private readonly List<NodeProto> _nodes;
         private readonly List<OnnxUtils.ModelArgs> _inputs;
@@ -32,14 +32,14 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly string _producerVersion;
         private readonly long _modelVersion;
 
-        public OnnxContext(IHostEnvironment env, string name, string producerName,
+        public OnnxContextImpl(IHostEnvironment env, string name, string producerName,
             string producerVersion, long modelVersion, string domain)
         {
             Contracts.CheckValue(env, nameof(env));
-            Contracts.CheckValue(name, nameof(name));
-            Contracts.CheckValue(name, nameof(domain));
-
             _host = env.Register(nameof(OnnxContext));
+            _host.CheckValue(name, nameof(name));
+            _host.CheckValue(name, nameof(domain));
+
             _nodes = new List<NodeProto>();
             _intermediateValues = new List<OnnxUtils.ModelArgs>();
             _inputs = new List<OnnxUtils.ModelArgs>();
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             _domain = domain;
         }
 
-        public bool ContainsColumn(string colName) => _columnNameMap.ContainsKey(colName);
+        public override bool ContainsColumn(string colName) => _columnNameMap.ContainsKey(colName);
 
         /// <summary>
         /// Stops tracking a column. If removeVariable is true then it also removes the 
@@ -63,8 +63,9 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         /// <param name="colName">IDataView column name to stop tracking</param>
         /// <param name="removeVariable">Remove associated ONNX variable at the time.</param>
-        public void RemoveColumn(string colName, bool removeVariable)
+        public override void RemoveColumn(string colName, bool removeVariable)
         {
+            _host.CheckNonEmpty(colName, nameof(colName));
 
             if (removeVariable)
             {
@@ -88,9 +89,12 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         /// <param name="variableName">ONNX variable to remove.</param>
         /// <param name="removeColumn">IDataView column to stop tracking</param>
-        public void RemoveVariable(string variableName, bool removeColumn)
+        public override void RemoveVariable(string variableName, bool removeColumn)
         {
-            _host.Assert(_columnNameMap.ContainsValue(variableName));
+            _host.CheckNonEmpty(variableName, nameof(variableName));
+            if (!_columnNameMap.ContainsValue(variableName))
+                throw _host.ExceptParam(nameof(variableName), $"Could not find '{variableName}' declared in ONNX graph");
+
             if (removeColumn)
             {
                 foreach (var val in _intermediateValues)
@@ -114,9 +118,9 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <summary>
         /// Generates a unique name for the node based on a prefix.
         /// </summary>
-        public string GetNodeName(string prefix)
+        public override string GetNodeName(string prefix)
         {
-            _host.CheckValue(prefix, nameof(prefix));
+            _host.CheckNonEmpty(prefix, nameof(prefix));
             return GetUniqueName(prefix, _nodeNames.Contains);
         }
 
@@ -133,12 +137,17 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             _nodes.Add(node);
         }
 
-        public IOnnxNode CreateNode(string opType, IEnumerable<string> inputs,
+        public override OnnxNode CreateNode(string opType, IEnumerable<string> inputs,
             IEnumerable<string> outputs, string name, string domain = null)
         {
+            _host.CheckNonEmpty(opType, nameof(opType));
+            _host.CheckValue(inputs, nameof(inputs));
+            _host.CheckValue(outputs, nameof(outputs));
+            _host.CheckNonEmpty(name, nameof(name));
+
             var innerNode = OnnxUtils.MakeNode(opType, inputs, outputs, name, domain);
             AddNode(innerNode);
-            return new OnnxNode(innerNode);
+            return new OnnxNodeImpl(innerNode);
         }
 
         /// <summary>
@@ -146,7 +155,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         private string GetUniqueName(string prefix, Func<string, bool> pred)
         {
-            _host.CheckValue(prefix, nameof(prefix));
+            _host.CheckNonEmpty(prefix, nameof(prefix));
             _host.CheckValue(pred, nameof(pred));
 
             if (!pred(prefix))
@@ -162,9 +171,9 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// given point in the pipeline execution.
         /// </summary>
         /// <returns>Column Name mapping.</returns>
-        public string GetVariableName(string colName)
+        public override string GetVariableName(string colName)
         {
-            _host.CheckValue(colName, nameof(colName));
+            _host.CheckNonEmpty(colName, nameof(colName));
             _host.Assert(_columnNameMap.ContainsKey(colName));
 
             return _columnNameMap[colName];
@@ -177,6 +186,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <returns>Column Name mapping.</returns>
         public string TryGetVariableName(string colName)
         {
+            _host.CheckNonEmpty(colName, nameof(colName));
             if (_columnNameMap.ContainsKey(colName))
                 return GetVariableName(colName);
             return null;
@@ -190,7 +200,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <returns>Unique variable name.</returns>
         private string AddVariable(string colName)
         {
-            _host.CheckValue(colName, nameof(colName));
+            _host.CheckNonEmpty(colName, nameof(colName));
             _columnNameMap[colName] = GetUniqueName(colName, _variableNames.Contains);
             _variableNames.Add(_columnNameMap[colName]);
             return _columnNameMap[colName];
@@ -199,7 +209,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <summary>
         /// Adds an intermediate column to the list.
         /// </summary>
-        public string AddIntermediateVariable(ColumnType type, string colName, bool skip = false)
+        public override string AddIntermediateVariable(ColumnType type, string colName, bool skip = false)
         {
             colName = AddVariable(colName);
             // Let the runtime figure the shape.

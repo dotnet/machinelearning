@@ -296,7 +296,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             probToken = ctx.DeclareVar(prob, probExpression);
         }
 
-        public bool SaveAsOnnx(IOnnxContext ctx, string[] outputNames, string featureColumnName)
+        public bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumnName)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(outputNames, nameof(outputNames));
@@ -658,7 +658,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             ctx.Hide(outputs);
         }
 
-        public bool SaveAsOnnx(IOnnxContext ctx, RoleMappedSchema schema, string[] outputs)
+        public bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputs)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckParam(Utils.Size(outputs) == 2, nameof(outputs), "Expected this to have two outputs");
@@ -1429,7 +1429,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 PfaUtils.Call("+", -ParamB, PfaUtils.Call("*", -ParamA, input)));
         }
 
-        public bool SaveAsOnnx(IOnnxContext ctx, string[] scoreProbablityColumnNames, string featureColumnName)
+        public bool SaveAsOnnx(OnnxContext ctx, string[] scoreProbablityColumnNames, string featureColumnName)
         {
             _host.CheckValue(ctx, nameof(ctx));
             _host.CheckValue(scoreProbablityColumnNames, nameof(scoreProbablityColumnNames));

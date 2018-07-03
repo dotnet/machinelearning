@@ -577,7 +577,7 @@ namespace Microsoft.ML.Runtime.Data
                     public override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken)
                         => PfaUtils.Call("*", PfaUtils.Call("-", srcToken, Offset), Scale);
 
-                    public override bool OnnxInfo(IOnnxContext ctx, IOnnxNode nodeProtoWrapper, int featureCount)
+                    public override bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                     {
                         nodeProtoWrapper.AddAttribute("offset", Enumerable.Repeat(Offset, featureCount));
                         nodeProtoWrapper.AddAttribute("scale", Enumerable.Repeat(Scale, featureCount));
@@ -648,7 +648,7 @@ namespace Microsoft.ML.Runtime.Data
                         return PfaUtils.Call("a.zipmap", srcToken, scaleCell, PfaUtils.FuncRef(ctx.Pfa.EnsureMul(itemType)));
                     }
 
-                    public override bool OnnxInfo(IOnnxContext ctx, IOnnxNode node, int featureCount)
+                    public override bool OnnxInfo(OnnxContext ctx, OnnxNode node, int featureCount)
                     {
 
                         if (Offset != null)

@@ -3065,7 +3065,7 @@ The output of the ensemble produced by MART on a given instance is the sum of th
             Max
         }
 
-        public virtual bool SaveAsOnnx(IOnnxContext ctx, string[] outputNames, string featureColumn)
+        public virtual bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
 

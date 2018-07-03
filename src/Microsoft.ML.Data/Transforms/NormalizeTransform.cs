@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.Data
 
         bool CanSaveOnnx { get; }
 
-        bool OnnxInfo(IOnnxContext ctx, IOnnxNode nodeProtoWrapper, int featureCount);
+        bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
     }
 
     public sealed partial class NormalizeTransform : OneToOneTransformBase
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Runtime.Data
             return _functions[iinfo].PfaInfo(ctx, srcToken);
         }
 
-        protected override bool SaveAsOnnxCore(IOnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+        protected override bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
         {
             Contracts.AssertValue(ctx);
             Contracts.Assert(0 <= iinfo && iinfo < Infos.Length);

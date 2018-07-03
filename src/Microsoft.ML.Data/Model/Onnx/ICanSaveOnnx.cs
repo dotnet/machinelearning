@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// Save as ONNX.
         /// </summary>
         /// <param name="ctx">The ONNX program being built</param>
-        void SaveAsOnnx(IOnnxContext ctx);
+        void SaveAsOnnx(OnnxContext ctx);
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// the outputs produced by this bindable mapper. This is the array that holds
         /// those names, so that implementors of this method know what to produce in
         /// <paramref name="ctx"/>.</param>
-        bool SaveAsOnnx(IOnnxContext ctx, RoleMappedSchema schema, string[] outputNames);
+        bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames);
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// </summary>
     public interface ISingleCanSaveOnnx : ICanSaveOnnx
     {
-        bool SaveAsOnnx(IOnnxContext ctx, string[] outputNames, string featureColumn);
+        bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn);
     }
 
     /// <summary>
@@ -70,6 +70,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// </summary>
     public interface IDistCanSaveOnnx : ISingleCanSaveOnnx, IValueMapperDist
     {
-        new bool SaveAsOnnx(IOnnxContext ctx, string[] outputNames, string featureColumn);
+        new bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn);
     }
 }
