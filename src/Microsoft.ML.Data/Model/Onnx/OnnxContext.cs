@@ -86,15 +86,11 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <returns>A node added to the in-progress ONNX graph, that attributes can be set on</returns>
         public abstract OnnxNode CreateNode(string opType, IEnumerable<string> inputs,
             IEnumerable<string> outputs, string name, string domain = null);
-    }
 
-    public static class OnnxContextExtensions
-    {
         /// <summary>
-        /// Convenience alternative to <see cref="OnnxContext.CreateNode(string, IEnumerable{string}, IEnumerable{string}, string, string)"/>
+        /// Convenience alternative to <see cref="CreateNode(string, IEnumerable{string}, IEnumerable{string}, string, string)"/>
         /// for the case where there is exactly one input and output.
         /// </summary>
-        /// <param name="ctx">The ONNX save context</param>
         /// <param name="opType">The name of the ONNX operator to apply</param>
         /// <param name="input">The name of the variable as input</param>
         /// <param name="output">The name of the variable as output,
@@ -102,8 +98,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <param name="name">The name of the operator, which ought to be something returned from <see cref="OnnxContext.GetNodeName(string)"/></param>
         /// <param name="domain">The domain of the ONNX operator, if non-default</param>
         /// <returns>A node added to the in-progress ONNX graph, that attributes can be set on</returns>
-        public static OnnxNode CreateNode(this OnnxContext ctx,
-            string opType, string input, string output, string name, string domain = null)
-            => ctx.CreateNode(opType, new[] { input }, new[] { output }, name, domain);
+        public OnnxNode CreateNode(string opType, string input, string output, string name, string domain = null)
+            => CreateNode(opType, new[] { input }, new[] { output }, name, domain);
     }
 }
