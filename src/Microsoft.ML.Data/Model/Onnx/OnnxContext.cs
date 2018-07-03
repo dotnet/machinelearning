@@ -13,8 +13,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// and subinterfaces, that attempt to express their operations as ONNX nodes, if they can. At the point that it is
     /// given to a component, all other components up to that component have already attempted to express themselves in
     /// this context, with their outputs possibly available in the ONNX graph.
-    /// 
-    /// 
     /// </summary>
     public abstract class OnnxContext
     {

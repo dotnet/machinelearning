@@ -78,9 +78,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                     }
                 }
             }
-
-            if (_columnNameMap.ContainsKey(colName))
-                _columnNameMap.Remove(colName);
+            _columnNameMap.Remove(colName);
         }
 
         /// <summary>
@@ -107,7 +105,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 }
             }
 
-            string columnName = _columnNameMap.Single(kvp => string.Compare(kvp.Value, variableName) == 0).Key;
+            string columnName = _columnNameMap.Single(kvp => kvp.Value == variableName).Key;
 
             Contracts.Assert(_variableNames.Contains(columnName));
 
