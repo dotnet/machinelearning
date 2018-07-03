@@ -267,7 +267,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     combiner = new MultiAverage(host, new MultiAverage.Arguments() { Normalize = true });
                     break;
                 case ClassifierCombiner.Vote:
-                    combiner = new MultiVoting(host, new MultiVoting.Arguments());
+                    combiner = new MultiVoting(host);
                     break;
                 default:
                     throw host.Except("Unknown combiner kind");

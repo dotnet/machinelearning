@@ -22798,20 +22798,7 @@
           "Name": "MultiVoting",
           "Desc": null,
           "FriendlyName": "Voting",
-          "Settings": [
-            {
-              "Name": "Normalize",
-              "Type": "Bool",
-              "Desc": "Whether to normalize the output of base models before combining them",
-              "Aliases": [
-                "norm"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": true
-            }
-          ]
+          "Settings": []
         },
         {
           "Name": "MultiWeightedAverage",
