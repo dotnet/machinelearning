@@ -505,7 +505,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public const string Summary = "Concatenates two columns of the same item type.";
+        public const string Summary = "Concatenates one or more columns of the same item type.";
         public const string UserName = "Concat Transform";
         public const string LoadName = "Concat";
 
