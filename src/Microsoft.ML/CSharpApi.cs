@@ -16637,11 +16637,6 @@ namespace Microsoft.ML
 
         public sealed class MultiVotingEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
         {
-            /// <summary>
-            /// Whether to normalize the output of base models before combining them
-            /// </summary>
-            public bool Normalize { get; set; } = true;
-
             internal override string ComponentName => "MultiVoting";
         }
 
