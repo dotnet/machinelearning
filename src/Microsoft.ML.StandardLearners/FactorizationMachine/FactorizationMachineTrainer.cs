@@ -11,9 +11,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer), typeof(FieldAwareFactorizationMachineTrainer.Arguments),
@@ -39,6 +37,15 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         public const string UserName = "Field-aware Factorization Machine";
         public const string LoadName = "FieldAwareFactorizationMachine";
         public const string ShortName = "ffm";
+        internal const string Remarks = @"<remarks>
+Field Aware Factorization Machines use, in addition to the input variables, factorized parameters to model the interaction between pairs of variables.
+The algorithm is particularly useful for high dimensional datasets which can be very sparse (e.g. click-prediction for advertising systems).
+An advantage of FFM over SVMs is that the training data does not need to be stored in memory, and the coefficients can be optimized directly.
+<a href='https://www.csie.ntu.edu.tw/~r01922136/slides/ffm.pdf'>Field Aware Factorization Machines</a>
+<a href='http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf'>Field-aware Factorization Machines for CTR Prediction</a>
+<a href='http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf'>Adaptive Subgradient Methods for Online Learning and Stochastic Optimization</a>
+<a href='https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf'>An Improved Stochastic Gradient Method for Training Large-scale Field-aware Factorization Machine.</a>
+</remarks>";
 
         public sealed class Arguments : LearnerInputBaseWithLabel
         {
@@ -404,7 +411,11 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return _pred;
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.FieldAwareFactorizationMachineBinaryClassifier", Desc = FieldAwareFactorizationMachineTrainer.Summary, UserName = FieldAwareFactorizationMachineTrainer.UserName, ShortName = FieldAwareFactorizationMachineTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FieldAwareFactorizationMachineBinaryClassifier",
+            Desc = Summary,
+            Remarks = Remarks,
+            UserName = UserName,
+            ShortName = ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

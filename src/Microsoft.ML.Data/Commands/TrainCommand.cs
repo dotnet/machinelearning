@@ -468,16 +468,11 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(dataPipe);
 
             var transforms = new List<IDataTransform>();
-            while (true)
+            while (dataPipe is IDataTransform xf)
             {
                 // REVIEW: a malicious user could construct a loop in the Source chain, that would
                 // cause this method to iterate forever (and throw something when the list overflows). There's 
                 // no way to insulate from ALL malicious behavior.
-
-                var xf = dataPipe as IDataTransform;
-                if (xf == null)
-                    break;
-
                 transforms.Add(xf);
                 dataPipe = xf.Source;
                 Contracts.AssertValue(dataPipe);
@@ -514,11 +509,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (autoNorm != NormalizeOption.Yes)
                 {
-                    var nn = trainer as ITrainerEx;
                     DvBool isNormalized = DvBool.False;
-                    if (nn == null || !nn.NeedNormalization ||
-                        (schema.TryGetMetadata(BoolType.Instance, MetadataUtils.Kinds.IsNormalized, featCol, ref isNormalized) &&
-                        isNormalized.IsTrue))
+                    if (trainer.NeedNormalization() != true || schema.IsNormalized(featCol))
                     {
                         ch.Info("Not adding a normalizer.");
                         return false;
@@ -530,20 +522,13 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
                 ch.Info("Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.");
-                // Quote the feature column name
-                string quotedFeatureColumnName = featureColumn;
-                StringBuilder sb = new StringBuilder();
-                if (CmdQuoter.QuoteValue(quotedFeatureColumnName, sb))
-                    quotedFeatureColumnName = sb.ToString();
-                var component = new SubComponent<IDataTransform, SignatureDataTransform>("MinMax", string.Format("col={{ name={0} source={0} }}", quotedFeatureColumnName));
-                var loader = view as IDataLoader;
-                if (loader != null)
-                {
-                    view = CompositeDataLoader.Create(env, loader,
-                        new KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>(null, component));
-                }
+                IDataView ApplyNormalizer(IHostEnvironment innerEnv, IDataView input)
+                    => NormalizeTransform.CreateMinMaxNormalizer(innerEnv, input, featureColumn);
+
+                if (view is IDataLoader loader)
+                    view = CompositeDataLoader.ApplyTransform(env, loader, tag: null, creationArgs: null, ApplyNormalizer);
                 else
-                    view = component.CreateInstance(env, view);
+                    view = ApplyNormalizer(env, view);
                 return true;
             }
             return false;
