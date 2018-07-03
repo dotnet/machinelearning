@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
     public interface IPipelineOptimizer
     {
         PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates,
-            Dictionary<string, ColumnPurpose> columnPurpose = null);
+            Dictionary<string, ColumnPurpose> columnPurpose);
 
         void SetSpace(TransformInference.SuggestedTransform[] availableTransforms,
             RecipeInference.SuggestedRecipe.SuggestedLearner[] availableLearners,
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         protected IDataView OriginalData;
         protected IDataView FullyTransformedData;
         protected AutoInference.DependencyMap DependencyMapping;
-        protected Dictionary<string, ColumnPurpose> columnPurpose;
+        protected Dictionary<string, ColumnPurpose> ColumnPurpose;
         protected readonly IHostEnvironment Env;
         protected readonly IHost Host;
         protected readonly Dictionary<long, bool> TransformsMaskValidity;
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         }
 
         public abstract PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates,
-            Dictionary<string, ColumnPurpose> columnPurpose = null);
+            Dictionary<string, ColumnPurpose> columnPurpose);
 
         public virtual void SetSpace(TransformInference.SuggestedTransform[] availableTransforms,
             RecipeInference.SuggestedRecipe.SuggestedLearner[] availableLearners,

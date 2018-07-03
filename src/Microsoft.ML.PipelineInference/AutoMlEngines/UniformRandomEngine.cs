@@ -31,9 +31,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {}
 
         public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates,
-            Dictionary<string, ColumnPurpose> colPurpose = null)
+            Dictionary<string, ColumnPurpose> columnPurpose)
         {
-            columnPurpose = colPurpose;
+            ColumnPurpose = columnPurpose;
             return GetRandomPipelines(numberOfCandidates);
         }
 
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 // Always include features concat transform
                 selectedTransforms.AddRange(AutoMlUtils.GetFinalFeatureConcat(Env, FullyTransformedData,
-                    DependencyMapping, selectedTransforms.ToArray(), AvailableTransforms, columnPurpose));
+                    DependencyMapping, selectedTransforms.ToArray(), AvailableTransforms, ColumnPurpose));
 
                 // Compute hash key for checking if we've already seen this pipeline.
                 // However, if we keep missing, don't want to get stuck in infinite loop.

@@ -187,7 +187,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // cause an error in verification, since it isn't included in the original 
             // dependency mapping (i.e., its level isn't in the dictionary).
             sampledTransforms.AddRange(AutoMlUtils.GetFinalFeatureConcat(Env, FullyTransformedData,
-                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms, columnPurpose));
+                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms, ColumnPurpose));
             transformsBitMask = mask;
 
             return sampledTransforms.ToArray();
@@ -203,10 +203,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
         }
 
         public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates,
-            Dictionary<string, ColumnPurpose> colPurpose = null)
+            Dictionary<string, ColumnPurpose> columnPurpose)
         {
             var prevCandidates = history.ToArray();
-            columnPurpose = colPurpose;
+            ColumnPurpose = columnPurpose;
 
             switch (_currentStage)
             {
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         private PipelinePattern[] GetInitialPipelines(IEnumerable<PipelinePattern> history, int numCandidates)
         {
             var engine = _secondaryEngines[_randomInit ? nameof(UniformRandomEngine) : nameof(DefaultsEngine)];
-            return engine.GetNextCandidates(history, numCandidates, columnPurpose);
+            return engine.GetNextCandidates(history, numCandidates, ColumnPurpose);
         }
 
         private PipelinePattern[] NextCandidates(PipelinePattern[] history, int numCandidates,

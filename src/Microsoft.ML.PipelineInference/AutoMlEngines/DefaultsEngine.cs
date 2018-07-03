@@ -34,10 +34,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
         }
 
         public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates,
-            Dictionary<string, ColumnPurpose> colPurpose = null)
+            Dictionary<string, ColumnPurpose> columnPurpose)
         {
             var candidates = new List<PipelinePattern>();
-            columnPurpose = colPurpose;
+            ColumnPurpose = columnPurpose;
 
             while (candidates.Count < numCandidates)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             // Add final features concat transform.
             sampledTransforms.AddRange(AutoMlUtils.GetFinalFeatureConcat(Env, FullyTransformedData,
-                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms, columnPurpose));
+                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms, ColumnPurpose));
 
             return sampledTransforms.ToArray();
         }

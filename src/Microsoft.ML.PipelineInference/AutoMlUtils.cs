@@ -258,7 +258,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// </summary>
         private static TransformInference.SuggestedTransform[] GetFinalFeatureConcat(IHostEnvironment env,
             IDataView dataSample, int[] excludedColumnIndices, int level, int atomicIdOffset,
-            Dictionary<string, ColumnPurpose> columnPurpose = null)
+            Dictionary<string, ColumnPurpose> columnPurpose)
         {
             var finalArgs = new TransformInference.Arguments
             {
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public static TransformInference.SuggestedTransform[] GetFinalFeatureConcat(IHostEnvironment env, IDataView data,
             AutoInference.DependencyMap dependencyMapping, TransformInference.SuggestedTransform[] selectedTransforms,
             TransformInference.SuggestedTransform[] allTransforms,
-            Dictionary<string, ColumnPurpose> columnPurpose = null)
+            Dictionary<string, ColumnPurpose> columnPurpose)
         {
             int level = 1;
             int atomicGroupLimit = 0;

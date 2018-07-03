@@ -1597,7 +1597,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         }
 
         public static SuggestedTransform[] InferConcatNumericFeatures(IHostEnvironment env, IDataView data, Arguments args,
-            Dictionary<string, ColumnPurpose> columnPurpose = null)
+            Dictionary<string, ColumnPurpose> columnPurpose)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("InferConcatNumericFeatures");

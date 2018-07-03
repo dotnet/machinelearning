@@ -37,31 +37,31 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output datasets from previous iteration of sweep.", SortOrder = 7, Hide = true)]
             public IDataView[] CandidateOutputs;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Ignore'", SortOrder = 8, Hide = true)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Ignore'", SortOrder = 8)]
             public string[] IgnoreColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Name'", SortOrder = 9, Hide = true)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Name'", SortOrder = 9)]
             public string[] NameColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Label'", SortOrder = 10, Hide = true)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Label'", SortOrder = 10)]
             public string[] LabelColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'NumericFeature'", SortOrder = 11, Hide = true)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'NumericFeature'", SortOrder = 11)]
             public string[] NumericFeatureColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'CategoricalFeature'", SortOrder = 12, Hide = true)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'CategoricalFeature'", SortOrder = 12)]
             public string[] CategoricalFeatureColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'TextFeature'", SortOrder = 13, Hide = true)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'TextFeature'", SortOrder = 13)]
             public string[] TextFeatureColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Weight'", SortOrder = 14, Hide = true)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Weight'", SortOrder = 14)]
             public string[] WeightColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'GroupId'", SortOrder = 15, Hide = true)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'GroupId'", SortOrder = 15)]
             public string[] GroupIdColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'ImagePath'", SortOrder = 16, Hide = true)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'ImagePath'", SortOrder = 16)]
             public string[] ImagePathColumns;
         }
 

@@ -315,7 +315,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     var currentBatchSize = batchSize;
                     if (_terminator is IterationTerminator itr)
                         currentBatchSize = Math.Min(itr.RemainingIterations(_history), batchSize);
-                    var candidates = AutoMlEngine.GetNextCandidates(_sortedSampledElements.Values, currentBatchSize);
+                    var candidates = AutoMlEngine.GetNextCandidates(_sortedSampledElements.Values, currentBatchSize, _columnPurpose);
 
                     // Break if no candidates returned, means no valid pipeline available.
                     if (candidates.Length == 0)

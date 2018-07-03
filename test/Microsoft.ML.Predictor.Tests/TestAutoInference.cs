@@ -125,6 +125,81 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(amlsOut.GetBestPipeline().PerformanceSummary.MetricValue > 0.1);
         }
 
+
+        [Fact]
+        [TestCategory("EntryPoints")]
+        public void TestPipelineSweeperMacroColumnPurpose()
+        {
+            // Set up inputs for experiment
+            string pathData = GetDataPath("adult.train");
+            string pathDataTest = GetDataPath("adult.test");
+            const int numOfSampleRows = 1000;
+            const string schema = "sep=, col=F0:R4:0 col=F2:R4:2 col=F4:R4:4 col=F1012:R4:10-12 col=F14:R4:14 header=+";
+
+            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
+#pragma warning disable 0618
+            var datasetTrain = ImportTextData.ImportText(Env,
+                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
+            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
+            var datasetTest = ImportTextData.ImportText(Env,
+                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
+#pragma warning restore 0618
+            const int batchSize = 5;
+            const int numIterations = 1;
+            const int numTransformLevels = 2;
+            AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.Auc;
+            var columnPurpose = new Dictionary<string, ColumnPurpose>() {
+                { "F14", ColumnPurpose.Label },
+                { "F0", ColumnPurpose.Ignore },
+                { "F2", ColumnPurpose.Ignore },
+            };
+
+            // Using the simple, uniform random sampling (with replacement) engine
+            PipelineOptimizerBase autoMlEngine = new DefaultsEngine(Env, null);
+
+            // Create search object
+            var amls = new AutoInference.AutoMlMlState(Env, metric, autoMlEngine, new IterationTerminator(numIterations),
+                MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer, datasetTrain, datasetTest);
+
+            // Infer search space
+            amls.InferSearchSpace(numTransformLevels, columnPurpose);
+
+            // Create macro object
+            var pipelineSweepInput = new Microsoft.ML.Models.PipelineSweeper()
+            {
+                BatchSize = batchSize,
+            };
+
+            var exp = new Experiment(Env);
+            var output = exp.Add(pipelineSweepInput);
+            exp.Compile();
+            exp.SetInput(pipelineSweepInput.TrainingData, datasetTrain);
+            exp.SetInput(pipelineSweepInput.TestingData, datasetTest);
+            exp.SetInput(pipelineSweepInput.State, amls);
+            exp.SetInput(pipelineSweepInput.CandidateOutputs, new IDataView[0]);
+            exp.Run();
+
+            // Verify Results.
+            var results = exp.GetOutput(output.Results);
+            var rows = PipelinePattern.ExtractResults(Env, results, "Graph", "MetricValue", "PipelineId", "TrainingMetricValue", "FirstInput", "PredictorModel");
+            Assert.True(rows.Length == numIterations);
+            Assert.True(rows.All(r => r.TrainingMetricValue > 0.1));
+
+            var bestPipelineJsonGraph = rows[0].GraphJson;
+            JObject bestPipeline = JObject.Parse(bestPipelineJsonGraph);
+
+            var label = bestPipeline["Nodes"][0]["Inputs"]["Column"][0]["Source"];
+            Assert.Equal("F14", label); // Check F14 was picked as Label
+
+            var features = (JArray)bestPipeline["Nodes"][1]["Inputs"]["Column"][0]["Source"];
+            Assert.Equal(2, features.Count);  // Check we have two features, F4 and F1012.
+            var features1 = features[0];
+            var features2 = features[1];
+            Assert.Equal("F4", features1);
+            Assert.Equal("F1012", features2);
+        }
+
+
         [Fact]
         [TestCategory("EntryPoints")]
         public void EntryPointPipelineSweepSerialization()
