@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.LightGBM
 {
@@ -199,13 +200,13 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <summary>
         /// Join the parameters to key=value format.
         /// </summary>
-        public static string JoinParameters(Dictionary<string, string> parameters)
+        public static string JoinParameters(Dictionary<string, object> parameters)
         {
             if (parameters == null)
                 return "";
             List<string> res = new List<string>();
             foreach (var keyVal in parameters)
-                res.Add(keyVal.Key + "=" + keyVal.Value);
+                res.Add(keyVal.Key + "=" + string.Format(CultureInfo.InvariantCulture, "{0}", keyVal.Value));
             return string.Join(" ", res);
         }
 
