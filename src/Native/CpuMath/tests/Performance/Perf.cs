@@ -20,8 +20,8 @@ namespace PerformanceTests
 
         private float[] src, dst, original, src1, src2;
         private int[] idx;
-        private readonly int idxlen = 23;
-        private readonly int len = 23;
+        private readonly int idxlen = 1000003;
+        private readonly int len = 1000003;
         private readonly int expRange = EXP_MAX / 2;
         private readonly int seed = 2;
         private readonly float scale = 1.11f;
