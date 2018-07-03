@@ -245,11 +245,8 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         // All meta-data is passed through in this case, so don't need the slot names type.
                         echoSrc[i] = true;
-                        DvBool b = DvBool.False;
                         isNormalized[i] =
-                            info.SrcTypes[0].ItemType.IsNumber &&
-                            Input.TryGetMetadata(BoolType.Instance, MetadataUtils.Kinds.IsNormalized, info.SrcIndices[0], ref b) &&
-                            b.IsTrue;
+                            info.SrcTypes[0].ItemType.IsNumber && Input.IsNormalized(info.SrcIndices[0]);
                         types[i] = info.SrcTypes[0];
                         continue;
                     }
@@ -260,9 +257,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         foreach (var srcCol in info.SrcIndices)
                         {
-                            DvBool b = DvBool.False;
-                            if (!Input.TryGetMetadata(BoolType.Instance, MetadataUtils.Kinds.IsNormalized, srcCol, ref b) ||
-                                !b.IsTrue)
+                            if (!Input.IsNormalized(srcCol))
                             {
                                 isNormalized[i] = false;
                                 break;
