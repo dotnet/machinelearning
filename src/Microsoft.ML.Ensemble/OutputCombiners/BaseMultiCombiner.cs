@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
     {
         protected readonly IHost Host;
 
-        public class ArgumentsBase
+        public abstract class ArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to normalize the output of base models before combining them",
                 ShortName = "norm", SortOrder = 50)]

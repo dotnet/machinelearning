@@ -32,9 +32,12 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderSignature: LoaderSignature);
         }
 
+        private sealed class Arguments : ArgumentsBase
+        {
+        }
 
         public MultiVoting(IHostEnvironment env)
-            : base(env, LoaderSignature, new ArgumentsBase() { Normalize = false })
+            : base(env, LoaderSignature, new Arguments() { Normalize = false })
         {
             Host.Assert(!Normalize);
         }
