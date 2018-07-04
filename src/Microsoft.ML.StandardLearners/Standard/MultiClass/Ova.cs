@@ -214,7 +214,7 @@ namespace Microsoft.ML.Runtime.Learners
                     input.FeatureColumn, DefaultColumnNames.Features);
                 var weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.WeightColumn),
                     input.WeightColumn, DefaultColumnNames.Weight);
-                var data = TrainUtils.CreateExamples(normalizedView, label, feature, null, weight);
+                var data = new RoleMappedData(normalizedView, label, feature, null, weight);
 
                 return new ModelOperations.PredictorModelOutput
                 {

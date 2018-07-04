@@ -74,7 +74,7 @@ namespace Microsoft.ML.Scenarios
 
                 // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
                 var cached = new CacheDataView(env, trans, prefetch: null);
-                var trainRoles = TrainUtils.CreateExamples(cached, label: "Label", feature: "Features");
+                var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
                 trainer.Train(trainRoles);
 
                 // Get scorer and evaluate the predictions from test data
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Scenarios
 
         private ClassificationMetrics Evaluate(IHostEnvironment env, IDataView scoredData)
         {
-            var dataEval = TrainUtils.CreateExamplesOpt(scoredData, label: "Label", feature: "Features");
+            var dataEval = new RoleMappedData(scoredData, label: "Label", feature: "Features", opt: true);
             
             // Evaluate.
             // It does not work. It throws error "Failed to find 'Score' column" when Evaluate is called
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Scenarios
             using (var ch = env.Start("Saving model"))
             using (var memoryStream = new MemoryStream())
             {
-                var trainRoles = TrainUtils.CreateExamples(transforms, label: "Label", feature: "Features");
+                var trainRoles = new RoleMappedData(transforms, label: "Label", feature: "Features");
 
                 // Model cannot be saved with CacheDataView
                 TrainUtils.SaveModel(env, ch, memoryStream, pred, trainRoles);
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Scenarios
                 using (var rep = RepositoryReader.Open(memoryStream, ch))
                 {
                     IDataLoader testPipe = ModelFileUtils.LoadLoader(env, rep, new MultiFileSource(testDataPath), true);
-                    RoleMappedData testRoles = TrainUtils.CreateExamples(testPipe, label: "Label", feature: "Features");
+                    RoleMappedData testRoles = new RoleMappedData(testPipe, label: "Label", feature: "Features");
                     return ScoreUtils.GetScorer(pred, testRoles, env, testRoles.Schema);
                 }
             }

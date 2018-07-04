@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -360,6 +361,40 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
+        private static IEnumerable<KeyValuePair<ColumnRole, string>> Strange(
+            string label, string feature, string group, string weight, string name,
+            IEnumerable<KeyValuePair<ColumnRole, string>> custom = null)
+        {
+            if (!string.IsNullOrWhiteSpace(label))
+                yield return ColumnRole.Label.Bind(label);
+            if (!string.IsNullOrWhiteSpace(feature))
+                yield return ColumnRole.Feature.Bind(feature);
+            if (!string.IsNullOrWhiteSpace(group))
+                yield return ColumnRole.Group.Bind(group);
+            if (!string.IsNullOrWhiteSpace(weight))
+                yield return ColumnRole.Weight.Bind(weight);
+            if (!string.IsNullOrWhiteSpace(name))
+                yield return ColumnRole.Name.Bind(name);
+            if (custom != null)
+            {
+                foreach (var role in custom)
+                    yield return role;
+            }
+        }
+
+        public RoleMappedSchema(ISchema schema, string label, string feature,
+            string group = null, string weight = null, string name = null,
+            IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> custom = null, bool opt = false)
+            : this(Contracts.CheckRef(schema, nameof(schema)), Strange(label, feature, group, weight, name, custom), opt)
+        {
+            Contracts.CheckValueOrNull(label);
+            Contracts.CheckValueOrNull(feature);
+            Contracts.CheckValueOrNull(group);
+            Contracts.CheckValueOrNull(weight);
+            Contracts.CheckValueOrNull(name);
+            Contracts.CheckValueOrNull(custom);
+        }
+
         /// <summary>
         /// Creates a RoleMappedSchema from the given schema with no column role assignments.
         /// </summary>
@@ -422,7 +457,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The role mapped schema. Note that Schema.Schema is guaranteed to be the same as Data.Schema.
         /// </summary>
-        public readonly RoleMappedSchema Schema;
+        public RoleMappedSchema Schema { get; }
 
         private RoleMappedData(IDataView data, RoleMappedSchema schema)
         {
@@ -434,7 +469,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Creates a RoleMappedData from the given data with no column role assignments.
+        /// Constructor from the given data with no column role assignments.
         /// </summary>
         public RoleMappedData(IDataView data)
             : this(Contracts.CheckRef(data, nameof(data)), new RoleMappedSchema(data.Schema))
@@ -459,6 +494,20 @@ namespace Microsoft.ML.Runtime.Data
         public RoleMappedData(IDataView data, IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> roles, bool opt = false)
             : this(Contracts.CheckRef(data, nameof(data)), new RoleMappedSchema(data.Schema, Contracts.CheckRef(roles, nameof(roles)), opt))
         {
+        }
+
+        public RoleMappedData(IDataView data, string label, string feature,
+            string group = null, string weight = null, string name = null,
+            IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> custom = null, bool opt = false)
+            : this(Contracts.CheckRef(data, nameof(data)),
+                  new RoleMappedSchema(data.Schema, label, feature, group, weight, name, custom, opt))
+        {
+            Contracts.CheckValueOrNull(label);
+            Contracts.CheckValueOrNull(feature);
+            Contracts.CheckValueOrNull(group);
+            Contracts.CheckValueOrNull(weight);
+            Contracts.CheckValueOrNull(name);
+            Contracts.CheckValueOrNull(custom);
         }
 
         /// <summary>

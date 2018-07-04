@@ -1039,7 +1039,7 @@ namespace Microsoft.ML.Runtime.Data
                 nameof(RankerMamlEvaluator.Arguments.GroupIdColumn),
                 input.GroupIdColumn, DefaultColumnNames.GroupId);
             var evaluator = new RankerMamlEvaluator(host, input);
-            var data = TrainUtils.CreateExamples(input.Data, label, null, groupId, weight, name);
+            var data = new RoleMappedData(input.Data, label, null, groupId, weight, name);
             var metrics = evaluator.Evaluate(data);
 
             var warnings = ExtractWarnings(host, metrics);

@@ -867,7 +867,7 @@ namespace Microsoft.ML.Runtime.Data
                 nameof(ClusteringMamlEvaluator.Arguments.FeatureColumn),
                 input.FeatureColumn, DefaultColumnNames.Features);
             var evaluator = new ClusteringMamlEvaluator(host, input);
-            var data = TrainUtils.CreateExamples(input.Data, label, features, null, weight, name);
+            var data = new RoleMappedData(input.Data, label, features, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 
             var warnings = ExtractWarnings(host, metrics);

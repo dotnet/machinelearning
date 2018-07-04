@@ -52,7 +52,7 @@ namespace Microsoft.ML.Runtime.Api
             env.CheckValueOrNull(weight);
             env.CheckValueOrNull(custom);
 
-            return TrainUtils.CreateExamples(data, label, features, group, weight, name: null, custom: custom);
+            return new RoleMappedData(data, label, features, group, weight, name: null, custom: custom);
         }
 
         /// <summary>

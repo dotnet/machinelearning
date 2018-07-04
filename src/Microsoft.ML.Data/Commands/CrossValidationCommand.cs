@@ -277,7 +277,7 @@ namespace Microsoft.ML.Runtime.Data
             // Training pipe and examples.
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
 
-            return TrainUtils.CreateExamples(data, label, features, group, weight, name, customCols);
+            return new RoleMappedData(data, label, features, group, weight, name, customCols);
         }
 
         private string GetSplitColumn(IChannel ch, IDataView input, ref IDataView output)
