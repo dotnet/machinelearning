@@ -60,13 +60,13 @@ namespace Microsoft.ML.Runtime.Data
         public sealed class TakeArguments : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = Arguments.TakeHelp, ShortName = "c,n,t", SortOrder = 1)]
-            public long Count = long.MaxValue;
+            public long Count = Arguments.DefaultTake;
         }
 
         public sealed class SkipArguments : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = Arguments.SkipHelp, ShortName = "c,n,s", SortOrder = 1)]
-            public long Count = 0;
+            public long Count = Arguments.DefaultSkip;
         }
 
         private static VersionInfo GetVersionInfo()
@@ -108,12 +108,36 @@ namespace Microsoft.ML.Runtime.Data
             return new SkipTakeFilter(skip, take, env, input);
         }
 
+        /// <summary>
+        /// A helper method to create 'SkipFilter' for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">>Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="count">Number of rows to skip</param>
+        /// <returns></returns>
+        public static SkipTakeFilter CreateSkipFilter(IHostEnvironment env, IDataView input, long count = Arguments.DefaultSkip)
+        {
+            return Create(env, new SkipArguments() { Count = count }, input);
+        }
+
         public static SkipTakeFilter Create(IHostEnvironment env, SkipArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckUserArg(args.Count >= 0, nameof(args.Count), "should be non-negative");
             return new SkipTakeFilter(args.Count, Arguments.DefaultTake, env, input);
+        }
+
+        /// <summary>
+        /// A helper method to create 'TakeFilter' for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">>Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="count">Number of rows to take</param>
+        /// <returns></returns>
+        public static SkipTakeFilter CreateTakeFilter(IHostEnvironment env, IDataView input, long count = Arguments.DefaultTake)
+        {
+            return Create(env, new TakeArguments() { Count = count }, input);
         }
 
         public static SkipTakeFilter Create(IHostEnvironment env, TakeArguments args, IDataView input)

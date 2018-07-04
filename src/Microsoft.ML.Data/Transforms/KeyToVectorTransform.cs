@@ -70,6 +70,11 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        private static class Defaults
+        {
+            public const bool Bag = false;
+        }
+
         public sealed class Arguments
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
@@ -77,7 +82,7 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input is a vector.")]
-            public bool Bag;
+            public bool Bag = Defaults.Bag;
         }
 
         internal const string Summary = "Converts a key column to an indicator vector.";
@@ -111,6 +116,23 @@ namespace Microsoft.ML.Runtime.Data
         private readonly bool[] _bag;
         private readonly bool[] _concat;
         private readonly VectorType[] _types;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the input column.  If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="bag">Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input is a vector.</param>
+        public KeyToVectorTransform(IHostEnvironment env,
+            IDataView input,
+            string name,
+            string source = null,
+            bool bag = Defaults.Bag)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, Bag = bag }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
