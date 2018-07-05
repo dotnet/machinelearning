@@ -720,13 +720,11 @@ namespace Microsoft.ML.Runtime.Data
                         Source.Schema.GetColumnType(srcIndex).ValueCount));
                 }
 
-                var node = OnnxUtils.MakeNode(opType, new List<string>(inputList.Select(t => t.Key)),
-                    new List<string> { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType));
+                var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),
+                    new[] { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType));
 
-                ctx.AddNode(node);
-
-                OnnxUtils.NodeAddAttributes(node, "inputList", inputList.Select(x => x.Key));
-                OnnxUtils.NodeAddAttributes(node, "inputdimensions", inputList.Select(x => x.Value));
+                node.AddAttribute("inputList", inputList.Select(x => x.Key));
+                node.AddAttribute("inputdimensions", inputList.Select(x => x.Value));
             }
         }
 

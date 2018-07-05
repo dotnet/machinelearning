@@ -329,12 +329,12 @@ namespace Microsoft.ML.Runtime.RunTests
 
             ib1.TrySetValue("WeightColumn", "OtherWeight");
             Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.True(string.Compare(instance.WeightColumn.Value, "OtherWeight") == 0);
+            Assert.Equal("OtherWeight", instance.WeightColumn.Value);
 
             var tok = (JToken)JValue.CreateString("AnotherWeight");
             ib1.TrySetValueJson("WeightColumn", tok);
             Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.True(string.Compare(instance.WeightColumn.Value, "AnotherWeight") == 0);
+            Assert.Equal("AnotherWeight", instance.WeightColumn.Value);
         }
 
         [Fact]

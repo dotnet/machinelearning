@@ -19,13 +19,13 @@
     <ProjectReference Include="..\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
     <ProjectReference Include="..\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Onnx\Microsoft.ML.Onnx.csproj" />
     <ProjectReference Include="..\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
     <ProjectReference Include="..\Microsoft.ML.PipelineInference\Microsoft.ML.PipelineInference.csproj" />
     <ProjectReference Include="..\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj" />
     <ProjectReference Include="..\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Sweeper\Microsoft.ML.Sweeper.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.UniversalModelFormat\Microsoft.ML.UniversalModelFormat.csproj" />
 
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />

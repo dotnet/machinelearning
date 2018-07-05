@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +14,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// <summary>
     /// Contains methods to create ONNX models in protocol buffer.
     /// </summary>
-    public sealed class OnnxUtils
+    internal static class OnnxUtils
     {
         private static TypeProto MakeType(TypeProto typeProto, TensorProto.Types.DataType dataType,
             List<long> dims, List<bool> dimsParam)
@@ -153,7 +152,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
         private static AttributeProto MakeAttribute(string key, bool value) => MakeAttribute(key, value ? 1 : 0);
 
-        public static NodeProto MakeNode(string opType, List<string> inputs, List<string> outputs, string name, string domain = null)
+        public static NodeProto MakeNode(string opType, IEnumerable<string> inputs, IEnumerable<string> outputs, string name, string domain = null)
         {
             Contracts.CheckNonEmpty(opType, nameof(opType));
             Contracts.CheckValue(inputs, nameof(inputs));
@@ -167,11 +166,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             node.Name = name;
             node.Domain = domain ?? "ai.onnx.ml";
             return node;
-        }
-
-        public static NodeProto MakeNode(string opType, string inputs, string outputs, string name)
-        {
-            return MakeNode(opType, new List<string>() { inputs }, new List<string>() { outputs }, name);
         }
 
         public static void NodeAddAttributes(NodeProto node, string argName, double value)
@@ -238,16 +232,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 DataType = dataType;
                 Dims = dims;
                 DimParams = dimParams;
-            }
-        }
-
-        public sealed class NodeProtoWrapper
-        {
-            public NodeProto Node;
-
-            public NodeProtoWrapper(NodeProto node)
-            {
-                Node = node;
             }
         }
 

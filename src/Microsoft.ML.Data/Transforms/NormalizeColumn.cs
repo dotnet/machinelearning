@@ -434,8 +434,8 @@ namespace Microsoft.ML.Runtime.Data
             public abstract void Save(ModelSaveContext ctx);
 
             public abstract JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
-
-            public abstract bool OnnxInfo(OnnxContext ctx, OnnxUtils.NodeProtoWrapper nodeProtoWrapper, int featureCount);
+            public bool CanSaveOnnx => true;
+            public abstract bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
 
             public abstract Delegate GetGetter(IRow input, int icol);
 
@@ -546,10 +546,10 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             }
 
-            public bool OnnxInfo(OnnxContext ctx, OnnxUtils.NodeProtoWrapper nodeProtoWrapper, int featureCount)
-            {
-                return false;
-            }
+            public bool CanSaveOnnx => false;
+
+            public bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
+                => throw Host.ExceptNotSupp();
 
             public abstract Delegate GetGetter(IRow input, int icol);
 
@@ -671,10 +671,10 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             }
 
-            public bool OnnxInfo(OnnxContext ctx, OnnxUtils.NodeProtoWrapper nodeProtoWrapper, int featureCount)
-            {
-                return false;
-            }
+            public bool CanSaveOnnx => false;
+
+            public bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
+                => throw Host.ExceptNotSupp();
 
             public abstract Delegate GetGetter(IRow input, int icol);
 

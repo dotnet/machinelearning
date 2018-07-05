@@ -12,7 +12,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
 using Newtonsoft.Json;
 
 [assembly: LoadableClass(SaveOnnxCommand.Summary, typeof(SaveOnnxCommand), typeof(SaveOnnxCommand.Arguments), typeof(SignatureCommand),
@@ -69,7 +68,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly HashSet<string> _outputsToDrop;
         private readonly ITransformModel _model;
         private const string ProducerName = "ML.NET";
-        private const string ProducerVersion = "0.2.0.0000";
         private const long ModelVersion = 0;
 
         public SaveOnnxCommand(IHostEnvironment env, Arguments args)
@@ -164,7 +162,11 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             GetPipe(ch, view, out source, out end, out transforms);
             Host.Assert(transforms.Count == 0 || transforms.Last.Value == end);
 
-            var ctx = new OnnxContext(Host, _name, ProducerName, ProducerVersion, ModelVersion, _domain);
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+
+            var ctx = new OnnxContextImpl(Host, _name, ProducerName, versionInfo.FileVersion,
+                ModelVersion, _domain);
             // If we have a predictor, try to get the scorer for it.
             if (rawPred != null)
             {
