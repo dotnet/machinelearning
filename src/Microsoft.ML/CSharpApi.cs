@@ -10647,7 +10647,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Concatenates two columns of the same item type.
+        /// Concatenates one or more columns of the same item type.
         /// </summary>
         public sealed partial class ColumnConcatenator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
@@ -16637,11 +16637,6 @@ namespace Microsoft.ML
 
         public sealed class MultiVotingEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
         {
-            /// <summary>
-            /// Whether to normalize the output of base models before combining them
-            /// </summary>
-            public bool Normalize { get; set; } = true;
-
             internal override string ComponentName => "MultiVoting";
         }
 

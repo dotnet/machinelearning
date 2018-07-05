@@ -577,10 +577,10 @@ namespace Microsoft.ML.Runtime.Data
                     public override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken)
                         => PfaUtils.Call("*", PfaUtils.Call("-", srcToken, Offset), Scale);
 
-                    public override bool OnnxInfo(OnnxContext ctx, OnnxUtils.NodeProtoWrapper nodeProtoWrapper, int featureCount)
+                    public override bool OnnxInfo(OnnxContext ctx, OnnxNode node, int featureCount)
                     {
-                        OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "offset", Enumerable.Repeat(Offset, featureCount));
-                        OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "scale", Enumerable.Repeat(Scale, featureCount));
+                        node.AddAttribute("offset", Enumerable.Repeat(Offset, featureCount));
+                        node.AddAttribute("scale", Enumerable.Repeat(Scale, featureCount));
                         return true;
                     }
 
@@ -648,14 +648,14 @@ namespace Microsoft.ML.Runtime.Data
                         return PfaUtils.Call("a.zipmap", srcToken, scaleCell, PfaUtils.FuncRef(ctx.Pfa.EnsureMul(itemType)));
                     }
 
-                    public override bool OnnxInfo(OnnxContext ctx, OnnxUtils.NodeProtoWrapper nodeProtoWrapper, int featureCount)
+                    public override bool OnnxInfo(OnnxContext ctx, OnnxNode node, int featureCount)
                     {
                         if (Offset != null)
-                            OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "offset", Offset);
+                            node.AddAttribute("offset", Offset);
                         else
-                            OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "offset", Enumerable.Repeat<float>(0, featureCount));
+                            node.AddAttribute("offset", Enumerable.Repeat<float>(0, featureCount));
 
-                        OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "scale", Scale);
+                        node.AddAttribute("scale", Scale);
                         return true;
                     }
 
