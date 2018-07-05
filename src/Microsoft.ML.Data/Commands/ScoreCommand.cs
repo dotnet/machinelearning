@@ -241,7 +241,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValueOrNull(customColumns);
             env.CheckValueOrNull(trainSchema);
 
-            var schema = new RoleMappedSchema(input.Schema, label: null, feature: featureColName, group: groupColName, opt: true);
+            var schema = new RoleMappedSchema(input.Schema, label: null, feature: featureColName, group: groupColName, custom: customColumns, opt: true);
             var sc = GetScorerComponentAndMapper(predictor, scorer, schema, env, out var mapper);
             return sc.CreateInstance(env, input, mapper, trainSchema);
         }

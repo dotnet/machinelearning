@@ -990,10 +990,11 @@ namespace Microsoft.ML.Runtime.FastTree
                     {
                         _eval = eval;
                         var builder = new ArrayDataViewBuilder(pred.Host);
-                        builder.AddColumn("Label", NumberType.Float, _labels);
-                        builder.AddColumn("Score", NumberType.Float, _scores);
-                        _dataForEvaluator = new RoleMappedData(builder.GetDataView(), opt: false, RoleMappedSchema.ColumnRole.Label.Bind("Label"),
-                            new RoleMappedSchema.ColumnRole(MetadataUtils.Const.ScoreValueKind.Score).Bind("Score"));
+                        builder.AddColumn(DefaultColumnNames.Label, NumberType.Float, _labels);
+                        builder.AddColumn(DefaultColumnNames.Score, NumberType.Float, _scores);
+                        _dataForEvaluator = new RoleMappedData(builder.GetDataView(), opt: false,
+                            RoleMappedSchema.ColumnRole.Label.Bind(DefaultColumnNames.Label),
+                            new RoleMappedSchema.ColumnRole(MetadataUtils.Const.ScoreValueKind.Score).Bind(DefaultColumnNames.Score));
                     }
 
                     _data.Schema.Schema.TryGetColumnIndex(DefaultColumnNames.Features, out int featureIndex);

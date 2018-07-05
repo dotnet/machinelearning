@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Data
             string lab = EvaluateUtils.GetColName(LabelCol, schema.Label, DefaultColumnNames.Label);
             yield return RoleMappedSchema.ColumnRole.Label.Bind(lab);
 
-            var weight = EvaluateUtils.GetColName(WeightCol, schema.Weight, null);
+            string weight = EvaluateUtils.GetColName(WeightCol, schema.Weight, null);
             if (!string.IsNullOrEmpty(weight))
                 yield return RoleMappedSchema.ColumnRole.Weight.Bind(weight);
         }

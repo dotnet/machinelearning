@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Data
         private const string FeatureContributionsString = "FeatureContributions";
 
         /// <summary>
-        /// Instances of this are the keys of a <see cref="RoleMappedSchema"/>. This class also some holds important
+        /// Instances of this are the keys of a <see cref="RoleMappedSchema"/>. This class also holds some important
         /// commonly used pre-defined instances available (e.g., <see cref="Label"/>, <see cref="Feature"/>) that should
         /// be used when possible for consistency reasons. However, practitioners should not be afraid to declare custom
         /// roles if approppriate for their task.
