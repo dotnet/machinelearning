@@ -358,6 +358,15 @@ namespace Microsoft.ML.Runtime.LightGBM
         [Argument(ArgumentType.AtMostOnce, HelpText = "Use GPU for training?", ShortName = "gpu")]
         public bool UseGPU = false;
 
+        [Argument(ArgumentType.AtMostOnce, HelpText = "OpenCL platform ID. Usually each GPU vendor exposes one OpenCL platform. -1 means the system-wide default platform. Only used when UseGPU is true.", ShortName = "gpu_platform_id")]
+        public int GPUPlatformId = -1;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "OpenCL device ID in the specified platform. Each GPU in the selected platform has a unique device ID. -1 means the default device in the selected platform. Note: only used when UseGPU is true.", ShortName = "gpu_device_id")]
+        public int GPUDeviceId = -1;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Use double precision math on GPU? Note: only used when UseGPU is true.", ShortName = "gpu_use_dp")]
+        public bool GPUUseDoublePrecision = false;
+
         internal Dictionary<string, object> ToDictionary(IHost host)
         {
             Contracts.CheckValue(host, nameof(host));
@@ -412,7 +421,12 @@ namespace Microsoft.ML.Runtime.LightGBM
             res[GetArgName(nameof(CatSmooth))] = CatSmooth.ToString();
             res[GetArgName(nameof(CatL2))] = CatL2.ToString();
             if (UseGPU)
+            {
                 res["device"] = "gpu";
+                if (GPUPlatformId != -1) res["gpu_platform_id"] = GPUPlatformId.ToString();
+                if (GPUDeviceId != -1) res["gpu_device_id"] = GPUDeviceId.ToString();
+                if (GPUUseDoublePrecision) res["gpu_use_dp"] = GPUUseDoublePrecision.ToString();
+            }
             return res;
         }
     }

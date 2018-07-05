@@ -7605,6 +7605,24 @@ namespace Microsoft.ML
             public bool UseGPU { get; set; } = false;
 
             /// <summary>
+            /// OpenCL platform ID. Usually each GPU vendor exposes one OpenCL platform. -1 means the system-wide default platform.
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public int GPUPlatformId { get; set; } = -1;
+
+            /// <summary>
+            /// OpenCL device ID in the specified platform. Each GPU in the selected platform has a unique device ID. -1 means the default device in the selected platform.
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public int GPUDeviceId { get; set; } = -1;
+
+            /// <summary>
+            /// Use double precision math on GPU?
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public bool GPUUseDoublePrecision { get; set; } = false;
+
+            /// <summary>
             /// Parallel LightGBM Learning Algorithm
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
@@ -7815,6 +7833,24 @@ namespace Microsoft.ML
             /// Use GPU for training?
             /// </summary>
             public bool UseGPU { get; set; } = false;
+
+            /// <summary>
+            /// OpenCL platform ID. Usually each GPU vendor exposes one OpenCL platform. -1 means the system-wide default platform.
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public int GPUPlatformId { get; set; } = -1;
+
+            /// <summary>
+            /// OpenCL device ID in the specified platform. Each GPU in the selected platform has a unique device ID. -1 means the default device in the selected platform.
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public int GPUDeviceId { get; set; } = -1;
+
+            /// <summary>
+            /// Use double precision math on GPU?
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public bool GPUUseDoublePrecision { get; set; } = false;
 
             /// <summary>
             /// Parallel LightGBM Learning Algorithm
@@ -8029,6 +8065,24 @@ namespace Microsoft.ML
             public bool UseGPU { get; set; } = false;
 
             /// <summary>
+            /// OpenCL platform ID. Usually each GPU vendor exposes one OpenCL platform. -1 means the system-wide default platform.
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public int GPUPlatformId { get; set; } = -1;
+
+            /// <summary>
+            /// OpenCL device ID in the specified platform. Each GPU in the selected platform has a unique device ID. -1 means the default device in the selected platform.
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public int GPUDeviceId { get; set; } = -1;
+
+            /// <summary>
+            /// Use double precision math on GPU?
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public bool GPUUseDoublePrecision { get; set; } = false;
+
+            /// <summary>
             /// Parallel LightGBM Learning Algorithm
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
@@ -8239,6 +8293,24 @@ namespace Microsoft.ML
             /// Use GPU for training?
             /// </summary>
             public bool UseGPU { get; set; } = false;
+
+            /// <summary>
+            /// OpenCL platform ID. Usually each GPU vendor exposes one OpenCL platform. -1 means the system-wide default platform.
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public int GPUPlatformId { get; set; } = -1;
+
+            /// <summary>
+            /// OpenCL device ID in the specified platform. Each GPU in the selected platform has a unique device ID. -1 means the default device in the selected platform.
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public int GPUDeviceId { get; set; } = -1;
+
+            /// <summary>
+            /// Use double precision math on GPU?
+            /// Note: only used when UseGPU is true.
+            /// </summary>
+            public bool GPUUseDoublePrecision { get; set; } = false;
 
             /// <summary>
             /// Parallel LightGBM Learning Algorithm
