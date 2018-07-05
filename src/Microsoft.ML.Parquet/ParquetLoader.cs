@@ -107,8 +107,8 @@ namespace Microsoft.ML.Runtime.Data
                 modelSignature: ModelSignature,
                 //verWrittenCur: 0x00010001, // Initial
                 verWrittenCur: 0x00010002, // Add Schema to Model Context
-                verReadableCur: 0x00010002,
-                verWeCanReadBack: 0x00010002,
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
         }
 
@@ -181,19 +181,22 @@ namespace Microsoft.ML.Runtime.Data
             // *** Binary format ***
             // int: cached chunk size
             // bool: TreatBigIntegersAsDates flag
-            // Schema of the loader
+            // Schema of the loader (0x00010002)
 
             _columnChunkReadSize = ctx.Reader.ReadInt32();
             bool treatBigIntegersAsDates = ctx.Reader.ReadBoolean();
 
-            // Load the schema
-            byte[] buffer = null;
-            if (!ctx.TryLoadBinaryStream(SchemaCtxName, r => buffer = r.ReadByteArray()))
-                throw _host.ExceptDecode();
-            BinaryLoader loader = null;
-            var strm = new MemoryStream(buffer, writable: false);
-            loader = new BinaryLoader(_host, new BinaryLoader.Arguments(), strm);
-            Schema = loader.Schema;
+            if (ctx.Header.ModelVerWritten >= 0x00010002)
+            {
+                // Load the schema
+                byte[] buffer = null;
+                if (!ctx.TryLoadBinaryStream(SchemaCtxName, r => buffer = r.ReadByteArray()))
+                    throw _host.ExceptDecode();
+                BinaryLoader loader = null;
+                var strm = new MemoryStream(buffer, writable: false);
+                loader = new BinaryLoader(_host, new BinaryLoader.Arguments(), strm);
+                Schema = loader.Schema;
+            }
 
             // Only load Parquest related data if a file is present. Otherwise, just the Schema is valid.
             if (files.Count > 0)
@@ -224,6 +227,20 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 _columnsLoaded = InitColumns(schemaDataSet);
+                var streamSchema = CreateSchema(_host, _columnsLoaded);
+
+                if (Schema == null)
+                {
+                    Schema = streamSchema;
+                }
+                else if (!Schema.EqualColumns(streamSchema))
+                {
+                    throw _host.Except("File schema does not match the model schema");
+                }
+            }
+            else if (Schema == null && files.Count == 0)
+            {
+                throw _host.Except("Parquet loader must be created with one file");
             }
         }
 
@@ -292,7 +309,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                throw new InvalidDataException("Encountered unknown Parquet field type(Currently recognizes data, map, list, and struct).");
+                throw _host.ExceptNotSupp("Encountered unknown Parquet field type(Currently recognizes data, map, list, and struct).");
             }
         }
 

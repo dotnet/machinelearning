@@ -368,6 +368,50 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Checks whether the schema columns match.
+        /// </summary>
+        /// <param name="schema">The schema</param>
+        /// <param name="otherSchema">The schema to compare against</param>
+        /// <returns>true if the schema columns match</returns>
+        public static bool EqualColumns(this ISchema schema, ISchema otherSchema)
+        {
+            Contracts.CheckValue(otherSchema, nameof(otherSchema));
+
+            if (schema.ColumnCount != otherSchema.ColumnCount)
+            {
+                return false;
+            }
+
+            for (int col = 0; col < schema.ColumnCount; col++)
+            {
+                string name1 = schema.GetColumnName(col);
+                string name2 = otherSchema.GetColumnName(col);
+                if (name1 != name2)
+                {
+                    return false;
+                }
+
+                var type1 = schema.GetColumnType(col);
+                var type2 = otherSchema.GetColumnType(col);
+                if (!type1.SameSizeAndItemType(type2))
+                {
+                    return false;
+                }
+
+                // This ensures that the two schemas map names to the same column indices.
+                int col1, col2;
+                bool f1 = schema.TryGetColumnIndex(name1, out col1);
+                bool f2 = otherSchema.TryGetColumnIndex(name2, out col2);
+                if (!f1 || !f2 || col1 != col2)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// The categoricalFeatures is a vector of the indices of categorical features slots. 
         /// This vector should always have an even number of elements, and the elements should be parsed in groups of two consecutive numbers.
         /// So if its value is the range of numbers: 0,2,3,4,8,9
