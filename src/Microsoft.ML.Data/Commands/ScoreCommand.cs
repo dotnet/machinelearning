@@ -97,7 +97,7 @@ namespace Microsoft.ML.Runtime.Data
 
             ch.Trace("Creating loader");
 
-            LoadModelObjects(ch, true, out IPredictor predictor, true, out RoleMappedSchema trainSchema, out IDataLoader loader);
+            LoadModelObjects(ch, true, out var predictor, true, out var trainSchema, out var loader);
             ch.AssertValue(predictor);
             ch.AssertValueOrNull(trainSchema);
             ch.AssertValue(loader);
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.Data
                 Args.OutputAllColumns == true || Utils.Size(Args.OutputColumn) == 0;
 
             if (Args.OutputAllColumns == true && Utils.Size(Args.OutputColumn) != 0)
-                ch.Warning("outputAllColumns=+ always writes all columns irrespective of outputColumn specified.");
+                ch.Warning(nameof(Args.OutputAllColumns) + "=+ always writes all columns irrespective of " + nameof(Args.OutputColumn) + " specified.");
 
             if (!outputAllColumns && Utils.Size(Args.OutputColumn) != 0)
             {
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         public static IDataScorerTransform GetScorer(IPredictor predictor, RoleMappedData data, IHostEnvironment env, RoleMappedSchema trainSchema)
         {
-            var sc = GetScorerComponentAndMapper(predictor, null, data.Schema, env, out ISchemaBoundMapper mapper);
+            var sc = GetScorerComponentAndMapper(predictor, null, data.Schema, env, out var mapper);
             return sc.CreateInstance(env, data.Data, mapper, trainSchema);
         }
 
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValueOrNull(trainSchema);
 
             var schema = new RoleMappedSchema(input.Schema, label: null, feature: featureColName, group: groupColName, opt: true);
-            var sc = GetScorerComponentAndMapper(predictor, scorer, schema, env, out ISchemaBoundMapper mapper);
+            var sc = GetScorerComponentAndMapper(predictor, scorer, schema, env, out var mapper);
             return sc.CreateInstance(env, input, mapper, trainSchema);
         }
 
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValueOrNull(scorerSettings);
 
             // See if we can instantiate a mapper using scorer arguments.
-            if (scorerSettings.IsGood() && TryCreateBindableFromScorer(env, predictor, scorerSettings, out ISchemaBindableMapper bindable))
+            if (scorerSettings.IsGood() && TryCreateBindableFromScorer(env, predictor, scorerSettings, out var bindable))
                 return bindable;
 
             // The easy case is that the predictor implements the interface.
