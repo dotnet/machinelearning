@@ -11,6 +11,11 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
 
+[assembly: LoadableClass(typeof(LightGbmArguments.CpuExecutionDevice), typeof(LightGbmArguments.CpuExecutionDevice.Arguments),
+    typeof(SignatureLightGBMExecutionDevice), LightGbmArguments.CpuExecutionDevice.FriendlyName, LightGbmArguments.CpuExecutionDevice.Name)]
+[assembly: LoadableClass(typeof(LightGbmArguments.GpuExecutionDevice), typeof(LightGbmArguments.GpuExecutionDevice.Arguments),
+    typeof(SignatureLightGBMExecutionDevice), LightGbmArguments.GpuExecutionDevice.FriendlyName, LightGbmArguments.GpuExecutionDevice.Name)]
+
 [assembly: LoadableClass(typeof(LightGbmArguments.TreeBooster), typeof(LightGbmArguments.TreeBooster.Arguments),
     typeof(SignatureLightGBMBooster), LightGbmArguments.TreeBooster.FriendlyName, LightGbmArguments.TreeBooster.Name)]
 [assembly: LoadableClass(typeof(LightGbmArguments.DartBooster), typeof(LightGbmArguments.DartBooster.Arguments),
@@ -18,13 +23,27 @@ using Microsoft.ML.Runtime.LightGBM;
 [assembly: LoadableClass(typeof(LightGbmArguments.GossBooster), typeof(LightGbmArguments.GossBooster.Arguments),
     typeof(SignatureLightGBMBooster), LightGbmArguments.GossBooster.FriendlyName, LightGbmArguments.GossBooster.Name)]
 
+[assembly: EntryPointModule(typeof(LightGbmArguments.CpuExecutionDevice.Arguments))]
+[assembly: EntryPointModule(typeof(LightGbmArguments.GpuExecutionDevice.Arguments))]
+
 [assembly: EntryPointModule(typeof(LightGbmArguments.TreeBooster.Arguments))]
 [assembly: EntryPointModule(typeof(LightGbmArguments.DartBooster.Arguments))]
 [assembly: EntryPointModule(typeof(LightGbmArguments.GossBooster.Arguments))]
 
 namespace Microsoft.ML.Runtime.LightGBM
 {
+    public delegate void SignatureLightGBMExecutionDevice();
+
     public delegate void SignatureLightGBMBooster();
+
+    [TlcModule.ComponentKind("LightGbmExecutionDevice")]
+    public interface ISupportExecutionDeviceParameterFactory : IComponentFactory<IExecutionDeviceParameter>
+    {
+    }
+    public interface IExecutionDeviceParameter
+    {
+        void UpdateParameters(Dictionary<string, object> res);
+    }
 
     [TlcModule.ComponentKind("BoosterParameterFunction")]
     public interface ISupportBoosterParameterFactory : IComponentFactory<IBoosterParameter>
@@ -62,6 +81,22 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
+        public abstract class ExecutionDeviceParameter<TArgs> : IExecutionDeviceParameter
+            where TArgs : class, new()
+        {
+            protected TArgs Args { get; }
+
+            protected ExecutionDeviceParameter(TArgs args)
+            {
+                Args = args;
+            }
+
+            /// <summary>
+            /// Update the parameters by specific ExecutionDevice, will update parameters into "res" directly.
+            /// </summary>
+            public abstract void UpdateParameters(Dictionary<string, object> res);
+        }
+
         private static string GetArgName(string name)
         {
             StringBuilder strBuf = new StringBuilder();
@@ -80,6 +115,65 @@ namespace Microsoft.ML.Runtime.LightGBM
                     strBuf.Append(c);
             }
             return strBuf.ToString();
+        }
+
+
+        public sealed class CpuExecutionDevice : ExecutionDeviceParameter<CpuExecutionDevice.Arguments>
+        {
+            public const string Name = "cpu_device";
+            public const string FriendlyName = "CPU Device";
+
+            [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "LightGBM CPU device.")]
+            public class Arguments : ISupportExecutionDeviceParameterFactory
+            {
+                public virtual IExecutionDeviceParameter CreateComponent(IHostEnvironment env) => new CpuExecutionDevice(this);
+            }
+
+            public CpuExecutionDevice(Arguments args)
+                : base(args)
+            {
+            }
+
+            public override void UpdateParameters(Dictionary<string, object> res)
+            {
+                return;
+            }
+        }
+
+        public sealed class GpuExecutionDevice : ExecutionDeviceParameter<GpuExecutionDevice.Arguments>
+        {
+            public const string Name = "gpu_device";
+            public const string FriendlyName = "GPU Device";
+
+            [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "LightGBM GPU device.")]
+            public class Arguments : ISupportExecutionDeviceParameterFactory
+            {
+                [Argument(ArgumentType.AtMostOnce, HelpText = "OpenCL platform ID. Usually each GPU vendor exposes one OpenCL platform. -1 means the system-wide default platform.", ShortName = "gpu_platform_id")]
+                public int PlatformId = -1;
+
+                [Argument(ArgumentType.AtMostOnce, HelpText = "OpenCL device ID in the specified platform. Each GPU in the selected platform has a unique device ID. -1 means the default device in the selected platform.", ShortName = "gpu_device_id")]
+                public int DeviceId = -1;
+
+                [Argument(ArgumentType.AtMostOnce, HelpText = "Use double precision math on GPU?", ShortName = "gpu_use_dp")]
+                public bool UseDoublePrecision = false;
+
+                public virtual IExecutionDeviceParameter CreateComponent(IHostEnvironment env) => new GpuExecutionDevice(this);
+            }
+
+            public GpuExecutionDevice(Arguments args)
+                : base(args)
+            {
+                Contracts.CheckUserArg(Args.PlatformId >= -1, nameof(Args.PlatformId), "must be >= -1.");
+                Contracts.CheckUserArg(Args.DeviceId >= -1, nameof(Args.DeviceId), "must be >= -1.");
+            }
+
+            public override void UpdateParameters(Dictionary<string, object> res)
+            {
+                res["device"] = "gpu";
+                if (Args.PlatformId != -1) res["gpu_platform_id"] = Args.PlatformId.ToString();
+                if (Args.DeviceId != -1) res["gpu_device_id"] = Args.DeviceId.ToString();
+                if (Args.UseDoublePrecision) res["gpu_use_dp"] = Args.UseDoublePrecision.ToString();
+            }
         }
 
         public sealed class TreeBooster : BoosterParameter<TreeBooster.Arguments>
@@ -355,17 +449,8 @@ namespace Microsoft.ML.Runtime.LightGBM
         [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
         public ISupportParallel ParallelTrainer = new SingleTrainerFactory();
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Use GPU for training?", ShortName = "gpu")]
-        public bool UseGPU = false;
-
-        [Argument(ArgumentType.AtMostOnce, HelpText = "OpenCL platform ID. Usually each GPU vendor exposes one OpenCL platform. -1 means the system-wide default platform. Only used when UseGPU is true.", ShortName = "gpu_platform_id")]
-        public int GPUPlatformId = -1;
-
-        [Argument(ArgumentType.AtMostOnce, HelpText = "OpenCL device ID in the specified platform. Each GPU in the selected platform has a unique device ID. -1 means the default device in the selected platform. Note: only used when UseGPU is true.", ShortName = "gpu_device_id")]
-        public int GPUDeviceId = -1;
-
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Use double precision math on GPU? Note: only used when UseGPU is true.", ShortName = "gpu_use_dp")]
-        public bool GPUUseDoublePrecision = false;
+        [Argument(ArgumentType.Multiple, HelpText = "Which execution device to use, can be cpu_device or gpu_device. Note: GPU device requires compatible build of LightGBM dll.", SortOrder = 3, ShortName = "device")]
+        public ISupportExecutionDeviceParameterFactory ExecutionDevice = new CpuExecutionDevice.Arguments();
 
         internal Dictionary<string, object> ToDictionary(IHost host)
         {
@@ -420,13 +505,10 @@ namespace Microsoft.ML.Runtime.LightGBM
             res[GetArgName(nameof(MaxCatThreshold))] = MaxCatThreshold.ToString();
             res[GetArgName(nameof(CatSmooth))] = CatSmooth.ToString();
             res[GetArgName(nameof(CatL2))] = CatL2.ToString();
-            if (UseGPU)
-            {
-                res["device"] = "gpu";
-                if (GPUPlatformId != -1) res["gpu_platform_id"] = GPUPlatformId.ToString();
-                if (GPUDeviceId != -1) res["gpu_device_id"] = GPUDeviceId.ToString();
-                if (GPUUseDoublePrecision) res["gpu_use_dp"] = GPUUseDoublePrecision.ToString();
-            }
+
+            var executionDeviceParams = ExecutionDevice.CreateComponent(host);
+            executionDeviceParams.UpdateParameters(res);
+
             return res;
         }
     }
