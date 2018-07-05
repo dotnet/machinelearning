@@ -126,8 +126,8 @@ namespace Microsoft.ML.Runtime.Data
             yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreInfo.Name);
 
             // Get the label column information.
-            string lab = EvaluateUtils.GetColName(LabelCol, schema.Label, DefaultColumnNames.Label);
-            yield return RoleMappedSchema.ColumnRole.Label.Bind(lab);
+            string label = EvaluateUtils.GetColName(LabelCol, schema.Label, DefaultColumnNames.Label);
+            yield return RoleMappedSchema.ColumnRole.Label.Bind(label);
 
             string weight = EvaluateUtils.GetColName(WeightCol, schema.Weight, null);
             if (!string.IsNullOrEmpty(weight))
