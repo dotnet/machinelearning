@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -35,8 +33,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public static ColumnInfo CreateFromName(ISchema schema, string name, string descName)
         {
-            ColumnInfo colInfo;
-            if (!TryCreateFromName(schema, name, out colInfo))
+            if (!TryCreateFromName(schema, name, out var colInfo))
                 throw Contracts.ExceptParam(nameof(name), $"{descName} column '{name}' not found");
 
             return colInfo;
@@ -52,8 +49,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckNonEmpty(name, nameof(name));
 
             colInfo = null;
-            int index;
-            if (!schema.TryGetColumnIndex(name, out index))
+            if (!schema.TryGetColumnIndex(name, out int index))
                 return false;
 
             colInfo = new ColumnInfo(name, index, schema.GetColumnType(index));
@@ -311,9 +307,7 @@ namespace Microsoft.ML.Runtime.Data
         /// it returns null.
         /// </summary>
         public IReadOnlyList<ColumnInfo> GetColumns(ColumnRole role)
-        {
-            return _map.TryGetValue(role.Value, out var list) ? list : null;
-        }
+            => _map.TryGetValue(role.Value, out var list) ? list : null;
 
         /// <summary>
         /// An enumerable over all role-column associations within this object.
@@ -380,13 +374,13 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Constructor from the given schema and role/column-name pairs.
+        /// Constructor given a schema, and mapping pairs of roles to columns in the schema.
         /// This skips null or empty column-names. It will also skip column-names that are not
         /// found in the schema if <paramref name="opt"/> is true.
         /// </summary>
         /// <param name="schema">The schema over which roles are defined</param>
         /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
-        /// values for the column names that does not appear in <paramref name="schema"/> will result iin an exception being thrown,
+        /// values for the column names that does not appear in <paramref name="schema"/> will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
         /// <param name="roles">The column role to column name mappings</param>
         public RoleMappedSchema(ISchema schema, bool opt = false, params KeyValuePair<ColumnRole, string>[] roles)
@@ -395,14 +389,14 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Constructor from the given schema and role/column-name pairs.
-        /// This skips null or empty column-names. It will also skip column-names that are not
+        /// Constructor given a schema, and mapping pairs of roles to columns in the schema.
+        /// This skips null or empty column names. It will also skip column-names that are not
         /// found in the schema if <paramref name="opt"/> is true.
         /// </summary>
         /// <param name="schema">The schema over which roles are defined</param>
         /// <param name="roles">The column role to column name mappings</param>
         /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
-        /// values for the column names that does not appear in <paramref name="schema"/> will result iin an exception being thrown,
+        /// values for the column names that does not appear in <paramref name="schema"/> will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
         public RoleMappedSchema(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
             : this(Contracts.CheckRef(schema, nameof(schema)),
@@ -443,7 +437,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="name">The column name that will be mapped to the <see cref="ColumnRole.Name"/> role</param>
         /// <param name="custom">Any additional desired custom column role mappings</param>
         /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
-        /// values for the column names that does not appear in <paramref name="schema"/> will result iin an exception being thrown,
+        /// values for the column names that does not appear in <paramref name="schema"/> will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
         public RoleMappedSchema(ISchema schema, string label, string feature,
             string group = null, string weight = null, string name = null,
@@ -487,13 +481,13 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Constructor from the given data and role/column-name pairs.
+        /// Constructor given a data view, and mapping pairs of roles to columns in the data view's schema.
         /// This skips null or empty column-names. It will also skip column-names that are not
         /// found in the schema if <paramref name="opt"/> is true.
         /// </summary>
         /// <param name="data">The data over which roles are defined</param>
         /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
-        /// values for the column names that does not appear in <paramref name="data"/>'s schema will result iin an exception being thrown,
+        /// values for the column names that does not appear in <paramref name="data"/>'s schema will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
         /// <param name="roles">The column role to column name mappings</param>
         public RoleMappedData(IDataView data, bool opt = false, params KeyValuePair<RoleMappedSchema.ColumnRole, string>[] roles)
@@ -502,14 +496,14 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Constructor from the given data and role/column-name pairs.
+        /// Constructor given a data view, and mapping pairs of roles to columns in the data view's schema.
         /// This skips null or empty column-names. It will also skip column-names that are not
         /// found in the schema if <paramref name="opt"/> is true.
         /// </summary>
         /// <param name="data">The schema over which roles are defined</param>
         /// <param name="roles">The column role to column name mappings</param>
         /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
-        /// values for the column names that does not appear in <paramref name="data"/>'s schema will result iin an exception being thrown,
+        /// values for the column names that does not appear in <paramref name="data"/>'s schema will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
         public RoleMappedData(IDataView data, IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> roles, bool opt = false)
             : this(Contracts.CheckRef(data, nameof(data)), new RoleMappedSchema(data.Schema, Contracts.CheckRef(roles, nameof(roles)), opt))
@@ -528,7 +522,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="name">The column name that will be mapped to the <see cref="RoleMappedSchema.ColumnRole.Name"/> role</param>
         /// <param name="custom">Any additional desired custom column role mappings</param>
         /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
-        /// values for the column names that does not appear in <paramref name="data"/>'s schema will result iin an exception being thrown,
+        /// values for the column names that does not appear in <paramref name="data"/>'s schema will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
         public RoleMappedData(IDataView data, string label, string feature,
             string group = null, string weight = null, string name = null,
