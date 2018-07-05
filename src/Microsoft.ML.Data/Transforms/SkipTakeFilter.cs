@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.Data
     public static class SkipFilter
     {
         /// <summary>
-        /// A helper method to create <see cref="SkipFilter"/> for public facing API.
+        /// A helper method to create'SkipFilter' transform by skipping the number of rows defined by the <paramref name="count"/> parameter.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">>Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Runtime.Data
 
 
         /// <summary>
-        /// A helper method to create <see cref="TakeFilter"/> for public facing API.
+        /// A helper method to create 'TakeFilter' transform by taking the top rows defined by the <paramref name="count"/> parameter.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">>Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>

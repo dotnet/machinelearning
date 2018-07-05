@@ -64,18 +64,13 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static class Defaults
-        {
-            public const int ClassIndex = 0;
-        }
-
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Label of the positive class.", ShortName = "index")]
-            public int ClassIndex = Defaults.ClassIndex;
+            public int ClassIndex;
         }
 
         public static LabelIndicatorTransform Create(IHostEnvironment env,
@@ -121,14 +116,14 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="classIndex">Label of the positive class.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the input column.  If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="classIndex">Label of the positive class.</param>
         public LabelIndicatorTransform(IHostEnvironment env,
             IDataView input,
+            int classIndex,
             string name,
-            string source = null,
-            int classIndex = Defaults.ClassIndex)
+            string source = null)
             : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, ClassIndex = classIndex }, input)
         {
         }
