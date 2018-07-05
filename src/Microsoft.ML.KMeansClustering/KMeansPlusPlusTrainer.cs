@@ -122,23 +122,19 @@ It uses various bounding techniques to identify this redundancy and eliminate ma
             _numThreads = ComputeNumThreads(Host, args.NumThreads);
         }
 
-        public override bool NeedNormalization
-        {
+        public override bool NeedNormalization {
             get { return true; }
         }
 
-        public override bool NeedCalibration
-        {
+        public override bool NeedCalibration {
             get { return false; }
         }
 
-        public override bool WantCaching
-        {
+        public override bool WantCaching {
             get { return true; }
         }
 
-        public override PredictionKind PredictionKind
-        {
+        public override PredictionKind PredictionKind {
             get { return PredictionKind.Clustering; }
         }
 
@@ -902,7 +898,7 @@ It uses various bounding techniques to identify this redundancy and eliminate ma
                     arrDv.AddColumn(DefaultColumnNames.Features, PrimitiveType.FromKind(DataKind.R4), clusters);
                     arrDv.AddColumn(DefaultColumnNames.Weight, PrimitiveType.FromKind(DataKind.R4), totalWeights);
                     var subDataViewCursorFactory = new FeatureFloatVectorCursor.Factory(
-                        new RoleMappedData(arrDv.GetDataView(), null, DefaultColumnNames.Features,weight: DefaultColumnNames.Weight), CursOpt.Weight | CursOpt.Features);
+                        new RoleMappedData(arrDv.GetDataView(), null, DefaultColumnNames.Features, weight: DefaultColumnNames.Weight), CursOpt.Weight | CursOpt.Features);
                     long discard1;
                     long discard2;
                     KMeansPlusPlusInit.Initialize(host, numThreads, ch, subDataViewCursorFactory, k, dimensionality, centroids, out discard1, out discard2, false);
