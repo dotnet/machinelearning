@@ -109,10 +109,10 @@ namespace Microsoft.ML.Runtime.Data
         private const string FeatureContributionsString = "FeatureContributions";
 
         /// <summary>
-        /// Instances of this are the keys of a <see cref="RoleMappedSchema"/>. This class also some important commonly used
-        /// pre-defined instances available (e.g., <see cref="Label"/>, <see cref="Feature"/>) that should be used when
-        /// possible for consistency reasons. However, practitioners should not be afraid to declare custom roles if
-        /// approppriate for their task.
+        /// Instances of this are the keys of a <see cref="RoleMappedSchema"/>. This class also some holds important
+        /// commonly used pre-defined instances available (e.g., <see cref="Label"/>, <see cref="Feature"/>) that should
+        /// be used when possible for consistency reasons. However, practitioners should not be afraid to declare custom
+        /// roles if approppriate for their task.
         /// </summary>
         public struct ColumnRole
         {
@@ -137,7 +137,17 @@ namespace Microsoft.ML.Runtime.Data
             /// to a particular example.
             /// </summary>
             public static ColumnRole Weight => WeightString;
+
+            /// <summary>
+            /// Role for sample names. Useful for informational and tracking purposes when scoring, but typically
+            /// without affecting results.
+            /// </summary>
             public static ColumnRole Name => NameString;
+
+            // REVIEW: Does this really belong here?
+            /// <summary>
+            /// Role for feature contributions. Useful for specific diagnostic functionality.
+            /// </summary>
             public static ColumnRole FeatureContributions => FeatureContributionsString;
 
             /// <summary>
