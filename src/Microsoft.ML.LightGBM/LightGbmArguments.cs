@@ -355,6 +355,9 @@ namespace Microsoft.ML.Runtime.LightGBM
         [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
         public ISupportParallel ParallelTrainer = new SingleTrainerFactory();
 
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Use GPU for training?", ShortName = "gpu")]
+        public bool UseGPU = false;
+
         internal Dictionary<string, object> ToDictionary(IHost host)
         {
             Contracts.CheckValue(host, nameof(host));
@@ -408,6 +411,8 @@ namespace Microsoft.ML.Runtime.LightGBM
             res[GetArgName(nameof(MaxCatThreshold))] = MaxCatThreshold.ToString();
             res[GetArgName(nameof(CatSmooth))] = CatSmooth.ToString();
             res[GetArgName(nameof(CatL2))] = CatL2.ToString();
+            if (UseGPU)
+                res["device"] = "gpu";
             return res;
         }
     }

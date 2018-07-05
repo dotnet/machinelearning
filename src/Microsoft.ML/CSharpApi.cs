@@ -7600,6 +7600,11 @@ namespace Microsoft.ML
             public double CatL2 { get; set; } = 10d;
 
             /// <summary>
+            /// Use GPU for training?
+            /// </summary>
+            public bool UseGPU { get; set; } = false;
+
+            /// <summary>
             /// Parallel LightGBM Learning Algorithm
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
@@ -7805,6 +7810,11 @@ namespace Microsoft.ML
             [TlcModule.Range(Min = 0d)]
             [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
             public double CatL2 { get; set; } = 10d;
+
+            /// <summary>
+            /// Use GPU for training?
+            /// </summary>
+            public bool UseGPU { get; set; } = false;
 
             /// <summary>
             /// Parallel LightGBM Learning Algorithm
@@ -8014,6 +8024,11 @@ namespace Microsoft.ML
             public double CatL2 { get; set; } = 10d;
 
             /// <summary>
+            /// Use GPU for training?
+            /// </summary>
+            public bool UseGPU { get; set; } = false;
+
+            /// <summary>
             /// Parallel LightGBM Learning Algorithm
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
@@ -8219,6 +8234,11 @@ namespace Microsoft.ML
             [TlcModule.Range(Min = 0d)]
             [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
             public double CatL2 { get; set; } = 10d;
+
+            /// <summary>
+            /// Use GPU for training?
+            /// </summary>
+            public bool UseGPU { get; set; } = false;
 
             /// <summary>
             /// Parallel LightGBM Learning Algorithm
