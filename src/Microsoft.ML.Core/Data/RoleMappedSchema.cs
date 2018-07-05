@@ -84,12 +84,25 @@ namespace Microsoft.ML.Runtime.Data
     /// multiple features columns to consume that information.
     ///
     /// This class has convenience fields for several common column roles (se.g., <see cref="Feature"/>, <see
-    /// cref="Label"/>), but can hold an arbitrary set of column infos. The convenience fields are non-null iff there is
-    /// a unique column with the corresponding role. When there are no such columns or more than one such column, the
-    /// field is null. The <see cref="Has"/>, <see cref="HasUnique"/>, and <see cref="HasMultiple"/> methods provide
-    /// some cardinality information. Note that all columns assigned roles are guaranteed to be non-hidden in this
-    /// schema.
+    /// cref="Label"/>), but can hold an arbitrary set of column infos. The convenience fields are non-null if and only
+    /// if there is a unique column with the corresponding role. When there are no such columns or more than one such
+    /// column, the field is <c>null</c>. The <see cref="Has"/>, <see cref="HasUnique"/>, and <see cref="HasMultiple"/>
+    /// methods provide some cardinality information. Note that all columns assigned roles are guaranteed to be non-hidden
+    /// in this schema.
     /// </summary>
+    /// <remarks>
+    /// Note that instances of this class are, like instances of <see cref="ISchema"/>, immutable.
+    /// 
+    /// It is often the case that one wishes to bundle the actual data with the role mappings, not just the schema. For
+    /// that case, please use the <see cref="RoleMappedData"/> class.
+    /// 
+    /// Note that there is no need for components consuming a <see cref="RoleMappedData"/> or <see cref="RoleMappedSchema"/>
+    /// to make use of every defined mapping. Consuming components are also expected to ignore any <see cref="ColumnRole"/>
+    /// they do not handle. They may very well however complain if a mapping they wanted to see is not present, or the column(s)
+    /// mapped from the role are not of the form they require.
+    /// </remarks>
+    /// <seealso cref="ColumnRole"/>
+    /// <seealso cref="RoleMappedData"/>
     public sealed class RoleMappedSchema
     {
         private const string FeatureString = "Feature";
@@ -99,17 +112,47 @@ namespace Microsoft.ML.Runtime.Data
         private const string NameString = "Name";
         private const string FeatureContributionsString = "FeatureContributions";
 
+        /// <summary>
+        /// Instances of this are the keys of a <see cref="RoleMappedSchema"/>. This class also some important commonly used
+        /// pre-defined instances available (e.g., <see cref="Label"/>, <see cref="Feature"/>) that should be used when
+        /// possible for consistency reasons. However, practitioners should not be afraid to declare custom roles if
+        /// approppriate for their task.
+        /// </summary>
         public struct ColumnRole
         {
+            /// <summary>
+            /// Role for features. Commonly used as the independent variables given to trainers, and scorers.
+            /// </summary>
             public static ColumnRole Feature => FeatureString;
+
+            /// <summary>
+            /// Role for labels. Commonly used as the dependent variables given to trainers, and evaluators.
+            /// </summary>
             public static ColumnRole Label => LabelString;
+
+            /// <summary>
+            /// Role for group ID. Commonly used in ranking applications, for defining query boundaries, or
+            /// sequence classification, for defining the boundaries of an utterance.
+            /// </summary>
             public static ColumnRole Group => GroupString;
+
+            /// <summary>
+            /// Role for sample weights. Commonly used to point to a number to make trainers give more weight
+            /// to a particular example.
+            /// </summary>
             public static ColumnRole Weight => WeightString;
             public static ColumnRole Name => NameString;
             public static ColumnRole FeatureContributions => FeatureContributionsString;
 
+            /// <summary>
+            /// The string value for the role. Guaranteed to be non-empty.
+            /// </summary>
             public readonly string Value;
 
+            /// <summary>
+            /// Constructor for the column role.
+            /// </summary>
+            /// <param name="value">The value for the role. Must be non-empty.</param>
             public ColumnRole(string value)
             {
                 Contracts.CheckNonEmpty(value, nameof(value));
@@ -119,6 +162,13 @@ namespace Microsoft.ML.Runtime.Data
             public static implicit operator ColumnRole(string value)
                 => new ColumnRole(value);
 
+            /// <summary>
+            /// Convenience method for creating a mapping pair from a role to a column name
+            /// for giving to constructors of <see cref="RoleMappedSchema"/> and <see cref="RoleMappedData"/>.
+            /// </summary>
+            /// <param name="name">The column name to map to. Can be <c>null</c>, in which case when used
+            /// to construct a role mapping structure this pair will be ignored</param>
+            /// <returns>A key-value pair with this instance as the key and <paramref name="name"/> as the value</returns>
             public KeyValuePair<ColumnRole, string> Bind(string name)
                 => new KeyValuePair<ColumnRole, string>(this, name);
         }
@@ -132,27 +182,27 @@ namespace Microsoft.ML.Runtime.Data
         public ISchema Schema { get; }
 
         /// <summary>
-        /// The Feature column, when there is exactly one (null otherwise).
+        /// The <see cref="ColumnRole.Feature"/> column, when there is exactly one (null otherwise).
         /// </summary>
         public ColumnInfo Feature { get; }
 
         /// <summary>
-        /// The Label column, when there is exactly one (null otherwise).
+        /// The <see cref="ColumnRole.Label"/> column, when there is exactly one (null otherwise).
         /// </summary>
         public ColumnInfo Label { get; }
 
         /// <summary>
-        /// The Group column, when there is exactly one (null otherwise).
+        /// The <see cref="ColumnRole.Group"/> column, when there is exactly one (null otherwise).
         /// </summary>
         public ColumnInfo Group { get; }
 
         /// <summary>
-        /// The Weight column, when there is exactly one (null otherwise).
+        /// The <see cref="ColumnRole.Weight"/> column, when there is exactly one (null otherwise).
         /// </summary>
         public ColumnInfo Weight { get; }
 
         /// <summary>
-        /// The Name column, when there is exactly one (null otherwise).
+        /// The <see cref="ColumnRole.Name"/> column, when there is exactly one (null otherwise).
         /// </summary>
         public ColumnInfo Name { get; }
 
@@ -262,9 +312,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public IReadOnlyList<ColumnInfo> GetColumns(ColumnRole role)
         {
-            if (_map.TryGetValue(role.Value, out var list))
-                return list;
-            return null;
+            return _map.TryGetValue(role.Value, out var list) ? list : null;
         }
 
         /// <summary>
@@ -334,7 +382,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Constructor from the given schema with no column role assignments.
         /// </summary>
-        /// <param name="schema">The schema for which we could build a role mapping</param>
+        /// <param name="schema">The schema over which no roles are defined</param>
         public RoleMappedSchema(ISchema schema)
             : this(Contracts.CheckRef(schema, nameof(schema)), new Dictionary<string, List<ColumnInfo>>())
         {
@@ -345,23 +393,33 @@ namespace Microsoft.ML.Runtime.Data
         /// This skips null or empty column-names. It will also skip column-names that are not
         /// found in the schema if <paramref name="opt"/> is true.
         /// </summary>
+        /// <param name="schema">The schema over which roles are defined</param>
+        /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
+        /// values for the column names that does not appear in <paramref name="schema"/> will result iin an exception being thrown,
+        /// but if <c>true</c> such values will be ignored</param>
+        /// <param name="roles">The column role to column name mappings</param>
         public RoleMappedSchema(ISchema schema, bool opt, params KeyValuePair<ColumnRole, string>[] roles)
             : this(Contracts.CheckRef(schema, nameof(schema)), Contracts.CheckRef(roles, nameof(roles)), opt)
         {
         }
 
         /// <summary>
-        /// Creates a RoleMappedSchema from the given schema and role/column-name pairs.
+        /// Constructor from the given schema and role/column-name pairs.
         /// This skips null or empty column-names. It will also skip column-names that are not
         /// found in the schema if <paramref name="opt"/> is true.
         /// </summary>
+        /// <param name="schema">The schema over which roles are defined</param>
+        /// <param name="roles">The column role to column name mappings</param>
+        /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
+        /// values for the column names that does not appear in <paramref name="schema"/> will result iin an exception being thrown,
+        /// but if <c>true</c> such values will be ignored</param>
         public RoleMappedSchema(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
             : this(Contracts.CheckRef(schema, nameof(schema)),
                   MapFromNames(schema, Contracts.CheckRef(roles, nameof(roles)), opt))
         {
         }
 
-        private static IEnumerable<KeyValuePair<ColumnRole, string>> Strange(
+        private static IEnumerable<KeyValuePair<ColumnRole, string>> PredefinedRolesHelper(
             string label, string feature, string group, string weight, string name,
             IEnumerable<KeyValuePair<ColumnRole, string>> custom = null)
         {
@@ -382,10 +440,24 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        /// <summary>
+        /// Convenience constructor for role-mappings over the commonly used roles. Note that if any column name specified
+        /// is <c>null</c> or whitespace, it is ignored.
+        /// </summary>
+        /// <param name="schema">The schema over which roles are defined</param>
+        /// <param name="label">The column name that will be mapped to the <see cref="ColumnRole.Label"/> role</param>
+        /// <param name="feature">The column name that will be mapped to the <see cref="ColumnRole.Feature"/> role</param>
+        /// <param name="group">The column name that will be mapped to the <see cref="ColumnRole.Group"/> role</param>
+        /// <param name="weight">The column name that will be mapped to the <see cref="ColumnRole.Weight"/> role</param>
+        /// <param name="name">The column name that will be mapped to the <see cref="ColumnRole.Name"/> role</param>
+        /// <param name="custom">Any additional desired custom column role mappings</param>
+        /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
+        /// values for the column names that does not appear in <paramref name="schema"/> will result iin an exception being thrown,
+        /// but if <c>true</c> such values will be ignored</param>
         public RoleMappedSchema(ISchema schema, string label, string feature,
             string group = null, string weight = null, string name = null,
             IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> custom = null, bool opt = false)
-            : this(Contracts.CheckRef(schema, nameof(schema)), Strange(label, feature, group, weight, name, custom), opt)
+            : this(Contracts.CheckRef(schema, nameof(schema)), PredefinedRolesHelper(label, feature, group, weight, name, custom), opt)
         {
             Contracts.CheckValueOrNull(label);
             Contracts.CheckValueOrNull(feature);
@@ -455,7 +527,8 @@ namespace Microsoft.ML.Runtime.Data
         public IDataView Data { get; }
 
         /// <summary>
-        /// The role mapped schema. Note that Schema.Schema is guaranteed to be the same as Data.Schema.
+        /// The role mapped schema. Note that <see cref="Schema"/>'s <see cref="RoleMappedSchema.Schema"/> is
+        /// guaranteed to be the same as <see cref="Data"/>'s <see cref="ISchematized.Schema"/>.
         /// </summary>
         public RoleMappedSchema Schema { get; }
 
@@ -469,33 +542,58 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Constructor from the given data with no column role assignments.
+        /// Constructor for the given schema with no column role assignments.
         /// </summary>
+        /// <param name="data">The data over which no roles are defined</param>
         public RoleMappedData(IDataView data)
             : this(Contracts.CheckRef(data, nameof(data)), new RoleMappedSchema(data.Schema))
         {
         }
 
         /// <summary>
-        /// Creates a RoleMappedData from the given schema and role/column-name pairs.
+        /// Constructor from the given data and role/column-name pairs.
         /// This skips null or empty column-names. It will also skip column-names that are not
         /// found in the schema if <paramref name="opt"/> is true.
         /// </summary>
+        /// <param name="data">The data over which roles are defined</param>
+        /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
+        /// values for the column names that does not appear in <paramref name="data"/>'s schema will result iin an exception being thrown,
+        /// but if <c>true</c> such values will be ignored</param>
+        /// <param name="roles">The column role to column name mappings</param>
         public RoleMappedData(IDataView data, bool opt, params KeyValuePair<RoleMappedSchema.ColumnRole, string>[] roles)
             : this(Contracts.CheckRef(data, nameof(data)), new RoleMappedSchema(data.Schema, Contracts.CheckRef(roles, nameof(roles)), opt))
         {
         }
 
         /// <summary>
-        /// Creates a RoleMappedData from the given schema and role/column-name pairs.
+        /// Constructor from the given data and role/column-name pairs.
         /// This skips null or empty column-names. It will also skip column-names that are not
         /// found in the schema if <paramref name="opt"/> is true.
         /// </summary>
+        /// <param name="data">The schema over which roles are defined</param>
+        /// <param name="roles">The column role to column name mappings</param>
+        /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
+        /// values for the column names that does not appear in <paramref name="data"/>'s schema will result iin an exception being thrown,
+        /// but if <c>true</c> such values will be ignored</param>
         public RoleMappedData(IDataView data, IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> roles, bool opt = false)
             : this(Contracts.CheckRef(data, nameof(data)), new RoleMappedSchema(data.Schema, Contracts.CheckRef(roles, nameof(roles)), opt))
         {
         }
 
+        /// <summary>
+        /// Convenience constructor for role-mappings over the commonly used roles. Note that if any column name specified
+        /// is <c>null</c> or whitespace, it is ignored.
+        /// </summary>
+        /// <param name="data">The data over which roles are defined</param>
+        /// <param name="label">The column name that will be mapped to the <see cref="RoleMappedSchema.ColumnRole.Label"/> role</param>
+        /// <param name="feature">The column name that will be mapped to the <see cref="RoleMappedSchema.ColumnRole.Feature"/> role</param>
+        /// <param name="group">The column name that will be mapped to the <see cref="RoleMappedSchema.ColumnRole.Group"/> role</param>
+        /// <param name="weight">The column name that will be mapped to the <see cref="RoleMappedSchema.ColumnRole.Weight"/> role</param>
+        /// <param name="name">The column name that will be mapped to the <see cref="RoleMappedSchema.ColumnRole.Name"/> role</param>
+        /// <param name="custom">Any additional desired custom column role mappings</param>
+        /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
+        /// values for the column names that does not appear in <paramref name="data"/>'s schema will result iin an exception being thrown,
+        /// but if <c>true</c> such values will be ignored</param>
         public RoleMappedData(IDataView data, string label, string feature,
             string group = null, string weight = null, string name = null,
             IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> custom = null, bool opt = false)

@@ -851,7 +851,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             var cols = base.GetInputColumnRolesCore(schema);
             var groupIdCol = EvaluateUtils.GetColName(_groupIdCol, schema.Group, DefaultColumnNames.GroupId);
-            return cols.Prepend(RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Group, groupIdCol));
+            return cols.Prepend(RoleMappedSchema.ColumnRole.Group.Bind(groupIdCol));
         }
 
         protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)

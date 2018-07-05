@@ -108,7 +108,7 @@ namespace Microsoft.ML.Runtime.Data
                 : StratCols.Select(col => RoleMappedSchema.CreatePair(Strat, col));
 
             if (needName && schema.Name != null)
-                roles = roles.Prepend(RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Name, schema.Name.Name));
+                roles = roles.Prepend(RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Name));
 
             return roles.Concat(GetInputColumnRolesCore(schema));
         }
@@ -127,11 +127,11 @@ namespace Microsoft.ML.Runtime.Data
 
             // Get the label column information.
             string lab = EvaluateUtils.GetColName(LabelCol, schema.Label, DefaultColumnNames.Label);
-            yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, lab);
+            yield return RoleMappedSchema.ColumnRole.Label.Bind(lab);
 
             var weight = EvaluateUtils.GetColName(WeightCol, schema.Weight, null);
             if (!string.IsNullOrEmpty(weight))
-                yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Weight, weight);
+                yield return RoleMappedSchema.ColumnRole.Weight.Bind(weight);
         }
 
         public virtual IEnumerable<MetricColumn> GetOverallMetricColumns()

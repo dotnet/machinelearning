@@ -776,7 +776,7 @@ namespace Microsoft.ML.Runtime.Data
                 string feat = EvaluateUtils.GetColName(_featureCol, schema.Feature, DefaultColumnNames.Features);
                 if (!schema.Schema.TryGetColumnIndex(feat, out int featCol))
                     throw Host.ExceptUserArg(nameof(Arguments.FeatureColumn), "Features column '{0}' not found", feat);
-                yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, feat);
+                yield return RoleMappedSchema.ColumnRole.Feature.Bind(feat);
             }
         }
 

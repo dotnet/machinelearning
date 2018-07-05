@@ -307,7 +307,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var dv = new EmptyDataView(env, inputSchema);
 
             // The role mappings are specific to the individual predictors.
-            var rmd = new RoleMappedData(dv);
+            var rmd = new RoleMappedData(dv, opt: true);
             var predictorModel = new PredictorModel(env, rmd, dv, ensemble);
 
             var output = new TOut { PredictorModel = predictorModel };

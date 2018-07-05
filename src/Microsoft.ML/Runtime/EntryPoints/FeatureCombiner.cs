@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Multiple, HelpText = "Features", SortOrder = 2)]
             public string[] Features;
 
-            public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetRoles()
+            internal IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetRoles()
             {
                 if (Utils.Size(Features) > 0)
                 {

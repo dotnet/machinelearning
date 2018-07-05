@@ -364,9 +364,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             private readonly int _count;
             private readonly string[] _names;
 
-            private readonly RoleMappedSchema _schema;
-
-            public override RoleMappedSchema Schema => _schema;
+            public override RoleMappedSchema Schema { get; }
 
             public Dense(int count, string[] names)
             {
@@ -380,7 +378,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     Array.Copy(names, _names, size);
 
                 // REVIEW: This seems wrong. The default feature column name is "Features" yet the role is named "Feature".
-                _schema = new RoleMappedSchema(new FeatureNameCollectionSchema(this), opt: false,
+                Schema = new RoleMappedSchema(new FeatureNameCollectionSchema(this), opt: false,
                     RoleMappedSchema.ColumnRole.Feature.Bind(RoleMappedSchema.ColumnRole.Feature.Value));
             }
 
