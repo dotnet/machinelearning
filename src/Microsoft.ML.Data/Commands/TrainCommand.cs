@@ -157,7 +157,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.Trace("Binding columns");
 
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
-            var data = TrainUtils.CreateExamples(view, label, feature, group, weight, name, customCols);
+            var data = new RoleMappedData(view, label, feature, group, weight, name, customCols);
 
             // REVIEW: Unify the code that creates validation examples in Train, TrainTest and CV commands.
             RoleMappedData validData = null;
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Runtime.Data
                     ch.Trace("Constructing the validation pipeline");
                     IDataView validPipe = CreateRawLoader(dataFile: Args.ValidationFile);
                     validPipe = ApplyTransformUtils.ApplyAllTransformsToData(Host, view, validPipe);
-                    validData = RoleMappedData.Create(validPipe, data.Schema.GetColumnRoleNames());
+                    validData = new RoleMappedData(validPipe, data.Schema.GetColumnRoleNames());
                 }
             }
 
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Runtime.Data
                 var prefetch = data.Schema.GetColumnRoles().Select(kc => kc.Value.Index).ToArray();
                 var cacheView = new CacheDataView(env, data.Data, prefetch);
                 // Because the prefetching worked, we know that these are valid columns.
-                data = RoleMappedData.Create(cacheView, data.Schema.GetColumnRoleNames());
+                data = new RoleMappedData(cacheView, data.Schema.GetColumnRoleNames());
             }
             else
                 ch.Trace("Not caching");
@@ -570,98 +570,6 @@ namespace Microsoft.ML.Runtime.Data
                     throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.CustomColumn), "Custom column with name '{0}' needs a kind. Use col[<Kind>]={0}", kindName.Value);
             }
             return customColumnArg.Select(kindName => new ColumnRole(kindName.Key).Bind(kindName.Value));
-        }
-
-        /// <summary>
-        /// Given a schema and a bunch of column names, create the BoundSchema object. Any or all of the column
-        /// names may be null or whitespace, in which case they are ignored. Any columns that are specified but not
-        /// valid columns of the schema are also ignored.
-        /// </summary>
-        public static RoleMappedSchema CreateRoleMappedSchemaOpt(ISchema schema, string feature, string group, IEnumerable<KeyValuePair<ColumnRole, string>> custom = null)
-        {
-            Contracts.CheckValueOrNull(feature);
-            Contracts.CheckValueOrNull(custom);
-
-            var list = new List<KeyValuePair<ColumnRole, string>>();
-            if (!string.IsNullOrWhiteSpace(feature))
-                list.Add(ColumnRole.Feature.Bind(feature));
-            if (!string.IsNullOrWhiteSpace(group))
-                list.Add(ColumnRole.Group.Bind(group));
-            if (custom != null)
-                list.AddRange(custom);
-
-            return RoleMappedSchema.CreateOpt(schema, list);
-        }
-
-        /// <summary>
-        /// Given a view and a bunch of column names, create the RoleMappedData object. Any or all of the column
-        /// names may be null or whitespace, in which case they are ignored. Any columns that are specified must
-        /// be valid columns of the schema.
-        /// </summary>
-        public static RoleMappedData CreateExamples(IDataView view, string label, string feature,
-            string group = null, string weight = null, string name = null,
-            IEnumerable<KeyValuePair<ColumnRole, string>> custom = null)
-        {
-            Contracts.CheckValueOrNull(label);
-            Contracts.CheckValueOrNull(feature);
-            Contracts.CheckValueOrNull(group);
-            Contracts.CheckValueOrNull(weight);
-            Contracts.CheckValueOrNull(name);
-            Contracts.CheckValueOrNull(custom);
-
-            var list = new List<KeyValuePair<ColumnRole, string>>();
-            if (!string.IsNullOrWhiteSpace(label))
-                list.Add(ColumnRole.Label.Bind(label));
-            if (!string.IsNullOrWhiteSpace(feature))
-                list.Add(ColumnRole.Feature.Bind(feature));
-            if (!string.IsNullOrWhiteSpace(group))
-                list.Add(ColumnRole.Group.Bind(group));
-            if (!string.IsNullOrWhiteSpace(weight))
-                list.Add(ColumnRole.Weight.Bind(weight));
-            if (!string.IsNullOrWhiteSpace(name))
-                list.Add(ColumnRole.Name.Bind(name));
-            if (custom != null)
-                list.AddRange(custom);
-
-            return RoleMappedData.Create(view, list);
-        }
-
-        /// <summary>
-        /// Given a view and a bunch of column names, create the RoleMappedData object. Any or all of the column
-        /// names may be null or whitespace, in which case they are ignored. Any columns that are specified but not
-        /// valid columns of the schema are also ignored.
-        /// </summary>
-        public static RoleMappedData CreateExamplesOpt(IDataView view, string label, string feature,
-            string group = null, string weight = null, string name = null,
-            IEnumerable<KeyValuePair<ColumnRole, string>> custom = null)
-        {
-            Contracts.CheckValueOrNull(label);
-            Contracts.CheckValueOrNull(feature);
-            Contracts.CheckValueOrNull(group);
-            Contracts.CheckValueOrNull(weight);
-            Contracts.CheckValueOrNull(name);
-            Contracts.CheckValueOrNull(custom);
-
-            var list = new List<KeyValuePair<ColumnRole, string>>();
-            if (!string.IsNullOrWhiteSpace(label))
-                list.Add(ColumnRole.Label.Bind(label));
-            if (!string.IsNullOrWhiteSpace(feature))
-                list.Add(ColumnRole.Feature.Bind(feature));
-            if (!string.IsNullOrWhiteSpace(group))
-                list.Add(ColumnRole.Group.Bind(group));
-            if (!string.IsNullOrWhiteSpace(weight))
-                list.Add(ColumnRole.Weight.Bind(weight));
-            if (!string.IsNullOrWhiteSpace(name))
-                list.Add(ColumnRole.Name.Bind(name));
-            if (custom != null)
-                list.AddRange(custom);
-
-            return RoleMappedData.CreateOpt(view, list);
-        }
-
-        private static KeyValuePair<ColumnRole, T> Pair<T>(ColumnRole kind, T value)
-        {
-            return new KeyValuePair<ColumnRole, T>(kind, value);
         }
     }
 }
