@@ -380,15 +380,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Constructor from the given schema with no column role assignments.
-        /// </summary>
-        /// <param name="schema">The schema over which no roles are defined</param>
-        public RoleMappedSchema(ISchema schema)
-            : this(Contracts.CheckRef(schema, nameof(schema)), new Dictionary<string, List<ColumnInfo>>())
-        {
-        }
-
-        /// <summary>
         /// Constructor from the given schema and role/column-name pairs.
         /// This skips null or empty column-names. It will also skip column-names that are not
         /// found in the schema if <paramref name="opt"/> is true.
@@ -398,7 +389,7 @@ namespace Microsoft.ML.Runtime.Data
         /// values for the column names that does not appear in <paramref name="schema"/> will result iin an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
         /// <param name="roles">The column role to column name mappings</param>
-        public RoleMappedSchema(ISchema schema, bool opt, params KeyValuePair<ColumnRole, string>[] roles)
+        public RoleMappedSchema(ISchema schema, bool opt = false, params KeyValuePair<ColumnRole, string>[] roles)
             : this(Contracts.CheckRef(schema, nameof(schema)), Contracts.CheckRef(roles, nameof(roles)), opt)
         {
         }
@@ -466,52 +457,6 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValueOrNull(name);
             Contracts.CheckValueOrNull(custom);
         }
-
-        /// <summary>
-        /// Creates a RoleMappedSchema from the given schema with no column role assignments.
-        /// </summary>
-        [Obsolete("Please shift to using the constructor")]
-        public static RoleMappedSchema Create(ISchema schema)
-        {
-            Contracts.CheckValue(schema, nameof(schema));
-            return new RoleMappedSchema(schema, new Dictionary<string, List<ColumnInfo>>());
-        }
-
-        /// <summary>
-        /// Creates a RoleMappedSchema from the given schema and role/column-name pairs.
-        /// This skips null or empty column-names.
-        /// </summary>
-        [Obsolete("Please shift to using the constructor with opt: false")]
-        public static RoleMappedSchema Create(ISchema schema, params KeyValuePair<ColumnRole, string>[] roles)
-        {
-            Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckValue(roles, nameof(roles));
-            return new RoleMappedSchema(schema, MapFromNames(schema, roles));
-        }
-
-        /// <summary>
-        /// Creates a RoleMappedSchema from the given schema and role/column-name pairs.
-        /// This skips null or empty column-names.
-        /// </summary>
-        [Obsolete("Please shift to using the constructor")]
-        public static RoleMappedSchema Create(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles)
-        {
-            Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckValue(roles, nameof(roles));
-            return new RoleMappedSchema(schema, MapFromNames(schema, roles));
-        }
-
-        /// <summary>
-        /// Creates a RoleMappedSchema from the given schema and role/column-name pairs.
-        /// This skips null or empty column-names, or column-names that are not found in the schema.
-        /// </summary>
-        [Obsolete("Please shift to using the constructor with opt: true")]
-        public static RoleMappedSchema CreateOpt(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles)
-        {
-            Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckValue(roles, nameof(roles));
-            return new RoleMappedSchema(schema, MapFromNames(schema, roles, opt: true));
-        }
     }
 
     /// <summary>
@@ -542,15 +487,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Constructor for the given schema with no column role assignments.
-        /// </summary>
-        /// <param name="data">The data over which no roles are defined</param>
-        public RoleMappedData(IDataView data)
-            : this(Contracts.CheckRef(data, nameof(data)), new RoleMappedSchema(data.Schema))
-        {
-        }
-
-        /// <summary>
         /// Constructor from the given data and role/column-name pairs.
         /// This skips null or empty column-names. It will also skip column-names that are not
         /// found in the schema if <paramref name="opt"/> is true.
@@ -560,7 +496,7 @@ namespace Microsoft.ML.Runtime.Data
         /// values for the column names that does not appear in <paramref name="data"/>'s schema will result iin an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
         /// <param name="roles">The column role to column name mappings</param>
-        public RoleMappedData(IDataView data, bool opt, params KeyValuePair<RoleMappedSchema.ColumnRole, string>[] roles)
+        public RoleMappedData(IDataView data, bool opt = false, params KeyValuePair<RoleMappedSchema.ColumnRole, string>[] roles)
             : this(Contracts.CheckRef(data, nameof(data)), new RoleMappedSchema(data.Schema, Contracts.CheckRef(roles, nameof(roles)), opt))
         {
         }
@@ -606,52 +542,6 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValueOrNull(weight);
             Contracts.CheckValueOrNull(name);
             Contracts.CheckValueOrNull(custom);
-        }
-
-        /// <summary>
-        /// Creates a RoleMappedData from the given data with no column role assignments.
-        /// </summary>
-        [Obsolete("Use the corresponding constructor instead")]
-        public static RoleMappedData Create(IDataView data)
-        {
-            Contracts.CheckValue(data, nameof(data));
-            return new RoleMappedData(data, RoleMappedSchema.Create(data.Schema));
-        }
-
-        /// <summary>
-        /// Creates a RoleMappedData from the given schema and role/column-name pairs.
-        /// This skips null or empty column-names.
-        /// </summary>
-        [Obsolete("Use the corresponding constructor instead")]
-        public static RoleMappedData Create(IDataView data, params KeyValuePair<RoleMappedSchema.ColumnRole, string>[] roles)
-        {
-            Contracts.CheckValue(data, nameof(data));
-            Contracts.CheckValue(roles, nameof(roles));
-            return new RoleMappedData(data, RoleMappedSchema.Create(data.Schema, roles));
-        }
-
-        /// <summary>
-        /// Creates a RoleMappedData from the given schema and role/column-name pairs.
-        /// This skips null or empty column-names.
-        /// </summary>
-        [Obsolete("Use the corresponding constructor instead")]
-        public static RoleMappedData Create(IDataView data, IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> roles)
-        {
-            Contracts.CheckValue(data, nameof(data));
-            Contracts.CheckValue(roles, nameof(roles));
-            return new RoleMappedData(data, RoleMappedSchema.Create(data.Schema, roles));
-        }
-
-        /// <summary>
-        /// Creates a RoleMappedData from the given schema and role/column-name pairs.
-        /// This skips null or empty column-names, or column-names that are not found in the schema.
-        /// </summary>
-        [Obsolete("Use the corresponding constructor instead with opt: false")]
-        public static RoleMappedData CreateOpt(IDataView data, IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> roles)
-        {
-            Contracts.CheckValue(data, nameof(data));
-            Contracts.CheckValue(roles, nameof(roles));
-            return new RoleMappedData(data, RoleMappedSchema.CreateOpt(data.Schema, roles));
         }
     }
 }
