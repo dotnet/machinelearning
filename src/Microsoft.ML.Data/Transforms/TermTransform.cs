@@ -210,12 +210,15 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
+        /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
+        /// If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').</param>
         public TermTransform(IHostEnvironment env,
             IDataView input,
             string name,
             string source = null,
-            int maxNumTerms = Defaults.MaxNumTerms)
-            : this(env, new Arguments() { Column = new[] { new Column() { Name = name, Source = source ?? name } }, MaxNumTerms = maxNumTerms }, input)
+            int maxNumTerms = Defaults.MaxNumTerms,
+            SortOrder sort = Defaults.Sort)
+            : this(env, new Arguments() { Column = new[] { new Column() { Name = name, Source = source ?? name } }, MaxNumTerms = maxNumTerms, Sort = sort }, input)
         {
         }
 

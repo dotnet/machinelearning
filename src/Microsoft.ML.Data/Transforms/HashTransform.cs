@@ -43,20 +43,6 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Arguments
         {
-            public Arguments()
-            {
-
-            }
-
-            public Arguments(string name, string source)
-            {
-                Column = new[] { new Column(){
-                    Source = source ?? name,
-                    Name = name
-                    }
-                };
-            }
-
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col",
                 SortOrder = 1)]
             public Column[] Column;
@@ -271,7 +257,9 @@ namespace Microsoft.ML.Runtime.Data
             string source = null,
             int hashBits = Defaults.HashBits,
             int invertHash = Defaults.InvertHash)
-            : this(env, new Arguments(name, source) { HashBits = hashBits, InvertHash = invertHash }, input)
+            : this(env, new Arguments() {
+                Column = new[] { new Column() { Source = source ?? name, Name = name } },
+                HashBits = hashBits, InvertHash = invertHash }, input)
         {
         }
 

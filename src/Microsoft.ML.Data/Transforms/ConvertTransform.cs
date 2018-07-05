@@ -108,16 +108,6 @@ namespace Microsoft.ML.Runtime.Data
 
         public class Arguments : TransformInputBase
         {
-            public Arguments()
-            {
-
-            }
-
-            public Arguments(string name, string source)
-            {
-                Column = new[] { new Column() { Source = source ?? name, Name = name } };
-            }
-
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:type:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
@@ -187,14 +177,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be converted.  If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="resultType">The expected type of the converted column.</param>
-        /// <param name="keyRange">For a key column, this defines the range of values.</param>
         public ConvertTransform(IHostEnvironment env,
             IDataView input,
             string name,
             string source = null,
-            DataKind? resultType = null,
-            KeyRange keyRange = null)
-            : this(env, new Arguments(name, source) { ResultType = resultType, KeyRange = keyRange }, input)
+            DataKind? resultType = DataKind.Num)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, ResultType = resultType }, input)
         {
         }
 

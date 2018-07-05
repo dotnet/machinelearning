@@ -58,6 +58,20 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Arguments
         {
+            public Arguments()
+            {
+
+            }
+
+            public Arguments(params string[] columns)
+            {
+                Column = new Column[columns.Length];
+                for (int i = 0; i < columns.Length; i++)
+                {
+                    Column[i] = new Column() { Source = columns[i], Name = columns[i] };
+                }
+            }
+
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
@@ -447,10 +461,9 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the selected column.  If this is null '<paramref name="name"/>' will be used.</param>
-        public ChooseColumnsTransform(IHostEnvironment env, IDataView input, string name, string source = null)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } } }, input)
+        /// <param name="columns">Names of the columns to choose.</param>
+        public ChooseColumnsTransform(IHostEnvironment env, IDataView input, params string[] columns)
+            : this(env, new Arguments(columns), input)
         {
         }
 

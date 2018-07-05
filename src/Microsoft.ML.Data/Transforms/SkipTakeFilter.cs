@@ -108,36 +108,12 @@ namespace Microsoft.ML.Runtime.Data
             return new SkipTakeFilter(skip, take, env, input);
         }
 
-        /// <summary>
-        /// A helper method to create 'SkipFilter' for public facing API.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">>Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="count">Number of rows to skip</param>
-        /// <returns></returns>
-        public static SkipTakeFilter CreateSkipFilter(IHostEnvironment env, IDataView input, long count = Arguments.DefaultSkip)
-        {
-            return Create(env, new SkipArguments() { Count = count }, input);
-        }
-
         public static SkipTakeFilter Create(IHostEnvironment env, SkipArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckUserArg(args.Count >= 0, nameof(args.Count), "should be non-negative");
             return new SkipTakeFilter(args.Count, Arguments.DefaultTake, env, input);
-        }
-
-        /// <summary>
-        /// A helper method to create 'TakeFilter' for public facing API.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">>Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="count">Number of rows to take</param>
-        /// <returns></returns>
-        public static SkipTakeFilter CreateTakeFilter(IHostEnvironment env, IDataView input, long count = Arguments.DefaultTake)
-        {
-            return Create(env, new TakeArguments() { Count = count }, input);
         }
 
         public static SkipTakeFilter Create(IHostEnvironment env, TakeArguments args, IDataView input)
@@ -293,5 +269,31 @@ namespace Microsoft.ML.Runtime.Data
                 return Root.MoveMany(count);
             }
         }
+    }
+
+    public static class SkipFilter
+    {
+        /// <summary>
+        /// A helper method to create <see cref="SkipFilter"/> for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">>Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="count">Number of rows to skip</param>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, long count = SkipTakeFilter.Arguments.DefaultSkip)
+            => SkipTakeFilter.Create(env, new SkipTakeFilter.SkipArguments() { Count = count }, input);
+    }
+
+    public static class TakeFilter
+    {
+
+
+        /// <summary>
+        /// A helper method to create <see cref="TakeFilter"/> for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">>Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="count">Number of rows to take</param>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, long count = SkipTakeFilter.Arguments.DefaultTake)
+            => SkipTakeFilter.Create(env, new SkipTakeFilter.TakeArguments() { Count = count }, input);
     }
 }
