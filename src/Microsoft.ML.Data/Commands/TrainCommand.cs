@@ -571,45 +571,5 @@ namespace Microsoft.ML.Runtime.Data
             }
             return customColumnArg.Select(kindName => new ColumnRole(kindName.Key).Bind(kindName.Value));
         }
-
-        /// <summary>
-        /// Given a view and a bunch of column names, create the RoleMappedData object. Any or all of the column
-        /// names may be null or whitespace, in which case they are ignored. Any columns that are specified must
-        /// be valid columns of the schema.
-        /// </summary>
-        [Obsolete("Please use the constructor on " + nameof(RoleMappedData) + " directly")]
-        public static RoleMappedData CreateExamples(IDataView view, string label, string feature,
-            string group = null, string weight = null, string name = null,
-            IEnumerable<KeyValuePair<ColumnRole, string>> custom = null)
-        {
-            Contracts.CheckValueOrNull(label);
-            Contracts.CheckValueOrNull(feature);
-            Contracts.CheckValueOrNull(group);
-            Contracts.CheckValueOrNull(weight);
-            Contracts.CheckValueOrNull(name);
-            Contracts.CheckValueOrNull(custom);
-
-            return new RoleMappedData(view, label, feature, group, weight, name, custom);
-        }
-
-        /// <summary>
-        /// Given a view and a bunch of column names, create the RoleMappedData object. Any or all of the column
-        /// names may be null or whitespace, in which case they are ignored. Any columns that are specified but not
-        /// valid columns of the schema are also ignored.
-        /// </summary>
-        [Obsolete("Please use the constructor on " + nameof(RoleMappedData) + " directly with opt: true")]
-        public static RoleMappedData CreateExamplesOpt(IDataView view, string label, string feature,
-            string group = null, string weight = null, string name = null,
-            IEnumerable<KeyValuePair<ColumnRole, string>> custom = null)
-        {
-            Contracts.CheckValueOrNull(label);
-            Contracts.CheckValueOrNull(feature);
-            Contracts.CheckValueOrNull(group);
-            Contracts.CheckValueOrNull(weight);
-            Contracts.CheckValueOrNull(name);
-            Contracts.CheckValueOrNull(custom);
-
-            return new RoleMappedData(view, label, feature, group, weight, name, custom, opt: true);
-        }
     }
 }
