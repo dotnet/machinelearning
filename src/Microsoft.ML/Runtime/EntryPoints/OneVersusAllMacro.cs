@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     input.WeightColumn, DefaultColumnNames.Weight);
 
                 // Get number of classes
-                var data = TrainUtils.CreateExamples(input.TrainingData, label, feature, null, weight);
+                var data = new RoleMappedData(input.TrainingData, label, feature, null, weight);
                 data.CheckMultiClassLabel(out var numClasses);
                 return numClasses;
             }

@@ -64,10 +64,10 @@ namespace Microsoft.ML.Runtime.Sweeper
             SweepParameters = sweepParameters;
         }
 
-        public virtual ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns)
+        public virtual ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns = null)
         {
             var prevParamSets = previousRuns?.Select(r => r.ParameterSet).ToList() ?? new List<ParameterSet>();
-            var result = new List<ParameterSet>();
+            var result = new HashSet<ParameterSet>();
             for (int i = 0; i < maxSweeps; i++)
             {
                 ParameterSet paramSet;
@@ -150,12 +150,12 @@ namespace Microsoft.ML.Runtime.Sweeper
             }
         }
 
-        public override ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns)
+        public override ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns = null)
         {
             if (_nGridPoints == 0)
                 return base.ProposeSweeps(maxSweeps, previousRuns);
 
-            var result = new List<ParameterSet>();
+            var result = new HashSet<ParameterSet>();
             var prevParamSets = (previousRuns != null)
                 ? previousRuns.Select(r => r.ParameterSet).ToList()
                 : new List<ParameterSet>();

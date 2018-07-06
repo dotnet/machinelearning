@@ -6,6 +6,7 @@ using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CSharp;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -279,10 +280,22 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 case TlcModule.DataKind.Bool:
                     return (bool)fieldValue ? "true" : "false";
                 case TlcModule.DataKind.Enum:
+                    string enumAsString = fieldValue.ToString();
+                    if (fieldType.GetField(enumAsString).GetCustomAttribute<HideEnumValueAttribute>() != null)
+                    {
+                        // The default value for the enum has the hiding attribute on it. We will search for
+                        // alternate names. Regrettably I see no way beyond a manual scan.
+
+                        string unhiddenName = Enum.GetNames(fieldType).Zip(Enum.GetValues(fieldType).Cast<object>(), (name, val) => (name, val))
+                            .Where(pair => pair.val.Equals(fieldValue))
+                            .Where(pair => fieldType.GetField(pair.name).GetCustomAttribute<HideEnumValueAttribute>() == null)
+                            .Select(pair => pair.name).FirstOrDefault();
+                        enumAsString = unhiddenName ?? throw Contracts.Except($"Could not find unhidden alternative for '{fieldValue}' in type '{fieldType}'");
+                    }
                     if (generatedClasses.IsGenerated(fieldType.FullName))
-                        return generatedClasses.GetApiName(fieldType, rootNameSpace) + "." + fieldValue;
+                        return generatedClasses.GetApiName(fieldType, rootNameSpace) + "." + enumAsString;
                     else
-                        return generatedClasses.GetApiName(fieldType, "Runtime") + "." + fieldValue;
+                        return generatedClasses.GetApiName(fieldType, "Runtime") + "." + enumAsString;
                 case TlcModule.DataKind.Char:
                     return $"'{GetCharAsString((char)fieldValue)}'";
                 case TlcModule.DataKind.Component:
@@ -336,7 +349,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             return $"{Capitalize(component.Name)}{component.Kind}";
         }
 
-        public static void GenerateSummary(IndentingTextWriter writer, string summary)
+        public static void GenerateSummary(IndentingTextWriter writer, string summary, string remarks = null)
         {
             if (string.IsNullOrEmpty(summary))
                 return;
@@ -344,6 +357,10 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             foreach (var line in summary.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                 writer.WriteLine($"/// {line}");
             writer.WriteLine("/// </summary>");
+
+            if(!string.IsNullOrEmpty(remarks))
+                foreach (var line in remarks.Split(new[] { Environment.NewLine }, StringSplitOptions.None))
+                    writer.WriteLine($"/// {line}");
         }
 
         public static void GenerateHeader(IndentingTextWriter writer)

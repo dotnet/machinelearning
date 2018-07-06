@@ -1,0 +1,44 @@
+maml.exe CV tr=LightGBMR{nt=1 iter=50 em=rmse v=+ lr=0.2 mil=10 nl=20} threads=- dout=%Output% loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+} data=%Data% seed=1
+Not adding a normalizer.
+Auto-tuning parameters: UseCat = False
+LightGBM objective=regression
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Auto-tuning parameters: UseCat = False
+LightGBM objective=regression
+Not training a calibrator because it is not needed.
+L1(avg):            0.529227
+L2(avg):            0.479877
+RMS(avg):           0.692731
+Loss-fn(avg):       0.479877
+R Squared:          0.383532
+L1(avg):            0.519622
+L2(avg):            0.463327
+RMS(avg):           0.680681
+Loss-fn(avg):       0.463327
+R Squared:          0.413465
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):            0.524425 (0.0048)
+L2(avg):            0.471602 (0.0083)
+RMS(avg):           0.686706 (0.0060)
+Loss-fn(avg):       0.471602 (0.0083)
+R Squared:          0.398499 (0.0150)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Loading data for LightGBM' started.
+[1] 'Loading data for LightGBM' finished in %Time%.
+[2] 'Training with LightGBM' started.
+[2] (%Time%)	Iteration: 50	Training-rmse: 0.444161678699535
+[2] 'Training with LightGBM' finished in %Time%.
+[3] 'Loading data for LightGBM #2' started.
+[3] 'Loading data for LightGBM #2' finished in %Time%.
+[4] 'Training with LightGBM #2' started.
+[4] (%Time%)	Iteration: 50	Training-rmse: 0.447777922357938
+[4] 'Training with LightGBM #2' finished in %Time%.

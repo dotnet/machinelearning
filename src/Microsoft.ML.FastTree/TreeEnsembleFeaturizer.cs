@@ -393,8 +393,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return new KeyValuePair<RoleMappedSchema.ColumnRole, string>(
-                    RoleMappedSchema.ColumnRole.Feature, _inputSchema.Feature.Name);
+                yield return RoleMappedSchema.ColumnRole.Feature.Bind(_inputSchema.Feature.Name);
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)

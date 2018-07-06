@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 // Create the chain of transforms for saving.
                 IDataView data = new EmptyDataView(env, _transformModel.InputSchema);
                 data = _transformModel.Apply(env, data);
-                var roleMappedData = RoleMappedData.CreateOpt(data, _roleMappings);
+                var roleMappedData = new RoleMappedData(data, _roleMappings, opt: true);
 
                 TrainUtils.SaveModel(env, ch, stream, _predictor, roleMappedData);
                 ch.Done();
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.CheckValue(input, nameof(input));
 
             input = _transformModel.Apply(env, input);
-            roleMappedData = RoleMappedData.CreateOpt(input, _roleMappings);
+            roleMappedData = new RoleMappedData(input, _roleMappings, opt: true);
             predictor = _predictor;
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             Contracts.CheckValue(env, nameof(env));
             var predInput = _transformModel.Apply(env, new EmptyDataView(env, _transformModel.InputSchema));
-            var trainRms = RoleMappedSchema.CreateOpt(predInput.Schema, _roleMappings);
+            var trainRms = new RoleMappedSchema(predInput.Schema, _roleMappings, opt: true);
             return trainRms;
         }
     }
