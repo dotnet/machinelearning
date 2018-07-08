@@ -17,21 +17,21 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Ensemble.EntryPoints
 {
     [TlcModule.Component(Name = DisagreementDiversityMeasure.LoadName, FriendlyName = DisagreementDiversityMeasure.UserName)]
-    public sealed class DisagreementDiversityFactory : ISupportDiversityMeasureFactory<Single>
+    public sealed class DisagreementDiversityFactory : ISupportBinaryDiversityMeasureFactory
     {
-        public IDiversityMeasure<float> CreateComponent(IHostEnvironment env) => new DisagreementDiversityMeasure();
+        public IBinaryDiversityMeasure CreateComponent(IHostEnvironment env) => new DisagreementDiversityMeasure();
     }
 
     [TlcModule.Component(Name = RegressionDisagreementDiversityMeasure.LoadName, FriendlyName = DisagreementDiversityMeasure.UserName)]
-    public sealed class RegressionDisagreementDiversityFactory : ISupportDiversityMeasureFactory<Single>
+    public sealed class RegressionDisagreementDiversityFactory : ISupportRegressionDiversityMeasureFactory
     {
-        public IDiversityMeasure<float> CreateComponent(IHostEnvironment env) => new RegressionDisagreementDiversityMeasure();
+        public IRegressionDiversityMeasure CreateComponent(IHostEnvironment env) => new RegressionDisagreementDiversityMeasure();
     }
 
     [TlcModule.Component(Name = MultiDisagreementDiversityMeasure.LoadName, FriendlyName = DisagreementDiversityMeasure.UserName)]
-    public sealed class MultiDisagreementDiversityFactory : ISupportDiversityMeasureFactory<VBuffer<Single>>
+    public sealed class MultiDisagreementDiversityFactory : ISupportMulticlassDiversityMeasureFactory
     {
-        public IDiversityMeasure<VBuffer<Single>> CreateComponent(IHostEnvironment env) => new MultiDisagreementDiversityMeasure();
+        public IMulticlassDiversityMeasure CreateComponent(IHostEnvironment env) => new MultiDisagreementDiversityMeasure();
     }
 
 }

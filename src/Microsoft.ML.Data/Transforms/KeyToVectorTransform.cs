@@ -244,10 +244,9 @@ namespace Microsoft.ML.Runtime.Data
         protected override bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
         {
             string opType = "OneHotEncoder";
-            var node = OnnxUtils.MakeNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            OnnxUtils.NodeAddAttributes(node, "cats_int64s", Enumerable.Range(1, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
-            OnnxUtils.NodeAddAttributes(node, "zeros", true);
-            ctx.AddNode(node);
+            var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+            node.AddAttribute("cats_int64s", Enumerable.Range(1, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
+            node.AddAttribute("zeros", true);
             return true;
         }
 

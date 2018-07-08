@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
                 // REVIEW: Should we somehow allow the user to customize the evaluator?
                 // By what mechanism should we allow that?
                 var evalComp = GetEvaluatorSubComponent();
-                RoleMappedData scoredTestData = RoleMappedData.Create(scorePipe,
+                RoleMappedData scoredTestData = new RoleMappedData(scorePipe,
                     GetColumnRoles(testData.Schema, scorePipe.Schema));
                 IEvaluator evaluator = evalComp.CreateInstance(Host);
                 // REVIEW: with the new evaluators, metrics of individual models are no longer

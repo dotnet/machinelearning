@@ -206,11 +206,9 @@ namespace Microsoft.ML.Runtime.Data
             if (Bindings.InfoCount >= 3 && ctx.ContainsColumn(outColumnNames[2]))
             {
                 string opType = "Binarizer";
-                var node = OnnxUtils.MakeNode(opType, new List<string> { ctx.GetVariableName(outColumnNames[2]) },
-                    new List<string> { ctx.GetVariableName(outColumnNames[0]) }, ctx.GetNodeName(opType));
-
-                OnnxUtils.NodeAddAttributes(node, "threshold", 0.5);
-                ctx.AddNode(node);
+                var node = ctx.CreateNode(opType, new[] { ctx.GetVariableName(outColumnNames[2]) },
+                    new[] { ctx.GetVariableName(outColumnNames[0]) }, ctx.GetNodeName(opType));
+                node.AddAttribute("threshold", 0.5);
             }
         }
 

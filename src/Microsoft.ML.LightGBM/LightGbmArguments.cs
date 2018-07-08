@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
     public interface IBoosterParameter
     {
-        void UpdateParameters(Dictionary<string, string> res);
+        void UpdateParameters(Dictionary<string, object> res);
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             /// <summary>
             /// Update the parameters by specific Booster, will update parameters into "res" directly.
             /// </summary>
-            public virtual void UpdateParameters(Dictionary<string, string> res)
+            public virtual void UpdateParameters(Dictionary<string, object> res)
             {
                 FieldInfo[] fields = Args.GetType().GetFields();
                 foreach (var field in fields)
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 Contracts.CheckUserArg(Args.ScalePosWeight > 0 && Args.ScalePosWeight <= 1, nameof(Args.ScalePosWeight), "must be in (0,1].");
             }
 
-            public override void UpdateParameters(Dictionary<string, string> res)
+            public override void UpdateParameters(Dictionary<string, object> res)
             {
                 base.UpdateParameters(res);
                 res["boosting_type"] = Name;
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 Contracts.CheckUserArg(Args.SkipDrop >= 0 && Args.SkipDrop < 1, nameof(Args.SkipDrop), "must be in [0,1).");
             }
 
-            public override void UpdateParameters(Dictionary<string, string> res)
+            public override void UpdateParameters(Dictionary<string, object> res)
             {
                 base.UpdateParameters(res);
                 res["boosting_type"] = Name;
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 Contracts.Check(Args.TopRate + Args.OtherRate <= 1, "Sum of topRate and otherRate cannot be larger than 1.");
             }
 
-            public override void UpdateParameters(Dictionary<string, string> res)
+            public override void UpdateParameters(Dictionary<string, object> res)
             {
                 base.UpdateParameters(res);
                 res["boosting_type"] = Name;
@@ -355,11 +355,11 @@ namespace Microsoft.ML.Runtime.LightGBM
         [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
         public ISupportParallel ParallelTrainer = new SingleTrainerFactory();
 
-        internal Dictionary<string, string> ToDictionary(IHost host)
+        internal Dictionary<string, object> ToDictionary(IHost host)
         {
             Contracts.CheckValue(host, nameof(host));
             Contracts.CheckUserArg(MaxBin > 0, nameof(MaxBin), "must be > 0.");
-            Dictionary<string, string> res = new Dictionary<string, string>();
+            Dictionary<string, object> res = new Dictionary<string, object>();
 
             var boosterParams = Booster.CreateComponent(host);
             boosterParams.UpdateParameters(res);

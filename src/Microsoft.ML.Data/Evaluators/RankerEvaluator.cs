@@ -851,7 +851,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             var cols = base.GetInputColumnRolesCore(schema);
             var groupIdCol = EvaluateUtils.GetColName(_groupIdCol, schema.Group, DefaultColumnNames.GroupId);
-            return cols.Prepend(RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Group, groupIdCol));
+            return cols.Prepend(RoleMappedSchema.ColumnRole.Group.Bind(groupIdCol));
         }
 
         protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
@@ -1039,7 +1039,7 @@ namespace Microsoft.ML.Runtime.Data
                 nameof(RankerMamlEvaluator.Arguments.GroupIdColumn),
                 input.GroupIdColumn, DefaultColumnNames.GroupId);
             var evaluator = new RankerMamlEvaluator(host, input);
-            var data = TrainUtils.CreateExamples(input.Data, label, null, groupId, weight, name);
+            var data = new RoleMappedData(input.Data, label, null, groupId, weight, name);
             var metrics = evaluator.Evaluate(data);
 
             var warnings = ExtractWarnings(host, metrics);

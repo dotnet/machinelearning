@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Data
             public KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] Transform;
         }
 
-        internal struct TransformEx
+        private struct TransformEx
         {
             public readonly string Tag;
             public readonly string ArgsString;
@@ -78,16 +78,14 @@ namespace Microsoft.ML.Runtime.Data
         // The composition of loader plus transforms in order.
         private readonly IDataLoader _loader;
         private readonly TransformEx[] _transforms;
-        private readonly IDataView _view;
         private readonly ITransposeDataView _tview;
-        private readonly ITransposeSchema _tschema;
         private readonly IHost _host;
 
         /// <summary>
         /// Returns the underlying data view of the composite loader.
         /// This can be used to programmatically explore the chain of transforms that's inside the composite loader.
         /// </summary>
-        internal IDataView View { get { return _view; } }
+        public IDataView View { get; }
 
         /// <summary>
         /// Creates a loader according to the specified <paramref name="args"/>.
@@ -200,7 +198,7 @@ namespace Microsoft.ML.Runtime.Data
             IDataLoader pipeStart;
             if (composite != null)
             {
-                srcView = composite._view;
+                srcView = composite.View;
                 exes.AddRange(composite._transforms);
                 pipeStart = composite._loader;
             }
@@ -409,9 +407,9 @@ namespace Microsoft.ML.Runtime.Data
             _host = host;
             _host.AssertNonEmpty(transforms);
 
-            _view = transforms[transforms.Length - 1].Transform;
-            _tview = _view as ITransposeDataView;
-            _tschema = _tview == null ? new TransposerUtils.SimpleTransposeSchema(_view.Schema) : _tview.TransposeSchema;
+            View = transforms[transforms.Length - 1].Transform;
+            _tview = View as ITransposeDataView;
+            TransposeSchema = _tview?.TransposeSchema ?? new TransposerUtils.SimpleTransposeSchema(View.Schema);
 
             var srcLoader = transforms[0].Transform.Source as IDataLoader;
 
@@ -561,29 +559,20 @@ namespace Microsoft.ML.Runtime.Data
 
         public long? GetRowCount(bool lazy = true)
         {
-            return _view.GetRowCount(lazy);
+            return View.GetRowCount(lazy);
         }
 
-        public bool CanShuffle
-        {
-            get { return _view.CanShuffle; }
-        }
+        public bool CanShuffle => View.CanShuffle;
 
-        public ISchema Schema
-        {
-            get { return _view.Schema; }
-        }
+        public ISchema Schema => View.Schema;
 
-        public ITransposeSchema TransposeSchema
-        {
-            get { return _tschema; }
-        }
+        public ITransposeSchema TransposeSchema { get; }
 
         public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return _view.GetRowCursor(predicate, rand);
+            return View.GetRowCursor(predicate, rand);
         }
 
         public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
@@ -591,13 +580,13 @@ namespace Microsoft.ML.Runtime.Data
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return _view.GetRowCursorSet(out consolidator, predicate, n, rand);
+            return View.GetRowCursorSet(out consolidator, predicate, n, rand);
         }
 
         public ISlotCursor GetSlotCursor(int col)
         {
             _host.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
-            if (_tschema == null || _tschema.GetSlotType(col) == null)
+            if (TransposeSchema?.GetSlotType(col) == null)
             {
                 throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
                     Schema.GetColumnName(col));

@@ -82,6 +82,31 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected string InnerArgs => CmdParser.GetSettings(Host, Args, new TArgs());
 
+        internal const string Remarks = @"<remarks>
+<para>FastTrees is an efficient implementation of the <a href='https://arxiv.org/abs/1505.01866'>MART</a> gradient boosting algorithm. 
+Gradient boosting is a machine learning technique for regression problems. 
+It builds each regression tree in a step-wise fashion, using a predefined loss function to measure the error for each step and corrects for it in the next. 
+So this prediction model is actually an ensemble of weaker prediction models. In regression problems, boosting builds a series of of such trees in a step-wise fashion and then selects the optimal tree using an arbitrary differentiable loss function.
+</para>
+<para>
+MART learns an ensemble of regression trees, which is a decision tree with scalar values in its leaves. 
+A decision (or regression) tree is a binary tree-like flow chart, where at each interior node one decides which of the two child nodes to continue to based on one of the feature values from the input. 
+At each leaf node, a value is returned. In the interior nodes, the decision is based on the test 'x <= v' where x is the value of the feature in the input sample and v is one of the possible values of this feature. 
+The functions that can be produced by a regression tree are all the piece-wise constant functions.
+</para>
+<para>
+The ensemble of trees is produced by computing, in each step, a regression tree that approximates the gradient of the loss function, and adding it to the previous tree with coefficients that minimize the loss of the new tree.
+The output of the ensemble produced by MART on a given instance is the sum of the tree outputs.
+</para>
+<list type='bullet'>
+<item>In case of a binary classification problem, the output is converted to a probability by using some form of calibration.</item>
+<item>In case of a regression problem, the output is the predicted value of the function.</item>
+<item>In case of a ranking problem, the instances are ordered by the output value of the ensemble.</item>
+</list>
+<a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</a>.
+<a href='http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine.</a>.
+</remarks>";
+
         public override bool NeedNormalization => false;
 
         public override bool WantCaching => false;
@@ -1338,33 +1363,30 @@ namespace Microsoft.ML.Runtime.FastTree
                     IDataView data = examples.Data;
 
                     // Convert the label column, if one exists.
-                    var labelInfo = examples.Schema.Label;
-                    if (labelInfo != null)
+                    var labelName = examples.Schema.Label?.Name;
+                    if (labelName != null)
                     {
                         var convArgs = new LabelConvertTransform.Arguments();
-                        var convCol = new LabelConvertTransform.Column() { Name = labelInfo.Name, Source = labelInfo.Name };
+                        var convCol = new LabelConvertTransform.Column() { Name = labelName, Source = labelName };
                         convArgs.Column = new LabelConvertTransform.Column[] { convCol };
                         data = new LabelConvertTransform(Host, convArgs, data);
-                        labelInfo = ColumnInfo.CreateFromName(data.Schema, convCol.Name, "converted label");
                     }
                     // Convert the group column, if one exists.
-                    var groupInfo = examples.Schema.Group;
-                    if (groupInfo != null)
+                    if (examples.Schema.Group != null)
                     {
                         var convArgs = new ConvertTransform.Arguments();
                         var convCol = new ConvertTransform.Column
                         {
                             ResultType = DataKind.U8
                         };
-                        convCol.Name = convCol.Source = groupInfo.Name;
+                        convCol.Name = convCol.Source = examples.Schema.Group.Name;
                         convArgs.Column = new ConvertTransform.Column[] { convCol };
                         data = new ConvertTransform(Host, convArgs, data);
-                        groupInfo = ColumnInfo.CreateFromName(data.Schema, convCol.Name, "converted group id");
                     }
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.
-                    examples = RoleMappedData.Create(data, examples.Schema.GetColumnRoleNames());
+                    examples = new RoleMappedData(data, examples.Schema.GetColumnRoleNames());
 
                     // Get the index of the columns in the transposed view, while we're at it composing
                     // the list of the columns we want to transpose.
@@ -3108,26 +3130,24 @@ namespace Microsoft.ML.Runtime.FastTree
             }
 
             string opType = "TreeEnsembleRegressor";
-            var node = OnnxUtils.MakeNode(opType, new List<string> { featureColumn },
-                new List<string>(outputNames), ctx.GetNodeName(opType));
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputNames, ctx.GetNodeName(opType));
 
-            OnnxUtils.NodeAddAttributes(node, "post_transform", PostTransform.None.GetDescription());
-            OnnxUtils.NodeAddAttributes(node, "n_targets", 1);
-            OnnxUtils.NodeAddAttributes(node, "base_values", new List<float>() { 0 });
-            OnnxUtils.NodeAddAttributes(node, "aggregate_function", AggregateFunction.Sum.GetDescription());
-            OnnxUtils.NodeAddAttributes(node, "nodes_treeids", nodesTreeids);
-            OnnxUtils.NodeAddAttributes(node, "nodes_nodeids", nodesIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_featureids", nodesFeatureIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_modes", nodeModes);
-            OnnxUtils.NodeAddAttributes(node, "nodes_values", nodesValues);
-            OnnxUtils.NodeAddAttributes(node, "nodes_truenodeids", nodesTrueNodeIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_falsenodeids", nodesFalseNodeIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_missing_value_tracks_true", missingValueTracksTrue);
-            OnnxUtils.NodeAddAttributes(node, "target_treeids", classTreeIds);
-            OnnxUtils.NodeAddAttributes(node, "target_nodeids", classNodeIds);
-            OnnxUtils.NodeAddAttributes(node, "target_ids", classIds);
-            OnnxUtils.NodeAddAttributes(node, "target_weights", classWeights);
-            ctx.AddNode(node);
+            node.AddAttribute("post_transform", PostTransform.None.GetDescription());
+            node.AddAttribute("n_targets", 1);
+            node.AddAttribute("base_values", new List<float>() { 0 });
+            node.AddAttribute("aggregate_function", AggregateFunction.Sum.GetDescription());
+            node.AddAttribute("nodes_treeids", nodesTreeids);
+            node.AddAttribute("nodes_nodeids", nodesIds);
+            node.AddAttribute("nodes_featureids", nodesFeatureIds);
+            node.AddAttribute("nodes_modes", nodeModes);
+            node.AddAttribute("nodes_values", nodesValues);
+            node.AddAttribute("nodes_truenodeids", nodesTrueNodeIds);
+            node.AddAttribute("nodes_falsenodeids", nodesFalseNodeIds);
+            node.AddAttribute("nodes_missing_value_tracks_true", missingValueTracksTrue);
+            node.AddAttribute("target_treeids", classTreeIds);
+            node.AddAttribute("target_nodeids", classNodeIds);
+            node.AddAttribute("target_ids", classIds);
+            node.AddAttribute("target_weights", classWeights);
 
             return true;
         }
