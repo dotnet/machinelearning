@@ -36,8 +36,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    /// <include file = '../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name="LBFGS"]/*' />
-    /// <include file = '../../docs/code/xmlIncludes/Learners.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
+    /// <include file = './XMLDoc.xml' path='docs/members/member[@name="LBFGS"]/*' />
+    /// <include file = './XMLDoc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
     public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<VBuffer<Float>, MulticlassLogisticRegressionPredictor>
     {
         public const string LoadNameValue = "MultiClassLogisticRegression";
@@ -966,8 +966,8 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = Summary,
             UserName = MulticlassLogisticRegression.UserNameValue,
             ShortName = MulticlassLogisticRegression.ShortName,
-            XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name=""LBFGS""]/*' />",
-                                 @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/example[@name=""LogisticRegressionClassifier""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/XMLDoc.xml' path='docs/members/member[@name=""LBFGS""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/XMLDoc.xml' path='docs/members/example[@name=""LogisticRegressionClassifier""]/*' />" })]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

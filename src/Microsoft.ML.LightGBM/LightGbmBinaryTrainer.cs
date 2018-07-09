@@ -81,7 +81,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
     }
 
-    /// <include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name="LightGBM"]/*' />
+    /// <include file='./XMLDoc.xml' path='docs/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float, IPredictorWithFeatureWeights<float>>
     {
         internal const string UserName = "LightGBM Binary Classifier";
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             Desc = LightGbmBinaryTrainer.Summary,
             UserName = LightGbmBinaryTrainer.UserName, 
             ShortName = LightGbmBinaryTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name=""LightGBM""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/XMLDoc.xml' path='docs/members/member[@name=""LightGBM""]/*' />" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));

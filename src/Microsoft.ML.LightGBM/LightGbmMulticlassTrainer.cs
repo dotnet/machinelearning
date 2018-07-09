@@ -18,7 +18,7 @@ using Microsoft.ML.Runtime.LightGBM;
 namespace Microsoft.ML.Runtime.LightGBM
 {
 
-    /// <include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name="LightGBM"]/*' />
+    /// <include file='./XMLDoc.xml' path='docs/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<VBuffer<float>, OvaPredictor>
     {
         public const string Summary = "LightGBM Multi Class Classifier";
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             Desc = "Train a LightGBM multi class model.", 
             UserName = LightGbmMulticlassTrainer.Summary, 
             ShortName = LightGbmMulticlassTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name=""LightGBM""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/XMLDoc.xml' path='docs/members/member[@name=""LightGBM""]/*' />" })]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));

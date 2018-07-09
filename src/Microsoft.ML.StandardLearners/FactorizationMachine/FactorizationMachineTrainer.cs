@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
      [2] http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
      [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
     */
-    /// <include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
+    /// <include file='./XMLDoc.xml' path='docs/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
     public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<RoleMappedData, FieldAwareFactorizationMachinePredictor>,
         IIncrementalTrainer<RoleMappedData, FieldAwareFactorizationMachinePredictor>, IValidatingTrainer<RoleMappedData>,
         IIncrementalValidatingTrainer<RoleMappedData, FieldAwareFactorizationMachinePredictor>
@@ -407,7 +407,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             Desc = Summary,
             UserName = UserName,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name=""FieldAwareFactorizationMachineBinaryClassifier""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/FactorizationMachine/XMLDoc.xml' path='docs/members/member[@name=""FieldAwareFactorizationMachineBinaryClassifier""]/*' />" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

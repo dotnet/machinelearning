@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using TPredictor = LinearRegressionPredictor;
 
-    /// <include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name="OGD"]/*' />
+    /// <include file='./XMLDoc.xml' path='docs/members/member[@name="OGD"]/*' />
     public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<OnlineGradientDescentTrainer.Arguments, TPredictor>
     {
         internal const string LoadNameValue = "OnlineGradientDescent";
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = "Train a Online gradient descent perceptron.",
             UserName = UserNameValue,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name=""OGD""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/XMLDoc.xml' path='docs/members/member[@name=""OGD""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

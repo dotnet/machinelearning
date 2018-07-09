@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public override PredictionKind PredictionKind { get { return PredictionKind.Ranking; } }
     }
 
-    /// <include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name="LightGBM"]/*' />
+    /// <include file='./XMLDoc.xml' path='docs/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<float, LightGbmRankingPredictor>
     {
         public const string UserName = "LightGBM Ranking";
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             Desc = "Train a LightGBM ranking model.", 
             UserName = LightGbmRankingTrainer.UserName, 
             ShortName = LightGbmRankingTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name=""LightGBM""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/XMLDoc.xml' path='docs/members/member[@name=""LightGBM""]/*' />" })]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));

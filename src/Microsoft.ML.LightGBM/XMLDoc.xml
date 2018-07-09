@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<docs>
+  <members>
+    
+    <member name="LightGBM">
+      <summary>
+        Trains a Light GBM Model.
+      </summary>
+      <remarks>
+        Light GBM is an open source implementation of boosted trees.
+        <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a>
+      </remarks>
+    </member>
+
+  </members>
+</docs>
