@@ -433,13 +433,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var eval = GetEvaluator(env, input.Kind);
 
             var perInst = EvaluateUtils.ConcatenatePerInstanceDataViews(env, eval, true, true, input.PerInstanceMetrics.Select(
-                idv => RoleMappedData.CreateOpt(idv, new[]
-                {
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, input.LabelColumn),
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Weight, input.WeightColumn.Value),
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Group, input.GroupColumn.Value),
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Name, input.NameColumn.Value)
-                })).ToArray(),
+                idv => new RoleMappedData(idv, opt: true,
+                    RoleMappedSchema.ColumnRole.Label.Bind(input.LabelColumn),
+                    RoleMappedSchema.ColumnRole.Weight.Bind(input.WeightColumn.Value),
+                    RoleMappedSchema.ColumnRole.Group.Bind(input.GroupColumn),
+                    RoleMappedSchema.ColumnRole.Name.Bind(input.NameColumn.Value))).ToArray(),
                 out var variableSizeVectorColumnNames);
 
             var warnings = input.Warnings != null ? new List<IDataView>(input.Warnings) : new List<IDataView>();

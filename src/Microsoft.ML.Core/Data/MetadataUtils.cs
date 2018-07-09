@@ -312,7 +312,6 @@ namespace Microsoft.ML.Runtime.Data
         public static void GetSlotNames(RoleMappedSchema schema, RoleMappedSchema.ColumnRole role, int vectorSize, ref VBuffer<DvText> slotNames)
         {
             Contracts.CheckValueOrNull(schema);
-            Contracts.CheckValue(role.Value, nameof(role));
             Contracts.CheckParam(vectorSize >= 0, nameof(vectorSize));
 
             IReadOnlyList<ColumnInfo> list;

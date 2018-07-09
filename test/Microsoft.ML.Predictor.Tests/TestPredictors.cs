@@ -599,7 +599,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var fastTree = combiner.CombineModels(fastTrees.Select(pm => pm.Predictor as IPredictorProducing<float>));
 
-            var data = RoleMappedData.Create(idv, RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"));
+            var data = new RoleMappedData(idv, label: null, feature: "Features");
             var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModel(Env, data, idv, fastTree) }).ScoredData;
             Assert.True(scored.Schema.TryGetColumnIndex("Score", out int scoreCol));
             Assert.True(scored.Schema.TryGetColumnIndex("Probability", out int probCol));
@@ -1537,10 +1537,10 @@ output Out [3] from H all;
                             Column = new[] { new NormalizeTransform.AffineColumn() { Name = "Features", Source = "Features" } }
                         },
                      trainView);
-                var trainData = TrainUtils.CreateExamples(trainView, "Label", "Features");
+                var trainData = new RoleMappedData(trainView, "Label", "Features");
                 IDataView testView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
                 ApplyTransformUtils.ApplyAllTransformsToData(env, trainView, testView);
-                var testData = TrainUtils.CreateExamples(testView, "Label", "Features");
+                var testData = new RoleMappedData(testView, "Label", "Features");
 
                 CompareSvmToLibSvmCore("linear kernel", "LinearKernel", env, trainData, testData);
                 CompareSvmToLibSvmCore("polynomial kernel", "PolynomialKernel{d=2}", env, trainData, testData);

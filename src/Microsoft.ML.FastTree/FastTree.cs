@@ -1361,7 +1361,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.
-                    examples = RoleMappedData.Create(data, examples.Schema.GetColumnRoleNames());
+                    examples = new RoleMappedData(data, examples.Schema.GetColumnRoleNames());
 
                     // Get the index of the columns in the transposed view, while we're at it composing
                     // the list of the columns we want to transpose.

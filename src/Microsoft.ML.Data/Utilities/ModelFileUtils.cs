@@ -338,7 +338,7 @@ namespace Microsoft.ML.Runtime.Model
             if (roleMappings == null)
                 return null;
             var pipe = ModelFileUtils.LoadLoader(h, rep, new MultiFileSource(null), loadTransforms: true);
-            return RoleMappedSchema.Create(pipe.Schema, roleMappings);
+            return new RoleMappedSchema(pipe.Schema, roleMappings);
         }
 
         /// <summary>

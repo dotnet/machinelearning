@@ -796,7 +796,7 @@ namespace Microsoft.ML.Runtime.Data
             string name;
             MatchColumns(host, input, out label, out weight, out name);
             var evaluator = new AnomalyDetectionMamlEvaluator(host, input);
-            var data = TrainUtils.CreateExamples(input.Data, label, null, null, weight, name);
+            var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 
             var warnings = ExtractWarnings(host, metrics);

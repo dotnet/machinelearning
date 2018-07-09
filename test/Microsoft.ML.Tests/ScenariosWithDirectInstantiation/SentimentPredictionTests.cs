@@ -78,7 +78,7 @@ namespace Microsoft.ML.Scenarios
                     MinDocumentsInLeafs = 2
                 });
 
-                var trainRoles = TrainUtils.CreateExamples(trans, label: "Label", feature: "Features");
+                var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 trainer.Train(trainRoles);
 
                 // Get scorer and evaluate the predictions from test data
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Scenarios
 
         private BinaryClassificationMetrics EvaluateBinary(IHostEnvironment env, IDataView scoredData)
         {
-            var dataEval = TrainUtils.CreateExamplesOpt(scoredData, label: "Label", feature: "Features");
+            var dataEval = new RoleMappedData(scoredData, label: "Label", feature: "Features", opt: true);
 
             // Evaluate.
             // It does not work. It throws error "Failed to find 'Score' column" when Evaluate is called

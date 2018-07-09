@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 host, "FeatureSelector", data.Data, name, name, type, type,
                 (ref VBuffer<Single> src, ref VBuffer<Single> dst) => SelectFeatures(ref src, features, card, ref dst));
 
-            var res = RoleMappedData.Create(view, data.Schema.GetColumnRoleNames());
+            var res = new RoleMappedData(view, data.Schema.GetColumnRoleNames());
             return res;
         }
 
