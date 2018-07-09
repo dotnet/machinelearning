@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Data
 
             }
 
-            public Arguments(params string[] columns)
+            internal Arguments(params string[] columns)
             {
                 Column = new Column[columns.Length];
                 for (int i = 0; i < columns.Length; i++)
