@@ -35,7 +35,8 @@ namespace Microsoft.ML.Runtime.LightGBM
                 // verWrittenCur: 0x00010002, // _numFeatures serialized
                 // verWrittenCur: 0x00010003, // Ini content out of predictor
                 // verWrittenCur: 0x00010004, // Add _defaultValueForMissing
-                verWrittenCur: 0x00010005, // Categorical splits.
+                //verWrittenCur: 0x00010005, // Categorical splits.
+                verWrittenCur: 0x00010006, // Categorical splits with feature gains.
                 verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
@@ -46,6 +47,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         protected override uint VerDefaultValueSerialized { get { return 0x00010004; } }
 
         protected override uint VerCategoricalSplitSerialized { get { return 0x00010005; } }
+        protected override uint VerCategoricalSplitWithGainsSerialized { get { return 0x00010006; } }
 
         internal LightGbmRegressionPredictor(IHostEnvironment env, FastTree.Internal.Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)

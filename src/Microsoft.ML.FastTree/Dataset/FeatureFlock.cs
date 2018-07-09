@@ -362,7 +362,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                         continue;
 
                     // If this point in the code is reached, the flock is splittable.
-                    IsSplittable[0] = true;
+                    IsSplittable[subfeature] = true;
 
                     // Is t the best threshold so far?
                     if (currentShiftedGain > bestShiftedGain)

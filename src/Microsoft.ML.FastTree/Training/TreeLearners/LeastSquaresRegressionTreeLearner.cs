@@ -491,8 +491,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             BestSplitInfoPerLeaf[leaf].Feature = bestFeature;
             if (BestSplitInfoPerLeaf[leaf].CategoricalSplit)
             {
-                Array.Sort(BestSplitInfoPerLeaf[leaf].CategoricalFeatureIndices);
                 SetCategoricalFeatureGains(ref BestSplitInfoPerLeaf[leaf], stats, leafSplitCandidates);
+                Array.Sort(BestSplitInfoPerLeaf[leaf].CategoricalFeatureIndices);
             }
         }
 
@@ -508,39 +508,14 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             double sumTargets = leafSplitCandidates.SumTargets;
             double sumWeights = leafSplitCandidates.SumWeights + 2 * eps;
             double previousShiftGain = 0;
-            double gainShift = GetLeafSplitGain(totalCount, sumTargets, sumWeights);
-            double trust = TrainData.Flocks[splitInfo.Flock].Trust(0);
             int firstFlockFeature = GetActiveFeatures(featureMin, featureMin + TrainData.Flocks[splitInfo.Flock].Count).First();
-            double usePenalty = (FeatureUseCount[firstFlockFeature] == 0)
-                ? FeatureFirstUsePenalty
-                : FeatureReusePenalty * Math.Log(FeatureUseCount[firstFlockFeature] + 1);
-
-            int zeroCountBins = 0;
-            for (int i = 0; i < splitInfo.CategoricalFeatureIndices.Length; i++)
-            {
-                int featureIndex = splitInfo.CategoricalFeatureIndices[i] - featureMin;
-
-                Contracts.Assert(featureIndex >= 0);
-
-                if (stats.GetBinStats(stats.GetMinBorder(featureIndex)).Count == 0)
-                    zeroCountBins++;
-            }
-
-            if (zeroCountBins == splitInfo.CategoricalFeatureIndices.Length)
-                return;
-
-            //During feature split evaluation step the accumalated gain is subtracted from gainShift and multiplied with trust and 
-            //penalty. The below equation seperates out this quantity from each feature gain so that the cumulative 
-            //feature gain is roughly the same as the gain calculated in the feature split evaluation step.
-            double gainResidual = (gainShift * trust + usePenalty) / (splitInfo.CategoricalFeatureIndices.Length - zeroCountBins);
+            double totalGain = 0;
+            double gainShift = GetLeafSplitGain(totalCount, sumTargets, sumWeights);
+            double minShiftedGain = GainConfidenceInSquaredStandardDeviations <= 0 ? 0.0 : 
+                (GainConfidenceInSquaredStandardDeviations * leafSplitCandidates.VarianceTargets * totalCount / (totalCount - 1) + gainShift);
 
             for (int i = 0; i < splitInfo.CategoricalFeatureIndices.Length; i++)
             {
-                //REVIEW: For categorical split points some gain values can be negative because when gain
-                //map is built we have to reverse engineer what each feature-value's gain was from the total 
-                //gain of split at that node. The reason we chose to do this way was to speed things up and 
-                //reduce memory footprint during training time. A better solution would be to keep track 
-                //of each split point's contribution during training but that is an expensive approach.
                 int featureIndex = splitInfo.CategoricalFeatureIndices[i] - featureMin;
 
                 Contracts.Assert(featureIndex >= 0);
@@ -554,34 +529,31 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 {
                     gtCount += binStats.Count;
                     int lteCount = totalCount - gtCount;
-                    double currentShiftedGain = GetLeafSplitGain(gtCount, sumGTTargets, sumGTWeights)
-                                                +
-                                                GetLeafSplitGain(lteCount, sumTargets - sumGTTargets,
-                                                    sumWeights - sumGTWeights);
+                    double currentShiftedGain = ComputeShiftGain(minShiftedGain, totalCount, gtCount, 
+                        lteCount, sumTargets, sumGTTargets, sumGTWeights, sumWeights);
 
-                    if (EntropyCoefficient > 0)
-                    {
-                        double entropyGain = (totalCount * Math.Log(totalCount) - lteCount * Math.Log(lteCount) -
-                                              gtCount * Math.Log(gtCount));
+                    Contracts.Assert(currentShiftedGain >= 0);
 
-                        currentShiftedGain += EntropyCoefficient * entropyGain;
-                    }
+                    splitInfo.CategoricalFeatureGain[i] = currentShiftedGain - previousShiftGain;
 
-                    splitInfo.CategoricalFeatureGain[i] = (currentShiftedGain - previousShiftGain) * trust - gainResidual;
+                    //This split point didn't really bring any positive gain. 
+                    if(splitInfo.CategoricalFeatureGain[i] < 0)
+                        splitInfo.CategoricalFeatureGain[i] = 0;
+
+                    totalGain += splitInfo.CategoricalFeatureGain[i];
                     previousShiftGain = currentShiftedGain;
                 }
                 else
                     splitInfo.CategoricalFeatureGain[i] = 0;
             }
 
-#if DEBUG
-            double sumGain = splitInfo.CategoricalFeatureGain.Sum();
-            double min = Math.Min(sumGain, splitInfo.Gain);
-            double max = Math.Max(sumGain, splitInfo.Gain);
+            if (totalGain == 0)
+                return;
 
-            Contracts.Assert(min / max >= 0.99999);
+            //Split the gain based on the contribution towards shift gain.
+            for (int i = 0; i < splitInfo.CategoricalFeatureGain.Length; i++)
+                splitInfo.CategoricalFeatureGain[i] = (splitInfo.CategoricalFeatureGain[i] / totalGain) * splitInfo.Gain;
 
-#endif
         }
 
         public double ComputeShiftGain(double minShiftedGain, int totalCount, int gtCount,
