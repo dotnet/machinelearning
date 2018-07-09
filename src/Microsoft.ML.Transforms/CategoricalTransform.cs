@@ -244,6 +244,7 @@ namespace Microsoft.ML.Runtime.Data
     public static class Categorical
     {
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalOneHotVectorizer", 
+            Desc = CategoricalTransform.Summary,
             UserName = CategoricalTransform.UserName, 
             XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Transforms.xml' path='docs/members/member[@name=""CategoricalOneHotVectorizer""]/*' />" })]
         public static CommonOutputs.TransformOutput CatTransformDict(IHostEnvironment env, CategoricalTransform.Arguments input)
@@ -258,6 +259,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer", 
+            Desc = CategoricalHashTransform.Summary,
             UserName = CategoricalHashTransform.UserName ,
             XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Transforms.xml' path='docs/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />" })]
         public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, CategoricalHashTransform.Arguments input)

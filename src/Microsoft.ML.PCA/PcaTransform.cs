@@ -538,6 +538,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator", 
+            Desc = Summary,
             UserName = UserName, 
             ShortName = ShortName, 
             XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Pca.xml' path='docs/members/member[@name=""PCA""]/*' />" })]
