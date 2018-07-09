@@ -308,7 +308,7 @@ namespace Microsoft.ML.Runtime.PCA
     // - - If the error is close to 0, the instance is considered normal (non-anomaly).
     // REVIEW: move the predictor to a different file and fold EigenUtils.cs to this file.
     // REVIEW: Include the above detail in the XML documentation file. 
-    /// <include file='../../docs/code/xmlIncludes/StandardLearners.xml' path='docs/members/member[@name="SDCA"]/*' />
+    /// <include file='../../docs/code/xmlIncludes/PCA.xml' path='docs/members/member[@name="PCA"]/*' />
     public sealed class PcaPredictor : PredictorBase<Float>,
         IValueMapper,
         ICanGetSummaryAsIDataView,
