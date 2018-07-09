@@ -336,13 +336,16 @@ namespace Microsoft.ML.Runtime.FastTree
         }
     }
 
+    /// <summary>
+    /// The Entry Point for the FastTree Binary Classifier. 
+    /// </summary>
     public static partial class FastTree
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeBinaryClassifier",
             Desc = FastTreeBinaryClassificationTrainer.Summary,
-            Remarks = FastTreeBinaryClassificationTrainer.Remarks,
             UserName = FastTreeBinaryClassificationTrainer.UserNameValue,
-            ShortName = FastTreeBinaryClassificationTrainer.ShortName)]
+            ShortName = FastTreeBinaryClassificationTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name=""FastTree""]/*' />" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastTreeBinaryClassificationTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

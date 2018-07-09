@@ -137,6 +137,7 @@ namespace Microsoft.ML.Runtime.FastTree
         }
     }
 
+    /// <include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestRegression : RandomForestTrainerBase<FastForestRegression.Arguments, FastForestRegressionPredictor>
     {
         public sealed class Arguments : FastForestArgumentsBase
@@ -282,9 +283,9 @@ namespace Microsoft.ML.Runtime.FastTree
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastForestRegressor",
             Desc = FastForestRegression.Summary,
-            Remarks = FastForestRegression.Remarks,
             UserName = FastForestRegression.LoadNameValue,
-            ShortName = FastForestRegression.ShortName)]
+            ShortName = FastForestRegression.ShortName,
+            XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name=""FastForest""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastForestRegression.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<docs>
+  <members>
+
+    <member name="CategoricalHashOneHotVectorizer">
+      <summary>
+        Encodes the categorical variable with hash-based encoding. 
+      </summary>
+      <remarks>
+        CategoricalHashOneHotVectorizer converts a categorical value into an indicator array by hashing the
+        value and using the hash as an index in the bag.
+        If the input column is a vector, a single indicator bag is returned for it.
+      </remarks>
+      <example>
+        <code>
+          pipeline.Add(new CategoricalHashOneHotVectorizer(&quot;Text1&quot;) { HashBits = 10, Seed = 314489979, OutputKind = CategoricalTransformOutputKind.Bag });
+        </code>
+      </example>
+    </member>
+
+    <member name="CategoricalOneHotVectorizer">
+      <summary>
+        Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array
+      </summary>
+      <remarks>
+        <para>The CategoricalOneHotVectorizer transform passes through a data set, operating on text columns, to
+        build a dictionary of categories.
+        For each row, the entire text string appearing in the input column is defined as a category.
+        The output of this transform is an indicator vector.
+        Each slot in this vector corresponds to a category in the dictionary, so its length is the size of the built dictionary.
+        The CategoricalOneHotVectorizer can be applied to one or more columns, in which case it builds and uses a separate dictionary
+        for each column that it is applied to.</para>
+        
+        <para>The <see cref="Microsoft.ML.Runtime.Data.CategoricalTransform.OutputKind"/> produces integer values and <see cref="KeyType"/> columns.
+        The Key value is the one-based index of the slot set in the Ind/Bag options.
+        If the Key option is not found, it is assigned the value zero.
+        In the <see cref="CategoricalTransform.OutputKind.Ind"/>, <see cref="CategoricalTransform.OutputKind.Bag"/> options are not found, they result in an all zero bit vector.
+        <see cref="CategoricalTransform.OutputKind.Ind"/> and <see cref="CategoricalTransform.OutputKind.Bag"/> differ simply in how the bit-vectors generated from individual slots are aggregated:
+        for Ind they are concatenated and for Bag they are added.
+        When the source column is a singleton, the Ind and Bag options are identical.</para>
+      </remarks>
+      <example>
+        An example of how to add the CategoricalOneHotVectorizer transform to a pipeline with two text column 
+        features named &quot;Text1&quot; and &quot;Text2&quot;.
+        <code>
+          pipeline.Add(new CategoricalOneHotVectorizer(&quot;Text1&quot;, &quot;Text1&quot;));
+        </code>
+      </example>
+    </member>
+  
+  </members>
+</docs>

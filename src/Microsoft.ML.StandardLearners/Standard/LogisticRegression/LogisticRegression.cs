@@ -30,6 +30,8 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using Mkl = Microsoft.ML.Runtime.Learners.OlsLinearRegressionTrainer.Mkl;
 
+    /// <include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name="LBFGS"]/*' />
+    /// <include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
     public sealed partial class LogisticRegression : LbfgsTrainerBase<Float, ParameterMixingCalibratedPredictor>
     {
         public const string LoadNameValue = "LogisticRegression";
@@ -388,9 +390,11 @@ namespace Microsoft.ML.Runtime.Learners
 
         [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionBinaryClassifier",
             Desc = Summary,
-            Remarks = Remarks,
             UserName = UserNameValue,
-            ShortName = ShortName)]
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name=""LBFGS""]/*' />",
+                                 @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/example[@name=""LogisticRegressionBinaryClassifier""]/*' />"})]
+                            
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -1,0 +1,274 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<docs>
+  <members>
+    
+    <member name="FieldAwareFactorizationMachineBinaryClassifier">
+      <summary>
+        Train a field-aware factorization machine for binary classification using ADAGRAD (an advanced stochastic gradient method). 
+      </summary>
+      <remarks>
+        Field Aware Factorization Machines use, in addition to the input variables, factorized parameters to model the interaction between pairs of variables.
+        The algorithm is particularly useful for high dimensional datasets which can be very sparse (e.g. click-prediction for advertising systems).
+        An advantage of FFM over SVMs is that the training data does not need to be stored in memory, and the coefficients can be optimized directly.
+        <para> For a general idea of what Field-aware Factorization Machines are see: <a href='https://www.csie.ntu.edu.tw/~r01922136/slides/ffm.pdf'>Field Aware Factorization Machines</a>
+        </para>
+        <para>See references below for more details. 
+        This trainer is essentially faster the one introduced in [2] because of some implemtation tricks[3].
+        </para>
+          <list >
+            <item>
+              <description>
+                [1] <a href='http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf'>Field-aware Factorization Machines for CTR Prediction</a></description></item>
+            <item>
+              <description>
+                [2] <a href='http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf'>Adaptive Subgradient Methods for Online Learning and Stochastic Optimization</a>
+              </description>
+            </item>
+            <item>
+              <description>
+                [3] <a href='https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf'>An Improved Stochastic Gradient Method for Training Large-scale Field-aware Factorization Machine.</a>
+              </description>
+            </item>
+          </list>
+      </remarks>
+      <example>
+        <code>
+          pipeline.Add(new FieldAwareFactorizationMachineBinaryClassifier(){ LearningRate = 0.5f, Iter=2 });
+        </code>
+      </example>
+    </member>
+
+    <member name="SDCA">
+      <summary>
+        Train an SDCA linear model.
+      </summary>
+      <remarks>
+        This classifier is a trainer based on the Stochastic DualCoordinate Ascent(SDCA) method, a state-of-the-art optimization technique for convex objective functions.
+        The algorithm can be scaled for use on large out-of-memory data sets due to a semi-asynchronized implementation that supports multi-threading.
+        <para>
+          Convergence is underwritten by periodically enforcing synchronization between primal and dual updates in a separate thread.
+          Several choices of loss functions are also provided.
+          The SDCA method combines several of the best properties and capabilities of logistic regression and SVM algorithms.
+        </para>
+        <para>
+          Note that SDCA is a stochastic and streaming optimization algorithm.
+          The results depends on the order of the training data. For reproducible results, it is recommended that one sets 'Shuffle' to
+          False and 'NumThreads' to 1.
+          Elastic net regularization can be specified by the 'L2Const' and 'L1Threshold' parameters. Note that the 'L2Const' has an effect on the rate of convergence.
+          In general, the larger the 'L2Const', the faster SDCA converges.
+        </para>
+        <a href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</a>.
+        <a href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</a>.
+      </remarks>
+    </member>
+
+    <member name="FastTree">
+      <summary>
+        Trains gradient boosted decision trees to the LambdaRank quasi-gradient. 
+      </summary>
+      <remarks>
+        <para>
+          FastTrees is an efficient implementation of the <a href='https://arxiv.org/abs/1505.01866'>MART</a> gradient boosting algorithm.
+          Gradient boosting is a machine learning technique for regression problems.
+          It builds each regression tree in a step-wise fashion, using a predefined loss function to measure the error for each step and corrects for it in the next.
+          So this prediction model is actually an ensemble of weaker prediction models. In regression problems, boosting builds a series of of such trees in a step-wise fashion and then selects the optimal tree using an arbitrary differentiable loss function.
+        </para>
+        <para>
+          MART learns an ensemble of regression trees, which is a decision tree with scalar values in its leaves.
+          A decision (or regression) tree is a binary tree-like flow chart, where at each interior node one decides which of the two child nodes to continue to based on one of the feature values from the input.
+          At each leaf node, a value is returned. In the interior nodes, the decision is based on the test 'x &lt;= v' where x is the value of the feature in the input sample and v is one of the possible values of this feature.
+          The functions that can be produced by a regression tree are all the piece-wise constant functions.
+        </para>
+        <para>
+          The ensemble of trees is produced by computing, in each step, a regression tree that approximates the gradient of the loss function, and adding it to the previous tree with coefficients that minimize the loss of the new tree.
+          The output of the ensemble produced by MART on a given instance is the sum of the tree outputs.
+        </para>
+        <list type='bullet'>
+          <item>In case of a binary classification problem, the output is converted to a probability by using some form of calibration.</item>
+          <item>In case of a regression problem, the output is the predicted value of the function.</item>
+          <item>In case of a ranking problem, the instances are ordered by the output value of the ensemble.</item>
+        </list>
+        <a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</a>.
+        <a href='http://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine.</a>.
+      </remarks>
+    </member>
+    
+    <member name="FastForest">
+      <summary>
+        Trains a random forest to fit target values using least-squares.
+      </summary>
+      <remarks>
+        Decision trees are non-parametric models that perform a sequence of simple tests on inputs.
+        This decision procedure maps them to outputs found in the training dataset whose inputs were similar to the instance being processed.
+        A decision is made at each node of the binary tree data structure based on a measure of similarity that maps each instance recursively through the branches of the tree until the appropriate leaf node is reached and the output decision returned.
+        <para>Decision trees have several advantages:</para>
+        <list type='bullet'>
+          <item><description>They are efficient in both computation and memory usage during training and prediction. </description></item>
+          <item><description>They can represent non-linear decision boundaries.</description></item>
+          <item><description>They perform integrated feature selection and classification. </description></item>
+          <item><description>They are resilient in the presence of noisy features.</description></item>
+        </list>
+        Fast forest is a random forest implementation.
+        The model consists of an ensemble of decision trees. Each tree in a decision forest outputs a Gaussian distribution by way of prediction.
+        An aggregation is performed over the ensemble of trees to find a Gaussian distribution closest to the combined distribution for all trees in the model.
+        This decision forest classifier consists of an ensemble of decision trees.
+        Generally, ensemble models provide better coverage and accuracy than single decision trees.
+        Each tree in a decision forest outputs a Gaussian distribution.
+        <a href='http://en.wikipedia.org/wiki/Random_forest'>Wikipedia: Random forest</a>
+        <a href='http://jmlr.org/papers/volume7/meinshausen06a/meinshausen06a.pdf'>Quantile regression forest</a>
+        <a href='https://blogs.technet.microsoft.com/machinelearning/2014/09/10/from-stumps-to-trees-to-forests/'>From Stumps to Trees to Forests</a>
+      </remarks>
+    </member>
+
+    <member name="LightGBM">
+      <summary>
+        Trains a Light GBM Model.
+      </summary>
+      <remarks>
+        Light GBM is an open source implementation of boosted trees.
+        <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a>
+      </remarks>
+    </member>
+
+    <member name="LBFGS">
+      <summary>
+        Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as a classification algorithm. 
+        The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.
+      </summary>
+      <remarks>
+        If the dependent variable has more than two possible values (blood type given diagnostic test results), then the logistic regression is multinomial.
+        <para>
+          The optimization technique used for LogisticRegression Classifier is the limited memory Broyden-Fletcher-Goldfarb-Shanno (L-BFGS).
+          Both the L-BFGS and regular BFGS algorithms use quasi-Newtonian methods to estimate the computationally intensive Hessian matrix in the equation used by Newton's method to calculate steps.
+          But the L-BFGS approximation uses only a limited amount of memory to compute the next step direction,
+          so that it is especially suited for problems with a large number of variables.
+          The <paramref>MemorySize</paramref> parameter specifies the number of past positions and gradients to store for use in the computation of the next step.
+        </para>
+        <para>
+          This learner can use elastic net regularization: a linear combination of L1 (lasso) and L2 (ridge) regularizations.
+          Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information to supplement the data and that prevents overfitting by penalizing models with extreme coefficient values.
+          This can improve the generalization of the model learned by selecting the optimal complexity in the bias-variance tradeoff.
+          Regularization works by adding the penalty that is associated with coefficient values to the error of the hypothesis.
+          An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less. L1 and L2 regularization have different effects and uses that are complementary in certain respects.
+        </para>
+          <list type='bullet'>
+            <item>
+              <description>
+              <paramref>L1Weight</paramref>: can be applied to sparse models, when working with high-dimensional data.
+              It pulls small weights associated features that are relatively unimportant towards 0.
+            </description>
+            </item>
+            <item>
+              <description>
+                <paramref>L2Weight</paramref>: is preferable for data that is not sparse. It pulls large weights towards zero.
+              </description>
+            </item>
+          </list>
+          Adding the ridge penalty to the regularization overcomes some of lasso's limitations. It can improve its predictive accuracy, for example, when the number of predictors is greater than the sample size. If x = l1_weight and y = l2_weight, ax + by = c defines the linear span of the regularization terms.
+          The default values of x and y are both 1.
+          An agressive regularization can harm predictive capacity by excluding important variables out of the model. So choosing the optimal values for the regularization parameters is important for the performance of the logistic regression model.
+        <para>For more information see:</para>
+        <list type='bullet'>
+          <item><description><a href='http://research.microsoft.com/apps/pubs/default.aspx?id=78900'>Scalable Training of L1-Regularized Log-Linear Models</a>.</description></item>
+          <item><description><a href='https://msdn.microsoft.com/en-us/magazine/dn904675.aspx'>Test Run - L1 and L2 Regularization for Machine Learning</a>.</description></item>
+          <item><description><a href='http://en.wikipedia.org/wiki/L-BFGS'>Wikipedia: L-BFGS</a>.</description></item>
+          <item><description><a href='http://en.wikipedia.org/wiki/Logistic_regression'>Wikipedia: Logistic regression</a>.</description></item>
+        </list>
+      </remarks>
+    </member>
+    <example name='LogisticRegressionClassifier'>
+      <example>
+        <code>
+          pipeline.Add(new LogisticRegressionClassifier());
+        </code>
+      </example>
+    </example>
+    <example name='LogisticRegressionBinaryClassifier'>
+      <example>
+        <code>
+          pipeline.Add(new LogisticRegressionBinaryClassifier());
+        </code>
+      </example>
+    </example>
+
+    <member name="KMeans++">
+      <summary>
+        K-means is a popular clustering algorithm. With K-means, the data is clustered into a specified 
+        number of clusters in order to minimize the within-cluster sum of squares.
+      </summary>
+      <remarks>
+        K-means++ improves upon K-means by using the <a href='http://research.microsoft.com/apps/pubs/default.aspx?id=252149'>Yinyang K-Means</a> method for choosing the initial cluster centers.
+        YYK-Means accelerates K-Means up to an order of magnitude while producing exactly the same clustering results (modulo floating point precision issues).
+        YYK-Means observes that there is a lot of redundancy across iterations in the KMeans algorithms and most points do not change their clusters during an iteration.
+        It uses various bounding techniques to identify this redundancy and eliminate many distance computations and optimize centroid computations.
+        <para>For more information on K-means, and K-means++ see:</para>
+        <para><a href='https://en.wikipedia.org/wiki/K-means_clustering'>K-means</a>.</para>
+        <para><a href='https://en.wikipedia.org/wiki/K-means%2b%2b'>K-means++</a></para>
+      </remarks>
+    </member>
+
+    <member name="OGD">
+      <summary>
+        Stochastic gradient descent is an optimization method used to train a wide range of models in machine learning. 
+        In the ML.Net the implementation of OGD, it is for linear regression. 
+      </summary>
+      <remarks>
+        Stochastic gradient descent uses a simple yet efficient iterative technique to fit model coefficients using error gradients for convex loss functions.
+        The OnlineGradientDescentRegressor implements the standard (non-batch) SGD, with a choice of loss functions,
+        and an option to update the weight vector using the average of the vectors seen over time (averaged argument is set to True by default).
+      </remarks>
+    </member>
+
+    <member name="AP">
+      <summary>
+        Averaged Perceptron Binary Classifier. 
+      </summary>
+      <remarks>
+        Perceptron is a classification algorithm that makes its predictions based on a linear function.
+        I.e., for an instance with feature values f0, f1,..., f_D-1, , the prediction is given by the sign of sigma[0,D-1] ( w_i * f_i), where w_0, w_1,...,w_D-1 are the weights computed by the algorithm.
+        <para>
+          Perceptron is an online algorithm, i.e., it processes the instances in the training set one at a time.
+          The weights are initialized to be 0, or some random values. Then, for each example in the training set, the value of sigma[0, D-1] (w_i * f_i) is computed.
+          If this value has the same sign as the label of the current example, the weights remain the same. If they have opposite signs,
+          the weights vector is updated by either subtracting or adding (if the label is negative or positive, respectively) the feature vector of the current example,
+          multiplied by a factor 0 &lt; a &lt;= 1, called the learning rate. In a generalization of this algorithm, the weights are updated by adding the feature vector multiplied by the learning rate,
+          and by the gradient of some loss function (in the specific case described above, the loss is hinge-loss, whose gradient is 1 when it is non-zero).
+        </para>
+        <para>
+          In Averaged Perceptron (AKA voted-perceptron), the weight vectors are stored,
+          together with a weight that counts the number of iterations it survived (this is equivalent to storing the weight vector after every iteration, regardless of whether it was updated or not).
+          The prediction is then calculated by taking the weighted average of all the sums sigma[0, D-1] (w_i * f_i) or the different weight vectors.
+        </para>
+        <para> For more information see:</para>
+        <para><a href='https://en.wikipedia.org/wiki/Perceptron'>Wikipedia entry for Perceptron</a></para>
+        <para><a href='http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200'>Large Margin Classification Using the Perceptron Algorithm</a></para>
+      </remarks>
+    </member>
+    
+    <member name="PoissonRegression">
+      <summary>
+        Trains a Poisson Regression model.  
+      </summary>
+      <remarks>
+        <a href='https://en.wikipedia.org/wiki/Poisson_regression'>Poisson regression</a> is a parameterized regression method.
+        It assumes that the log of the conditional mean of the dependent variable follows a linear function of the dependent variables.
+        Assuming that the dependent variable follows a Poisson distribution, the parameters of the regressor can be estimated by maximizing the likelihood of the obtained observations.
+      </remarks>
+    </member>
+
+    <member name="FastTreeTweedieRegression">
+      <summary>
+        Trains gradient boosted decision trees to fit target values using a Tweedie loss function. 
+        This learner is a generalization of Poisson, compound Poisson, and gamma regression.
+      </summary>
+      <remarks>
+        The Tweedie boosting model follows the mathematics established in <a href="https://arxiv.org/pdf/1508.06378.pdf">
+        Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models.</a> from Yang, Quan, and Zou. 
+        For an introduction to Gradient Boosting, and more information, see:
+        <para><a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</a></para>
+        <para><a href='http://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine</a></para>
+      </remarks>
+    </member>
+        
+  </members>
+</docs>
