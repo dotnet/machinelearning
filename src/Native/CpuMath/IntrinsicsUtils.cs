@@ -1,34 +1,32 @@
-﻿using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics;
+﻿using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
-using System.Security;
 using System;
 
 namespace Intrinsics
 {    public class IntrinsicsUtils
     {
-        internal static unsafe Vector128<float> Load1(float* src, int* idx)
+        private static unsafe Vector128<float> Load1(float* src, int* idx)
         {
             return Sse.SetScalarVector128(src[idx[0]]);
         }
 
-        internal static unsafe Vector128<float> Load4(float* src, int* idx)
+        private static unsafe Vector128<float> Load4(float* src, int* idx)
         {
             return Sse.SetVector128(src[idx[3]], src[idx[2]], src[idx[1]], src[idx[0]]);
         }
 
-        internal static Vector128<float> Rotate(Vector128<float> x)
+        private static Vector128<float> Rotate(Vector128<float> x)
         {
             return Sse.Shuffle(x, x, 0x39);
         }
 
-        internal static Vector128<float> RotateReverse(Vector128<float> x)
+        private static Vector128<float> RotateReverse(Vector128<float> x)
         {
             return Sse.Shuffle(x, x, 0x93);
         }
 
         // Warning: this operation changes the value of x => do not reuse x
-        internal static unsafe void Store4(Vector128<float> x, float* dst, int* idx)
+        private static unsafe void Store4(Vector128<float> x, float* dst, int* idx)
         {
             Sse.StoreScalar(dst + idx[0], x);
             for (int i = 1; i <= 3; i++)
@@ -38,7 +36,89 @@ namespace Intrinsics
             }
         }
 
-        internal static float DotUSse(float[] src, float[] dst)
+        //// Multiply matrix times vector into vector.
+        //private static float MatMulASse(bool add, float[] matrix, float[] src, float[] dst)
+        //{
+        //    unsafe
+        //    {
+        //        fixed (float* psrc = src)
+        //        fixed (float* pdst = dst)
+        //        fixed (float* pmat = matrix)
+        //        {
+        //            float* pSrcCurrent = psrc;
+        //            float* pDstCurrent = pdst;
+        //            float* pSrcEnd = psrc + src.Length;
+        //            float* pDstEnd = pdst + dst.Length;
+        //            float* pMatCurrent = pmat;
+
+        //            while (pDstCurrent < pDstEnd)
+        //            {
+        //                float* pMatTemp = pMatCurrent;
+        //                Vector128<float> matVector1 = Sse.LoadAlignedVector128(pMatTemp);
+        //                Vector128<float> matVector2 = Sse.LoadAlignedVector128(pMatTemp += src.Length);
+        //                Vector128<float> matVector3 = Sse.LoadAlignedVector128(pMatTemp += src.Length);
+        //                Vector128<float> matVector4 = Sse.LoadAlignedVector128(pMatTemp += src.Length);
+
+        //                Vector128<float> srcVector = Sse.LoadAlignedVector128(pSrcCurrent);
+
+
+        //                result = Sse.Add(result, Sse.Multiply(srcVector, dstVector));
+
+        //                pDstCurrent += 4;
+        //                pMatCurrent += 3 * src.Length;
+        //            }
+
+        //            if (Sse3.IsSupported)
+        //            {
+        //                // SSE3 is supported.
+        //                result = Sse3.HorizontalAdd(result, result);
+        //                result = Sse3.HorizontalAdd(result, result);
+        //            }
+        //            else
+        //            {
+        //                // SSE3 is not supported.
+        //                result = Sse.Add(result, Sse.MoveHighToLow(result, result));
+        //                result = Sse.Add(result, Sse.MoveHighToLow(result, Sse.UnpackLow(result, result)));
+        //            }
+
+
+        //            while (pSrcCurrent < pEnd)
+        //            {
+        //                Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
+        //                Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
+
+        //                result = Sse.AddScalar(result, Sse.MultiplyScalar(srcVector, dstVector));
+
+        //                pSrcCurrent++;
+        //                pDstCurrent++;
+        //            }
+        //        }
+        //    }
+
+        //    return Sse.ConvertToSingle(result);
+        //}
+
+
+        //public static float MatMulA((bool add, float[] matrix, float[] src, float[] dst)
+        //{
+
+        //    if (Sse.IsSupported)
+        //    {
+        //        return MatMulASse(add, matrix, src, dst);
+        //    }
+        //    else
+        //    {
+        //        // Software fallback.
+        //        float result = 0;
+        //        for (int i = 0; i < src.Length; i++)
+        //        {
+        //            result += src[i] * dst[i];
+        //        }
+        //        return result;
+        //    }
+        //}
+
+        private static float DotUSse(float[] src, float[] dst, int count)
         {
             Vector128<float> result = Sse.SetZeroVector128();
 
@@ -50,7 +130,7 @@ namespace Intrinsics
                 {
                     float* pSrcCurrent = psrc;
                     float* pDstCurrent = pdst;
-                    float* pEnd = psrc + src.Length;
+                    float* pEnd = psrc + count;
 
                     while (pSrcCurrent + 4 <= pEnd)
                     {
@@ -94,18 +174,17 @@ namespace Intrinsics
         }
 
 
-        public static float DotU(float[] src, float[] dst)
+        public static float DotU(float[] src, float[] dst, int count)
         {
-
             if (Sse.IsSupported)
             {
-                return DotUSse(src, dst);
+                return DotUSse(src, dst, count);
             }
             else
             {
                 // Software fallback.
                 float result = 0;
-                for (int i = 0; i < src.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     result += src[i] * dst[i];
                 }
@@ -113,7 +192,7 @@ namespace Intrinsics
             }
         }
 
-        internal static float DotSUSse(float[] src, float[] dst, int[] idx)
+        private static float DotSUSse(float[] src, float[] dst, int[] idx, int count)
         {
             Vector128<float> result = Sse.SetZeroVector128();
 
@@ -127,7 +206,7 @@ namespace Intrinsics
                     float* pSrcCurrent = psrc;
                     float* pDstCurrent = pdst;
                     int* pIdxCurrent = pidx;
-                    int* pEnd = pidx + idx.Length;
+                    int* pEnd = pidx + count;
 
                     while (pIdxCurrent + 4 <= pEnd)
                     {
@@ -170,25 +249,25 @@ namespace Intrinsics
             return Sse.ConvertToSingle(result);
         }
 
-        public static float DotSU(float[] src, float[] dst, int[] idx)
+        public static float DotSU(float[] src, float[] dst, int[] idx, int count)
         {
             if (Sse.IsSupported)
             {
-                return DotSUSse(src, dst, idx);
+                return DotSUSse(src, dst, idx, count);
             }
             else
             {
                 // Software fallback.
                 float result = 0;
-                for (int i = 0; i < src.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
-                    result += src[idx[src.Length - 1 - i]] * dst[i];
+                    result += src[idx[i]] * dst[i];
                 }
                 return result;
             }
         }
 
-        internal static float SumSqUSse(float[] src)
+        private static float SumSqUSse(float[] src, int count)
         {
             Vector128<float> result = Sse.SetZeroVector128();
 
@@ -198,7 +277,7 @@ namespace Intrinsics
                 fixed (float* psrc = src)
                 {
                     float* pSrcCurrent = psrc;
-                    float* pEnd = psrc + src.Length;
+                    float* pEnd = psrc + count;
 
                     while (pSrcCurrent + 4 <= pEnd)
                     {
@@ -235,17 +314,17 @@ namespace Intrinsics
             return Sse.ConvertToSingle(result);
         }
 
-        public static float SumSqU(float[] src)
+        public static float SumSqU(float[] src, int count)
         {
             if (Sse.IsSupported)
             {
-                return SumSqUSse(src);
+                return SumSqUSse(src, count);
             }
             else
             {
                 // Software fallback.
                 float result = 0;
-                for (int i = 0; i < src.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     result += src[i] * src[i];
                 }
@@ -253,7 +332,7 @@ namespace Intrinsics
             }
         }
 
-        internal static void AddUSse(float[] src, float[] dst)
+        private static void AddUSse(float[] src, float[] dst, int count)
         {
             unsafe
             {
@@ -262,7 +341,7 @@ namespace Intrinsics
                 {
                     float* pSrcCurrent = psrc;
                     float* pDstCurrent = pdst;
-                    float* pEnd = psrc + src.Length;
+                    float* pEnd = psrc + count;
 
                     while (pSrcCurrent + 4 <= pEnd)
                     {
@@ -291,22 +370,22 @@ namespace Intrinsics
             }
         }
 
-        public static void AddU(float[] src, float[] dst)
+        public static void AddU(float[] src, float[] dst, int count)
         {
             if (Sse.IsSupported)
             {
-                AddUSse(src, dst);
+                AddUSse(src, dst, count);
             }
             else
             {
-                for (int i = 0; i < dst.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     dst[i] += src[i];
                 }
             }
         }
 
-        internal static void AddSUSse(float[] src, int[] idx, float[] dst)
+        private static void AddSUSse(float[] src, int[] idx, float[] dst, int count)
         {
             unsafe
             {
@@ -317,7 +396,7 @@ namespace Intrinsics
                     float* pSrcCurrent = psrc;
                     int* pIdxCurrent = pidx;
                     float* pDstCurrent = pdst;
-                    int* pEnd = pidx + idx.Length;
+                    int* pEnd = pidx + count;
 
                     while (pIdxCurrent + 4 <= pEnd)
                     {
@@ -342,22 +421,22 @@ namespace Intrinsics
             }
         }
 
-        public static void AddSU(float[] src, int[] idx, float[] dst)
+        public static void AddSU(float[] src, int[] idx, float[] dst, int count)
         {
             if (Sse.IsSupported)
             {
-                AddSUSse(src, idx, dst);
+                AddSUSse(src, idx, dst, count);
             }
             else
             {
-                for (int i = 0; i < idx.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     dst[idx[i]] += src[i];
                 }
             }
         }
 
-        internal static void AddScaleUSse(float scale, float[] src, float[] dst)
+        private static void AddScaleUSse(float scale, float[] src, float[] dst, int count)
         {
             Vector128<float> scaleVector = Sse.SetAllVector128(scale);
 
@@ -368,7 +447,7 @@ namespace Intrinsics
                 {
                     float* pSrcCurrent = psrc;
                     float* pDstCurrent = pdst;
-                    float* pEnd = pdst + dst.Length;
+                    float* pEnd = pdst + count;
 
                     while (pDstCurrent + 4 <= pEnd)
                     {
@@ -399,22 +478,22 @@ namespace Intrinsics
             }
         }
 
-        public static void AddScaleU(float scale, float[] src, float[] dst)
+        public static void AddScaleU(float scale, float[] src, float[] dst, int count)
         {
             if (Sse.IsSupported)
             {
-                AddScaleUSse(scale, src, dst);
+                AddScaleUSse(scale, src, dst,count);
             }
             else
             {
-                for (int i = 0; i < dst.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     dst[i] += scale * src[i];
                 }
             }
         }
 
-        internal static void AddScaleSUSse(float scale, float[] src, int[] idx, float[] dst)
+        private static void AddScaleSUSse(float scale, float[] src, int[] idx, float[] dst, int count)
         {
             Vector128<float> scaleVector = Sse.SetAllVector128(scale);
 
@@ -427,7 +506,7 @@ namespace Intrinsics
                     float* pSrcCurrent = psrc;
                     int* pIdxCurrent = pidx;
                     float* pDstCurrent = pdst;
-                    int* pEnd = pidx + idx.Length;
+                    int* pEnd = pidx + count;
 
                     while (pIdxCurrent + 4 <= pEnd)
                     {
@@ -453,22 +532,22 @@ namespace Intrinsics
             }
         }
 
-        public static void AddScaleSU(float scale, float[] src, int[] idx, float[] dst)
+        public static void AddScaleSU(float scale, float[] src, int[] idx, float[] dst, int count)
         {
             if (Sse.IsSupported)
             {
-                AddScaleSUSse(scale, src, idx, dst);
+                AddScaleSUSse(scale, src, idx, dst, count);
             }
             else
             {
-                for (int i = 0; i < idx.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     dst[idx[i]] += scale * src[i];
                 }
             }
         }
 
-        internal static void ScaleUSse(float scale, float[] dst)
+        private static void ScaleUSse(float scale, float[] dst, int count)
         {
             Vector128<float> scaleVector = Sse.SetAllVector128(scale);
 
@@ -477,7 +556,7 @@ namespace Intrinsics
                 fixed (float* pdst = dst)
                 {
                     float* pDstCurrent = pdst;
-                    float* pEnd = pdst + dst.Length;
+                    float* pEnd = pdst + count;
 
                     while (pDstCurrent + 4 <= pEnd)
                     {
@@ -502,22 +581,22 @@ namespace Intrinsics
             }
         }
 
-        public static void ScaleU(float scale, float[] dst)
+        public static void ScaleU(float scale, float[] dst, int count)
         {
             if (Sse.IsSupported)
             {
-                ScaleUSse(scale, dst);
+                ScaleUSse(scale, dst, count);
             }
             else
             {
-                for (int i = 0; i < dst.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     dst[i] *= scale;
                 }
             }
         }
 
-        internal static float Dist2Sse(float[] src, float[] dst)
+        private static float Dist2Sse(float[] src, float[] dst, int count)
         {
             Vector128<float> SqDistanceVector = Sse.SetZeroVector128();
 
@@ -528,7 +607,7 @@ namespace Intrinsics
                 {
                     float* pSrcCurrent = psrc;
                     float* pDstCurrent = pdst;
-                    float* pEnd = psrc + src.Length;
+                    float* pEnd = psrc + count;
 
                     while (pSrcCurrent + 4 <= pEnd)
                     {
@@ -568,16 +647,16 @@ namespace Intrinsics
             }
         }
 
-        public static float Dist2(float[] src, float[] dst)
+        public static float Dist2(float[] src, float[] dst, int count)
         {
             if (Sse.IsSupported)
             {
-                return Dist2Sse(src, dst);
+                return Dist2Sse(src, dst, count);
             }
             else
             {
                 float norm = 0;
-                for (int i = 0; i < src.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     float distance = src[i] - dst[i];
                     norm += distance * distance;
@@ -586,7 +665,7 @@ namespace Intrinsics
             }
         }
 
-        internal static float SumAbsUSse(float[] src)
+        private static float SumAbsUSse(float[] src, int count)
         {
             Vector128<float> result = Sse.SetZeroVector128();
             Vector128<float> mask;
@@ -605,7 +684,7 @@ namespace Intrinsics
                 fixed (float* psrc = src)
                 {
                     float* pSrcCurrent = psrc;
-                    float* pEnd = psrc + src.Length;
+                    float* pEnd = psrc + count;
 
                     while (pSrcCurrent + 4 <= pEnd)
                     {
@@ -642,16 +721,16 @@ namespace Intrinsics
             return Sse.ConvertToSingle(result);
         }
 
-        public static float SumAbsU(float[] src)
+        public static float SumAbsU(float[] src, int count)
         {
             if (Sse.IsSupported)
             {
-                return SumAbsUSse(src);
+                return SumAbsUSse(src, count);
             }
             else
             {
                 float sum = 0;
-                for (int i = 0; i < src.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     sum += Math.Abs(src[i]);
                 }
@@ -659,7 +738,7 @@ namespace Intrinsics
             }
         }
 
-        internal static void MulElementWiseUSse(float[] src1, float[] src2, float[] dst)
+        private static void MulElementWiseUSse(float[] src1, float[] src2, float[] dst, int count)
         {
             unsafe
             {
@@ -670,7 +749,7 @@ namespace Intrinsics
                     float* pSrc1Current = psrc1;
                     float* pSrc2Current = psrc2;
                     float* pDstCurrent = pdst;
-                    float* pEnd = pdst + dst.Length;
+                    float* pEnd = pdst + count;
 
                     while (pDstCurrent + 4 <= pEnd)
                     {
@@ -699,15 +778,15 @@ namespace Intrinsics
             }
         }
 
-        public static void MulElementWiseU(float[] src1, float[] src2, float[] dst)
+        public static void MulElementWiseU(float[] src1, float[] src2, float[] dst, int count)
         {
             if (Sse.IsSupported)
             {
-                MulElementWiseUSse(src1, src2, dst);
+                MulElementWiseUSse(src1, src2, dst, count);
             }
             else
             {
-                for (int i = 0; i < dst.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     dst[i] = src1[i] * src2[i];
                 }

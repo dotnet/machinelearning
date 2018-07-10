@@ -101,7 +101,7 @@ namespace PerformanceTests
         }
 
         [Benchmark]
-        public float MyDotUPerf() => IntrinsicsUtils.DotU(src, dst);
+        public float MyDotUPerf() => IntrinsicsUtils.DotU(src, dst, len);
 
         [Benchmark]
         public unsafe float NativeDotSUPerf()
@@ -115,7 +115,7 @@ namespace PerformanceTests
         }
 
         [Benchmark]
-        public float MyDotSUPerf() => IntrinsicsUtils.DotSU(src, dst, idx);
+        public float MyDotSUPerf() => IntrinsicsUtils.DotSU(src, dst, idx, idxlen);
 
         [Benchmark]
         public unsafe float NativeSumSqUPerf()
@@ -127,7 +127,7 @@ namespace PerformanceTests
         }
 
         [Benchmark]
-        public float MySumSqUPerf() => IntrinsicsUtils.SumSqU(src);
+        public float MySumSqUPerf() => IntrinsicsUtils.SumSqU(src, len);
 
         [Benchmark]
         public unsafe void NativeAddUPerf()
@@ -140,7 +140,7 @@ namespace PerformanceTests
         }
 
         [Benchmark]
-        public void MyAddUPerf() => IntrinsicsUtils.AddU(src, dst);
+        public void MyAddUPerf() => IntrinsicsUtils.AddU(src, dst, len);
 
         [Benchmark]
         public unsafe void NativeAddSUPerf()
@@ -154,7 +154,7 @@ namespace PerformanceTests
         }
 
         [Benchmark]
-        public void MyAddSUPerf() => IntrinsicsUtils.AddSU(src, idx, dst);
+        public void MyAddSUPerf() => IntrinsicsUtils.AddSU(src, idx, dst, idxlen);
 
         [Benchmark]
         public unsafe void NativeAddScaleUPerf()
@@ -167,7 +167,7 @@ namespace PerformanceTests
         }
 
         [Benchmark]
-        public void MyAddScaleUPerf() => IntrinsicsUtils.AddScaleU(scale, src, dst);
+        public void MyAddScaleUPerf() => IntrinsicsUtils.AddScaleU(scale, src, dst, len);
 
         [Benchmark]
         public unsafe void NativeAddScaleSUPerf()
@@ -181,7 +181,7 @@ namespace PerformanceTests
         }
 
         [Benchmark]
-        public void MyAddScaleSUPerf() => IntrinsicsUtils.AddScaleSU(scale, src, idx, dst);
+        public void MyAddScaleSUPerf() => IntrinsicsUtils.AddScaleSU(scale, src, idx, dst, idxlen);
 
         [Benchmark]
         public unsafe void NativeScaleUPerf()
@@ -193,7 +193,7 @@ namespace PerformanceTests
         }
 
         [Benchmark]
-        public void MyScaleUPerf() => IntrinsicsUtils.ScaleU(scale, dst);
+        public void MyScaleUPerf() => IntrinsicsUtils.ScaleU(scale, dst, len);
 
         [Benchmark]
         public unsafe float NativeDist2Perf()
@@ -206,7 +206,7 @@ namespace PerformanceTests
         }
 
         [Benchmark]
-        public float MyDist2Perf() => IntrinsicsUtils.Dist2(src, dst);
+        public float MyDist2Perf() => IntrinsicsUtils.Dist2(src, dst, len);
 
         [Benchmark]
         public unsafe float NativeSumAbsUPerf()
@@ -218,7 +218,7 @@ namespace PerformanceTests
         }
 
         [Benchmark]
-        public float MySumAbsqUPerf() => IntrinsicsUtils.SumAbsU(src);
+        public float MySumAbsqUPerf() => IntrinsicsUtils.SumAbsU(src, len);
 
         [Benchmark]
         public unsafe void NativeMulElementWiseUPerf()
@@ -232,7 +232,7 @@ namespace PerformanceTests
         }
 
         [Benchmark]
-        public void MyMulElementWiseUPerf() => IntrinsicsUtils.MulElementWiseU(src1, src2, dst);
+        public void MyMulElementWiseUPerf() => IntrinsicsUtils.MulElementWiseU(src1, src2, dst, len);
     }
 
     public class Perf

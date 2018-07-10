@@ -2,17 +2,16 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 using Xunit;
-using Intrinsics;
-using System.Diagnostics;
 using Xunit.Abstractions;
+using Microsoft.ML.Runtime.Internal.CpuMath;
 
-namespace IntrinsicsTests
+namespace Microsoft.ML.CpuMath.UnitTests
 {
-    public class CpuMathNativeTests
+    public class UnitTests
     {
         private readonly ITestOutputHelper output;
 
-        public CpuMathNativeTests(ITestOutputHelper output)
+        public UnitTests(ITestOutputHelper output)
         {
             this.output = output;
         }
@@ -23,7 +22,7 @@ namespace IntrinsicsTests
         {
             double mantissa = (rand.NextDouble() * 2.0) - 1.0;
             double exponent = Math.Pow(2.0, rand.Next(-expRange + 1, expRange + 1));
-            return (float) (mantissa * exponent);
+            return (float)(mantissa * exponent);
         }
 
         [DllImport("CpuMathNative", EntryPoint = "DotU"), SuppressUnmanagedCodeSecurity]
@@ -82,7 +81,7 @@ namespace IntrinsicsTests
             {
                 // act
                 var nativeOutput = NativeDotU(psrc, pdst, len);
-                var myOutput = IntrinsicsUtils.DotU(src, dst, len);
+                var myOutput = CpuMathUtils.DotProductDense(src, dst, len);
                 output.WriteLine($"{nativeOutput} == {myOutput}");
 
                 // assert
@@ -121,7 +120,7 @@ namespace IntrinsicsTests
             {
                 // act
                 var nativeOutput = NativeDotSU(psrc, pdst, pidx, idxlen);
-                var myOutput = IntrinsicsUtils.DotSU(src, dst, idx, idxlen);
+                var myOutput = CpuMathUtils.DotProductSparse(src, dst, idx, idxlen);
                 output.WriteLine($"{nativeOutput} == {myOutput}");
 
                 // assert
@@ -139,7 +138,7 @@ namespace IntrinsicsTests
             // arrange
             float[] src = new float[len];
             Random rand = new Random(seed);
-            
+
             for (int i = 0; i < len; i++)
             {
                 src[i] = NextFloat(rand, expRange);
@@ -149,7 +148,7 @@ namespace IntrinsicsTests
             {
                 // act
                 var nativeOutput = NativeSumSqU(psrc, len);
-                var myOutput = IntrinsicsUtils.SumSqU(src, len);
+                var myOutput = CpuMathUtils.SumSq(src, len);
                 output.WriteLine($"{nativeOutput} == {myOutput}");
 
                 // assert
@@ -184,7 +183,7 @@ namespace IntrinsicsTests
                 // act
                 NativeAddU(psrc, pnative, len);
 
-                IntrinsicsUtils.AddU(src, dst, len);
+                CpuMathUtils.Add(src, dst, len);
                 var myOutput = dst;
                 output.WriteLine($"{nativeOutput} == {myOutput}");
 
@@ -228,7 +227,7 @@ namespace IntrinsicsTests
                 // act
                 NativeAddSU(psrc, pidx, pnative, idxlen);
 
-                IntrinsicsUtils.AddSU(src, idx, dst, idxlen);
+                CpuMathUtils.Add(src, idx, dst, idxlen);
                 var myOutput = dst;
                 output.WriteLine($"{nativeOutput} == {myOutput}");
 
@@ -264,7 +263,7 @@ namespace IntrinsicsTests
                 // act
                 NativeAddScaleU(scale, psrc, pnative, len);
 
-                IntrinsicsUtils.AddScaleU(scale, src, dst, len);
+                CpuMathUtils.AddScale(scale, src, dst, len);
                 var myOutput = dst;
                 output.WriteLine($"{nativeOutput} == {myOutput}");
 
@@ -308,7 +307,7 @@ namespace IntrinsicsTests
                 // act
                 NativeAddScaleSU(scale, psrc, pidx, pnative, idxlen);
 
-                IntrinsicsUtils.AddScaleSU(scale, src, idx, dst, idxlen);
+                CpuMathUtils.AddScale(scale, src, idx, dst, idxlen);
                 var myOutput = dst;
                 output.WriteLine($"{nativeOutput} == {myOutput}");
 
@@ -341,7 +340,7 @@ namespace IntrinsicsTests
                 // act
                 NativeScaleU(scale, pnative, len);
 
-                IntrinsicsUtils.ScaleU(scale, dst, len);
+                CpuMathUtils.Scale(scale, dst, len);
                 var myOutput = dst;
                 output.WriteLine($"{nativeOutput} == {myOutput}");
 
@@ -373,7 +372,7 @@ namespace IntrinsicsTests
             {
                 // act
                 var nativeOutput = NativeDist2(psrc, pdst, len);
-                var myOutput = IntrinsicsUtils.Dist2(src, dst, len);
+                var myOutput = CpuMathUtils.L2DistSquared(src, dst, len);
                 output.WriteLine($"{nativeOutput} == {myOutput}");
 
                 // assert
@@ -401,7 +400,7 @@ namespace IntrinsicsTests
             {
                 // act
                 var nativeOutput = NativeSumAbsU(psrc, len);
-                var myOutput = IntrinsicsUtils.SumAbsU(src, len);
+                var myOutput = CpuMathUtils.SumAbs(src, len);
                 output.WriteLine($"{nativeOutput} == {myOutput}");
 
                 // assert
@@ -439,7 +438,7 @@ namespace IntrinsicsTests
                 // act
                 NativeMulElementWiseU(psrc1, psrc2, pnative, len);
 
-                IntrinsicsUtils.MulElementWiseU(src1, src2, dst, len);
+                CpuMathUtils.MulElementWise(src1, src2, dst, len);
                 var myOutput = dst;
                 output.WriteLine($"{nativeOutput} == {myOutput}");
 
@@ -449,3 +448,4 @@ namespace IntrinsicsTests
         }
     }
 }
+

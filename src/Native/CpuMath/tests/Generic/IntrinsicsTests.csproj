@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\myHelloWorld\Intrinsics.csproj" />
+    <ProjectReference Include="..\Intrinsics\Intrinsics.csproj" />
   </ItemGroup>
 
 </Project>

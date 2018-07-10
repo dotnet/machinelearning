@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#if FEATURE_INTRINSICS
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
@@ -1011,12 +1014,77 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.AssertNonEmpty(src);
             Contracts.Assert(0 < count && count <= src.Length);
 
+#if FEATURE_INTRINSICS
+            if (Sse.IsSupported)
+            {
+                return SumSqUSse(src);
+            }
+            else
+            {
+                // Software fallback.
+                float result = 0;
+                for (int i = 0; i < src.Length; i++)
+                {
+                    result += src[i] * src[i];
+                }
+                return result;
+            }
+#else
             unsafe
             {
                 fixed (float* psrc = &src[0])
                     return Thunk.SumSqU(psrc, count);
             }
+#endif
         }
+
+#if FEATURE_INTRINSICS
+        private static float SumSqUSse(float[] src)
+        {
+            Vector128<float> result = Sse.SetZeroVector128();
+
+            unsafe
+            {
+                fixed (float* psrc = src)
+                {
+                    float* pSrcCurrent = psrc;
+                    float* pEnd = psrc + src.Length;
+
+                    while (pSrcCurrent + 4 <= pEnd)
+                    {
+                        Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
+                        result = Sse.Add(result, Sse.Multiply(srcVector, srcVector));
+
+                        pSrcCurrent += 4;
+                    }
+
+                    if (Sse3.IsSupported)
+                    {
+                        // SSE3 is supported.
+                        result = Sse3.HorizontalAdd(result, result);
+                        result = Sse3.HorizontalAdd(result, result);
+                    }
+                    else
+                    {
+                        // SSE3 is not supported.
+                        result = Sse.Add(result, Sse.MoveHighToLow(result, result));
+                        result = Sse.Add(result, Sse.MoveHighToLow(result, Sse.UnpackLow(result, result)));
+                    }
+
+                    while (pSrcCurrent < pEnd)
+                    {
+                        Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
+                        result = Sse.AddScalar(result, Sse.MultiplyScalar(srcVector, srcVector));
+
+
+                        pSrcCurrent++;
+                    }
+                }
+            }
+
+            return Sse.ConvertToSingle(result);
+        }
+#endif
 
         public static float SumSq(float[] src, int offset, int count)
         {
