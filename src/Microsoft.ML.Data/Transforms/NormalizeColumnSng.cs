@@ -15,10 +15,10 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.ML.Runtime.Data
 {
     // !!! WARNING !!!
-    // This file contains the Double version for normalizers and is almost identical with NormalizeColumnSng.cs
+    // This file contains the Single version for normalizers and is almost identical with NormalizeColumnDbl.cs
     // When making changes to one, use BeyondCompare or a similar tool to view diffs and propagate
     // appropriate changes to the other.
-    using TFloat = Double;
+    using TFloat = Single;
 
     public static partial class AffineNormSerializationUtils
     {
@@ -58,8 +58,8 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(scales.Length == indices.Length);
                 ctx.Writer.WriteIntArray(indices);
             }
-            ctx.Writer.WriteDoubleArray(scales);
-            ctx.Writer.WriteDoubleArray(offsets);
+            ctx.Writer.WriteSingleArray(scales);
+            ctx.Writer.WriteSingleArray(offsets);
 
             if (saveText)
             {
@@ -119,10 +119,10 @@ namespace Microsoft.ML.Runtime.Data
                 indicesMorph = null;
                 int scaleCount = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(scaleCount == size);
-                scalesSparse = ctx.Reader.ReadDoubleArray(scaleCount);
+                scalesSparse = ctx.Reader.ReadSingleArray(scaleCount);
                 int offsetCount = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(offsetCount == 0 || offsetCount == size);
-                offsetsSparse = ctx.Reader.ReadDoubleArray(offsetCount);
+                offsetsSparse = ctx.Reader.ReadSingleArray(offsetCount);
 
                 scales = scalesSparse;
                 offsets = offsetsSparse;
@@ -150,10 +150,10 @@ namespace Microsoft.ML.Runtime.Data
 
                 int scaleCount = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(scaleCount == morphCount);
-                scalesSparse = ctx.Reader.ReadDoubleArray(scaleCount) ?? new TFloat[0];
+                scalesSparse = ctx.Reader.ReadSingleArray(scaleCount) ?? new TFloat[0];
                 int offsetCount = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(offsetCount == 0 || offsetCount == morphCount);
-                offsetsSparse = ctx.Reader.ReadDoubleArray(offsetCount);
+                offsetsSparse = ctx.Reader.ReadSingleArray(offsetCount);
 
                 // Construct the dense representations.
                 scales = Utils.CreateArray<TFloat>(numFeatures, 1);
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.Data
 
             ctx.Writer.Write(binUpperBounds.Length);
             foreach (var featureUpperBounds in binUpperBounds)
-                ctx.Writer.WriteDoubleArray(featureUpperBounds);
+                ctx.Writer.WriteSingleArray(featureUpperBounds);
 
             if (saveText)
             {
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.Data
             binUpperBounds = new TFloat[numFeatures][];
             for (int i = 0; i < numFeatures; i++)
             {
-                TFloat[] curUpperBounds = ctx.Reader.ReadDoubleArray();
+                TFloat[] curUpperBounds = ctx.Reader.ReadSingleArray();
                 Contracts.CheckDecode(Utils.Size(curUpperBounds) > 0);
                 binUpperBounds[i] = curUpperBounds;
                 for (int j = 1; j < curUpperBounds.Length; j++)
@@ -272,8 +272,8 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Writer.Write(sizeof(TFloat));
             ctx.Writer.WriteBoolByte(useLog);
             ctx.Writer.Write(mean.Length);
-            ctx.Writer.WriteDoublesNoCount(mean, mean.Length);
-            ctx.Writer.WriteDoublesNoCount(stddev, mean.Length);
+            ctx.Writer.WriteSinglesNoCount(mean, mean.Length);
+            ctx.Writer.WriteSinglesNoCount(stddev, mean.Length);
 
             ctx.SaveTextStream("CdfNormalizer.txt",
                 writer =>
@@ -303,8 +303,8 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckDecode(size > 0);
             if (size != cv)
                 throw Contracts.Except("Normalizer expected {0} slots, but the input data column has {1} slots.", size, cv);
-            mean = ctx.Reader.ReadDoubleArray(size);
-            stddev = ctx.Reader.ReadDoubleArray(size);
+            mean = ctx.Reader.ReadSingleArray(size);
+            stddev = ctx.Reader.ReadSingleArray(size);
         }
     }
 
@@ -313,14 +313,14 @@ namespace Microsoft.ML.Runtime.Data
     /// It tracks min, max, number of non-sparse values (vCount) and number of ProcessValue() calls (trainCount).
     /// NaNs are ignored when updating min and max.
     /// </summary>
-    public sealed class MinMaxDblAggregator : IColumnAggregator<VBuffer<TFloat>>
+    public sealed class MinMaxSngAggregator : IColumnAggregator<VBuffer<TFloat>>
     {
         private readonly TFloat[] _min;
         private readonly TFloat[] _max;
         private readonly long[] _vCount;
         private long _trainCount;
 
-        public MinMaxDblAggregator(int size)
+        public MinMaxSngAggregator(int size)
         {
             Contracts.Check(size > 0);
             _min = new TFloat[size];
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Runtime.Data
     /// the number of NaNs and the number of non-zero elements.
     /// Uses the algorithm described here: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
     /// </summary>
-    public sealed class MeanVarDblAggregator
+    public sealed class MeanVarSngAggregator
     {
         private readonly bool _useLog;
         private readonly Double[] _mean;
@@ -417,7 +417,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly long[] _cnz;
         private long _trainCount;
 
-        public MeanVarDblAggregator(int size, bool useLog)
+        public MeanVarSngAggregator(int size, bool useLog)
         {
             _useLog = useLog;
             _mean = new Double[size];
@@ -524,15 +524,15 @@ namespace Microsoft.ML.Runtime.Data
         {
             public static IColumnFunction Create(IHost host, TFloat scale, TFloat offset)
             {
-                return new Dbl.ImplOne(host, scale, offset);
+                return new Sng.ImplOne(host, scale, offset);
             }
 
             public static IColumnFunction Create(IHost host, TFloat[] scale, TFloat[] offset, int[] indicesNonZeroOffset)
             {
-                return new Dbl.ImplVec(host, scale, offset, indicesNonZeroOffset);
+                return new Sng.ImplVec(host, scale, offset, indicesNonZeroOffset);
             }
 
-            private static class Dbl
+            private static class Sng
             {
                 // REVIEW: Should we have separate classes for offset==0 and/or scale==1?
                 public sealed class ImplOne : ImplOne<TFloat>
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     public new static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
-                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R8.");
+                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
                         List<int> nz = null;
                         int cfeat;
                         TFloat[] scales;
@@ -577,10 +577,10 @@ namespace Microsoft.ML.Runtime.Data
                     public override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken)
                         => PfaUtils.Call("*", PfaUtils.Call("-", srcToken, Offset), Scale);
 
-                    public override bool OnnxInfo(OnnxContext ctx, OnnxUtils.NodeProtoWrapper nodeProtoWrapper, int featureCount)
+                    public override bool OnnxInfo(OnnxContext ctx, OnnxNode node, int featureCount)
                     {
-                        OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "offset", Enumerable.Repeat(Offset, featureCount));
-                        OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "scale", Enumerable.Repeat(Scale, featureCount));
+                        node.AddAttribute("offset", Enumerable.Repeat(Offset, featureCount));
+                        node.AddAttribute("scale", Enumerable.Repeat(Scale, featureCount));
                         return true;
                     }
 
@@ -607,7 +607,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     public new static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
-                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R8.");
+                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
                         int cv = Math.Max(1, typeSrc.VectorSize);
                         List<int> nz = null;
                         int cfeat;
@@ -648,19 +648,21 @@ namespace Microsoft.ML.Runtime.Data
                         return PfaUtils.Call("a.zipmap", srcToken, scaleCell, PfaUtils.FuncRef(ctx.Pfa.EnsureMul(itemType)));
                     }
 
-                    public override bool OnnxInfo(OnnxContext ctx, OnnxUtils.NodeProtoWrapper nodeProtoWrapper, int featureCount)
+                    public override bool OnnxInfo(OnnxContext ctx, OnnxNode node, int featureCount)
                     {
                         if (Offset != null)
-                            OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "offset", Offset);
+                            node.AddAttribute("offset", Offset);
+                        else
+                            node.AddAttribute("offset", Enumerable.Repeat<float>(0, featureCount));
 
-                        OnnxUtils.NodeAddAttributes(nodeProtoWrapper.Node, "scale", Scale);
+                        node.AddAttribute("scale", Scale);
                         return true;
                     }
 
                     public override Delegate GetGetter(IRow input, int icol)
                     {
                         var getSrc = input.GetGetter<VBuffer<TFloat>>(icol);
-                        var bldr = new BufferBuilder<TFloat>(R8Adder.Instance);
+                        var bldr = new BufferBuilder<TFloat>(R4Adder.Instance);
                         ValueGetter<VBuffer<TFloat>> del;
                         if (Offset == null)
                         {
@@ -850,15 +852,15 @@ namespace Microsoft.ML.Runtime.Data
         {
             public static IColumnFunction Create(IHost host, TFloat mean, TFloat stddev, bool useLog)
             {
-                return new Dbl.ImplOne(host, mean, stddev, useLog);
+                return new Sng.ImplOne(host, mean, stddev, useLog);
             }
 
             public static IColumnFunction Create(IHost host, TFloat[] mean, TFloat[] stddev, bool useLog)
             {
-                return new Dbl.ImplVec(host, mean, stddev, useLog);
+                return new Sng.ImplVec(host, mean, stddev, useLog);
             }
 
-            private static class Dbl
+            private static class Sng
             {
                 public sealed class ImplOne : ImplOne<TFloat>
                 {
@@ -869,7 +871,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     public new static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
-                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R8.");
+                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
                         host.CheckValue(ctx, nameof(ctx));
                         ctx.CheckAtModel(GetVersionInfo());
 
@@ -934,7 +936,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     public new static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
-                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R8.");
+                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
                         int cv = Math.Max(1, typeSrc.VectorSize);
 
                         host.CheckValue(ctx, nameof(ctx));
@@ -960,7 +962,7 @@ namespace Microsoft.ML.Runtime.Data
                     public override Delegate GetGetter(IRow input, int icol)
                     {
                         var getSrc = input.GetGetter<VBuffer<TFloat>>(icol);
-                        var bldr = new BufferBuilder<TFloat>(R8Adder.Instance);
+                        var bldr = new BufferBuilder<TFloat>(R4Adder.Instance);
                         ValueGetter<VBuffer<TFloat>> del;
                         del = (ref VBuffer<TFloat> dst) =>
                         {
@@ -1025,15 +1027,15 @@ namespace Microsoft.ML.Runtime.Data
         {
             public static IColumnFunction Create(IHost host, TFloat[] binUpperBounds, bool fixZero)
             {
-                return new Dbl.ImplOne(host, binUpperBounds, fixZero);
+                return new Sng.ImplOne(host, binUpperBounds, fixZero);
             }
 
             public static IColumnFunction Create(IHost host, TFloat[][] binUpperBounds, bool fixZero)
             {
-                return new Dbl.ImplVec(host, binUpperBounds, fixZero);
+                return new Sng.ImplVec(host, binUpperBounds, fixZero);
             }
 
-            private static class Dbl
+            private static class Sng
             {
                 public sealed class ImplOne : BinColumnFunction
                 {
@@ -1053,7 +1055,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     public new static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
-                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R8.");
+                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
                         host.CheckValue(ctx, nameof(ctx));
                         ctx.CheckAtModel(GetVersionInfo());
 
@@ -1135,7 +1137,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     public new static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
-                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R8.");
+                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
                         int cv = Math.Max(1, typeSrc.VectorSize);
                         host.CheckValue(ctx, nameof(ctx));
                         ctx.CheckAtModel(GetVersionInfo());
@@ -1172,7 +1174,7 @@ namespace Microsoft.ML.Runtime.Data
                     public override Delegate GetGetter(IRow input, int icol)
                     {
                         var getSrc = input.GetGetter<VBuffer<TFloat>>(icol);
-                        var bldr = new BufferBuilder<TFloat>(R8Adder.Instance);
+                        var bldr = new BufferBuilder<TFloat>(R4Adder.Instance);
                         ValueGetter<VBuffer<TFloat>> del =
                             (ref VBuffer<TFloat> dst) =>
                             {
@@ -1389,19 +1391,19 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static class Dbl
+        private static class Sng
         {
             public abstract class MinMaxOneColumnFunctionBuilderBase : OneColumnFunctionBuilderBase<TFloat>
             {
                 protected readonly bool Fix;
-                protected readonly MinMaxDblAggregator Aggregator;
+                protected readonly MinMaxSngAggregator Aggregator;
                 private VBuffer<TFloat> _buffer;
 
                 protected MinMaxOneColumnFunctionBuilderBase(IHost host, long lim, bool fix, ValueGetter<TFloat> getSrc)
                     : base(host, lim, getSrc)
                 {
                     Fix = fix;
-                    Aggregator = new MinMaxDblAggregator(1);
+                    Aggregator = new MinMaxSngAggregator(1);
                     _buffer = new VBuffer<TFloat>(1, new TFloat[1]);
                 }
 
@@ -1426,7 +1428,7 @@ namespace Microsoft.ML.Runtime.Data
                     ValueGetter<TFloat> getter)
                 {
                     var lim = args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
+                    host.CheckUserArg(lim > 1, nameof(ColumnBase.MaxTrainingExamples), "Must be greater than 1");
                     bool fix = args.Column[icol].FixZero ?? args.FixZero;
                     return new MinMaxOneColumnFunctionBuilder(host, lim, fix, getter);
                 }
@@ -1444,14 +1446,14 @@ namespace Microsoft.ML.Runtime.Data
 
             public abstract class MinMaxVecColumnFunctionBuilderBase : VecColumnFunctionBuilderBase<TFloat>
             {
-                protected readonly MinMaxDblAggregator Aggregator;
+                protected readonly MinMaxSngAggregator Aggregator;
                 protected readonly bool Fix;
 
                 protected MinMaxVecColumnFunctionBuilderBase(IHost host, int cv, long lim, bool fix, ValueGetter<VBuffer<TFloat>> getSrc)
                     : base(host, lim, getSrc)
                 {
                     Fix = fix;
-                    Aggregator = new MinMaxDblAggregator(cv);
+                    Aggregator = new MinMaxSngAggregator(cv);
                 }
 
                 protected override bool ProcessValue(ref VBuffer<TFloat> buffer)
@@ -1525,7 +1527,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly bool _useLog;
                 private readonly bool _useCdf;
                 private readonly bool _fix;
-                private readonly MeanVarDblAggregator _aggregator;
+                private readonly MeanVarSngAggregator _aggregator;
                 private VBuffer<TFloat> _buffer;
 
                 private MeanVarOneColumnFunctionBuilder(IHost host, long lim, bool fix, ValueGetter<TFloat> getSrc, bool useLog, bool useCdf)
@@ -1534,7 +1536,7 @@ namespace Microsoft.ML.Runtime.Data
                     _useLog = useLog;
                     _useCdf = useCdf;
                     _fix = fix;
-                    _aggregator = new MeanVarDblAggregator(1, useLog);
+                    _aggregator = new MeanVarSngAggregator(1, useLog);
                     _buffer = new VBuffer<TFloat>(1, new TFloat[1]);
                 }
 
@@ -1602,13 +1604,13 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly bool _fix;
                 private readonly bool _useLog;
                 private readonly bool _useCdf;
-                private readonly MeanVarDblAggregator _aggregator;
+                private readonly MeanVarSngAggregator _aggregator;
 
                 private MeanVarVecColumnFunctionBuilder(IHost host, int cv, long lim, bool fix,
                     ValueGetter<VBuffer<TFloat>> getSrc, bool useLog, bool useCdf)
                     : base(host, lim, getSrc)
                 {
-                    _aggregator = new MeanVarDblAggregator(cv, useLog);
+                    _aggregator = new MeanVarSngAggregator(cv, useLog);
                     _fix = fix;
                     _useLog = useLog;
                     _useCdf = useCdf;
@@ -1788,7 +1790,7 @@ namespace Microsoft.ML.Runtime.Data
                     host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
                     bool fix = args.Column[icol].FixZero ?? args.FixZero;
                     var numBins = args.Column[icol].NumBins ?? args.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "Must be greater than 1");
+                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "numBins must be greater than 1");
                     var cv = srcType.ValueCount;
                     return new BinVecColumnFunctionBuilder(host, cv, lim, fix, numBins, getter);
                 }
@@ -1910,11 +1912,11 @@ namespace Microsoft.ML.Runtime.Data
                 public static IColumnFunctionBuilder Create(SupervisedBinArguments args, IHost host, int argsColumnIndex, int valueColumnId, int labelColumnId, IRow dataRow)
                 {
                     var lim = args.Column[argsColumnIndex].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
+                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "maxTrainingExamples must be greater than 1");
                     bool fix = args.Column[argsColumnIndex].FixZero ?? args.FixZero;
                     var numBins = args.Column[argsColumnIndex].NumBins ?? args.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "Nust be greater than 1");
-                    host.CheckUserArg(args.MinBinSize > 0, nameof(args.MinBinSize), "Must be positive");
+                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "numBins must be greater than 1");
+                    host.CheckUserArg(args.MinBinSize > 0, nameof(args.MinBinSize), "minBinSize must be positive");
                     return new SupervisedBinVecColumnFunctionBuilder(host, lim, fix, numBins, args.MinBinSize, valueColumnId, labelColumnId, dataRow);
                 }
             }

@@ -616,20 +616,19 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
 
             string opType = "Imputer";
-            var node = OnnxUtils.MakeNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            OnnxUtils.NodeAddAttributes(node, "replaced_value_float", Single.NaN);
+            var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+            node.AddAttribute("replaced_value_float", Single.NaN);
 
             if (!Infos[iinfo].TypeSrc.IsVector)
-                OnnxUtils.NodeAddAttributes(node, "imputed_value_float", Enumerable.Repeat((float)_repValues[iinfo], 1));
+                node.AddAttribute("imputed_value_float", Enumerable.Repeat((float)_repValues[iinfo], 1));
             else
             {
                 if (_repIsDefault[iinfo] != null)
-                    OnnxUtils.NodeAddAttributes(node, "imputed_value_floats", (float[])_repValues[iinfo]);
+                    node.AddAttribute("imputed_value_floats", (float[])_repValues[iinfo]);
                 else
-                    OnnxUtils.NodeAddAttributes(node, "imputed_value_float", Enumerable.Repeat((float)_repValues[iinfo], 1));
+                    node.AddAttribute("imputed_value_float", Enumerable.Repeat((float)_repValues[iinfo], 1));
             }
 
-            ctx.AddNode(node);
             return true;
         }
 

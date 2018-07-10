@@ -2,11 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeInPackage>Microsoft.ML</IncludeInPackage>
+    <IncludeInPackage>Microsoft.ML.Onnx</IncludeInPackage>
+    <RootNamespace>Microsoft.ML.Runtime.Model.Onnx</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
   </ItemGroup>
 
 </Project>

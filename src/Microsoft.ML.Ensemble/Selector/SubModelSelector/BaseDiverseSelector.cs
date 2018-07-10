@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
 
@@ -19,27 +18,21 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
     {
         public abstract class DiverseSelectorArguments : ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "The metric type to be used to find the diversity among base learners", ShortName = "dm", SortOrder = 50)]
-            [TGUI(Label = "Diversity Measure Type")]
-            public ISupportDiversityMeasureFactory<TOutput> DiversityMetricType;
         }
 
-        private readonly ISupportDiversityMeasureFactory<TOutput> _diversityMetricType;
+        private readonly IComponentFactory<IDiversityMeasure<TOutput>> _diversityMetricType;
         private ConcurrentDictionary<FeatureSubsetModel<IPredictorProducing<TOutput>>, TOutput[]> _predictions;
 
-        protected abstract ISupportDiversityMeasureFactory<TOutput> DefaultDiversityMetricType { get; }
-
-        protected internal BaseDiverseSelector(IHostEnvironment env, DiverseSelectorArguments args, string name)
+        protected internal BaseDiverseSelector(IHostEnvironment env, DiverseSelectorArguments args, string name,
+            IComponentFactory<IDiversityMeasure<TOutput>> diversityMetricType)
             : base(args, env, name)
         {
-            _diversityMetricType = args.DiversityMetricType;
+            _diversityMetricType = diversityMetricType;
             _predictions = new ConcurrentDictionary<FeatureSubsetModel<IPredictorProducing<TOutput>>, TOutput[]>();
         }
 
         protected IDiversityMeasure<TOutput> CreateDiversityMetric()
         {
-            if (_diversityMetricType == null)
-                return DefaultDiversityMetricType.CreateComponent(Host);
             return _diversityMetricType.CreateComponent(Host);
         }
 

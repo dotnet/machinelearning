@@ -32,6 +32,12 @@ namespace Microsoft.ML.Runtime.Learners
         internal const string UserName = "Multiclass Naive Bayes";
         internal const string ShortName = "MNB";
         internal const string Summary = "Trains a multiclass Naive Bayes predictor that supports binary feature values.";
+        internal const string Remarks = @"<remarks>
+<a href ='https://en.wikipedia.org/wiki/Naive_Bayes_classifier'>Naive Bayes</a> is a probabilistic classifier that can be used for multiclass problems. 
+Using Bayes' theorem, the conditional probability for a sample belonging to a class can be calculated based on the sample count for each feature combination groups.
+However, Naive Bayes Classifier is feasible only if the number of features and the values each feature can take is relatively small.
+It also assumes that the features are strictly independent.
+</remarks>";
 
         public sealed class Arguments : LearnerInputBaseWithLabel
         {
@@ -124,7 +130,9 @@ namespace Microsoft.ML.Runtime.Learners
             return _predictor;
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.NaiveBayesClassifier", Desc = "Train a MultiClassNaiveBayesTrainer.", UserName = UserName, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.NaiveBayesClassifier",
+            Desc = "Train a MultiClassNaiveBayesTrainer.",
+            UserName = UserName, ShortName = ShortName)]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

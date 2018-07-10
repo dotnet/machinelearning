@@ -219,7 +219,7 @@ namespace Microsoft.ML.Runtime.Tools
                     if (roles != null)
                     {
                         var emptyView = ModelFileUtils.LoadPipeline(env, rep, new MultiFileSource(null));
-                        schema = RoleMappedSchema.CreateOpt(emptyView.Schema, roles);
+                        schema = new RoleMappedSchema(emptyView.Schema, roles, opt: true);
                     }
                     else
                     {

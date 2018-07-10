@@ -318,7 +318,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
                 if (caliTrainer.NeedsTraining)
                 {
-                    var bound = new Bound(this, RoleMappedSchema.Create(data.Schema));
+                    var bound = new Bound(this, new RoleMappedSchema(data.Schema));
                     using (var curs = data.GetRowCursor(col => true))
                     {
                         var scoreGetter = (ValueGetter<Single>)bound.CreateScoreGetter(curs, col => true, out Action disposer);

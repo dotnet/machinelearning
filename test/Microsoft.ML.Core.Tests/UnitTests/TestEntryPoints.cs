@@ -329,12 +329,12 @@ namespace Microsoft.ML.Runtime.RunTests
 
             ib1.TrySetValue("WeightColumn", "OtherWeight");
             Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.True(string.Compare(instance.WeightColumn.Value, "OtherWeight") == 0);
+            Assert.Equal("OtherWeight", instance.WeightColumn.Value);
 
             var tok = (JToken)JValue.CreateString("AnotherWeight");
             ib1.TrySetValueJson("WeightColumn", tok);
             Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.True(string.Compare(instance.WeightColumn.Value, "AnotherWeight") == 0);
+            Assert.Equal("AnotherWeight", instance.WeightColumn.Value);
         }
 
         [Fact]
@@ -684,9 +684,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // This tests that the SchemaBindableCalibratedPredictor doesn't get confused if its sub-predictor is already calibrated.
             var fastForest = new FastForestClassification(Env, new FastForestClassification.Arguments());
-            var rmd = RoleMappedData.Create(splitOutput.TrainData[0],
-                RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"),
-                RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, "Label"));
+            var rmd = new RoleMappedData(splitOutput.TrainData[0], "Label", "Features");
             fastForest.Train(rmd);
             var ffModel = new PredictorModel(Env, rmd, splitOutput.TrainData[0], fastForest.CreatePredictor());
             var calibratedFfModel = Calibrate.Platt(Env,
@@ -1220,9 +1218,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }, data);
 
                 var mlr = new MulticlassLogisticRegression(Env, new MulticlassLogisticRegression.Arguments());
-                RoleMappedData rmd = RoleMappedData.Create(data,
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"),
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, "Label"));
+                var rmd = new RoleMappedData(data, "Label", "Features");
                 mlr.Train(rmd);
 
                 predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.CreatePredictor());
@@ -1801,6 +1797,18 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(loader.Schema.TryGetColumnIndex("GroupId", out var groupCol));
                 Assert.True(loader.Schema.TryGetColumnIndex("Label", out var labelCol));
             }
+        }
+
+        [Fact]
+        public void EntryPointLightGbmBinary()
+        {
+            TestEntryPointRoutine("breast-cancer.txt", "Trainers.LightGbmBinaryClassifier");
+        }
+
+        [Fact]
+        public void EntryPointLightGbmMultiClass()
+        {
+            TestEntryPointRoutine(GetDataPath(@"iris.txt"), "Trainers.LightGbmClassifier");
         }
 
         [Fact]

@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!evalComp.IsGood())
                 evalComp = EvaluateUtils.GetEvaluatorType(ch, scorePipe.Schema);
             var evaluator = evalComp.CreateInstance(Host);
-            var data = TrainUtils.CreateExamples(scorePipe, label, null, group, weight, name, customCols);
+            var data = new RoleMappedData(scorePipe, label, null, group, weight, name, customCols);
             var metrics = evaluator.Evaluate(data);
             MetricWriter.PrintWarnings(ch, metrics);
             evaluator.PrintFoldResults(ch, metrics);
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!string.IsNullOrWhiteSpace(Args.OutputDataFile))
             {
                 var perInst = evaluator.GetPerInstanceMetrics(data);
-                var perInstData = TrainUtils.CreateExamples(perInst, label, null, group, weight, name, customCols);
+                var perInstData = new RoleMappedData(perInst, label, null, group, weight, name, customCols);
                 var idv = evaluator.GetPerInstanceDataViewToSave(perInstData);
                 MetricWriter.SavePerInstance(Host, ch, Args.OutputDataFile, idv);
             }

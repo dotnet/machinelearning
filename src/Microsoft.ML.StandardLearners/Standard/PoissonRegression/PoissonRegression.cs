@@ -32,6 +32,11 @@ namespace Microsoft.ML.Runtime.Learners
         internal const string UserNameValue = "Poisson Regression";
         internal const string ShortName = "PR";
         internal const string Summary = "Poisson Regression assumes the unknown function, denoted Y has a Poisson distribution.";
+        new internal const string Remarks = @"<remarks>
+<a href='https://en.wikipedia.org/wiki/Poisson_regression'>Poisson regression</a> is a parameterized regression method. 
+It assumes that the log of the conditional mean of the dependent variable follows a linear function of the dependent variables. 
+Assuming that the dependent variable follows a Poisson distribution, the parameters of the regressor can be estimated by maximizing the likelihood of the obtained observations.
+</remarks>";
 
         public sealed class Arguments : ArgumentsBase
         {

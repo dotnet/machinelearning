@@ -527,6 +527,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// Short name of the Entry Point
             /// </summary>
             public string ShortName { get; set; }
+
+            /// <summary>
+            /// Remarks on the Entry Point, for more extensive XML documentation on the C#API
+            /// </summary>
+            public string Remarks { get; set; }
         }
 
         /// <summary>

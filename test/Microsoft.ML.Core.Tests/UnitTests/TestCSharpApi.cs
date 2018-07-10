@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
@@ -372,9 +373,9 @@ namespace Microsoft.ML.Runtime.RunTests
                         foldGetter(ref fold);
                         Assert.True(fold.EqualsStr("Standard Deviation"));
                         if (w == 1)
-                            Assert.Equal(0.002827, stdev, 6);
+                            Assert.Equal(0.004557, stdev, 6);
                         else
-                            Assert.Equal(0.002376, stdev, 6);
+                            Assert.Equal(0.000393, stdev, 6);
                         isWeightedGetter(ref isWeighted);
                         Assert.True(isWeighted.IsTrue == (w == 1));
                     }
@@ -761,6 +762,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TransformModel = null,
                     LabelColumn = "Label1",
                     GroupColumn = "GroupId1",
+                    NameColumn = "Workclass",
                     Kind = Models.MacroUtilsTrainerKinds.SignatureRankerTrainer
                 };
                 crossValidate.Inputs.Data = textToKey.Data;
@@ -797,9 +799,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     getter(ref stdev);
                     foldGetter(ref fold);
                     Assert.True(fold.EqualsStr("Standard Deviation"));
-                    Assert.Equal(5.247, stdev.Values[0], 3);
-                    Assert.Equal(4.703, stdev.Values[1], 3);
-                    Assert.Equal(3.844, stdev.Values[2], 3);
+                    Assert.Equal(2.462, stdev.Values[0], 3);
+                    Assert.Equal(2.763, stdev.Values[1], 3);
+                    Assert.Equal(3.273, stdev.Values[2], 3);
 
                     var sumBldr = new BufferBuilder<double>(R8Adder.Instance);
                     sumBldr.Reset(avg.Length, true);
@@ -819,6 +821,21 @@ namespace Microsoft.ML.Runtime.RunTests
                         Assert.Equal(avg.Values[i], sum.Values[i] / 2);
                     b = cursor.MoveNext();
                     Assert.False(b);
+                }
+
+                data = experiment.GetOutput(crossValidateOutput.PerInstanceMetrics);
+                Assert.True(data.Schema.TryGetColumnIndex("Instance", out int nameCol));
+                using (var cursor = data.GetRowCursor(col => col == nameCol))
+                {
+                    var getter = cursor.GetGetter<DvText>(nameCol);
+                    while (cursor.MoveNext())
+                    {
+                        DvText name = default;
+                        getter(ref name);
+                        Assert.Subset(new HashSet<DvText>() { new DvText("Private"), new DvText("?"), new DvText("Federal-gov") }, new HashSet<DvText>() { name });
+                        if (cursor.Position > 4)
+                            break;
+                    }
                 }
             }
         }
