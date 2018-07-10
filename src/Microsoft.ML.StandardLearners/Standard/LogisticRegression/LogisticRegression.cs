@@ -30,8 +30,8 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using Mkl = Microsoft.ML.Runtime.Learners.OlsLinearRegressionTrainer.Mkl;
 
-    /// <include file='./XMLDoc.xml' path='docs/members/member[@name="LBFGS"]/*' />
-    /// <include file='./XMLDoc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
+    /// <include file='./doc.xml' path='docs/members/member[@name="LBFGS"]/*' />
+    /// <include file='./doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
     public sealed partial class LogisticRegression : LbfgsTrainerBase<Float, ParameterMixingCalibratedPredictor>
     {
         public const string LoadNameValue = "LogisticRegression";
@@ -392,8 +392,8 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = Summary,
             UserName = UserNameValue,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/XMLDoc.xml' path='docs/members/member[@name=""LBFGS""]/*' />",
-                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/XMLDoc.xml' path='docs/members/example[@name=""LogisticRegressionBinaryClassifier""]/*' />"})]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/member[@name=""LBFGS""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/example[@name=""LogisticRegressionBinaryClassifier""]/*' />"})]
                             
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {

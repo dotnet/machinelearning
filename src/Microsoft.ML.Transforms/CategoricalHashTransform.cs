@@ -19,7 +19,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <include file='./XMLDoc.xml' path='docs/members/member[@name="CategoricalHashOneHotVectorizer"]/*' />
+    /// <include file='./doc.xml' path='docs/members/member[@name="CategoricalHashOneHotVectorizer"]/*' />
     public static class CategoricalHashTransform
     {
         public const int NumBitsLim = 31; // can't convert 31-bit hashes to indicator vectors, so max is 30

@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.FastTree
     // The Tweedie boosting model follows the mathematics established in:
     // Yang, Quan, and Zou. "Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models."
     // https://arxiv.org/pdf/1508.06378.pdf
-    /// <include file='./XMLDoc.xml' path='docs/members/member[@name="FastTreeTweedieRegression"]/*' />
+    /// <include file='./doc.xml' path='docs/members/member[@name="FastTreeTweedieRegression"]/*' />
     public sealed partial class FastTreeTweedieTrainer : BoostingFastTreeTrainerBase<FastTreeTweedieTrainer.Arguments, FastTreeTweediePredictor>
     {
         public const string LoadNameValue = "FastTreeTweedieRegression";
@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.FastTree
             Desc = FastTreeTweedieTrainer.Summary,
             UserName = FastTreeTweedieTrainer.UserNameValue,
             ShortName = FastTreeTweedieTrainer.ShortName,
-            XmlInclude = new [] { @"<include file='../Microsoft.ML.FastTree/XMLDoc.xml' path='docs/members/member[@name=""FastTreeTweedieRegression""]/*' />" })]
+            XmlInclude = new [] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name=""FastTreeTweedieRegression""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainTweedieRegression(IHostEnvironment env, FastTreeTweedieTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

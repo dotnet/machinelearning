@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Learners
     //     - Loss function. By default, hinge loss (aka max-margin avgd perceptron)
     //     - Feature normalization. By default, rescaling between min and max values for every feature
     //     - Prediction calibration to produce probabilities. Off by default, if on, uses exponential (aka Platt) calibration.
-    /// <include file='./XMLDoc.xml' path='docs/members/member[@name="AP"]/*' />
+    /// <include file='./doc.xml' path='docs/members/member[@name="AP"]/*' />
     public sealed class AveragedPerceptronTrainer :
         AveragedLinearTrainer<AveragedPerceptronTrainer.Arguments, LinearBinaryPredictor>
     {
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = Summary,
             UserName = UserNameValue,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/XMLDoc.xml' path='docs/members/member[@name=""AP""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='docs/members/member[@name=""AP""]/*' />" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

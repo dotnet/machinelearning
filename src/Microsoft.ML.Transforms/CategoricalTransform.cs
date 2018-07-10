@@ -21,7 +21,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 [assembly: LoadableClass(typeof(void), typeof(Categorical), null, typeof(SignatureEntryPointModule), "Categorical")]
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <include file='./XMLDoc.xml' path='docs/members/member[@name="CategoricalOneHotVectorizer"]/*' />
+    /// <include file='./doc.xml' path='docs/members/member[@name="CategoricalOneHotVectorizer"]/*' />
     public static class CategoricalTransform
     {
         public enum OutputKind : byte
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Runtime.Data
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalOneHotVectorizer", 
             Desc = CategoricalTransform.Summary,
             UserName = CategoricalTransform.UserName, 
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/XMLDoc.xml' path='docs/members/member[@name=""CategoricalOneHotVectorizer""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name=""CategoricalOneHotVectorizer""]/*' />" })]
         public static CommonOutputs.TransformOutput CatTransformDict(IHostEnvironment env, CategoricalTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Runtime.Data
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer", 
             Desc = CategoricalHashTransform.Summary,
             UserName = CategoricalHashTransform.UserName ,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/XMLDoc.xml' path='docs/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />" })]
         public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, CategoricalHashTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

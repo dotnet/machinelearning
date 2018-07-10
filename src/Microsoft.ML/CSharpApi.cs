@@ -4095,7 +4095,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/XMLDoc.xml' path='docs/members/member[@name="AP"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='docs/members/member[@name="AP"]/*' />
         public sealed partial class AveragedPerceptronBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -4599,7 +4599,7 @@ namespace Microsoft.ML
         }
 
 
-        /// <include file='../Microsoft.ML.FastTree/XMLDoc.xml' path='docs/members/member[@name="FastForest"]/*' />
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastForest"]/*' />
         public sealed partial class FastForestBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -4890,7 +4890,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.FastTree/XMLDoc.xml' path='docs/members/member[@name="FastForest"]/*' />
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastForest"]/*' />
         public sealed partial class FastForestRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -5177,7 +5177,7 @@ namespace Microsoft.ML
         }
 
 
-        /// <include file='../Microsoft.ML.FastTree/XMLDoc.xml' path='docs/members/member[@name="FastTree"]/*' />
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastTree"]/*' />
         public sealed partial class FastTreeBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -5566,7 +5566,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.FastTree/XMLDoc.xml' path='docs/members/member[@name="FastTree"]/*' />
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastTree"]/*' />
         public sealed partial class FastTreeRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -5990,7 +5990,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.FastTree/XMLDoc.xml' path='docs/members/member[@name="FastTree"]/*' />
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastTree"]/*' />
         public sealed partial class FastTreeRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -6374,7 +6374,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.FastTree/XMLDoc.xml' path='docs/members/member[@name="FastTreeTweedieRegression"]/*' />
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastTreeTweedieRegression"]/*' />
         public sealed partial class FastTreeTweedieRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -6763,7 +6763,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.StandardLearners/FactorizationMachine/XMLDoc.xml' path='docs/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='docs/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
         public sealed partial class FieldAwareFactorizationMachineBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7190,7 +7190,7 @@ namespace Microsoft.ML
         }
 
 
-        /// <include file='../Microsoft.ML.KMeansClustering/XMLDoc.xml' path='docs/members/member[@name="KMeans++"]/*' />
+        /// <include file='../Microsoft.ML.KMeansClustering/doc.xml' path='docs/members/member[@name="KMeans++"]/*' />
         public sealed partial class KMeansPlusPlusClusterer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7306,7 +7306,7 @@ namespace Microsoft.ML
         }
 
 
-        /// <include file='../Microsoft.ML.LightGBM/XMLDoc.xml' path='docs/members/member[@name="LightGBM"]/*' />
+        /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
         public sealed partial class LightGbmBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7509,7 +7509,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.LightGBM/XMLDoc.xml' path='docs/members/member[@name="LightGBM"]/*' />
+        /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
         public sealed partial class LightGbmClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7712,7 +7712,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.LightGBM/XMLDoc.xml' path='docs/members/member[@name="LightGBM"]/*' />
+        /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
         public sealed partial class LightGbmRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7915,7 +7915,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.LightGBM/XMLDoc.xml' path='docs/members/member[@name="LightGBM"]/*' />
+        /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
         public sealed partial class LightGbmRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8253,8 +8253,8 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/XMLDoc.xml' path='docs/members/member[@name="LBFGS"]/*' />
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/XMLDoc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/member[@name="LBFGS"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
         public sealed partial class LogisticRegressionBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8402,8 +8402,8 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/XMLDoc.xml' path='docs/members/member[@name="LBFGS"]/*' />
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/XMLDoc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/member[@name="LBFGS"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
         public sealed partial class LogisticRegressionClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8624,7 +8624,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/XMLDoc.xml' path='docs/members/member[@name="OGD"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='docs/members/member[@name="OGD"]/*' />
         public sealed partial class OnlineGradientDescentRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8777,7 +8777,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.PCA/Pca.xml' path='docs/members/member[@name="PCA"]/*' />
+        /// <include file='../Microsoft.ML.PCA/doc.xml' path='docs/members/member[@name="PCA"]/*' />
         public sealed partial class PcaAnomalyDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8871,7 +8871,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/XMLDoc.xml' path='docs/members/member[@name="PoissonRegression"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='docs/members/member[@name="PoissonRegression"]/*' />
         public sealed partial class PoissonRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -9153,7 +9153,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/XMLDoc.xml' path='docs/members/member[@name="SDCA"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='docs/members/member[@name="SDCA"]/*' />
         public sealed partial class StochasticDualCoordinateAscentClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -9276,7 +9276,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/XMLDoc.xml' path='docs/members/member[@name="SDCA"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='docs/members/member[@name="SDCA"]/*' />
         public sealed partial class StochasticDualCoordinateAscentRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -9879,7 +9879,7 @@ namespace Microsoft.ML
 
         }
 
-        /// <include file='../Microsoft.ML.Transforms/XMLDoc.xml' path='docs/members/member[@name="CategoricalHashOneHotVectorizer"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name="CategoricalHashOneHotVectorizer"]/*' />
         public sealed partial class CategoricalHashOneHotVectorizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -10052,7 +10052,7 @@ namespace Microsoft.ML
 
         }
 
-        /// <include file='../Microsoft.ML.Transforms/XMLDoc.xml' path='docs/members/member[@name="CategoricalOneHotVectorizer"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name="CategoricalOneHotVectorizer"]/*' />
         public sealed partial class CategoricalOneHotVectorizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -13983,7 +13983,7 @@ namespace Microsoft.ML
 
         }
 
-        /// <include file='../Microsoft.ML.PCA/Pca.xml' path='docs/members/member[@name="PCA"]/*' />
+        /// <include file='../Microsoft.ML.PCA/doc.xml' path='docs/members/member[@name="PCA"]/*' />
         public sealed partial class PcaCalculator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
