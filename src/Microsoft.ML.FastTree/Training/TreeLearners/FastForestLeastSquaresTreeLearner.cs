@@ -41,11 +41,11 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             return tree;
         }
 
-        protected override void FindAndSetBestFeatureForLeaf(LeafSplitCandidates leafSplitCandidates)
+        protected override void FindAndSetBestFeatureForLeaf(LeafSplitCandidates leafSplitCandidates, SufficientStatsBase[] stats)
         {
             if (SoftmaxTemperature != 0 || SplitFraction == 1.0)
             {
-                base.FindAndSetBestFeatureForLeaf(leafSplitCandidates);
+                base.FindAndSetBestFeatureForLeaf(leafSplitCandidates, stats);
                 return;
             }
 
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 if (infos[i].Gain > max && Rand.NextDouble() < SplitFraction || Double.IsNegativeInfinity(max))
                     max = infos[bestFeature = i].Gain;
             }
-            SetBestFeatureForLeaf(leafSplitCandidates, bestFeature);
+            SetBestFeatureForLeaf(leafSplitCandidates, bestFeature, stats[infos[bestFeature].Flock]);
         }
     }
 }

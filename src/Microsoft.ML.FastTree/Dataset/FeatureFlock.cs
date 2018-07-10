@@ -166,12 +166,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         public abstract long SizeInBytes();
 
         // Returns first bin index for a given feature in histogram
-        protected abstract int GetMinBorder(int featureIndexInFlock);
+        internal abstract int GetMinBorder(int featureIndexInFlock);
 
         // Returns last bin index for a given feature in histogram
         protected abstract int GetMaxBorder(int featureIndex);
 
-        protected abstract PerBinStats GetBinStats(int featureIndex);
+        internal abstract PerBinStats GetBinStats(int featureIndex);
 
         protected abstract double GetBinGradient(int featureIndex, double bias);
 
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public void FillSplitCandidates(LeastSquaresRegressionTreeLearner learner, LeastSquaresRegressionTreeLearner.LeafSplitCandidates leafSplitCandidates,
             int flock, int[] featureUseCount, double featureFirstUsePenalty, double featureReusePenalty, double minDocsInLeaf,
-            bool hasWeights, double gainConfidenceInSquaredStandardDeviations, double entropyCoefficient)
+            bool hasWeights, double gainConfidenceInSquaredStandardDeviations)
         {
             int featureMin = learner.TrainData.FlockToFirstFeature(flock);
             int featureLim = featureMin + learner.TrainData.Flocks[flock].Count;
@@ -355,23 +355,14 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     if (lteCount < minDocsForThis)
                         break;
 
-                    // Calculate the shifted gain, including the LTE child.
-                    double currentShiftedGain = learner.GetLeafSplitGain(gtCount, sumGTTargets, sumGTWeights)
-                        + learner.GetLeafSplitGain(lteCount, sumTargets - sumGTTargets, sumWeights - sumGTWeights);
+                    double currentShiftedGain = learner.ComputeShiftGain(minShiftedGain, totalCount,
+                        gtCount, lteCount, sumTargets, sumGTTargets, sumGTWeights, sumWeights);
 
-                    // Test whether we are meeting the min shifted gain confidence criteria for this split.
                     if (currentShiftedGain < minShiftedGain)
                         continue;
 
-                    // If this point in the code is reached, the histogram is splittable.
+                    // If this point in the code is reached, the flock is splittable.
                     IsSplittable[subfeature] = true;
-
-                    if (entropyCoefficient > 0)
-                    {
-                        // Consider the entropy of the split.
-                        double entropyGain = (totalCount * Math.Log(totalCount) - lteCount * Math.Log(lteCount) - gtCount * Math.Log(gtCount));
-                        currentShiftedGain += entropyCoefficient * entropyGain;
-                    }
 
                     // Is t the best threshold so far?
                     if (currentShiftedGain > bestShiftedGain)
@@ -411,7 +402,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             LeastSquaresRegressionTreeLearner.LeafSplitCandidates leafSplitCandidates,
             int flock, int[] featureUseCount, double featureFirstUsePenalty, double featureReusePenalty,
             double minDocsInLeaf,
-            bool hasWeights, double gainConfidenceInSquaredStandardDeviations, double entropyCoefficient)
+            bool hasWeights, double gainConfidenceInSquaredStandardDeviations)
         {
             int featureMin = learner.TrainData.FlockToFirstFeature(flock);
             int featureLim = featureMin + learner.TrainData.Flocks[flock].Count;
@@ -507,26 +498,14 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 if (lteCount < minDocsForThis)
                     continue;
 
-                // Calculate the shifted gain, including the LTE child.
-                double currentShiftedGain = learner.GetLeafSplitGain(gtCount, sumGTTargets, sumGTWeights)
-                                            +
-                                            learner.GetLeafSplitGain(lteCount, sumTargets - sumGTTargets,
-                                                sumWeights - sumGTWeights);
+                double currentShiftedGain = learner.ComputeShiftGain(minShiftedGain, totalCount, 
+                    gtCount, lteCount, sumTargets, sumGTTargets, sumGTWeights, sumWeights);
 
-                // Test whether we are meeting the min shifted gain confidence criteria for this split.
                 if (currentShiftedGain < minShiftedGain)
                     continue;
 
                 // If this point in the code is reached, the flock is splittable.
                 IsSplittable[0] = true;
-                if (entropyCoefficient > 0)
-                {
-                    // Consider the entropy of the split.
-                    double entropyGain = (totalCount * Math.Log(totalCount) - lteCount * Math.Log(lteCount) -
-                                          gtCount * Math.Log(gtCount));
-
-                    currentShiftedGain += entropyCoefficient * entropyGain;
-                }
 
                 // Is i the best threshold so far?
                 if (currentShiftedGain > bestShiftedGain)
@@ -591,7 +570,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         public void FillSplitCandidatesCategoricalLowPopulation(LeastSquaresRegressionTreeLearner learner,
             LeastSquaresRegressionTreeLearner.LeafSplitCandidates leafSplitCandidates,
             int flock, int[] featureUseCount, double featureFirstUsePenalty, double featureReusePenalty,
-            double minDocsInLeaf, bool hasWeights, double gainConfidenceInSquaredStandardDeviations, double entropyCoefficient)
+            double minDocsInLeaf, bool hasWeights, double gainConfidenceInSquaredStandardDeviations)
         {
             int featureMin = learner.TrainData.FlockToFirstFeature(flock);
             int featureLim = featureMin + learner.TrainData.Flocks[flock].Count;
@@ -697,21 +676,6 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             {
                 var binStats = virtualBins[i];
                 catFeatureCount += 1 + binStats.SubFeatures.Length;
-
-                /*int feature = features[i];
-                int subfeature = feature - featureMin;
-                Contracts.Assert(0 <= subfeature && subfeature < Flock.Count);
-                Contracts.Assert(subfeature <= feature);
-                Contracts.Assert(learner.TrainData.FlockToFirstFeature(flock) == feature - subfeature);
-                Contracts.Assert(featureUseCount[feature] >= 0);
-                Contracts.Assert(Flock.BinCount(subfeature) == 2);
-                Contracts.Assert(GetMaxBorder(subfeature) == GetMinBorder(subfeature));
-
-                var binStats = GetBinStats(GetMinBorder(subfeature));
-                sumGTTargets += binStats.SumTargets;
-                if (hasWeights)
-                    sumGTWeights += binStats.SumWeights;*/
-
                 sumGTTargets += binStats.SumTargets;
                 gtCount += binStats.Count;
                 docsInCurrentGroup += binStats.Count;
@@ -726,26 +690,14 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 if (lteCount < minDocsForThis)
                     continue;
 
-                // Calculate the shifted gain, including the LTE child.
-                double currentShiftedGain = learner.GetLeafSplitGain(gtCount, sumGTTargets, sumGTWeights)
-                                            +
-                                            learner.GetLeafSplitGain(lteCount, sumTargets - sumGTTargets,
-                                                sumWeights - sumGTWeights);
+                double currentShiftedGain = learner.ComputeShiftGain(minShiftedGain, totalCount,
+                    gtCount, lteCount, sumTargets, sumGTTargets, sumGTWeights, sumWeights);
 
-                // Test whether we are meeting the min shifted gain confidence criteria for this split.
                 if (currentShiftedGain < minShiftedGain)
                     continue;
 
                 // If this point in the code is reached, the flock is splittable.
                 IsSplittable[0] = true;
-                if (entropyCoefficient > 0)
-                {
-                    // Consider the entropy of the split.
-                    double entropyGain = (totalCount * Math.Log(totalCount) - lteCount * Math.Log(lteCount) -
-                                          gtCount * Math.Log(gtCount));
-
-                    currentShiftedGain += entropyCoefficient * entropyGain;
-                }
 
                 // Is i the best threshold so far?
                 if (currentShiftedGain > bestShiftedGain)
@@ -801,7 +753,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             LeastSquaresRegressionTreeLearner.LeafSplitCandidates leafSplitCandidates,
             int flock, int[] featureUseCount, double featureFirstUsePenalty, double featureReusePenalty,
             double minDocsInLeaf,
-            bool hasWeights, double gainConfidenceInSquaredStandardDeviations, double entropyCoefficient)
+            bool hasWeights, double gainConfidenceInSquaredStandardDeviations)
         {
             int featureMin = learner.TrainData.FlockToFirstFeature(flock);
             int featureLim = featureMin + learner.TrainData.Flocks[flock].Count;
@@ -933,21 +885,6 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             {
                 var binStats = virtualBins[i];
                 catFeatureCount += 1 + binStats.SubFeatures.Length;
-
-                /*int feature = features[i];
-                int subfeature = feature - featureMin;
-                Contracts.Assert(0 <= subfeature && subfeature < Flock.Count);
-                Contracts.Assert(subfeature <= feature);
-                Contracts.Assert(learner.TrainData.FlockToFirstFeature(flock) == feature - subfeature);
-                Contracts.Assert(featureUseCount[feature] >= 0);
-                Contracts.Assert(Flock.BinCount(subfeature) == 2);
-                Contracts.Assert(GetMaxBorder(subfeature) == GetMinBorder(subfeature));
-
-                var binStats = GetBinStats(GetMinBorder(subfeature));
-                sumGTTargets += binStats.SumTargets;
-                if (hasWeights)
-                    sumGTWeights += binStats.SumWeights;*/
-
                 sumGTTargets += binStats.SumTargets;
                 gtCount += binStats.Count;
                 docsInCurrentGroup += binStats.Count;
@@ -962,26 +899,14 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 if (lteCount < minDocsForThis)
                     continue;
 
-                // Calculate the shifted gain, including the LTE child.
-                double currentShiftedGain = learner.GetLeafSplitGain(gtCount, sumGTTargets, sumGTWeights)
-                                            +
-                                            learner.GetLeafSplitGain(lteCount, sumTargets - sumGTTargets,
-                                                sumWeights - sumGTWeights);
+                double currentShiftedGain = learner.ComputeShiftGain(minShiftedGain, totalCount,
+                    gtCount, lteCount, sumTargets, sumGTTargets, sumGTWeights, sumWeights);
 
-                // Test whether we are meeting the min shifted gain confidence criteria for this split.
                 if (currentShiftedGain < minShiftedGain)
                     continue;
 
                 // If this point in the code is reached, the flock is splittable.
                 IsSplittable[0] = true;
-                if (entropyCoefficient > 0)
-                {
-                    // Consider the entropy of the split.
-                    double entropyGain = (totalCount * Math.Log(totalCount) - lteCount * Math.Log(lteCount) -
-                                          gtCount * Math.Log(gtCount));
-
-                    currentShiftedGain += entropyCoefficient * entropyGain;
-                }
 
                 // Is i the best threshold so far?
                 if (currentShiftedGain > bestShiftedGain)
@@ -1386,12 +1311,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 return _flock.HotFeatureStarts[featureIndex + 1] - 1;
             }
 
-            protected override int GetMinBorder(int featureIndex)
+            internal override int GetMinBorder(int featureIndex)
             {
                 return _flock.HotFeatureStarts[featureIndex];
             }
 
-            protected override PerBinStats GetBinStats(int featureIndex)
+            internal override PerBinStats GetBinStats(int featureIndex)
             {
                 if (Hist.SumWeightsByBin != null)
                     return new PerBinStats(Hist.SumTargetsByBin[featureIndex], Hist.SumWeightsByBin[featureIndex], Hist.CountByBin[featureIndex]);

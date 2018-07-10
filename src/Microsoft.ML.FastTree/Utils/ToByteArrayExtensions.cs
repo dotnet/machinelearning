@@ -625,7 +625,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public unsafe static void ToByteArray(this double[] a, byte[] buffer, ref int position)
         {
-            int length = a.Length;
+            int length = Utils.Size(a);
             length.ToByteArray(buffer, ref position);
 
             fixed (byte* tmpBuffer = buffer)

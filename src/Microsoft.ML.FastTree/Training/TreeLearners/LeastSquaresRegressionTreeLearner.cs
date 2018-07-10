@@ -281,7 +281,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
             // perform the split in the tree, get new node names
             int newInteriorNodeIndex = tree.Split(bestLeaf, bestSplitInfo.Feature, bestSplitInfo.CategoricalFeatureIndices, bestSplitInfo.CategoricalSplitRange,
-                bestSplitInfo.CategoricalSplit, bestSplitInfo.Threshold, bestSplitInfo.LteOutput, bestSplitInfo.GTOutput, bestSplitInfo.Gain, bestSplitInfo.GainPValue);
+                bestSplitInfo.CategoricalSplit, bestSplitInfo.Threshold, bestSplitInfo.LteOutput, bestSplitInfo.GTOutput, bestSplitInfo.Gain, bestSplitInfo.GainPValue,
+                bestSplitInfo.CategoricalFeatureGain);
 
             gtChild = ~tree.GetGtChildForNode(newInteriorNodeIndex);
             lteChild = bestLeaf; // lte inherits name from parent
@@ -366,7 +367,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     _calculateLeafSplitCandidates.RunTask();
 
                 // Find gain-maximizing feature to split on.
-                FindAndSetBestFeatureForLeaf(SmallerChildSplitCandidates);
+                FindAndSetBestFeatureForLeaf(SmallerChildSplitCandidates, SmallerChildHistogramArray);
                 _parallelTraining.FindGlobalBestSplit(SmallerChildSplitCandidates, null, FindBestThresholdFromRawArray, BestSplitInfoPerLeaf);
             }
         }
@@ -429,8 +430,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     _calculateLeafSplitCandidates.RunTask();
 
                 // for each leaf, find best feature to split on
-                FindAndSetBestFeatureForLeaf(SmallerChildSplitCandidates);
-                FindAndSetBestFeatureForLeaf(LargerChildSplitCandidates);
+                FindAndSetBestFeatureForLeaf(SmallerChildSplitCandidates, SmallerChildHistogramArray);
+                FindAndSetBestFeatureForLeaf(LargerChildSplitCandidates, LargerChildHistogramArray);
                 _parallelTraining.FindGlobalBestSplit(SmallerChildSplitCandidates, LargerChildSplitCandidates, FindBestThresholdFromRawArray, BestSplitInfoPerLeaf);
             }
         }
@@ -441,7 +442,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// This method is overriden in MPI version of the code
         /// </summary>
         /// <param name="leafSplitCandidates">the FindBestThesholdleafSplitCandidates data structure that contains the best split information</param>
-        protected virtual void FindAndSetBestFeatureForLeaf(LeafSplitCandidates leafSplitCandidates)
+        /// <param name="stats">Stats for the feature flocks.</param>
+        protected virtual void FindAndSetBestFeatureForLeaf(LeafSplitCandidates leafSplitCandidates, SufficientStatsBase[] stats)
         {
             int bestFeature;
             if (SoftmaxTemperature == 0)
@@ -479,17 +481,101 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             else
                 bestFeature = leafSplitCandidates.FeatureSplitInfo.Select(info => info.Gain / SoftmaxTemperature).SoftArgMax(Rand);
 
-            SetBestFeatureForLeaf(leafSplitCandidates, bestFeature);
+            SetBestFeatureForLeaf(leafSplitCandidates, bestFeature, stats[leafSplitCandidates.FeatureSplitInfo[bestFeature].Flock]);
         }
 
-        protected virtual void SetBestFeatureForLeaf(LeafSplitCandidates leafSplitCandidates, int bestFeature)
+        protected virtual void SetBestFeatureForLeaf(LeafSplitCandidates leafSplitCandidates, int bestFeature, SufficientStatsBase stats)
         {
             int leaf = leafSplitCandidates.LeafIndex;
             BestSplitInfoPerLeaf[leaf] = leafSplitCandidates.FeatureSplitInfo[bestFeature];
-            if (BestSplitInfoPerLeaf[leaf].CategoricalSplit)
-                Array.Sort(BestSplitInfoPerLeaf[leaf].CategoricalFeatureIndices);
-
             BestSplitInfoPerLeaf[leaf].Feature = bestFeature;
+            if (BestSplitInfoPerLeaf[leaf].CategoricalSplit)
+            {
+                SetCategoricalFeatureGains(ref BestSplitInfoPerLeaf[leaf], stats, leafSplitCandidates);
+                Array.Sort(BestSplitInfoPerLeaf[leaf].CategoricalFeatureIndices);
+            }
+        }
+
+        void SetCategoricalFeatureGains(ref SplitInfo splitInfo, SufficientStatsBase stats, LeafSplitCandidates leafSplitCandidates)
+        {
+            splitInfo.CategoricalFeatureGain = new double[splitInfo.CategoricalFeatureIndices.Length];
+            int featureMin = TrainData.FlockToFirstFeature(splitInfo.Flock);
+            const double eps = 1e-10;
+            double sumGTTargets = 0.0;
+            double sumGTWeights = eps;
+            int gtCount = 0;
+            int totalCount = leafSplitCandidates.NumDocsInLeaf;
+            double sumTargets = leafSplitCandidates.SumTargets;
+            double sumWeights = leafSplitCandidates.SumWeights + 2 * eps;
+            double previousShiftGain = 0;
+            int firstFlockFeature = GetActiveFeatures(featureMin, featureMin + TrainData.Flocks[splitInfo.Flock].Count).First();
+            double totalGain = 0;
+            double gainShift = GetLeafSplitGain(totalCount, sumTargets, sumWeights);
+            double minShiftedGain = GainConfidenceInSquaredStandardDeviations <= 0 ? 0.0 : 
+                (GainConfidenceInSquaredStandardDeviations * leafSplitCandidates.VarianceTargets * totalCount / (totalCount - 1) + gainShift);
+
+            for (int i = 0; i < splitInfo.CategoricalFeatureIndices.Length; i++)
+            {
+                int featureIndex = splitInfo.CategoricalFeatureIndices[i] - featureMin;
+
+                Contracts.Assert(featureIndex >= 0);
+
+                var binStats = stats.GetBinStats(stats.GetMinBorder(featureIndex));
+                sumGTTargets += binStats.SumTargets;
+                if (HasWeights)
+                    sumGTWeights += binStats.SumWeights;
+
+                if (binStats.Count > 0)
+                {
+                    gtCount += binStats.Count;
+                    int lteCount = totalCount - gtCount;
+                    double currentShiftedGain = ComputeShiftGain(minShiftedGain, totalCount, gtCount, 
+                        lteCount, sumTargets, sumGTTargets, sumGTWeights, sumWeights);
+
+                    Contracts.Assert(currentShiftedGain >= 0);
+
+                    splitInfo.CategoricalFeatureGain[i] = currentShiftedGain - previousShiftGain;
+
+                    //This split point didn't really bring any positive gain. 
+                    if(splitInfo.CategoricalFeatureGain[i] < 0)
+                        splitInfo.CategoricalFeatureGain[i] = 0;
+
+                    totalGain += splitInfo.CategoricalFeatureGain[i];
+                    previousShiftGain = currentShiftedGain;
+                }
+                else
+                    splitInfo.CategoricalFeatureGain[i] = 0;
+            }
+
+            if (totalGain == 0)
+                return;
+
+            //Split the gain based on the contribution towards shift gain.
+            for (int i = 0; i < splitInfo.CategoricalFeatureGain.Length; i++)
+                splitInfo.CategoricalFeatureGain[i] = (splitInfo.CategoricalFeatureGain[i] / totalGain) * splitInfo.Gain;
+
+        }
+
+        public double ComputeShiftGain(double minShiftedGain, int totalCount, int gtCount,
+            int lteCount, FloatType sumTargets, FloatType sumGTTargets, FloatType sumGTWeights,
+            FloatType sumWeights)
+        {
+            // Calculate the shifted gain, including the LTE child.
+            double shiftGain = GetLeafSplitGain(gtCount, sumGTTargets, sumGTWeights)
+                + GetLeafSplitGain(lteCount, sumTargets - sumGTTargets, sumWeights - sumGTWeights);
+
+            // Test whether we are meeting the min shifted gain confidence criteria for this split.
+            if (shiftGain < minShiftedGain)
+                return shiftGain;
+
+            if (EntropyCoefficient > 0)
+            {
+                // Consider the entropy of the split.
+                double entropyGain = (totalCount * Math.Log(totalCount) - lteCount * Math.Log(lteCount) - gtCount * Math.Log(gtCount));
+                shiftGain += EntropyCoefficient * entropyGain;
+            }
+
+            return shiftGain;
         }
 
         /// <summary>
@@ -671,30 +757,26 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 {
                     histogram.FillSplitCandidatesCategorical(this, leafSplitCandidates,
                     flock, FeatureUseCount, FeatureFirstUsePenalty, FeatureReusePenalty, MinDocsInLeaf,
-                    HasWeights, GainConfidenceInSquaredStandardDeviations,
-                    EntropyCoefficient);
+                    HasWeights, GainConfidenceInSquaredStandardDeviations);
                 }
                 else if (Bundling == Bundle.AggregateLowPopulation)
                 {
                     histogram.FillSplitCandidatesCategoricalLowPopulation(this, leafSplitCandidates,
                     flock, FeatureUseCount, FeatureFirstUsePenalty, FeatureReusePenalty, MinDocsInLeaf,
-                    HasWeights, GainConfidenceInSquaredStandardDeviations,
-                    EntropyCoefficient);
+                    HasWeights, GainConfidenceInSquaredStandardDeviations);
                 }
                 else if (Bundling == Bundle.Adjacent)
                 {
                     histogram.FillSplitCandidatesCategoricalNeighborBundling(this, leafSplitCandidates,
                     flock, FeatureUseCount, FeatureFirstUsePenalty, FeatureReusePenalty, MinDocsInLeaf,
-                    HasWeights, GainConfidenceInSquaredStandardDeviations,
-                    EntropyCoefficient);
+                    HasWeights, GainConfidenceInSquaredStandardDeviations);
                 }
             }
             else
             {
                 histogram.FillSplitCandidates(this, leafSplitCandidates,
                     flock, FeatureUseCount, FeatureFirstUsePenalty, FeatureReusePenalty, MinDocsInLeaf,
-                    HasWeights, GainConfidenceInSquaredStandardDeviations,
-                    EntropyCoefficient);
+                    HasWeights, GainConfidenceInSquaredStandardDeviations);
             }
 
         }
@@ -1101,12 +1183,14 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             public bool CategoricalSplit;
             public int[] CategoricalSplitRange;
             public int[] CategoricalFeatureIndices;
+            public double[] CategoricalFeatureGain;
 
             public void Reset()
             {
                 Feature = -1;
                 Gain = double.NegativeInfinity;
                 CategoricalFeatureIndices = new int[0];
+                CategoricalFeatureGain = new double[0];
                 CategoricalSplitRange = new int[0];
                 Flock = -1;
             }
@@ -1143,6 +1227,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 Contracts.Check(CategoricalSplitRange.Length == 2);
                 CategoricalSplitRange.ToByteArray(buffer, ref offset);
                 CategoricalFeatureIndices.ToByteArray(buffer, ref offset);
+                CategoricalFeatureGain.ToByteArray(buffer, ref offset);
                 Contracts.Check(offset - startIndex <= size);
                 offset = startIndex + size;
             }
@@ -1170,6 +1255,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 CategoricalSplitRange = buffer.ToIntArray(ref offset);
                 Contracts.Check(CategoricalSplitRange.Length == 2);
                 CategoricalFeatureIndices = buffer.ToIntArray(ref offset);
+                CategoricalFeatureGain = buffer.ToDoubleArray(ref offset);
+                Contracts.Check(CategoricalFeatureGain.Length == CategoricalFeatureIndices.Length);
                 Contracts.Check(offset - startIndex <= size);
                 offset = startIndex + size;
             }

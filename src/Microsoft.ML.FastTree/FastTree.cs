@@ -2797,6 +2797,13 @@ The output of the ensemble produced by MART on a given instance is the sum of th
         }
     }
 
+    public enum FastTreeCategoricalSplitVersion
+    {
+        CategoricalSplitAbsent,
+        CategoricalSplit,
+        CategoricalSplitWithGains
+    }
+
     public abstract class FastTreePredictionWrapper :
         PredictorBase<Float>,
         IValueMapper,
@@ -2833,6 +2840,8 @@ The output of the ensemble produced by MART on a given instance is the sum of th
 
         protected abstract uint VerCategoricalSplitSerialized { get; }
 
+        protected abstract uint VerCategoricalSplitWithGainsSerialized { get; }
+
         public ColumnType InputType { get; }
         public ColumnType OutputType => NumberType.Float;
         public bool CanSavePfa => true;
@@ -2868,12 +2877,14 @@ The output of the ensemble produced by MART on a given instance is the sum of th
             // <PredictionKind> specific stuff
             ctx.CheckVersionInfo(ver);
             bool usingDefaultValues = false;
-            bool categoricalSplits = false;
+            FastTreeCategoricalSplitVersion categoricalSplits = FastTreeCategoricalSplitVersion.CategoricalSplitAbsent;
             if (ctx.Header.ModelVerWritten >= VerDefaultValueSerialized)
                 usingDefaultValues = true;
 
-            if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
-                categoricalSplits = true;
+            if (ctx.Header.ModelVerWritten >= VerCategoricalSplitWithGainsSerialized)
+                categoricalSplits = FastTreeCategoricalSplitVersion.CategoricalSplitWithGains;
+            else if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
+                categoricalSplits = FastTreeCategoricalSplitVersion.CategoricalSplit;
 
             TrainedEnsemble = new Ensemble(ctx, usingDefaultValues, categoricalSplits);
             MaxSplitFeatIdx = FindMaxFeatureIndex(TrainedEnsemble);
@@ -3178,6 +3189,7 @@ The output of the ensemble produced by MART on a given instance is the sum of th
                 var name = names.GetItemOrDefault(pair.Key).ToString();
                 if (string.IsNullOrEmpty(name))
                     name = $"f{pair.Key}";
+
                 yield return new KeyValuePair<string, Double>(name, Math.Sqrt(pair.Value) * normFactor);
             }
         }

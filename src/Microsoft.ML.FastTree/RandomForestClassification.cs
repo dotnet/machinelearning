@@ -61,7 +61,8 @@ namespace Microsoft.ML.Runtime.FastTree
                 // verWrittenCur: 0x00010003, // _numFeatures serialized
                 // verWrittenCur: 0x00010004, // Ini content out of predictor
                 // verWrittenCur: 0x00010005, // Add _defaultValueForMissing
-                verWrittenCur: 0x00010006, // Categorical splits.
+                // verWrittenCur: 0x00010006, // Categorical splits.
+                verWrittenCur: 0x00010007, //Categorical splits with gains.
                 verReadableCur: 0x00010005,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
@@ -72,7 +73,7 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override uint VerDefaultValueSerialized { get { return 0x00010005; } }
 
         protected override uint VerCategoricalSplitSerialized { get { return 0x00010006; } }
-
+        protected override uint VerCategoricalSplitWithGainsSerialized { get { return 0x00010007; } }
         public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
 
         internal FastForestClassificationPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount,

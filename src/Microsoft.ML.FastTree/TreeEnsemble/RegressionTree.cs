@@ -51,6 +51,10 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// array contains it's start and end range in the input feature vector at prediction time.
         /// </summary>
         public int[][] CategoricalSplitFeatureRanges;
+        /// <summary>
+        /// Contains gain per feature for a categorical split node.
+        /// </summary>
+        public double[][] CategoricalFeatureGain;
         // These are the thresholds based on the binned values of the raw features.
         public UInt32[] Thresholds { get; }
         // These are the thresholds based on the raw feature values. Populated after training.
@@ -110,10 +114,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             if (CategoricalSplit.Any(b => b))
             {
                 CategoricalSplitFeatures = new int[NumNodes][];
+                CategoricalFeatureGain = new double[NumNodes][];
                 CategoricalSplitFeatureRanges = new int[NumNodes][];
                 for (int index = 0; index < NumNodes; index++)
                 {
                     CategoricalSplitFeatures[index] = buffer.ToIntArray(ref position);
+                    CategoricalFeatureGain[index] = buffer.ToDoubleArray(ref position);
                     CategoricalSplitFeatureRanges[index] = buffer.ToIntArray(ref position);
                 }
             }
@@ -208,10 +214,16 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             LeafValues = leafValues;
             CategoricalSplitFeatures = categoricalSplitFeatures;
             CategoricalSplitFeatureRanges = new int[CategoricalSplitFeatures.Length][];
+
+            //REVIEW: This needs to come directly from LightGBM. 
+            //Adding this now so checks elsewhere don't fail.
+            CategoricalFeatureGain = new double[CategoricalSplitFeatures.Length][];
+
             for (int i = 0; i < CategoricalSplitFeatures.Length; ++i)
             {
                 if (CategoricalSplitFeatures[i] != null && CategoricalSplitFeatures[i].Length > 0)
                 {
+                    CategoricalFeatureGain[i] = new double[CategoricalSplitFeatures[i].Length];
                     CategoricalSplitFeatureRanges[i] = new int[2];
                     CategoricalSplitFeatureRanges[i][0] = CategoricalSplitFeatures[i].First();
                     CategoricalSplitFeatureRanges[i][1] = CategoricalSplitFeatures[i].Last();
@@ -238,7 +250,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
         }
 
-        internal RegressionTree(ModelLoadContext ctx, bool usingDefaultValue, bool categoricalSplits)
+        internal RegressionTree(ModelLoadContext ctx, bool usingDefaultValue, FastTreeCategoricalSplitVersion categoricalSplits)
             : this()
         {
             // *** Binary format ***
@@ -258,7 +270,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             // int[MN]: gt child
             // int[MN]: split feature index
             // int[C]: categorical node indices.
-            // int[C*(CT + 2)]: categorical feature values and categorical feature range in the input feature vector.
+            // CT*(int[CT] + double[CT] + int[2]): categorical feature values, categorical feature gain map
+            // and categorical feature range in the input feature vector.
             // int[MN]: threshold bin index (can be null of raw thresholds are not null)
             // Float[MN]: raw threshold (can be not null if threshold bin indices are not null)
             // Float[MN]: default value For missing
@@ -276,13 +289,16 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             GtChild = reader.ReadIntArray();
             SplitFeatures = reader.ReadIntArray();
 
-            if (categoricalSplits)
+            if (categoricalSplits >= FastTreeCategoricalSplitVersion.CategoricalSplit)
             {
                 int[] categoricalNodeIndices = reader.ReadIntArray();
                 CategoricalSplit = GetCategoricalSplitFromIndices(categoricalNodeIndices);
                 if (categoricalNodeIndices?.Length > 0)
                 {
                     CategoricalSplitFeatures = new int[NumNodes][];
+                    if (categoricalSplits >= FastTreeCategoricalSplitVersion.CategoricalSplitWithGains)
+                        CategoricalFeatureGain = new double[NumNodes][];
+
                     CategoricalSplitFeatureRanges = new int[NumNodes][];
                     foreach (var index in categoricalNodeIndices)
                     {
@@ -290,6 +306,9 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                         Contracts.Assert(index >= 0 && index < NumNodes);
 
                         CategoricalSplitFeatures[index] = reader.ReadIntArray();
+                        if (categoricalSplits >= FastTreeCategoricalSplitVersion.CategoricalSplitWithGains)
+                            CategoricalFeatureGain[index] = reader.ReadDoubleArray();
+
                         CategoricalSplitFeatureRanges[index] = reader.ReadIntArray(2);
                     }
                 }
@@ -354,7 +373,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             // int[MN]: gt child
             // int[MN]: split feature index
             // int[C]: categorical node indices.
-            // int[C*(CT + 2)]: categorical feature values and categorical feature range in the input feature vector.
+            // C*(int[CT] + double[CT] + int[2]: categorical feature values, categorical feature gain map
+            // and categorical feature range in the input feature vector.
             // int[MN]: threshold bin index (can be null if raw thresholds are not null)
             // Float[MN]: raw threshold (can be not null if threshold bin indices are not null)
             // Float[MN]: default value For missing
@@ -393,10 +413,14 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 Contracts.Assert(CategoricalSplitFeatures[indexLocal] != null &&
                                  CategoricalSplitFeatures[indexLocal].Length > 0);
 
+                Contracts.Assert(CategoricalFeatureGain[indexLocal] != null &&
+                 CategoricalFeatureGain[indexLocal].Length == CategoricalSplitFeatures[indexLocal].Length);
+
                 Contracts.Assert(CategoricalSplitFeatureRanges[indexLocal] != null &&
                                  CategoricalSplitFeatureRanges[indexLocal].Length == 2);
 
                 writer.WriteIntArray(CategoricalSplitFeatures[indexLocal]);
+                writer.WriteDoubleArray(CategoricalFeatureGain[indexLocal]);
                 writer.WriteIntsNoCount(CategoricalSplitFeatureRanges[indexLocal], 2);
             }
 
@@ -415,21 +439,21 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             Save(ctx, TreeType.Regression);
         }
 
-        public static RegressionTree Load(ModelLoadContext ctx, bool usingDefaultValues, bool categoricalSplits)
+        public static RegressionTree Load(ModelLoadContext ctx, bool usingDefaultValues, FastTreeCategoricalSplitVersion categoricalSplits)
         {
             TreeType code = (TreeType)ctx.Reader.ReadByte();
             switch (code)
             {
-            case TreeType.Regression:
-                return new RegressionTree(ctx, usingDefaultValues, categoricalSplits);
-            case TreeType.Affine:
-                // Affine regression trees do not actually work, nor is it clear how they ever
-                // could have worked within TLC, so the chance of this happening seems remote.
-                throw Contracts.ExceptNotSupp("Affine regression trees unsupported");
-            case TreeType.FastForest:
-                return new QuantileRegressionTree(ctx, usingDefaultValues, categoricalSplits);
-            default:
-                throw Contracts.ExceptDecode();
+                case TreeType.Regression:
+                    return new RegressionTree(ctx, usingDefaultValues, categoricalSplits);
+                case TreeType.Affine:
+                    // Affine regression trees do not actually work, nor is it clear how they ever
+                    // could have worked within TLC, so the chance of this happening seems remote.
+                    throw Contracts.ExceptNotSupp("Affine regression trees unsupported");
+                case TreeType.FastForest:
+                    return new QuantileRegressionTree(ctx, usingDefaultValues, categoricalSplits);
+                default:
+                    throw Contracts.ExceptDecode();
             }
         }
 
@@ -453,6 +477,11 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                          CategoricalSplitFeatures.Length == numMaxNodes),
                     "bad categorical split features length");
 
+                checker(CategoricalFeatureGain != null &&
+                        (CategoricalFeatureGain.Length == NumNodes ||
+                         CategoricalFeatureGain.Length == numMaxNodes),
+                    "bad categorical split features gain length");
+
                 checker(CategoricalSplitFeatureRanges != null &&
                         (CategoricalSplitFeatureRanges.Length == NumNodes ||
                          CategoricalSplitFeatureRanges.Length == numMaxNodes),
@@ -468,6 +497,10 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                         checker(CategoricalSplitFeatures[index] != null, "Categorical split features is null");
                         checker(CategoricalSplitFeatures[index].Length > 0,
                             "Categorical split features is zero length");
+
+                        checker(CategoricalFeatureGain[index] != null, "Categorical split features gain is null");
+                        checker(CategoricalFeatureGain[index].Length == CategoricalSplitFeatures[index].Length,
+                            "Categorical split features gain length is not the same as categorical split feature length.");
 
                         checker(CategoricalSplitFeatureRanges[index] != null,
                             "Categorical split feature ranges is null");
@@ -512,6 +545,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 GtChild.SizeInBytes() +
                 SplitFeatures.SizeInBytes() +
                 (CategoricalSplitFeatures != null ? CategoricalSplitFeatures.Select(thresholds => thresholds.SizeInBytes()).Sum() : 0) +
+                (CategoricalFeatureGain != null ? CategoricalFeatureGain.Select(gain => gain.SizeInBytes()).Sum() : 0) +
                 (CategoricalSplitFeatureRanges != null ? CategoricalSplitFeatureRanges.Select(ranges => ranges.SizeInBytes()).Sum() : 0) +
                 NumNodes * sizeof(int) +
                 CategoricalSplit.Length * sizeof(bool) +
@@ -541,6 +575,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 for (int i = 0; i < CategoricalSplitFeatures.Length; i++)
                 {
                     CategoricalSplitFeatures[i].ToByteArray(buffer, ref position);
+                    CategoricalFeatureGain[i].ToByteArray(buffer, ref position);
                     CategoricalSplitFeatureRanges[i].ToByteArray(buffer, ref position);
                 }
             }
@@ -920,23 +955,13 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     Contracts.Assert(CategoricalSplitFeatures != null);
                     Contracts.Assert(CategoricalSplitFeatureRanges != null);
 
-                    //REVIEW: Consider experimenting with bitmap instead of doing log(n) binary search.
                     int newNode = LteChild[node];
-                    int end = featIndices.FindIndexSorted(0, count, CategoricalSplitFeatureRanges[node][1]);
-                    for (int i = featIndices.FindIndexSorted(0, count, CategoricalSplitFeatureRanges[node][0]);
-                         i < count && i <= end;
-                         ++i)
+                    int i = featIndices.FindIndexSorted(0, count, CategoricalSplitFeatureRanges[node][0]);
+                    if (i < count && featIndices[i] <= CategoricalSplitFeatureRanges[node][1] &&
+                        CategoricalSplitFeatures[node].TryFindIndexSorted(0, CategoricalSplitFeatures[node].Length, featIndices[i], out int ii) &&
+                        GetFeatureValue(featValues[i], node) > 0.0f)
                     {
-                        int index = featIndices[i];
-                        if (CategoricalSplitFeatures[node].TryFindIndexSorted(0, CategoricalSplitFeatures[node].Length, index, out int ii))
-                        {
-                            Float val = GetFeatureValue(featValues[i], node);
-                            if (val > 0.0f)
-                            {
-                                newNode = GtChild[node];
-                                break;
-                            }
-                        }
+                        newNode = GtChild[node];
                     }
 
                     node = newNode;
@@ -997,11 +1022,13 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// <param name="gain">The splitgain of this split. This does not
         /// affect the logic of the tree evaluation.</param>
         /// <param name="gainPValue">The p-value associated with this split,
+        /// <param name="categoricalFeatureGain">Gain for every feature in a categorical split.</param>
         /// indicating confidence that this is a better than random split.
         /// This does not affect the logic of the tree evaluation.</param>
         /// <returns>Returns the node index</returns>
         public virtual int Split(int leaf, int feature, int[] categoricalSplitFeatures, int[]
-            categoricalSplitRange, bool categoricalSplit, uint threshold, double lteValue, double gtValue, double gain, double gainPValue)
+            categoricalSplitRange, bool categoricalSplit, uint threshold, double lteValue,
+            double gtValue, double gain, double gainPValue, double[] categoricalFeatureGain)
         {
             int indexOfNewNonLeaf = NumLeaves - 1;
 
@@ -1025,12 +1052,14 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 Contracts.Assert(CategoricalSplitFeatureRanges == null);
                 CategoricalSplitFeatures = new int[MaxNumNodes][];
                 CategoricalSplitFeatureRanges = new int[MaxNumNodes][];
+                CategoricalFeatureGain = new double[MaxNumNodes][];
             }
 
             if (categoricalSplit)
             {
                 CategoricalSplitFeatures[indexOfNewNonLeaf] = categoricalSplitFeatures;
                 CategoricalSplitFeatureRanges[indexOfNewNonLeaf] = categoricalSplitRange;
+                CategoricalFeatureGain[indexOfNewNonLeaf] = categoricalFeatureGain;
             }
 
             CategoricalSplit[indexOfNewNonLeaf] = categoricalSplit;
@@ -1316,7 +1345,25 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 var result = new FeatureToGainMap();
                 int numNonLeaves = NumLeaves - 1;
                 for (int n = 0; n < numNonLeaves; ++n)
-                    result[SplitFeatures[n]] += _splitGain[n];
+                {
+                    if (CategoricalSplit[n])
+                    {
+                        if (CategoricalFeatureGain != null)
+                        {
+                            for (int index = 0; index < CategoricalFeatureGain[n].Length; index++)
+                                result[CategoricalSplitFeatures[n][index]] += CategoricalFeatureGain[n][index];
+                        }
+                        else
+                        {
+                            //Best effort.
+                            double averagedGain = _splitGain[n] / CategoricalSplitFeatures[n].Length;
+                            for (int index = 0; index < CategoricalFeatureGain[n].Length; index++)
+                                result[CategoricalSplitFeatures[n][index]] += averagedGain;
+                        }
+                    }
+                    else
+                        result[SplitFeatures[n]] += _splitGain[n];
+                }
                 return result;
             }
         }
