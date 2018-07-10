@@ -257,11 +257,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             if (count == 1)
                 return max;
-
-            //else if (leng == 2) {
-            //  return SoftMax(inputs[0], inputs[1]);
-            //}
-
+            
             double intermediate = 0.0;
             Float cutoff = max - LogTolerance;
 

@@ -570,9 +570,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         /// <param name="count">the maximum number of bytes to write</param>
         public override void Write(byte[] buffer, int offset, int count)
         {
-            // what if it fails?
-            //try
-            //{
             long next = Position + count;
             if (_length > 0 && next >= _length)
             {
@@ -585,11 +582,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             _position = -1;
             base.Write(buffer, offset, count);
             _position = next;
-            //}
-            //catch
-            //{
-            //    position = base.Position;
-            //}
         }
 
         /// <summary>
@@ -598,9 +590,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         /// <param name="value">the byte to write</param>
         public override void WriteByte(byte value)
         {
-            // what if it fails?
-            //try
-            //{
             long next = Position + 1;
             if (_length > 0 && next >= _length)
             {
@@ -613,11 +602,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             _position = -1;
             base.WriteByte(value);
             _position = next;
-            //}
-            //catch
-            //{
-            //    position = base.Position;
-            //}
         }
 
         /// <summary>
@@ -688,11 +672,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             }
         }
 
-        //		/// <summary>
-        //		/// Get whether the stream can seek - true, but it really cannot.
-        //		/// (CanSeek is stupidly checked by the FileStream Position property
-        //		/// on get, not just set.)
-        //		/// </summary>
         /// <summary>
         /// Get whether the stream can seek.
         /// </summary>
@@ -700,8 +679,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         {
             get
             {
-                // do we need to force this to true, or can we rely on it?
-                //return true;
                 return base.CanSeek;
             }
         }
@@ -713,8 +690,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         {
             get
             {
-                // pass through...
-                //return true;
                 return base.CanWrite;
             }
         }
@@ -739,15 +714,12 @@ namespace Microsoft.ML.Runtime.Internal.IO
         {
             get
             {
-                // the efficiency concern is over VerifyOSHandlePosition when the handle is exposed...
-                //return base.Position;
                 if (_position < 0)
                     _position = base.Position;
                 return _position;
             }
             set
             {
-                //throw new NotSupportedException("LowFragmentationStream cannot seek");
                 Seek(value);
             }
         }

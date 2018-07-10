@@ -212,11 +212,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
         private void ReleaseBuffer()
         {
-            //if (checkStream != null)
-            //{
-            //    checkStream.Close();
-            //    checkStream = null;
-            //}
             if (!_released)
             {
                 if (_buffer != null)
@@ -249,10 +244,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
                                     if (_buffer[j] != IntPtr.Zero)
                                     {
-                                        //Console.Write("(freeing... ");
                                         bool ret = IOUtil.Win32.VirtualFree(_buffer[j], IntPtr.Zero, /*MEM_DECOMMIT*/ IOUtil.Win32.FreeType.MEM_RELEASE);
-                                        //int count = Interlocked.Decrement(ref allocCount);
-                                        //Console.WriteLine("done: " + ret + " " + count + ")");
                                         _buffer[j] = IntPtr.Zero;
                                     }
                                 }
@@ -271,14 +263,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             }
             if (_fillThread != null)
             {
-                // skip this - we close the handle
-                //try
-                //{
-                //    fillThread.Abort();
-                //}
-                //catch
-                //{
-                //}
                 _fillThread = null;
             }
         }
@@ -319,7 +303,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 }
                 _fillThread = null;
             }
-            //if (allocate)  ReleaseBuffer();
             long startRemainder = (startPosition % _sectorSize);
             try
             {
@@ -364,15 +347,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                     if (_blockSize < _sectorSize)
                         _blockSize = (int)_sectorSize;
 
-                    // check on buffer alignment:
-                    //mBuffer = new byte[blockSize + 16];
-                    //fixed (byte* mb = mBuffer)
-                    //{
-                    //    IntPtr tmp = new IntPtr(mb);
-                    //    Console.WriteLine(tmp.ToInt64());
-                    //    Console.WriteLine((tmp.ToInt64() + 7) & ~7);
-                    //}
-
                     _readMutex = new AutoResetEvent[parallelLevel];
                     _pullMutex = new AutoResetEvent[parallelLevel];
                     _readSize = new int[parallelLevel];
@@ -386,7 +360,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                         completed = true;
                         for (int i = 0; i < _buffer.Length; i++)
                         {
-                            //if (buffer[i] != IntPtr.Zero)  throw new VirtualAllocException("Buffer double allocated");
                             _buffer[i] = IntPtr.Zero;
 
 #if REUSE_BUFFERS
@@ -407,20 +380,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
                             if (_buffer[i] == IntPtr.Zero)
                             {
-                                //Console.WriteLine("allocated: " +
-                                //	(System.Diagnostics.Process.GetCurrentProcess().VirtualMemorySize / 1024 / 1024) + " MB");
-                                //Console.Write("(allocating... ");
                                 _buffer[i] = IOUtil.Win32.VirtualAlloc(IntPtr.Zero, new IntPtr(_blockSize + 8), IOUtil.Win32.AllocationType.MEM_RESERVE | IOUtil.Win32.AllocationType.MEM_COMMIT, IOUtil.Win32.Protect.PAGE_READWRITE);
-                                //if (buffer[i] == IntPtr.Zero || buffer[i].ToInt64() < 0)
-                                //{
-                                //	Console.WriteLine("failed @" + (blockSize + 8) + ": " + allocCount + ")");
-                                //	Console.ReadLine();
-                                //}
-                                //else
-                                //{
-                                //	int acount = Interlocked.Increment(ref allocCount);
-                                //	Console.WriteLine("done: " + acount + ")");
-                                //}
                             }
 
                             if (_buffer[i] == IntPtr.Zero || _buffer[i].ToInt64() < 0)
@@ -451,10 +411,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
                                             if (_buffer[j] != IntPtr.Zero)
                                             {
-                                                //Console.Write("(freeing... ");
                                                 bool ret = IOUtil.Win32.VirtualFree(_buffer[j], IntPtr.Zero, /*MEM_DECOMMIT*/ IOUtil.Win32.FreeType.MEM_RELEASE);
-                                                //int count = Interlocked.Decrement(ref allocCount);
-                                                //Console.WriteLine("done: " + ret + " " + count + ")");
                                                 _buffer[j] = IntPtr.Zero;
                                             }
                                         }
@@ -469,8 +426,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                                 }
                                 // try reducing the buffer size:
                                 _blockSize = _blockSize / 2;
-                                // collect to compact memory:
-                                //GC.Collect();
                                 GC.WaitForPendingFinalizers();
                                 GC.Collect();
                                 // try again:
@@ -496,7 +451,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 }
 
                 _alignedLimit = _length - (_unalignedTail == null ? 0 : _unalignedTail.Length);
-                //if (alignedLimit < 0)  alignedLimit = 0;
                 if (_parallel)
                 {
                     _fillThread = Utils.CreateBackgroundThread(FillBuffer);
@@ -507,7 +461,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
                 if (startRemainder != 0)
                 {
-                    //Seek(startRemainder, SeekOrigin.Current);
                     Skip(startRemainder);
                 }
             }
@@ -519,11 +472,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
                     {
                         try
                         {
-                            // don't bother trying to save them?
-                            //Console.Write("(freeing... ");
                             bool ret = IOUtil.Win32.VirtualFree(_buffer[j], IntPtr.Zero, /*MEM_DECOMMIT*/ IOUtil.Win32.FreeType.MEM_RELEASE);
-                            //int count = Interlocked.Decrement(ref allocCount);
-                            //Console.WriteLine("done: " + ret + " " + count + ")");
                             _buffer[j] = IntPtr.Zero;
                         }
                         catch
@@ -742,11 +691,9 @@ namespace Microsoft.ML.Runtime.Internal.IO
         private int _bufferGetIndex;
         private int _fillCount;
         private Thread _fillThread;
-        private /*readonly*/ AutoResetEvent[] _readMutex;
-        private /*readonly*/ AutoResetEvent[] _pullMutex;
-        //private readonly AutoResetEvent[] readFillMutex;
-        //private readonly AutoResetEvent[] readGetMutex;
-        private /*readonly*/ int[] _readSize;
+        private AutoResetEvent[] _readMutex;
+        private AutoResetEvent[] _pullMutex;
+        private int[] _readSize;
         private byte[] _unalignedTail;
 
         /// <summary>
@@ -850,13 +797,11 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
         private bool FillBufferPass()
         {
-            //Console.WriteLine("[" + totalRead + " / " + alignedLimit + " / " + length + "]");
             // read the aligned amount only, specified by 'alignedLimit':
             if (_totalRead < _alignedLimit)
             {
                 int curBlock = (int)Math.Min(_blockSize, _alignedLimit - _totalRead);
-
-                //Console.WriteLine(" " + totalRead + " -> " + (totalRead + curBlock) + " / " + alignedLimit);
+                
                 // wait for pull of last read:
 #if MONITOR
 				Console.WriteLine(":: " + Path.GetFileName(fileName) + " :: " + "".PadLeft(4) +
@@ -873,12 +818,8 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 {
                     // read into buffer:
                     int readBytes;
-                    //long t = DateTime.UtcNow.Ticks;
-                    //long startPos = IOUtil.Win32.Raw.GetFilePos(handle);
                     bool readres = IOUtil.Win32.Raw.ReadFile(_handle, _alignedBuffer[_bufferFillIndex],
                         (int)Math.Min(_blockSize, _alignedLimit - _totalRead), out readBytes);
-                    //t = DateTime.UtcNow.Ticks - t;
-                    //Console.WriteLine("core time: " + (t / (double)TimeSpan.TicksPerSecond).ToString("0.000"));
                     if (!readres)
                     {
                         // try again?? ***
@@ -927,14 +868,12 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
                     if (_totalRead < _alignedLimit || (_unalignedTail != null && _unalignedTail.Length != 0))
                     {
-                        //Console.WriteLine("continue...");
                         _readMutex[_bufferFillIndex].Set();
                         _bufferFillIndex = (_bufferFillIndex + 1) % _readMutex.Length;
                         return true;
                     }
                     else
                     {
-                        //Console.WriteLine(" totalRead: " + totalRead + "  alignedLimit: " + alignedLimit);
                         _done[_bufferFillIndex] = true;
                         _readMutex[_bufferFillIndex].Set();
                         _bufferFillIndex = (_bufferFillIndex + 1) % _readMutex.Length;
@@ -949,11 +888,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             }
             else if (_alignedLimit == _totalRead && _unalignedTail != null && _unalignedTail.Length != 0)
             {
-                //Console.Error.WriteLine();
-                //Console.Error.WriteLine("Unaligned tail: " + alignedLimit + " + " + unalignedTail.Length + " => " + length);
-
-                // wait for pull of last read:
-                //Console.WriteLine("  fill get : " + fillCount + " [" + bufferFillIndex + "]");
                 _pullMutex[_bufferFillIndex].WaitOne();
 
                 try
@@ -963,7 +897,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                     _totalRead += _unalignedTail.Length;
                     CopyBuffer(_unalignedTail, _alignedBuffer[_bufferFillIndex], _unalignedTail.Length);
                     _readSize[_bufferFillIndex] = _unalignedTail.Length;
-                    //Console.WriteLine(" tail done");
                     _done[_bufferFillIndex] = true;
                 }
                 catch (Exception ex)
@@ -971,9 +904,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                     _pullMutex[_bufferFillIndex].Set();
                     throw ex;
                 }
-
-                //fillCount++;
-                //Console.WriteLine("  fill set : " + fillCount + " [" + bufferFillIndex + "]" + " *");
                 _readMutex[_bufferFillIndex].Set();
                 _bufferFillIndex = (_bufferFillIndex + 1) % _readMutex.Length;
 
@@ -981,13 +911,8 @@ namespace Microsoft.ML.Runtime.Internal.IO
             }
             else
             {
-                //Console.Error.WriteLine();
-                //Console.Error.WriteLine("No unaligned tail.");
-
                 _readSize[_bufferFillIndex] = 0;
-                //Console.WriteLine(" null done?");
                 _done[_bufferFillIndex] = true;
-                //Console.WriteLine("  fill set : " + fillCount + " [" + bufferFillIndex + "]" + " **");
                 _readMutex[_bufferFillIndex].Set();
                 _bufferFillIndex = (_bufferFillIndex + 1) % _readMutex.Length;
                 return false;
@@ -1003,17 +928,11 @@ namespace Microsoft.ML.Runtime.Internal.IO
         {
             if (_gotDone)
             {
-                //Console.WriteLine("GetBuffer done");
                 _currentBufferBottom = 0;
                 _currentBufferLimit = 0;
                 _currentBuffer = _alignedBuffer[0];
-                //unsafe
-                //{
-                //    current = (byte*)currentBuffer.ToPointer();
-                //}
                 return;
             }
-            //			Console.WriteLine("Copying buffer " + bufferIndex);
             IntPtr res = _alignedBuffer[_bufferGetIndex];
 
             if (_getCount != 0)
@@ -1044,7 +963,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             _currentBufferLimit = _readSize[_bufferGetIndex];
             if (_done[_bufferGetIndex] || _currentBufferLimit == 0)
             {
-                //Console.WriteLine("  done : " + done[bufferGetIndex] + " " + currentBufferLimit);
                 for (int i = 0; i < _readSize.Length; i++)
                 {
                     _readSize[i] = 0;
@@ -1061,13 +979,9 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
             _bufferGetIndex = (_bufferGetIndex + 1) % _readMutex.Length;
 
-            //unsafe
-            //{
-            //    current = (byte*)currentBuffer.ToPointer();
-            //}
         }
 
-        private /*unsafe*/ void CopyBuffer(byte[] source, IntPtr dest, int count)
+        private void CopyBuffer(byte[] source, IntPtr dest, int count)
         {
             if (count <= 0)
                 return;
@@ -1083,11 +997,9 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 }
             }
             #endregion
-
-            //// Marshal is incredibly slow!!
-            //Marshal.Copy(source, 0, dest, count);
+            
         }
-        private /*unsafe*/ void CopyBuffer(IntPtr source, int sourceStart, byte[] dest, int destStart, int count)
+        private void CopyBuffer(IntPtr source, int sourceStart, byte[] dest, int destStart, int count)
         {
             if (count <= 0)
                 return;
@@ -1139,8 +1051,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             }
             #endregion
 
-            //// Marshal is slow ??
-            //			Marshal.Copy(new IntPtr(source.ToInt64() + sourceStart), dest, destStart, count);
         }
 
         private IntPtr _currentBuffer;
@@ -1171,7 +1081,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 _sharedBuffer = new byte[_blockSize];
             }
             buffer = _sharedBuffer;
-            //Console.WriteLine("(reading out into buffer[" + buffer.Length + "])");
             int res = Read(buffer);
             // should we resize the array here? it might be convenient...
             if (res == 0)
@@ -1195,6 +1104,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
         {
             return Read(buffer, 0, buffer.Length);
         }
+
         /// <summary>
         /// Reads a block of bytes from the stream and writes the data in a given buffer.
         /// </summary>
@@ -1210,17 +1120,13 @@ namespace Microsoft.ML.Runtime.Internal.IO
         /// <exception cref="ArgumentNullException">The buffer is null</exception>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            //Console.WriteLine("Read into buffer.Length = " + buffer.Length + ", offset = " + offset + ", count = " + count);
 #if !OLD_DIRECT_READ
 
             Contracts.CheckValue(buffer, nameof(buffer));
             Contracts.CheckParam(0 <= offset && offset <= buffer.Length, nameof(offset));
             Contracts.CheckParam(offset <= offset + count && offset + count <= buffer.Length, nameof(count));
-
-            //Console.WriteLine("(reading " + offset + " , " + count + ")");
+            
             int read = 0;
-            //unsafe
-            //{
             while (count > 0)
             {
                 if (_currentBufferLimit == _currentBufferBottom)
@@ -1233,7 +1139,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 {
                     CopyBuffer(_currentBuffer, _currentBufferBottom, buffer, offset, count);
                     _currentBufferBottom += count;
-                    //current += count;
                     read += count;
                     count = 0;
                     break;
@@ -1248,40 +1153,12 @@ namespace Microsoft.ML.Runtime.Internal.IO
                     _currentBufferBottom = _currentBufferLimit;
                 }
             }
-            //}
-
-            //if (checkStream == null)
-            //{
-            //    checkStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            //}
-            //byte[] cbuf = new byte[count];
-            //int checkRead = checkStream.Read(cbuf, 0, cbuf.Length);
-            //if (checkRead != read)
-            //{
-            //    Console.WriteLine("!!! bytes read mismatch at " + fileName + ": "  + checkStream.Position + " / " + Position + ": " +
-            //        "read = " + read + "; checkRead = " + checkRead);
-            //}
-            //else
-            //{
-            //    Console.WriteLine(">>> bytes read match at " + fileName + ": " + checkStream.Position + " / " + Position + ": " +
-            //        "read = " + read + "; checkRead = " + checkRead);
-            //}
             return read;
 
 #else
-			//if (done) return 0;
 			if (overRead != null)  return overRead.Read(buffer, offset, count);
 			if (Position + count <= length)
 			{
-////////					return base.Read(buffer, offset, count);
-
-				//int readBytes;
-				//bool readres;
-				//fixed (byte* alignedBuffer = mBuffer)
-				//{
-				//        readres = ReadFile(handle, new IntPtr(alignedBuffer), blockSize, out readBytes, IntPtr.Zero);
-				//}
-				//return readBytes;
 
 #if SYNCHRONOUS
 				int readBytes;
@@ -1407,21 +1284,9 @@ namespace Microsoft.ML.Runtime.Internal.IO
 				overRead.Seek(pos, SeekOrigin.Begin);
 				return first + Read(buffer, offset, count);
 			}
-			//Console.WriteLine("         req: " + res);
-			if (res == 0)  return 0;
-			res = Math.Min(res, Read(buffer, offset, res));
-			//Console.WriteLine("        read: " + res);
-			//if (resized)
-			//{
-			//	ResizeFile(fileName, length);
-			//}
 			return Math.Min(res, remaining);
 #endif
         }
-
-        //private FileStream checkStream = null;
-
-        //private unsafe byte* current = null;
 
         /// <summary>
         /// Read a block of bytes from the stream and advance the position.
@@ -1437,25 +1302,12 @@ namespace Microsoft.ML.Runtime.Internal.IO
             if (_currentBufferLimit == _currentBufferBottom)
             {
                 GetBuffer();
-                //if (gotDone)
-                //{
-                //	//Console.WriteLine("(gotDone : currentBufferBottom = " + currentBufferBottom +
-                //	//	", currentBufferLimit = " + currentBufferLimit + ")");
-                //	return 0;
-                //}
-                //if (currentBufferLimit == 0)  return 0;
             }
             buffer = ((byte*)_currentBuffer.ToPointer()) + _currentBufferBottom;
             int count = _currentBufferLimit - _currentBufferBottom;
             _currentBufferBottom = _currentBufferLimit;
             return count;
         }
-
-        // TODO: make ReadByte() fast! ***
-
-        //		private byte[] readByteBuffer = new byte[512];
-        //		private int readByteBufferPos = 0;
-        //		private int readByteBufferCount = 0;
 
         /// <summary>
         /// Retrieve the next byte in the stream and advance the position.
@@ -1464,7 +1316,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         /// <remarks>This is not as efficient as block reading, because of overhead issues.</remarks>
         public override int ReadByte()
         {
-            //checkStream.ReadByte();  // check??
             if (_currentBufferLimit == _currentBufferBottom)
             {
                 GetBuffer();
@@ -1476,8 +1327,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             {
                 return *(((byte*)_currentBuffer.ToPointer()) + _currentBufferBottom++);
             }
-            //// Marshal is incredibly slow!!
-            //return Marshal.ReadByte(currentBuffer, currentBufferBottom++);
         }
 
         /// <summary>
@@ -1497,8 +1346,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             {
                 return *(((byte*)_currentBuffer.ToPointer()) + _currentBufferBottom);
             }
-            //// Marshal is incredibly slow!!
-            //return Marshal.ReadByte(currentBuffer, currentBufferBottom);
         }
 
         /// <summary>
@@ -1509,7 +1356,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         {
             if (_currentBufferBottom < _currentBufferLimit)
                 return false;
-            //if (gotDone)  return true;
             // is this good enough? We want to be cheap...
             return (Position < Length);
         }

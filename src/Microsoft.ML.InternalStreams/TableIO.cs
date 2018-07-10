@@ -3485,12 +3485,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         /// <param name="fields">The row to write as an array of fields</param>
         public void WriteRow(object[] fields)
         {
-            // widen if needed:
-            //while (fields.Length > dataTable.Columns.Count)
-            //{
-            //	DataColumn col = new DataColumn();
-            //	dataTable.Columns.Add(col);
-            //}
             OleDbCommand oleCmd = new OleDbCommand();
             oleCmd.Connection = oleConn;
             string cmd = "INSERT INTO " + "[Sheet1$] "; // + "(FirstName, LastName) ";
@@ -3527,22 +3521,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             {
                 throw new Exception("Excel insert error.");
             }
-
-            //if (oleAdapter == null)  return;
-            // widen if needed:
-            //while (fields.Length > dataTable.Columns.Count)
-            //{
-            //	DataColumn col = new DataColumn();
-            //	dataTable.Columns.Add(col);
-            //}
-            //dataTable.LoadDataRow(fields, false);
-            //for (int i = 0; i < fields.Length; i++)
-            //{
-            //	if (fields[i] == DBNull.Value)
-            //	{
-            //		fields[i] = null;
-            //	}
-            //}
         }
 
         /// <summary>
@@ -3560,11 +3538,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         /// </summary>
         public void Close()
         {
-            //if (oleAdapter != null)
-            //{
-            //	oleAdapter.Update(dataTable);
-            //	oleAdapter = null;
-            //}
             if (oleConn != null)
             {
                 oleConn.Close();

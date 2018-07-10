@@ -523,44 +523,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             {
             }
 
-            //[DllImport("KERNEL32", SetLastError = true, CharSet = CharSet.Auto, BestFitMapping = false)]
-            //static extern bool GetOverlappedResult(
-            //    IntPtr hFile,
-            //    IntPtr lpBuffer,
-            //    ref OVERLAPPED lpOverlapped,
-            //    out int lpNumberOfBytesTransferred,
-            //    bool bWait);
-
-            //[StructLayout(LayoutKind.Explicit)]
-            //struct OVERLAPPED
-            //{
-            //    //public ULONG_PTR Internal;
-            //    //public ULONG_PTR InternalHigh;
-            //    //public DWORD Offset;
-            //    //public DWORD OffsetHigh;
-            //    //public HANDLE hEvent;
-            //    [FieldOffset(0)]
-            //    public IntPtr Internal;
-            //    [FieldOffset(4)]
-            //    public IntPtr InternalHigh;
-            //    [FieldOffset(8)]
-            //    public uint Offset;
-            //    [FieldOffset(12)]
-            //    public uint OffsetHigh;
-            //    [FieldOffset(16)]
-            //    public IntPtr hEvent;
-            //}
-
-            //        [StructLayout(Packing = 4)]
-            //        private struct FILE_STREAM_INFORMATION
-            //        {
-            //            ULONG                NextEntry;
-            //            ULONG                NameLength;
-            //            LARGE_INTEGER        Size;
-            //            LARGE_INTEGER        AllocationSize;
-            //            USHORT                Name[1];
-            //        }
-
             #endregion
         }
         #endregion DLLimport
@@ -1297,17 +1259,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 return false;
             }
             return (path1C.Equals(path2C));
-
-            //if (path1 == null || path1.Length == 0 || path2 == null || path2.Length == 0)
-            //{
-            //    return path1 == path2;
-            //}
-            //path1 = path1.TrimEnd(pathSeparators);
-            //path2 = path2.TrimEnd(pathSeparators);
-            //if (path1.Length != path2.Length) return false;
-            //path1 = path1.Replace('\\', '/');
-            //path2 = path2.Replace('\\', '/');
-            //return string.Compare(path1, path2, !path1.StartsWith("cosmos:")) == 0;
         }
 
         /// <summary>
@@ -2190,8 +2141,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             // InternalStore:
             if (InternalStoreUtility.IsInternalStore(path))
             {
-                // return true if path is the main directory of a store:
-                //return false;
                 return DirectoryExists(InternalStoreUtility.StorePath(path));
             }
 
@@ -2208,9 +2157,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             for (int i = 0; i < ZStreamIn.decompressionArchiveExtensions.Length; i++)
             {
                 string ext = ZStreamIn.decompressionArchiveExtensions[i];
-                //for (int i = 0; i < ZStreamIn.decompressionExtensions.Length; i++)
-                //{
-                //    string ext = ZStreamIn.decompressionExtensions[i];
                 if ((nameLower.EndsWith(ext) && File.Exists(path)) ||
                     File.Exists(path + ext))
                 {
@@ -2341,18 +2287,15 @@ namespace Microsoft.ML.Runtime.Internal.IO
             // check for special names:
             if (ZStreamIn.IsNullStream(path))
             {
-                //throw new IOException("Cannot create directory for null stream");
                 return;
             }
             if (ZStreamIn.IsConsoleStream(path))
             {
-                //throw new IOException("Cannot create directory for console stream");
                 return;
             }
             // check for clipboard:
             if (ClipboardReadStream.IsClipboardStream(path))
             {
-                //throw new IOException("Cannot create directory for clipboard");
                 return;
             }
 
@@ -2409,18 +2352,11 @@ namespace Microsoft.ML.Runtime.Internal.IO
                             //Console.WriteLine("Opening: " + path);
                             using (Stream s = ZStreamOut.Open(path))
                             {
-                                //Console.WriteLine("Trying to create: " + path);
                                 s.Close();
-                                //Console.WriteLine("Closed: " + path);
                                 if (s is CmdStream && ((CmdStream)s).ExitCode != 0)
                                 {
-                                    //Console.WriteLine("ExitCode: " + ((CmdStream)s).ExitCode);
                                     throw new IOException("Failed to create archive");
                                 }
-                                //else
-                                //{
-                                //    Console.WriteLine("Stream type: " + s.GetType().Name);
-                                //}
                             }
                             try
                             {
@@ -2497,7 +2433,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
         private static string[] DirectoryEntries(string path, bool allowFile, bool allowDirectory)
         {
-            //return ExpandWildcards(path + "*");
 
             if (path == null || path.Length == 0)
                 return new string[0];
@@ -2513,23 +2448,17 @@ namespace Microsoft.ML.Runtime.Internal.IO
             // check for special names:
             if (ZStreamIn.IsNullStream(path))
             {
-                //return new string[0];
-                //return allowFile ? new string[] { ZStreamIn.nullStreamNames[0] } : new string[0];
                 return path.IndexOfAny(pathSeparators) < 0 ?
                     new string[] { ZStreamIn.NullStreamName } : new string[0];
             }
             if (ZStreamIn.IsConsoleStream(path))
             {
-                //return new string[0];
-                //return allowFile ? new string[] { ZStreamIn.consoleStreamNames[0] } : new string[0];
                 return path.IndexOfAny(pathSeparators) < 0 ?
                     new string[] { ZStreamIn.ConsoleStreamName } : new string[0];
             }
             // check for clipboard:
             if (ClipboardReadStream.IsClipboardStream(path))
             {
-                //return new string[0];
-                //return allowFile ? new string[] { "clip:" } : new string[0];
                 return path.IndexOfAny(pathSeparators) < 0 ||
                     string.Compare(path.TrimEnd(pathSeparators), "clip:", true) == 0 ?
                     new string[] { "clip:" } : new string[0];
@@ -2661,7 +2590,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             // check for compressed archives in path:
             // only one path segment is allowed to be an archive...
             // normalize path:
-            //if (fileName[fileName.Length - 1] != '\\')  fileName = fileName + "\\";
             string zfileName = path.Replace('/', '\\');
             bool isUnc = zfileName.StartsWith("\\\\");
             while (zfileName.IndexOf("\\\\") >= 0)
@@ -2674,9 +2602,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
             string archPath = null;
             string inArch = null;
-            //for (int i = 0; i < ZStreamIn.decompressionArchiveExtensions.Length; i++)
-            //{
-            //    string ext = ZStreamIn.decompressionArchiveExtensions[i];
             for (int i = 0; i < ZStreamIn.decompressionExtensions.Length; i++)
             {
                 string ext = ZStreamIn.decompressionExtensions[i];
@@ -2705,9 +2630,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                         continue;
                     if (Directory.Exists(partial))
                         continue;
-                    //for (int c = 0; c < ZStreamIn.decompressionArchiveExtensions.Length; c++)
-                    //{
-                    //    string ext = ZStreamIn.decompressionArchiveExtensions[c];
                     for (int c = 0; c < ZStreamIn.decompressionExtensions.Length; c++)
                     {
                         string ext = ZStreamIn.decompressionExtensions[c];
@@ -2724,7 +2646,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             }
             if (archPath != null)
             {
-                //Console.WriteLine(archPath + " :: " + inArch);
                 // check for path in archive.
                 inArch = inArch.Trim('\\');
                 if (inArch.Length == 0)
@@ -2967,7 +2888,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             // check for compressed archives in path:
             // only one path segment is allowed to be an archive...
             // normalize path:
-            //if (fileName[fileName.Length - 1] != '\\')  fileName = fileName + "\\";
             string zfileName = path.Replace('/', '\\');
             bool isUnc = zfileName.StartsWith("\\\\");
             while (zfileName.IndexOf("\\\\") >= 0)
@@ -2980,9 +2900,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
             string archPath = null;
             string inArch = null;
-            //for (int i = 0; i < ZStreamIn.decompressionArchiveExtensions.Length; i++)
-            //{
-            //    string ext = ZStreamIn.decompressionArchiveExtensions[i];
             for (int i = 0; i < ZStreamIn.decompressionExtensions.Length; i++)
             {
                 string ext = ZStreamIn.decompressionExtensions[i];
@@ -3011,9 +2928,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                         continue;
                     if (Directory.Exists(partial))
                         continue;
-                    //for (int c = 0; c < ZStreamIn.decompressionArchiveExtensions.Length; c++)
-                    //{
-                    //    string ext = ZStreamIn.decompressionArchiveExtensions[c];
                     for (int c = 0; c < ZStreamIn.decompressionExtensions.Length; c++)
                     {
                         string ext = ZStreamIn.decompressionExtensions[c];
@@ -3048,15 +2962,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
         private static StreamInfo[] CockpitDirectoryEntriesInfo(string path, bool allowFile, bool allowDirectory)
         {
-            ////string pattern = searchPattern == null ? "*" : searchPattern;
-            //string pattern = "*";
-            //pattern = "^" + System.Text.RegularExpressions.Regex.Escape(pattern) + "$";
-            //pattern = pattern.Replace(@"\?", ".");
-            //pattern = pattern.Replace(@"\*", ".*");
-            //System.Text.RegularExpressions.Regex nameRegex = new System.Text.RegularExpressions.Regex(
-            //    pattern,
-            //    System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-
             List<StreamInfo> res = new List<StreamInfo>();
             string htmlDir;
             try
@@ -3149,11 +3054,8 @@ namespace Microsoft.ML.Runtime.Internal.IO
                             {
                                 if (allowFile)
                                 {
-                                    //if (nameRegex.IsMatch(filename))
-                                    //{
                                     string fullname = PathCombine(path, filename);
                                     res.Add(new StreamInfo(fullname, length, lastModified));
-                                    //}
                                 }
                                 filename = null;
                                 length = -1;
@@ -3176,15 +3078,12 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
                                     if (line != "Parent directory\\")
                                     {
-                                        //if (nameRegex.IsMatch(filename))
-                                        //{
                                         string fullname = PathCombine(path, filename);
                                         if (!fullname.EndsWith("\\") && !fullname.EndsWith("/"))
                                         {
                                             fullname = fullname + "\\";
                                         }
                                         res.Add(new StreamInfo(fullname, 0, DateTime.MinValue));
-                                        //}
                                     }
                                 }
                                 filename = null;
@@ -3357,7 +3256,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             // check for compressed archives in path:
             // only one path segment is allowed to be an archive...
             // normalize path:
-            //if (fileName[fileName.Length - 1] != '\\')  fileName = fileName + "\\";
             fileName = fileName.Replace('/', '\\');
             bool isUnc = fileName.StartsWith("\\\\");
             while (fileName.IndexOf("\\\\") >= 0)
@@ -3370,10 +3268,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
             string archPath = null;
             string inArch = null;
-            // check all compressed files, not just archives...
-            //for (int i = 0; i < ZStreamIn.decompressionArchiveExtensions.Length; i++)
-            //{
-            //    string ext = ZStreamIn.decompressionArchiveExtensions[i];
             for (int i = 0; i < ZStreamIn.decompressionExtensions.Length; i++)
             {
                 string ext = ZStreamIn.decompressionExtensions[i];
@@ -3402,9 +3296,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                         continue;
                     if (Directory.Exists(partial))
                         continue;
-                    //for (int c = 0; c < ZStreamIn.decompressionArchiveExtensions.Length; c++)
-                    //{
-                    //    string ext = ZStreamIn.decompressionArchiveExtensions[c];
                     for (int c = 0; c < ZStreamIn.decompressionExtensions.Length; c++)
                     {
                         string ext = ZStreamIn.decompressionExtensions[c];
@@ -4200,14 +4091,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 if (source is UnbufferedStream)
                 {
                     UnbufferedStream us = (UnbufferedStream)source;
-                    //unsafe
-                    //{
-                    //    byte* buffer;
-                    //    for (int c = us.Read(out buffer); c > 0; c = us.Read(out buffer))
-                    //    {
-                    //        destination.Write(...);
-                    //    }
-                    //}
                     byte[] buffer;
                     for (int c = us.Read(out buffer); c > 0; c = us.Read(out buffer))
                     {
@@ -4367,7 +4250,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         {
             if (stream == null || !stream.CanRead)
                 return null;
-            //ThreadPool.UnsafeQueueUserWorkItem(new WaitCallback(ReadAll), stream);
             ParameterizedThreadStart consumeStart = new ParameterizedThreadStart(ReadAll);
             Thread consume = Utils.CreateBackgroundThread(consumeStart);
             consume.Start(stream);
@@ -4392,7 +4274,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         {
             if (reader == null)
                 return null;
-            //ThreadPool.UnsafeQueueUserWorkItem(new WaitCallback(ReadAllLines), reader);
             ParameterizedThreadStart consumeStart = new ParameterizedThreadStart(ReadAllLines);
             Thread consume = Utils.CreateBackgroundThread(consumeStart);
             consume.Start(reader);
@@ -4429,14 +4310,11 @@ namespace Microsoft.ML.Runtime.Internal.IO
             TextReader reader = (TextReader)readerObj;
             try
             {
-                //while (reader.ReadLine() != null)
-                //{
-                //}
                 char[] buffer = new char[512];
                 int c;
                 while ((c = reader.Read(buffer, 0, buffer.Length)) > 0)
                 {
-                    //Console.Error.Write(buffer, 0, c);
+                    
                 }
             }
             catch
@@ -5385,16 +5263,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             using (Stream inFile = ZStreamIn.Open(fileName))
             {
                 // compute the basic crc
-                //                    for (int count = inFile.Read(buffer, 0, buffer.Length); count > 0; count = inFile.Read(buffer, 0, buffer.Length))
-                //                    {
-                //                        length += count;
-                //                        for (int i = 0; i < count; i++)
-                //                        {
-                //                            // New checksum value
-                //                            crcZip = (crcZip >> 8) ^ zip_crctab[((int)crcZip ^ buffer[i]) & 0xff];
-                //                            crc32 = (crc32 << 8) ^ crctab[(crc32 >> 24) ^ ( ((uint)buffer[i]) & 0xFF )];
-                //                        }
-                //                    }
                 switch (type)
                 {
                 case ChecksumType.Crc32:
@@ -5754,8 +5622,8 @@ namespace Microsoft.ML.Runtime.Internal.IO
     public class StreamInfo : IComparable
     {
         private readonly string _path;
-        private /*readonly*/ long _length;
-        private /*readonly*/ DateTime _lastWriteTime;
+        private long _length;
+        private DateTime _lastWriteTime;
         private string _canonicalPath;
 
         /// <summary>
@@ -5936,15 +5804,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 return _canonicalPath;
             }
         }
-
-        ///// <summary>
-        ///// Get the filename with DOS-style slashes ("\").
-        ///// </summary>
-        ///// <returns>the filename with DOS-style slashes</returns>
-        //public string GetDosName()
-        //{
-        //    return Name.Replace('/', '\\');
-        //}
 
         /// <summary>
         /// Gets whether the item is a directory (not including archives,
@@ -6262,19 +6121,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 s = ZStreamIn.Open(fileName);
                 if (_bufferSize > 0)
                 {
-                    //// hack for console!
-                    //if (fileName.Length > 0 && (fileName[0] == '-' || fileName[0] == '$') &&
-                    //    (fileName.Length == 1 || (fileName.Length == 2 &&
-                    //    (fileName[1] == '-' || fileName[1] == '$'))))
-                    //{
-                    //    //s = new BufferedStream(s, BUFFER_SIZE);
-                    //    StreamReader sr = new StreamReader(s, encoding, true);
-                    //    return sr;
-                    //}
-                    //else
-                    //{
                     return new StreamReader(s, encoding, true, _bufferSize);
-                    //}
                 }
                 else
                 {
@@ -6444,18 +6291,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 s = ZStreamIn.OpenBuffered(fileName);
                 if (_bufferSize > 0)
                 {
-                    //// hack for console!
-                    //if (fileName.Length > 0 && (fileName[0] == '-' || fileName[0] == '$') &&
-                    //    (fileName.Length == 1 || (fileName.Length == 2 &&
-                    //    (fileName[1] == '-' || fileName[1] == '$'))))
-                    //{
-                    //    //s = new BufferedStream(s, BUFFER_SIZE);
-                    //    return new StreamReader(s, encoding, true);
-                    //}
-                    //else
-                    //{
                     return new StreamReader(s, encoding, true, _bufferSize);
-                    //}
                 }
                 else
                 {
@@ -6683,8 +6519,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            //if (disposing)
-            //{
             if (!isClosed)
             {
                 try
@@ -6713,21 +6547,18 @@ namespace Microsoft.ML.Runtime.Internal.IO
                             }
                         }
                     }
-                    catch //(Exception e2)
+                    catch
                     {
                         // ignore any problems...
-                        //Console.WriteLine("!! (Dispose) Problem deleting in " + tempDir + ": " + e2.ToString());
                     }
                     Directory.Delete(tempDir, true);
                     tempDir = null;
                 }
-                catch //(Exception e)
+                catch
                 {
                     // ignore any problems...
-                    //Console.WriteLine("!! (Dispose) Problem deleting " + tempDir + ": " + e.ToString());
                 }
             }
-            //}
             base.Dispose (disposing);
         }
 #endif
@@ -7880,10 +7711,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                                 ////   - .NET's gzip is very large (30% larger compressed files)
                                 ////   - .NET's gzip breaks for files over 4 GB
                                 // could wrap to get length, maybe fix 4GB problem...
-                                //if (archiveName.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
-                                //{
-                                //    return GzipEncodeStream.GetLengthTag(archiveName);
-                                //}
 
                                 s = new System.IO.Compression.GZipStream(
                                     new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite),
@@ -8178,16 +8005,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                             if (!bufferedFallback)
                                 throw;
                         }
-                        //if (BUFFER_SIZE > 0)
-                        //{
-                        //    return UnbufferedStream.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read,
-                        //        true, async, 4 * BUFFER_SIZE);
-                        //}
-                        //else
-                        //{
-                        //    return UnbufferedStream.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read,
-                        //        true, async, 64 * 1024);
-                        //}
 #else
                         throw new NotSupportedException("Unbuffered IO is not supported.");
 #endif
@@ -8776,14 +8593,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 return new MultiStream(fileName, true);
             }
 
-            // check for  Azure Storage objects
-            //AzureStorageIO.AzureStorageIdentificationStructure azureStorageIdentificationStructure =
-            //    new AzureStorageIO.AzureStorageIdentificationStructure(fileName);
-            //if (azureStorageIdentificationStructure.IsAzureStorageObject())
-            //{
-            //    return AzureStorageIO.GetBlobStreamFromBlob(azureStorageIdentificationStructure) as Stream;
-            //}
-
             if (fileNameLower.StartsWith("http:") || fileNameLower.StartsWith("https:"))
             {
                 AzureStorageIO azureStorage = new AzureStorageIO();
@@ -8816,16 +8625,12 @@ namespace Microsoft.ML.Runtime.Internal.IO
             int cIndex = fileName.LastIndexOf(':');
             if (cIndex > 0)
             {
-                // does not really need to exist...
-                //if (File.Exists(fileName.Substring(0, cIndex)))
-                //{
                 if (cIndex > 1 ||
                     fileName.IndexOfAny(_pathSeparators, 2) < 0)
                 {
                     // named:
                     return new NamedStream(fileName, true, append);
                 }
-                //}
             }
 
             Stream s = null;
@@ -8898,10 +8703,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                             // without a buffer, this is even worse...
                             s = new BufferedStream(s, 32 * 1024);
                         }
-                        //if (s == null)
-                        //{
-                        //    throw new IOException("Cannot open file '" + fileName + "'");
-                        //}
                     }
                     break;
 
@@ -8932,29 +8733,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                         }
                     }
                     break;
-
-                // Doesn't work currently in 7-zip:
-                //case ".zip":
-                //    {
-                //        if (append) throw new ArgumentException("Cannot append to a zip stream.", "append");
-                //        try
-                //        {
-                //            s = new Z7zEncodeStream(fileName, "zip");
-                //        }
-                //        catch (InvalidOperationException)
-                //        {
-                //            throw new InvalidOperationException("ZStreamOut requires 7za.exe to be in the " +
-                //                "path for " + ext + " compression. " +
-                //                "See http://7-zip.org");
-                //        }
-                //        catch (System.ComponentModel.Win32Exception)
-                //        {
-                //            throw new InvalidOperationException("ZStreamOut requires 7za.exe to be in the " +
-                //                "path for " + ext + " compression. " +
-                //                "See http://7-zip.org");
-                //        }
-                //    }
-                //    break;
 
 #if ENABLE_LZMA
                     case ".lzma":
@@ -9007,12 +8785,8 @@ namespace Microsoft.ML.Runtime.Internal.IO
                         if (seg > 0)
                         {
                             archPath = zfileName.Substring(0, seg + ext.Length);
-                            //if (File.Exists(archPath))
-                            //{
                             inArch = zfileName.Substring(seg + ext.Length).Trim('/', '\\');
                             break;
-                            //}
-                            //archPath = null;
                         }
                     }
                     if (archPath != null)
@@ -9509,25 +9283,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             return new Var(d.ToString());
         }
 
-        // array conversions might be nice... ***
-
-        ///// <summary>
-        ///// Convert an array of values.
-        ///// </summary>
-        ///// <param name="vars">the values to convert</param>
-        ///// <returns>the converted array</returns>
-        ///// <remarks>
-        ///// This is not very good as an implicit cast, because it can be expensive
-        ///// and it causes heap allocation. However, it is allowed for convenience.
-        ///// </remarks>
-        //public static implicit operator string[](VarList vals)
-        //{
-        //    if (vals == null) return null;
-        //    string[] res = new string[vals.Length];
-        //    vals.CopyTo(res, 0);
-        //    return res;
-        //}
-
         /// <summary>
         /// Convert an array of values.
         /// </summary>
@@ -9834,24 +9589,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 throw;
             }
         }
-
-        //private bool IsInteger()
-        //{
-        //    if (raw == null || raw.Length == 0) return false;
-        //    int i = 0;
-        //    if (raw[0] == '-')
-        //    {
-        //
-        //    }
-        //    bool first = true;
-        //    foreach (char c in raw)
-        //    {
-        //        first = false;
-        //    }
-        //}
-        //private bool IsNumerical()
-        //{
-        //}
 
         /// <summary>Returns the hash code for this value.</summary>
         /// <returns>A 32-bit signed integer hash code.</returns>
