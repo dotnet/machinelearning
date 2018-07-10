@@ -90,6 +90,19 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Arguments : TransformInputBase
         {
+            public Arguments()
+            {
+            }
+
+            public Arguments(string name, params string[] source)
+            {
+                Column = new[] { new Column()
+                {
+                    Name = name,
+                    Source = source
+                }};
+            }
+
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
         }
@@ -232,11 +245,8 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         // All meta-data is passed through in this case, so don't need the slot names type.
                         echoSrc[i] = true;
-                        DvBool b = DvBool.False;
                         isNormalized[i] =
-                            info.SrcTypes[0].ItemType.IsNumber &&
-                            Input.TryGetMetadata(BoolType.Instance, MetadataUtils.Kinds.IsNormalized, info.SrcIndices[0], ref b) &&
-                            b.IsTrue;
+                            info.SrcTypes[0].ItemType.IsNumber && Input.IsNormalized(info.SrcIndices[0]);
                         types[i] = info.SrcTypes[0];
                         continue;
                     }
@@ -247,9 +257,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         foreach (var srcCol in info.SrcIndices)
                         {
-                            DvBool b = DvBool.False;
-                            if (!Input.TryGetMetadata(BoolType.Instance, MetadataUtils.Kinds.IsNormalized, srcCol, ref b) ||
-                                !b.IsTrue)
+                            if (!Input.IsNormalized(srcCol))
                             {
                                 isNormalized[i] = false;
                                 break;
@@ -497,7 +505,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public const string Summary = "Concatenates two columns of the same item type.";
+        public const string Summary = "Concatenates one or more columns of the same item type.";
         public const string UserName = "Concat Transform";
         public const string LoadName = "Concat";
 
@@ -526,6 +534,18 @@ namespace Microsoft.ML.Runtime.Data
         public bool CanSaveOnnx => true;
 
         public override ISchema Schema => _bindings;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Input columns to concatenate.</param>
+        public ConcatTransform(IHostEnvironment env, IDataView input, string name, params string[] source)
+            : this(env, new Arguments(name, source), input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
@@ -700,13 +720,11 @@ namespace Microsoft.ML.Runtime.Data
                         Source.Schema.GetColumnType(srcIndex).ValueCount));
                 }
 
-                var node = OnnxUtils.MakeNode(opType, new List<string>(inputList.Select(t => t.Key)),
-                    new List<string> { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType));
+                var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),
+                    new[] { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType));
 
-                ctx.AddNode(node);
-
-                OnnxUtils.NodeAddAttributes(node, "inputList", inputList.Select(x => x.Key));
-                OnnxUtils.NodeAddAttributes(node, "inputdimensions", inputList.Select(x => x.Value));
+                node.AddAttribute("inputList", inputList.Select(x => x.Key));
+                node.AddAttribute("inputdimensions", inputList.Select(x => x.Value));
             }
         }
 

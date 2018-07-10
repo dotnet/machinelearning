@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -308,7 +309,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="writer">
-        /// The writer to print the <see cref="ProgressLogLine"/>. Usually this should be the same writer that is used in <paramref name="env"/>.
+        /// The writer to print the <see cref="BaseTestBaseline.ProgressLogLine"/>. Usually this should be the same writer that is used in <paramref name="env"/>.
         /// </param>
         /// <param name="args">The arguments for MAML.</param>
         /// <param name="printProgress">Whether to print the progress summary. If true, progress summary will appear in the end of baseline output file.</param>
@@ -591,7 +592,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         /// <summary>
         /// Creates an output path with a suffix based on the test name. For new tests please
-        /// do not use this, but instead utilize the <see cref="RunContextBase.InitPath"/>
+        /// do not use this, but instead utilize the <see cref="TestCommandBase.RunContextBase.InitPath"/>
         /// method.
         /// </summary>
         protected OutputPath CreateOutputPath(string suffix)

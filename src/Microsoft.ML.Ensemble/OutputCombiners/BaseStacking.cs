@@ -181,11 +181,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 var bldr = new ArrayDataViewBuilder(host);
                 Array.Resize(ref labels, count);
                 Array.Resize(ref features, count);
-                bldr.AddColumn("Label", NumberType.Float, labels);
-                bldr.AddColumn("Features", NumberType.Float, features);
+                bldr.AddColumn(DefaultColumnNames.Label, NumberType.Float, labels);
+                bldr.AddColumn(DefaultColumnNames.Features, NumberType.Float, features);
 
                 var view = bldr.GetDataView();
-                var rmd = RoleMappedData.Create(view, ColumnRole.Label.Bind("Label"), ColumnRole.Feature.Bind("Features"));
+                var rmd = new RoleMappedData(view, DefaultColumnNames.Label, DefaultColumnNames.Features);
 
                 var trainer = BasePredictorType.CreateInstance(host);
                 if (trainer is ITrainerEx ex && ex.NeedNormalization)

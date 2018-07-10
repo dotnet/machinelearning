@@ -254,7 +254,7 @@ namespace Microsoft.ML.Runtime.Data
             RoleMappedData srcData, IDataView marker)
         {
             var pipe = ApplyTransformUtils.ApplyAllTransformsToData(env, srcData.Data, dstData, marker);
-            return RoleMappedData.Create(pipe, srcData.Schema.GetColumnRoleNames());
+            return new RoleMappedData(pipe, srcData.Schema.GetColumnRoleNames());
         }
 
         /// <summary>
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Runtime.Data
             // Training pipe and examples.
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
 
-            return TrainUtils.CreateExamples(data, label, features, group, weight, name, customCols);
+            return new RoleMappedData(data, label, features, group, weight, name, customCols);
         }
 
         private string GetSplitColumn(IChannel ch, IDataView input, ref IDataView output)
@@ -568,7 +568,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         using (var file = host.CreateOutputFile(modelFileName))
                         {
-                            var rmd = RoleMappedData.Create(
+                            var rmd = new RoleMappedData(
                                 CompositeDataLoader.ApplyTransform(host, _loader, null, null,
                                 (e, newSource) => ApplyTransformUtils.ApplyAllTransformsToData(e, trainData.Data, newSource)),
                                 trainData.Schema.GetColumnRoleNames());
@@ -581,17 +581,17 @@ namespace Microsoft.ML.Runtime.Data
                     if (!evalComp.IsGood())
                         evalComp = EvaluateUtils.GetEvaluatorType(ch, scorePipe.Schema);
                     var eval = evalComp.CreateInstance(host);
-                    // Note that this doesn't require the provided columns to exist (because of "Opt").
+                    // Note that this doesn't require the provided columns to exist (because of the "opt" parameter).
                     // We don't normally expect the scorer to drop columns, but if it does, we should not require
                     // all the columns in the test pipeline to still be present.
-                    var dataEval = RoleMappedData.CreateOpt(scorePipe, testData.Schema.GetColumnRoleNames());
+                    var dataEval = new RoleMappedData(scorePipe, testData.Schema.GetColumnRoleNames(), opt: true);
 
                     var dict = eval.Evaluate(dataEval);
                     RoleMappedData perInstance = null;
                     if (_savePerInstance)
                     {
                         var perInst = eval.GetPerInstanceMetrics(dataEval);
-                        perInstance = RoleMappedData.CreateOpt(perInst, dataEval.Schema.GetColumnRoleNames());
+                        perInstance = new RoleMappedData(perInst, dataEval.Schema.GetColumnRoleNames(), opt: true);
                     }
                     ch.Done();
                     return new FoldResult(dict, dataEval.Schema.Schema, perInstance, trainData.Schema);

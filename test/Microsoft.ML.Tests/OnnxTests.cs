@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
 using System.IO;
+using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -85,6 +86,11 @@ namespace Microsoft.ML.Tests
             };
 
             converter.Convert(model);
+
+            // Strip the version.
+            var fileText = File.ReadAllText(onnxAsJsonPath);
+            fileText = Regex.Replace(fileText, "\"producerVersion\": \"([^\"]+)\"", "\"producerVersion\": \"##VERSION##\"");
+            File.WriteAllText(onnxAsJsonPath, fileText);
 
             CheckEquality(subDir, "SaveModelToOnnxTest.json");
             Done();

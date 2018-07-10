@@ -1,34 +1,5 @@
 <Project>
 
-
-  <Target Name="CopyNativeAssemblies"
-          BeforeTargets="PrepareForRun">
-
-    <PropertyGroup>
-      <LibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</LibPrefix>
-      <LibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</LibExtension>
-      <LibExtension Condition="'$(OS)' != 'Windows_NT'">.so</LibExtension>
-      <LibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</LibExtension>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <NativeAssemblyReference>
-        <FullAssemblyPath>$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension)</FullAssemblyPath>
-      </NativeAssemblyReference>
-    </ItemGroup>
-
-    <Copy SourceFiles = "@(NativeAssemblyReference->'%(FullAssemblyPath)')"
-          DestinationFolder="$(OutputPath)"
-          OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
-          Retries="$(CopyRetryCount)"
-          RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-          UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
-          UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)">
-      <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
-    </Copy>
-    
-  </Target>
-  
   <Import Project="..\Directory.Build.targets" />
 
 </Project>
