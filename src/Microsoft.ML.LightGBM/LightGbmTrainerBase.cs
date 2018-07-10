@@ -3,14 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.FastTree.Internal;
 
 namespace Microsoft.ML.Runtime.LightGBM
 {
@@ -49,12 +45,21 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         protected readonly IHost Host;
         protected readonly LightGbmArguments Args;
-        protected readonly Dictionary<string, string> Options;
+
+        /// <summary>
+        /// Stores argumments as objects to convert them to invariant string type in the end so that 
+        /// the code is culture agnostic. When retrieving key value from this dictionary as string 
+        /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]). 
+        /// </summary>
+        protected readonly Dictionary<string, object> Options;
         protected readonly IParallel ParallelTraining;
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
         protected int FeatureCount;
         protected FastTree.Internal.Ensemble TrainedEnsemble;
+
+        internal const string Remarks = @"<remarks>Light GBM is an open source implementation of boosted trees.
+<a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a></remarks>";
 
         #endregion
 
@@ -159,9 +164,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             double learningRate = Args.LearningRate ?? DefaultLearningRate(numRow, hasCategarical, totalCats);
             int numLeaves = Args.NumLeaves ?? DefaultNumLeaves(numRow, hasCategarical, totalCats);
             int minDataPerLeaf = Args.MinDataPerLeaf ?? DefaultMinDataPerLeaf(numRow, numLeaves, 1);
-            Options["learning_rate"] = learningRate.ToString();
-            Options["num_leaves"] = numLeaves.ToString();
-            Options["min_data_per_leaf"] = minDataPerLeaf.ToString();
+            Options["learning_rate"] = learningRate;
+            Options["num_leaves"] = numLeaves;
+            Options["min_data_per_leaf"] = minDataPerLeaf;
             if (!hiddenMsg)
             {
                 if (!Args.LearningRate.HasValue)
@@ -192,7 +197,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             {
                 if (j < categoricalFeatures.Length && curFidx == categoricalFeatures[j])
                 {
-                    if (curFidx > catBoundaries.Last())
+                    if (curFidx > catBoundaries[catBoundaries.Count - 1])
                         catBoundaries.Add(curFidx);
                     if (categoricalFeatures[j + 1] - categoricalFeatures[j] >= 0)
                     {
@@ -219,7 +224,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         private static List<string> ConstructCategoricalFeatureMetaData(int[] categoricalFeatures, int rawNumCol, ref CategoricalMetaData catMetaData)
         {
             List<int> catBoundaries = GetCategoricalBoundires(categoricalFeatures, rawNumCol);
-            catMetaData.NumCol = catBoundaries.Count() - 1;
+            catMetaData.NumCol = catBoundaries.Count - 1;
             catMetaData.CategoricalBoudaries = catBoundaries.ToArray();
             catMetaData.IsCategoricalFeature = new bool[catMetaData.NumCol];
             catMetaData.OnehotIndices = new int[rawNumCol];
@@ -279,7 +284,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             {
                 var catIndices = ConstructCategoricalFeatureMetaData(categoricalFeatures, rawNumCol, ref catMetaData);
                 // Set categorical features
-                Options["categorical_feature"] = String.Join(",", catIndices);
+                Options["categorical_feature"] = string.Join(",", catIndices);
             }
             return catMetaData;
         }
@@ -527,13 +532,13 @@ namespace Microsoft.ML.Runtime.LightGBM
                         ++nhot;
                         var prob = rand.NextSingle();
                         if (prob < 1.0f / nhot)
-                            values[values.Count() - 1] = fv;
+                            values[values.Count - 1] = fv;
                     }
                     lastIdx = newColIdx;
                 }
                 indices = featureIndices.ToArray();
                 featureValues = values.ToArray();
-                cnt = featureIndices.Count();
+                cnt = featureIndices.Count;
             }
             else
             {

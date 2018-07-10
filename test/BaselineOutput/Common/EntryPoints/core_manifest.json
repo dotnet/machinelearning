@@ -1489,30 +1489,6 @@
           "Default": null
         },
         {
-          "Name": "LabelColumn",
-          "Type": "String",
-          "Desc": "The label column name",
-          "Aliases": [
-            "Label"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": "Label"
-        },
-        {
-          "Name": "WeightColumn",
-          "Type": "String",
-          "Desc": "Column to use for example weight",
-          "Aliases": [
-            "weight"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": "Weight"
-        },
-        {
           "Name": "Kind",
           "Type": {
             "Kind": "Enum",
@@ -1528,9 +1504,33 @@
           },
           "Desc": "Specifies the trainer kind, which determines the evaluator to be used.",
           "Required": true,
-          "SortOrder": 6.0,
+          "SortOrder": 5.0,
           "IsNullable": false,
           "Default": "SignatureBinaryClassifierTrainer"
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "The label column name",
+          "Aliases": [
+            "Label"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 7.0,
+          "IsNullable": false,
+          "Default": "Weight"
         },
         {
           "Name": "GroupColumn",
@@ -1540,9 +1540,21 @@
             "group"
           ],
           "Required": false,
-          "SortOrder": 12.0,
+          "SortOrder": 8.0,
           "IsNullable": false,
           "Default": "GroupId"
+        },
+        {
+          "Name": "NameColumn",
+          "Type": "String",
+          "Desc": "Name column name",
+          "Aliases": [
+            "name"
+          ],
+          "Required": false,
+          "SortOrder": 9.0,
+          "IsNullable": false,
+          "Default": "Name"
         }
       ],
       "Outputs": [
@@ -1704,7 +1716,7 @@
             "lab"
           ],
           "Required": false,
-          "SortOrder": 10.0,
+          "SortOrder": 9.0,
           "IsNullable": false,
           "Default": "Label"
         },
@@ -1716,7 +1728,7 @@
             "weight"
           ],
           "Required": false,
-          "SortOrder": 11.0,
+          "SortOrder": 10.0,
           "IsNullable": false,
           "Default": "Weight"
         },
@@ -1728,9 +1740,21 @@
             "group"
           ],
           "Required": false,
-          "SortOrder": 12.0,
+          "SortOrder": 11.0,
           "IsNullable": false,
           "Default": "GroupId"
+        },
+        {
+          "Name": "NameColumn",
+          "Type": "String",
+          "Desc": "Name column name",
+          "Aliases": [
+            "name"
+          ],
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": "Name"
         }
       ],
       "Outputs": [
@@ -3662,6 +3686,18 @@
           "SortOrder": 12.0,
           "IsNullable": false,
           "Default": "GroupId"
+        },
+        {
+          "Name": "NameColumn",
+          "Type": "String",
+          "Desc": "Name column name",
+          "Aliases": [
+            "name"
+          ],
+          "Required": false,
+          "SortOrder": 13.0,
+          "IsNullable": false,
+          "Default": "Name"
         }
       ],
       "Outputs": [
@@ -3719,7 +3755,7 @@
     },
     {
       "Name": "Trainers.AveragedPerceptronBinaryClassifier",
-      "Desc": "Train a Average perceptron.",
+      "Desc": "Averaged Perceptron Binary Classifier.",
       "FriendlyName": "Averaged Perceptron",
       "ShortName": "ap",
       "Inputs": [
@@ -10674,6 +10710,1938 @@
       ]
     },
     {
+      "Name": "Trainers.LightGbmBinaryClassifier",
+      "Desc": "Train a LightGBM binary classification model.",
+      "FriendlyName": "LightGBM Binary Classifier",
+      "ShortName": "LightGBM",
+      "Inputs": [
+        {
+          "Name": "NumBoostRound",
+          "Type": "Int",
+          "Desc": "Number of iterations.",
+          "Aliases": [
+            "iter"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": 100,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              10,
+              20,
+              50,
+              100,
+              150,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training",
+          "Aliases": [
+            "data"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "LearningRate",
+          "Type": "Float",
+          "Desc": "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
+          "Aliases": [
+            "lr"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.025,
+            "Max": 0.4,
+            "IsLogScale": true
+          }
+        },
+        {
+          "Name": "NumLeaves",
+          "Type": "Int",
+          "Desc": "Maximum leaves for trees.",
+          "Aliases": [
+            "nl"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Long",
+            "Min": 2,
+            "Max": 128,
+            "StepSize": 4.0,
+            "IsLogScale": true
+          }
+        },
+        {
+          "Name": "MinDataPerLeaf",
+          "Type": "Int",
+          "Desc": "Minimum number of instances needed in a child.",
+          "Aliases": [
+            "mil"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1,
+              10,
+              20,
+              50
+            ]
+          }
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String",
+          "Desc": "Column to use for features",
+          "Aliases": [
+            "feat"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "Booster",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "BoosterParameterFunction"
+          },
+          "Desc": "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "gbdt"
+          }
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "GroupIdColumn",
+          "Type": "String",
+          "Desc": "Column to use for example groupId",
+          "Aliases": [
+            "groupId"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "GroupId"
+        },
+        {
+          "Name": "NormalizeFeatures",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "No",
+              "Warn",
+              "Auto",
+              "Yes"
+            ]
+          },
+          "Desc": "Normalize option for the feature column",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "Caching",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Auto",
+              "Memory",
+              "Disk",
+              "None"
+            ]
+          },
+          "Desc": "Whether learner should cache input training data",
+          "Aliases": [
+            "cache"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "MaxBin",
+          "Type": "Int",
+          "Desc": "Max number of bucket bin for features.",
+          "Aliases": [
+            "mb"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 255
+        },
+        {
+          "Name": "VerboseEval",
+          "Type": "Bool",
+          "Desc": "Verbose",
+          "Aliases": [
+            "v"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "Silent",
+          "Type": "Bool",
+          "Desc": "Printing running messages.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "NThread",
+          "Type": "Int",
+          "Desc": "Number of parallel threads used to run LightGBM.",
+          "Aliases": [
+            "nt"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "EvalMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "DefaultMetric",
+              "Rmse",
+              "Mae",
+              "Logloss",
+              "Error",
+              "Merror",
+              "Mlogloss",
+              "Auc",
+              "Ndcg",
+              "Map"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "DefaultMetric"
+        },
+        {
+          "Name": "UseSoftmax",
+          "Type": "Bool",
+          "Desc": "Use softmax loss for the multi classification.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "EarlyStoppingRound",
+          "Type": "Int",
+          "Desc": "Rounds of early stopping, 0 will disable it.",
+          "Aliases": [
+            "es"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "CustomGains",
+          "Type": "String",
+          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Aliases": [
+            "gains"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
+        },
+        {
+          "Name": "BatchSize",
+          "Type": "Int",
+          "Desc": "Number of entries in a batch when loading data.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1048576
+        },
+        {
+          "Name": "UseCat",
+          "Type": "Bool",
+          "Desc": "Enable categorical split or not.",
+          "Aliases": [
+            "cat"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "UseMissing",
+          "Type": "Bool",
+          "Desc": "Enable missing value auto infer or not.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "MinDataPerGroup",
+          "Type": "Int",
+          "Desc": "Min number of instances per categorical group.",
+          "Aliases": [
+            "mdpg"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 100,
+          "Range": {
+            "Inf": 0,
+            "Max": 2147483647
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              10,
+              50,
+              100,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "MaxCatThreshold",
+          "Type": "Int",
+          "Desc": "Max number of categorical thresholds.",
+          "Aliases": [
+            "maxcat"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 32,
+          "Range": {
+            "Inf": 0,
+            "Max": 2147483647
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              8,
+              16,
+              32,
+              64
+            ]
+          }
+        },
+        {
+          "Name": "CatSmooth",
+          "Type": "Float",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10.0,
+          "Range": {
+            "Min": 0.0
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1,
+              10,
+              20
+            ]
+          }
+        },
+        {
+          "Name": "CatL2",
+          "Type": "Float",
+          "Desc": "L2 Regularization for categorical split.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10.0,
+          "Range": {
+            "Min": 0.0
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              0.1,
+              0.5,
+              1,
+              5,
+              10
+            ]
+          }
+        },
+        {
+          "Name": "ParallelTrainer",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "ParallelLightGBM"
+          },
+          "Desc": "Parallel LightGBM Learning Algorithm",
+          "Aliases": [
+            "parag"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "Single"
+          }
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "InputKind": [
+        "ITrainerInputWithGroupId",
+        "ITrainerInputWithWeight",
+        "ITrainerInputWithLabel",
+        "ITrainerInput"
+      ],
+      "OutputKind": [
+        "IBinaryClassificationOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
+      "Name": "Trainers.LightGbmClassifier",
+      "Desc": "Train a LightGBM multi class model.",
+      "FriendlyName": "LightGBM Multi Class Classifier",
+      "ShortName": "LightGBMMC",
+      "Inputs": [
+        {
+          "Name": "NumBoostRound",
+          "Type": "Int",
+          "Desc": "Number of iterations.",
+          "Aliases": [
+            "iter"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": 100,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              10,
+              20,
+              50,
+              100,
+              150,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training",
+          "Aliases": [
+            "data"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "LearningRate",
+          "Type": "Float",
+          "Desc": "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
+          "Aliases": [
+            "lr"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.025,
+            "Max": 0.4,
+            "IsLogScale": true
+          }
+        },
+        {
+          "Name": "NumLeaves",
+          "Type": "Int",
+          "Desc": "Maximum leaves for trees.",
+          "Aliases": [
+            "nl"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Long",
+            "Min": 2,
+            "Max": 128,
+            "StepSize": 4.0,
+            "IsLogScale": true
+          }
+        },
+        {
+          "Name": "MinDataPerLeaf",
+          "Type": "Int",
+          "Desc": "Minimum number of instances needed in a child.",
+          "Aliases": [
+            "mil"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1,
+              10,
+              20,
+              50
+            ]
+          }
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String",
+          "Desc": "Column to use for features",
+          "Aliases": [
+            "feat"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "Booster",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "BoosterParameterFunction"
+          },
+          "Desc": "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "gbdt"
+          }
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "GroupIdColumn",
+          "Type": "String",
+          "Desc": "Column to use for example groupId",
+          "Aliases": [
+            "groupId"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "GroupId"
+        },
+        {
+          "Name": "NormalizeFeatures",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "No",
+              "Warn",
+              "Auto",
+              "Yes"
+            ]
+          },
+          "Desc": "Normalize option for the feature column",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "Caching",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Auto",
+              "Memory",
+              "Disk",
+              "None"
+            ]
+          },
+          "Desc": "Whether learner should cache input training data",
+          "Aliases": [
+            "cache"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "MaxBin",
+          "Type": "Int",
+          "Desc": "Max number of bucket bin for features.",
+          "Aliases": [
+            "mb"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 255
+        },
+        {
+          "Name": "VerboseEval",
+          "Type": "Bool",
+          "Desc": "Verbose",
+          "Aliases": [
+            "v"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "Silent",
+          "Type": "Bool",
+          "Desc": "Printing running messages.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "NThread",
+          "Type": "Int",
+          "Desc": "Number of parallel threads used to run LightGBM.",
+          "Aliases": [
+            "nt"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "EvalMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "DefaultMetric",
+              "Rmse",
+              "Mae",
+              "Logloss",
+              "Error",
+              "Merror",
+              "Mlogloss",
+              "Auc",
+              "Ndcg",
+              "Map"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "DefaultMetric"
+        },
+        {
+          "Name": "UseSoftmax",
+          "Type": "Bool",
+          "Desc": "Use softmax loss for the multi classification.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "EarlyStoppingRound",
+          "Type": "Int",
+          "Desc": "Rounds of early stopping, 0 will disable it.",
+          "Aliases": [
+            "es"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "CustomGains",
+          "Type": "String",
+          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Aliases": [
+            "gains"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
+        },
+        {
+          "Name": "BatchSize",
+          "Type": "Int",
+          "Desc": "Number of entries in a batch when loading data.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1048576
+        },
+        {
+          "Name": "UseCat",
+          "Type": "Bool",
+          "Desc": "Enable categorical split or not.",
+          "Aliases": [
+            "cat"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "UseMissing",
+          "Type": "Bool",
+          "Desc": "Enable missing value auto infer or not.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "MinDataPerGroup",
+          "Type": "Int",
+          "Desc": "Min number of instances per categorical group.",
+          "Aliases": [
+            "mdpg"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 100,
+          "Range": {
+            "Inf": 0,
+            "Max": 2147483647
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              10,
+              50,
+              100,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "MaxCatThreshold",
+          "Type": "Int",
+          "Desc": "Max number of categorical thresholds.",
+          "Aliases": [
+            "maxcat"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 32,
+          "Range": {
+            "Inf": 0,
+            "Max": 2147483647
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              8,
+              16,
+              32,
+              64
+            ]
+          }
+        },
+        {
+          "Name": "CatSmooth",
+          "Type": "Float",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10.0,
+          "Range": {
+            "Min": 0.0
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1,
+              10,
+              20
+            ]
+          }
+        },
+        {
+          "Name": "CatL2",
+          "Type": "Float",
+          "Desc": "L2 Regularization for categorical split.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10.0,
+          "Range": {
+            "Min": 0.0
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              0.1,
+              0.5,
+              1,
+              5,
+              10
+            ]
+          }
+        },
+        {
+          "Name": "ParallelTrainer",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "ParallelLightGBM"
+          },
+          "Desc": "Parallel LightGBM Learning Algorithm",
+          "Aliases": [
+            "parag"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "Single"
+          }
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "InputKind": [
+        "ITrainerInputWithGroupId",
+        "ITrainerInputWithWeight",
+        "ITrainerInputWithLabel",
+        "ITrainerInput"
+      ],
+      "OutputKind": [
+        "IMulticlassClassificationOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
+      "Name": "Trainers.LightGbmRanker",
+      "Desc": "Train a LightGBM ranking model.",
+      "FriendlyName": "LightGBM Ranking",
+      "ShortName": "LightGBMRank",
+      "Inputs": [
+        {
+          "Name": "NumBoostRound",
+          "Type": "Int",
+          "Desc": "Number of iterations.",
+          "Aliases": [
+            "iter"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": 100,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              10,
+              20,
+              50,
+              100,
+              150,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training",
+          "Aliases": [
+            "data"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "LearningRate",
+          "Type": "Float",
+          "Desc": "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
+          "Aliases": [
+            "lr"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.025,
+            "Max": 0.4,
+            "IsLogScale": true
+          }
+        },
+        {
+          "Name": "NumLeaves",
+          "Type": "Int",
+          "Desc": "Maximum leaves for trees.",
+          "Aliases": [
+            "nl"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Long",
+            "Min": 2,
+            "Max": 128,
+            "StepSize": 4.0,
+            "IsLogScale": true
+          }
+        },
+        {
+          "Name": "MinDataPerLeaf",
+          "Type": "Int",
+          "Desc": "Minimum number of instances needed in a child.",
+          "Aliases": [
+            "mil"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1,
+              10,
+              20,
+              50
+            ]
+          }
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String",
+          "Desc": "Column to use for features",
+          "Aliases": [
+            "feat"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "Booster",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "BoosterParameterFunction"
+          },
+          "Desc": "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "gbdt"
+          }
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "GroupIdColumn",
+          "Type": "String",
+          "Desc": "Column to use for example groupId",
+          "Aliases": [
+            "groupId"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "GroupId"
+        },
+        {
+          "Name": "NormalizeFeatures",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "No",
+              "Warn",
+              "Auto",
+              "Yes"
+            ]
+          },
+          "Desc": "Normalize option for the feature column",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "Caching",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Auto",
+              "Memory",
+              "Disk",
+              "None"
+            ]
+          },
+          "Desc": "Whether learner should cache input training data",
+          "Aliases": [
+            "cache"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "MaxBin",
+          "Type": "Int",
+          "Desc": "Max number of bucket bin for features.",
+          "Aliases": [
+            "mb"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 255
+        },
+        {
+          "Name": "VerboseEval",
+          "Type": "Bool",
+          "Desc": "Verbose",
+          "Aliases": [
+            "v"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "Silent",
+          "Type": "Bool",
+          "Desc": "Printing running messages.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "NThread",
+          "Type": "Int",
+          "Desc": "Number of parallel threads used to run LightGBM.",
+          "Aliases": [
+            "nt"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "EvalMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "DefaultMetric",
+              "Rmse",
+              "Mae",
+              "Logloss",
+              "Error",
+              "Merror",
+              "Mlogloss",
+              "Auc",
+              "Ndcg",
+              "Map"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "DefaultMetric"
+        },
+        {
+          "Name": "UseSoftmax",
+          "Type": "Bool",
+          "Desc": "Use softmax loss for the multi classification.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "EarlyStoppingRound",
+          "Type": "Int",
+          "Desc": "Rounds of early stopping, 0 will disable it.",
+          "Aliases": [
+            "es"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "CustomGains",
+          "Type": "String",
+          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Aliases": [
+            "gains"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
+        },
+        {
+          "Name": "BatchSize",
+          "Type": "Int",
+          "Desc": "Number of entries in a batch when loading data.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1048576
+        },
+        {
+          "Name": "UseCat",
+          "Type": "Bool",
+          "Desc": "Enable categorical split or not.",
+          "Aliases": [
+            "cat"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "UseMissing",
+          "Type": "Bool",
+          "Desc": "Enable missing value auto infer or not.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "MinDataPerGroup",
+          "Type": "Int",
+          "Desc": "Min number of instances per categorical group.",
+          "Aliases": [
+            "mdpg"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 100,
+          "Range": {
+            "Inf": 0,
+            "Max": 2147483647
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              10,
+              50,
+              100,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "MaxCatThreshold",
+          "Type": "Int",
+          "Desc": "Max number of categorical thresholds.",
+          "Aliases": [
+            "maxcat"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 32,
+          "Range": {
+            "Inf": 0,
+            "Max": 2147483647
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              8,
+              16,
+              32,
+              64
+            ]
+          }
+        },
+        {
+          "Name": "CatSmooth",
+          "Type": "Float",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10.0,
+          "Range": {
+            "Min": 0.0
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1,
+              10,
+              20
+            ]
+          }
+        },
+        {
+          "Name": "CatL2",
+          "Type": "Float",
+          "Desc": "L2 Regularization for categorical split.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10.0,
+          "Range": {
+            "Min": 0.0
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              0.1,
+              0.5,
+              1,
+              5,
+              10
+            ]
+          }
+        },
+        {
+          "Name": "ParallelTrainer",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "ParallelLightGBM"
+          },
+          "Desc": "Parallel LightGBM Learning Algorithm",
+          "Aliases": [
+            "parag"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "Single"
+          }
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "InputKind": [
+        "ITrainerInputWithGroupId",
+        "ITrainerInputWithWeight",
+        "ITrainerInputWithLabel",
+        "ITrainerInput"
+      ],
+      "OutputKind": [
+        "IRankingOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
+      "Name": "Trainers.LightGbmRegressor",
+      "Desc": "LightGBM Regression",
+      "FriendlyName": "LightGBM Regressor",
+      "ShortName": "LightGBMR",
+      "Inputs": [
+        {
+          "Name": "NumBoostRound",
+          "Type": "Int",
+          "Desc": "Number of iterations.",
+          "Aliases": [
+            "iter"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": 100,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              10,
+              20,
+              50,
+              100,
+              150,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training",
+          "Aliases": [
+            "data"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "LearningRate",
+          "Type": "Float",
+          "Desc": "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
+          "Aliases": [
+            "lr"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Float",
+            "Min": 0.025,
+            "Max": 0.4,
+            "IsLogScale": true
+          }
+        },
+        {
+          "Name": "NumLeaves",
+          "Type": "Int",
+          "Desc": "Maximum leaves for trees.",
+          "Aliases": [
+            "nl"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Long",
+            "Min": 2,
+            "Max": 128,
+            "StepSize": 4.0,
+            "IsLogScale": true
+          }
+        },
+        {
+          "Name": "MinDataPerLeaf",
+          "Type": "Int",
+          "Desc": "Minimum number of instances needed in a child.",
+          "Aliases": [
+            "mil"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1,
+              10,
+              20,
+              50
+            ]
+          }
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String",
+          "Desc": "Column to use for features",
+          "Aliases": [
+            "feat"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "Booster",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "BoosterParameterFunction"
+          },
+          "Desc": "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "gbdt"
+          }
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "GroupIdColumn",
+          "Type": "String",
+          "Desc": "Column to use for example groupId",
+          "Aliases": [
+            "groupId"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "GroupId"
+        },
+        {
+          "Name": "NormalizeFeatures",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "No",
+              "Warn",
+              "Auto",
+              "Yes"
+            ]
+          },
+          "Desc": "Normalize option for the feature column",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "Caching",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Auto",
+              "Memory",
+              "Disk",
+              "None"
+            ]
+          },
+          "Desc": "Whether learner should cache input training data",
+          "Aliases": [
+            "cache"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "MaxBin",
+          "Type": "Int",
+          "Desc": "Max number of bucket bin for features.",
+          "Aliases": [
+            "mb"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 255
+        },
+        {
+          "Name": "VerboseEval",
+          "Type": "Bool",
+          "Desc": "Verbose",
+          "Aliases": [
+            "v"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "Silent",
+          "Type": "Bool",
+          "Desc": "Printing running messages.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "NThread",
+          "Type": "Int",
+          "Desc": "Number of parallel threads used to run LightGBM.",
+          "Aliases": [
+            "nt"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "EvalMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "DefaultMetric",
+              "Rmse",
+              "Mae",
+              "Logloss",
+              "Error",
+              "Merror",
+              "Mlogloss",
+              "Auc",
+              "Ndcg",
+              "Map"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "DefaultMetric"
+        },
+        {
+          "Name": "UseSoftmax",
+          "Type": "Bool",
+          "Desc": "Use softmax loss for the multi classification.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "EarlyStoppingRound",
+          "Type": "Int",
+          "Desc": "Rounds of early stopping, 0 will disable it.",
+          "Aliases": [
+            "es"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "CustomGains",
+          "Type": "String",
+          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Aliases": [
+            "gains"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
+        },
+        {
+          "Name": "BatchSize",
+          "Type": "Int",
+          "Desc": "Number of entries in a batch when loading data.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1048576
+        },
+        {
+          "Name": "UseCat",
+          "Type": "Bool",
+          "Desc": "Enable categorical split or not.",
+          "Aliases": [
+            "cat"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "UseMissing",
+          "Type": "Bool",
+          "Desc": "Enable missing value auto infer or not.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "MinDataPerGroup",
+          "Type": "Int",
+          "Desc": "Min number of instances per categorical group.",
+          "Aliases": [
+            "mdpg"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 100,
+          "Range": {
+            "Inf": 0,
+            "Max": 2147483647
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              10,
+              50,
+              100,
+              200
+            ]
+          }
+        },
+        {
+          "Name": "MaxCatThreshold",
+          "Type": "Int",
+          "Desc": "Max number of categorical thresholds.",
+          "Aliases": [
+            "maxcat"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 32,
+          "Range": {
+            "Inf": 0,
+            "Max": 2147483647
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              8,
+              16,
+              32,
+              64
+            ]
+          }
+        },
+        {
+          "Name": "CatSmooth",
+          "Type": "Float",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10.0,
+          "Range": {
+            "Min": 0.0
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1,
+              10,
+              20
+            ]
+          }
+        },
+        {
+          "Name": "CatL2",
+          "Type": "Float",
+          "Desc": "L2 Regularization for categorical split.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 10.0,
+          "Range": {
+            "Min": 0.0
+          },
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              0.1,
+              0.5,
+              1,
+              5,
+              10
+            ]
+          }
+        },
+        {
+          "Name": "ParallelTrainer",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "ParallelLightGBM"
+          },
+          "Desc": "Parallel LightGBM Learning Algorithm",
+          "Aliases": [
+            "parag"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "Single"
+          }
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "InputKind": [
+        "ITrainerInputWithGroupId",
+        "ITrainerInputWithWeight",
+        "ITrainerInputWithLabel",
+        "ITrainerInput"
+      ],
+      "OutputKind": [
+        "IRegressionOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
       "Name": "Trainers.LinearSvmBinaryClassifier",
       "Desc": "Train a linear SVM.",
       "FriendlyName": "SVM (Pegasos-Linear)",
@@ -10942,7 +12910,7 @@
     },
     {
       "Name": "Trainers.LogisticRegressionBinaryClassifier",
-      "Desc": "Train a logistic regression binary model",
+      "Desc": "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.",
       "FriendlyName": "Logistic Regression",
       "ShortName": "lr",
       "Inputs": [
@@ -11254,7 +13222,7 @@
     },
     {
       "Name": "Trainers.LogisticRegressionClassifier",
-      "Desc": "Train a logistic regression multi class model",
+      "Desc": "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.",
       "FriendlyName": "Multi-class Logistic Regression",
       "ShortName": "mlr",
       "Inputs": [
@@ -12760,7 +14728,7 @@
     },
     {
       "Name": "Trainers.StochasticDualCoordinateAscentClassifier",
-      "Desc": "Train an SDCA multi class model",
+      "Desc": "The SDCA linear multi-class classification trainer.",
       "FriendlyName": "Fast Linear Multi-class Classification (SA-SDCA)",
       "ShortName": "sasdcamc",
       "Inputs": [
@@ -13030,7 +14998,7 @@
     },
     {
       "Name": "Trainers.StochasticDualCoordinateAscentRegressor",
-      "Desc": "Train an SDCA regression model",
+      "Desc": "The SDCA linear regression trainer.",
       "FriendlyName": "Fast Linear Regression (SA-SDCA)",
       "ShortName": "sasdcar",
       "Inputs": [
@@ -14367,7 +16335,7 @@
     },
     {
       "Name": "Transforms.ColumnConcatenator",
-      "Desc": "Concatenates two columns of the same item type.",
+      "Desc": "Concatenates one or more columns of the same item type.",
       "FriendlyName": "Concat Transform",
       "ShortName": "Concat",
       "Inputs": [
@@ -19687,6 +21655,553 @@
       ]
     },
     {
+      "Kind": "BoosterParameterFunction",
+      "Components": [
+        {
+          "Name": "dart",
+          "Desc": "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866",
+          "FriendlyName": "Tree Dropout Tree Booster",
+          "Settings": [
+            {
+              "Name": "DropRate",
+              "Type": "Float",
+              "Desc": "Drop ratio for trees. Range:(0,1).",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.1,
+              "Range": {
+                "Inf": 0.0,
+                "Max": 1.0
+              }
+            },
+            {
+              "Name": "MaxDrop",
+              "Type": "Int",
+              "Desc": "Max number of dropped tree in a boosting round.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1,
+              "Range": {
+                "Inf": 0,
+                "Max": 2147483647
+              }
+            },
+            {
+              "Name": "SkipDrop",
+              "Type": "Float",
+              "Desc": "Probability for not perform dropping in a boosting round.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.5,
+              "Range": {
+                "Inf": 0.0,
+                "Max": 1.0
+              }
+            },
+            {
+              "Name": "XgboostDartMode",
+              "Type": "Bool",
+              "Desc": "True will enable xgboost dart mode.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "UniformDrop",
+              "Type": "Bool",
+              "Desc": "True will enable uniform drop.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "UnbalancedSets",
+              "Type": "Bool",
+              "Desc": "Use for binary classification when classes are not balanced.",
+              "Aliases": [
+                "us"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "MinSplitGain",
+              "Type": "Float",
+              "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0,
+              "Range": {
+                "Min": 0.0
+              }
+            },
+            {
+              "Name": "MaxDepth",
+              "Type": "Int",
+              "Desc": "Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0,
+              "Range": {
+                "Max": 2147483647,
+                "Min": 0
+              }
+            },
+            {
+              "Name": "MinChildWeight",
+              "Type": "Float",
+              "Desc": "Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.1,
+              "Range": {
+                "Min": 0.0
+              }
+            },
+            {
+              "Name": "SubsampleFreq",
+              "Type": "Int",
+              "Desc": "Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0,
+              "Range": {
+                "Max": 2147483647,
+                "Min": 0
+              }
+            },
+            {
+              "Name": "Subsample",
+              "Type": "Float",
+              "Desc": "Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0,
+              "Range": {
+                "Inf": 0.0,
+                "Max": 1.0
+              }
+            },
+            {
+              "Name": "FeatureFraction",
+              "Type": "Float",
+              "Desc": "Subsample ratio of columns when constructing each tree. Range: (0,1].",
+              "Aliases": [
+                "ff"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0,
+              "Range": {
+                "Inf": 0.0,
+                "Max": 1.0
+              }
+            },
+            {
+              "Name": "RegLambda",
+              "Type": "Float",
+              "Desc": "L2 regularization term on weights, increasing this value will make model more conservative.",
+              "Aliases": [
+                "l2"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.01,
+              "Range": {
+                "Min": 0.0
+              },
+              "SweepRange": {
+                "RangeType": "Discrete",
+                "Values": [
+                  0.0,
+                  0.5,
+                  1.0
+                ]
+              }
+            },
+            {
+              "Name": "RegAlpha",
+              "Type": "Float",
+              "Desc": "L1 regularization term on weights, increase this value will make model more conservative.",
+              "Aliases": [
+                "l1"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0,
+              "Range": {
+                "Min": 0.0
+              },
+              "SweepRange": {
+                "RangeType": "Discrete",
+                "Values": [
+                  0.0,
+                  0.5,
+                  1.0
+                ]
+              }
+            },
+            {
+              "Name": "ScalePosWeight",
+              "Type": "Float",
+              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0
+            }
+          ]
+        },
+        {
+          "Name": "gbdt",
+          "Desc": "Traditional Gradient Boosting Decision Tree.",
+          "FriendlyName": "Tree Booster",
+          "Settings": [
+            {
+              "Name": "UnbalancedSets",
+              "Type": "Bool",
+              "Desc": "Use for binary classification when classes are not balanced.",
+              "Aliases": [
+                "us"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "MinSplitGain",
+              "Type": "Float",
+              "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0,
+              "Range": {
+                "Min": 0.0
+              }
+            },
+            {
+              "Name": "MaxDepth",
+              "Type": "Int",
+              "Desc": "Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0,
+              "Range": {
+                "Max": 2147483647,
+                "Min": 0
+              }
+            },
+            {
+              "Name": "MinChildWeight",
+              "Type": "Float",
+              "Desc": "Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.1,
+              "Range": {
+                "Min": 0.0
+              }
+            },
+            {
+              "Name": "SubsampleFreq",
+              "Type": "Int",
+              "Desc": "Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0,
+              "Range": {
+                "Max": 2147483647,
+                "Min": 0
+              }
+            },
+            {
+              "Name": "Subsample",
+              "Type": "Float",
+              "Desc": "Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0,
+              "Range": {
+                "Inf": 0.0,
+                "Max": 1.0
+              }
+            },
+            {
+              "Name": "FeatureFraction",
+              "Type": "Float",
+              "Desc": "Subsample ratio of columns when constructing each tree. Range: (0,1].",
+              "Aliases": [
+                "ff"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0,
+              "Range": {
+                "Inf": 0.0,
+                "Max": 1.0
+              }
+            },
+            {
+              "Name": "RegLambda",
+              "Type": "Float",
+              "Desc": "L2 regularization term on weights, increasing this value will make model more conservative.",
+              "Aliases": [
+                "l2"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.01,
+              "Range": {
+                "Min": 0.0
+              },
+              "SweepRange": {
+                "RangeType": "Discrete",
+                "Values": [
+                  0.0,
+                  0.5,
+                  1.0
+                ]
+              }
+            },
+            {
+              "Name": "RegAlpha",
+              "Type": "Float",
+              "Desc": "L1 regularization term on weights, increase this value will make model more conservative.",
+              "Aliases": [
+                "l1"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0,
+              "Range": {
+                "Min": 0.0
+              },
+              "SweepRange": {
+                "RangeType": "Discrete",
+                "Values": [
+                  0.0,
+                  0.5,
+                  1.0
+                ]
+              }
+            },
+            {
+              "Name": "ScalePosWeight",
+              "Type": "Float",
+              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0
+            }
+          ]
+        },
+        {
+          "Name": "goss",
+          "Desc": "Gradient-based One-Side Sampling.",
+          "FriendlyName": "Gradient-based One-Size Sampling",
+          "Settings": [
+            {
+              "Name": "TopRate",
+              "Type": "Float",
+              "Desc": "Retain ratio for large gradient instances.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.2,
+              "Range": {
+                "Inf": 0.0,
+                "Max": 1.0
+              }
+            },
+            {
+              "Name": "OtherRate",
+              "Type": "Float",
+              "Desc": "Retain ratio for small gradient instances.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.1,
+              "Range": {
+                "Inf": 0.0,
+                "Max": 1.0
+              }
+            },
+            {
+              "Name": "UnbalancedSets",
+              "Type": "Bool",
+              "Desc": "Use for binary classification when classes are not balanced.",
+              "Aliases": [
+                "us"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "MinSplitGain",
+              "Type": "Float",
+              "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0,
+              "Range": {
+                "Min": 0.0
+              }
+            },
+            {
+              "Name": "MaxDepth",
+              "Type": "Int",
+              "Desc": "Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0,
+              "Range": {
+                "Max": 2147483647,
+                "Min": 0
+              }
+            },
+            {
+              "Name": "MinChildWeight",
+              "Type": "Float",
+              "Desc": "Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.1,
+              "Range": {
+                "Min": 0.0
+              }
+            },
+            {
+              "Name": "SubsampleFreq",
+              "Type": "Int",
+              "Desc": "Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0,
+              "Range": {
+                "Max": 2147483647,
+                "Min": 0
+              }
+            },
+            {
+              "Name": "Subsample",
+              "Type": "Float",
+              "Desc": "Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0,
+              "Range": {
+                "Inf": 0.0,
+                "Max": 1.0
+              }
+            },
+            {
+              "Name": "FeatureFraction",
+              "Type": "Float",
+              "Desc": "Subsample ratio of columns when constructing each tree. Range: (0,1].",
+              "Aliases": [
+                "ff"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0,
+              "Range": {
+                "Inf": 0.0,
+                "Max": 1.0
+              }
+            },
+            {
+              "Name": "RegLambda",
+              "Type": "Float",
+              "Desc": "L2 regularization term on weights, increasing this value will make model more conservative.",
+              "Aliases": [
+                "l2"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.01,
+              "Range": {
+                "Min": 0.0
+              },
+              "SweepRange": {
+                "RangeType": "Discrete",
+                "Values": [
+                  0.0,
+                  0.5,
+                  1.0
+                ]
+              }
+            },
+            {
+              "Name": "RegAlpha",
+              "Type": "Float",
+              "Desc": "L1 regularization term on weights, increase this value will make model more conservative.",
+              "Aliases": [
+                "l1"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0,
+              "Range": {
+                "Min": 0.0
+              },
+              "SweepRange": {
+                "RangeType": "Discrete",
+                "Values": [
+                  0.0,
+                  0.5,
+                  1.0
+                ]
+              }
+            },
+            {
+              "Name": "ScalePosWeight",
+              "Type": "Float",
+              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0
+            }
+          ]
+        }
+      ]
+    },
+    {
       "Kind": "CalibratorTrainer",
       "Components": [
         {
@@ -19981,6 +22496,17 @@
       ]
     },
     {
+      "Kind": "EnsembleBinaryDiversityMeasure",
+      "Components": [
+        {
+          "Name": "DisagreementDiversityMeasure",
+          "Desc": null,
+          "FriendlyName": "Disagreement Diversity Measure",
+          "Settings": []
+        }
+      ]
+    },
+    {
       "Kind": "EnsembleBinaryOutputCombiner",
       "Components": [
         {
@@ -20023,7 +22549,7 @@
         {
           "Name": "WeightedAverage",
           "Desc": null,
-          "FriendlyName": "Stacking",
+          "FriendlyName": "Weighted Average",
           "Settings": [
             {
               "Name": "WeightageName",
@@ -20069,7 +22595,7 @@
               "Name": "DiversityMetricType",
               "Type": {
                 "Kind": "Component",
-                "ComponentKind": "EnsembleDiversityMeasure"
+                "ComponentKind": "EnsembleBinaryDiversityMeasure"
               },
               "Desc": "The metric type to be used to find the diversity among base learners",
               "Aliases": [
@@ -20078,7 +22604,9 @@
               "Required": false,
               "SortOrder": 50.0,
               "IsNullable": false,
-              "Default": null
+              "Default": {
+                "Name": "DisagreementDiversityMeasure"
+              }
             },
             {
               "Name": "LearnersSelectionProportion",
@@ -20166,29 +22694,6 @@
       ]
     },
     {
-      "Kind": "EnsembleDiversityMeasure",
-      "Components": [
-        {
-          "Name": "DisagreementDiversityMeasure",
-          "Desc": null,
-          "FriendlyName": "Disagreement Diversity Measure",
-          "Settings": []
-        },
-        {
-          "Name": "MultiDisagreementDiversityMeasure",
-          "Desc": null,
-          "FriendlyName": "Disagreement Diversity Measure",
-          "Settings": []
-        },
-        {
-          "Name": "RegressionDisagreementDiversityMeasure",
-          "Desc": null,
-          "FriendlyName": "Disagreement Diversity Measure",
-          "Settings": []
-        }
-      ]
-    },
-    {
       "Kind": "EnsembleFeatureSelector",
       "Components": [
         {
@@ -20215,6 +22720,17 @@
               "Default": 0.8
             }
           ]
+        }
+      ]
+    },
+    {
+      "Kind": "EnsembleMulticlassDiversityMeasure",
+      "Components": [
+        {
+          "Name": "MultiDisagreementDiversityMeasure",
+          "Desc": null,
+          "FriendlyName": "Disagreement Diversity Measure",
+          "Settings": []
         }
       ]
     },
@@ -20282,20 +22798,7 @@
           "Name": "MultiVoting",
           "Desc": null,
           "FriendlyName": "Voting",
-          "Settings": [
-            {
-              "Name": "Normalize",
-              "Type": "Bool",
-              "Desc": "Whether to normalize the output of base models before combining them",
-              "Aliases": [
-                "norm"
-              ],
-              "Required": false,
-              "SortOrder": 50.0,
-              "IsNullable": false,
-              "Default": true
-            }
-          ]
+          "Settings": []
         },
         {
           "Name": "MultiWeightedAverage",
@@ -20354,7 +22857,7 @@
               "Name": "DiversityMetricType",
               "Type": {
                 "Kind": "Component",
-                "ComponentKind": "EnsembleDiversityMeasure"
+                "ComponentKind": "EnsembleMulticlassDiversityMeasure"
               },
               "Desc": "The metric type to be used to find the diversity among base learners",
               "Aliases": [
@@ -20363,7 +22866,9 @@
               "Required": false,
               "SortOrder": 50.0,
               "IsNullable": false,
-              "Default": null
+              "Default": {
+                "Name": "MultiDisagreementDiversityMeasure"
+              }
             },
             {
               "Name": "LearnersSelectionProportion",
@@ -20445,6 +22950,17 @@
       ]
     },
     {
+      "Kind": "EnsembleRegressionDiversityMeasure",
+      "Components": [
+        {
+          "Name": "RegressionDisagreementDiversityMeasure",
+          "Desc": null,
+          "FriendlyName": "Disagreement Diversity Measure",
+          "Settings": []
+        }
+      ]
+    },
+    {
       "Kind": "EnsembleRegressionOutputCombiner",
       "Components": [
         {
@@ -20498,7 +23014,7 @@
               "Name": "DiversityMetricType",
               "Type": {
                 "Kind": "Component",
-                "ComponentKind": "EnsembleDiversityMeasure"
+                "ComponentKind": "EnsembleRegressionDiversityMeasure"
               },
               "Desc": "The metric type to be used to find the diversity among base learners",
               "Aliases": [
@@ -20507,7 +23023,9 @@
               "Required": false,
               "SortOrder": 50.0,
               "IsNullable": false,
-              "Default": null
+              "Default": {
+                "Name": "RegressionDisagreementDiversityMeasure"
+              }
             },
             {
               "Name": "LearnersSelectionProportion",
@@ -24487,6 +27005,17 @@
               "Default": 0
             }
           ]
+        }
+      ]
+    },
+    {
+      "Kind": "ParallelLightGBM",
+      "Components": [
+        {
+          "Name": "Single",
+          "Desc": "Single node machine learning process.",
+          "FriendlyName": "Single",
+          "Settings": []
         }
       ]
     },

@@ -138,7 +138,7 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
-        public void TrainOva()
+        public void TrainOneVersusAll()
         {
             string dataPath = GetDataPath("iris.txt");
 

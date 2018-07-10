@@ -28,16 +28,39 @@ namespace Microsoft.ML.Runtime.Data
         public const string Summary = "Selects the slots for which the count of non-default values is greater than or equal to a threshold.";
         public const string UserName = "Count Feature Selection Transform";
 
+        private static class Defaults
+        {
+            public const long Count = 1;
+        }
+
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", ShortName = "col", SortOrder = 1)]
             public string[] Column;
 
             [Argument(ArgumentType.Required, HelpText = "If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved", ShortName = "c", SortOrder = 1)]
-            public long Count = 1;
+            public long Count = Defaults.Count;
         }
 
         internal static string RegistrationName = "CountFeatureSelectionTransform";
+
+        /// <summary>
+        /// A helper method to create CountFeatureSelection transform for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
+        /// <param name="columns">Columns to use for feature selection.</param>
+        /// <returns></returns>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, long count = Defaults.Count, params string[] columns)
+        {
+            var args = new Arguments()
+            {
+                Column = columns,
+                Count = count
+            };
+            return Create(env, args, input);
+        }
 
         /// <summary>
         /// Create method corresponding to SignatureDataTransform.
