@@ -197,16 +197,6 @@ namespace Microsoft.ML.Runtime.Sweeper
                     leafValueList.Add(val, Tuple.Create(i, j));
                 }
             }
-
-            // Step 2: Go through, starting from best leaves.
-
-            //ch.Info("Ha ha, we trained {0} trees", ensemble.NumTrees);
-            //// This is a pretty silly example of inspecting the tree.
-            //int count = ensemble.Trees.Sum(t => t.SplitFeatures.Take(t.NumNodes).Count(f => f == 5));
-            //ch.Info("Our random forest ensemble used the feature with index 5, {0} times!!", count);
-            //double allLeavesSum = ensemble.Trees.Sum(t => t.LeafValues.Take(t.NumLeaves).Sum());
-            //ch.Info("Our random forest, across all leaves, summed to {0}", allLeavesSum);   
-            //int[] path = t.pathToLeaf(leafIndex);
             return null;
         }
 

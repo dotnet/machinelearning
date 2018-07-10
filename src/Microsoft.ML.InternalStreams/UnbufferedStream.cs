@@ -78,15 +78,12 @@ namespace Microsoft.ML.Runtime.Internal.IO
         private string _fileName;
 
         private readonly uint _sectorSize;
-        private /*readonly*/ IntPtr[] _buffer;
-        private /*readonly*/ IntPtr[] _alignedBuffer;
+        private IntPtr[] _buffer;
+        private IntPtr[] _alignedBuffer;
         private readonly IntPtr _handle;
-        private /*readonly*/ int _blockSize;
+        private int _blockSize;
         private bool _parallel;
         private bool _released = true;
-        //private int bufferStart = 0;
-        //private int bufferEnd = 0;
-        //private byte[] mBuffer;
 
         #endregion
 
@@ -244,7 +241,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
                                     if (_buffer[j] != IntPtr.Zero)
                                     {
-                                        bool ret = IOUtil.Win32.VirtualFree(_buffer[j], IntPtr.Zero, /*MEM_DECOMMIT*/ IOUtil.Win32.FreeType.MEM_RELEASE);
+                                        bool ret = IOUtil.Win32.VirtualFree(_buffer[j], IntPtr.Zero, IOUtil.Win32.FreeType.MEM_RELEASE);
                                         _buffer[j] = IntPtr.Zero;
                                     }
                                 }
@@ -365,7 +362,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
 #if REUSE_BUFFERS
 							if (blockSize == initialBlockSize)
 							{
-								//Console.WriteLine("locking...");
 								lock (standingBuffers)
 								{
 									if (standingBufferCount > 0)
@@ -374,7 +370,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
 										buffer[i] = standingBuffers[standingBufferCount];
 									}
 								}
-								//Console.WriteLine("locked.");
 							}
 #endif
 
@@ -411,7 +406,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
                                             if (_buffer[j] != IntPtr.Zero)
                                             {
-                                                bool ret = IOUtil.Win32.VirtualFree(_buffer[j], IntPtr.Zero, /*MEM_DECOMMIT*/ IOUtil.Win32.FreeType.MEM_RELEASE);
+                                                bool ret = IOUtil.Win32.VirtualFree(_buffer[j], IntPtr.Zero, IOUtil.Win32.FreeType.MEM_RELEASE);
                                                 _buffer[j] = IntPtr.Zero;
                                             }
                                         }
@@ -472,7 +467,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
                     {
                         try
                         {
-                            bool ret = IOUtil.Win32.VirtualFree(_buffer[j], IntPtr.Zero, /*MEM_DECOMMIT*/ IOUtil.Win32.FreeType.MEM_RELEASE);
+                            bool ret = IOUtil.Win32.VirtualFree(_buffer[j], IntPtr.Zero, IOUtil.Win32.FreeType.MEM_RELEASE);
                             _buffer[j] = IntPtr.Zero;
                         }
                         catch
@@ -790,8 +785,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             {
                 // ignore all exceptions on the filling thread...
                 // may be needed, but will hide potential problems.
-                //System.Diagnostics.Debug.WriteLine("");
-                //System.Diagnostics.Debug.WriteLine("FillBuffer exception: " + ex.ToString());
             }
         }
 
@@ -1014,40 +1007,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 {
                     dest[destStart] = *(s++);
                 }
-
-                // simple pointer copy:
-                //				byte* s = ((byte*)source.ToPointer()) + sourceStart;
-                //				fixed (byte* dd = dest)
-                //				{
-                //					byte* d = dd + destStart;
-                //					byte* dEnd = d + count;
-                //					while (d != dEnd)
-                //					{
-                //						*(d++) = *(s++);
-                //					}
-                //				}
-
-                // int pointer copy:
-                //				int* s = (int*)(((byte*)source.ToPointer()) + sourceStart);
-                //				fixed (byte* dd = dest)
-                //				{
-                //					int* d = (int*)(dd + destStart);
-                //					int* dEnd = d + (count >> 2);
-                //					while (d != dEnd)
-                //					{
-                //						*d = *s;
-                //						d++;
-                //						s++;
-                //					}
-                //					count = count & 3;
-                //					if (count != 0)
-                //					{
-                //						for (int i = 0; i < count; i++)
-                //						{
-                //							*(((byte*)d) + i) = *(((byte*)s) + i);
-                //						}
-                //					}
-                //				}
             }
             #endregion
 
@@ -1256,20 +1215,13 @@ namespace Microsoft.ML.Runtime.Internal.IO
 			if (count == 0)  return 0;
 			int remaining = (int)(length - Position);
 			int paddedRemaining = (int)(base.Length - Position);
-			//Console.WriteLine("Partial read -  requested " + count + ", left: " + remaining +
-			//	" [" + paddedRemaining + "]");
 			int res = paddedRemaining;
 			if (res == 0)  return 0;
 			//bool resized = false;
 			if (res % sectorSize != 0)
-			{
-				//// 1. just truncate:
-				//res = (int)((res / sectorSize) * sectorSize);
+			{				
 
-				//// 2. can't resize, we've locked it:
-				//ResizeFile(fileName, ((length / sectorSize + 1) * sectorSize));
-
-				//// 3. total hack:
+				//// total hack:
 				int first = (int)((res / sectorSize) * sectorSize);
 				if (first != 0)
 				{
@@ -1376,7 +1328,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             get
             {
                 return false;
-                //return base.IsAsync;
             }
         }
 #endif

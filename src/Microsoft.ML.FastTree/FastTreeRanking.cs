@@ -579,7 +579,6 @@ namespace Microsoft.ML.Runtime.FastTree
                     _secondaryMetricShare = 0.0;
                     return;
                 }
-                //for (int i = 0; i < _secondaryGains.Length; ++i) _secondaryGains[i] *= cmd.secondaryMetricShare;
                 _secondaryInverseMaxDCGT = DCGCalculator.MaxDCG(_secondaryGains, Dataset.Boundaries,
                     new int[] { args.lambdaMartMaxTruncation })[0].Select(d => 1.0 / d).ToArray();
             }
@@ -726,7 +725,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 double inverseMaxDcg = _inverseMaxDcgt[query];
                 double secondaryInverseMaxDcg = _secondaryMetricShare == 0 ? 0.0 : _secondaryInverseMaxDcgt[query];
 
-                //int[] permutation = (threadIndex < 0 ? new int[numDocuments] : _permutationBuffers[threadIndex]);
                 int[] permutation = _permutationBuffers[threadIndex];
 
                 short[] labels = _labels;

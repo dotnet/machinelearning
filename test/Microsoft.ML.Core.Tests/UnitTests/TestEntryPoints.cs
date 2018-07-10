@@ -3318,9 +3318,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-
-            /*var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input
-            { InputFile = inputFile, CustomSchema =  "header+ col=Label:0 col=Features:Num:1-9"*/
+            
             var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
             {
                 Arguments =

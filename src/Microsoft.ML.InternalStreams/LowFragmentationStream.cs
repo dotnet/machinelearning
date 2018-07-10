@@ -240,7 +240,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 byte[] buffer = new byte[1024 * 1024];
                 s.Seek(-1, SeekOrigin.End);
                 int lastByte = s.ReadByte();
-                //Console.WriteLine("last: " + lastByte);
                 if (lastByte == 0)
                 {
                     long end = s.Length;
@@ -297,7 +296,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 }
                 catch
                 {
-                    //Console.WriteLine("extend failed!");
                     // ignore? This could mean there is not enough space on disk!
                     // If we leave the extendedLength set high, this instance will
                     // harmlessly believe it has preallocated and just allow the writes
@@ -317,9 +315,8 @@ namespace Microsoft.ML.Runtime.Internal.IO
             }
             else
             {
-                //extendedLength = len;
+
             }
-            //Seek(pos, SeekOrigin.Begin);
         }
 
         private void Truncate()
@@ -426,7 +423,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         /// </remarks>
         public void Reserve(long length)
         {
-            //if (length > base.Length)
             if (length > _extendedLength)
             {
                 base.SetLength(length);
@@ -548,7 +544,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             if (Position < value)
             {
                 // must remember the true length...
-                //Console.WriteLine("SetLength setting length...");
                 _length = value;
             }
             else

@@ -121,18 +121,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         /// <returns>The current row as an array of fields</returns>
         string[] ReadRow(int len);
 
-        /*
-        /// <summary>
-        /// Get the field at the column index.
-        /// </summary>
-        string   this[int index]  { get; }
-
-        /// <summary>
-        /// Get the field at the column with the given header.
-        /// </summary>
-        string   this[string header]  { get; }
-        */
-
         /// <summary>
         /// Reset the reader to the beginning.
         /// </summary>
@@ -419,8 +407,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         public CsvReader(TextReader tr)
         {
             _file = tr;
-            //if (file == null)
-            //	Console.Out.WriteLine("  Error: CsvReader could not open null file!");
         }
 
         /// <summary>
@@ -429,7 +415,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         /// <param name="fname">the name of the file to read the table from</param>
         public CsvReader(string fname)
             : this(ZStreamReader.Open(fname))
-        //			: this(new StreamReader(fname, Encoding.UTF8, true))
         {
         }
 
@@ -448,7 +433,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         /// <param name="fname">the name of the file to read the table from</param>
         /// <param name="encoding">the encoding to use to interpet the file</param>
         public CsvReader(string fname, Encoding encoding)
-            //			: this(ZStreamReader.Open(fname, encoding))
             : this(new StreamReader(fname, encoding, true))
         {
         }
@@ -834,7 +818,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                                 if (_file.Peek() == -1)
                                     break;
                                 // read a new row...
-                                // rowNumber++; -- don't count it as a new row.
                                 _curLine = _file.ReadLine();
                                 curPos = -1;
                                 res.Append('\n');
@@ -904,7 +887,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             {
                 return ReadItemFromLine(ref curPos);
             }
-            //Console.Out.WriteLine("   Item:  " + resStr);
             return resStr;
         }
 
@@ -1159,21 +1141,17 @@ namespace Microsoft.ML.Runtime.Internal.IO
                     (_curLine.Length == 0 ||
                     (_curLine[0] == ' ' && _curLine.Trim().Length == 0)))
                 {
-                    //Console.Out.WriteLine("(Skipping row as blank line...)");
                     continue;
                 }
                 ReadRowFromLine();
                 if (_skipBlankColumnsLines && RowBlank())
                 {
-                    //Console.Out.WriteLine("(Skipping row with blank columns...)");
                     _curRow = null;
                     _curRowArray = null;
                     continue;
                 }
                 break;
             }
-
-            //ReadRowFromLine();
         }
 
         /// <summary>
@@ -1321,8 +1299,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         public CsvWriter(TextWriter tr)
         {
             _file = tr;
-            //if (file == null)
-            //	Console.Out.WriteLine("  Error: CsvReader could not open null file!");
             _rowNumber = 1;
         }
 
@@ -1653,27 +1629,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
                 if (_skipBlankLines && _lineStart && items.Length == 0)
                     return;
-                //				if (len < 0 || len == items.Length)
-                //				{
-                //					file.WriteLine(string.Join(delimiter, items));
-                //				}
-                //				else
-                //				{
-                //					if (items.Length < len)
-                //					{
-                //						file.Write(string.Join(delimiter, items));
-                //						// pad with empty strings:
-                //						for (int i = items.Length; i < len; i++)
-                //						{
-                //							file.Write(delimiter);
-                //						}
-                //						file.WriteLine();
-                //					}
-                //					else
-                //					{
-                //						file.WriteLine(string.Join(delimiter, items, 0, len));
-                //					}
-                //				}
+
                 if (items.Length == 0)
                 {
                     if (len > 0)
@@ -1755,45 +1711,17 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
             if (!_parseQuotes)
             {
-                //				string[] itemsA = new string[items.Count];
-                //				items.CopyTo(itemsA, 0);
-
                 if (_normalizeWhitespace)
                 {
-                    //					for (int i = 0; i < itemsA.Length; i++)
-                    //					{
-                    //						itemsA[i] = NormalizeWS(itemsA[i]);
-                    //					}
                     for (int i = 0; i < items.Count; i++)
                     {
                         items[i] = NormalizeWS(items[i]);
                     }
                 }
-
-                //				if (skipBlankLines && lineStart && itemsA.Length == 0)  return;
+                
                 if (_skipBlankLines && _lineStart && items.Count == 0)
                     return;
-                //				if (len < 0 || len == itemsA.Length)
-                //				{
-                //					file.WriteLine(string.Join(delimiter, itemsA));
-                //				}
-                //				else
-                //				{
-                //					if (itemsA.Length < len)
-                //					{
-                //						file.Write(string.Join(delimiter, itemsA));
-                //						// pad with empty strings:
-                //						for (int i = itemsA.Length; i < len; i++)
-                //						{
-                //							file.Write(delimiter);
-                //						}
-                //						file.WriteLine();
-                //					}
-                //					else
-                //					{
-                //						file.WriteLine(string.Join(delimiter, itemsA, 0, len));
-                //					}
-                //				}
+
                 if (items.Count == 0)
                 {
                     if (len > 0)
@@ -2020,8 +1948,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                     _tableName = _file.Name;
                     _file.Read();
                 }
-
-                // NextRow();  // - don't do this! Might initialize too soon.
             }
         }
 
@@ -2293,7 +2219,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                                 _headers[index] = givenHeader;
                             }
                         }
-                        //currentRow.Add(name, val);
                         _currentRow[name] = val;
                         if (!_headerOrdered)
                         {
@@ -2356,12 +2281,10 @@ namespace Microsoft.ML.Runtime.Internal.IO
                                 _headers[index] = givenHeader;
                             }
                         }
-                        //currentRow.Add(name, val);
                         _currentRow[name] = val;
                         if (!_headerOrdered)
                         {
                             // skip adding to the sequence for attributes!
-                            //currentRowSequence.Add(val);
                         }
                         else
                         {
@@ -2382,7 +2305,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
                         val = _file.ReadString();
                         if (TrimWhitespace)
                             val = val.Trim();
-                        //currentRow.Add("", val);
+
                         _currentRow[""] = val;
                     }
                 }
@@ -2756,7 +2679,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
                         val = "";
                     if (TrimWhitespace)
                         val = val.Trim();
-                    ////file.WriteElementString(name, val);
+                    
                     if (SkipEmptyElements && val.Length == 0)
                     {
                         // just skip it...
@@ -2776,9 +2699,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
                     }
                 }
             }
-
-            // delay writing the end element:
-            //file.WriteEndElement();
+            
             _elementEndPending = true;
             _openElementCount++;
         }
@@ -2794,8 +2715,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 WriteRow((string[])_currentRowSequence.ToArray(typeof(string)));
                 _currentRowSequence = null;
             }
-
-            //currentRow = null;
+            
             _currentRowSequence = null;
             _currentCol = 0;
         }
@@ -2833,7 +2753,7 @@ namespace Microsoft.ML.Runtime.Internal.IO
             {
                 if (header == null)
                     return;
-                //if (currentRow == null)  currentRow = new Hashtable();
+                
                 string givenHeader = header;
                 header = header.Trim();
                 if (IgnoreHeaderCase)
@@ -3023,7 +2943,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             filename = fname;
             // determine format:
             xlsFormat = false;
-            //Console.WriteLine("Extension: " + Path.GetExtension(filename).ToLower());
             if (Path.GetExtension(filename).ToLower() == ".xls")
             {
                 xlsFormat = true;
@@ -3034,47 +2953,28 @@ namespace Microsoft.ML.Runtime.Internal.IO
             if (xlsFormat) // Excel Format
             {
                 connString += "\"" + Path.GetFullPath(filename) + "\"" + ";" +
-                    //	"Extended Properties=\"Excel 8.0;HDR=No\"";
                     "Extended Properties=\"Excel 8.0;HDR=Yes\"";
             }
             else  // assume CSV
             {
                 connString += Path.GetDirectoryName(Path.GetFullPath(filename)) + ";" +
-                    //	"Extended Properties=\"text;HDR=No;FMT=Delimited\"";
                     "Extended Properties=\"text;HDR=Yes;FMT=Delimited\"";
             }
-            //Console.WriteLine("Opening with: " + connString);
             string selectString = "SELECT * FROM ";
             if (xlsFormat) // Excel Format
             {
                 selectString += "[Sheet1$]";  // hard-coded first sheet? ***
-                //selectString += "foo";  // hard-coded first sheet? ***
             }
             else  // assume CSV
             {
                 selectString += Path.GetFileName(filename);
             }
-            //Console.WriteLine("Selecting with: " + selectString);
 
             oleConn = new OleDbConnection(connString);
             oleConn.Open();
-            //OleDbCommand openCmd = new OleDbCommand(selectString, oleConn);
             OleDbCommand openCmd = oleConn.CreateCommand();
             openCmd.CommandText = selectString;
-            //openCmd.Connection.Open();
-            //Console.WriteLine("Opened connection.");
-            //Console.WriteLine("Database:  " + oleConn.Database);
-            //Console.WriteLine("Datasource:  " + oleConn.DataSource);
-
-            // start up reader:
-            //oleReader = openCmd.ExecuteReader(CommandBehavior.CloseConnection);
-
-            //MessageBox.Show(connString, "Excel Connection String");
-            //MessageBox.Show(selectString, "Excel Select String");
             oleReader = openCmd.ExecuteReader();
-            //Console.WriteLine("Started Reader.");
-
-            //TestConnection();
 
             // Initialize the row reading:
             isEof = !Next();
@@ -3357,9 +3257,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
         private string filename;
         private bool xlsFormat;
         private OleDbConnection oleConn;
-        //private OleDbDataAdapter oleAdapter;
-        //private DataTable dataTable;
-        //private string[] cols;
 
         // trim whitespace from each entry:
         private bool trimWhitespace = true;
@@ -3383,7 +3280,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
 
             // determine format:
             xlsFormat = false;
-            //Console.WriteLine("Extension: " + Path.GetExtension(filename).ToLower());
             if (Path.GetExtension(filename).ToLower() == ".xls")
             {
                 xlsFormat = true;
@@ -3395,7 +3291,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             if (xlsFormat) // Excel Format
             {
                 connString += filename + ";" +
-                    //	"Extended Properties=Excel 8.0;";
                     "Extended Properties=\"Excel 8.0;HDR=No\"";
             }
             else  // assume CSV
@@ -3403,7 +3298,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
                 connString += Path.GetDirectoryName(Path.GetFullPath(filename)) + ";" +
                     "Extended Properties=\"text;HDR=Yes;FMT=Delimited\"";
             }
-            //Console.WriteLine("Opening with: " + connString);
 
             string selectString = "SELECT * FROM ";
             if (xlsFormat) // Excel Format
@@ -3419,35 +3313,6 @@ namespace Microsoft.ML.Runtime.Internal.IO
             oleConn = new OleDbConnection(connString);
             oleConn.Open();
 
-            //oleAdapter = new OleDbDataAdapter(selectString, connString);
-            //oleAdapter = new OleDbDataAdapter(selectString, oleConn);
-            //OleDbCommandBuilder oleCommandBuilder = new OleDbCommandBuilder(oleAdapter);
-            //oleConn = oleAdapter.SelectCommand.Connection;
-            //oleConn.Open();
-            //dataTable = new DataTable("sheet");
-
-            //oleAdapter.InsertCommand = new OleDbCommand();
-            //oleAdapter.InsertCommand.CommandText = "INSERT INTO [Sheet1$]";
-            //// VALUES ('Other','Figimingle','c:\\images\\gardenhose.bmp')";
-            //oleAdapter.InsertCommand.Connection = oleConn;
-
-            //OleDbCommand openCmd = new OleDbCommand(selectString, oleConn);
-            ////OleDbCommand openCmd = oleConn.CreateCommand();
-            ////openCmd.CommandText = selectString;
-            //openCmd.Connection.Open();
-            //Console.WriteLine("Opened connection.");
-            //Console.WriteLine("Database:  " + oleConn.Database);
-            //Console.WriteLine("Datasource:  " + oleConn.DataSource);
-
-            // start up reader:
-            //oleReader = openCmd.ExecuteReader(CommandBehavior.CloseConnection);
-            ////oleReader = openCmd.ExecuteReader();
-            //Console.WriteLine("Started Reader.");
-
-            //TestConnection();
-
-            // Initialize the column names:
-            //SetupColumnNames();
         }
 
         private string sqlString(string item)

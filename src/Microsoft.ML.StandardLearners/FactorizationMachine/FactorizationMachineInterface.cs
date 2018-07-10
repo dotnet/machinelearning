@@ -31,12 +31,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void CalculateIntermediateVariablesNative(int fieldCount, int latentDim, int count, int* /*const*/ fieldIndices, int* /*const*/ featureIndices,
-            float* /*const*/ featureValues, float* /*const*/ linearWeights, float* /*const*/ latentWeights, float* latentSum, float* response);
+        public static extern void CalculateIntermediateVariablesNative(int fieldCount, int latentDim, int count, int* fieldIndices, int* featureIndices,
+            float* featureValues, float* linearWeights, float* latentWeights, float* latentSum, float* response);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void CalculateGradientAndUpdateNative(float lambdaLinear, float lambdaLatent, float learningRate, int fieldCount, int latentDim, float weight,
-            int count, int* /*const*/ fieldIndices, int* /*const*/ featureIndices, float* /*const*/ featureValues, float* /*const*/ latentSum, float slope,
+            int count, int* fieldIndices, int* featureIndices, float* featureValues, float* latentSum, float slope,
             float* linearWeights, float* latentWeights, float* linearAccumulatedSquaredGrads, float* latentAccumulatedSquaredGrads);
 
         public static void CalculateIntermediateVariables(int fieldCount, int latentDim, int count, int[] fieldIndices, int[] featureIndices, float[] featureValues,

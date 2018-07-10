@@ -493,8 +493,6 @@ namespace Microsoft.ML.Runtime.Numeric
                         });
                     }
 
-                    //if (_newX.AlmostEquals(_x)) throw new PrematureConvergenceException(this, "Step size interval numerically zero.");
-
                     Value = Eval(ref _newX, ref _newGrad);
                     GradientCalculations++;
                     if (!FloatUtils.IsFinite(Value))
