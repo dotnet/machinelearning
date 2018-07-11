@@ -158,15 +158,16 @@ namespace Microsoft.ML.Runtime.FastTree
         {
         }
 
-        public override bool NeedCalibration
-        {
-            get { return false; }
-        }
+        public override bool NeedCalibration => false;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public override void Train(RoleMappedData trainData)
+        public override FastForestRegressionPredictor Train(TrainContext context)
         {
+            Host.CheckValue(context, nameof(context));
+            var trainData = context.Train;
+            ValidData = context.Validation;
+
             using (var ch = Host.Start("Training"))
             {
                 ch.CheckValue(trainData, nameof(trainData));
@@ -178,13 +179,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainCore(ch);
                 ch.Done();
             }
-        }
-
-        public override FastForestRegressionPredictor CreatePredictor()
-        {
-            Host.Check(TrainedEnsemble != null,
-                "The predictor cannot be created before training is complete");
-
             return new FastForestRegressionPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs, Args.QuantileSampleCount);
         }
 

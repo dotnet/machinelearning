@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public override TPredictor CreatePredictor()
+        protected override TPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
             return new LinearBinaryPredictor(Host, ref Weights, Bias);

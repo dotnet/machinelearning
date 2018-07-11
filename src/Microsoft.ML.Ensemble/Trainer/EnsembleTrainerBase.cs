@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    public abstract class EnsembleTrainerBase<TOutput, TPredictor, TSelector, TCombiner, TSig> : TrainerBase<RoleMappedData, TPredictor>
+    public abstract class EnsembleTrainerBase<TOutput, TPredictor, TSelector, TCombiner, TSig> : TrainerBase<TPredictor>
          where TPredictor : class, IPredictorProducing<TOutput>
          where TSelector : class, ISubModelSelector<TOutput>
          where TCombiner : class, IOutputCombiner<TOutput>
@@ -54,27 +54,22 @@ namespace Microsoft.ML.Runtime.Ensemble
             public bool ShowMetrics;
 
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public SubComponent<ITrainer<RoleMappedData, IPredictorProducing<TOutput>>, TSig>[] BasePredictors;
+            public SubComponent<ITrainer<IPredictorProducing<TOutput>>, TSig>[] BasePredictors;
         }
 
         private const int DefaultNumModels = 50;
         /// <summary> Command-line arguments </summary>
-        protected readonly ArgumentsBase Args;
-        protected readonly int NumModels;
+        protected internal readonly ArgumentsBase Args;
+        protected internal readonly int NumModels;
 
         /// <summary> Ensemble members </summary>
-        protected readonly ITrainer<RoleMappedData, IPredictorProducing<TOutput>>[] Trainers;
+        protected internal readonly ITrainer<IPredictorProducing<TOutput>>[] Trainers;
 
         private readonly ISubsetSelector _subsetSelector;
-        protected ISubModelSelector<TOutput> SubModelSelector;
-        protected IOutputCombiner<TOutput> Combiner;
+        protected internal ISubModelSelector<TOutput> SubModelSelector;
+        protected internal IOutputCombiner<TOutput> Combiner;
 
-        protected List<FeatureSubsetModel<IPredictorProducing<TOutput>>> Models;
-
-        private readonly bool _needNorm;
-        private readonly bool _needCalibration;
-
-        internal EnsembleTrainerBase(ArgumentsBase args, IHostEnvironment env, string name)
+        protected internal EnsembleTrainerBase(ArgumentsBase args, IHostEnvironment env, string name)
             : base(env, name)
         {
             Args = args;
@@ -93,41 +88,36 @@ namespace Microsoft.ML.Runtime.Ensemble
 
                 _subsetSelector = Args.SamplingType.CreateComponent(Host);
 
-                Trainers = new ITrainer<RoleMappedData, IPredictorProducing<TOutput>>[NumModels];
+                Trainers = new ITrainer<IPredictorProducing<TOutput>>[NumModels];
                 for (int i = 0; i < Trainers.Length; i++)
                     Trainers[i] = Args.BasePredictors[i % Args.BasePredictors.Length].CreateInstance(Host);
-                _needNorm = Trainers.Any(
-                    t =>
-                    {
-                        return t is ITrainerEx nn && nn.NeedNormalization;
-                    });
-                _needCalibration = Trainers.Any(
-                    t =>
-                    {
-                        return t is ITrainerEx nn && nn.NeedCalibration;
-                    });
+                NeedNormalization = Trainers.Any(t => t is ITrainerEx nn && nn.NeedNormalization);
+                NeedCalibration = Trainers.Any(t => t is ITrainerEx nn && nn.NeedCalibration);
                 ch.Done();
             }
         }
 
-        public override bool NeedNormalization => _needNorm;
+        public override bool NeedNormalization { get; }
 
-        public override bool NeedCalibration => _needCalibration;
+        public override bool NeedCalibration { get; }
 
         // No matter the internal predictors, we are performing multiple passes over the data
         // so it is probably appropriate to always cache.
         public override bool WantCaching => true;
 
-        public override void Train(RoleMappedData data)
+        public sealed override TPredictor Train(TrainContext context)
         {
+            Host.CheckValue(context, nameof(context));
+
             using (var ch = Host.Start("Training"))
             {
-                TrainCore(ch, data);
+                var pred = TrainCore(ch, context.Train);
                 ch.Done();
+                return pred;
             }
         }
 
-        private void TrainCore(IChannel ch, RoleMappedData data)
+        private TPredictor TrainCore(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
@@ -143,6 +133,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 validationDataSetProportion = Math.Max(validationDataSetProportion, stackingTrainer.ValidationDatasetProportion);
 
             var needMetrics = Args.ShowMetrics || Combiner is IWeightedAverager;
+            var Models = new List<FeatureSubsetModel<IPredictorProducing<TOutput>>>();
 
             _subsetSelector.Initialize(data, NumModels, Args.BatchSize, validationDataSetProportion);
             int batchNumber = 1;
@@ -150,7 +141,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             {
                 // 2. Core train
                 ch.Info("Training {0} learners for the batch {1}", Trainers.Length, batchNumber++);
-                var models = new FeatureSubsetModel<IPredictorProducing<TOutput>>[Trainers.Length];
+                var batchModels = new FeatureSubsetModel<IPredictorProducing<TOutput>>[Trainers.Length];
 
                 Parallel.ForEach(_subsetSelector.GetSubsets(batch, Host.Rand),
                     new ParallelOptions() { MaxDegreeOfParallelism = Args.TrainParallel ? -1 : 1 },
@@ -162,26 +153,24 @@ namespace Microsoft.ML.Runtime.Ensemble
                         {
                             if (EnsureMinimumFeaturesSelected(subset))
                             {
-                                Trainers[(int)index].Train(subset.Data);
-
                                 var model = new FeatureSubsetModel<IPredictorProducing<TOutput>>(
-                                    Trainers[(int)index].CreatePredictor(),
+                                    Trainers[(int)index].Train(subset.Data),
                                     subset.SelectedFeatures,
                                     null);
                                 SubModelSelector.CalculateMetrics(model, _subsetSelector, subset, batch, needMetrics);
-                                models[(int)index] = model;
+                                batchModels[(int)index] = model;
                             }
                         }
                         catch (Exception ex)
                         {
-                            ch.Assert(models[(int)index] == null);
+                            ch.Assert(batchModels[(int)index] == null);
                             ch.Warning(ex.Sensitivity(), "Trainer {0} of {1} was not learned properly due to the exception '{2}' and will not be added to models.",
                                 index + 1, Trainers.Length, ex.Message);
                         }
                         ch.Info("Trainer {0} of {1} finished in {2}", index + 1, Trainers.Length, sw.Elapsed);
                     });
 
-                var modelsList = models.Where(m => m != null).ToList();
+                var modelsList = batchModels.Where(m => m != null).ToList();
                 if (Args.ShowMetrics)
                     PrintMetrics(ch, modelsList);
 
@@ -190,14 +179,16 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (stackingTrainer != null)
                     stackingTrainer.Train(modelsList, _subsetSelector.GetTestData(null, batch), Host);
 
-                foreach (var model in modelsList)
-                    Utils.Add(ref Models, model);
+                Models.AddRange(modelsList);
                 int modelSize = Utils.Size(Models);
                 if (modelSize < Utils.Size(Trainers))
                     ch.Warning("{0} of {1} trainings failed.", Utils.Size(Trainers) - modelSize, Utils.Size(Trainers));
                 ch.Check(modelSize > 0, "Ensemble training resulted in no valid models.");
             }
+            return CreatePredictor(Models);
         }
+
+        protected internal abstract TPredictor CreatePredictor(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models);
 
         private bool EnsureMinimumFeaturesSelected(Subset subset)
         {
@@ -212,7 +203,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             return false;
         }
 
-        protected virtual void PrintMetrics(IChannel ch, List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models)
+        protected internal virtual void PrintMetrics(IChannel ch, List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models)
         {
             // REVIEW: The formatting of this method is bizarre and seemingly not even self-consistent
             // w.r.t. its usage of |. Is this intentional?
@@ -225,17 +216,17 @@ namespace Microsoft.ML.Runtime.Ensemble
                 ch.Info("{0}{1}", string.Join("", model.Metrics.Select(m => string.Format("| {0} |", m.Value))), model.Predictor.GetType().Name);
         }
 
-        protected FeatureSubsetModel<T>[] CreateModels<T>() where T : IPredictor
+        protected internal static FeatureSubsetModel<T>[] CreateModels<T>(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models) where T : IPredictor
         {
-            var models = new FeatureSubsetModel<T>[Models.Count];
-            for (int i = 0; i < Models.Count; i++)
+            var subsetModels = new FeatureSubsetModel<T>[models.Count];
+            for (int i = 0; i < models.Count; i++)
             {
-                models[i] = new FeatureSubsetModel<T>(
-                    (T)Models[i].Predictor,
-                    Models[i].SelectedFeatures,
-                    Models[i].Metrics);
+                subsetModels[i] = new FeatureSubsetModel<T>(
+                    (T)models[i].Predictor,
+                    models[i].SelectedFeatures,
+                    models[i].Metrics);
             }
-            return models;
+            return subsetModels;
         }
     }
 }

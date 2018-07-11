@@ -55,9 +55,9 @@ namespace Microsoft.ML.Runtime.Learners
             _posWeight = 0;
         }
 
-        public override bool NeedCalibration { get { return false; } }
+        public override bool NeedCalibration => false;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         protected override void CheckLabel(RoleMappedData data)
         {
@@ -373,7 +373,7 @@ namespace Microsoft.ML.Runtime.Learners
             return InitializeWeights(pred.Weights2, new[] { pred.Bias });
         }
 
-        public override ParameterMixingCalibratedPredictor CreatePredictor()
+        protected override ParameterMixingCalibratedPredictor CreatePredictor()
         {
             // Logistic regression is naturally calibrated to
             // output probabilities when transformed using

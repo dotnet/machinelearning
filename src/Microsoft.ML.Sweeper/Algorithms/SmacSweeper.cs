@@ -142,9 +142,8 @@ namespace Microsoft.ML.Runtime.Sweeper
                 args.MinDocumentsInLeafs = _args.NMinForSplit;
 
                 // Train random forest.
-                FastForestRegression trainer = new FastForestRegression(_host, args);
-                trainer.Train(data);
-                FastForestRegressionPredictor predictor = trainer.CreatePredictor();
+                var trainer = new FastForestRegression(_host, args);
+                var predictor = trainer.Train(data);
 
                 // Return random forest predictor.
                 ch.Done();

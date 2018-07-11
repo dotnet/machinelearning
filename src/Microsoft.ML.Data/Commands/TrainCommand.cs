@@ -252,77 +252,27 @@ namespace Microsoft.ML.Runtime.Data
             ch.CheckValueOrNull(validData);
             ch.CheckValueOrNull(inpPredictor);
 
-            var trainerRmd = trainer as ITrainer<RoleMappedData>;
-            if (trainerRmd == null)
-                throw ch.ExceptUserArg(nameof(TrainCommand.Arguments.Trainer), "Trainer '{0}' does not accept known training data type", name);
-
-            Action<IChannel, ITrainer, Action<object>, object, object, object> trainCoreAction = TrainCore;
-            IPredictor predictor;
             AddCacheIfWanted(env, ch, trainer, ref data, cacheData);
             ch.Trace("Training");
             if (validData != null)
                 AddCacheIfWanted(env, ch, trainer, ref validData, cacheData);
 
-            var genericExam = trainCoreAction.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(
-                typeof(RoleMappedData),
-                inpPredictor != null ? inpPredictor.GetType() : typeof(IPredictor));
-            Action<RoleMappedData> trainExam = trainerRmd.Train;
-            genericExam.Invoke(null, new object[] { ch, trainerRmd, trainExam, data, validData, inpPredictor });
-
-            ch.Trace("Constructing predictor");
-            predictor = trainerRmd.CreatePredictor();
+            var trainerEx = trainer as ITrainerEx;
+            if (inpPredictor != null && trainerEx?.SupportsIncrementalTraining != true)
+            {
+                ch.Warning("Ignoring " + nameof(TrainCommand.Arguments.InputModelFile) +
+                    ": Trainer does not support incremental training.");
+                inpPredictor = null;
+            }
+            ch.Assert(validData == null || CanUseValidationData(trainer));
+            var predictor = trainer.Train(new TrainContext(data, validData, inpPredictor));
             return CalibratorUtils.TrainCalibratorIfNeeded(env, ch, calibrator, maxCalibrationExamples, trainer, predictor, data);
         }
 
         public static bool CanUseValidationData(ITrainer trainer)
         {
             Contracts.CheckValue(trainer, nameof(trainer));
-
-            if (trainer is ITrainer<RoleMappedData>)
-                return trainer is IValidatingTrainer<RoleMappedData>;
-
-            return false;
-        }
-
-        private static void TrainCore<TDataSet, TPredictor>(IChannel ch, ITrainer trainer, Action<TDataSet> train, TDataSet data, TDataSet validData = null, TPredictor predictor = null)
-            where TDataSet : class
-            where TPredictor : class
-        {
-            const string inputModelArg = nameof(TrainCommand.Arguments.InputModelFile);
-            if (validData != null)
-            {
-                if (predictor != null)
-                {
-                    var incValidTrainer = trainer as IIncrementalValidatingTrainer<TDataSet, TPredictor>;
-                    if (incValidTrainer != null)
-                    {
-                        incValidTrainer.Train(data, validData, predictor);
-                        return;
-                    }
-
-                    ch.Warning("Ignoring " + inputModelArg + ": Trainer is not an incremental trainer.");
-                }
-
-                var validTrainer = trainer as IValidatingTrainer<TDataSet>;
-                ch.AssertValue(validTrainer);
-                validTrainer.Train(data, validData);
-            }
-            else
-            {
-                if (predictor != null)
-                {
-                    var incTrainer = trainer as IIncrementalTrainer<TDataSet, TPredictor>;
-                    if (incTrainer != null)
-                    {
-                        incTrainer.Train(data, predictor);
-                        return;
-                    }
-
-                    ch.Warning("Ignoring " + inputModelArg + ": Trainer is not an incremental trainer.");
-                }
-
-                train(data);
-            }
+            return (trainer as ITrainerEx)?.SupportsValidation ?? false;
         }
 
         public static bool TryLoadPredictor(IChannel ch, IHostEnvironment env, string inputModelFile, out IPredictor inputPredictor)

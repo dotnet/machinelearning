@@ -44,8 +44,7 @@ namespace Microsoft.ML.Runtime.FastTree
     }
 
     public abstract class FastTreeTrainerBase<TArgs, TPredictor> :
-        TrainerBase<RoleMappedData, TPredictor>,
-        IValidatingTrainer<RoleMappedData>
+        TrainerBase<TPredictor>
         where TArgs : TreeArgs, new()
         where TPredictor : IPredictorProducing<Float>
     {
@@ -88,6 +87,8 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public bool HasCategoricalFeatures => Utils.Size(CategoricalFeatures) > 0;
 
+        public override bool SupportsValidation => true;
+
         protected internal FastTreeTrainerBase(IHostEnvironment env, TArgs args)
             : base(env, RegisterName)
         {
@@ -124,14 +125,6 @@ namespace Microsoft.ML.Runtime.FastTree
         protected abstract TreeLearner ConstructTreeLearner(IChannel ch);
 
         protected abstract ObjectiveFunctionBase ConstructObjFunc(IChannel ch);
-
-        public void Train(RoleMappedData trainData, RoleMappedData validationData)
-        {
-            // REVIEW: Idiotic. This should be reversed... the other train method should
-            // be put in here, rather than having this "hidden argument" through an instance field.
-            ValidData = validationData;
-            Train(trainData);
-        }
 
         protected virtual Float GetMaxLabel()
         {
@@ -1887,7 +1880,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         missingInstances = cursor.BadFeaturesRowCount;
                     }
 
-                    ch.Check(totalInstances > 0, TrainerBase.NoTrainingInstancesMessage);
+                    ch.Check(totalInstances > 0, TrainerBase<IPredictor>.NoTrainingInstancesMessage);
 
                     if (missingInstances > 0)
                         ch.Warning("Skipped {0} instances with missing features during training", missingInstances);

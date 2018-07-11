@@ -67,16 +67,16 @@ namespace Microsoft.ML.Runtime.Learners
 
         private LinearModelStatistics _stats;
 
-        protected override int ClassCount { get { return _numClasses; } }
+        protected override int ClassCount => _numClasses;
 
         public MulticlassLogisticRegression(IHostEnvironment env, Arguments args)
             : base(args, env, LoadNameValue, Contracts.CheckRef(args, nameof(args)).ShowTrainingStats)
         {
         }
 
-        public override bool NeedCalibration { get { return false; } }
+        public override bool NeedCalibration => false;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.MultiClassClassification; } }
+        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         protected override void CheckLabel(RoleMappedData data)
         {
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.Learners
             return InitializeWeights(srcPredictor.DenseWeightsEnumerable(), srcPredictor.BiasesEnumerable());
         }
 
-        public override MulticlassLogisticRegressionPredictor CreatePredictor()
+        protected override MulticlassLogisticRegressionPredictor CreatePredictor()
         {
             if (_numClasses < 1)
                 throw Contracts.Except("Cannot create a multiclass predictor with {0} classes", _numClasses);

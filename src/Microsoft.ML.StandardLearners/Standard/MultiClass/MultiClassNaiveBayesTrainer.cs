@@ -26,7 +26,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    public sealed class MultiClassNaiveBayesTrainer : TrainerBase<RoleMappedData, MultiClassNaiveBayesPredictor>
+    public sealed class MultiClassNaiveBayesTrainer : TrainerBase<MultiClassNaiveBayesPredictor>
     {
         public const string LoadName = "MultiClassNaiveBayes";
         internal const string UserName = "Multiclass Naive Bayes";
@@ -43,8 +43,6 @@ It also assumes that the features are strictly independent.
         {
         }
 
-        private MultiClassNaiveBayesPredictor _predictor;
-
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         public override bool NeedNormalization => false;
@@ -58,9 +56,10 @@ It also assumes that the features are strictly independent.
         {
         }
 
-        public override void Train(RoleMappedData data)
+        public override MultiClassNaiveBayesPredictor Train(TrainContext context)
         {
-            Host.CheckValue(data, nameof(data));
+            Host.CheckValue(context, nameof(context));
+            var data = context.Train;
             Host.Check(data.Schema.Label != null, "Missing Label column");
             Host.Check(data.Schema.Label.Type == NumberType.Float || data.Schema.Label.Type is KeyType,
                 "Invalid type for Label column, only floats and known-size keys are supported");
@@ -89,6 +88,7 @@ It also assumes that the features are strictly independent.
                     if (cursor.Row.Position > int.MaxValue)
                     {
                         ch.Warning("Stopping training because maximum number of rows have been traversed");
+                        ch.Done();
                         break;
                     }
 
@@ -118,16 +118,12 @@ It also assumes that the features are strictly independent.
 
                     examplesProcessed += 1;
                 }
+                ch.Done();
             }
 
             Array.Resize(ref labelHistogram, labelCount);
             Array.Resize(ref featureHistogram, labelCount);
-            _predictor = new MultiClassNaiveBayesPredictor(Host, labelHistogram, featureHistogram, featureCount);
-        }
-
-        public override MultiClassNaiveBayesPredictor CreatePredictor()
-        {
-            return _predictor;
+            return new MultiClassNaiveBayesPredictor(Host, labelHistogram, featureHistogram, featureCount);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.NaiveBayesClassifier",

@@ -24,9 +24,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// <summary>
     /// Base class for all training with LightGBM.
     /// </summary>
-    public abstract class LightGbmTrainerBase<TOutput, TPredictor> :
-        ITrainer<RoleMappedData, TPredictor>,
-        IValidatingTrainer<RoleMappedData>
+    public abstract class LightGbmTrainerBase<TOutput, TPredictor> : TrainerBase<TPredictor>
         where TPredictor : IPredictorProducing<TOutput>
     {
         private sealed class CategoricalMetaData
@@ -39,86 +37,70 @@ namespace Microsoft.ML.Runtime.LightGBM
             public bool[] IsCategoricalFeature;
         }
 
-        #region members
-        private readonly IHostEnvironment _env;
-        private readonly PredictionKind _predictionKind;
-
-        protected readonly IHost Host;
-        protected readonly LightGbmArguments Args;
+        protected internal readonly LightGbmArguments Args;
 
         /// <summary>
         /// Stores argumments as objects to convert them to invariant string type in the end so that 
         /// the code is culture agnostic. When retrieving key value from this dictionary as string 
         /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]). 
         /// </summary>
-        protected readonly Dictionary<string, object> Options;
-        protected readonly IParallel ParallelTraining;
+        protected internal readonly Dictionary<string, object> Options;
+        protected internal readonly IParallel ParallelTraining;
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
-        protected int FeatureCount;
-        protected FastTree.Internal.Ensemble TrainedEnsemble;
+        protected internal int FeatureCount;
+        protected internal FastTree.Internal.Ensemble TrainedEnsemble;
 
-        #endregion
+        public override bool NeedNormalization => false;
+        public override bool NeedCalibration => false;
+        public override bool WantCaching => false;
+        public override bool SupportsValidation => true;
 
-        protected LightGbmTrainerBase(IHostEnvironment env, LightGbmArguments args, PredictionKind predictionKind, string name)
+        protected internal LightGbmTrainerBase(IHostEnvironment env, LightGbmArguments args, PredictionKind predictionKind, string name)
+            : base(env, name)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckNonWhiteSpace(name, nameof(name));
-
-            Host = env.Register(name);
             Host.CheckValue(args, nameof(args));
 
             Args = args;
             Options = Args.ToDictionary(Host);
-            _predictionKind = predictionKind;
-            _env = env;
+            PredictionKind = predictionKind;
             ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
             InitParallelTraining();
         }
 
-        public void Train(RoleMappedData data)
+        public override TPredictor Train(TrainContext context)
         {
-            Dataset dtrain;
-            CategoricalMetaData catMetaData;
-            using (var ch = Host.Start("Loading data for LightGBM"))
-            {
-                using (var pch = Host.StartProgressChannel("Loading data for LightGBM"))
-                    dtrain = LoadTrainingData(ch, data, out catMetaData);
-                ch.Done();
-            }
-            using (var ch = Host.Start("Training with LightGBM"))
-            {
-                using (var pch = Host.StartProgressChannel("Training with LightGBM"))
-                    TrainCore(ch, pch, dtrain, catMetaData);
-                ch.Done();
-            }
-            dtrain.Dispose();
-            DisposeParallelTraining();
-        }
+            Host.CheckValue(context, nameof(context));
 
-        public void Train(RoleMappedData data, RoleMappedData validData)
-        {
-            Dataset dtrain;
-            Dataset dvalid;
+            Dataset dtrain = null;
+            Dataset dvalid = null;
             CategoricalMetaData catMetaData;
-            using (var ch = Host.Start("Loading data for LightGBM"))
+            try
             {
-                using (var pch = Host.StartProgressChannel("Loading data for LightGBM"))
+                using (var ch = Host.Start("Loading data for LightGBM"))
                 {
-                    dtrain = LoadTrainingData(ch, data, out catMetaData);
-                    dvalid = LoadValidationData(ch, dtrain, validData, catMetaData);
+                    using (var pch = Host.StartProgressChannel("Loading data for LightGBM"))
+                    {
+                        dtrain = LoadTrainingData(ch, context.Train, out catMetaData);
+                        if (context.Validation != null)
+                            dvalid = LoadValidationData(ch, dtrain, context.Validation, catMetaData);
+                    }
+                    ch.Done();
                 }
-                ch.Done();
+                using (var ch = Host.Start("Training with LightGBM"))
+                {
+                    using (var pch = Host.StartProgressChannel("Training with LightGBM"))
+                        TrainCore(ch, pch, dtrain, catMetaData, dvalid);
+                    ch.Done();
+                }
             }
-            using (var ch = Host.Start("Training with LightGBM"))
+            finally
             {
-                using (var pch = Host.StartProgressChannel("Training with LightGBM"))
-                    TrainCore(ch, pch, dtrain, catMetaData, dvalid);
-                ch.Done();
+                dtrain?.Dispose();
+                dvalid?.Dispose();
+                DisposeParallelTraining();
             }
-            dtrain.Dispose();
-            dvalid.Dispose();
-            DisposeParallelTraining();
+            return CreatePredictor();
         }
 
         private void InitParallelTraining()
@@ -178,7 +160,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         private FloatLabelCursor.Factory CreateCursorFactory(RoleMappedData data)
         {
             var loadFlags = CursOpt.AllLabels | CursOpt.AllWeights | CursOpt.Features;
-            if (_predictionKind == PredictionKind.Ranking)
+            if (PredictionKind == PredictionKind.Ranking)
                 loadFlags |= CursOpt.Group;
 
             var factory = new FloatLabelCursor.Factory(data, loadFlags);
@@ -392,7 +374,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             List<float> labelList = new List<float>();
             bool hasWeights = factory.Data.Schema.Weight != null;
             bool hasGroup = false;
-            if (_predictionKind == PredictionKind.Ranking)
+            if (PredictionKind == PredictionKind.Ranking)
             {
                 ch.Check(factory.Data.Schema != null, "The data for ranking task should have group field.");
                 hasGroup = true;
@@ -870,14 +852,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             return ret;
         }
 
-        public PredictionKind PredictionKind => _predictionKind;
+        public override PredictionKind PredictionKind { get; }
 
-        IPredictor ITrainer.CreatePredictor()
-        {
-            return CreatePredictor();
-        }
-
-        public abstract TPredictor CreatePredictor();
+        protected internal abstract TPredictor CreatePredictor();
 
         /// <summary>
         /// This function will be called before training. It will check the label/group and add parameters for specific applications.

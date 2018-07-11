@@ -65,8 +65,12 @@ namespace Microsoft.ML.Runtime.FastTree
             return GetLabelGains().Length - 1;
         }
 
-        public override void Train(RoleMappedData trainData)
+        public override FastTreeRankingPredictor Train(TrainContext context)
         {
+            Host.CheckValue(context, nameof(context));
+            var trainData = context.Train;
+            ValidData = context.Validation;
+
             using (var ch = Host.Start("Training"))
             {
                 var maxLabel = GetLabelGains().Length - 1;
@@ -75,11 +79,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 FeatureCount = trainData.Schema.Feature.Type.ValueCount;
                 ch.Done();
             }
-        }
-
-        public override FastTreeRankingPredictor CreatePredictor()
-        {
-            Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
             return new FastTreeRankingPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 

@@ -41,11 +41,11 @@ namespace Microsoft.ML.Runtime.LightGBM
                 loaderSignature: LoaderSignature);
         }
 
-        protected override uint VerNumFeaturesSerialized { get { return 0x00010002; } }
+        protected override uint VerNumFeaturesSerialized => 0x00010002;
 
-        protected override uint VerDefaultValueSerialized { get { return 0x00010004; } }
+        protected override uint VerDefaultValueSerialized => 0x00010004;
 
-        protected override uint VerCategoricalSplitSerialized { get { return 0x00010005; } }
+        protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
         internal LightGbmRankingPredictor(IHostEnvironment env, FastTree.Internal.Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return new LightGbmRankingPredictor(env, ctx);
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Ranking; } }
+        public override PredictionKind PredictionKind => PredictionKind.Ranking;
     }
 
     /// <include file='./doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        public override LightGbmRankingPredictor CreatePredictor()
+        protected internal override LightGbmRankingPredictor CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);

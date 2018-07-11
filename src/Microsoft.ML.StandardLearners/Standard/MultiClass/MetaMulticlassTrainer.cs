@@ -13,9 +13,9 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    using TScalarTrainer = ITrainer<RoleMappedData, IPredictorProducing<Float>>;
+    using TScalarTrainer = ITrainer<IPredictorProducing<Float>>;
 
-    public abstract class MetaMulticlassTrainer<TPred, TArgs> : TrainerBase<RoleMappedData, TPred>
+    public abstract class MetaMulticlassTrainer<TPred, TArgs> : TrainerBase<TPred>
         where TPred : IPredictor
         where TArgs : MetaMulticlassTrainer<TPred, TArgs>.ArgumentsBase
     {
@@ -38,7 +38,6 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected readonly TArgs Args;
         private TScalarTrainer _trainer;
-        private TPred _pred;
 
         public sealed override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
         public sealed override bool NeedNormalization { get; }
@@ -96,9 +95,11 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected abstract TPred TrainCore(IChannel ch, RoleMappedData data, int count);
 
-        public override void Train(RoleMappedData data)
+        public override TPred Train(TrainContext context)
         {
-            Host.CheckValue(data, nameof(data));
+            Host.CheckValue(context, nameof(context));
+            var data = context.Train;
+
             data.CheckFeatureFloatVector();
 
             int count;
@@ -107,16 +108,11 @@ namespace Microsoft.ML.Runtime.Learners
 
             using (var ch = Host.Start("Training"))
             {
-                _pred = TrainCore(ch, data, count);
-                ch.Check(_pred != null, "Training did not result in a predictor");
+                var pred = TrainCore(ch, data, count);
+                ch.Check(pred != null, "Training did not result in a predictor");
                 ch.Done();
+                return pred;
             }
-        }
-
-        public override TPred CreatePredictor()
-        {
-            Host.Check(_pred != null, nameof(CreatePredictor) + " called before " + nameof(Train));
-            return _pred;
         }
     }
 }

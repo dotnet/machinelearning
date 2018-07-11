@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return new LightGbmBinaryPredictor(Host, GetBinaryEnsemble(classID), FeatureCount, innerArgs);
         }
 
-        public override OvaPredictor CreatePredictor()
+        protected internal override OvaPredictor CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete.");
 

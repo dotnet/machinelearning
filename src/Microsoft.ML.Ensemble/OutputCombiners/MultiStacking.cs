@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             public Arguments()
             {
                 // REVIEW: Perhaps we can have a better non-parametetric learner.
-                BasePredictorType = new SubComponent<ITrainer<RoleMappedData, TVectorPredictor>, SignatureMultiClassClassifierTrainer>(
+                BasePredictorType = new SubComponent<ITrainer<TVectorPredictor>, SignatureMultiClassClassifierTrainer>(
                     "OVA", "p=FastTreeBinaryClassification");
             }
         }

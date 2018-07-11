@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.FastTree
             data.CheckRegressionLabel();
         }
 
-        public override RegressionGamPredictor CreatePredictor()
+        protected internal override RegressionGamPredictor CreatePredictor()
         {
             return new RegressionGamPredictor(Host, InputLength, TrainSet, BinEffects, FeatureMap);
         }
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return boolArray;
         }
 
-        public override BinaryClassGamPredictor CreatePredictor()
+        protected internal override BinaryClassGamPredictor CreatePredictor()
         {
             return new BinaryClassGamPredictor(Host, InputLength, TrainSet, BinEffects, FeatureMap);
         }
@@ -152,9 +152,7 @@ namespace Microsoft.ML.Runtime.FastTree
     /// <summary>
     /// Generalized Additive Model Learner.
     /// </summary>
-    public abstract partial class GamTrainerBase<TArgs, TPredictor> :
-        TrainerBase<RoleMappedData, TPredictor>,
-        ITrainer
+    public abstract partial class GamTrainerBase<TArgs, TPredictor> : TrainerBase<TPredictor>
         where TArgs : GamTrainerBase<TArgs, TPredictor>.ArgumentsBase, new()
         where TPredictor : GamPredictorBase
     {
@@ -233,7 +231,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override bool WantCaching => false;
 
-        public GamTrainerBase(IHostEnvironment env, TArgs args)
+        protected internal GamTrainerBase(IHostEnvironment env, TArgs args)
             : base(env, RegisterName)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -264,17 +262,21 @@ namespace Microsoft.ML.Runtime.FastTree
             InitializeThreads(numThreads);
         }
 
-        public override void Train(RoleMappedData trainData)
+        public sealed override TPredictor Train(TrainContext context)
         {
             using (var ch = Host.Start("Training"))
             {
-                ch.CheckValue(trainData, nameof(trainData));
-                ConvertData(trainData);
-                InputLength = trainData.Schema.Feature.Type.ValueCount;
+                ch.CheckValue(context, nameof(context));
+                ConvertData(context.Train);
+                InputLength = context.Train.Schema.Feature.Type.ValueCount;
                 TrainCore(ch);
+                var pred = CreatePredictor();
                 ch.Done();
+                return pred;
             }
         }
+
+        protected internal abstract TPredictor CreatePredictor();
 
         internal abstract void CheckLabel(RoleMappedData data);
 

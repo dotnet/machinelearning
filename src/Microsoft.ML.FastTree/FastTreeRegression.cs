@@ -43,23 +43,23 @@ namespace Microsoft.ML.Runtime.FastTree
         private Test _trainRegressionTest;
         private Test _testRegressionTest;
 
+        public override bool NeedCalibration => false;
+
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
+
         public FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(env, args)
         {
         }
 
-        public override bool NeedCalibration
+        public override FastTreeRegressionPredictor Train(TrainContext context)
         {
-            get { return false; }
-        }
+            Host.CheckValue(context, nameof(context));
+            var trainData = context.Train;
+            ValidData = context.Validation;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
-
-        public override void Train(RoleMappedData trainData)
-        {
             using (var ch = Host.Start("Training"))
             {
-                ch.CheckValue(trainData, nameof(trainData));
                 trainData.CheckRegressionLabel();
                 trainData.CheckFeatureFloatVector();
                 trainData.CheckOptFloatWeight();
@@ -68,12 +68,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainCore(ch);
                 ch.Done();
             }
-        }
-
-        public override FastTreeRegressionPredictor CreatePredictor()
-        {
-            Host.Check(TrainedEnsemble != null,
-                "The predictor cannot be created before training is complete");
             return new FastTreeRegressionPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 

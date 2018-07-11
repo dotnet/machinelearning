@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.Learners
             data.CheckRegressionLabel();
         }
 
-        public override TPredictor CreatePredictor()
+        protected override TPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
             VBuffer<Float> weights = default(VBuffer<Float>);

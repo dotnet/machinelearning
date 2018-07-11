@@ -30,9 +30,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
      [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
     */
     /// <include file='./doc.xml' path='docs/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
-    public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<RoleMappedData, FieldAwareFactorizationMachinePredictor>,
-        IIncrementalTrainer<RoleMappedData, FieldAwareFactorizationMachinePredictor>, IValidatingTrainer<RoleMappedData>,
-        IIncrementalValidatingTrainer<RoleMappedData, FieldAwareFactorizationMachinePredictor>
+    public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<FieldAwareFactorizationMachinePredictor>
     {
         public const string Summary = "Train a field-aware factorization machine for binary classification";
         public const string UserName = "Field-aware Factorization Machine";
@@ -89,7 +87,6 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         private readonly bool _shuffle;
         private readonly bool _verbose;
         private readonly float _radius;
-        private FieldAwareFactorizationMachinePredictor _pred;
 
         public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Arguments args) : base(env, LoadName)
         {
@@ -216,7 +213,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return loss / exampleCount;
         }
 
-        private void TrainCore(IChannel ch, IProgressChannel pch, RoleMappedData data, RoleMappedData validData, FieldAwareFactorizationMachinePredictor predictor)
+        private FieldAwareFactorizationMachinePredictor TrainCore(IChannel ch, IProgressChannel pch, RoleMappedData data, RoleMappedData validData, FieldAwareFactorizationMachinePredictor predictor)
         {
             Host.AssertValue(ch);
             Host.AssertValue(pch);
@@ -346,61 +343,23 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 ch.Warning($"Skipped {badExampleCount} examples with bad label/weight/features in training set");
             if (validBadExampleCount != 0)
                 ch.Warning($"Skipped {validBadExampleCount} examples with bad label/weight/features in validation set");
-            _pred = new FieldAwareFactorizationMachinePredictor(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
+            return new FieldAwareFactorizationMachinePredictor(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
         }
 
-        public override void Train(RoleMappedData data)
+        public override FieldAwareFactorizationMachinePredictor Train(TrainContext context)
         {
-            Host.CheckValue(data, nameof(data));
+            Host.CheckValue(context, nameof(context));
+            var initPredictor = context.InitialPredictor as FieldAwareFactorizationMachinePredictor;
+            Host.CheckParam(context.InitialPredictor == null || initPredictor != null, nameof(context),
+                "Initial predictor should have been " + nameof(FieldAwareFactorizationMachinePredictor));
+
             using (var ch = Host.Start("Training"))
             using (var pch = Host.StartProgressChannel("Training"))
             {
-                TrainCore(ch, pch, data, null, null);
+                var pred = TrainCore(ch, pch, context.Train, context.Validation, initPredictor);
                 ch.Done();
+                return pred;
             }
-        }
-
-        public void Train(RoleMappedData data, RoleMappedData validData)
-        {
-            Host.CheckValue(data, nameof(data));
-            Host.CheckValue(validData, nameof(validData));
-            using (var ch = Host.Start("Training"))
-            using (var pch = Host.StartProgressChannel("Training"))
-            {
-                TrainCore(ch, pch, data, validData, null);
-                ch.Done();
-            }
-        }
-
-        public void Train(RoleMappedData data, FieldAwareFactorizationMachinePredictor predictor)
-        {
-            Host.CheckValue(data, nameof(data));
-            Host.CheckValue(predictor, nameof(predictor));
-            using (var ch = Host.Start("Training"))
-            using (var pch = Host.StartProgressChannel("Training"))
-            {
-                TrainCore(ch, pch, data, null, predictor);
-                ch.Done();
-            }
-        }
-
-        public void Train(RoleMappedData data, RoleMappedData validData, FieldAwareFactorizationMachinePredictor predictor)
-        {
-            Host.CheckValue(data, nameof(data));
-            Host.CheckValue(data, nameof(validData));
-            Host.CheckValue(predictor, nameof(predictor));
-            using (var ch = Host.Start("Training"))
-            using (var pch = Host.StartProgressChannel("Training"))
-            {
-                TrainCore(ch, pch, data, validData, predictor);
-                ch.Done();
-            }
-        }
-
-        public override FieldAwareFactorizationMachinePredictor CreatePredictor()
-        {
-            Host.Check(_pred != null, nameof(Train) + " has not yet been called");
-            return _pred;
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.FieldAwareFactorizationMachineBinaryClassifier",

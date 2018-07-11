@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public Arguments()
             {
-                BasePredictors = new[] { new SubComponent<ITrainer<RoleMappedData, TVectorPredictor>, SignatureMultiClassClassifierTrainer>("MultiClassLogisticRegression") };
+                BasePredictors = new[] { new SubComponent<ITrainer<TVectorPredictor>, SignatureMultiClassClassifierTrainer>("MultiClassLogisticRegression") };
             }
         }
 
@@ -61,12 +61,11 @@ namespace Microsoft.ML.Runtime.Ensemble
             Combiner = args.OutputCombiner.CreateComponent(Host);
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.MultiClassClassification; } }
+        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        public override EnsembleMultiClassPredictor CreatePredictor()
+        protected internal override EnsembleMultiClassPredictor CreatePredictor(List<FeatureSubsetModel<TVectorPredictor>> models)
         {
-            var combiner = Combiner;
-            return new EnsembleMultiClassPredictor(Host, CreateModels<TVectorPredictor>(), combiner as IMultiClassOutputCombiner);
+            return new EnsembleMultiClassPredictor(Host, CreateModels<TVectorPredictor>(models), Combiner as IMultiClassOutputCombiner);
         }
 
         public TVectorPredictor CombineModels(IEnumerable<TVectorPredictor> models)

@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public Arguments()
             {
-                BasePredictors = new[] { new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureBinaryClassifierTrainer>("LinearSVM") };
+                BasePredictors = new[] { new SubComponent<ITrainer<TScalarPredictor>, SignatureBinaryClassifierTrainer>("LinearSVM") };
             }
         }
 
@@ -60,16 +60,13 @@ namespace Microsoft.ML.Runtime.Ensemble
             Combiner = args.OutputCombiner.CreateComponent(Host);
         }
 
-        public override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.BinaryClassification; }
-        }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public override TScalarPredictor CreatePredictor()
+        protected internal override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
         {
-            if (Models.All(m => m.Predictor is TDistPredictor))
-                return new EnsembleDistributionPredictor(Host, PredictionKind, CreateModels<TDistPredictor>(), Combiner);
-            return new EnsemblePredictor(Host, PredictionKind, CreateModels<TScalarPredictor>(), Combiner);
+            if (models.All(m => m.Predictor is TDistPredictor))
+                return new EnsembleDistributionPredictor(Host, PredictionKind, CreateModels<TDistPredictor>(models), Combiner);
+            return new EnsemblePredictor(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
         }
 
         public TScalarPredictor CombineModels(IEnumerable<TScalarPredictor> models)
@@ -77,19 +74,13 @@ namespace Microsoft.ML.Runtime.Ensemble
             var combiner = _outputCombiner.CreateComponent(Host);
             var p = models.First();
 
-            TScalarPredictor predictor = null;
             if (p is TDistPredictor)
             {
-                predictor = new EnsembleDistributionPredictor(Host, p.PredictionKind,
+                return new EnsembleDistributionPredictor(Host, p.PredictionKind,
                     models.Select(k => new FeatureSubsetModel<TDistPredictor>((TDistPredictor)k)).ToArray(), combiner);
             }
-            else
-            {
-                predictor = new EnsemblePredictor(Host, p.PredictionKind,
+            return new EnsemblePredictor(Host, p.PredictionKind,
                     models.Select(k => new FeatureSubsetModel<TScalarPredictor>(k)).ToArray(), combiner);
-            }
-
-            return predictor;
         }
     }
 }

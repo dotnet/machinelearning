@@ -4,11 +4,12 @@
 
 namespace Microsoft.ML.Runtime.Training
 {
-    public abstract class TrainerBase : ITrainer, ITrainerEx
+    public abstract class TrainerBase<TPredictor> : ITrainer<TPredictor>, ITrainerEx
+        where TPredictor : IPredictor
     {
         public const string NoTrainingInstancesMessage = "No valid training instances found, all instances have missing features.";
 
-        protected readonly IHost Host;
+        protected IHost Host { get; }
 
         public string Name { get; }
         public abstract PredictionKind PredictionKind { get; }
@@ -16,47 +17,20 @@ namespace Microsoft.ML.Runtime.Training
         public abstract bool NeedCalibration { get; }
         public abstract bool WantCaching { get; }
 
+        public virtual bool SupportsValidation => false;
+        public virtual bool SupportsIncrementalTraining => false;
+
         protected TrainerBase(IHostEnvironment env, string name)
         {
             Contracts.CheckValue(env, nameof(env));
-            Contracts.CheckNonEmpty(name, nameof(name));
+            env.CheckNonEmpty(name, nameof(name));
 
             Name = name;
             Host = env.Register(name);
         }
 
-        IPredictor ITrainer.CreatePredictor()
-        {
-            return CreatePredictorCore();
-        }
+        IPredictor ITrainer.Train(TrainContext context) => Train(context);
 
-        protected abstract IPredictor CreatePredictorCore();
-    }
-
-    public abstract class TrainerBase<TPredictor> : TrainerBase
-        where TPredictor : IPredictor
-    {
-        protected TrainerBase(IHostEnvironment env, string name)
-            : base(env, name)
-        {
-        }
-
-        public abstract TPredictor CreatePredictor();
-
-        protected sealed override IPredictor CreatePredictorCore()
-        {
-            return CreatePredictor();
-        }
-    }
-
-    public abstract class TrainerBase<TDataSet, TPredictor> : TrainerBase<TPredictor>, ITrainer<TDataSet, TPredictor>
-        where TPredictor : IPredictor
-    {
-        protected TrainerBase(IHostEnvironment env, string name)
-            : base(env, name)
-        {
-        }
-
-        public abstract void Train(TDataSet data);
+        public abstract TPredictor Train(TrainContext context);
     }
 }

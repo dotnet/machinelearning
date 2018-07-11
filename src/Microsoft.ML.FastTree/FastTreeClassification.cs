@@ -118,10 +118,14 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override bool NeedCalibration => false;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public override void Train(RoleMappedData trainData)
+        public override IPredictorWithFeatureWeights<Float> Train(TrainContext context)
         {
+            Host.CheckValue(context, nameof(context));
+            var trainData = context.Train;
+            ValidData = context.Validation;
+
             using (var ch = Host.Start("Training"))
             {
                 ch.CheckValue(trainData, nameof(trainData));
@@ -133,12 +137,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainCore(ch);
                 ch.Done();
             }
-        }
-
-        public override IPredictorWithFeatureWeights<Float> CreatePredictor()
-        {
-            Host.Check(TrainedEnsemble != null,
-                "The predictor cannot be created before training is complete");
 
             // The FastTree binary classification boosting is naturally calibrated to
             // output probabilities when transformed using a scaled logistic function,

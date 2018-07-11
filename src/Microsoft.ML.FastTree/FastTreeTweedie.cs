@@ -55,8 +55,12 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckUserArg(1 <= Args.Index && Args.Index <= 2, nameof(Args.Index), "Must be in the range [1, 2]");
         }
 
-        public override void Train(RoleMappedData trainData)
+        public override FastTreeTweediePredictor Train(TrainContext context)
         {
+            Host.CheckValue(context, nameof(context));
+            var trainData = context.Train;
+            ValidData = context.Validation;
+
             using (var ch = Host.Start("Training"))
             {
                 ch.CheckValue(trainData, nameof(trainData));
@@ -68,12 +72,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainCore(ch);
                 ch.Done();
             }
-        }
-
-        public override FastTreeTweediePredictor CreatePredictor()
-        {
-            Host.Check(TrainedEnsemble != null,
-                "The predictor cannot be created before training is complete");
             return new FastTreeTweediePredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 

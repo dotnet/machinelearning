@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Learners
     /// <summary>
     /// A trainer that trains a predictor that returns random values
     /// </summary>
-    public sealed class RandomTrainer : TrainerBase<RoleMappedData, RandomPredictor>
+    public sealed class RandomTrainer : TrainerBase<RandomPredictor>
     {
         internal const string LoadNameValue = "RandomPredictor";
         internal const string UserNameValue = "Random Predictor";
@@ -54,29 +54,19 @@ namespace Microsoft.ML.Runtime.Learners
             public bool BooleanArg = false;
         }
 
-        private Arguments _args;
-
         public RandomTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
-            _args = args;
         }
 
-        public override PredictionKind PredictionKind
-        { get { return PredictionKind.BinaryClassification; } }
-        public override bool NeedNormalization
-        { get { return false; } }
-        public override bool NeedCalibration
-        { get { return false; } }
-        public override bool WantCaching
-        { get { return false; } }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        public override bool NeedNormalization => false;
+        public override bool NeedCalibration => false;
+        public override bool WantCaching => false;
 
-        public override void Train(RoleMappedData data)
+        public override RandomPredictor Train(TrainContext context)
         {
-        }
-
-        public override RandomPredictor CreatePredictor()
-        {
+            Host.CheckValue(context, nameof(context));
             return new RandomPredictor(Host, Host.Rand.Next());
         }
     }
@@ -107,16 +97,10 @@ namespace Microsoft.ML.Runtime.Learners
         private readonly object _instanceLock;
         private readonly Random _random;
 
-        private readonly ColumnType _inputType;
-
-        public override PredictionKind PredictionKind
-        { get { return PredictionKind.BinaryClassification; } }
-        public ColumnType InputType
-        { get { return _inputType; } }
-        public ColumnType OutputType
-        { get { return NumberType.Float; } }
-        public ColumnType DistType
-        { get { return NumberType.Float; } }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        public ColumnType InputType { get; }
+        public ColumnType OutputType => NumberType.Float;
+        public ColumnType DistType => NumberType.Float;
 
         public RandomPredictor(IHostEnvironment env, int seed)
             : base(env, LoaderSignature)
@@ -126,7 +110,7 @@ namespace Microsoft.ML.Runtime.Learners
             _instanceLock = new object();
             _random = new Random(_seed);
 
-            _inputType = new VectorType(NumberType.Float);
+            InputType = new VectorType(NumberType.Float);
         }
 
         /// <summary>
@@ -211,7 +195,7 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     // Learns the prior distribution for 0/1 class labels and just outputs that.
-    public sealed class PriorTrainer : TrainerBase<RoleMappedData, PriorPredictor>
+    public sealed class PriorTrainer : TrainerBase<PriorPredictor>
     {
         internal const string LoadNameValue = "PriorPredictor";
         internal const string UserNameValue = "Prior Predictor";
@@ -220,26 +204,21 @@ namespace Microsoft.ML.Runtime.Learners
         {
         }
 
-        private Float _prob;
-
-        public override PredictionKind PredictionKind
-        { get { return PredictionKind.BinaryClassification; } }
-        public override bool NeedNormalization
-        { get { return false; } }
-        public override bool NeedCalibration
-        { get { return false; } }
-        public override bool WantCaching
-        { get { return false; } }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        public override bool NeedNormalization => false;
+        public override bool NeedCalibration => false;
+        public override bool WantCaching => false;
 
         public PriorTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
-            _prob = Float.NaN;
         }
 
-        public override void Train(RoleMappedData data)
+        public override PriorPredictor Train(TrainContext context)
         {
-            Contracts.CheckValue(data, nameof(data));
+            Contracts.CheckValue(context, nameof(context));
+            var data = context.Train;
+            data.CheckBinaryLabel();
             Contracts.CheckParam(data.Schema.Label != null, nameof(data), "Missing Label column");
             Contracts.CheckParam(data.Schema.Label.Type == NumberType.Float, nameof(data), "Invalid type for Label column");
 
@@ -248,11 +227,11 @@ namespace Microsoft.ML.Runtime.Learners
 
             int col = data.Schema.Label.Index;
             int colWeight = -1;
-            if (data.Schema.Weight != null && data.Schema.Weight.Type == NumberType.Float)
+            if (data.Schema.Weight?.Type == NumberType.Float)
                 colWeight = data.Schema.Weight.Index;
             using (var cursor = data.Data.GetRowCursor(c => c == col || c == colWeight))
             {
-                var getLab = cursor.GetGetter<Float>(col);
+                var getLab = cursor.GetLabelFloatGetter(data);
                 var getWeight = colWeight >= 0 ? cursor.GetGetter<Float>(colWeight) : null;
                 Float lab = default(Float);
                 Float weight = 1;
@@ -274,13 +253,8 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
 
-            if (pos + neg > 0)
-                _prob = (Float)(pos / (pos + neg));
-        }
-
-        public override PriorPredictor CreatePredictor()
-        {
-            return new PriorPredictor(Host, _prob);
+            Float prob = prob = pos + neg > 0 ? (Float)(pos / (pos + neg)) : Float.NaN;
+            return new PriorPredictor(Host, prob);
         }
     }
 
@@ -304,8 +278,6 @@ namespace Microsoft.ML.Runtime.Learners
         private readonly Float _prob;
         private readonly Float _raw;
 
-        private readonly ColumnType _inputType;
-
         public PriorPredictor(IHostEnvironment env, Float prob)
             : base(env, LoaderSignature)
         {
@@ -314,7 +286,7 @@ namespace Microsoft.ML.Runtime.Learners
             _prob = prob;
             _raw = 2 * _prob - 1;       // This could be other functions -- logodds for instance
 
-            _inputType = new VectorType(NumberType.Float);
+            InputType = new VectorType(NumberType.Float);
         }
 
         private PriorPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -328,7 +300,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             _raw = 2 * _prob - 1;
 
-            _inputType = new VectorType(NumberType.Float);
+            InputType = new VectorType(NumberType.Float);
         }
 
         public static PriorPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -353,12 +325,9 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind
         { get { return PredictionKind.BinaryClassification; } }
-        public ColumnType InputType
-        { get { return _inputType; } }
-        public ColumnType OutputType
-        { get { return NumberType.Float; } }
-        public ColumnType DistType
-        { get { return NumberType.Float; } }
+        public ColumnType InputType { get; }
+        public ColumnType OutputType => NumberType.Float;
+        public ColumnType DistType => NumberType.Float;
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {

@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.Learners
             data.CheckBinaryLabel();
         }
 
-        public override LinearBinaryPredictor CreatePredictor()
+        protected override LinearBinaryPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
 

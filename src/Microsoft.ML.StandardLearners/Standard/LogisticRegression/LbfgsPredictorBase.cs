@@ -17,9 +17,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    public abstract class LbfgsTrainerBase<TOutput, TPredictor> :
-        TrainerBase<RoleMappedData, TPredictor>,
-        IIncrementalTrainer<RoleMappedData, TPredictor>
+    public abstract class LbfgsTrainerBase<TOutput, TPredictor> : TrainerBase<TPredictor>
         where TPredictor : class, IPredictorProducing<TOutput>
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithWeight
@@ -181,6 +179,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected virtual int ClassCount => 1;
         protected int BiasCount => ClassCount;
         protected int WeightCount => ClassCount * NumFeatures;
+        public sealed override bool SupportsIncrementalTraining => true;
 
         protected virtual Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
             out VBuffer<Float> init, out ITerminationCriterion terminationCriterion)
@@ -289,28 +288,23 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected abstract VBuffer<Float> InitializeWeightsFromPredictor(TPredictor srcPredictor);
 
-        public void Train(RoleMappedData data, TPredictor predictor)
-        {
-            Contracts.CheckValue(data, nameof(data));
-            Contracts.CheckValue(predictor, nameof(predictor));
-
-            _srcPredictor = predictor;
-            Train(data);
-        }
-
         protected abstract void CheckLabel(RoleMappedData data);
 
         protected virtual void PreTrainingProcessInstance(Float label, ref VBuffer<Float> feat, Float weight)
         {
         }
 
+        protected abstract TPredictor CreatePredictor();
+
         /// <summary>
         /// The basic training calls the optimizer
         /// </summary>
-        public override void Train(RoleMappedData data)
+        public override TPredictor Train(TrainContext context)
         {
-            Contracts.CheckValue(data, nameof(data));
+            Contracts.CheckValue(context, nameof(context));
 
+            var data = context.Train;
+            _srcPredictor = context.Train as TPredictor;
             data.CheckFeatureFloatVector(out NumFeatures);
             CheckLabel(data);
             data.CheckOptFloatWeight();
@@ -318,16 +312,18 @@ namespace Microsoft.ML.Runtime.Learners
             if (NumFeatures >= Utils.ArrayMaxSize / ClassCount)
             {
                 throw Contracts.ExceptParam(nameof(data),
-                    String.Format("The number of model parameters which is equal to ('# of features' + 1) * '# of classes' should be less than or equal to {0}.", Utils.ArrayMaxSize));
+                    "The number of model parameters which is equal to ('# of features' + 1) * '# of classes' should be less than or equal to {0}.", Utils.ArrayMaxSize);
             }
 
             using (var ch = Host.Start("Training"))
             {
                 TrainCore(ch, data);
+                var pred = CreatePredictor();
                 ch.Done();
+                return pred;
             }
         }
-
+        
         private void TrainCore(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
