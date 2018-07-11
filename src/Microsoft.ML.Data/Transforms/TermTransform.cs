@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Data
             string source = null,
             int maxNumTerms = Defaults.MaxNumTerms,
             SortOrder sort = Defaults.Sort)
-            : this(env, new Arguments() { Column = new[] { new Column() { Name = name, Source = source ?? name } }, MaxNumTerms = maxNumTerms, Sort = sort }, input)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, MaxNumTerms = maxNumTerms, Sort = sort }, input)
         {
         }
 

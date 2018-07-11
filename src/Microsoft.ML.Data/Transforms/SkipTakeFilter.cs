@@ -286,8 +286,6 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class TakeFilter
     {
-
-
         /// <summary>
         /// A helper method to create <see cref="SkipTakeFilter"/> transform by taking the top rows defined by the <paramref name="count"/> parameter.
         /// <see cref="SkipTakeFilter"/> when created with <see cref="SkipTakeFilter.TakeArguments"/> behaves as 'TakeFilter'.
