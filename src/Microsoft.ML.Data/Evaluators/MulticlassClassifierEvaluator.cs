@@ -1070,7 +1070,7 @@ namespace Microsoft.ML.Runtime.Data
 
             MatchColumns(host, input, out string label, out string weight, out string name);
             var evaluator = new MultiClassMamlEvaluator(host, input);
-            var data = TrainUtils.CreateExamples(input.Data, label, null, null, weight, name);
+            var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 
             var warnings = ExtractWarnings(host, metrics);

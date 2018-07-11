@@ -181,7 +181,7 @@ namespace Microsoft.ML.Runtime.Data
             var name = TrainUtils.MatchNameOrDefaultOrNull(ectx, schema, nameof(args.NameColumn), args.NameColumn,
                 DefaultColumnNames.Name);
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(ectx, args.CustomColumn);
-            return TrainUtils.CreateExamples(input, label, feat, group, weight, name, customCols);
+            return new RoleMappedData(input, label, feat, group, weight, name, customCols);
         }
     }
 }

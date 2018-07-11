@@ -208,7 +208,11 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public static partial class FastForest
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastForestBinaryClassifier", Desc = FastForestClassification.Summary, UserName = FastForestClassification.UserNameValue, ShortName = FastForestClassification.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FastForestBinaryClassifier",
+            Desc = FastForestClassification.Summary,
+            Remarks = FastForestClassification.Remarks,
+            UserName = FastForestClassification.UserNameValue,
+            ShortName = FastForestClassification.ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastForestClassification.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

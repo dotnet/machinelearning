@@ -126,12 +126,12 @@ namespace Microsoft.ML.Runtime.Sweeper
             }
 
             ArrayDataViewBuilder dvBuilder = new ArrayDataViewBuilder(_host);
-            dvBuilder.AddColumn("Label", NumberType.Float, targets);
-            dvBuilder.AddColumn("Features", NumberType.Float, features);
+            dvBuilder.AddColumn(DefaultColumnNames.Label, NumberType.Float, targets);
+            dvBuilder.AddColumn(DefaultColumnNames.Features, NumberType.Float, features);
 
             IDataView view = dvBuilder.GetDataView();
             _host.Assert(view.GetRowCount() == targets.Length, "This data view will have as many rows as there have been evaluations");
-            RoleMappedData data = TrainUtils.CreateExamples(view, "Label", "Features");
+            RoleMappedData data = new RoleMappedData(view, DefaultColumnNames.Label, DefaultColumnNames.Features);
 
             using (IChannel ch = _host.Start("Single training"))
             {

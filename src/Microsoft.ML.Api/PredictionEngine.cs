@@ -49,8 +49,8 @@ namespace Microsoft.ML.Runtime.Api
             {
                 var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, modelStream);
                 pipe = roles != null
-                    ? env.CreateDefaultScorer(RoleMappedData.CreateOpt(pipe, roles), predictor)
-                    : env.CreateDefaultScorer(env.CreateExamples(pipe, "Features"), predictor);
+                    ? env.CreateDefaultScorer(new RoleMappedData(pipe, roles, opt: true), predictor)
+                    : env.CreateDefaultScorer(new RoleMappedData(pipe, label: null, "Features"), predictor);
             }
 
             _pipeEngine = new PipeEngine<TDst>(env, pipe, ignoreMissingColumns, outputSchemaDefinition);

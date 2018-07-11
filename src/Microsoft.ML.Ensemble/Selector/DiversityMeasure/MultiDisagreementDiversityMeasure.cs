@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime.Numeric;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure
 {
-    public class MultiDisagreementDiversityMeasure : BaseDisagreementDiversityMeasure<VBuffer<Single>>
+    public class MultiDisagreementDiversityMeasure : BaseDisagreementDiversityMeasure<VBuffer<Single>>, IMulticlassDiversityMeasure
     {
         public const string LoadName = "MultiDisagreementDiversityMeasure";
 

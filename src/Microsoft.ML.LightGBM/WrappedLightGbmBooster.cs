@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public IntPtr Handle { get; private set; }
         public int BestIteration { get; set; }
 
-        public Booster(Dictionary<string, string> parameters, Dataset trainset, Dataset validset = null)
+        public Booster(Dictionary<string, object> parameters, Dataset trainset, Dataset validset = null)
         {
             var param = LightGbmInterfaceUtils.JoinParameters(parameters);
             var handle = IntPtr.Zero;

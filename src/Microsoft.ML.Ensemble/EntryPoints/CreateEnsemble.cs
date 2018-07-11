@@ -267,7 +267,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     combiner = new MultiAverage(host, new MultiAverage.Arguments() { Normalize = true });
                     break;
                 case ClassifierCombiner.Vote:
-                    combiner = new MultiVoting(host, new MultiVoting.Arguments());
+                    combiner = new MultiVoting(host);
                     break;
                 default:
                     throw host.Except("Unknown combiner kind");
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var dv = new EmptyDataView(env, inputSchema);
 
             // The role mappings are specific to the individual predictors.
-            var rmd = RoleMappedData.Create(dv);
+            var rmd = new RoleMappedData(dv);
             var predictorModel = new PredictorModel(env, rmd, dv, ensemble);
 
             var output = new TOut { PredictorModel = predictorModel };
