@@ -226,16 +226,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 _columnsLoaded = InitColumns(schemaDataSet);
-                var streamSchema = CreateSchema(_host, _columnsLoaded);
-
-                if (Schema == null)
-                {
-                    Schema = streamSchema;
-                }
-                else if (!EqualColumns(Schema, streamSchema))
-                {
-                    throw _host.Except("File schema does not match the model schema");
-                }
+                Schema = CreateSchema(_host, _columnsLoaded);
             }
             else if (Schema == null && files.Count == 0)
             {
@@ -387,49 +378,6 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckNonEmpty(filename, nameof(filename));
             var files = new MultiFileSource(filename);
             return OpenStream(files);
-        }
-
-        /// <summary>
-        /// Checks whether the schema columns match.
-        /// </summary>
-        /// <param name="lSchema">The schema</param>
-        /// <param name="rSchema">The schema to compare against</param>
-        /// <returns>true if the schema columns match</returns>
-        private static bool EqualColumns(ISchema lSchema, ISchema rSchema)
-        {
-            Contracts.CheckValue(rSchema, nameof(rSchema));
-
-            if (lSchema.ColumnCount != rSchema.ColumnCount)
-            {
-                return false;
-            }
-
-            for (int col = 0; col < lSchema.ColumnCount; col++)
-            {
-                string name1 = lSchema.GetColumnName(col);
-                string name2 = rSchema.GetColumnName(col);
-                if (name1 != name2)
-                {
-                    return false;
-                }
-
-                var type1 = lSchema.GetColumnType(col);
-                var type2 = rSchema.GetColumnType(col);
-                if (!type1.SameSizeAndItemType(type2))
-                {
-                    return false;
-                }
-
-                // This ensures that the two schemas map names to the same column indices.
-                bool f1 = lSchema.TryGetColumnIndex(name1, out int col1);
-                bool f2 = rSchema.TryGetColumnIndex(name2, out int col2);
-                if (!f1 || !f2 || col1 != col2)
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         public bool CanShuffle => true;
