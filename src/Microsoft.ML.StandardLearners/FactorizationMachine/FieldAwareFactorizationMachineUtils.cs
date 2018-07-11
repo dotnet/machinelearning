@@ -53,7 +53,6 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
     }
 
-
     internal sealed class FieldAwareFactorizationMachineScalarRowMapper : ISchemaBoundRowMapper
     {
         private readonly FieldAwareFactorizationMachinePredictor _pred;
@@ -83,7 +82,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             _pred = pred;
 
             var inputFeatureColumns = _columns.Select(c => new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, c.Name)).ToList();
-            InputSchema = RoleMappedSchema.Create(schema.Schema, inputFeatureColumns);
+            InputSchema = new RoleMappedSchema(schema.Schema, inputFeatureColumns);
             OutputSchema = outputSchema;
 
             _inputColumnIndexes = new List<int>();

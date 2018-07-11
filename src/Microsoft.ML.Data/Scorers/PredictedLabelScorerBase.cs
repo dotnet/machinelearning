@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.Data
                 env.AssertValue(bindable);
 
                 string scoreCol = RowMapper.OutputSchema.GetColumnName(ScoreColumnIndex);
-                var schema = RoleMappedSchema.Create(input, RowMapper.GetInputColumnRoles());
+                var schema = new RoleMappedSchema(input, RowMapper.GetInputColumnRoles());
 
                 // Checks compatibility of the predictor input types.
                 var mapper = bindable.Bind(env, schema);
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Runtime.Data
                 string scoreKind = ctx.LoadNonEmptyString();
                 string scoreCol = ctx.LoadNonEmptyString();
 
-                var mapper = bindable.Bind(env, RoleMappedSchema.Create(input, roles));
+                var mapper = bindable.Bind(env, new RoleMappedSchema(input, roles));
                 var rowMapper = mapper as ISchemaBoundRowMapper;
                 env.CheckParam(rowMapper != null, nameof(bindable), "Bindable expected to be an " + nameof(ISchemaBindableMapper) + "!");
 

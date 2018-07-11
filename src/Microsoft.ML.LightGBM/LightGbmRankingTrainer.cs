@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(LightGbmRankingTrainer.Summary, typeof(LightGbmRankingTrainer), typeof(LightGbmArguments),
+[assembly: LoadableClass(LightGbmRankingTrainer.UserName, typeof(LightGbmRankingTrainer), typeof(LightGbmArguments),
     new[] { typeof(SignatureRankerTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     "LightGBM Ranking", LightGbmRankingTrainer.LoadNameValue, LightGbmRankingTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.LightGBM
 
     public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<float, LightGbmRankingPredictor>
     {
-        public const string Summary = "LightGBM Ranking";
+        public const string UserName = "LightGBM Ranking";
         public const string LoadNameValue = "LightGBMRanking";
         public const string ShortName = "LightGBMRank";
 
@@ -123,11 +123,15 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
 
     /// <summary>
-    /// A component to train an LightGBM model.
+    /// A component to train a LightGBM model.
     /// </summary>
     public static partial class LightGbm
     {
-        [TlcModule.EntryPoint(Name = "Trainers.LightGbmRanker", Desc = "Train an LightGBM ranking model", UserName = LightGbmRankingTrainer.Summary, ShortName = LightGbmRankingTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.LightGbmRanker", 
+            Remarks = LightGbmMulticlassTrainer.Remarks,
+            Desc = "Train a LightGBM ranking model.", 
+            UserName = LightGbmRankingTrainer.UserName, 
+            ShortName = LightGbmRankingTrainer.ShortName)]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));

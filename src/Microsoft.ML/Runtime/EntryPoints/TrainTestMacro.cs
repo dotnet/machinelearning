@@ -63,14 +63,17 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.AtMostOnce, HelpText = "Indicates whether to include and output training dataset metrics.", SortOrder = 9)]
             public Boolean IncludeTrainingMetrics = false;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 10)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 10)]
             public string LabelColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 11)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 11)]
             public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 12)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 12)]
             public Optional<string> GroupColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 13)]
+            public Optional<string> NameColumn = Optional<string>.Implicit(DefaultColumnNames.Name);
         }
 
         public sealed class Output
@@ -120,7 +123,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Parse the subgraph.
             var subGraphRunContext = new RunContext(env);
             var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes, node.Catalog, input.LabelColumn,
-                input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null, input.WeightColumn.IsExplicit ? input.WeightColumn.Value : null);
+                input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null,
+                input.WeightColumn.IsExplicit ? input.WeightColumn.Value : null,
+                input.NameColumn.IsExplicit ? input.NameColumn.Value : null);
 
             // Change the subgraph to use the training data as input.
             var varName = input.Inputs.Data.VarName;
@@ -221,7 +226,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 LabelColumn = input.LabelColumn,
                 WeightColumn = input.WeightColumn.IsExplicit ? input.WeightColumn.Value : null,
-                GroupColumn = input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null
+                GroupColumn = input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null,
+                NameColumn = input.NameColumn.IsExplicit ? input.NameColumn.Value : null
             };
 
             string outVariableName;

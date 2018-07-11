@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Core.Tests.UnitTests;
 using Microsoft.ML.Runtime.Data;
@@ -274,13 +275,31 @@ namespace Microsoft.ML.Runtime.RunTests
             var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
             var catalog = ModuleCatalog.CreateInstance(Env);
             var path = DeleteOutputPath(entryPointsSubDir, epListFile);
+
+            var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
             File.WriteAllLines(path, catalog.AllEntryPoints()
-                .Select(x => string.Join("\t", x.Name, x.Description, x.Method.DeclaringType, x.Method.Name, x.InputType, x.OutputType).Replace(Environment.NewLine, "\\n "))
+                .Select(x => string.Join("\t",
+                x.Name,
+                regex.Replace(x.Description, ""),
+                x.Method.DeclaringType,
+                x.Method.Name,
+                x.InputType,
+                x.OutputType)
+                .Replace(Environment.NewLine, ""))
                 .OrderBy(x => x));
 
             CheckEquality(entryPointsSubDir, epListFile);
 
             var jObj = JsonManifestUtils.BuildAllManifests(Env, catalog);
+
+            //clean up the description from the new line characters
+            if (jObj[FieldNames.TopEntryPoints] != null && jObj[FieldNames.TopEntryPoints] is JArray)
+            {
+                foreach (JToken entry in jObj[FieldNames.TopEntryPoints].Children())
+                    if (entry[FieldNames.Desc] != null)
+                        entry[FieldNames.Desc] = regex.Replace(entry[FieldNames.Desc].ToString(), "");
+            }
+
             var jPath = DeleteOutputPath(entryPointsSubDir, manifestFile);
             using (var file = File.OpenWrite(jPath))
             using (var writer = new StreamWriter(file))
@@ -310,12 +329,12 @@ namespace Microsoft.ML.Runtime.RunTests
 
             ib1.TrySetValue("WeightColumn", "OtherWeight");
             Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.True(string.Compare(instance.WeightColumn.Value, "OtherWeight") == 0);
+            Assert.Equal("OtherWeight", instance.WeightColumn.Value);
 
             var tok = (JToken)JValue.CreateString("AnotherWeight");
             ib1.TrySetValueJson("WeightColumn", tok);
             Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.True(string.Compare(instance.WeightColumn.Value, "AnotherWeight") == 0);
+            Assert.Equal("AnotherWeight", instance.WeightColumn.Value);
         }
 
         [Fact]
@@ -665,9 +684,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // This tests that the SchemaBindableCalibratedPredictor doesn't get confused if its sub-predictor is already calibrated.
             var fastForest = new FastForestClassification(Env, new FastForestClassification.Arguments());
-            var rmd = RoleMappedData.Create(splitOutput.TrainData[0],
-                RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"),
-                RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, "Label"));
+            var rmd = new RoleMappedData(splitOutput.TrainData[0], "Label", "Features");
             fastForest.Train(rmd);
             var ffModel = new PredictorModel(Env, rmd, splitOutput.TrainData[0], fastForest.CreatePredictor());
             var calibratedFfModel = Calibrate.Platt(Env,
@@ -1201,9 +1218,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }, data);
 
                 var mlr = new MulticlassLogisticRegression(Env, new MulticlassLogisticRegression.Arguments());
-                RoleMappedData rmd = RoleMappedData.Create(data,
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"),
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, "Label"));
+                var rmd = new RoleMappedData(data, "Label", "Features");
                 mlr.Train(rmd);
 
                 predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.CreatePredictor());
@@ -1782,6 +1797,18 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(loader.Schema.TryGetColumnIndex("GroupId", out var groupCol));
                 Assert.True(loader.Schema.TryGetColumnIndex("Label", out var labelCol));
             }
+        }
+
+        [Fact]
+        public void EntryPointLightGbmBinary()
+        {
+            TestEntryPointRoutine("breast-cancer.txt", "Trainers.LightGbmBinaryClassifier");
+        }
+
+        [Fact]
+        public void EntryPointLightGbmMultiClass()
+        {
+            TestEntryPointRoutine(GetDataPath(@"iris.txt"), "Trainers.LightGbmClassifier");
         }
 
         [Fact]

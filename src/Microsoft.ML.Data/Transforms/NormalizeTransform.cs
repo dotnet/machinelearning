@@ -66,7 +66,9 @@ namespace Microsoft.ML.Runtime.Data
 
         JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
 
-        bool OnnxInfo(OnnxContext ctx, OnnxUtils.NodeProtoWrapper nodeProtoWrapper, int featureCount);
+        bool CanSaveOnnx { get; }
+
+        bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
     }
 
     public sealed partial class NormalizeTransform : OneToOneTransformBase
@@ -197,6 +199,36 @@ namespace Microsoft.ML.Runtime.Data
             SetMetadata();
         }
 
+        /// <summary>
+        /// Potentially apply a min-max normalizer to the data's feature column, keeping all existing role
+        /// mappings except for the feature role mapping.
+        /// </summary>
+        /// <param name="env">The host environment to use to potentially instantiate the transform</param>
+        /// <param name="data">The role-mapped data that is potentially going to be modified by this method.</param>
+        /// <param name="trainer">The trainer to query with <see cref="NormalizeUtils.NeedNormalization(ITrainer)"/>.
+        /// This method will not modify <paramref name="data"/> if the return from that is <c>null</c> or
+        /// <c>false</c>.</param>
+        /// <returns>True if the normalizer was applied and <paramref name="data"/> was modified</returns>
+        public static bool CreateIfNeeded(IHostEnvironment env, ref RoleMappedData data, ITrainer trainer)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(data, nameof(data));
+            env.CheckValue(trainer, nameof(trainer));
+
+            // If this is false or null, we do not want to normalize.
+            if (trainer.NeedNormalization() != true)
+                return false;
+            // If this is true or null, we do not want to normalize.
+            if (data.Schema.FeaturesAreNormalized() != false)
+                return false;
+            var featInfo = data.Schema.Feature;
+            env.AssertValue(featInfo); // Should be defined, if FEaturesAreNormalized returned a definite value.
+
+            var view = CreateMinMaxNormalizer(env, data.Data, name: featInfo.Name);
+            data = new RoleMappedData(view, data.Schema.GetColumnRoleNames());
+            return true;
+        }
+
         private NormalizeTransform(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, ctx, input, null)
         {
@@ -286,11 +318,11 @@ namespace Microsoft.ML.Runtime.Data
             if (info.TypeSrc.ValueCount == 0)
                 return false;
 
-            string opType = "Scaler";
-            var node = OnnxUtils.MakeNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            if (_functions[iinfo].OnnxInfo(ctx, new OnnxUtils.NodeProtoWrapper(node), info.TypeSrc.ValueCount))
+            if (_functions[iinfo].CanSaveOnnx)
             {
-                ctx.AddNode(node);
+                string opType = "Scaler";
+                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+                _functions[iinfo].OnnxInfo(ctx, node, info.TypeSrc.ValueCount);
                 return true;
             }
 
@@ -329,6 +361,44 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
+    public static class NormalizeUtils
+    {
+        /// <summary>
+        /// Tells whether the trainer wants normalization.
+        /// </summary>
+        /// <remarks>This method works via testing whether the trainer implements the optional interface
+        /// <see cref="ITrainerEx"/>, via the Boolean <see cref="ITrainerEx.NeedNormalization"/> property.
+        /// If <paramref name="trainer"/> does not implement that interface, then we return <c>null</c></remarks>
+        /// <param name="trainer">The trainer to query</param>
+        /// <returns>Whether the trainer wants normalization</returns>
+        public static bool? NeedNormalization(this ITrainer trainer)
+        {
+            Contracts.CheckValue(trainer, nameof(trainer));
+            return (trainer as ITrainerEx)?.NeedNormalization;
+        }
+
+        /// <summary>
+        /// Returns whether the feature column in the schema is indicated to be normalized. If the features column is not
+        /// specified on the schema, then this will return <c>null</c>.
+        /// </summary>
+        /// <param name="schema">The role-mapped schema to query</param>
+        /// <returns>Returns null if <paramref name="schema"/> does not have <see cref="RoleMappedSchema.Feature"/>
+        /// defined, and otherwise returns a Boolean value as returned from <see cref="MetadataUtils.IsNormalized(ISchema, int)"/>
+        /// on that feature column</returns>
+        /// <seealso cref="MetadataUtils.IsNormalized(ISchema, int)"/>
+        public static bool? FeaturesAreNormalized(this RoleMappedSchema schema)
+        {
+            // REVIEW: The role mapped data has the ability to have multiple columns fill the role of features, which is
+            // useful in some trainers that are nonetheless parameteric and can therefore benefit from normalization.
+            Contracts.CheckValue(schema, nameof(schema));
+            var featInfo = schema.Feature;
+            return featInfo == null ? default(bool?) : schema.Schema.IsNormalized(featInfo.Index);
+        }
+    }
+
+    /// <summary>
+    /// This contains entry-point definitions related to <see cref="NormalizeTransform"/>.
+    /// </summary>
     public static class Normalize
     {
         [TlcModule.EntryPoint(Name = "Transforms.MinMaxNormalizer", Desc = NormalizeTransform.MinMaxNormalizerSummary, UserName = NormalizeTransform.MinMaxNormalizerUserName, ShortName = NormalizeTransform.MinMaxNormalizerShortName)]
@@ -402,14 +472,10 @@ namespace Microsoft.ML.Runtime.Data
             var columnsToNormalize = new List<NormalizeTransform.AffineColumn>();
             foreach (var column in input.Column)
             {
-                int col;
-                if (!schema.TryGetColumnIndex(column.Source, out col))
+                if (!schema.TryGetColumnIndex(column.Source, out int col))
                     throw env.ExceptUserArg(nameof(input.Column), $"Column '{column.Source}' does not exist.");
-                if (!schema.TryGetMetadata(BoolType.Instance, MetadataUtils.Kinds.IsNormalized, col, ref isNormalized) ||
-                    isNormalized.IsFalse)
-                {
+                if (!schema.IsNormalized(col))
                     columnsToNormalize.Add(column);
-                }
             }
 
             var entryPoints = new List<EntryPointNode>();

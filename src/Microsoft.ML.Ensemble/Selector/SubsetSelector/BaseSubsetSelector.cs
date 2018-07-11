@@ -76,8 +76,8 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
                     var view = new GenerateNumberTransform(Host, args, Data.Data);
                     var viewTest = new RangeFilter(Host, new RangeFilter.Arguments() { Column = name, Max = ValidationDatasetProportion }, view);
                     var viewTrain = new RangeFilter(Host, new RangeFilter.Arguments() { Column = name, Max = ValidationDatasetProportion, Complement = true }, view);
-                    dataTest = RoleMappedData.Create(viewTest, Data.Schema.GetColumnRoleNames());
-                    dataTrain = RoleMappedData.Create(viewTrain, Data.Schema.GetColumnRoleNames());
+                    dataTest = new RoleMappedData(viewTest, Data.Schema.GetColumnRoleNames());
+                    dataTrain = new RoleMappedData(viewTrain, Data.Schema.GetColumnRoleNames());
                 }
 
                 if (BatchSize > 0)
