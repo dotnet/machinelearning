@@ -33,18 +33,25 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class ShuffleTransform : RowToRowTransformBase
     {
+        private static class Defaults
+        {
+            public const int PoolRows = 1000;
+            public const bool PoolOnly = false;
+            public const bool ForceShuffle = false;
+        }
+
         public sealed class Arguments
         {
             // REVIEW: A more intelligent heuristic, based on the expected size of the inputs, perhaps?
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The pool will have this many rows", ShortName = "rows")]
-            public int PoolRows = 1000;
+            public int PoolRows = Defaults.PoolRows;
 
             // REVIEW: Come up with a better way to specify the desired set of functionality.
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, the transform will not attempt to shuffle the input cursor but only shuffle based on the pool. This parameter has no effect if the input data was not itself shufflable.", ShortName = "po")]
-            public bool PoolOnly;
+            public bool PoolOnly = Defaults.PoolOnly;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, the transform will always provide a shuffled view.", ShortName = "force")]
-            public bool ForceShuffle;
+            public bool ForceShuffle = Defaults.ForceShuffle;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, the transform will always shuffle the input. The default value is the same as forceShuffle.", ShortName = "forceSource")]
             public bool? ForceShuffleSource;
@@ -78,6 +85,23 @@ namespace Microsoft.ML.Runtime.Data
         // types removed, since we do not support these since the implementation does not
         // know how to copy other types of values.
         private readonly IDataView _subsetInput;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="poolRows">The pool will have this many rows</param>
+        /// <param name="poolOnly">If true, the transform will not attempt to shuffle the input cursor but only shuffle based on the pool. This parameter has no effect if the input data was not itself shufflable.</param>
+        /// <param name="forceShuffle">If true, the transform will always provide a shuffled view.</param>
+        public ShuffleTransform(IHostEnvironment env,
+            IDataView input,
+            int poolRows = Defaults.PoolRows,
+            bool poolOnly = Defaults.PoolOnly,
+            bool forceShuffle = Defaults.ForceShuffle)
+            : this(env, new Arguments() { PoolRows = poolRows, PoolOnly = poolOnly, ForceShuffle = forceShuffle }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
