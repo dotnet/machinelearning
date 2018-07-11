@@ -183,16 +183,16 @@ namespace Microsoft.ML.Runtime.Tools
                     if (count == 0)
                     {
                         // Didn't recognize any of the exceptions.
-                        ch.Error(MessageSensitivity.None, "***** Unexpected failure. Please contact 'tlcsupp' with details *****");
+                        ch.Error(MessageSensitivity.None, "***** Unexpected failure. Please go to https://aka.ms/MLNetIssue and register the error details *****");
                         if (isDumpSaved)
                         {
-                            ch.Error(MessageSensitivity.None, "***** Error log has been saved to '{0}', please send this file to 'tlcsupp' *****",
+                            ch.Error(MessageSensitivity.None, "***** Error log has been saved to '{0}', please register the error at https://aka.ms/MLNetIssue *****",
                                 dumpFilePath);
                         }
                     }
                     else if (isDumpSaved)
                     {
-                        ch.Error(MessageSensitivity.None, "Error log has been saved to '{0}'. Please send this file to 'tlcsupp' if you need assistance.",
+                        ch.Error(MessageSensitivity.None, "Error log has been saved to '{0}'. please register the error at https://aka.ms/MLNetIssue",
                             dumpFilePath);
                     }
 
