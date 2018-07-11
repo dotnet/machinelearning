@@ -21,10 +21,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// This transform can transform either scalars or vectors (both fixed and variable size),
-    /// creating output columns that indicate corresponding NA values.
-    /// </summary>
+    /// <include file='doc.xml' path='docs/members/member[@name="NAIndicator"]'/>
     public sealed class NAIndicatorTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn

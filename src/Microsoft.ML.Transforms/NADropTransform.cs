@@ -21,9 +21,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// Transform to drop NAs from vector columns.
-    /// </summary>
+    /// <include file='doc.xml' path='docs/members/member[@name="NADrop"]'/>
     public sealed class NADropTransform : OneToOneTransformBase
     {
         public sealed class Arguments : TransformInputBase

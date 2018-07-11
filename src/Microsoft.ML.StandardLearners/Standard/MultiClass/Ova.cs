@@ -36,6 +36,7 @@ namespace Microsoft.ML.Runtime.Learners
     using TScalarPredictor = IPredictorProducing<Float>;
     using TScalarTrainer = ITrainer<RoleMappedData, IPredictorProducing<Float>>;
 
+    /// <include file='doc.xml' path='doc/members/member[@name="OVA"]' /> 
     public sealed class Ova : MetaMulticlassTrainer<OvaPredictor, Ova.Arguments>
     {
         internal const string LoadNameValue = "OVA";

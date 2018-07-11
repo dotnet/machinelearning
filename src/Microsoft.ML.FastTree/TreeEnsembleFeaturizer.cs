@@ -544,6 +544,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
+    /// <include file='doc.xml' path='doc/members/member[@name="TreeEnsembleFeaturizerTransform"]'/>
     public static class TreeEnsembleFeaturizerTransform
     {
         public sealed class Arguments : TrainAndScoreTransform.ArgumentsBase<SignatureTreeEnsembleTrainer>
@@ -802,7 +803,11 @@ namespace Microsoft.ML.Runtime.Data
 
     public static partial class TreeFeaturize
     {
-        [TlcModule.EntryPoint(Name = "Transforms.TreeLeafFeaturizer", Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary, UserName = TreeEnsembleFeaturizerTransform.UserName, ShortName = TreeEnsembleFeaturizerBindableMapper.LoadNameShort)]
+        [TlcModule.EntryPoint(Name = "Transforms.TreeLeafFeaturizer", 
+            Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary, 
+            UserName = TreeEnsembleFeaturizerTransform.UserName, 
+            ShortName = TreeEnsembleFeaturizerBindableMapper.LoadNameShort,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""TreeEnsembleFeaturizerTransform""]'/>" })]
         public static CommonOutputs.TransformOutput Featurizer(IHostEnvironment env, TreeEnsembleFeaturizerTransform.ArgumentsForEntryPoint input)
         {
             Contracts.CheckValue(env, nameof(env));

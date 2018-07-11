@@ -11,7 +11,11 @@ namespace Microsoft.ML.Runtime.Data
 {
     public static class NAHandling
     {
-        [TlcModule.EntryPoint(Name = "Transforms.MissingValuesDropper", Desc = NADropTransform.Summary, UserName = NADropTransform.FriendlyName, ShortName = NADropTransform.ShortName)]
+        [TlcModule.EntryPoint(Name = "Transforms.MissingValuesDropper", 
+            Desc = NADropTransform.Summary,
+            UserName = NADropTransform.FriendlyName, 
+            ShortName = NADropTransform.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name=""NADrop""]/*' />" })]
         public static CommonOutputs.TransformOutput Drop(IHostEnvironment env, NADropTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, NADropTransform.ShortName, input);
@@ -23,7 +27,11 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.MissingValuesRowDropper", Desc = NAFilter.Summary, UserName = NAFilter.FriendlyName, ShortName = NAFilter.ShortName)]
+        [TlcModule.EntryPoint(Name = "Transforms.MissingValuesRowDropper", 
+            Desc = NAFilter.Summary, 
+            UserName = NAFilter.FriendlyName, 
+            ShortName = NAFilter.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name=""NAFilter""]/*' />" })]
         public static CommonOutputs.TransformOutput Filter(IHostEnvironment env, NAFilter.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, NAFilter.ShortName, input);
@@ -35,7 +43,11 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.MissingValueHandler", Desc = NAHandleTransform.Summary, UserName = NAHandleTransform.FriendlyName, ShortName = NAHandleTransform.ShortName)]
+        [TlcModule.EntryPoint(Name = "Transforms.MissingValueHandler", 
+            Desc = NAHandleTransform.Summary, 
+            UserName = NAHandleTransform.FriendlyName, 
+            ShortName = NAHandleTransform.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name=""NAFilter""]/*' />" })]
         public static CommonOutputs.TransformOutput Handle(IHostEnvironment env, NAHandleTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAHandle", input);
@@ -47,7 +59,11 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.MissingValueIndicator", Desc = NAIndicatorTransform.Summary, UserName = NAIndicatorTransform.FriendlyName, ShortName = NAIndicatorTransform.ShortName)]
+        [TlcModule.EntryPoint(Name = "Transforms.MissingValueIndicator", 
+            Desc = NAIndicatorTransform.Summary, 
+            UserName = NAIndicatorTransform.FriendlyName, 
+            ShortName = NAIndicatorTransform.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name=""NAIndicator""]/*' />" })]
         public static CommonOutputs.TransformOutput Indicator(IHostEnvironment env, NAIndicatorTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAIndicator", input);
