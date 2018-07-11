@@ -349,7 +349,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             return $"{Capitalize(component.Name)}{component.Kind}";
         }
 
-        public static void GenerateSummary(IndentingTextWriter writer, string summary)
+        public static void GenerateSummary(IndentingTextWriter writer, string summary, string remarks = null)
         {
             if (string.IsNullOrEmpty(summary))
                 return;
@@ -357,6 +357,10 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             foreach (var line in summary.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                 writer.WriteLine($"/// {line}");
             writer.WriteLine("/// </summary>");
+
+            if(!string.IsNullOrEmpty(remarks))
+                foreach (var line in remarks.Split(new[] { Environment.NewLine }, StringSplitOptions.None))
+                    writer.WriteLine($"/// {line}");
         }
 
         public static void GenerateHeader(IndentingTextWriter writer)

@@ -792,7 +792,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 }
 
                 public static SuggestedTransform ConcatColumnsIntoOne(List<string> columnNames, string concatColumnName,
-                    Type tranformType, bool isNumeric)
+                    Type transformType, bool isNumeric)
                 {
                     StringBuilder columnArgument = new StringBuilder();
                     StringBuilder columnNameQuoted = new StringBuilder();
@@ -843,10 +843,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         new SuggestedTransform(
                             $"Concatenate {columnsToConcat} columns into column {concatColumnName}",
                             new SubComponent<IDataTransform, SignatureDataTransform>("Concat",
-                                new[] { arguments }), tranformType, new TransformPipelineNode(epInput), -1, routingStructure);
+                                new[] { arguments }), transformType, new TransformPipelineNode(epInput), -1, routingStructure);
                 }
 
-                public static SuggestedTransform TextTransformUnigramTriChar(string srcColumn, string dstColumn, string arg, Type tranformType)
+                public static SuggestedTransform TextTransformUnigramTriChar(string srcColumn, string dstColumn, string arg, Type transformType)
                 {
                     StringBuilder columnArgument = InferenceHelpers.GetTextTransformUnigramTriCharArgument(srcColumn, dstColumn);
 
@@ -862,10 +862,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     };
 
                     return TextTransform(srcColumn, dstColumn, columnArgument.ToString(), "Unigram plus Trichar",
-                        tranformType, new TransformPipelineNode(nodeInput));
+                        transformType, new TransformPipelineNode(nodeInput));
                 }
 
-                public static SuggestedTransform TextTransformBigramTriChar(string srcColumn, string dstColumn, string arg, Type tranformType)
+                public static SuggestedTransform TextTransformBigramTriChar(string srcColumn, string dstColumn, string arg, Type transformType)
                 {
                     StringBuilder columnArgument = InferenceHelpers.GetTextTransformBigramTriCharArgument(srcColumn, dstColumn);
 
@@ -880,11 +880,11 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     };
 
                     return TextTransform(srcColumn, dstColumn, columnArgument.ToString(), "Bigram plus Trichar",
-                        tranformType, new TransformPipelineNode(nodeInput));
+                        transformType, new TransformPipelineNode(nodeInput));
                 }
 
                 public static SuggestedTransform TextTransform(string srcColumn, string dstColumn, string arg,
-                    string outputMsg, Type tranformType, TransformPipelineNode pipelineNode)
+                    string outputMsg, Type transformType, TransformPipelineNode pipelineNode)
                 {
                     ColumnRoutingStructure.AnnotatedName[] columnsSource =
                         { new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = srcColumn } };
@@ -898,7 +898,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                                 ") for column '{0}' and output to column '{1}'",
                                 srcColumn, dstColumn),
                             new SubComponent<IDataTransform, SignatureDataTransform>("Text", arg),
-                            tranformType, pipelineNode, -1, routingStructure);
+                            transformType, pipelineNode, -1, routingStructure);
                 }
             }
 
