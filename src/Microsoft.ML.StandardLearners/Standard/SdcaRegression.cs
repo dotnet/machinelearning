@@ -25,6 +25,7 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using TScalarPredictor = IPredictorWithFeatureWeights<Float>;
 
+    /// <include file='./doc.xml' path='docs/members/member[@name="SDCA"]/*' />
     public sealed class SdcaRegressionTrainer : SdcaTrainerBase<IPredictor>, ITrainer<RoleMappedData, TScalarPredictor>, ITrainerEx
     {
         public const string LoadNameValue = "SDCAR";
@@ -127,15 +128,15 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     /// <summary>
-    /// A component to train an SDCA model.
+    ///The Entry Point for the SDCA regressor.
     /// </summary>
     public static partial class Sdca
     {
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentRegressor",
             Desc = SdcaRegressionTrainer.Summary,
-            Remarks = SdcaRegressionTrainer.Remarks,
             UserName = SdcaRegressionTrainer.UserNameValue,
-            ShortName = SdcaRegressionTrainer.ShortName)]
+            ShortName = SdcaRegressionTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='docs/members/member[@name=""SDCA""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, SdcaRegressionTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
