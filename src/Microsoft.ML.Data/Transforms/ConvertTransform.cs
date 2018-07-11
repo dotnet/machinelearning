@@ -169,6 +169,23 @@ namespace Microsoft.ML.Runtime.Data
         // This is parallel to Infos.
         private readonly ColInfoEx[] _exes;
 
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="resultType">The expected type of the converted column.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be converted.  If this is null '<paramref name="name"/>' will be used.</param>
+        public ConvertTransform(IHostEnvironment env,
+            IDataView input,
+            DataKind resultType,
+            string name,
+            string source = null)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, ResultType = resultType }, input)
+        {
+        }
+
         public ConvertTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column,
                 input, null)

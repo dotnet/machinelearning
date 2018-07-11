@@ -77,6 +77,19 @@ namespace Microsoft.ML.Runtime.Data
         private readonly bool _includeMin;
         private readonly bool _includeMax;
 
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="column">Name of the input column.</param>
+        /// <param name="minimum">Minimum value (0 to 1 for key types).</param>
+        /// <param name="maximum">Maximum value (0 to 1 for key types).</param>
+        public RangeFilter(IHostEnvironment env, IDataView input, string column, Double? minimum = null, Double? maximum = null)
+            : this(env, new Arguments() { Column = column, Min = minimum, Max = maximum }, input)
+        {
+        }
+
         public RangeFilter(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, input)
         {
