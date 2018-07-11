@@ -318,10 +318,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// <param name="data">The data to use for inference.</param>
         /// <param name="columnIndices">Indices of columns that we're interested in.</param>
         /// <param name="args">Additional arguments to inference.</param>
-        /// <param name="columnPurpose">(Optional) User defined mapping of Column to Purpose.</param>
+        /// <param name="dataRoles">(Optional) User defined Role mappings for data.</param>
         /// <returns>The result includes the array of auto-detected column purposes.</returns>
         public static InferenceResult InferPurposes(IHostEnvironment env, IDataView data, IEnumerable<int> columnIndices, Arguments args,
-            Dictionary<string, ColumnPurpose> columnPurpose = null)
+            RoleMappedData dataRoles = null)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("InferPurposes");
@@ -334,16 +334,6 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 var takenData = data.Take(args.MaxRowsToRead);
                 var cols = columnIndices.Select(x => new IntermediateColumn(takenData, x)).ToArray();
                 data = takenData;
-
-                // Instantiate with purpose provided in columnPurpose (if provided)
-                if (columnPurpose != null && columnPurpose.Count > 0)
-                {
-                    foreach (var col in cols)
-                    {
-                        if (columnPurpose.ContainsKey(col.ColumnName))
-                            col.SuggestedPurpose = columnPurpose[col.ColumnName];
-                    }
-                }
 
                 foreach (var expert in GetExperts())
                 {

@@ -224,7 +224,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Make sure search space is defined. If not, infer,
             // with default number of transform levels.
             if (!autoMlState.IsSearchSpaceDefined())
-                autoMlState.InferSearchSpace(numTransformLevels: 1, columnPurpose);
+                autoMlState.InferSearchSpace(numTransformLevels: 1);
 
             // Extract performance summaries and assign to previous candidate pipelines.
             foreach (var pipeline in autoMlState.BatchCandidates)

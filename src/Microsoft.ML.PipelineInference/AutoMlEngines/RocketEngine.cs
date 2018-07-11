@@ -187,7 +187,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // cause an error in verification, since it isn't included in the original 
             // dependency mapping (i.e., its level isn't in the dictionary).
             sampledTransforms.AddRange(AutoMlUtils.GetFinalFeatureConcat(Env, FullyTransformedData,
-                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms, ColumnPurpose));
+                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms, DataRoles));
             transformsBitMask = mask;
 
             return sampledTransforms.ToArray();
@@ -202,11 +202,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 .Select(t=>AvailableLearners[t.Index]).ToArray();
         }
 
-        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates,
-            Dictionary<string, ColumnPurpose> columnPurpose)
+        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates, RoleMappedData dataRoles)
         {
             var prevCandidates = history.ToArray();
-            ColumnPurpose = columnPurpose;
+            DataRoles = dataRoles;
 
             switch (_currentStage)
             {
@@ -222,7 +221,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         // number of candidates, using second stage logic.
                         UpdateLearners(GetTopLearners(prevCandidates));
                         _currentStage++;
-                        return GetNextCandidates(prevCandidates, numCandidates, columnPurpose);
+                        return GetNextCandidates(prevCandidates, numCandidates, DataRoles);
                     }
                     else
                         return GetInitialPipelines(prevCandidates, remainingNum);
@@ -257,7 +256,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         private PipelinePattern[] GetInitialPipelines(IEnumerable<PipelinePattern> history, int numCandidates)
         {
             var engine = _secondaryEngines[_randomInit ? nameof(UniformRandomEngine) : nameof(DefaultsEngine)];
-            return engine.GetNextCandidates(history, numCandidates, ColumnPurpose);
+            return engine.GetNextCandidates(history, numCandidates, DataRoles);
         }
 
         private PipelinePattern[] NextCandidates(PipelinePattern[] history, int numCandidates,

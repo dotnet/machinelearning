@@ -162,7 +162,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer, datasetTrain, datasetTest);
 
             // Infer search space
-            amls.InferSearchSpace(numTransformLevels, columnPurpose);
+            amls.InferSearchSpace(numTransformLevels);
 
             // Create macro object
             var pipelineSweepInput = new Microsoft.ML.Models.PipelineSweeper()
