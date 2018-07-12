@@ -985,9 +985,10 @@ namespace Microsoft.ML.Runtime.Learners
                 _duals = new Float[length];
             }
 
-            public override Float this[long index] {
-                get { return _duals[(int)index]; }
-                set { _duals[(int)index] = value; }
+            public override Float this[long index]
+            {
+                get => _duals[(int)index];
+                set => _duals[(int)index] = value;
             }
 
             public override void ApplyAt(long index, Visitor manip)
@@ -1003,7 +1004,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             private BigArray<Float> _duals;
 
-            public override long Length { get { return _duals.Length; } }
+            public override long Length => _duals.Length;
 
             public BigArrayDualsTable(long length)
             {
@@ -1011,13 +1012,10 @@ namespace Microsoft.ML.Runtime.Learners
                 _duals = new BigArray<Float>(length);
             }
 
-            public override Float this[long index] {
-                get {
-                    return _duals[index];
-                }
-                set {
-                    _duals[index] = value;
-                }
+            public override Float this[long index]
+            {
+                get => _duals[index];
+                set => _duals[index] = value;
             }
 
             public override void ApplyAt(long index, Visitor manip)
@@ -1104,7 +1102,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// the table growing operation initializes a new larger bucket and rehash the existing entries to
         /// the new bucket. Such operation has an expected complexity proportional to the size.
         /// </summary>
-        protected internal sealed class IdToIdxLookup
+        protected sealed class IdToIdxLookup
         {
             // Utilizing this struct gives better cache behavior than using parallel arrays.
             private struct Entry
@@ -1131,7 +1129,7 @@ namespace Microsoft.ML.Runtime.Learners
             /// <summary>
             /// Gets the count of id entries.
             /// </summary>
-            public long Count { get { return _count; } }
+            public long Count => _count;
 
             /// <summary>
             /// Initializes an instance of the <see cref="IdToIdxLookup"/> class with the specified size.

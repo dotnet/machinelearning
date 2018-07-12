@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected internal override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
+        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
         {
             return new EnsemblePredictor(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
         }

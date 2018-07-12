@@ -59,17 +59,17 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         private const int DefaultNumModels = 50;
         /// <summary> Command-line arguments </summary>
-        protected internal readonly ArgumentsBase Args;
-        protected internal readonly int NumModels;
+        private protected readonly ArgumentsBase Args;
+        private protected readonly int NumModels;
 
         /// <summary> Ensemble members </summary>
-        protected internal readonly ITrainer<IPredictorProducing<TOutput>>[] Trainers;
+        private protected readonly ITrainer<IPredictorProducing<TOutput>>[] Trainers;
 
         private readonly ISubsetSelector _subsetSelector;
-        protected internal ISubModelSelector<TOutput> SubModelSelector;
-        protected internal IOutputCombiner<TOutput> Combiner;
+        private protected ISubModelSelector<TOutput> SubModelSelector;
+        private protected IOutputCombiner<TOutput> Combiner;
 
-        protected internal EnsembleTrainerBase(ArgumentsBase args, IHostEnvironment env, string name)
+        private protected EnsembleTrainerBase(ArgumentsBase args, IHostEnvironment env, string name)
             : base(env, name)
         {
             Args = args;
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 validationDataSetProportion = Math.Max(validationDataSetProportion, stackingTrainer.ValidationDatasetProportion);
 
             var needMetrics = Args.ShowMetrics || Combiner is IWeightedAverager;
-            var Models = new List<FeatureSubsetModel<IPredictorProducing<TOutput>>>();
+            var models = new List<FeatureSubsetModel<IPredictorProducing<TOutput>>>();
 
             _subsetSelector.Initialize(data, NumModels, Args.BatchSize, validationDataSetProportion);
             int batchNumber = 1;
@@ -179,16 +179,16 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (stackingTrainer != null)
                     stackingTrainer.Train(modelsList, _subsetSelector.GetTestData(null, batch), Host);
 
-                Models.AddRange(modelsList);
-                int modelSize = Utils.Size(Models);
+                models.AddRange(modelsList);
+                int modelSize = Utils.Size(models);
                 if (modelSize < Utils.Size(Trainers))
                     ch.Warning("{0} of {1} trainings failed.", Utils.Size(Trainers) - modelSize, Utils.Size(Trainers));
                 ch.Check(modelSize > 0, "Ensemble training resulted in no valid models.");
             }
-            return CreatePredictor(Models);
+            return CreatePredictor(models);
         }
 
-        protected internal abstract TPredictor CreatePredictor(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models);
+        private protected abstract TPredictor CreatePredictor(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models);
 
         private bool EnsureMinimumFeaturesSelected(Subset subset)
         {
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             return false;
         }
 
-        protected internal virtual void PrintMetrics(IChannel ch, List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models)
+        private protected virtual void PrintMetrics(IChannel ch, List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models)
         {
             // REVIEW: The formatting of this method is bizarre and seemingly not even self-consistent
             // w.r.t. its usage of |. Is this intentional?
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 ch.Info("{0}{1}", string.Join("", model.Metrics.Select(m => string.Format("| {0} |", m.Value))), model.Predictor.GetType().Name);
         }
 
-        protected internal static FeatureSubsetModel<T>[] CreateModels<T>(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models) where T : IPredictor
+        private protected static FeatureSubsetModel<T>[] CreateModels<T>(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models) where T : IPredictor
         {
             var subsetModels = new FeatureSubsetModel<T>[models.Count];
             for (int i = 0; i < models.Count; i++)

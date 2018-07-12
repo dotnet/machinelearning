@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        protected internal override LightGbmRankingPredictor CreatePredictor()
+        private protected override LightGbmRankingPredictor CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);

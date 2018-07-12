@@ -37,26 +37,26 @@ namespace Microsoft.ML.Runtime.LightGBM
             public bool[] IsCategoricalFeature;
         }
 
-        protected internal readonly LightGbmArguments Args;
+        private protected readonly LightGbmArguments Args;
 
         /// <summary>
         /// Stores argumments as objects to convert them to invariant string type in the end so that 
         /// the code is culture agnostic. When retrieving key value from this dictionary as string 
         /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]). 
         /// </summary>
-        protected internal readonly Dictionary<string, object> Options;
-        protected internal readonly IParallel ParallelTraining;
+        private protected readonly Dictionary<string, object> Options;
+        private protected readonly IParallel ParallelTraining;
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
-        protected internal int FeatureCount;
-        protected internal FastTree.Internal.Ensemble TrainedEnsemble;
+        private protected int FeatureCount;
+        private protected FastTree.Internal.Ensemble TrainedEnsemble;
 
         public override bool NeedNormalization => false;
         public override bool NeedCalibration => false;
         public override bool WantCaching => false;
         public override bool SupportsValidation => true;
 
-        protected internal LightGbmTrainerBase(IHostEnvironment env, LightGbmArguments args, string name)
+        private protected LightGbmTrainerBase(IHostEnvironment env, LightGbmArguments args, string name)
             : base(env, name)
         {
             Host.CheckValue(args, nameof(args));
@@ -851,7 +851,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return ret;
         }
 
-        protected internal abstract TPredictor CreatePredictor();
+        private protected abstract TPredictor CreatePredictor();
 
         /// <summary>
         /// This function will be called before training. It will check the label/group and add parameters for specific applications.

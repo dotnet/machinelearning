@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         private readonly IComponentFactory<IDiversityMeasure<TOutput>> _diversityMetricType;
         private ConcurrentDictionary<FeatureSubsetModel<IPredictorProducing<TOutput>>, TOutput[]> _predictions;
 
-        protected internal BaseDiverseSelector(IHostEnvironment env, DiverseSelectorArguments args, string name,
+        private protected BaseDiverseSelector(IHostEnvironment env, DiverseSelectorArguments args, string name,
             IComponentFactory<IDiversityMeasure<TOutput>> diversityMetricType)
             : base(args, env, name)
         {

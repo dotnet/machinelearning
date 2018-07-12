@@ -85,7 +85,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
         }
 
-        protected internal override LightGbmRegressionPredictor CreatePredictor()
+        private protected override LightGbmRegressionPredictor CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null,
                 "The predictor cannot be created before training is complete");

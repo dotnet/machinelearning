@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
         }
 
-        protected internal override IPredictorWithFeatureWeights<float> CreatePredictor()
+        private protected override IPredictorWithFeatureWeights<float> CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);

@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override bool SupportsValidation => true;
 
-        protected internal FastTreeTrainerBase(IHostEnvironment env, TArgs args)
+        private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args)
             : base(env, RegisterName)
         {
             Host.CheckValue(args, nameof(args));
@@ -1880,7 +1880,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         missingInstances = cursor.BadFeaturesRowCount;
                     }
 
-                    ch.Check(totalInstances > 0, TrainerBase<IPredictor>.NoTrainingInstancesMessage);
+                    ch.Check(totalInstances > 0, "All instances skipped due to missing features.");
 
                     if (missingInstances > 0)
                         ch.Warning("Skipped {0} instances with missing features during training", missingInstances);
@@ -2806,7 +2806,7 @@ namespace Microsoft.ML.Runtime.FastTree
         public bool CanSavePfa => true;
         public bool CanSaveOnnx => true;
 
-        protected internal FastTreePredictionWrapper(IHostEnvironment env, string name, Ensemble trainedEnsemble, int numFeatures, string innerArgs)
+        protected FastTreePredictionWrapper(IHostEnvironment env, string name, Ensemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
         {
             Host.CheckValue(trainedEnsemble, nameof(trainedEnsemble));

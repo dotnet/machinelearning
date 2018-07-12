@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.FastTree
             data.CheckRegressionLabel();
         }
 
-        protected internal override RegressionGamPredictor CreatePredictor()
+        private protected override RegressionGamPredictor CreatePredictor()
         {
             return new RegressionGamPredictor(Host, InputLength, TrainSet, BinEffects, FeatureMap);
         }
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return boolArray;
         }
 
-        protected internal override BinaryClassGamPredictor CreatePredictor()
+        private protected override BinaryClassGamPredictor CreatePredictor()
         {
             return new BinaryClassGamPredictor(Host, InputLength, TrainSet, BinEffects, FeatureMap);
         }
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override bool WantCaching => false;
 
-        protected internal GamTrainerBase(IHostEnvironment env, TArgs args)
+        private protected GamTrainerBase(IHostEnvironment env, TArgs args)
             : base(env, RegisterName)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Runtime.FastTree
             }
         }
 
-        protected internal abstract TPredictor CreatePredictor();
+        private protected abstract TPredictor CreatePredictor();
 
         internal abstract void CheckLabel(RoleMappedData data);
 
@@ -571,7 +571,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public ColumnType OutputType => NumberType.Float;
 
-        protected internal GamPredictorBase(IHostEnvironment env, string name, int inputLength, Dataset trainSet, double[][] binEffects, int[] featureMap)
+        private protected GamPredictorBase(IHostEnvironment env, string name, int inputLength, Dataset trainSet, double[][] binEffects, int[] featureMap)
             : base(env, name)
         {
             Host.CheckValue(trainSet, nameof(trainSet));

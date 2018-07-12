@@ -7,7 +7,11 @@ namespace Microsoft.ML.Runtime.Training
     public abstract class TrainerBase<TPredictor> : ITrainer<TPredictor>, ITrainerEx
         where TPredictor : IPredictor
     {
-        public const string NoTrainingInstancesMessage = "No valid training instances found, all instances have missing features.";
+        /// <summary>
+        /// A standard string to use in errors or warnings by subclasses, to communicate the idea that no valid
+        /// instances were able to be found.
+        /// </summary>
+        protected const string NoTrainingInstancesMessage = "No valid training instances found, all instances have missing features.";
 
         protected IHost Host { get; }
 

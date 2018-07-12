@@ -207,8 +207,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         protected IList<TestResult[]> History;
         protected int Iteration { get; private set; }
 
-        public TestResult BestResult { get; protected internal set; }
-        public int BestIteration { get; protected internal set; }
+        public TestResult BestResult { get; private protected set; }
+        public int BestIteration { get; private protected set; }
 
         // scenarioWithoutHistory - simple test scenario we want to track the history and look for best iteration
         // lossIndex - index of lossFunction in case Test returns more than one loss (default should be 0)
