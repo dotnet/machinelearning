@@ -26,6 +26,7 @@ using Microsoft.ML.Runtime.Numeric;
 
 namespace Microsoft.ML.Runtime.Data
 {
+    /// <include file='./doc.xml' path='docs/members/member[@name="PCA"]/*' />
     public sealed class PcaTransform : OneToOneTransformBase
     {
         public sealed class Arguments : TransformInputBase
@@ -536,8 +537,11 @@ namespace Microsoft.ML.Runtime.Data
             dst = new VBuffer<Float>(transformInfo.Rank, values, dst.Indices);
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator", Desc = "Train an PCA Anomaly model.",
-            UserName = UserName, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator", 
+            Desc = Summary,
+            UserName = UserName, 
+            ShortName = ShortName, 
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='docs/members/member[@name=""PCA""]/*' />" })]
         public static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "Pca", input);

@@ -21,19 +21,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 [assembly: LoadableClass(typeof(void), typeof(Categorical), null, typeof(SignatureEntryPointModule), "Categorical")]
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// Categorical trans.
-    /// Each column can specify an output kind, Bag, Ind, or Key.
-    /// Notes:
-    /// * Each column builds/uses exactly one "vocabulary" (dictionary).
-    /// * The Key output kind produces integer values and KeyType columns.
-    /// * The Key value is the one-based index of the slot set in the Ind/Bag options.
-    /// * In the Key option, not found is assigned the value zero.
-    /// * In the Ind/Bag options, not found results in an all zero bit vector.
-    /// * Ind and Bag differ simply in how the bit-vectors generated from individual slots are aggregated:
-    ///   for Ind they are concatenated and for Bag they are added.
-    /// * When the source column is a singleton, the Ind and Bag options are identical.
-    /// </summary>
+    /// <include file='./doc.xml' path='docs/members/member[@name="CategoricalOneHotVectorizer"]/*' />
     public static class CategoricalTransform
     {
         public enum OutputKind : byte
@@ -255,7 +243,10 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class Categorical
     {
-        [TlcModule.EntryPoint(Name = "Transforms.CategoricalOneHotVectorizer", Desc = "Encodes the categorical variable with one-hot encoding based on term dictionary", UserName = CategoricalTransform.UserName)]
+        [TlcModule.EntryPoint(Name = "Transforms.CategoricalOneHotVectorizer", 
+            Desc = CategoricalTransform.Summary,
+            UserName = CategoricalTransform.UserName, 
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name=""CategoricalOneHotVectorizer""]/*' />" })]
         public static CommonOutputs.TransformOutput CatTransformDict(IHostEnvironment env, CategoricalTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -267,7 +258,10 @@ namespace Microsoft.ML.Runtime.Data
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer", Desc = "Encodes the categorical variable with hash-based encoding", UserName = CategoricalHashTransform.UserName)]
+        [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer", 
+            Desc = CategoricalHashTransform.Summary,
+            UserName = CategoricalHashTransform.UserName ,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />" })]
         public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, CategoricalHashTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
