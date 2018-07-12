@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+using System;
+using System.Drawing;
+using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -8,12 +11,9 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using System;
-using System.Drawing;
-using System.Text;
 
 [assembly: LoadableClass(VectorToImageTransform.Summary, typeof(VectorToImageTransform), typeof(VectorToImageTransform.Arguments), typeof(SignatureDataTransform),
-    ImagePixelExtractorTransform.UserName, "ImagePixelExtractorTransform", "ImagePixelExtractor")]
+    VectorToImageTransform.UserName, "VectorToImageTransform", "VectorToImage")]
 
 [assembly: LoadableClass(VectorToImageTransform.Summary, typeof(VectorToImageTransform), null, typeof(SignatureLoadDataTransform),
     VectorToImageTransform.UserName, VectorToImageTransform.LoaderSignature)]
@@ -220,20 +220,20 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        internal const string Summary = "Extract color plane(s) from an image. Options include scaling, offset and conversion to floating point.";
-        internal const string UserName = "Image Pixel Extractor Transform";
-        public const string LoaderSignature = "ImagePixelExtractor";
+        internal const string Summary = "Converts vector array into image type.";
+        internal const string UserName = "Vector To Image Transform";
+        public const string LoaderSignature = "VectorToImageConverter";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "IMGPXEXT",
+                modelSignature: "VECTOIMG",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
         }
 
-        private const string RegistrationName = "ImagePixelExtractor";
+        private const string RegistrationName = "VectorToImageConverter";
 
         private readonly ColInfoEx[] _exes;
         private readonly ImageType[] _types;
@@ -334,16 +334,22 @@ namespace Microsoft.ML.Runtime.Data
 
             var type = _types[iinfo];
             var ex = _exes[iinfo];
-
+            bool needScale = ex.Offset != 0 || ex.Scale != 1;
             disposer = null;
-            return GetterFromFloatType(input, iinfo, ex);
+            var sourceType = Schema.GetColumnType(Infos[iinfo].Source);
+            if (sourceType.ItemType == NumberType.R4 || sourceType.ItemType == NumberType.R8)
+                return GetterFromType<float>(input, iinfo, ex, needScale);
+            else
+                if (sourceType.ItemType == NumberType.U1)
+                return GetterFromType<byte>(input, iinfo, ex, false);
+            else
+                throw Contracts.Except("We only support float or byte arrays");
 
         }
-        //REVIEW add byte support!
-        private ValueGetter<Bitmap> GetterFromFloatType(IRow input, int iinfo, ColInfoEx ex)
+        private ValueGetter<Bitmap> GetterFromType<TValue>(IRow input, int iinfo, ColInfoEx ex, bool needScale) where TValue : IConvertible
         {
-            var getSrc = GetSrcGetter<VBuffer<float>>(input, iinfo);
-            var src = default(VBuffer<float>);
+            var getSrc = GetSrcGetter<VBuffer<TValue>>(input, iinfo);
+            var src = default(VBuffer<TValue>);
             int width = ex.Width;
             int height = ex.Height;
             float offset = ex.Offset;
@@ -358,19 +364,17 @@ namespace Microsoft.ML.Runtime.Data
                         dst = null;
                         return;
                     }
-                    VBuffer<float> dense = default;
+                    VBuffer<TValue> dense = default;
                     src.CopyToDense(ref dense);
+                    var values = dense.Values;
                     dst = new Bitmap(width, height);
-                    
                     dst.SetResolution(width, height);
                     int cpix = height * width;
                     int planes = dense.Count / cpix;
                     int position = 0;
-                    bool needScale = offset != 0 || scale != 1;
 
                     for (int x = 0; x < width; x++)
                         for (int y = 0; y < height; ++y)
-
                         {
                             float R = 0;
                             float G = 0;
@@ -379,19 +383,17 @@ namespace Microsoft.ML.Runtime.Data
                             if (ex.Interleave)
                             {
                                 if (ex.Alpha) position++;
-                                if (ex.Red) R = dense.Values[position++];
-                                if (ex.Green) G = dense.Values[position++];
-                                if (ex.Blue) B = dense.Values[position++];
-
+                                if (ex.Red) R = Convert.ToSingle(values[position++]);
+                                if (ex.Green) G = Convert.ToSingle(values[position++]);
+                                if (ex.Blue) B = Convert.ToSingle(values[position++]);
                             }
                             else
                             {
-                                position = x * width + y;
-                                if (ex.Alpha) { A = dense.Values[position]; position += cpix; }
-                                if (ex.Red) { R = dense.Values[position]; position += cpix; }
-                                if (ex.Green) { G = dense.Values[position]; position += cpix; }
-                                if (ex.Blue) { B = dense.Values[position]; position += cpix; }
-
+                                position = y * width + x;
+                                if (ex.Alpha) { A = Convert.ToSingle(values[position]); position += cpix; }
+                                if (ex.Red) { R = Convert.ToSingle(values[position]); position += cpix; }
+                                if (ex.Green) { G = Convert.ToSingle(values[position]); position += cpix; }
+                                if (ex.Blue) { B = Convert.ToSingle(values[position]); position += cpix; }
                             }
                             Color pixel;
                             if (!needScale)

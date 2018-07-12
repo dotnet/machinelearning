@@ -406,7 +406,7 @@ namespace Microsoft.ML.Runtime.Data
                         return;
                     }
 
-                    Host.Check(src.PixelFormat== System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                    Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                     Host.Check(src.Height == height && src.Width == width);
 
                     var values = dst.Values;
@@ -499,7 +499,7 @@ namespace Microsoft.ML.Runtime.Data
                             {
                                 for (int x = 0; x < w; x++, idstBase++)
                                 {
-                                    var pb = src.GetPixel(y, x);
+                                    var pb = src.GetPixel(x, y);
                                     int idst = idstBase;
                                     if (a) { vb[idst] = pb.A; idst += cpix; }
                                     if (r) { vb[idst] = pb.R; idst += cpix; }
@@ -511,7 +511,7 @@ namespace Microsoft.ML.Runtime.Data
                             {
                                 for (int x = 0; x < w; x++, idstBase++)
                                 {
-                                    var pb = src.GetPixel(y, x);
+                                    var pb = src.GetPixel(x, y);
                                     int idst = idstBase;
                                     if (a) { vf[idst] = pb.A; idst += cpix; }
                                     if (r) { vf[idst] = pb.R; idst += cpix; }
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Runtime.Data
                             {
                                 for (int x = 0; x < w; x++, idstBase++)
                                 {
-                                    var pb = src.GetPixel(y, x);
+                                    var pb = src.GetPixel(x, y);
                                     int idst = idstBase;
                                     if (a) { vf[idst] = (pb.A - offset) * scale; idst += cpix; }
                                     if (r) { vf[idst] = (pb.R - offset) * scale; idst += cpix; }
