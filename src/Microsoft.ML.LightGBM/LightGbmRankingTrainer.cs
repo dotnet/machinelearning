@@ -42,10 +42,9 @@ namespace Microsoft.ML.Runtime.LightGBM
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010002;
-
         protected override uint VerDefaultValueSerialized => 0x00010004;
-
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
+        public override PredictionKind PredictionKind => PredictionKind.Ranking;
 
         internal LightGbmRankingPredictor(IHostEnvironment env, FastTree.Internal.Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -67,8 +66,6 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
             return new LightGbmRankingPredictor(env, ctx);
         }
-
-        public override PredictionKind PredictionKind => PredictionKind.Ranking;
     }
 
     /// <include file='./doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
@@ -78,8 +75,10 @@ namespace Microsoft.ML.Runtime.LightGBM
         public const string LoadNameValue = "LightGBMRanking";
         public const string ShortName = "LightGBMRank";
 
+        public override PredictionKind PredictionKind => PredictionKind.Ranking;
+
         public LightGbmRankingTrainer(IHostEnvironment env, LightGbmArguments args)
-            : base(env, args, PredictionKind.Ranking, "LightGBMRanking")
+            : base(env, args, LoadNameValue)
         {
         }
 

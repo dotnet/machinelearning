@@ -42,10 +42,9 @@ namespace Microsoft.ML.Runtime.LightGBM
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010002;
-
         protected override uint VerDefaultValueSerialized => 0x00010004;
-
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         internal LightGbmRegressionPredictor(IHostEnvironment env, FastTree.Internal.Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -70,8 +69,6 @@ namespace Microsoft.ML.Runtime.LightGBM
             ctx.CheckAtModel(GetVersionInfo());
             return new LightGbmRegressionPredictor(env, ctx);
         }
-
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
     }
 
     public sealed class LightGbmRegressorTrainer : LightGbmTrainerBase<float, LightGbmRegressionPredictor>
@@ -81,8 +78,10 @@ namespace Microsoft.ML.Runtime.LightGBM
         public const string ShortName = "LightGBMR";
         public const string UserNameValue = "LightGBM Regressor";
 
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
+
         public LightGbmRegressorTrainer(IHostEnvironment env, LightGbmArguments args)
-            : base(env, args, PredictionKind.Regression, "LightGBMRegressor")
+            : base(env, args, LoadNameValue)
         {
         }
 

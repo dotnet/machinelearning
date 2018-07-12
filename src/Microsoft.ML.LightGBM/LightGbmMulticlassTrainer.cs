@@ -29,9 +29,10 @@ namespace Microsoft.ML.Runtime.LightGBM
         private const double _maxNumClass = 1e6;
         private int _numClass;
         private int _tlcNumClass;
+        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         public LightGbmMulticlassTrainer(IHostEnvironment env, LightGbmArguments args)
-            : base(env, args, PredictionKind.MultiClassClassification, "LightGBMMulticlass")
+            : base(env, args, LoadNameValue)
         {
             _numClass = -1;
         }

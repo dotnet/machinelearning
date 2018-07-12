@@ -56,14 +56,13 @@ namespace Microsoft.ML.Runtime.LightGBM
         public override bool WantCaching => false;
         public override bool SupportsValidation => true;
 
-        protected internal LightGbmTrainerBase(IHostEnvironment env, LightGbmArguments args, PredictionKind predictionKind, string name)
+        protected internal LightGbmTrainerBase(IHostEnvironment env, LightGbmArguments args, string name)
             : base(env, name)
         {
             Host.CheckValue(args, nameof(args));
 
             Args = args;
             Options = Args.ToDictionary(Host);
-            PredictionKind = predictionKind;
             ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
             InitParallelTraining();
         }
@@ -851,8 +850,6 @@ namespace Microsoft.ML.Runtime.LightGBM
             ret = Math.Min(ret, numRow);
             return ret;
         }
-
-        public override PredictionKind PredictionKind { get; }
 
         protected internal abstract TPredictor CreatePredictor();
 
