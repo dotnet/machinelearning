@@ -37,31 +37,28 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output datasets from previous iteration of sweep.", SortOrder = 7, Hide = true)]
             public IDataView[] CandidateOutputs;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Ignore'", SortOrder = 8)]
-            public string[] IgnoreColumns;
-
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Name'", SortOrder = 9)]
-            public string[] NameColumns;
-
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Label'", SortOrder = 10)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Label'", SortOrder = 8)]
             public string[] LabelColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'NumericFeature'", SortOrder = 11)]
-            public string[] NumericFeatureColumns;
-
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'CategoricalFeature'", SortOrder = 12)]
-            public string[] CategoricalFeatureColumns;
-
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'TextFeature'", SortOrder = 13)]
-            public string[] TextFeatureColumns;
-
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Weight'", SortOrder = 14)]
-            public string[] WeightColumns;
-
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'GroupId'", SortOrder = 15)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'GroupId'", SortOrder = 9)]
             public string[] GroupIdColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'ImagePath'", SortOrder = 16)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Weight'", SortOrder = 10)]
+            public string[] WeightColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Name'", SortOrder = 11)]
+            public string[] NameColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'NumericFeature'", SortOrder = 12)]
+            public string[] NumericFeatureColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'CategoricalFeature'", SortOrder = 13)]
+            public string[] CategoricalFeatureColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'TextFeature'", SortOrder = 14)]
+            public string[] TextFeatureColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'ImagePath'", SortOrder = 15)]
             public string[] ImagePathColumns;
         }
 
@@ -115,65 +112,75 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new Output { Results = outputView, State = autoMlState };
         }
 
-        private static Dictionary<string, ColumnPurpose> GetColumnPurpose(IHostEnvironment env, Arguments input)
+        private static RoleMappedData GetDataRoles(IHostEnvironment env, Arguments input)
         {
-            var columnPurpose = new Dictionary<string, ColumnPurpose>();
-            if (input.IgnoreColumns != null)
-            {
-                foreach (var colName in input.IgnoreColumns)
-                {
-                    columnPurpose.Add(colName, ColumnPurpose.Ignore);
-                }
-            }
-            if (input.NameColumns != null)
-            {
-                env.Check(input.NameColumns.Length == 1, "NameColumn expected one column name to be specified.");
-                columnPurpose.Add(input.NameColumns[0], ColumnPurpose.Name);
-            }
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+
             if (input.LabelColumns != null)
             {
-                env.Check(input.LabelColumns.Length == 1, "LabelColumn expected one column name to be specified.");
-                columnPurpose.Add(input.LabelColumns[0], ColumnPurpose.Label);
+                env.Check(input.LabelColumns.Length == 1, "LabelColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Label.Bind(input.LabelColumns[0]));
             }
-            if (input.NumericFeatureColumns != null)
-            {
-                foreach (var colName in input.NumericFeatureColumns)
-                {
-                    columnPurpose.Add(colName, ColumnPurpose.NumericFeature);
-                }
-            }
-            if (input.CategoricalFeatureColumns != null)
-            {
-                foreach (var colName in input.CategoricalFeatureColumns)
-                {
-                    columnPurpose.Add(colName, ColumnPurpose.CategoricalFeature);
-                }
-            }
-            if (input.TextFeatureColumns != null)
-            {
-                foreach (var colName in input.TextFeatureColumns)
-                {
-                    columnPurpose.Add(colName, ColumnPurpose.TextFeature);
-                }
-            }
-            if (input.WeightColumns != null)
-            {
-                env.Check(input.WeightColumns.Length == 1, "WeightColumn expected one column name to be specified.");
-                columnPurpose.Add(input.WeightColumns[0], ColumnPurpose.Weight);
-            }
+
             if (input.GroupIdColumns != null)
             {
-                env.Check(input.GroupIdColumns.Length == 1, "GroupIdColumn expected one column name to be specified.");
-                columnPurpose.Add(input.GroupIdColumns[0], ColumnPurpose.GroupId);
+                env.Check(input.GroupIdColumns.Length == 1, "GroupIdColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Group.Bind(input.GroupIdColumns[0]));
             }
-            if (input.ImagePathColumns != null)
+
+            if (input.WeightColumns != null)
             {
-                foreach (var colName in input.ImagePathColumns)
+                env.Check(input.WeightColumns.Length == 1, "WeightColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Weight.Bind(input.WeightColumns[0]));
+            }
+
+            if (input.NameColumns != null)
+            {
+                env.Check(input.NameColumns.Length == 1, "NameColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Name.Bind(input.NameColumns[0]));
+            }
+
+            if (input.NumericFeatureColumns != null)
+            {
+                var numericFeature = new RoleMappedSchema.ColumnRole(ColumnPurpose.NumericFeature.ToString());
+                foreach (var colName in input.NumericFeatureColumns)
                 {
-                    columnPurpose.Add(colName, ColumnPurpose.ImagePath);
+                    var item = numericFeature.Bind(colName);
+                    roles.Add(item);
                 }
             }
-            return columnPurpose;
+
+            if (input.CategoricalFeatureColumns != null)
+            {
+                var categoricalFeature = new RoleMappedSchema.ColumnRole(ColumnPurpose.CategoricalFeature.ToString());
+                foreach (var colName in input.CategoricalFeatureColumns)
+                {
+                    var item = categoricalFeature.Bind(colName);
+                    roles.Add(item);
+                }
+            }
+
+            if (input.TextFeatureColumns != null)
+            {
+                var textFeature = new RoleMappedSchema.ColumnRole(ColumnPurpose.TextFeature.ToString());
+                foreach (var colName in input.TextFeatureColumns)
+                {
+                    var item = textFeature.Bind(colName);
+                    roles.Add(item);
+                }
+            }
+
+            if (input.ImagePathColumns != null)
+            {
+                var imagePath = new RoleMappedSchema.ColumnRole(ColumnPurpose.ImagePath.ToString());
+                foreach (var colName in input.ImagePathColumns)
+                {
+                    var item = imagePath.Bind(colName);
+                    roles.Add(item);
+                }
+            }
+
+            return new RoleMappedData(input.TrainingData, roles);
         }
 
         [TlcModule.EntryPoint(Desc = "AutoML pipeline sweeping optimzation macro.", Name = "Models.PipelineSweeper")]
@@ -186,8 +193,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 "Must have a valid AutoML State, or pass arguments to create one.");
             env.Check(input.BatchSize > 0, "Batch size must be > 0.");
 
-            // Get the user-defined column purposes (if any)
-            var columnPurpose = GetColumnPurpose(env, input);
+            // Get the user-defined column roles (if any)
+            var dataRoles = GetDataRoles(env, input);
 
             // If no current state, create object and set data.
             if (input.State == null)
@@ -224,7 +231,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Make sure search space is defined. If not, infer,
             // with default number of transform levels.
             if (!autoMlState.IsSearchSpaceDefined())
-                autoMlState.InferSearchSpace(numTransformLevels: 1);
+                autoMlState.InferSearchSpace(numTransformLevels: 1, dataRoles);
 
             // Extract performance summaries and assign to previous candidate pipelines.
             foreach (var pipeline in autoMlState.BatchCandidates)

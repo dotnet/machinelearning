@@ -3421,19 +3421,24 @@ namespace Microsoft.ML
             public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> CandidateOutputs { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
 
             /// <summary>
-            /// Column(s) to use as purpose 'Ignore'
+            /// Column(s) to use as purpose 'Label'
             /// </summary>
-            public string[] IgnoreColumns { get; set; }
+            public string[] LabelColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as purpose 'GroupId'
+            /// </summary>
+            public string[] GroupIdColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as purpose 'Weight'
+            /// </summary>
+            public string[] WeightColumns { get; set; }
 
             /// <summary>
             /// Column(s) to use as purpose 'Name'
             /// </summary>
             public string[] NameColumns { get; set; }
-
-            /// <summary>
-            /// Column(s) to use as purpose 'Label'
-            /// </summary>
-            public string[] LabelColumns { get; set; }
 
             /// <summary>
             /// Column(s) to use as purpose 'NumericFeature'
@@ -3449,16 +3454,6 @@ namespace Microsoft.ML
             /// Column(s) to use as purpose 'TextFeature'
             /// </summary>
             public string[] TextFeatureColumns { get; set; }
-
-            /// <summary>
-            /// Column(s) to use as purpose 'Weight'
-            /// </summary>
-            public string[] WeightColumns { get; set; }
-
-            /// <summary>
-            /// Column(s) to use as purpose 'GroupId'
-            /// </summary>
-            public string[] GroupIdColumns { get; set; }
 
             /// <summary>
             /// Column(s) to use as purpose 'ImagePath'

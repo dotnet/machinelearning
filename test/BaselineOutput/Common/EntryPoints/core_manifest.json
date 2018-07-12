@@ -2753,30 +2753,6 @@
           "Default": null
         },
         {
-          "Name": "IgnoreColumns",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "String"
-          },
-          "Desc": "Column(s) to use as purpose 'Ignore'",
-          "Required": false,
-          "SortOrder": 8.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
-          "Name": "NameColumns",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "String"
-          },
-          "Desc": "Column(s) to use as purpose 'Name'",
-          "Required": false,
-          "SortOrder": 9.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
           "Name": "LabelColumns",
           "Type": {
             "Kind": "Array",
@@ -2784,55 +2760,7 @@
           },
           "Desc": "Column(s) to use as purpose 'Label'",
           "Required": false,
-          "SortOrder": 10.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
-          "Name": "NumericFeatureColumns",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "String"
-          },
-          "Desc": "Column(s) to use as purpose 'NumericFeature'",
-          "Required": false,
-          "SortOrder": 11.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
-          "Name": "CategoricalFeatureColumns",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "String"
-          },
-          "Desc": "Column(s) to use as purpose 'CategoricalFeature'",
-          "Required": false,
-          "SortOrder": 12.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
-          "Name": "TextFeatureColumns",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "String"
-          },
-          "Desc": "Column(s) to use as purpose 'TextFeature'",
-          "Required": false,
-          "SortOrder": 13.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
-          "Name": "WeightColumns",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "String"
-          },
-          "Desc": "Column(s) to use as purpose 'Weight'",
-          "Required": false,
-          "SortOrder": 14.0,
+          "SortOrder": 8.0,
           "IsNullable": false,
           "Default": null
         },
@@ -2844,7 +2772,67 @@
           },
           "Desc": "Column(s) to use as purpose 'GroupId'",
           "Required": false,
-          "SortOrder": 15.0,
+          "SortOrder": 9.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "WeightColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as purpose 'Weight'",
+          "Required": false,
+          "SortOrder": 10.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "NameColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as purpose 'Name'",
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "NumericFeatureColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as purpose 'NumericFeature'",
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "CategoricalFeatureColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as purpose 'CategoricalFeature'",
+          "Required": false,
+          "SortOrder": 13.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "TextFeatureColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as purpose 'TextFeature'",
+          "Required": false,
+          "SortOrder": 14.0,
           "IsNullable": false,
           "Default": null
         },
@@ -2856,7 +2844,7 @@
           },
           "Desc": "Column(s) to use as purpose 'ImagePath'",
           "Required": false,
-          "SortOrder": 16.0,
+          "SortOrder": 15.0,
           "IsNullable": false,
           "Default": null
         }

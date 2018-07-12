@@ -332,14 +332,25 @@ namespace Microsoft.ML.Runtime.PipelineInference
             using (var ch = host.Start("InferPurposes"))
             {
                 var takenData = data.Take(args.MaxRowsToRead);
-                var cols = columnIndices.Select(x => new IntermediateColumn(takenData, x)).ToArray();
+                var cols = columnIndices.Select(x => new IntermediateColumn(takenData, x)).ToList();
                 data = takenData;
+
+                if (dataRoles != null)
+                {
+                    var items = dataRoles.Schema.GetColumnRoles();
+                    foreach(var item in items)
+                    {
+                        Enum.TryParse(item.Key.Value, out ColumnPurpose purpose);
+                        var col = cols.Find(x => x.ColumnName == item.Value.Name);
+                        col.SuggestedPurpose = purpose;
+                    }
+                }
 
                 foreach (var expert in GetExperts())
                 {
                     using (var expertChannel = host.Start(expert.GetType().ToString()))
                     {
-                        expert.Apply(expertChannel, cols);
+                        expert.Apply(expertChannel, cols.ToArray());
                         expertChannel.Done();
                     }
                 }
