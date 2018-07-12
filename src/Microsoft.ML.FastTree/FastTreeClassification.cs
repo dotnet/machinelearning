@@ -100,6 +100,7 @@ namespace Microsoft.ML.Runtime.FastTree
         public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
     }
 
+    /// <include file = './doc.xml' path='docs/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeBinaryClassificationTrainer :
         BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Arguments, IPredictorWithFeatureWeights<Float>>
     {
@@ -336,13 +337,16 @@ namespace Microsoft.ML.Runtime.FastTree
         }
     }
 
+    /// <summary>
+    /// The Entry Point for the FastTree Binary Classifier. 
+    /// </summary>
     public static partial class FastTree
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeBinaryClassifier",
             Desc = FastTreeBinaryClassificationTrainer.Summary,
-            Remarks = FastTreeBinaryClassificationTrainer.Remarks,
             UserName = FastTreeBinaryClassificationTrainer.UserNameValue,
-            ShortName = FastTreeBinaryClassificationTrainer.ShortName)]
+            ShortName = FastTreeBinaryClassificationTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name=""FastTree""]/*' />" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastTreeBinaryClassificationTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

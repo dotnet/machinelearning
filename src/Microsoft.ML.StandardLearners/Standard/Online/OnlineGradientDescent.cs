@@ -27,6 +27,7 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using TPredictor = LinearRegressionPredictor;
 
+    /// <include file='./doc.xml' path='docs/members/member[@name="OGD"]/*' />
     public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<OnlineGradientDescentTrainer.Arguments, TPredictor>
     {
         internal const string LoadNameValue = "OnlineGradientDescent";
@@ -34,11 +35,6 @@ namespace Microsoft.ML.Runtime.Learners
         internal const string Summary = "Stochastic gradient descent is an optimization method used to train a wide range of models in machine learning. "
             + "In the TLC implementation of OGD, it is for linear regression.";
         internal const string ShortName = "ogd";
-        internal const string Remarks = @"<remarks>
-Stochastic gradient descent uses a simple yet efficient iterative technique to fit model coefficients using error gradients for convex loss functions.
-The OnlineGradientDescentRegressor implements the standard (non-batch) SGD, with a choice of loss functions,
-and an option to update the weight vector using the average of the vectors seen over time (averaged argument is set to True by default).
-</remarks>";
 
         public sealed class Arguments : AveragedLinearArguments
         {
@@ -96,9 +92,9 @@ and an option to update the weight vector using the average of the vectors seen 
 
         [TlcModule.EntryPoint(Name = "Trainers.OnlineGradientDescentRegressor",
             Desc = "Train a Online gradient descent perceptron.",
-            Remarks = Remarks,
             UserName = UserNameValue,
-            ShortName = ShortName)]
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='docs/members/member[@name=""OGD""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

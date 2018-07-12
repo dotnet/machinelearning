@@ -106,6 +106,7 @@ namespace Microsoft.ML.Runtime.FastTree
         }
     }
 
+    /// <include file='./doc.xml' path='docs/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestClassification :
         RandomForestTrainerBase<FastForestClassification.Arguments, IPredictorWithFeatureWeights<Float>>
     {
@@ -210,9 +211,9 @@ namespace Microsoft.ML.Runtime.FastTree
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastForestBinaryClassifier",
             Desc = FastForestClassification.Summary,
-            Remarks = FastForestClassification.Remarks,
             UserName = FastForestClassification.UserNameValue,
-            ShortName = FastForestClassification.ShortName)]
+            ShortName = FastForestClassification.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name=""FastForest""]/*' />" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastForestClassification.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
