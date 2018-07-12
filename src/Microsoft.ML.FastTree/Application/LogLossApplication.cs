@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     double delta = (_coef * labelDiff) / (1.0 + Math.Exp(_coef * labelDiff * (_scores[d1] - _scores[d2])));
 
                     _gradient[d1] += delta;
-                    _gradient[d2] -= delta;                    
+                    _gradient[d2] -= delta;
                 }
             }
         }
