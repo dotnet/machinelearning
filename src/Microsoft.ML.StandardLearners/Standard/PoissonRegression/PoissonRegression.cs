@@ -26,17 +26,13 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
+    /// <include file='./doc.xml' path='docs/members/member[@name="PoissonRegression"]/*' />
     public sealed class PoissonRegression : LbfgsTrainerBase<Float, PoissonRegressionPredictor>
     {
         internal const string LoadNameValue = "PoissonRegression";
         internal const string UserNameValue = "Poisson Regression";
         internal const string ShortName = "PR";
         internal const string Summary = "Poisson Regression assumes the unknown function, denoted Y has a Poisson distribution.";
-        new internal const string Remarks = @"<remarks>
-<a href='https://en.wikipedia.org/wiki/Poisson_regression'>Poisson regression</a> is a parameterized regression method. 
-It assumes that the log of the conditional mean of the dependent variable follows a linear function of the dependent variables. 
-Assuming that the dependent variable follows a Poisson distribution, the parameters of the regressor can be estimated by maximizing the likelihood of the obtained observations.
-</remarks>";
 
         public sealed class Arguments : ArgumentsBase
         {
@@ -129,7 +125,11 @@ Assuming that the dependent variable follows a Poisson distribution, the paramet
             // No-op by design.
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.PoissonRegressor", Desc = "Train an Poisson regression model.", UserName = UserNameValue, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.PoissonRegressor", 
+            Desc = "Train an Poisson regression model.", 
+            UserName = UserNameValue, 
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='docs/members/member[@name=""PoissonRegression""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

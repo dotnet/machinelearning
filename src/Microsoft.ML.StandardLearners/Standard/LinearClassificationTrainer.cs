@@ -222,26 +222,6 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        internal const string Remarks = @"<remarks>
-This classifier is a trainer based on the Stochastic DualCoordinate Ascent(SDCA) method, a state-of-the-art optimization technique for convex objective functions.
-The algorithm can be scaled for use on large out-of-memory data sets due to a semi-asynchronized implementation 
-that supports multi-threading.
-<para>
-Convergence is underwritten by periodically enforcing synchronization between primal and dual updates in a separate thread.
-Several choices of loss functions are also provided.
-The SDCA method combines several of the best properties and capabilities of logistic regression and SVM algorithms.
-</para>
-<para>
-Note that SDCA is a stochastic and streaming optimization algorithm. 
-The results depends on the order of the training data. For reproducible results, it is recommended that one sets <paramref name='Shuffle'/> to
-False and <paramref name='NumThreads'/> to 1.
-Elastic net regularization can be specified by the <paramref name='L2Const'/> and <paramref name='L1Threshold'/> parameters. Note that the <paramref name='L2Const'/> has an effect on the rate of convergence. 
-In general, the larger the <paramref name='L2Const'/>, the faster SDCA converges.
-</para>
-<a href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</a>.
-<a href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</a>.
-</remarks>";
-
         // The order of these matter, since they are used as indices into arrays.
         protected enum MetricKind
         {
@@ -1797,9 +1777,9 @@ In general, the larger the <paramref name='L2Const'/>, the faster SDCA converges
     {
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier",
             Desc = "Train an SDCA binary model.",
-            Remarks = LinearClassificationTrainer.Remarks,
             UserName = LinearClassificationTrainer.UserNameValue,
-            ShortName = LinearClassificationTrainer.LoadNameValue)]
+            ShortName = LinearClassificationTrainer.LoadNameValue,
+            XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name=""StochasticDualCoordinateAscentBinaryClassifier""]/*' />" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LinearClassificationTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

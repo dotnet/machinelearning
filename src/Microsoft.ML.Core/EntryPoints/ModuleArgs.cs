@@ -529,9 +529,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public string ShortName { get; set; }
 
             /// <summary>
-            /// Remarks on the Entry Point, for more extensive XML documentation on the C#API
+            /// The path to the XML documentation on the CSharpAPI component
             /// </summary>
-            public string Remarks { get; set; }
+            public string[] XmlInclude { get; set; }
         }
 
         /// <summary>
