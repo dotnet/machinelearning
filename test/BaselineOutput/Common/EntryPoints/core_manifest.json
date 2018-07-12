@@ -15919,7 +15919,7 @@
     },
     {
       "Name": "Transforms.CategoricalHashOneHotVectorizer",
-      "Desc": "Encodes the categorical variable with hash-based encoding",
+      "Desc": "Converts the categorical value into an indicator array by hashing the value and using the hash as an index in the bag. If the input column is a vector, a single indicator bag is returned for it.",
       "FriendlyName": "Categorical Hash Transform",
       "ShortName": null,
       "Inputs": [
@@ -16125,7 +16125,7 @@
     },
     {
       "Name": "Transforms.CategoricalOneHotVectorizer",
-      "Desc": "Encodes the categorical variable with one-hot encoding based on term dictionary",
+      "Desc": "Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array.",
       "FriendlyName": "Categorical Transform",
       "ShortName": null,
       "Inputs": [
@@ -19875,7 +19875,7 @@
     },
     {
       "Name": "Transforms.PcaCalculator",
-      "Desc": "Train an PCA Anomaly model.",
+      "Desc": "PCA is a dimensionality-reduction transform which computes the projection of a numeric vector onto a low-rank subspace.",
       "FriendlyName": "Principal Component Analysis Transform",
       "ShortName": "Pca",
       "Inputs": [
