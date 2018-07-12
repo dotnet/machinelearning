@@ -98,17 +98,6 @@ namespace Microsoft.ML.Runtime.Data
 
         public override bool CanShuffle { get { return Source.CanShuffle; } }
 
-        /// <summary>
-        /// Convenience constructor for public facing API.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="column">Name of the column to produce.</param>
-        public ProduceIdTransform(IHostEnvironment env, IDataView input, string column = Defaults.Column)
-            : this(env, new Arguments() { Column = column }, input)
-        {
-        }
-
         public ProduceIdTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, LoaderSignature, input)
         {

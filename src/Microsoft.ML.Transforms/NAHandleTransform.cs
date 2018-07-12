@@ -34,12 +34,30 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public static class NAHandleTransform
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public enum ReplacementKind
         {
+            /// <summary>
+            /// Replace with the default value of the column based on it's type. For example, 'zero' for numeric and 'empty' for string/text columns.
+            /// </summary>
             [EnumValueDisplay("Zero/empty")]
             DefaultValue,
+
+            /// <summary>
+            /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
             Mean,
+
+            /// <summary>
+            /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
             Minimum,
+
+            /// <summary>
+            /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
             Maximum,
 
             [HideEnumValue]

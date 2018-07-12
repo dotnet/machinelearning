@@ -61,10 +61,24 @@ namespace Microsoft.ML.Runtime.Data
                 loaderSignature: LoaderSignature);
         }
 
+        /// <summary>
+        /// Controls the number of output rows produced by the <see cref="UngroupTransform"/> transform
+        /// </summary>
         public enum UngroupMode
         {
+            /// <summary>
+            /// A number of output rows are equal to the minimum length of pivot columns
+            /// </summary>
             Inner,
+
+            /// <summary>
+            /// A number of output rows are equal to the maximum length of pivot columns
+            /// </summary>
             Outer,
+
+            /// <summary>
+            /// A number of output rows are equal to the length of the first pivot column.
+            /// </summary>
             First
         }
 

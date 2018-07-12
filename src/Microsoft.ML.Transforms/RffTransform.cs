@@ -243,17 +243,15 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="newDim">The number of random Fourier features to create.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="newDim">The number of random Fourier features to create.</param>
-        /// <param name="useSin">create two features for every random Fourier frequency? (one for cos and one for sin).</param>
         public RffTransform(IHostEnvironment env,
             IDataView input,
+            int newDim,
             string name,
-            string source = null,
-            int newDim = Defaults.NewDim,
-            bool useSin = Defaults.UseSin)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, NewDim = newDim, UseSin = useSin }, input)
+            string source = null)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, NewDim = newDim }, input)
         {
         }
 

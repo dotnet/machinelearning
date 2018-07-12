@@ -62,7 +62,7 @@ namespace Microsoft.ML.Runtime.Data
         internal static string RegistrationName = "MutualInformationFeatureSelectionTransform";
 
         /// <summary>
-        /// A helper method to create <see cref="MutualInformationFeatureSelectionTransform"/> for public facing API.
+        /// A helper method to create <see cref="IDataTransform"/> for selecting the top k slots ordered by their mutual information.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
