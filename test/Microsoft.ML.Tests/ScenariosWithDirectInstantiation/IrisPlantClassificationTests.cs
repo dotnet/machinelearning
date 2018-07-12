@@ -70,7 +70,7 @@ namespace Microsoft.ML.Scenarios
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features");
 
                 // Train
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments());
+                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { NumThreads = 1 } );
 
                 // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
                 var cached = new CacheDataView(env, trans, prefetch: null);
