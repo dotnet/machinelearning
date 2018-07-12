@@ -182,24 +182,6 @@ namespace Microsoft.ML.Runtime.Sweeper
             return configs;
         }
 
-        private ParameterSet[] TreeOrderedCandidatesSearch(FastForestRegressionPredictor forest, int numOfCandidates, IEnumerable<IRunResult> previousRuns)
-        {
-            // Step 1: Get ordered list of all leaf values.
-            SortedList<double, Tuple<int, int>> leafValueList = new SortedList<double, Tuple<int, int>>(Comparer<double>.Create((x, y) => y.CompareTo(x)));
-            for (int i = 0; i < forest.TrainedEnsemble.NumTrees; i++)
-            {
-                RegressionTree t = forest.TrainedEnsemble.GetTreeAt(i);
-                for (int j = 0; j < t.NumLeaves; j++)
-                {
-                    double val = t.LeafValue(j);
-                    while (leafValueList.ContainsKey(val))
-                        val += Double.Epsilon;
-                    leafValueList.Add(val, Tuple.Create(i, j));
-                }
-            }
-            return null;
-        }
-
         /// <summary>
         /// Does a mix of greedy local search around best performing parameter sets, while throwing random parameter sets into the mix.
         /// </summary>
