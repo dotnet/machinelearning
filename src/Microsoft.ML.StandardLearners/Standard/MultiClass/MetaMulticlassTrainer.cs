@@ -98,7 +98,7 @@ namespace Microsoft.ML.Runtime.Learners
         public override TPred Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            var data = context.Train;
+            var data = context.TrainingSet;
 
             data.CheckFeatureFloatVector();
 

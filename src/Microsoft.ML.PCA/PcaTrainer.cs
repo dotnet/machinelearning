@@ -101,11 +101,11 @@ namespace Microsoft.ML.Runtime.PCA
         {
             Host.CheckValue(context, nameof(context));
 
-            context.Train.CheckFeatureFloatVector(out int dimension);
+            context.TrainingSet.CheckFeatureFloatVector(out int dimension);
 
             using (var ch = Host.Start("Training"))
             {
-                var pred = TrainCore(ch, context.Train, dimension);
+                var pred = TrainCore(ch, context.TrainingSet, dimension);
                 ch.Done();
                 return pred;
             }

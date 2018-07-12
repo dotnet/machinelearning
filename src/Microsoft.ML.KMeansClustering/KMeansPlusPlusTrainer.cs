@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.KMeans
         public override KMeansPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            var data = context.Train;
+            var data = context.TrainingSet;
 
             data.CheckFeatureFloatVector(out int dimensionality);
             Contracts.Assert(dimensionality > 0);

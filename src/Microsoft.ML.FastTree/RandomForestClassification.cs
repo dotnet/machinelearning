@@ -67,13 +67,13 @@ namespace Microsoft.ML.Runtime.FastTree
                 loaderSignature: LoaderSignature);
         }
 
-        protected override uint VerNumFeaturesSerialized { get { return 0x00010003; } }
+        protected override uint VerNumFeaturesSerialized => 0x00010003;
 
-        protected override uint VerDefaultValueSerialized { get { return 0x00010005; } }
+        protected override uint VerDefaultValueSerialized => 0x00010005;
 
-        protected override uint VerCategoricalSplitSerialized { get { return 0x00010006; } }
+        protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         internal FastForestClassificationPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount,
             string innerArgs)
@@ -140,8 +140,8 @@ namespace Microsoft.ML.Runtime.FastTree
         public override IPredictorWithFeatureWeights<Float> Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            var trainData = context.Train;
-            ValidData = context.Validation;
+            var trainData = context.TrainingSet;
+            ValidData = context.ValidationSet;
 
             using (var ch = Host.Start("Training"))
             {

@@ -59,7 +59,7 @@ It also assumes that the features are strictly independent.
         public override MultiClassNaiveBayesPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            var data = context.Train;
+            var data = context.TrainingSet;
             Host.Check(data.Schema.Label != null, "Missing Label column");
             Host.Check(data.Schema.Label.Type == NumberType.Float || data.Schema.Label.Type is KeyType,
                 "Invalid type for Label column, only floats and known-size keys are supported");

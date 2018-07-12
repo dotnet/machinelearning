@@ -217,7 +217,7 @@ namespace Microsoft.ML.Runtime.Learners
         public override PriorPredictor Train(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
-            var data = context.Train;
+            var data = context.TrainingSet;
             data.CheckBinaryLabel();
             Contracts.CheckParam(data.Schema.Label != null, nameof(data), "Missing Label column");
             Contracts.CheckParam(data.Schema.Label.Type == NumberType.Float, nameof(data), "Invalid type for Label column");

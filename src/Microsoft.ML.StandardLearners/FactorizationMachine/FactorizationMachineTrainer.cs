@@ -356,7 +356,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             using (var ch = Host.Start("Training"))
             using (var pch = Host.StartProgressChannel("Training"))
             {
-                var pred = TrainCore(ch, pch, context.Train, context.Validation, initPredictor);
+                var pred = TrainCore(ch, pch, context.TrainingSet, context.ValidationSet, initPredictor);
                 ch.Done();
                 return pred;
             }

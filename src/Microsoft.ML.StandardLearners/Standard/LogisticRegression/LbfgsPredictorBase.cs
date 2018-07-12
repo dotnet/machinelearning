@@ -303,8 +303,8 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Contracts.CheckValue(context, nameof(context));
 
-            var data = context.Train;
-            _srcPredictor = context.Train as TPredictor;
+            var data = context.TrainingSet;
+            _srcPredictor = context.TrainingSet as TPredictor;
             data.CheckFeatureFloatVector(out NumFeatures);
             CheckLabel(data);
             data.CheckOptFloatWeight();

@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.Learners
             TPredictor pred;
             using (var ch = Host.Start("Training"))
             {
-                var preparedData = PrepareDataFromTrainingExamples(ch, context.Train, out int weightSetCount);
+                var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
                 var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
                 linInitPred = linInitPred ?? initPred as LinearPredictor;

@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.Learners
             var initPredictor = context.InitialPredictor;
             var initLinearPred = initPredictor as LinearPredictor ?? (initPredictor as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
             Host.CheckParam(initPredictor == null || initLinearPred != null, nameof(context), "Not a linear predictor.");
-            var data = context.Train;
+            var data = context.TrainingSet;
 
             data.CheckFeatureFloatVector(out int numFeatures);
             CheckLabel(data);

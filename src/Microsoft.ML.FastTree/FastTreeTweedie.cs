@@ -42,12 +42,9 @@ namespace Microsoft.ML.Runtime.FastTree
         private Test _trainRegressionTest;
         private Test _testRegressionTest;
 
-        public override bool NeedCalibration
-        {
-            get { return false; }
-        }
+        public override bool NeedCalibration => false;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         public FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)
             : base(env, args)
@@ -58,8 +55,8 @@ namespace Microsoft.ML.Runtime.FastTree
         public override FastTreeTweediePredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            var trainData = context.Train;
-            ValidData = context.Validation;
+            var trainData = context.TrainingSet;
+            ValidData = context.ValidationSet;
 
             using (var ch = Host.Start("Training"))
             {
@@ -407,11 +404,11 @@ namespace Microsoft.ML.Runtime.FastTree
                 loaderSignature: LoaderSignature);
         }
 
-        protected override uint VerNumFeaturesSerialized { get { return 0x00010001; } }
+        protected override uint VerNumFeaturesSerialized => 0x00010001;
 
-        protected override uint VerDefaultValueSerialized { get { return 0x00010002; } }
+        protected override uint VerDefaultValueSerialized => 0x00010002;
 
-        protected override uint VerCategoricalSplitSerialized { get { return 0x00010003; } }
+        protected override uint VerCategoricalSplitSerialized => 0x00010003;
 
         internal FastTreeTweediePredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -450,7 +447,7 @@ namespace Microsoft.ML.Runtime.FastTree
             dst = MathUtils.ExpSlow(dst);
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
     }
 
     public static partial class FastTree

@@ -267,8 +267,8 @@ namespace Microsoft.ML.Runtime.FastTree
             using (var ch = Host.Start("Training"))
             {
                 ch.CheckValue(context, nameof(context));
-                ConvertData(context.Train);
-                InputLength = context.Train.Schema.Feature.Type.ValueCount;
+                ConvertData(context.TrainingSet);
+                InputLength = context.TrainingSet.Schema.Feature.Type.ValueCount;
                 TrainCore(ch);
                 var pred = CreatePredictor();
                 ch.Done();

@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             using (var ch = Host.Start("Training"))
             {
-                var pred = TrainCore(ch, context.Train);
+                var pred = TrainCore(ch, context.TrainingSet);
                 ch.Done();
                 return pred;
             }

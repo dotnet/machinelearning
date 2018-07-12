@@ -90,7 +90,7 @@ By minimizing the squares of the difference between observed values and the pred
             using (var ch = Host.Start("Training"))
             {
                 ch.CheckValue(context, nameof(context));
-                var examples = context.Train;
+                var examples = context.TrainingSet;
                 ch.CheckParam(examples.Schema.Feature != null, nameof(examples), "Need a feature column");
                 ch.CheckParam(examples.Schema.Label != null, nameof(examples), "Need a label column");
 

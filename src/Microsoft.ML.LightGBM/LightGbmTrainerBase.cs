@@ -81,9 +81,9 @@ namespace Microsoft.ML.Runtime.LightGBM
                 {
                     using (var pch = Host.StartProgressChannel("Loading data for LightGBM"))
                     {
-                        dtrain = LoadTrainingData(ch, context.Train, out catMetaData);
-                        if (context.Validation != null)
-                            dvalid = LoadValidationData(ch, dtrain, context.Validation, catMetaData);
+                        dtrain = LoadTrainingData(ch, context.TrainingSet, out catMetaData);
+                        if (context.ValidationSet != null)
+                            dvalid = LoadValidationData(ch, dtrain, context.ValidationSet, catMetaData);
                     }
                     ch.Done();
                 }
