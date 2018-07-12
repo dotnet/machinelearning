@@ -37,28 +37,28 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output datasets from previous iteration of sweep.", SortOrder = 7, Hide = true)]
             public IDataView[] CandidateOutputs;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Label'", SortOrder = 8)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Label'", SortOrder = 8)]
             public string[] LabelColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'GroupId'", SortOrder = 9)]
-            public string[] GroupIdColumns;
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Group'", SortOrder = 9)]
+            public string[] GroupColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Weight'", SortOrder = 10)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Weight'", SortOrder = 10)]
             public string[] WeightColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'Name'", SortOrder = 11)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Name'", SortOrder = 11)]
             public string[] NameColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'NumericFeature'", SortOrder = 12)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'NumericFeature'", SortOrder = 12)]
             public string[] NumericFeatureColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'CategoricalFeature'", SortOrder = 13)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'CategoricalFeature'", SortOrder = 13)]
             public string[] CategoricalFeatureColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'TextFeature'", SortOrder = 14)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'TextFeature'", SortOrder = 14)]
             public string[] TextFeatureColumns;
 
-            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as purpose 'ImagePath'", SortOrder = 15)]
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'ImagePath'", SortOrder = 15)]
             public string[] ImagePathColumns;
         }
 
@@ -122,10 +122,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 roles.Add(RoleMappedSchema.ColumnRole.Label.Bind(input.LabelColumns[0]));
             }
 
-            if (input.GroupIdColumns != null)
+            if (input.GroupColumns != null)
             {
-                env.Check(input.GroupIdColumns.Length == 1, "GroupIdColumns expected one column name to be specified.");
-                roles.Add(RoleMappedSchema.ColumnRole.Group.Bind(input.GroupIdColumns[0]));
+                env.Check(input.GroupColumns.Length == 1, "GroupColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Group.Bind(input.GroupColumns[0]));
             }
 
             if (input.WeightColumns != null)

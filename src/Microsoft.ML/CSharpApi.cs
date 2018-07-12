@@ -3421,42 +3421,42 @@ namespace Microsoft.ML
             public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> CandidateOutputs { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
 
             /// <summary>
-            /// Column(s) to use as purpose 'Label'
+            /// Column(s) to use as Role 'Label'
             /// </summary>
             public string[] LabelColumns { get; set; }
 
             /// <summary>
-            /// Column(s) to use as purpose 'GroupId'
+            /// Column(s) to use as Role 'Group'
             /// </summary>
-            public string[] GroupIdColumns { get; set; }
+            public string[] GroupColumns { get; set; }
 
             /// <summary>
-            /// Column(s) to use as purpose 'Weight'
+            /// Column(s) to use as Role 'Weight'
             /// </summary>
             public string[] WeightColumns { get; set; }
 
             /// <summary>
-            /// Column(s) to use as purpose 'Name'
+            /// Column(s) to use as Role 'Name'
             /// </summary>
             public string[] NameColumns { get; set; }
 
             /// <summary>
-            /// Column(s) to use as purpose 'NumericFeature'
+            /// Column(s) to use as Role 'NumericFeature'
             /// </summary>
             public string[] NumericFeatureColumns { get; set; }
 
             /// <summary>
-            /// Column(s) to use as purpose 'CategoricalFeature'
+            /// Column(s) to use as Role 'CategoricalFeature'
             /// </summary>
             public string[] CategoricalFeatureColumns { get; set; }
 
             /// <summary>
-            /// Column(s) to use as purpose 'TextFeature'
+            /// Column(s) to use as Role 'TextFeature'
             /// </summary>
             public string[] TextFeatureColumns { get; set; }
 
             /// <summary>
-            /// Column(s) to use as purpose 'ImagePath'
+            /// Column(s) to use as Role 'ImagePath'
             /// </summary>
             public string[] ImagePathColumns { get; set; }
 

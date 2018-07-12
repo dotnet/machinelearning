@@ -417,7 +417,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             {
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, Arguments inferenceArgs, IChannel ch)
                 {
-                    var firstGroupColId = Array.FindIndex(columns, x => x.Purpose == ColumnPurpose.GroupId);
+                    var firstGroupColId = Array.FindIndex(columns, x => x.Purpose == ColumnPurpose.Group);
                     if (firstGroupColId < 0)
                         yield break;
 

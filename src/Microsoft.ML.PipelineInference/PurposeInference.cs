@@ -147,9 +147,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         else if (Regex.IsMatch(column.ColumnName, @"^m_rating$", RegexOptions.IgnoreCase))
                             column.SuggestedPurpose = ColumnPurpose.Label;
                         else if (Regex.IsMatch(column.ColumnName, @"^m_queryid$", RegexOptions.IgnoreCase))
-                            column.SuggestedPurpose = ColumnPurpose.GroupId;
-                        else if (Regex.IsMatch(column.ColumnName, @"groupid", RegexOptions.IgnoreCase))
-                            column.SuggestedPurpose = ColumnPurpose.GroupId;
+                            column.SuggestedPurpose = ColumnPurpose.Group;
+                        else if (Regex.IsMatch(column.ColumnName, @"group", RegexOptions.IgnoreCase))
+                            column.SuggestedPurpose = ColumnPurpose.Group;
                         else if (Regex.IsMatch(column.ColumnName, @"^m_\w+id$", RegexOptions.IgnoreCase))
                             column.SuggestedPurpose = ColumnPurpose.Name;
                         else if (Regex.IsMatch(column.ColumnName, @"^id$", RegexOptions.IgnoreCase))
