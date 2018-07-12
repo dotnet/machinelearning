@@ -205,7 +205,6 @@ namespace Microsoft.ML.Runtime.PipelineInference
             private IDataView _transformedData;
             private ITerminator _terminator;
             private string[] _requestedLearners;
-            private int _pipelineId;
             private TransformInference.SuggestedTransform[] _availableTransforms;
             private RecipeInference.SuggestedRecipe.SuggestedLearner[] _availableLearners;
             private DependencyMap _dependencyMapping;
@@ -546,11 +545,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 {
                     foreach (var pipeline in BatchCandidates)
                     {
-                        ch.Info($"AutoInference Pipeline : {_pipelineId++}");
-                        int transformK = 0;
+                        ch.Info($"AutoInference Pipeline Id : {pipeline.UniqueId}");
                         foreach (var transform in pipeline.Transforms)
                         {
-                            ch.Info($"AutoInference Transform {transformK++} : {transform.Transform}");
+                            ch.Info($"AutoInference Transform : {transform.Transform}");
                         }
                         ch.Info($"AutoInference Learner : {pipeline.Learner}");
                     }
