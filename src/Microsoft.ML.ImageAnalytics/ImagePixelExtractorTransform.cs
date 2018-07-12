@@ -21,7 +21,7 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    // REVIEW coeseanu: Rewrite as LambdaTransform to simplify.
+    // REVIEW: Rewrite as LambdaTransform to simplify.
     public sealed class ImagePixelExtractorTransform : OneToOneTransformBase
     {
         public class Column : OneToOneColumn
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use blue channel", ShortName = "blue")]
             public bool? UseBlue;
 
-            // REVIEW anro: Consider turning this into an enum that allows for pixel, line, or planar interleaving.
+            // REVIEW: Consider turning this into an enum that allows for pixel, line, or planar interleaving.
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to separate each channel or interleave in ARGB order", ShortName = "interleave")]
             public bool? InterleaveArgb;
 
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Runtime.Data
                 Host.Assert(type != null);
                 if (type.Height <= 0 || type.Width <= 0)
                 {
-                    // REVIEW shonk: Could support this case by making the destination column be variable sized.
+                    // REVIEW: Could support this case by making the destination column be variable sized.
                     // However, there's no mechanism to communicate the dimensions through with the pixel data.
                     string name = Source.Schema.GetColumnName(info.Source);
                     throw user ?
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Runtime.Data
                         return;
                     }
 
-                    Host.Check(src.PixelFormat== System.Drawing.Imaging.PixelFormat.Canonical);
+                    Host.Check(src.PixelFormat== System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                     Host.Check(src.Height == height && src.Width == width);
 
                     var values = dst.Values;

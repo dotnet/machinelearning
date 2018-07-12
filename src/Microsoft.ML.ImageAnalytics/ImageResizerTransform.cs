@@ -23,7 +23,7 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    // REVIEW coeseanu: Rewrite as LambdaTransform to simplify.
+    // REVIEW: Rewrite as LambdaTransform to simplify.
     public sealed class ImageResizerTransform : OneToOneTransformBase
     {
         public enum ResizingKind : byte
@@ -32,10 +32,16 @@ namespace Microsoft.ML.Runtime.Data
             IsoPad = 0,
 
             [TGUI(Label = "Isotropic with Cropping")]
-            IsoCrop = 1,
+            IsoCrop = 1
+        }
 
-            [TGUI(Label = "Anisotropic")]
-            Aniso = 2,
+        public enum Anchor : byte
+        {
+            Right = 0,
+            Left = 1,
+            Top = 2,
+            Bottom = 3,
+            Center = 4
         }
 
         public sealed class Column : OneToOneColumn
@@ -48,6 +54,9 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Resizing method", ShortName = "scale")]
             public ResizingKind? Resizing;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Anchor for cropping", ShortName = "anchor")]
+            public Anchor? CropAnchor;
 
             public static Column Parse(string str)
             {
@@ -62,7 +71,7 @@ namespace Microsoft.ML.Runtime.Data
             public bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (ImageWidth != null || ImageHeight != null || Resizing != null)
+                if (ImageWidth != null || ImageHeight != null || Resizing != null || CropAnchor != null)
                     return false;
                 return TryUnparseCore(sb);
             }
@@ -81,6 +90,9 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Resizing method", ShortName = "scale")]
             public ResizingKind Resizing = ResizingKind.IsoCrop;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Anchor for cropping", ShortName = "anchor")]
+            public Anchor CropAnchor = Anchor.Center;
         }
 
         /// <summary>
@@ -91,17 +103,20 @@ namespace Microsoft.ML.Runtime.Data
             public readonly int Width;
             public readonly int Height;
             public readonly ResizingKind Scale;
+            public readonly Anchor Anchor;
             public readonly ColumnType Type;
 
-            public ColInfoEx(int width, int height, ResizingKind scale)
+            public ColInfoEx(int width, int height, ResizingKind scale, Anchor anchor)
             {
                 Contracts.CheckUserArg(width > 0, nameof(Column.ImageWidth));
                 Contracts.CheckUserArg(height > 0, nameof(Column.ImageHeight));
                 Contracts.CheckUserArg(Enum.IsDefined(typeof(ResizingKind), scale), nameof(Column.Resizing));
+                Contracts.CheckUserArg(Enum.IsDefined(typeof(Anchor), anchor), nameof(Column.CropAnchor));
 
                 Width = width;
                 Height = height;
                 Scale = scale;
+                Anchor = anchor;
                 Type = new ImageType(Height, Width);
             }
         }
@@ -142,7 +157,8 @@ namespace Microsoft.ML.Runtime.Data
                 _exes[i] = new ColInfoEx(
                     item.ImageWidth ?? args.ImageWidth,
                     item.ImageHeight ?? args.ImageHeight,
-                    item.Resizing ?? args.Resizing);
+                    item.Resizing ?? args.Resizing,
+                    item.CropAnchor ?? args.CropAnchor);
             }
             Metadata.Seal();
         }
@@ -170,7 +186,9 @@ namespace Microsoft.ML.Runtime.Data
                 Host.CheckDecode(height > 0);
                 var scale = (ResizingKind)ctx.Reader.ReadByte();
                 Host.CheckDecode(Enum.IsDefined(typeof(ResizingKind), scale));
-                _exes[i] = new ColInfoEx(width, height, scale);
+                var anchor = (Anchor)ctx.Reader.ReadByte();
+                Host.CheckDecode(Enum.IsDefined(typeof(Anchor), anchor));
+                _exes[i] = new ColInfoEx(width, height, scale, anchor);
             }
             Metadata.Seal();
         }
@@ -218,6 +236,8 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.Writer.Write(ex.Height);
                 Host.Assert((ResizingKind)(byte)ex.Scale == ex.Scale);
                 ctx.Writer.Write((byte)ex.Scale);
+                Host.Assert((Anchor)(byte)ex.Anchor == ex.Anchor);
+                ctx.Writer.Write((byte)ex.Anchor);
             }
         }
 
@@ -247,8 +267,8 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 };
 
-            ValueGetter<Image> del =
-                (ref Image dst) =>
+            ValueGetter<Bitmap> del =
+                (ref Bitmap dst) =>
                 {
                     if (dst != null)
                         dst.Dispose();
@@ -256,49 +276,92 @@ namespace Microsoft.ML.Runtime.Data
                     getSrc(ref src);
                     if (src == null || src.Height <= 0 || src.Width <= 0)
                         return;
-
-                    int x = 0;
-                    int y = 0;
-                    int w = ex.Width;
-                    int h = ex.Height;
-                    bool pad = ex.Scale == ResizingKind.IsoPad;
-                    if (ex.Scale == ResizingKind.IsoPad || ex.Scale == ResizingKind.IsoCrop)
+                    if (src.Height == ex.Height && src.Width == ex.Width)
                     {
-                        long wh = (long)src.Height * ex.Height;
-                        long hw = (long)src.Width * ex.Width;
+                        dst = src;
+                        return;
+                    }
 
-                        if (pad == (wh > hw))
+                    int sourceWidth = src.Width;
+                    int sourceHeight = src.Height;
+                    int sourceX = 0;
+                    int sourceY = 0;
+                    int destX = 0;
+                    int destY = 0;
+                    int destWidth = 0;
+                    int destHeight = 0;
+                    float aspect = 0;
+                    float widthAspect = 0;
+                    float heightAspect = 0;
+
+                    widthAspect = (float)ex.Width / sourceWidth;
+                    heightAspect = (float)ex.Height / sourceHeight;
+
+                    if (ex.Scale == ResizingKind.IsoPad)
+                    {
+                        widthAspect = (float)ex.Width / sourceWidth;
+                        heightAspect = (float)ex.Height / sourceHeight;
+                        if (heightAspect < widthAspect)
                         {
-                            h = checked((int)(hw / src.Height));
-                            y = (ex.Height - h) / 2;
+                            aspect = heightAspect;
+                            destX = (int)((ex.Width - (sourceWidth * aspect)) / 2);
                         }
                         else
                         {
-                            w = checked((int)(wh / src.Width));
-                            x = (ex.Width - w) / 2;
+                            aspect = widthAspect;
+                            destY = (int)((ex.Height - (sourceHeight * aspect)) / 2);
                         }
 
-                        // If we're not padding, the rectangle should fill everything.
-                        Host.Assert(pad || x <= 0 && y <= 0 &&
-                            h >= ex.Height && w >= ex.Width);
-                    }
-                    // Draw the image.
-                    var srcRectangle = new Rectangle(0, 0, src.Width, src.Height);
-                    if (pad)
-                    {
-                        using (var g = Graphics.FromImage(src))
-                        {
-                            g.DrawImage(dst, srcRectangle, new Rectangle(x, y, w, h), GraphicsUnit.Pixel);
-                        }
+                        destWidth = (int)(sourceWidth * aspect);
+                        destHeight = (int)(sourceHeight * aspect);
                     }
                     else
                     {
-                        using (var g = Graphics.FromImage(src))
+                        if (heightAspect < widthAspect)
                         {
-                            g.DrawImage(dst, srcRectangle, new Rectangle(-x, -y, ex.Width, ex.Height), GraphicsUnit.Pixel);
+                            aspect = widthAspect;
+                            switch (ex.Anchor)
+                            {
+                                case Anchor.Top:
+                                    destY = 0;
+                                    break;
+                                case Anchor.Bottom:
+                                    destY = (int)(ex.Height - (sourceHeight * aspect));
+                                    break;
+                                default:
+                                    destY = (int)((ex.Height - (sourceHeight * aspect)) / 2);
+                                    break;
+                            }
                         }
-                    }
+                        else
+                        {
+                            aspect = heightAspect;
+                            switch (ex.Anchor)
+                            {
+                                case Anchor.Left:
+                                    destX = 0;
+                                    break;
+                                case Anchor.Right:
+                                    destX = (int)(ex.Width - (sourceWidth * aspect));
+                                    break;
+                                default:
+                                    destX = (int)((ex.Width - (sourceWidth * aspect)) / 2);
+                                    break;
+                            }
+                        }
 
+                        destWidth = (int)(sourceWidth * aspect);
+                        destHeight = (int)(sourceHeight * aspect);
+                    }
+                    dst = new Bitmap(ex.Width, ex.Height);
+                    dst.SetResolution(src.VerticalResolution, src.VerticalResolution);
+
+                    var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
+                    var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
+                    using (var g = Graphics.FromImage(dst))
+                    {
+                        g.DrawImage(src, destRectangle, srcRectangle, GraphicsUnit.Pixel);
+                    }
                     Host.Assert(dst.Width == ex.Width && dst.Height == ex.Height);
                 };
 

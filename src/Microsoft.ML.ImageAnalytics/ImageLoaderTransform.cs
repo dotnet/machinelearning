@@ -4,6 +4,7 @@
 
 using System;
 using System.Drawing;
+using System.IO;
 using System.Text;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime;
@@ -12,7 +13,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-
 
 [assembly: LoadableClass(ImageLoaderTransform.Summary, typeof(ImageLoaderTransform), typeof(ImageLoaderTransform.Arguments), typeof(SignatureDataTransform),
     ImageLoaderTransform.UserName, "ImageLoaderTransform", "ImageLoader")]
@@ -49,6 +49,9 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
                 ShortName = "col", SortOrder = 1)]
             public Column[] Column;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Image folder", ShortName = "folder")]
+            public string ImageFolder;
         }
 
         internal const string Summary = "Loads an image from a file.";
@@ -66,6 +69,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly ImageType _type;
+        private string _imageFolder;
 
         private const string RegistrationName = "ImageLoader";
 
@@ -76,6 +80,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column, input, TestIsText)
         {
             Host.AssertNonEmpty(Infos);
+            _imageFolder = args.ImageFolder;
             Host.Assert(Infos.Length == Utils.Size(args.Column));
             _type = new ImageType();
             Metadata.Seal();
@@ -88,6 +93,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // *** Binary format ***
             // <base>
+            _imageFolder = ctx.Reader.ReadString();
             _type = new ImageType();
             Metadata.Seal();
         }
@@ -110,6 +116,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // *** Binary format ***
             // <base>
+            ctx.Writer.Write(_imageFolder);
             SaveBase(ctx);
         }
 
@@ -144,16 +151,19 @@ namespace Microsoft.ML.Runtime.Data
                         // Catch exceptions and pass null through. Should also log failures...
                         try
                         {
-                            dst = new Bitmap(filename: src.ToString(), useIcm: false);
+                            string path = src.ToString();
+                            if (!string.IsNullOrWhiteSpace(_imageFolder))
+                                path = Path.Combine(_imageFolder, path);
+                            dst = new Bitmap(filename: path, useIcm: false);
                         }
                         catch (Exception e)
                         {
-                            // REVIEW shonk: We catch everything since the documentation for new Bitmap(string)
+                            // REVIEW: We catch everything since the documentation for new Bitmap(string)
                             // appears to be incorrect. When the file isn't found, it throws an ArgumentException,
                             // while the documentation says FileNotFoundException. Not sure what it will throw
                             // in other cases, like corrupted file, etc.
 
-                            // REVIEW shonk: Log failures.
+                            // REVIEW : Log failures.
                             ch.Info(e.Message);
                             ch.Info(e.StackTrace);
                             dst = null;
