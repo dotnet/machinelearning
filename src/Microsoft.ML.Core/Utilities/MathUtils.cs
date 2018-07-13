@@ -257,7 +257,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             if (count == 1)
                 return max;
-            
+
             double intermediate = 0.0;
             Float cutoff = max - LogTolerance;
 

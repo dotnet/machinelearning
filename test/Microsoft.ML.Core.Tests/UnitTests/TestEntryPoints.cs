@@ -201,6 +201,55 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        //[Fact]
+        //public void EntryPointSchemaManipulation()
+        //{
+        //    var dv1_data = new[]
+        //    {
+        //        new Dv1 { Col1 = 11, Col2 = 21, Col3 = 31, Col4 = 41 },
+        //        new Dv1 { Col1 = 12, Col2 = 22, Col3 = 32, Col4 = 42 },
+        //        new Dv1 { Col1 = 13, Col2 = 23, Col3 = 33, Col4 = 43 },
+        //    };
+        //    var dv1 = Env.CreateDataView(dv1_data);
+
+        //    var concatOut = SchemaManipulation.ConcatColumns(Env,
+        //        new ConcatTransform.Arguments { Column = new[] { ConcatTransform.Column.Parse("ColA:Col1,Col2") }, Data = dv1 });
+
+        //    var postConcatDv = Env.CreateTransform("Concat{col=ColA:Col1,Col2}", dv1);
+        //    CheckSameValues(concatOut.OutputData, postConcatDv);
+
+        //    var copyOut = SchemaManipulation.CopyColumns(Env,
+        //        new CopyColumnsTransform.Arguments
+        //        {
+        //            Column = new[] { CopyColumnsTransform.Column.Parse("ColB:Col3"), CopyColumnsTransform.Column.Parse("ColC:Col4") },
+        //            Data = concatOut.OutputData,
+        //        });
+
+        //    var postCopyDv = Env.CreateTransform("Copy{col=ColB:Col3 col=ColC:Col4}", postConcatDv);
+        //    CheckSameValues(copyOut.OutputData, postCopyDv);
+
+        //    var dropOut = SchemaManipulation.DropColumns(Env,
+        //        new DropColumnsTransform.Arguments { Column = new[] { "Col1", "Col2", "Col3", "Col4" }, Data = copyOut.OutputData });
+
+        //    var postDropDv = Env.CreateTransform("Drop{col=Col1 col=Col2 col=Col3 col=Col4}", postCopyDv);
+        //    CheckSameValues(dropOut.OutputData, postDropDv);
+
+        //    var selectOut = SchemaManipulation.SelectColumns(Env,
+        //        new DropColumnsTransform.KeepArguments { Column = new[] { "ColA", "ColB" }, Data = dropOut.OutputData });
+
+        //    var postSelectDv = Env.CreateTransform("Keep{col=ColA col=ColB}", postDropDv);
+
+        //    CheckSameValues(selectOut.OutputData, postSelectDv);
+
+        //    var combinedModel = ModelOperations.CombineTransformModels(Env,
+        //        new ModelOperations.CombineTransformModelsInput
+        //        {
+        //            Models = new[] { concatOut.Model, copyOut.Model, dropOut.Model, selectOut.Model }
+        //        }).OutputModel;
+        //    CheckSameValues(selectOut.OutputData, combinedModel.Apply(Env, dv1));
+        //    Done();
+        //}
+
         /// <summary>
         /// Helper function to get the type of build being used.
         /// </summary>
@@ -551,6 +600,63 @@ namespace Microsoft.ML.Runtime.RunTests
             cmd.Run();
         }
 
+        //[Fact]
+        //public void EntryPointArrayOfVariables()
+        //{
+        //    string inputGraph = @"
+        //        {
+        //          ""Nodes"": [
+        //            {
+        //              ""Name"": ""SchemaManipulation.ConcatColumns"",
+        //              ""Inputs"": {
+        //                ""Data"": ""$data1"",
+        //                ""Column"": [{""Name"":""ColA"", ""Source"":[""Col1"", ""Col2""]}]
+        //              },
+        //              ""Outputs"": {
+        //                ""Model"": ""$model1"",
+        //                ""OutputData"": ""$data2""
+        //              }
+        //            },
+        //            {
+        //              ""Name"": ""SchemaManipulation.CopyColumns"",
+        //              ""Inputs"": {
+        //                ""Data"": ""$data2"",
+        //                ""Column"": [{""Name"":""ColB"", ""Source"":""Col3""}, {""Name"":""ColC"", ""Source"":""Col4""}]
+        //              },
+        //              ""Outputs"": {
+        //                ""Model"": ""$model2"",
+        //                ""OutputData"": ""$data3""
+        //              }
+        //            },
+        //            {
+        //              ""Name"": ""ModelOperations.CombineTransformModels"",
+        //              ""Inputs"": {
+        //                Models: [""$model1"", ""$model2""]
+        //              },
+        //              ""Outputs"": {
+        //                OutputModel: ""$model3""
+        //              }
+        //            }
+        //          ]
+        //        }";
+
+        //    JObject graph = JObject.Parse(inputGraph);
+        //    var catalog = ModuleCatalog.CreateInstance(Env);
+        //    var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+
+        //    var dv1_data = new[]
+        //    {
+        //        new Dv1 { Col1 = 11, Col2 = 21, Col3 = 31, Col4 = 41 },
+        //        new Dv1 { Col1 = 12, Col2 = 22, Col3 = 32, Col4 = 42 },
+        //        new Dv1 { Col1 = 13, Col2 = 23, Col3 = 33, Col4 = 43 },
+        //    };
+        //    var dv1 = Env.CreateDataView(dv1_data);
+        //    runner.SetInput("data1", dv1);
+        //    runner.RunAll();
+        //    var model = runner.GetOutput<ITransformModel>("model3");
+        //    Assert.NotNull(model);
+        //}
+
         [Fact]
         public void EntryPointCalibrate()
         {
@@ -687,7 +793,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Data = splitOutput.TestData[nModels],
                     PredictorModel = regressionEnsembleModel
                 }).ScoredData;
-            
+
             var anomalyEnsembleModel = EntryPoints.EnsembleCreator.CreateAnomalyPipelineEnsemble(Env,
                 new EntryPoints.EnsembleCreator.PipelineAnomalyInput()
                 {
@@ -3318,7 +3424,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            
+
             var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
             {
                 Arguments =
