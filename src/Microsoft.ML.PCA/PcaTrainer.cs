@@ -74,6 +74,9 @@ namespace Microsoft.ML.Runtime.PCA
         private readonly bool _center;
         private readonly int _seed;
 
+        public override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
+        public override TrainerInfo Info { get; }
+
         public RandomizedPcaTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
@@ -81,20 +84,13 @@ namespace Microsoft.ML.Runtime.PCA
             Host.CheckUserArg(args.Rank > 0, nameof(args.Rank), "Rank must be positive");
             Host.CheckUserArg(args.Oversampling >= 0, nameof(args.Oversampling), "Oversampling must be non-negative");
 
+            // Two passes, only. Probably not worth caching.
+            Info = new TrainerInfo(caching: false);
             _rank = args.Rank;
             _center = args.Center;
             _oversampling = args.Oversampling;
             _seed = args.Seed ?? Host.Rand.Next();
         }
-
-        public override bool NeedNormalization => true;
-
-        public override bool NeedCalibration => false;
-
-        // Two passes, only. Probably not worth caching.
-        public override bool WantCaching => false;
-
-        public override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
 
         //Note: the notations used here are the same as in http://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
         public override PcaPredictor Train(TrainContext context)

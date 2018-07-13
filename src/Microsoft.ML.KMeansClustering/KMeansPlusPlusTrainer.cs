@@ -82,6 +82,9 @@ namespace Microsoft.ML.Runtime.KMeans
         private readonly InitAlgorithm _initAlgorithm;
         private readonly int _numThreads;
 
+        public override TrainerInfo Info { get; }
+        public override PredictionKind PredictionKind => PredictionKind.Clustering;
+
         public KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
@@ -104,12 +107,8 @@ namespace Microsoft.ML.Runtime.KMeans
             Host.CheckUserArg(!args.NumThreads.HasValue || args.NumThreads > 0, nameof(args.NumThreads),
                 "Must be either null or a positive integer.");
             _numThreads = ComputeNumThreads(Host, args.NumThreads);
+            Info = new TrainerInfo();
         }
-
-        public override bool NeedNormalization => true;
-        public override bool NeedCalibration => false;
-        public override bool WantCaching => true;
-        public override PredictionKind PredictionKind => PredictionKind.Clustering;
 
         public override KMeansPredictor Train(TrainContext context)
         {

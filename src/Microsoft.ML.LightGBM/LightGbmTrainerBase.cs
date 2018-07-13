@@ -51,10 +51,8 @@ namespace Microsoft.ML.Runtime.LightGBM
         private protected int FeatureCount;
         private protected FastTree.Internal.Ensemble TrainedEnsemble;
 
-        public override bool NeedNormalization => false;
-        public override bool NeedCalibration => false;
-        public override bool WantCaching => false;
-        public override bool SupportsValidation => true;
+        private static TrainerInfo _info = new TrainerInfo(normalization: false, caching: false, supportValid: true);
+        public override TrainerInfo Info => _info;
 
         private protected LightGbmTrainerBase(IHostEnvironment env, LightGbmArguments args, string name)
             : base(env, name)

@@ -74,9 +74,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        public override bool NeedNormalization => true;
-        public override bool NeedCalibration => false;
-        public override bool WantCaching => true;
+        public override TrainerInfo Info { get; }
         private readonly int _latentDim;
         private readonly int _latentDimAligned;
         private readonly float _lambdaLinear;
@@ -105,6 +103,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             _shuffle = args.Shuffle;
             _verbose = args.Verbose;
             _radius = args.Radius;
+            Info = new TrainerInfo();
         }
 
         private void InitializeTrainingState(int fieldCount, int featureCount, FieldAwareFactorizationMachinePredictor predictor, out float[] linearWeights,

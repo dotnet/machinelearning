@@ -158,8 +158,6 @@ namespace Microsoft.ML.Runtime.FastTree
         {
         }
 
-        public override bool NeedCalibration => false;
-
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         public override FastForestRegressionPredictor Train(TrainContext context)

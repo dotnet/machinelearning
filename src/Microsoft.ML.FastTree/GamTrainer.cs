@@ -107,7 +107,6 @@ namespace Microsoft.ML.Runtime.FastTree
         internal const string ShortName = "gam";
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        public override bool NeedCalibration => true;
 
         public BinaryClassificationGamTrainer(IHostEnvironment env, Arguments args)
             : base(env, args) { }
@@ -225,11 +224,7 @@ namespace Microsoft.ML.Runtime.FastTree
         protected double[][] BinEffects;
         protected int[] FeatureMap;
 
-        public override bool NeedCalibration => false;
-
-        public override bool NeedNormalization => false;
-
-        public override bool WantCaching => false;
+        public override TrainerInfo Info { get; }
 
         private protected GamTrainerBase(IHostEnvironment env, TArgs args)
             : base(env, RegisterName)
@@ -245,6 +240,7 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckParam(0 < args.NumIterations, nameof(args.NumIterations), "Must be positive.");
 
             Args = args;
+            Info = new TrainerInfo(normalization: false, calibration: this is BinaryClassificationGamTrainer, caching: false);
             _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
             _entropyCoefficient = Args.EntropyCoefficient * 1e-6;
             int numThreads = args.NumThreads ?? Environment.ProcessorCount;

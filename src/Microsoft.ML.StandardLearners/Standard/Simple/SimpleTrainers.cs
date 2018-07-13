@@ -54,15 +54,15 @@ namespace Microsoft.ML.Runtime.Learners
             public bool BooleanArg = false;
         }
 
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        public override TrainerInfo Info { get; }
+
         public RandomTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
+            Host.CheckValue(args, nameof(args));
+            Info = new TrainerInfo(normalization: false, caching: false);
         }
-
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        public override bool NeedNormalization => false;
-        public override bool NeedCalibration => false;
-        public override bool WantCaching => false;
 
         public override RandomPredictor Train(TrainContext context)
         {
@@ -205,13 +205,13 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        public override bool NeedNormalization => false;
-        public override bool NeedCalibration => false;
-        public override bool WantCaching => false;
+        public override TrainerInfo Info { get; }
 
         public PriorTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
+            Host.CheckValue(args, nameof(args));
+            Info = new TrainerInfo(normalization: false, caching: false);
         }
 
         public override PriorPredictor Train(TrainContext context)

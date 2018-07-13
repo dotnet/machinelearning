@@ -70,6 +70,10 @@ namespace Microsoft.ML.Runtime.Learners
         protected const string UserErrorPositive = "must be positive";
         protected const string UserErrorNonNegative = "must be non-negative";
 
+        public override TrainerInfo Info { get; }
+
+        protected virtual bool NeedCalibration => false;
+
         protected OnlineLinearTrainer(TArguments args, IHostEnvironment env, string name)
             : base(env, name)
         {
@@ -79,16 +83,12 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.CheckUserArg(args.StreamingCacheSize > 0, nameof(args.StreamingCacheSize), UserErrorPositive);
 
             Args = args;
+            // REVIEW: Caching could be false for one iteration, if we got around the whole shuffling issue.
+            Info = new TrainerInfo(calibration: NeedCalibration);
         }
 
-        public override bool NeedNormalization => true;
-
-        // REVIEW: This could return true if there are more than 0 iterations,
-        // if we got around the whole shuffling issue.
-        public override bool WantCaching => true;
-
         /// <summary>
-        /// Propagates the <c>_weightsScale </c> to the weights vector.
+        /// Propagates the <see cref="WeightsScale"/> to the <see cref="Weights"/> vector.
         /// </summary>
         protected void ScaleWeights()
         {
@@ -100,9 +100,9 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary>
-        /// Conditionally propagates the <c>_weightsScale</c> to the weights vector when
-        /// it reaches a scale where additions to weights would start dropping too much
-        /// precision. ("Too much" is mostly empirically defined.)
+        /// Conditionally propagates the <see cref="WeightsScale"/> to the <see cref="Weights"/> vector
+        /// when it reaches a scale where additions to weights would start dropping too much precision.
+        /// ("Too much" is mostly empirically defined.)
         /// </summary>
         protected void ScaleWeightsIfNeeded()
         {

@@ -60,6 +60,9 @@ By minimizing the squares of the difference between observed values and the pred
         private readonly Float _l2Weight;
         private readonly bool _perParameterSignificance;
 
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        public override TrainerInfo Info { get; }
+
         public OlsLinearRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
@@ -67,13 +70,9 @@ By minimizing the squares of the difference between observed values and the pred
             Host.CheckUserArg(args.L2Weight >= 0, nameof(args.L2Weight), "L2 regularization term cannot be negative");
             _l2Weight = args.L2Weight;
             _perParameterSignificance = args.PerParameterSignificance;
+            // Two passes, only. Probably not worth caching.
+            Info = new TrainerInfo(caching: false);
         }
-
-        public override bool NeedNormalization => true;
-        public override bool NeedCalibration => false;
-        // Two passes, only. Probably not worth caching.
-        public override bool WantCaching => false;
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// In several calculations, we calculate probabilities or other quantities that should range

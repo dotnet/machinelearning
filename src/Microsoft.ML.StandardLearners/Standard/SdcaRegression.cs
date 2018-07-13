@@ -53,8 +53,6 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public override bool NeedCalibration => false;
-
         public SdcaRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, LoadNameValue)
         {

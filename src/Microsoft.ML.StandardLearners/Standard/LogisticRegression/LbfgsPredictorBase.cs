@@ -132,6 +132,8 @@ namespace Microsoft.ML.Runtime.Learners
         private VBuffer<Float>[] _localGradients;
         private Float[] _localLosses;
 
+        public override TrainerInfo Info { get; }
+
         internal LbfgsTrainerBase(ArgumentsBase args, IHostEnvironment env, string name, bool showTrainingStats = false)
             : base(env, name)
         {
@@ -158,6 +160,9 @@ namespace Microsoft.ML.Runtime.Learners
             DenseOptimizer = args.DenseOptimizer;
             ShowTrainingStats = showTrainingStats;
             EnforceNonNegativity = args.EnforceNonNegativity;
+            // REVIEW: It's pointless to request caching when we're going to load everything into
+            // memory, that is, when using multiple threads. So should caching not be requested?
+            Info = new TrainerInfo(caching: true, supportIncrementalTrain: true);
 
             if (EnforceNonNegativity && ShowTrainingStats)
             {
@@ -170,17 +175,9 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public override bool NeedNormalization => true;
-
-        // REVIEW: It's pointless to request caching when we're going to load everything into
-        // memory, that is, when using multiple threads.
-        public override bool WantCaching => true;
-
         protected virtual int ClassCount => 1;
         protected int BiasCount => ClassCount;
         protected int WeightCount => ClassCount * NumFeatures;
-        public sealed override bool SupportsIncrementalTraining => true;
-
         protected virtual Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
             out VBuffer<Float> init, out ITerminationCriterion terminationCriterion)
         {

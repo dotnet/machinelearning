@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 var rmd = new RoleMappedData(view, DefaultColumnNames.Label, DefaultColumnNames.Features);
 
                 var trainer = BasePredictorType.CreateInstance(host);
-                if (trainer is ITrainerEx ex && ex.NeedNormalization)
+                if (trainer.Info.NeedNormalization)
                     ch.Warning("The trainer specified for stacking wants normalization, but we do not currently allow this.");
                 Meta = trainer.Train(rmd);
                 CheckMeta();

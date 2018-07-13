@@ -4,7 +4,7 @@
 
 namespace Microsoft.ML.Runtime.Training
 {
-    public abstract class TrainerBase<TPredictor> : ITrainer<TPredictor>, ITrainerEx
+    public abstract class TrainerBase<TPredictor> : ITrainer<TPredictor>
         where TPredictor : IPredictor
     {
         /// <summary>
@@ -17,12 +17,7 @@ namespace Microsoft.ML.Runtime.Training
 
         public string Name { get; }
         public abstract PredictionKind PredictionKind { get; }
-        public abstract bool NeedNormalization { get; }
-        public abstract bool NeedCalibration { get; }
-        public abstract bool WantCaching { get; }
-
-        public virtual bool SupportsValidation => false;
-        public virtual bool SupportsIncrementalTraining => false;
+        public abstract TrainerInfo Info { get; }
 
         protected TrainerBase(IHostEnvironment env, string name)
         {

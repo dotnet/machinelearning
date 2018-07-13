@@ -35,6 +35,12 @@ namespace Microsoft.ML.Runtime
     public interface ITrainer
     {
         /// <summary>
+        /// Auxiliary information about the trainer in terms of its capabilities
+        /// and requirements.
+        /// </summary>
+        TrainerInfo Info { get; }
+
+        /// <summary>
         /// Return the type of prediction task for the produced predictor.
         /// </summary>
         PredictionKind PredictionKind { get; }
@@ -87,51 +93,6 @@ namespace Microsoft.ML.Runtime
         /// <returns>The trained predictor</returns>
         public static TPredictor Train<TPredictor>(this ITrainer<TPredictor> trainer, RoleMappedData trainData) where TPredictor : IPredictor
             => trainer.Train(new TrainContext(trainData));
-    }
-
-    /// <summary>
-    /// Interface to provide extra information about a trainer.
-    /// </summary>
-    public interface ITrainerEx : ITrainer
-    {
-        // REVIEW: Ideally trainers should be able to communicate
-        // something about the type of data they are capable of being trained
-        // on, e.g., what ColumnKinds they want, how many of each, of what type,
-        // etc. This interface seems like the most natural conduit for that sort
-        // of extra information.
-
-        // REVIEW: Can we please have consistent naming here?
-        // 'Need' vs. 'Want' looks arbitrary to me, and it's grammatically more correct to
-        // be 'Needs' / 'Wants' anyway.
-
-        /// <summary>
-        /// Whether the trainer needs to see data in normalized form.
-        /// </summary>
-        bool NeedNormalization { get; }
-
-        /// <summary>
-        /// Whether the trainer needs calibration to produce probabilities.
-        /// </summary>
-        bool NeedCalibration { get; }
-
-        /// <summary>
-        /// Whether this trainer could benefit from a cached view of the data.
-        /// </summary>
-        bool WantCaching { get; }
-
-        /// <summary>
-        /// Whether the trainer supports validation sets via <see cref="TrainContext.ValidationSet"/>.
-        /// Not implementing this interface and returning <c>true</c> from this property is an indication
-        /// the trainer does not support that.
-        /// </summary>
-        bool SupportsValidation { get; }
-
-        /// <summary>
-        /// Whether the trainer can support incremental trainers via <see cref="TrainContext.InitialPredictor"/>.
-        /// Not implementing this interface and returning <c>true</c> from this property is an indication
-        /// the trainer does not support that.
-        /// </summary>
-        bool SupportsIncrementalTraining { get; }
     }
 
     // A trainer can optionally implement this to indicate it can combine multiple models into a single predictor.

@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Learners
 
     // SDCA linear multiclass trainer.
     /// <include file='./doc.xml' path='docs/members/member[@name="SDCA"]/*' />
-    public class SdcaMultiClassTrainer : SdcaTrainerBase<TVectorPredictor>, ITrainerEx
+    public class SdcaMultiClassTrainer : SdcaTrainerBase<TVectorPredictor>
     {
         public const string LoadNameValue = "SDCAMC";
         public const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
@@ -47,8 +47,6 @@ namespace Microsoft.ML.Runtime.Learners
         private readonly Arguments _args;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-
-        public override bool NeedCalibration => false;
 
         public SdcaMultiClassTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, LoadNameValue)

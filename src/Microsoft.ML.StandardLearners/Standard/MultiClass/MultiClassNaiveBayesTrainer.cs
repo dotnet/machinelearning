@@ -45,15 +45,13 @@ It also assumes that the features are strictly independent.
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        public override bool NeedNormalization => false;
-
-        public override bool NeedCalibration => false;
-
-        public override bool WantCaching => false;
+        public override TrainerInfo Info { get; }
 
         public MultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadName)
         {
+            Host.CheckValue(args, nameof(args));
+            Info = new TrainerInfo(normalization: false, caching: false);
         }
 
         public override MultiClassNaiveBayesPredictor Train(TrainContext context)

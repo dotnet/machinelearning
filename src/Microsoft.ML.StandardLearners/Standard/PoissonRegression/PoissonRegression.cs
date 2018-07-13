@@ -45,8 +45,6 @@ namespace Microsoft.ML.Runtime.Learners
         {
         }
 
-        public override bool NeedCalibration => false;
-
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         protected override void CheckLabel(RoleMappedData data)

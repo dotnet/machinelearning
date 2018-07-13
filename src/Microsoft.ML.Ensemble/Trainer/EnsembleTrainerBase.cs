@@ -69,6 +69,8 @@ namespace Microsoft.ML.Runtime.Ensemble
         private protected ISubModelSelector<TOutput> SubModelSelector;
         private protected IOutputCombiner<TOutput> Combiner;
 
+        public override TrainerInfo Info { get; }
+
         private protected EnsembleTrainerBase(ArgumentsBase args, IHostEnvironment env, string name)
             : base(env, name)
         {
@@ -91,19 +93,14 @@ namespace Microsoft.ML.Runtime.Ensemble
                 Trainers = new ITrainer<IPredictorProducing<TOutput>>[NumModels];
                 for (int i = 0; i < Trainers.Length; i++)
                     Trainers[i] = Args.BasePredictors[i % Args.BasePredictors.Length].CreateInstance(Host);
-                NeedNormalization = Trainers.Any(t => t is ITrainerEx nn && nn.NeedNormalization);
-                NeedCalibration = Trainers.Any(t => t is ITrainerEx nn && nn.NeedCalibration);
+                // We infer normalization and calibration preferences from the trainers. However, even if the internal trainers
+                // don't need caching we are performing multiple passes over the data, so it is probably appropriate to always cache.
+                Info = new TrainerInfo(
+                    normalization: Trainers.Any(t => t.Info.NeedNormalization),
+                    calibration: Trainers.Any(t => t.Info.NeedCalibration));
                 ch.Done();
             }
         }
-
-        public override bool NeedNormalization { get; }
-
-        public override bool NeedCalibration { get; }
-
-        // No matter the internal predictors, we are performing multiple passes over the data
-        // so it is probably appropriate to always cache.
-        public override bool WantCaching => true;
 
         public sealed override TPredictor Train(TrainContext context)
         {

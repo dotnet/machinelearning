@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.Data
             RoleMappedData validData = null;
             if (!string.IsNullOrWhiteSpace(Args.ValidationFile))
             {
-                if (!TrainUtils.CanUseValidationData(trainer))
+                if (!trainer.Info.SupportsValidation)
                 {
                     ch.Warning("Ignoring validationFile: Trainer does not accept validation dataset.");
                 }
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static IPredictor TrainCore(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name, RoleMappedData validData,
-            ICalibratorTrainer calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inpPredictor = null)
+            ICalibratorTrainer calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
@@ -250,29 +250,22 @@ namespace Microsoft.ML.Runtime.Data
             ch.CheckValue(trainer, nameof(trainer));
             ch.CheckNonEmpty(name, nameof(name));
             ch.CheckValueOrNull(validData);
-            ch.CheckValueOrNull(inpPredictor);
+            ch.CheckValueOrNull(inputPredictor);
 
             AddCacheIfWanted(env, ch, trainer, ref data, cacheData);
             ch.Trace("Training");
             if (validData != null)
                 AddCacheIfWanted(env, ch, trainer, ref validData, cacheData);
 
-            var trainerEx = trainer as ITrainerEx;
-            if (inpPredictor != null && trainerEx?.SupportsIncrementalTraining != true)
+            if (inputPredictor != null && !trainer.Info.SupportsIncrementalTraining)
             {
                 ch.Warning("Ignoring " + nameof(TrainCommand.Arguments.InputModelFile) +
                     ": Trainer does not support incremental training.");
-                inpPredictor = null;
+                inputPredictor = null;
             }
-            ch.Assert(validData == null || CanUseValidationData(trainer));
-            var predictor = trainer.Train(new TrainContext(data, validData, inpPredictor));
+            ch.Assert(validData == null || trainer.Info.SupportsValidation);
+            var predictor = trainer.Train(new TrainContext(data, validData, inputPredictor));
             return CalibratorUtils.TrainCalibratorIfNeeded(env, ch, calibrator, maxCalibrationExamples, trainer, predictor, data);
-        }
-
-        public static bool CanUseValidationData(ITrainer trainer)
-        {
-            Contracts.CheckValue(trainer, nameof(trainer));
-            return (trainer as ITrainerEx)?.SupportsValidation ?? false;
         }
 
         public static bool TryLoadPredictor(IChannel ch, IHostEnvironment env, string inputModelFile, out IPredictor inputPredictor)
@@ -388,9 +381,8 @@ namespace Microsoft.ML.Runtime.Data
             IDataView pipeStart;
             var xfs = BacktrackPipe(dataPipe, out pipeStart);
 
-            IDataLoader loader;
             Action<ModelSaveContext> saveAction;
-            if (!blankLoader && (loader = pipeStart as IDataLoader) != null)
+            if (!blankLoader && pipeStart is IDataLoader loader)
                 saveAction = loader.Save;
             else
             {
@@ -460,7 +452,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (autoNorm != NormalizeOption.Yes)
                 {
                     DvBool isNormalized = DvBool.False;
-                    if (trainer.NeedNormalization() != true || schema.IsNormalized(featCol))
+                    if (!trainer.Info.NeedNormalization || schema.IsNormalized(featCol))
                     {
                         ch.Info("Not adding a normalizer.");
                         return false;
@@ -491,8 +483,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.AssertValue(trainer, nameof(trainer));
             ch.AssertValue(data, nameof(data));
 
-            ITrainerEx trainerEx = trainer as ITrainerEx;
-            bool shouldCache = cacheData ?? (!(data.Data is BinaryLoader) && (trainerEx == null || trainerEx.WantCaching));
+            bool shouldCache = cacheData ?? !(data.Data is BinaryLoader) && trainer.Info.WantCaching;
 
             if (shouldCache)
             {

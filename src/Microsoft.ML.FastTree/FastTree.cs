@@ -81,19 +81,19 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected string InnerArgs => CmdParser.GetSettings(Host, Args, new TArgs());
 
-        public override bool NeedNormalization => false;
-
-        public override bool WantCaching => false;
+        public override TrainerInfo Info { get; }
 
         public bool HasCategoricalFeatures => Utils.Size(CategoricalFeatures) > 0;
-
-        public override bool SupportsValidation => true;
 
         private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args)
             : base(env, RegisterName)
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
+            // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
+            // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
+            // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
+            Info = new TrainerInfo(normalization: false, caching: false, calibration: this is FastForestClassification);
             int numThreads = Args.NumThreads ?? Environment.ProcessorCount;
             if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
             {

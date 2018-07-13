@@ -55,8 +55,6 @@ namespace Microsoft.ML.Runtime.Learners
             _posWeight = 0;
         }
 
-        public override bool NeedCalibration => false;
-
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         protected override void CheckLabel(RoleMappedData data)

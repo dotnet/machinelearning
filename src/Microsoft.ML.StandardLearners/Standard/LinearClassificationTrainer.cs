@@ -49,18 +49,17 @@ namespace Microsoft.ML.Runtime.Learners
     {
         protected bool NeedShuffle;
 
-        public override bool NeedNormalization => true;
-
-        public override bool WantCaching => true;
+        public override TrainerInfo Info { get; }
 
         /// <summary>
         /// Whether data is to be shuffled every epoch.
         /// </summary>
         protected abstract bool ShuffleData { get; }
 
-        protected LinearTrainerBase(IHostEnvironment env, string name)
+        private protected LinearTrainerBase(IHostEnvironment env, string name)
             : base(env, name)
         {
+            Info = new TrainerInfo();
         }
 
         public override TPredictor Train(TrainContext context)
@@ -239,8 +238,6 @@ namespace Microsoft.ML.Runtime.Learners
         private const Float L2LowerBound = 1e-09f;
         private readonly ArgumentsBase _args;
         protected ISupportSdcaLoss Loss;
-
-        public override bool NeedNormalization => true;
 
         protected override bool ShuffleData => _args.Shuffle;
 
@@ -1355,7 +1352,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed class LinearClassificationTrainer : SdcaTrainerBase<TScalarPredictor>, ITrainerEx
+    public sealed class LinearClassificationTrainer : SdcaTrainerBase<TScalarPredictor>
     {
         public const string LoadNameValue = "SDCA";
         public const string UserNameValue = "Fast Linear (SA-SDCA)";
@@ -1389,13 +1386,14 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public override bool NeedCalibration => !(_loss is LogLoss);
+        public override TrainerInfo Info { get; }
 
         public LinearClassificationTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, LoadNameValue)
         {
             _loss = args.LossFunction.CreateComponent(env);
             base.Loss = _loss;
+            Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             NeedShuffle = args.Shuffle;
             _args = args;
             _positiveInstanceWeight = _args.PositiveInstanceWeight;
@@ -1434,8 +1432,6 @@ namespace Microsoft.ML.Runtime.Learners
         public const string LoadNameValue = "BinarySGD";
         public const string UserNameValue = "Hogwild SGD (binary)";
         public const string ShortName = "HogwildSGD";
-
-        public override bool SupportsIncrementalTraining => true;
 
         public sealed class Arguments : LearnerInputBaseWithWeight
         {
@@ -1511,13 +1507,14 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public override bool NeedCalibration => !(_loss is LogLoss);
+        public override TrainerInfo Info { get; }
 
         public StochasticGradientDescentClassificationTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
             args.Check(env);
             _loss = args.LossFunction.CreateComponent(env);
+            Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain: true);
             NeedShuffle = args.Shuffle;
             _args = args;
         }

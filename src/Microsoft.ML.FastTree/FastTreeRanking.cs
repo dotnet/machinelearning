@@ -51,8 +51,6 @@ namespace Microsoft.ML.Runtime.FastTree
         private Test _specialTrainSetTest;
         private TestHistory _firstTestSetHistory;
 
-        public override bool NeedCalibration => false;
-
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 
         public FastTreeRankingTrainer(IHostEnvironment env, Arguments args)

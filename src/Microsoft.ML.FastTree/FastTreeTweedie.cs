@@ -42,8 +42,6 @@ namespace Microsoft.ML.Runtime.FastTree
         private Test _trainRegressionTest;
         private Test _testRegressionTest;
 
-        public override bool NeedCalibration => false;
-
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         public FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)

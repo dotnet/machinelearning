@@ -40,12 +40,7 @@ namespace Microsoft.ML.Runtime.Learners
         private TScalarTrainer _trainer;
 
         public sealed override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-        public sealed override bool NeedNormalization { get; }
-        public sealed override bool NeedCalibration => false;
-
-        // No matter what the internal predictor, we're performing many passes
-        // simply by virtue of this being a meta-trainer.
-        public sealed override bool WantCaching => true;
+        public override TrainerInfo Info { get; }
 
         internal MetaMulticlassTrainer(IHostEnvironment env, TArgs args, string name)
             : base(env, name)
@@ -55,8 +50,9 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckUserArg(Args.PredictorType.IsGood(), nameof(Args.PredictorType));
             // Create the first trainer so errors in the args surface early.
             _trainer = Args.PredictorType.CreateInstance(Host);
-            var ex = _trainer as ITrainerEx;
-            NeedNormalization = ex != null && ex.NeedNormalization;
+            // Regarding caching, no matter what the internal predictor, we're performing many passes
+            // simply by virtue of this being a meta-trainer, so we will still cache.
+            Info = new TrainerInfo(normalization: _trainer.Info.NeedNormalization);
         }
 
         protected IDataView MapLabelsCore<T>(ColumnType type, RefPredicate<T> equalsTarget, RoleMappedData data, string dstName)
