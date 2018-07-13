@@ -101,12 +101,4 @@ namespace Microsoft.ML.Runtime
     {
         TPredictor CombineModels(IEnumerable<TModel> models);
     }
-
-    /// <summary>
-    /// Interface implemented by the MetalinearLearners base class.
-    /// Used to distinguish the MetaLinear Learners from the other learners
-    /// </summary>
-    public interface IMetaLinearTrainer
-    {
-    }
 }
