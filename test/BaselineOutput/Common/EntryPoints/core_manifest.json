@@ -2751,6 +2751,102 @@
           "SortOrder": 7.0,
           "IsNullable": false,
           "Default": null
+        },
+        {
+          "Name": "LabelColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as Role 'Label'",
+          "Required": false,
+          "SortOrder": 8.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "GroupColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as Role 'Group'",
+          "Required": false,
+          "SortOrder": 9.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "WeightColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as Role 'Weight'",
+          "Required": false,
+          "SortOrder": 10.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "NameColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as Role 'Name'",
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "NumericFeatureColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as Role 'NumericFeature'",
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "CategoricalFeatureColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as Role 'CategoricalFeature'",
+          "Required": false,
+          "SortOrder": 13.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "TextFeatureColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as Role 'TextFeature'",
+          "Required": false,
+          "SortOrder": 14.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "ImagePathColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Column(s) to use as Role 'ImagePath'",
+          "Required": false,
+          "SortOrder": 15.0,
+          "IsNullable": false,
+          "Default": null
         }
       ],
       "Outputs": [

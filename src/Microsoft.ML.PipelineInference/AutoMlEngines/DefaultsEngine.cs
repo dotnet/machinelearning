@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.PipelineInference;
 
@@ -33,9 +34,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
             _currentLearnerIndex = 0;
         }
 
-        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates)
+        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates, RoleMappedData dataRoles)
         {
             var candidates = new List<PipelinePattern>();
+            DataRoles = dataRoles;
 
             while (candidates.Count < numCandidates)
             {
@@ -53,7 +55,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 do
                 {   // Make sure transforms set is valid. Repeat until passes verifier.
-                    pipeline = new PipelinePattern(SampleTransforms(out var transformsBitMask), learner, "", Env);
+                    pipeline = new PipelinePattern(SampleTransforms(out var transformsBitMask), 
+                        learner, "", Env);
                     valid = PipelineVerifier(pipeline, transformsBitMask);
                     count++;
                 } while (!valid && count <= 1000);
@@ -77,7 +80,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             // Add final features concat transform.
             sampledTransforms.AddRange(AutoMlUtils.GetFinalFeatureConcat(Env, FullyTransformedData,
-                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms));
+                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms, DataRoles));
 
             return sampledTransforms.ToArray();
         }
