@@ -13,11 +13,10 @@ namespace Microsoft.ML.Models
         /// <a href="https://onnx.ai/">ONNX</a> is an intermediate representation format 
         /// for machine learning models. It is used to make models portable such that you can 
         /// train a model using a toolkit and run it in another tookit's runtime, for example,
-        /// you can create a model using ML.NET (or any ONNX compatible toolkit), convert it to ONNX and 
-        /// then the ONNX model can be converted into say, CoreML, TensorFlow or WinML model 
-        /// to run on the respective runtime.
+        /// you can create a model using ML.NET, export it to an ONNX-ML model file, 
+        /// then load and run that ONNX-ML model in Windows ML, on an UWP Windows 10 app. 
         /// 
-        /// This API converts an ML.NET model to ONNX format by inspecting the transform pipeline 
+        /// This API converts an ML.NET model to ONNX-ML format by inspecting the transform pipeline 
         /// from the end, checking for components that know how to save themselves as ONNX. 
         /// The first item in the transform pipeline that does not know how to save itself 
         /// as ONNX, is considered the "input" to the ONNX pipeline. (Ideally this would be the 
