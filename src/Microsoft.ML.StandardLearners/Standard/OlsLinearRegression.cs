@@ -61,7 +61,10 @@ By minimizing the squares of the difference between observed values and the pred
         private readonly bool _perParameterSignificance;
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
-        public override TrainerInfo Info { get; }
+
+        // The training performs two passes, only. Probably not worth caching.
+        private static readonly TrainerInfo _info = new TrainerInfo(caching: false);
+        public override TrainerInfo Info => _info;
 
         public OlsLinearRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
@@ -70,8 +73,6 @@ By minimizing the squares of the difference between observed values and the pred
             Host.CheckUserArg(args.L2Weight >= 0, nameof(args.L2Weight), "L2 regularization term cannot be negative");
             _l2Weight = args.L2Weight;
             _perParameterSignificance = args.PerParameterSignificance;
-            // Two passes, only. Probably not worth caching.
-            Info = new TrainerInfo(caching: false);
         }
 
         /// <summary>

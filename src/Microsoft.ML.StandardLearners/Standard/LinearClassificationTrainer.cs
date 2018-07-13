@@ -49,7 +49,8 @@ namespace Microsoft.ML.Runtime.Learners
     {
         protected bool NeedShuffle;
 
-        public override TrainerInfo Info { get; }
+        private static readonly TrainerInfo _info = new TrainerInfo();
+        public override TrainerInfo Info => _info;
 
         /// <summary>
         /// Whether data is to be shuffled every epoch.
@@ -59,7 +60,6 @@ namespace Microsoft.ML.Runtime.Learners
         private protected LinearTrainerBase(IHostEnvironment env, string name)
             : base(env, name)
         {
-            Info = new TrainerInfo();
         }
 
         public override TPredictor Train(TrainContext context)

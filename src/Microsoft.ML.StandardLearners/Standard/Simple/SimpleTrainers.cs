@@ -55,13 +55,14 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        public override TrainerInfo Info { get; }
+
+        private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
+        public override TrainerInfo Info => _info;
 
         public RandomTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
             Host.CheckValue(args, nameof(args));
-            Info = new TrainerInfo(normalization: false, caching: false);
         }
 
         public override RandomPredictor Train(TrainContext context)
@@ -205,13 +206,14 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        public override TrainerInfo Info { get; }
+
+        private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
+        public override TrainerInfo Info => _info;
 
         public PriorTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
             Host.CheckValue(args, nameof(args));
-            Info = new TrainerInfo(normalization: false, caching: false);
         }
 
         public override PriorPredictor Train(TrainContext context)

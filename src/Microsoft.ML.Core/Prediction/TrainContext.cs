@@ -37,21 +37,21 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Constructor, given a training set and optional other arguments.
         /// </summary>
-        /// <param name="train">Will set <see cref="TrainingSet"/> to this value. This must be specified</param>
-        /// <param name="valid">Will set <see cref="ValidationSet"/> to this value if specified</param>
-        /// <param name="initPredictor">Will set <see cref="InitialPredictor"/> to this value if specified</param>
-        public TrainContext(RoleMappedData train, RoleMappedData valid = null, IPredictor initPredictor = null)
+        /// <param name="trainingSet">Will set <see cref="TrainingSet"/> to this value. This must be specified</param>
+        /// <param name="validationSet">Will set <see cref="ValidationSet"/> to this value if specified</param>
+        /// <param name="initialPredictor">Will set <see cref="InitialPredictor"/> to this value if specified</param>
+        public TrainContext(RoleMappedData trainingSet, RoleMappedData validationSet = null, IPredictor initialPredictor = null)
         {
-            Contracts.CheckValue(train, nameof(train));
-            Contracts.CheckValueOrNull(valid);
-            Contracts.CheckValueOrNull(initPredictor);
+            Contracts.CheckValue(trainingSet, nameof(trainingSet));
+            Contracts.CheckValueOrNull(validationSet);
+            Contracts.CheckValueOrNull(initialPredictor);
 
             // REVIEW: Should there be code here to ensure that the role mappings between the two are compatible?
             // That is, all the role mappings are the same and the columns between them have identical types?
 
-            TrainingSet = train;
-            ValidationSet = valid;
-            InitialPredictor = initPredictor;
+            TrainingSet = trainingSet;
+            ValidationSet = validationSet;
+            InitialPredictor = initialPredictor;
         }
     }
 }

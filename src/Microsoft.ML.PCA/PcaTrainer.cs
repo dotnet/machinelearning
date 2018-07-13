@@ -75,7 +75,10 @@ namespace Microsoft.ML.Runtime.PCA
         private readonly int _seed;
 
         public override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
-        public override TrainerInfo Info { get; }
+
+        // The training performs two passes, only. Probably not worth caching.
+        private static readonly TrainerInfo _info = new TrainerInfo(caching: false);
+        public override TrainerInfo Info => _info;
 
         public RandomizedPcaTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
@@ -84,8 +87,6 @@ namespace Microsoft.ML.Runtime.PCA
             Host.CheckUserArg(args.Rank > 0, nameof(args.Rank), "Rank must be positive");
             Host.CheckUserArg(args.Oversampling >= 0, nameof(args.Oversampling), "Oversampling must be non-negative");
 
-            // Two passes, only. Probably not worth caching.
-            Info = new TrainerInfo(caching: false);
             _rank = args.Rank;
             _center = args.Center;
             _oversampling = args.Oversampling;

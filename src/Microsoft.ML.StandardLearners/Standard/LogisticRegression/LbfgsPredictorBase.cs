@@ -132,7 +132,10 @@ namespace Microsoft.ML.Runtime.Learners
         private VBuffer<Float>[] _localGradients;
         private Float[] _localLosses;
 
-        public override TrainerInfo Info { get; }
+        // REVIEW: It's pointless to request caching when we're going to load everything into
+        // memory, that is, when using multiple threads. So should caching not be requested?
+        private static readonly TrainerInfo _info = new TrainerInfo(caching: true, supportIncrementalTrain: true);
+        public override TrainerInfo Info => _info;
 
         internal LbfgsTrainerBase(ArgumentsBase args, IHostEnvironment env, string name, bool showTrainingStats = false)
             : base(env, name)
@@ -160,9 +163,6 @@ namespace Microsoft.ML.Runtime.Learners
             DenseOptimizer = args.DenseOptimizer;
             ShowTrainingStats = showTrainingStats;
             EnforceNonNegativity = args.EnforceNonNegativity;
-            // REVIEW: It's pointless to request caching when we're going to load everything into
-            // memory, that is, when using multiple threads. So should caching not be requested?
-            Info = new TrainerInfo(caching: true, supportIncrementalTrain: true);
 
             if (EnforceNonNegativity && ShowTrainingStats)
             {

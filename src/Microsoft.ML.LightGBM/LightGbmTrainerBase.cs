@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         private protected int FeatureCount;
         private protected FastTree.Internal.Ensemble TrainedEnsemble;
 
-        private static TrainerInfo _info = new TrainerInfo(normalization: false, caching: false, supportValid: true);
+        private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false, supportValid: true);
         public override TrainerInfo Info => _info;
 
         private protected LightGbmTrainerBase(IHostEnvironment env, LightGbmArguments args, string name)
