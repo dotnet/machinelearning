@@ -698,20 +698,6 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 var binStats = virtualBins[i];
                 catFeatureCount += 1 + binStats.SubFeatures.Length;
 
-                /*int feature = features[i];
-                int subfeature = feature - featureMin;
-                Contracts.Assert(0 <= subfeature && subfeature < Flock.Count);
-                Contracts.Assert(subfeature <= feature);
-                Contracts.Assert(learner.TrainData.FlockToFirstFeature(flock) == feature - subfeature);
-                Contracts.Assert(featureUseCount[feature] >= 0);
-                Contracts.Assert(Flock.BinCount(subfeature) == 2);
-                Contracts.Assert(GetMaxBorder(subfeature) == GetMinBorder(subfeature));
-
-                var binStats = GetBinStats(GetMinBorder(subfeature));
-                sumGTTargets += binStats.SumTargets;
-                if (hasWeights)
-                    sumGTWeights += binStats.SumWeights;*/
-
                 sumGTTargets += binStats.SumTargets;
                 gtCount += binStats.Count;
                 docsInCurrentGroup += binStats.Count;
@@ -933,21 +919,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             {
                 var binStats = virtualBins[i];
                 catFeatureCount += 1 + binStats.SubFeatures.Length;
-
-                /*int feature = features[i];
-                int subfeature = feature - featureMin;
-                Contracts.Assert(0 <= subfeature && subfeature < Flock.Count);
-                Contracts.Assert(subfeature <= feature);
-                Contracts.Assert(learner.TrainData.FlockToFirstFeature(flock) == feature - subfeature);
-                Contracts.Assert(featureUseCount[feature] >= 0);
-                Contracts.Assert(Flock.BinCount(subfeature) == 2);
-                Contracts.Assert(GetMaxBorder(subfeature) == GetMinBorder(subfeature));
-
-                var binStats = GetBinStats(GetMinBorder(subfeature));
-                sumGTTargets += binStats.SumTargets;
-                if (hasWeights)
-                    sumGTWeights += binStats.SumWeights;*/
-
+                                
                 sumGTTargets += binStats.SumTargets;
                 gtCount += binStats.Count;
                 docsInCurrentGroup += binStats.Count;

@@ -169,10 +169,6 @@ namespace Microsoft.ML.Runtime.Numeric
         public bool Terminate(Optimizer.OptimizerState state, out string message)
         {
             _unnormMeanImprovement = (state.LastValue - state.Value) + _lambda * _unnormMeanImprovement;
-            //if (state.Iter < 5) {
-            //   message = "wait for 5...";
-            //   return false;
-            //}
 
             Float crit = _unnormMeanImprovement * (1 - _lambda) / (1 - MathUtils.Pow(_lambda, state.Iter));
             message = string.Format("{0:0.000e0}", crit);
