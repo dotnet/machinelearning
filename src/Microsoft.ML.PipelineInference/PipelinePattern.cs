@@ -273,7 +273,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             var graphDef = ToEntryPointGraph();
 
-            return new PipelineResultRow($"{{'Nodes' : [{graphDef.Graph.ToJsonString()}]}}",
+            return new PipelineResultRow($"{{\"Nodes\" : [{graphDef.Graph.ToJsonString()}]}}",
                 PerformanceSummary?.MetricValue ?? -1d, UniqueId.ToString("N"),
                 PerformanceSummary?.TrainingMetricValue ?? -1d,
                 graphDef.GetSubgraphFirstNodeDataVarName(_env),
