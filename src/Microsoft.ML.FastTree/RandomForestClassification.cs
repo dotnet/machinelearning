@@ -130,11 +130,11 @@ namespace Microsoft.ML.Runtime.FastTree
         private bool[] _trainSetLabels;
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override bool NeedCalibration => true;
 
         public FastForestClassification(IHostEnvironment env, Arguments args)
             : base(env, args)
         {
-            
         }
 
         public override IPredictorWithFeatureWeights<Float> Train(TrainContext context)
