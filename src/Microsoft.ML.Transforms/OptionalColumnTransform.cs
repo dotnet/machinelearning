@@ -27,10 +27,14 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.DataPipe
 {
     /// <summary>
-    /// This transform is used to mark some of the columns (e.g. Label) optional during training So that the columns is not required during scoring..
-    /// At scoring time, it is checked if the data schema for scoring matches the data used for training except for the optional columns.
+    /// This transform is used to mark some of the columns (e.g. Label) optional during training so that the columns are not required during scoring.
+    /// When applied to new data, if optional columns are not present a meta column is created having the same properties (e.g. 'name', 'type' etc.) as used during training.
+    /// The columns are filled with default values. The value is
+    ///     - scalar for scalar column
+    ///     - totally sparse vector for vector column. 
+    /// If value of the column is requested the default value will be returned.
     /// </summary>
-    public class OptionalColumnTransform : RowToRowMapperTransformBase
+    public sealed class OptionalColumnTransform : RowToRowMapperTransformBase
     {
         public sealed class Arguments : TransformInputBase
         {

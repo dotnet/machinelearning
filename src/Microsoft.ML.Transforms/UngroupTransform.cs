@@ -67,17 +67,17 @@ namespace Microsoft.ML.Runtime.Data
         public enum UngroupMode
         {
             /// <summary>
-            /// The number of output rows are equal to the minimum length of pivot columns
+            /// The number of output rows is equal to the minimum length of pivot columns
             /// </summary>
             Inner,
 
             /// <summary>
-            /// The number of output rows are equal to the maximum length of pivot columns
+            /// The number of output rows is equal to the maximum length of pivot columns
             /// </summary>
             Outer,
 
             /// <summary>
-            /// The number of output rows are equal to the length of the first pivot column.
+            /// The number of output rows is equal to the length of the first pivot column.
             /// </summary>
             First
         }
