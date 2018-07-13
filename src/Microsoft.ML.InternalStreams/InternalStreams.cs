@@ -6086,9 +6086,9 @@ namespace Microsoft.ML.Runtime.Internal.IO
     /// </list>
     /// <para>
     /// Compression support relies on executable utilities to be in the path.
-    /// See <see href="http://7-zip.org"/> for 7z.exe and 7za.exe (for many formats -
-    /// .7z, .gz, .zip, .rar, .bz2, .cab, .arj), <see href="http://gnuwin32.sourceforge.net/packages/gzip.htm"/> for gzip.exe
-    /// (for .gz), or <see href="http://rarsoft.com"/> for unrar.exe (for .rar).
+    /// See <a href="http://7-zip.org">http://7-zip.org</a> for 7z.exe and 7za.exe (for many formats -
+    /// .7z, .gz, .zip, .rar, .bz2, .cab, .arj), <a href="http://gnuwin32.sourceforge.net/packages/gzip.htm">http://gnuwin32.sourceforge.net/packages/gzip.htm</a> for gzip.exe
+    /// (for .gz), or <a href="http://rarsoft.com">http://rarsoft.com</a> for unrar.exe (for .rar).
     /// </para>
     /// </remarks>
 #else
@@ -6771,8 +6771,8 @@ namespace Microsoft.ML.Runtime.Internal.IO
     /// </list>
     /// <para>
     /// Compression support relies on executable utilities to be in the path.
-    /// See <see href="http://7-zip.org"/> for 7z.exe and 7za.exe (for
-    /// .7z, .gz), <see href="http://gnuwin32.sourceforge.net/packages/gzip.htm"/> for gzip.exe
+    /// See <a href="http://7-zip.org">http://7-zip.org</a>for 7z.exe and 7za.exe (for
+    /// .7z, .gz), <a href="http://gnuwin32.sourceforge.net/packages/gzip.htm">http://gnuwin32.sourceforge.net/packages/gzip.htm</a> for gzip.exe
     /// (for .gz).
     /// </para>
     /// </remarks>
@@ -7322,9 +7322,9 @@ namespace Microsoft.ML.Runtime.Internal.IO
     /// </list>
     /// <para>
     /// Compression support relies on executable utilities to be in the path.
-    /// See <see href="http://7-zip.org"/> for 7z.exe and 7za.exe (for many formats -
-    /// .7z, .gz, .zip, .rar, .bz2, .cab, .arj), <see href="http://gnuwin32.sourceforge.net/packages/gzip.htm"/> for gzip.exe
-    /// (for .gz), or <see href="http://rarsoft.com"/> for unrar.exe (for .rar).
+    /// See <a href="http://7-zip.org">http://7-zip.org</a> for 7z.exe and 7za.exe (for many formats -
+    /// .7z, .gz, .zip, .rar, .bz2, .cab, .arj), <a href="http://gnuwin32.sourceforge.net/packages/gzip.htm">http://gnuwin32.sourceforge.net/packages/gzip.htm</a> for gzip.exe
+    /// (for .gz), or <a href="http://rarsoft.com">http://rarsoft.com</a> for unrar.exe (for .rar).
     /// </para>
     /// </remarks>
 #else
@@ -8383,8 +8383,8 @@ namespace Microsoft.ML.Runtime.Internal.IO
     /// </list>
     /// <para>
     /// Compression support relies on executable utilities to be in the path.
-    /// See <see href="http://7-zip.org"/> for 7z.exe and 7za.exe (for
-    /// .7z, .gz), <see href="http://gnuwin32.sourceforge.net/packages/gzip.htm"/> for gzip.exe
+    /// See <a href="http://7-zip.org">http://7-zip.org</a> for 7z.exe and 7za.exe (for
+    /// .7z, .gz), <a href="http://gnuwin32.sourceforge.net/packages/gzip.htm">http://gnuwin32.sourceforge.net/packages/gzip.htm</a> for gzip.exe
     /// (for .gz).
     /// </para>
     /// </remarks>
@@ -13354,9 +13354,9 @@ namespace Microsoft.ML.Runtime.Internal.IO
     /// </para>
     /// <para>
     /// Compression support relies on executable utilities to be in the path.
-    /// See <see href="http://7-zip.org"/> for 7z.exe and 7za.exe (for many formats -
-    /// .7z, .gz, .zip, .rar, .bz2, .cab, .arj), <see href="http://gnuwin32.sourceforge.net/packages/gzip.htm"/> for gzip.exe
-    /// (for .gz), or <see href="http://rarsoft.com"/> for unrar.exe (for .rar). Gzip support built-in to .NET
+    /// See <a href="http://7-zip.org">http://7-zip.org</a> for 7z.exe and 7za.exe (for many formats -
+    /// .7z, .gz, .zip, .rar, .bz2, .cab, .arj), <a href="http://gnuwin32.sourceforge.net/packages/gzip.htm">http://gnuwin32.sourceforge.net/packages/gzip.htm</a> for gzip.exe
+    /// (for .gz), or <a href="http://rarsoft.com">http://rarsoft.com</a> for unrar.exe (for .rar). Gzip support built-in to .NET
     /// 2.0 can be used, but it has extreme deficiencies in terms of speed, size, and flexibility.
     /// </para>
     /// <para>

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<docs>
+<doc>
   <members>
 
     <member name="MultiClassNaiveBayesTrainer">
@@ -18,10 +18,10 @@
         classifier indicates that it does not need caching, OVA will always
         request caching, as it will be performing multiple passes over the data set.
       </remarks>
-      <seealso cref='LogisticRegressionClassifier'></seealso>
-      <seealso cref='LightGbmClassifier'></seealso>
-      <seealso cref='StochasticDualCoordinateAscentClassifier'></seealso>
-      <seealso cref='OneVersusAll'></seealso>
+      <seealso cref='Microsoft.ML.Trainers.LogisticRegressionClassifier'></seealso>
+      <seealso cref='Microsoft.ML.Trainers.LightGbmClassifier'></seealso>
+      <seealso cref='Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier'></seealso>
+      <seealso cref='Microsoft.ML.Models.OneVersusAll'></seealso>
       <example>
         <code>
           pipeline.Add(new NaiveBayesClassifier(){ NormalizeFeatures = NormalizeOption.Auto, Caching = CachingOptions.Memory });
@@ -44,10 +44,10 @@
           can be different from LightGbmClassifier, which develops a multi-class classifier directly. 
         </para>
       </remarks>
-      <seealso cref='LogisticRegressionClassifier'></seealso>
-      <seealso cref='LightGbmClassifier'></seealso>
-      <seealso cref='StochasticDualCoordinateAscentClassifier'></seealso>
-      <seealso cref='NaiveBayesClassifier'></seealso>
+      <seealso cref='Microsoft.ML.Trainers.LogisticRegressionClassifier'>LogisticRegressionClassifier</seealso>
+      <seealso cref='Microsoft.ML.Trainers.LightGbmClassifier'>LightGbmClassifier</seealso>
+      <seealso cref='Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier'>StochasticDualCoordinateAscentClassifier</seealso>
+      <seealso cref='Microsoft.ML.Trainers.NaiveBayesClassifier'>NaiveBayesClassifier</seealso>
       <example>
         <code>
           pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
@@ -56,4 +56,4 @@
     </member>
    
   </members>
-</docs>
+</doc>

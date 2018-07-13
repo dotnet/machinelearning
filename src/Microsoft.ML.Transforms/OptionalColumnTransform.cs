@@ -26,7 +26,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.DataPipe
 {
-    /// <include file='./doc.xml' path='docs/members/member[@name="OptionalColumnTransform"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="OptionalColumnTransform"]/*' />
     public class OptionalColumnTransform : RowToRowMapperTransformBase
     {
         public sealed class Arguments : TransformInputBase
@@ -464,7 +464,7 @@ namespace Microsoft.ML.Runtime.DataPipe
             Name = "Transforms.OptionalColumnCreator", 
             UserName = UserName, 
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name=""OptionalColumnTransform""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""OptionalColumnTransform""]/*' />" })]
 
         public static CommonOutputs.TransformOutput MakeOptional(IHostEnvironment env, Arguments input)
         {

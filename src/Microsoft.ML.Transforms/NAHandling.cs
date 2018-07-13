@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Data
             Desc = NADropTransform.Summary,
             UserName = NADropTransform.FriendlyName, 
             ShortName = NADropTransform.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name=""NADrop""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""NADrop""]/*' />" })]
         public static CommonOutputs.TransformOutput Drop(IHostEnvironment env, NADropTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, NADropTransform.ShortName, input);
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Data
             Desc = NAIndicatorTransform.Summary, 
             UserName = NAIndicatorTransform.FriendlyName, 
             ShortName = NAIndicatorTransform.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name=""NAIndicator""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""NAIndicator""]/*' />" })]
         public static CommonOutputs.TransformOutput Indicator(IHostEnvironment env, NAIndicatorTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAIndicator", input);
@@ -75,7 +75,11 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.MissingValueSubstitutor", Desc = NAReplaceTransform.Summary, UserName = NAReplaceTransform.FriendlyName, ShortName = NAReplaceTransform.ShortName)]
+        [TlcModule.EntryPoint(Name = "Transforms.MissingValueSubstitutor", 
+            Desc = NAReplaceTransform.Summary, 
+            UserName = NAReplaceTransform.FriendlyName, 
+            ShortName = NAReplaceTransform.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""NAReplace""]/*' />" })]
         public static CommonOutputs.TransformOutput Replace(IHostEnvironment env, NAReplaceTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAReplace", input);

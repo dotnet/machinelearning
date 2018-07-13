@@ -10,7 +10,7 @@ namespace Microsoft.ML.Models
     public sealed partial class OnnxConverter
     {
         /// <summary>
-        /// <see href="https://onnx.ai/">ONNX</see> is an intermediate representation format 
+        /// <a href="https://onnx.ai/">ONNX</a> is an intermediate representation format 
         /// for machine learning models. It is used to make models portable such that you can 
         /// train a model using a toolkit and run it in another tookit's runtime, for example,
         /// you can create a model using ML.NET (or any ONNX compatible toolkit), convert it to ONNX and 

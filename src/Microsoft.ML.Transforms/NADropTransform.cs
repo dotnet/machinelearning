@@ -21,7 +21,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <include file='doc.xml' path='docs/members/member[@name="NADrop"]'/>
+    /// <include file='doc.xml' path='doc/members/member[@name="NADrop"]'/>
     public sealed class NADropTransform : OneToOneTransformBase
     {
         public sealed class Arguments : TransformInputBase

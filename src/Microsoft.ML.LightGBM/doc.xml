@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<docs>
+<doc>
   <members>
     
     <member name="LightGBM">
@@ -13,4 +13,4 @@
     </member>
 
   </members>
-</docs>
+</doc>

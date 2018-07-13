@@ -166,7 +166,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly ColumnInfoEx[] _exes;
 
-        /// <include file='doc.xml' path='docs/members/member[@name="HashJoin"]/*' />
+        /// <include file='doc.xml' path='doc/members/member[@name="HashJoin"]/*' />
         public HashJoinTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input, TestColumnType)
         {
@@ -679,7 +679,7 @@ namespace Microsoft.ML.Runtime.Data
             Desc = HashJoinTransform.Summary, 
             UserName = HashJoinTransform.UserName, 
             ShortName = HashJoinTransform.RegistrationName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name=""HashJoin""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""HashJoin""]/*' />" })]
         public static CommonOutputs.TransformOutput Apply(IHostEnvironment env, HashJoinTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
