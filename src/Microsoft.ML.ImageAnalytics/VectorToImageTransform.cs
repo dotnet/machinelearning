@@ -346,6 +346,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw Contracts.Except("We only support float or byte arrays");
 
         }
+
         private ValueGetter<Bitmap> GetterFromType<TValue>(IRow input, int iinfo, ColInfoEx ex, bool needScale) where TValue : IConvertible
         {
             var getSrc = GetSrcGetter<VBuffer<TValue>>(input, iinfo);

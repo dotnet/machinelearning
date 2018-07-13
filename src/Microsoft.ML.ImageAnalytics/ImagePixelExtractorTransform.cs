@@ -365,6 +365,7 @@ namespace Microsoft.ML.Runtime.Data
             return GetGetterCore<byte>(input, iinfo, out disposer);
         }
 
+        //REVIEW Rewrite it to where TValue : IConvertible
         private ValueGetter<VBuffer<TValue>> GetGetterCore<TValue>(IRow input, int iinfo, out Action disposer)
         {
             var type = _types[iinfo];

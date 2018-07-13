@@ -4,19 +4,18 @@
 
 using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.ImageAnalytics;
-using System.Drawing.Imaging;
 
 [assembly: LoadableClass(ImageGreyscaleTransform.Summary, typeof(ImageGreyscaleTransform), typeof(ImageGreyscaleTransform.Arguments), typeof(SignatureDataTransform),
-    ImageGreyscaleTransform.UserName, "ImageResizerTransform", "ImageResizer")]
+    ImageGreyscaleTransform.UserName, "ImageGreyscaleTransform", "ImageGreyscale")]
 
 [assembly: LoadableClass(ImageGreyscaleTransform.Summary, typeof(ImageGreyscaleTransform), null, typeof(SignatureLoadDataTransform),
     ImageGreyscaleTransform.UserName, ImageGreyscaleTransform.LoaderSignature)]
@@ -51,22 +50,21 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
         }
 
-        internal const string Summary = "Scales an image to specified dimensions using one of the three scale types: isotropic with padding, "
-            + "isotropic with cropping or anisotropic. In case of isotropic padding, transparent color is used to pad resulting image.";
+        internal const string Summary = "Convert image into grayscale.";
 
-        internal const string UserName = "Image Resizer Transform";
-        public const string LoaderSignature = "ImageScalerTransform";
+        internal const string UserName = "Image Greyscale Transform";
+        public const string LoaderSignature = "ImageGreyscaleTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "IMGSCALF",
+                modelSignature: "IMGGREY ",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
         }
 
-        private const string RegistrationName = "ImageScaler";
+        private const string RegistrationName = "ImageGreyscale";
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.

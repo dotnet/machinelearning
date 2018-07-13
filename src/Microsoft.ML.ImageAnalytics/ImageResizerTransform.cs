@@ -14,7 +14,6 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.ImageAnalytics;
 
-
 [assembly: LoadableClass(ImageResizerTransform.Summary, typeof(ImageResizerTransform), typeof(ImageResizerTransform.Arguments), typeof(SignatureDataTransform),
     ImageResizerTransform.UserName, "ImageResizerTransform", "ImageResizer")]
 
