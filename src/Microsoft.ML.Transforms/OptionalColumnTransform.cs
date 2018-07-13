@@ -26,6 +26,10 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.DataPipe
 {
+    /// <summary>
+    /// This transform is used to mark some of the columns (e.g. Label) optional during training So that the columns is not required during scoring..
+    /// At scoring time, it is checked if the data schema for scoring matches the data used for training except for the optional columns.
+    /// </summary>
     public class OptionalColumnTransform : RowToRowMapperTransformBase
     {
         public sealed class Arguments : TransformInputBase

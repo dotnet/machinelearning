@@ -34,9 +34,6 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public static class NAHandleTransform
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public enum ReplacementKind
         {
             /// <summary>

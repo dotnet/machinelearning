@@ -25,15 +25,10 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class ProduceIdTransform : RowToRowTransformBase
     {
-        private static class Defaults
-        {
-            public const string Column = "Id";
-        }
-
         public sealed class Arguments
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column to produce", ShortName = "col", SortOrder = 1)]
-            public string Column = Defaults.Column;
+            public string Column = "Id";
         }
 
         private sealed class Bindings : ColumnBindingsBase
