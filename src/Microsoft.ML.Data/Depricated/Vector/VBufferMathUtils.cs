@@ -350,7 +350,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// Perform in-place scaling of a vector into another vector as
         /// <c><paramref name="dst"/> = <paramref name="src"/> * <paramref name="c"/></c>.
         /// This is more or less equivalent to performing the same operation with
-        /// <see cref="VBufferUtils.ApplyInto"/> except perhaps more efficiently,
+        /// <see cref="VBufferUtils.ApplyInto{TSrc1,TSrc2,TDst}"/> except perhaps more efficiently,
         /// with one exception: if <paramref name="c"/> is 0 and <paramref name="src"/>
         /// is sparse, <paramref name="dst"/> will have a count of zero, instead of the
         /// same count as <paramref name="src"/>.
