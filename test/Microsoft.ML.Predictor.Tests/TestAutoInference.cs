@@ -363,6 +363,73 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        [TestCategory("EntryPoints")]
+        public void EntryPointPipelineSweepMultiClass()
+        {
+            // Get datasets
+            var pathData = GetDataPath("adult.train");
+            var pathDataTest = GetDataPath("adult.test");
+            const int numOfSampleRows = 100;
+            const string schema =
+                "sep=, col=age:R4:0 col=workclass:TX:1 col=fnlwgt:R4:2 col=education:TX:3 col=education_num:R4:4 col=marital_status:TX:5 col=occupation:TX:6 " +
+                "col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=Features:R4:10-12 col=native_country:TX:13 col=IsOver50K_:R4:14 header=+";
+            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
+#pragma warning disable 0618
+            var datasetTrain = ImportTextData.ImportText(Env,
+                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
+            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
+            var datasetTest = ImportTextData.ImportText(Env,
+                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
+#pragma warning restore 0618
+
+            // Define entrypoint graph
+            string inputGraph = @"
+                {
+                  'Nodes': [
+                    {
+                      'Name': 'Models.PipelineSweeper',
+                      'Inputs': {
+                        'TrainingData': '$TrainingData',
+                        'TestingData': '$TestingData',
+                        'LabelColumns': ['IsOver50K_'],
+                        'WeightColumns': ['education_num'],
+                        'NameColumns': ['education'],
+                        'TextFeatureColumns': ['workclass', 'marital_status', 'occupation'],
+                        'StateArguments': {
+                            'Name': 'AutoMlState',
+                            'Settings': {
+                                'Metric': 'Accuracy(micro-avg)',
+                                'Engine': {
+                                    'Name': 'Defaults'
+                                },
+                                'TerminatorArgs': {
+                                    'Name': 'IterationLimited',
+                                    'Settings': {
+                                        'FinalHistoryLength': 2
+                                    }
+                                },
+                                'TrainerKind': 'SignatureMultiClassClassifierTrainer',
+                            }
+                        },
+                        'BatchSize': 1
+                      },
+                      'Outputs': {
+                        'State': '$StateOut',
+                        'Results': '$ResultsOut'
+                      }
+                    },
+                  ]
+                }";
+
+            JObject graphJson = JObject.Parse(inputGraph);
+            var catalog = ModuleCatalog.CreateInstance(Env);
+            var runner = new GraphRunner(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
+            runner.SetInput("TrainingData", datasetTrain);
+            runner.SetInput("TestingData", datasetTest);
+            runner.RunAll();
+        }
+
+        [Fact]
         public void TestRocketPipelineEngine()
         {
             // Get datasets
