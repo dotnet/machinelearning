@@ -592,8 +592,7 @@
             "f": -1E-07,
             "type": "FLOAT"
           }
-        ],
-        "domain": "ai.onnx"
+        ]
       },
       {
         "input": [
@@ -603,8 +602,7 @@
           "Probability"
         ],
         "name": "Sigmoid",
-        "opType": "Sigmoid",
-        "domain": "ai.onnx"
+        "opType": "Sigmoid"
       },
       {
         "input": [
@@ -709,8 +707,7 @@
       "version": "1"
     },
     {
-      "domain": "ai.onnx",
-      "version": "6"
+      "version": "7"
     }
   ]
 }
