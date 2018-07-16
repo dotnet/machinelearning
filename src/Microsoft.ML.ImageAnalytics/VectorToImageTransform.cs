@@ -224,8 +224,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
         }
 
-        internal const string Summary = "Converts vector array into image type.";
-        internal const string UserName = "Vector To Image Transform";
+        public const string Summary = "Converts vector array into image type.";
+        public const string UserName = "Vector To Image Transform";
         public const string LoaderSignature = "VectorToImageConverter";
         private static VersionInfo GetVersionInfo()
         {
