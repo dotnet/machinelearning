@@ -417,7 +417,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             {
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, Arguments inferenceArgs, IChannel ch)
                 {
-                    var firstGroupColId = Array.FindIndex(columns, x => x.Purpose == ColumnPurpose.GroupId);
+                    var firstGroupColId = Array.FindIndex(columns, x => x.Purpose == ColumnPurpose.Group);
                     if (firstGroupColId < 0)
                         yield break;
 
@@ -1559,7 +1559,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        public static SuggestedTransform[] InferTransforms(IHostEnvironment env, IDataView data, Arguments args)
+        public static SuggestedTransform[] InferTransforms(IHostEnvironment env, IDataView data, Arguments args, RoleMappedData dataRoles)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("InferTransforms");
@@ -1576,7 +1576,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // Infer column purposes from data sample.
             var piArgs = new PurposeInference.Arguments { MaxRowsToRead = MaxRowsToRead };
             var columnIndices = Enumerable.Range(0, dataSample.Schema.ColumnCount);
-            var piResult = PurposeInference.InferPurposes(env, dataSample, columnIndices, piArgs);
+            var piResult = PurposeInference.InferPurposes(env, dataSample, columnIndices, piArgs, dataRoles);
             var purposes = piResult.Columns;
 
             // Infer transforms
@@ -1595,7 +1595,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 .Contains(t.AtomicGroupId)).ToArray();
         }
 
-        public static SuggestedTransform[] InferConcatNumericFeatures(IHostEnvironment env, IDataView data, Arguments args)
+        public static SuggestedTransform[] InferConcatNumericFeatures(IHostEnvironment env, IDataView data, Arguments args, RoleMappedData dataRoles)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("InferConcatNumericFeatures");
@@ -1608,7 +1608,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // Infer column purposes from data sample.
             var piArgs = new PurposeInference.Arguments { MaxRowsToRead = MaxRowsToRead };
             var columnIndices = Enumerable.Range(0, data.Schema.ColumnCount);
-            var piResult = PurposeInference.InferPurposes(env, data, columnIndices, piArgs);
+            var piResult = PurposeInference.InferPurposes(env, data, columnIndices, piArgs, dataRoles);
             var purposes = piResult.Columns;
 
             var cols = purposes.Where(x => !data.Schema.IsHidden(x.ColumnIndex)

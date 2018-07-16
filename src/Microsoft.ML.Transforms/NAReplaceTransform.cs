@@ -187,6 +187,19 @@ namespace Microsoft.ML.Runtime.Data
         public override bool CanSaveOnnx => true;
 
         /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="replacementKind">The replacement method to utilize.</param>
+        public NAReplaceTransform(IHostEnvironment env, IDataView input, string name, string source = null, ReplacementKind replacementKind = ReplacementKind.DefaultValue)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, ReplacementKind = replacementKind }, input)
+        {
+        }
+
+        /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
         public NAReplaceTransform(IHostEnvironment env, Arguments args, IDataView input)

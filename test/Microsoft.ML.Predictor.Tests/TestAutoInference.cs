@@ -273,6 +273,96 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        [TestCategory("EntryPoints")]
+        public void EntryPointPipelineSweepRoles()
+        {
+            // Get datasets
+            var pathData = GetDataPath("adult.train");
+            var pathDataTest = GetDataPath("adult.test");
+            const int numOfSampleRows = 100;
+            int numIterations = 2;
+            const string schema =
+                "sep=, col=age:R4:0 col=workclass:TX:1 col=fnlwgt:R4:2 col=education:TX:3 col=education_num:R4:4 col=marital_status:TX:5 col=occupation:TX:6 " +
+                "col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=Features:R4:10-12 col=native_country:TX:13 col=IsOver50K_:R4:14 header=+";
+            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
+#pragma warning disable 0618
+            var datasetTrain = ImportTextData.ImportText(Env,
+                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
+            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
+            var datasetTest = ImportTextData.ImportText(Env,
+                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
+#pragma warning restore 0618
+
+            // Define entrypoint graph
+            string inputGraph = @"
+                {
+                  'Nodes': [
+                    {
+                      'Name': 'Models.PipelineSweeper',
+                      'Inputs': {
+                        'TrainingData': '$TrainingData',
+                        'TestingData': '$TestingData',
+                        'LabelColumns': ['IsOver50K_'],
+                        'WeightColumns': ['education_num'],
+                        'NameColumns': ['education'],
+                        'TextFeatureColumns': ['workclass', 'marital_status', 'occupation'],
+                        'StateArguments': {
+                            'Name': 'AutoMlState',
+                            'Settings': {
+                                'Metric': 'Auc',
+                                'Engine': {
+                                    'Name': 'Defaults'
+                                },
+                                'TerminatorArgs': {
+                                    'Name': 'IterationLimited',
+                                    'Settings': {
+                                        'FinalHistoryLength': 2
+                                    }
+                                },
+                                'TrainerKind': 'SignatureBinaryClassifierTrainer',
+                                'RequestedLearners' : [
+                                    'LogisticRegressionBinaryClassifier',
+                                    'FastTreeBinaryClassifier'
+                                ]
+                            }
+                        },
+                        'BatchSize': 1
+                      },
+                      'Outputs': {
+                        'State': '$StateOut',
+                        'Results': '$ResultsOut'
+                      }
+                    },
+                  ]
+                }";
+
+            JObject graphJson = JObject.Parse(inputGraph);
+            var catalog = ModuleCatalog.CreateInstance(Env);
+            var runner = new GraphRunner(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
+            runner.SetInput("TrainingData", datasetTrain);
+            runner.SetInput("TestingData", datasetTest);
+            runner.RunAll();
+
+            var autoMlState = runner.GetOutput<AutoInference.AutoMlMlState>("StateOut");
+            Assert.NotNull(autoMlState);
+            var allPipelines = autoMlState.GetAllEvaluatedPipelines();
+            var bestPipeline = autoMlState.GetBestPipeline();
+            Assert.Equal(allPipelines.Length, numIterations);
+
+            var trainAuc = bestPipeline.PerformanceSummary.TrainingMetricValue;
+            var testAuc = bestPipeline.PerformanceSummary.MetricValue;
+            Assert.True((0.94 < trainAuc) && (trainAuc < 0.95));
+            Assert.True((0.83 < testAuc) && (testAuc < 0.84));
+
+            var results = runner.GetOutput<IDataView>("ResultsOut");
+            Assert.NotNull(results);
+            var rows = PipelinePattern.ExtractResults(Env, results,
+                "Graph", "MetricValue", "PipelineId", "TrainingMetricValue", "FirstInput", "PredictorModel");
+            Assert.True(rows.Length == numIterations);
+            Assert.True(rows.All(r => r.TrainingMetricValue > 0.1));
+        }
+
+        [Fact]
         public void TestRocketPipelineEngine()
         {
             // Get datasets
