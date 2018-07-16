@@ -1090,6 +1090,54 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Transforms.HashConverter", input, output));
             }
 
+            public Microsoft.ML.Transforms.ImageGreyscale.Output Add(Microsoft.ML.Transforms.ImageGreyscale input)
+            {
+                var output = new Microsoft.ML.Transforms.ImageGreyscale.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Transforms.ImageGreyscale input, Microsoft.ML.Transforms.ImageGreyscale.Output output)
+            {
+                _jsonNodes.Add(Serialize("Transforms.ImageGreyscale", input, output));
+            }
+
+            public Microsoft.ML.Transforms.ImageLoader.Output Add(Microsoft.ML.Transforms.ImageLoader input)
+            {
+                var output = new Microsoft.ML.Transforms.ImageLoader.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Transforms.ImageLoader input, Microsoft.ML.Transforms.ImageLoader.Output output)
+            {
+                _jsonNodes.Add(Serialize("Transforms.ImageLoader", input, output));
+            }
+
+            public Microsoft.ML.Transforms.ImagePixelExtractor.Output Add(Microsoft.ML.Transforms.ImagePixelExtractor input)
+            {
+                var output = new Microsoft.ML.Transforms.ImagePixelExtractor.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Transforms.ImagePixelExtractor input, Microsoft.ML.Transforms.ImagePixelExtractor.Output output)
+            {
+                _jsonNodes.Add(Serialize("Transforms.ImagePixelExtractor", input, output));
+            }
+
+            public Microsoft.ML.Transforms.ImageResizer.Output Add(Microsoft.ML.Transforms.ImageResizer input)
+            {
+                var output = new Microsoft.ML.Transforms.ImageResizer.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Transforms.ImageResizer input, Microsoft.ML.Transforms.ImageResizer.Output output)
+            {
+                _jsonNodes.Add(Serialize("Transforms.ImageResizer", input, output));
+            }
+
             public Microsoft.ML.Transforms.KeyToTextConverter.Output Add(Microsoft.ML.Transforms.KeyToTextConverter input)
             {
                 var output = new Microsoft.ML.Transforms.KeyToTextConverter.Output();
@@ -1520,6 +1568,18 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Transforms.TwoHeterogeneousModelCombiner input, Microsoft.ML.Transforms.TwoHeterogeneousModelCombiner.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.TwoHeterogeneousModelCombiner", input, output));
+            }
+
+            public Microsoft.ML.Transforms.VectorToImage.Output Add(Microsoft.ML.Transforms.VectorToImage input)
+            {
+                var output = new Microsoft.ML.Transforms.VectorToImage.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Transforms.VectorToImage input, Microsoft.ML.Transforms.VectorToImage.Output output)
+            {
+                _jsonNodes.Add(Serialize("Transforms.VectorToImage", input, output));
             }
 
             public Microsoft.ML.Transforms.WordTokenizer.Output Add(Microsoft.ML.Transforms.WordTokenizer input)
@@ -11867,6 +11927,622 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        public sealed partial class ImageGreyscaleTransformColumn : OneToOneColumn<ImageGreyscaleTransformColumn>, IOneToOneColumn
+        {
+            /// <summary>
+            /// Name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+        }
+
+        /// <summary>
+        /// Convert image into grayscale.
+        /// </summary>
+        public sealed partial class ImageGreyscale : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+            public ImageGreyscale()
+            {
+            }
+            
+            public ImageGreyscale(params string[] inputColumns)
+            {
+                if (inputColumns != null)
+                {
+                    foreach (string input in inputColumns)
+                    {
+                        AddColumn(input);
+                    }
+                }
+            }
+            
+            public ImageGreyscale(params (string inputColumn, string outputColumn)[] inputOutputColumns)
+            {
+                if (inputOutputColumns != null)
+                {
+                    foreach (var inputOutput in inputOutputColumns)
+                    {
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
+                    }
+                }
+            }
+            
+            public void AddColumn(string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>() : new List<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>.Create(inputColumn));
+                Column = list.ToArray();
+            }
+
+            public void AddColumn(string outputColumn, string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>() : new List<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>.Create(outputColumn, inputColumn));
+                Column = list.ToArray();
+            }
+
+
+            /// <summary>
+            /// New column definition(s) (optional form: name:src)
+            /// </summary>
+            public ImageGreyscaleTransformColumn[] Column { get; set; }
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ImageGreyscale)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new ImageGreyscalePipelineStep(output);
+            }
+
+            private class ImageGreyscalePipelineStep : ILearningPipelineDataStep
+            {
+                public ImageGreyscalePipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Transforms
+    {
+
+        public sealed partial class ImageLoaderTransformColumn : OneToOneColumn<ImageLoaderTransformColumn>, IOneToOneColumn
+        {
+            /// <summary>
+            /// Name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+        }
+
+        /// <summary>
+        /// Load images from a file.
+        /// </summary>
+        public sealed partial class ImageLoader : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+            public ImageLoader()
+            {
+            }
+            
+            public ImageLoader(params string[] inputColumns)
+            {
+                if (inputColumns != null)
+                {
+                    foreach (string input in inputColumns)
+                    {
+                        AddColumn(input);
+                    }
+                }
+            }
+            
+            public ImageLoader(params (string inputColumn, string outputColumn)[] inputOutputColumns)
+            {
+                if (inputOutputColumns != null)
+                {
+                    foreach (var inputOutput in inputOutputColumns)
+                    {
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
+                    }
+                }
+            }
+            
+            public void AddColumn(string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageLoaderTransformColumn>() : new List<Microsoft.ML.Transforms.ImageLoaderTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageLoaderTransformColumn>.Create(inputColumn));
+                Column = list.ToArray();
+            }
+
+            public void AddColumn(string outputColumn, string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageLoaderTransformColumn>() : new List<Microsoft.ML.Transforms.ImageLoaderTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageLoaderTransformColumn>.Create(outputColumn, inputColumn));
+                Column = list.ToArray();
+            }
+
+
+            /// <summary>
+            /// New column definition(s) (optional form: name:src)
+            /// </summary>
+            public ImageLoaderTransformColumn[] Column { get; set; }
+
+            /// <summary>
+            /// Folder where to search for images
+            /// </summary>
+            public string ImageFolder { get; set; }
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ImageLoader)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new ImageLoaderPipelineStep(output);
+            }
+
+            private class ImageLoaderPipelineStep : ILearningPipelineDataStep
+            {
+                public ImageLoaderPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Transforms
+    {
+
+        public sealed partial class ImagePixelExtractorTransformColumn : OneToOneColumn<ImagePixelExtractorTransformColumn>, IOneToOneColumn
+        {
+            /// <summary>
+            /// Whether to use alpha channel
+            /// </summary>
+            public bool? UseAlpha { get; set; }
+
+            /// <summary>
+            /// Whether to use red channel
+            /// </summary>
+            public bool? UseRed { get; set; }
+
+            /// <summary>
+            /// Whether to use green channel
+            /// </summary>
+            public bool? UseGreen { get; set; }
+
+            /// <summary>
+            /// Whether to use blue channel
+            /// </summary>
+            public bool? UseBlue { get; set; }
+
+            /// <summary>
+            /// Whether to separate each channel or interleave in ARGB order
+            /// </summary>
+            public bool? InterleaveArgb { get; set; }
+
+            /// <summary>
+            /// Whether to convert to floating point
+            /// </summary>
+            public bool? Convert { get; set; }
+
+            /// <summary>
+            /// Offset (pre-scale)
+            /// </summary>
+            public float? Offset { get; set; }
+
+            /// <summary>
+            /// Scale factor
+            /// </summary>
+            public float? Scale { get; set; }
+
+            /// <summary>
+            /// Name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+        }
+
+        /// <summary>
+        /// Extract color plane(s) from an image. Options include scaling, offset and conversion to floating point.
+        /// </summary>
+        public sealed partial class ImagePixelExtractor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+            public ImagePixelExtractor()
+            {
+            }
+            
+            public ImagePixelExtractor(params string[] inputColumns)
+            {
+                if (inputColumns != null)
+                {
+                    foreach (string input in inputColumns)
+                    {
+                        AddColumn(input);
+                    }
+                }
+            }
+            
+            public ImagePixelExtractor(params (string inputColumn, string outputColumn)[] inputOutputColumns)
+            {
+                if (inputOutputColumns != null)
+                {
+                    foreach (var inputOutput in inputOutputColumns)
+                    {
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
+                    }
+                }
+            }
+            
+            public void AddColumn(string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>() : new List<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>.Create(inputColumn));
+                Column = list.ToArray();
+            }
+
+            public void AddColumn(string outputColumn, string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>() : new List<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>.Create(outputColumn, inputColumn));
+                Column = list.ToArray();
+            }
+
+
+            /// <summary>
+            /// New column definition(s) (optional form: name:src)
+            /// </summary>
+            public ImagePixelExtractorTransformColumn[] Column { get; set; }
+
+            /// <summary>
+            /// Whether to use alpha channel
+            /// </summary>
+            public bool UseAlpha { get; set; } = false;
+
+            /// <summary>
+            /// Whether to use red channel
+            /// </summary>
+            public bool UseRed { get; set; } = true;
+
+            /// <summary>
+            /// Whether to use green channel
+            /// </summary>
+            public bool UseGreen { get; set; } = true;
+
+            /// <summary>
+            /// Whether to use blue channel
+            /// </summary>
+            public bool UseBlue { get; set; } = true;
+
+            /// <summary>
+            /// Whether to separate each channel or interleave in ARGB order
+            /// </summary>
+            public bool InterleaveArgb { get; set; } = false;
+
+            /// <summary>
+            /// Whether to convert to floating point
+            /// </summary>
+            public bool Convert { get; set; } = true;
+
+            /// <summary>
+            /// Offset (pre-scale)
+            /// </summary>
+            public float? Offset { get; set; }
+
+            /// <summary>
+            /// Scale factor
+            /// </summary>
+            public float? Scale { get; set; }
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ImagePixelExtractor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new ImagePixelExtractorPipelineStep(output);
+            }
+
+            private class ImagePixelExtractorPipelineStep : ILearningPipelineDataStep
+            {
+                public ImagePixelExtractorPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Transforms
+    {
+        public enum ImageResizerTransformResizingKind : byte
+        {
+            IsoPad = 0,
+            IsoCrop = 1
+        }
+
+        public enum ImageResizerTransformAnchor : byte
+        {
+            Right = 0,
+            Left = 1,
+            Top = 2,
+            Bottom = 3,
+            Center = 4
+        }
+
+
+        public sealed partial class ImageResizerTransformColumn : OneToOneColumn<ImageResizerTransformColumn>, IOneToOneColumn
+        {
+            /// <summary>
+            /// Width of the resized image
+            /// </summary>
+            public int? ImageWidth { get; set; }
+
+            /// <summary>
+            /// Height of the resized image
+            /// </summary>
+            public int? ImageHeight { get; set; }
+
+            /// <summary>
+            /// Resizing method
+            /// </summary>
+            public ImageResizerTransformResizingKind? Resizing { get; set; }
+
+            /// <summary>
+            /// Anchor for cropping
+            /// </summary>
+            public ImageResizerTransformAnchor? CropAnchor { get; set; }
+
+            /// <summary>
+            /// Name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+        }
+
+        /// <summary>
+        /// Scales an image to specified dimensions using one of the three scale types: isotropic with padding, isotropic with cropping or anisotropic. In case of isotropic padding, transparent color is used to pad resulting image.
+        /// </summary>
+        public sealed partial class ImageResizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+            public ImageResizer()
+            {
+            }
+            
+            public ImageResizer(params string[] inputColumns)
+            {
+                if (inputColumns != null)
+                {
+                    foreach (string input in inputColumns)
+                    {
+                        AddColumn(input);
+                    }
+                }
+            }
+            
+            public ImageResizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
+            {
+                if (inputOutputColumns != null)
+                {
+                    foreach (var inputOutput in inputOutputColumns)
+                    {
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
+                    }
+                }
+            }
+            
+            public void AddColumn(string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageResizerTransformColumn>() : new List<Microsoft.ML.Transforms.ImageResizerTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageResizerTransformColumn>.Create(inputColumn));
+                Column = list.ToArray();
+            }
+
+            public void AddColumn(string outputColumn, string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageResizerTransformColumn>() : new List<Microsoft.ML.Transforms.ImageResizerTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageResizerTransformColumn>.Create(outputColumn, inputColumn));
+                Column = list.ToArray();
+            }
+
+
+            /// <summary>
+            /// New column definition(s) (optional form: name:src)
+            /// </summary>
+            public ImageResizerTransformColumn[] Column { get; set; }
+
+            /// <summary>
+            /// Resized width of the image
+            /// </summary>
+            public int ImageWidth { get; set; }
+
+            /// <summary>
+            /// Resized height of the image
+            /// </summary>
+            public int ImageHeight { get; set; }
+
+            /// <summary>
+            /// Resizing method
+            /// </summary>
+            public ImageResizerTransformResizingKind Resizing { get; set; } = ImageResizerTransformResizingKind.IsoCrop;
+
+            /// <summary>
+            /// Anchor for cropping
+            /// </summary>
+            public ImageResizerTransformAnchor CropAnchor { get; set; } = ImageResizerTransformAnchor.Center;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ImageResizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new ImageResizerPipelineStep(output);
+            }
+
+            private class ImageResizerPipelineStep : ILearningPipelineDataStep
+            {
+                public ImageResizerPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Transforms
+    {
+
         public sealed partial class KeyToValueTransformColumn : OneToOneColumn<KeyToValueTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -15437,6 +16113,215 @@ namespace Microsoft.ML
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
+            }
+        }
+    }
+
+    namespace Transforms
+    {
+
+        public sealed partial class VectorToImageTransformColumn : OneToOneColumn<VectorToImageTransformColumn>, IOneToOneColumn
+        {
+            /// <summary>
+            /// Whether to use alpha channel
+            /// </summary>
+            public bool? ContainsAlpha { get; set; }
+
+            /// <summary>
+            /// Whether to use red channel
+            /// </summary>
+            public bool? ContainsRed { get; set; }
+
+            /// <summary>
+            /// Whether to use green channel
+            /// </summary>
+            public bool? ContainsGreen { get; set; }
+
+            /// <summary>
+            /// Whether to use blue channel
+            /// </summary>
+            public bool? ContainsBlue { get; set; }
+
+            /// <summary>
+            /// Whether to separate each channel or interleave in ARGB order
+            /// </summary>
+            public bool? InterleaveArgb { get; set; }
+
+            /// <summary>
+            /// Width of the image
+            /// </summary>
+            public int? ImageWidth { get; set; }
+
+            /// <summary>
+            /// Height of the image
+            /// </summary>
+            public int? ImageHeight { get; set; }
+
+            /// <summary>
+            /// Offset (pre-scale)
+            /// </summary>
+            public float? Offset { get; set; }
+
+            /// <summary>
+            /// Scale factor
+            /// </summary>
+            public float? Scale { get; set; }
+
+            /// <summary>
+            /// Name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+        }
+
+        /// <summary>
+        /// Converts vector array into image type.
+        /// </summary>
+        public sealed partial class VectorToImage : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+            public VectorToImage()
+            {
+            }
+            
+            public VectorToImage(params string[] inputColumns)
+            {
+                if (inputColumns != null)
+                {
+                    foreach (string input in inputColumns)
+                    {
+                        AddColumn(input);
+                    }
+                }
+            }
+            
+            public VectorToImage(params (string inputColumn, string outputColumn)[] inputOutputColumns)
+            {
+                if (inputOutputColumns != null)
+                {
+                    foreach (var inputOutput in inputOutputColumns)
+                    {
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
+                    }
+                }
+            }
+            
+            public void AddColumn(string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.VectorToImageTransformColumn>() : new List<Microsoft.ML.Transforms.VectorToImageTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.VectorToImageTransformColumn>.Create(inputColumn));
+                Column = list.ToArray();
+            }
+
+            public void AddColumn(string outputColumn, string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.VectorToImageTransformColumn>() : new List<Microsoft.ML.Transforms.VectorToImageTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.VectorToImageTransformColumn>.Create(outputColumn, inputColumn));
+                Column = list.ToArray();
+            }
+
+
+            /// <summary>
+            /// New column definition(s) (optional form: name:src)
+            /// </summary>
+            public VectorToImageTransformColumn[] Column { get; set; }
+
+            /// <summary>
+            /// Whether to use alpha channel
+            /// </summary>
+            public bool ContainsAlpha { get; set; } = false;
+
+            /// <summary>
+            /// Whether to use red channel
+            /// </summary>
+            public bool ContainsRed { get; set; } = true;
+
+            /// <summary>
+            /// Whether to use green channel
+            /// </summary>
+            public bool ContainsGreen { get; set; } = true;
+
+            /// <summary>
+            /// Whether to use blue channel
+            /// </summary>
+            public bool ContainsBlue { get; set; } = true;
+
+            /// <summary>
+            /// Whether to separate each channel or interleave in ARGB order
+            /// </summary>
+            public bool InterleaveArgb { get; set; } = false;
+
+            /// <summary>
+            /// Width of the image
+            /// </summary>
+            public int ImageWidth { get; set; }
+
+            /// <summary>
+            /// Height of the image
+            /// </summary>
+            public int ImageHeight { get; set; }
+
+            /// <summary>
+            /// Offset (pre-scale)
+            /// </summary>
+            public float? Offset { get; set; }
+
+            /// <summary>
+            /// Scale factor
+            /// </summary>
+            public float? Scale { get; set; }
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(VectorToImage)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new VectorToImagePipelineStep(output);
+            }
+
+            private class VectorToImagePipelineStep : ILearningPipelineDataStep
+            {
+                public VectorToImagePipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
             }
         }
     }
