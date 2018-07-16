@@ -12,15 +12,19 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(VectorToImageTransform.Summary, typeof(VectorToImageTransform), typeof(VectorToImageTransform.Arguments), typeof(SignatureDataTransform),
-    VectorToImageTransform.UserName, "VectorToImageTransform", "VectorToImage")]
+[assembly: LoadableClass(VectorToImageTransform.Summary, typeof(VectorToImageTransform), typeof(VectorToImageTransform.Arguments),
+    typeof(SignatureDataTransform), VectorToImageTransform.UserName, "VectorToImageTransform", "VectorToImage")]
 
 [assembly: LoadableClass(VectorToImageTransform.Summary, typeof(VectorToImageTransform), null, typeof(SignatureLoadDataTransform),
     VectorToImageTransform.UserName, VectorToImageTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Runtime.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
+
+    /// <summary>
+    /// Transform which takes one or many columns with vectors in them and transform them to <see cref="ImageType"/> representation.
+    /// </summary>
     public sealed class VectorToImageTransform : OneToOneTransformBase
     {
         public class Column : OneToOneColumn

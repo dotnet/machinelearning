@@ -9,20 +9,23 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.ImageAnalytics;
 
-[assembly: LoadableClass(ImageResizerTransform.Summary, typeof(ImageResizerTransform), typeof(ImageResizerTransform.Arguments), typeof(SignatureDataTransform),
-    ImageResizerTransform.UserName, "ImageResizerTransform", "ImageResizer")]
+[assembly: LoadableClass(ImageResizerTransform.Summary, typeof(ImageResizerTransform), typeof(ImageResizerTransform.Arguments),
+    typeof(SignatureDataTransform), ImageResizerTransform.UserName, "ImageResizerTransform", "ImageResizer")]
 
 [assembly: LoadableClass(ImageResizerTransform.Summary, typeof(ImageResizerTransform), null, typeof(SignatureLoadDataTransform),
     ImageResizerTransform.UserName, ImageResizerTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Runtime.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
+    /// <summary>
+    /// Transform which takes one or many columns of <see cref="ImageType"/> and resize them to provided height and width.
+    /// </summary>
     public sealed class ImageResizerTransform : OneToOneTransformBase
     {
         public enum ResizingKind : byte
@@ -248,7 +251,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
         {
-            Host.AssertValue(ch, "ch");
+            Host.AssertValueOrNull(ch);
             Host.AssertValue(input);
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
 
@@ -353,8 +356,6 @@ namespace Microsoft.ML.Runtime.Data
                         destHeight = (int)(sourceHeight * aspect);
                     }
                     dst = new Bitmap(ex.Width, ex.Height);
-                    dst.SetResolution(src.VerticalResolution, src.VerticalResolution);
-
                     var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
                     var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
                     using (var g = Graphics.FromImage(dst))

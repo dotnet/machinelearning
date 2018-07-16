@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.TestFramework;
 using System.Drawing;
 using System.IO;

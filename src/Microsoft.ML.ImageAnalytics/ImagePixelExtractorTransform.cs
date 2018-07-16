@@ -9,9 +9,9 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.ImageAnalytics;
 
 [assembly: LoadableClass(ImagePixelExtractorTransform.Summary, typeof(ImagePixelExtractorTransform), typeof(ImagePixelExtractorTransform.Arguments), typeof(SignatureDataTransform),
     ImagePixelExtractorTransform.UserName, "ImagePixelExtractorTransform", "ImagePixelExtractor")]
@@ -19,9 +19,12 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 [assembly: LoadableClass(ImagePixelExtractorTransform.Summary, typeof(ImagePixelExtractorTransform), null, typeof(SignatureLoadDataTransform),
     ImagePixelExtractorTransform.UserName, ImagePixelExtractorTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Runtime.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
+    /// <summary>
+    /// Transform which takes one or many columns of <see cref="ImageType"/> and convert them into vector representation.
+    /// </summary>
     public sealed class ImagePixelExtractorTransform : OneToOneTransformBase
     {
         public class Column : OneToOneColumn

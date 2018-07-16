@@ -82,7 +82,25 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.LightGBM", "sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Ensemble", "src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj", "{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ML.ImageAnalytics", "src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj", "{80FBE6ED-F29B-4FDC-A2A7-137A5577DD00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.ImageAnalytics", "src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj", "{80FBE6ED-F29B-4FDC-A2A7-137A5577DD00}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Onnx", "Microsoft.ML.Onnx", "{2C03D198-5025-444C-9D71-2C884C542E0F}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.nupkgproj = pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.nupkgproj
+		pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.symbols.nupkgproj = pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.LightGBM", "Microsoft.ML.LightGBM", "{6E3F0007-592A-434A-B0BB-FA7700E2DC29}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.nupkgproj = pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.nupkgproj
+		pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.symbols.nupkgproj = pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.ImageAnalytics", "Microsoft.ML.ImageAnalytics", "{002F5886-4F9B-403B-826E-479E055DAE44}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.nupkgproj = pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.nupkgproj
+		pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.symbols.nupkgproj = pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.symbols.nupkgproj
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -234,6 +252,9 @@ Global
 		{001F3B4E-FBE4-4001-AFD2-A6A989CD1C25} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{80FBE6ED-F29B-4FDC-A2A7-137A5577DD00} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{2C03D198-5025-444C-9D71-2C884C542E0F} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{6E3F0007-592A-434A-B0BB-FA7700E2DC29} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{002F5886-4F9B-403B-826E-479E055DAE44} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}

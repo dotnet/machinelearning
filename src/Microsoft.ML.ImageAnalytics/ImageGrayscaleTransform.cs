@@ -20,12 +20,16 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 [assembly: LoadableClass(ImageGreyscaleTransform.Summary, typeof(ImageGreyscaleTransform), null, typeof(SignatureLoadDataTransform),
     ImageGreyscaleTransform.UserName, ImageGreyscaleTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Runtime.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
+    // REVIEW: Should it be separate transform or part of ImageResizerTransform?
+    /// <summary>
+    /// Transform which takes one or many columns of <see cref="ImageType"/> type in IDataView and
+    /// convert them to greyscale representation of the same image.
+    /// </summary>
     public sealed class ImageGreyscaleTransform : OneToOneTransformBase
     {
-
         public sealed class Column : OneToOneColumn
         {
             public static Column Parse(string str)
@@ -41,7 +45,6 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
             }
-
         }
 
         public class Arguments : TransformInputBase
@@ -126,7 +129,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
         {
-            Host.AssertValue(ch, "ch");
+            Host.AssertValueOrNull(ch);
             Host.AssertValue(input);
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
 
@@ -154,7 +157,6 @@ namespace Microsoft.ML.Runtime.Data
                         return;
 
                     dst = new Bitmap(src.Width, src.Height);
-                    dst.SetResolution(src.VerticalResolution, src.VerticalResolution);
                     ImageAttributes attributes = new ImageAttributes();
                     attributes.SetColorMatrix(GreyscaleColorMatrix);
                     var srcRectangle = new Rectangle(0, 0, src.Width, src.Height);

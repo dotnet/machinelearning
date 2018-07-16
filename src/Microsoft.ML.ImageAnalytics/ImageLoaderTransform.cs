@@ -20,9 +20,12 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(ImageLoaderTransform.Summary, typeof(ImageLoaderTransform), null, typeof(SignatureLoadDataTransform),
    ImageLoaderTransform.UserName, ImageLoaderTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Runtime.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
+    /// <summary>
+    /// Transform which takes one or many columns of type <see cref="DvText"/> and loads them as <see cref="ImageType"/>
+    /// </summary>
     public sealed class ImageLoaderTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
@@ -50,7 +53,7 @@ namespace Microsoft.ML.Runtime.Data
                 ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Image folder", ShortName = "folder")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Folder where to search for images", ShortName = "folder")]
             public string ImageFolder;
         }
 
@@ -69,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly ImageType _type;
-        private string _imageFolder;
+        private readonly string _imageFolder;
 
         private const string RegistrationName = "ImageLoader";
 
@@ -128,13 +131,13 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
         {
-            Host.AssertValueOrNull(ch);
+            Host.AssertValue(ch, nameof(ch));
             Host.AssertValue(input);
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             disposer = null;
 
             var getSrc = GetSrcGetter<DvText>(input, iinfo);
-            DvText src = default(DvText);
+            DvText src = default;
             ValueGetter<Bitmap> del =
                 (ref Bitmap dst) =>
                 {
@@ -154,7 +157,7 @@ namespace Microsoft.ML.Runtime.Data
                             string path = src.ToString();
                             if (!string.IsNullOrWhiteSpace(_imageFolder))
                                 path = Path.Combine(_imageFolder, path);
-                            dst = new Bitmap(filename: path, useIcm: false);
+                            dst = new Bitmap(path);
                         }
                         catch (Exception e)
                         {

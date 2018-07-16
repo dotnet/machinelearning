@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
-    public sealed class ImageType: StructuredType
+    public sealed class ImageType : StructuredType
     {
         public readonly int Height;
         public readonly int Width;
@@ -16,13 +16,12 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         {
             Contracts.CheckParam(height > 0, nameof(height));
             Contracts.CheckParam(width > 0, nameof(width));
-            Contracts.CheckParam((long)height * width <= int.MaxValue / 4, nameof(height), "height * width is too large");
+            Contracts.CheckParam((long)height * width <= int.MaxValue / 4, nameof(height), $"{nameof(height)} * {nameof(width)} is too large");
             Height = height;
             Width = width;
         }
 
-        public ImageType()
-            : base(typeof(Image))
+        public ImageType() : base(typeof(Image))
         {
         }
 
@@ -30,23 +29,20 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         {
             if (other == this)
                 return true;
-            var tmp = other as ImageType;
-            if (tmp == null)
+            if (!(other is ImageType tmp))
                 return false;
             if (Height != tmp.Height)
                 return false;
-            if (Width != tmp.Width)
-                return false;
-            return true;
+            return Width != tmp.Width;
         }
 
         public override string ToString()
         {
             if (Height == 0 && Width == 0)
-                return "Picture";
-            return string.Format("Picture<{0}, {1}>", Height, Width);
+                return "Image";
+            return string.Format("Image<{0}, {1}>", Height, Width);
         }
     }
 
-   
+
 }
