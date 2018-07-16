@@ -4,37 +4,36 @@
 
     <member name="LBFGS">
       <summary>
-        Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as a classification algorithm. 
-        The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.
+        Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as 
+        a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.
       </summary>
       <remarks>
-        If the dependent variable has more than two possible values (blood type given diagnostic test results), then the logistic regression is multinomial.
+        If the dependent variable has more than two possible values (blood type given diagnostic test results), 
+        then the logistic regression is multinomial.
         <para>
-          The optimization technique used for LogisticRegression Classifier is the limited memory Broyden-Fletcher-Goldfarb-Shanno (L-BFGS).
-          Both the L-BFGS and regular BFGS algorithms use quasi-Newtonian methods to estimate the computationally intensive Hessian matrix in the equation used by Newton's method to calculate steps.
+          The optimization technique used for LogisticRegression Classifier is based on the limited memory Broyden-Fletcher-Goldfarb-Shanno (L-BFGS).
+          The L1 regularization is an implementation of OWLQN, based on
+          <a href="http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260">Scalable training of L1-regularized log-linear models</a>
+          Both the L-BFGS and regular BFGS algorithms use quasi-Newtonian methods to estimate the computationally intensive 
+          Hessian matrix in the equation used by Newton's method to calculate steps.
           But the L-BFGS approximation uses only a limited amount of memory to compute the next step direction,
           so that it is especially suited for problems with a large number of variables.
-          The <paramref>MemorySize</paramref> parameter specifies the number of past positions and gradients to store for use in the computation of the next step.
+          The MemorySize argument specifies the number of past positions and gradients to store for use in the 
+          computation of the next step.
         </para>
         <para>
-          This learner can use elastic net regularization: a linear combination of L1 (lasso) and L2 (ridge) regularizations.
-          Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information to supplement the data and that prevents overfitting by penalizing models with extreme coefficient values.
+          This learner can use elastic net regularization: a linear combination of L1 (LASSO) and L2 (ridge) regularizations.
+          Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information 
+          to supplement the data and that prevents overfitting by penalizing models with extreme coefficient values.
           This can improve the generalization of the model learned by selecting the optimal complexity in the bias-variance tradeoff.
           Regularization works by adding the penalty that is associated with coefficient values to the error of the hypothesis.
-          An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less. L1 and L2 regularization have different effects and uses that are complementary in certain respects.
+          An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative 
+          values would be penalized less. L1 and L2 regularization have different effects and uses that are complementary in certain respects.
         </para>
           <list type='bullet'>
-            <item>
-              <description>
-              <paramref>L1Weight</paramref>: can be applied to sparse models, when working with high-dimensional data.
-              It pulls small weights associated features that are relatively unimportant towards 0.
-            </description>
-            </item>
-            <item>
-              <description>
-                <paramref>L2Weight</paramref>: is preferable for data that is not sparse. It pulls large weights towards zero.
-              </description>
-            </item>
+            <item><description>L1Weight can be applied to sparse models, when working with high-dimensional data.
+              It pulls small weights associated features that are relatively unimportant towards 0.</description></item>
+            <item><description>L2Weight is preferable for data that is not sparse. It pulls large weights towards zero.</description></item>
           </list>
           Adding the ridge penalty to the regularization overcomes some of lasso's limitations. It can improve its predictive accuracy, for example, when the number of predictors is greater than the sample size. If x = l1_weight and y = l2_weight, ax + by = c defines the linear span of the regularization terms.
           The default values of x and y are both 1.

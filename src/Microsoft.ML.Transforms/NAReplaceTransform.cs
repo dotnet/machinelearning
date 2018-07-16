@@ -27,12 +27,10 @@ using Microsoft.ML.Runtime.Model.Onnx;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    // <summary>
     // This transform can transform either scalars or vectors (both fixed and variable size),
     // creating output columns that are identical to the input columns except for replacing NA values
     // with either the default value, user input, or imputed values (min/max/mean are currently supported).
     // Imputation modes are supported for vectors both by slot and across all slots.
-    // </summary>
     // REVIEW: May make sense to implement the transform template interface.
     /// <include file='doc.xml' path='doc/members/member[@name="NAReplace"]/*' />
     public sealed partial class NAReplaceTransform : OneToOneTransformBase

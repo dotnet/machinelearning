@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Learners
     /// pair.
     ///
     /// These two can allow you to exploit trainers that do not naturally have a
-    /// multiclass option, e.g., using <see cref="Microsoft.ML.Runtime.FastTree.FastTreeBinaryClassificationTrainer"/> 
+    /// multiclass option, e.g., using the Runtime.FastTree.FastTreeBinaryClassificationTrainer 
     /// to solve a multiclass problem.
     /// Alternately, it can allow ML.NET to solve a "simpler" problem even in the cases
     /// where the trainer has a multiclass option, but using it directly is not

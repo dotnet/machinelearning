@@ -10,27 +10,13 @@
       <remarks>
         The TextFeaturizer transform gives user one-stop solution for doing:
         <list type="bullet">
-          <item>
-            <description>Language Detection</description>
-          </item>
-          <item>
-            <description>Tokenzation​</description>
-          </item>
-          <item>
-            <description>Text normalization</description>
-          </item>
-          <item>
-            <description>Predefined and custom stopwords removal.</description>
-          </item>
-          <item>
-            <description>Word-based or character-based Ngram and SkipGram extraction.​</description>
-          </item>
-          <item>
-            <description>TF, IDF or TF-IDF.</description>
-          </item>
-          <item>
-            <description>L-p vector normalization.​</description>
-          </item>
+          <item><description>Language Detection</description></item>
+          <item><description>Tokenzation​</description></item>
+          <item><description>Text normalization</description></item>
+          <item><description>Predefined and custom stopwords removal.</description></item>
+          <item><description>Word-based or character-based Ngram and SkipGram extraction.​</description></item>
+          <item><description>TF, IDF or TF-IDF.</description></item>
+          <item><description>L-p vector normalization.​</description></item>
         </list>
         The TextFeaturizer will show the transformed text, after being applied.
         It converts a collection of text columns to a matrix of token  ngrams/skip-grams counts.
@@ -83,18 +69,12 @@
         Embedding ngrams in a vector space allows their contents to be compared in an efficient manner. 
         The slot values in the vector can be weighted by the following factors:
         <list>
-          <item>
-            <description>term frequency - The number of occurrences of the slot in the text</description>
-          </item>
-          <item>
-            <description>
+          <item><description>term frequency - The number of occurrences of the slot in the text</description></item>
+          <item><description>
               inverse document frequency - A ratio (the logarithm of inverse relative slot frequency)
               that measures the information a slot provides by determining how common or rare it is across the entire text.
-            </description>
-          </item>
-            <item>
-              <description>term frequency-inverse document frequency - the product term frequency and the inverse document frequency.</description>
-            </item>
+            </description></item>
+            <item><description>term frequency-inverse document frequency - the product term frequency and the inverse document frequency.</description></item>
         </list>
         This transform is not typically used on its own, but it is one of the transforms composing the <see cref="Microsoft.ML.Transforms.TextFeaturizer">Text Featurizer</see> .
       </remarks>
@@ -132,7 +112,7 @@
 
     <member name="CharacterTokenizer">
       <summary>
-        Character-oriented tokenizer where text is considered a sequence of characters. 
+        This transform breaks text into individual tokens, each consisting of individual character.
       </summary>
       <remarks>
       This transform is not typically used on its own, but it is one of the transforms composing the 

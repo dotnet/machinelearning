@@ -5,7 +5,7 @@
     <member name="OGD">
       <summary>
         Stochastic gradient descent is an optimization method used to train a wide range of models in machine learning. 
-        In the ML.Net the implementation of OGD, it is for linear regression. 
+        In the ML.Net the implementation of OGD, is for linear regression. 
       </summary>
       <remarks>
         Stochastic gradient descent uses a simple yet efficient iterative technique to fit model coefficients using error gradients for convex loss functions.

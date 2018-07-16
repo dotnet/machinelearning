@@ -18,10 +18,10 @@
         classifier indicates that it does not need caching, OVA will always
         request caching, as it will be performing multiple passes over the data set.
       </remarks>
-      <seealso cref='Microsoft.ML.Trainers.LogisticRegressionClassifier'></seealso>
-      <seealso cref='Microsoft.ML.Trainers.LightGbmClassifier'></seealso>
-      <seealso cref='Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier'></seealso>
-      <seealso cref='Microsoft.ML.Models.OneVersusAll'></seealso>
+      <seealso cref='Microsoft.ML.Trainers.LogisticRegressionClassifier'/>
+      <seealso cref='Microsoft.ML.Trainers.LightGbmClassifier'/>
+      <seealso cref='Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier'/>
+      <seealso cref='Microsoft.ML.Models.OneVersusAll'/>
       <example>
         <code>
           pipeline.Add(new NaiveBayesClassifier(){ NormalizeFeatures = NormalizeOption.Auto, Caching = CachingOptions.Memory });
@@ -44,10 +44,10 @@
           can be different from LightGbmClassifier, which develops a multi-class classifier directly. 
         </para>
       </remarks>
-      <seealso cref='Microsoft.ML.Trainers.LogisticRegressionClassifier'>LogisticRegressionClassifier</seealso>
-      <seealso cref='Microsoft.ML.Trainers.LightGbmClassifier'>LightGbmClassifier</seealso>
-      <seealso cref='Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier'>StochasticDualCoordinateAscentClassifier</seealso>
-      <seealso cref='Microsoft.ML.Trainers.NaiveBayesClassifier'>NaiveBayesClassifier</seealso>
+      <seealso cref='Microsoft.ML.Trainers.LogisticRegressionClassifier'/>
+      <seealso cref='Microsoft.ML.Trainers.LightGbmClassifier'/>
+      <seealso cref='Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier'/>
+      <seealso cref='Microsoft.ML.Trainers.NaiveBayesClassifier'/>
       <example>
         <code>
           pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));

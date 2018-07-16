@@ -9,8 +9,8 @@
       <remarks>
         Field Aware Factorization Machines use, in addition to the input variables, factorized parameters to model the interaction between pairs of variables.
         The algorithm is particularly useful for high dimensional datasets which can be very sparse (e.g. click-prediction for advertising systems).
-        An advantage of FFM over SVMs is that the training data does not need to be stored in memory, and the coefficients can be optimized directly.
-        <para> For a general idea of what Field-aware Factorization Machines are see: <a href='https://www.csie.ntu.edu.tw/~r01922136/slides/ffm.pdf'>Field Aware Factorization Machines</a>
+        <para>An advantage of FFM over SVMs is that the training data does not need to be stored in memory, and the coefficients can be optimized directly.
+          For a general idea of what Field-aware Factorization Machines are see: <a href='https://www.csie.ntu.edu.tw/~r01922136/slides/ffm.pdf'>Field Aware Factorization Machines</a>
         </para>
         <para>See references below for more details. 
         This trainer is essentially faster the one introduced in [2] because of some implemtation tricks[3].

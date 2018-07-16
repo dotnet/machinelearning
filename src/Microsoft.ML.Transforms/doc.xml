@@ -249,23 +249,18 @@
         <para>Variable-length pivot columns are supported (including zero, which will eliminate the row from the result).</para>
         <para>Multiple pivot columns are also supported:</para>
         <list type="bullet">
-          <item>
-            <description>A number of output rows is controlled by the 'mode' parameter. 
+          <item><description>A number of output rows is controlled by the 'mode' parameter. 
             <list type="bullet">
-              <item>
-                <description>outer: it is equal to the maximum length of pivot columns</description>
-                <description>inner: it is equal to the minimum length of pivot columns</description>
-                <description>first: it is equal to the length of the first pivot column</description>
-              </item>
+              <item>outer<description> it is equal to the maximum length of pivot columns</description></item>
+              <item>inner<description> it is equal to the minimum length of pivot columns</description></item>
+              <item>first<description> it is equal to the length of the first pivot column</description></item>
             </list>
             </description>
           </item>
-          <item>
-            <description>
+          <item><description>
               If a particular pivot column has size that is different than the number of output rows, the extra slots will
               be ignored, and the missing slots will be 'padded' with default values.
-            </description>
-          </item>
+            </description></item>
         </list>
         <para>All metadata is preserved for the retained columns. For 'unrolled' columns, all known metadata
         except slot names is preserved.
@@ -300,19 +295,19 @@
         </code>
       </example>
     </member>
-    
+
     <member name="KeyToText">
       <summary>
-       The KeyToValueTransform utilizes KeyValues metadata to map key indices to the corresponding values in the 
-       KeyValues metadata.
+        The KeyToValueTransform utilizes KeyValues metadata to map key indices to the corresponding values in the
+        KeyValues metadata.
       </summary>
       <remarks>
-        The KeyToTextConverter is the complement of the <see  cref="TextToKeyConverter"/> transform. 
-        Since key values are an enumeration into the set of keys, most transforms that produce key valued outputs 
+        The KeyToTextConverter is the complement of the <see  cref="TextToKeyConverter"/> transform.
+        Since key values are an enumeration into the set of keys, most transforms that produce key valued outputs
         corresponding to input values will often, wherever possible, associate a piece of KeyValue metadata with that dataset.
-        Transforming values into a categorical variable would be of limited use, 
-        if we couldn't somehow backtrack to figure out what those categories actually mean. 
-        The KeyToTextConverter enables that functionality. 
+        Transforming values into a categorical variable would be of limited use,
+        if we couldn't somehow backtrack to figure out what those categories actually mean.
+        The KeyToTextConverter enables that functionality.
       </remarks>
       <seealso cref="Microsoft.ML.Transforms.HashConverter"/>
       <seealso cref="Microsoft.ML.Transforms.TextToKeyConverter"/>

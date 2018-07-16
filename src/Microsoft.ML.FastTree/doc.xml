@@ -24,13 +24,16 @@
           The output of the ensemble produced by MART on a given instance is the sum of the tree outputs.
         </para>
         <list type='bullet'>
-          <item>In case of a binary classification problem, the output is converted to a probability by using some form of calibration.</item>
-          <item>In case of a regression problem, the output is the predicted value of the function.</item>
-          <item>In case of a ranking problem, the instances are ordered by the output value of the ensemble.</item>
+          <item><description> In case of a binary classification problem, the output is converted to a probability by using some form of calibration.</description></item>
+          <item><description>In case of a regression problem, the output is the predicted value of the function.</description></item>
+          <item><description>In case of a ranking problem, the instances are ordered by the output value of the ensemble.</description></item>
         </list>
-        <a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</a>.
-        <a href='http://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine.</a>.
-      </remarks>
+        <para>For more information see:</para>
+        <list>
+          <item><description><a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting).</a></description></item>
+          <item><description><a href='http://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine.</a></description></item>
+        </list>  
+    </remarks>
     </member>
     
     <member name="FastForest">
@@ -48,15 +51,18 @@
           <item><description>They perform integrated feature selection and classification. </description></item>
           <item><description>They are resilient in the presence of noisy features.</description></item>
         </list>
-        Fast forest is a random forest implementation.
+        <para>Fast forest is a random forest implementation.
         The model consists of an ensemble of decision trees. Each tree in a decision forest outputs a Gaussian distribution by way of prediction.
         An aggregation is performed over the ensemble of trees to find a Gaussian distribution closest to the combined distribution for all trees in the model.
-        This decision forest classifier consists of an ensemble of decision trees.
-        Generally, ensemble models provide better coverage and accuracy than single decision trees.
-        Each tree in a decision forest outputs a Gaussian distribution.
-        <a href='http://en.wikipedia.org/wiki/Random_forest'>Wikipedia: Random forest</a>
-        <a href='http://jmlr.org/papers/volume7/meinshausen06a/meinshausen06a.pdf'>Quantile regression forest</a>
-        <a href='https://blogs.technet.microsoft.com/machinelearning/2014/09/10/from-stumps-to-trees-to-forests/'>From Stumps to Trees to Forests</a>
+        This decision forest classifier consists of an ensemble of decision trees.</para>
+        <para>Generally, ensemble models provide better coverage and accuracy than single decision trees.
+         Each tree in a decision forest outputs a Gaussian distribution.</para>
+         <para>For more see: </para>
+        <list>
+          <item><description><a href='http://en.wikipedia.org/wiki/Random_forest'>Wikipedia: Random forest</a></description></item>
+          <item><description><a href='http://jmlr.org/papers/volume7/meinshausen06a/meinshausen06a.pdf'>Quantile regression forest</a></description></item>
+          <item><description><a href='https://blogs.technet.microsoft.com/machinelearning/2014/09/10/from-stumps-to-trees-to-forests/'>From Stumps to Trees to Forests</a></description></item>
+        </list>
       </remarks>
     </member>
 
@@ -68,7 +74,7 @@
       <remarks>
         The Tweedie boosting model follows the mathematics established in <a href="https://arxiv.org/pdf/1508.06378.pdf">
         Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models.</a> from Yang, Quan, and Zou. 
-        For an introduction to Gradient Boosting, and more information, see:
+        <para>For an introduction to Gradient Boosting, and more information, see:</para>
         <para><a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</a></para>
         <para><a href='http://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine</a></para>
       </remarks>
@@ -79,15 +85,9 @@
         Trains a tree ensemble, or loads it from a file, then maps a numeric feature vector
         to three outputs:
         <list>
-          <item>
-            <description>A vector containing the individual tree outputs of the tree ensemble.</description>
-          </item>
-          <item>
-            <description>A vector indicating the leaves that the feature vector falls on in the tree ensemble.</description>
-          </item>
-          <item>
-            <description>A vector indicating the paths that the feature vector falls on in the tree ensemble.</description>
-          </item>
+          <item><description>A vector containing the individual tree outputs of the tree ensemble.</description></item>
+          <item><description>A vector indicating the leaves that the feature vector falls on in the tree ensemble.</description></item>
+          <item><description>A vector indicating the paths that the feature vector falls on in the tree ensemble.</description></item>
         </list>
         If a both a model file and a trainer are specified - will use the model file. If neither are specified, 
         will train a default FastTree model. 
@@ -95,23 +95,17 @@
       </summary>
       <remarks>
         In machine learning​ it is a pretty common and powerful approach to utilize the already trained model in the process of defining features.
-        <para>A most obvious example could be to use the model's scores as features to downstream models. For example, we might run clustering on the original features, 
+        <para>One such example would be the use of model's scores as features to downstream models. For example, we might run clustering on the original features, 
         and use the cluster distances as the new feature set.
         Instead of consuming the model's output, we could go deeper, and extract the 'intermediate outputs' that are used to produce the final score. </para>
-        There's a number of famous or popular examples of this technique:
+        There are a number of famous or popular examples of this technique:
         <list>
-          <item>
-            <description>A deep neural net trained on the ImageNet dataset, with the last layer removed, is commonly used to compute the 'projection' of the image into the 'semantic feature space'.
+          <item><description>A deep neural net trained on the ImageNet dataset, with the last layer removed, is commonly used to compute the 'projection' of the image into the 'semantic feature space'.
             It is observed that the Euclidian distance in this space often correlates with the 'semantic similarity': that is, all pictures of pizza are located close together,
-            and far away from pictures of kittens. </description>
-          </item>
-          <item>
-            <description>A matrix factorization and/or LDA model is also often used to extract the 'latent topics' or 'latent features' associated with users and items.</description>
-          </item>
-          <item>
-            <description>The weights of the linear model are often used as a crude indicator of 'feature importance'. At the very minimum, the 0-weight features are not needed by the model,
-            and there's no reason to compute them. </description>
-          </item>
+            and far away from pictures of kittens. </description></item>
+          <item><description>A matrix factorization and/or LDA model is also often used to extract the 'latent topics' or 'latent features' associated with users and items.</description></item>
+          <item><description>The weights of the linear model are often used as a crude indicator of 'feature importance'. At the very minimum, the 0-weight features are not needed by the model,
+            and there's no reason to compute them. </description></item>
         </list>
         <para>Tree featurizer uses the decision tree ensembles for feature engineering in the same fashion as above.</para>
         <para>Let's assume that we've built a tree ensemble of 100 trees with 100 leaves each (it doesn't matter whether boosting was used or not in training). 
