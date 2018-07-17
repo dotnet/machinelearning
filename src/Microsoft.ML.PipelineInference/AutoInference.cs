@@ -52,67 +52,6 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public class DependencyMap : Dictionary<int, LevelDependencyMap> { }
 
         /// <summary>
-        /// AutoInference will support metrics as they are added here.
-        /// </summary>
-        public sealed class SupportedMetric
-        {
-            public static readonly SupportedMetric Auc = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Auc, true);
-            public static readonly SupportedMetric AccuracyMicro = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AccuracyMicro, true);
-            public static readonly SupportedMetric AccuracyMacro = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AccuracyMacro, true);
-            public static readonly SupportedMetric L1 = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.L1, false);
-            public static readonly SupportedMetric L2 = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.L2, false);
-            public static readonly SupportedMetric F1 = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.F1, true);
-            public static readonly SupportedMetric AuPrc = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AuPrc, true);
-            public static readonly SupportedMetric TopKAccuracy = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.TopKAccuracy, true);
-            public static readonly SupportedMetric Rms = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Rms, false);
-            public static readonly SupportedMetric LossFn = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LossFn, false);
-            public static readonly SupportedMetric RSquared = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.RSquared, false);
-            public static readonly SupportedMetric LogLoss = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LogLoss, false);
-            public static readonly SupportedMetric LogLossReduction = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LogLossReduction, true);
-            public static readonly SupportedMetric Ndcg = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Ndcg, true);
-            public static readonly SupportedMetric Dcg = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Dcg, true);
-            public static readonly SupportedMetric PositivePrecision = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.PositivePrecision, true);
-            public static readonly SupportedMetric PositiveRecall = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.PositiveRecall, true);
-            public static readonly SupportedMetric NegativePrecision = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NegativePrecision, true);
-            public static readonly SupportedMetric NegativeRecall = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NegativeRecall, true);
-            public static readonly SupportedMetric DrAtK = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtK, true);
-            public static readonly SupportedMetric DrAtPFpr = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtPFpr, true);
-            public static readonly SupportedMetric DrAtNumPos = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtNumPos, true);
-            public static readonly SupportedMetric NumAnomalies = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NumAnomalies, true);
-            public static readonly SupportedMetric ThreshAtK = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtK, false);
-            public static readonly SupportedMetric ThreshAtP = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtP, false);
-            public static readonly SupportedMetric ThreshAtNumPos = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtNumPos, false);
-            public static readonly SupportedMetric Nmi = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Nmi, true);
-            public static readonly SupportedMetric AvgMinScore = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AvgMinScore, false);
-            public static readonly SupportedMetric Dbi = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Dbi, false);
-
-            public string Name { get; }
-            public bool IsMaximizing { get; }
-
-            private SupportedMetric(string name, bool isMaximizing)
-            {
-                Name = name;
-                IsMaximizing = isMaximizing;
-            }
-
-            public static SupportedMetric ByName(string name)
-            {
-                var fields =
-                    typeof(SupportedMetric).GetFields(BindingFlags.Static | BindingFlags.Public);
-
-                foreach (var field in fields)
-                {
-                    var metric = (SupportedMetric)field.GetValue(Auc);
-                    if (name.Equals(metric.Name, StringComparison.OrdinalIgnoreCase))
-                        return metric;
-                }
-                throw new NotSupportedException($"Metric '{name}' not supported.");
-            }
-
-            public override string ToString() => Name;
-        }
-
-        /// <summary>
         /// Class for encapsulating an entrypoint experiment graph
         /// and keeping track of the input and output nodes.
         /// </summary>
@@ -218,42 +157,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 Desc = "State of an AutoML search and search space.")]
             public sealed class Arguments : ISupportAutoMlStateFactory
             {
-                // REVIEW: These should be the same as SupportedMetrics above. Not sure how to reference that class,
-                // without the C# API generator trying to create a version of that class in the API as well.
-                public enum Metrics
-                {
-                    Auc,
-                    AccuracyMicro,
-                    AccuracyMacro,
-                    L2,
-                    F1,
-                    AuPrc,
-                    TopKAccuracy,
-                    Rms,
-                    LossFn,
-                    RSquared,
-                    LogLoss,
-                    LogLossReduction,
-                    Ndcg,
-                    Dcg,
-                    PositivePrecision,
-                    PositiveRecall,
-                    NegativePrecision,
-                    NegativeRecall,
-                    DrAtK,
-                    DrAtPFpr,
-                    DrAtNumPos,
-                    NumAnomalies,
-                    ThreshAtK,
-                    ThreshAtP,
-                    ThreshAtNumPos,
-                    Nmi,
-                    AvgMinScore,
-                    Dbi
-                };
-
                 [Argument(ArgumentType.Required, HelpText = "Supported metric for evaluator.", ShortName = "metric")]
-                public Metrics Metric;
+                public PipelineSweeperSupportedMetrics.Metrics Metric;
 
                 [Argument(ArgumentType.Required, HelpText = "AutoML engine (pipeline optimizer) that generates next candidates.", ShortName = "engine")]
                 public ISupportIPipelineOptimizerFactory Engine;
@@ -271,7 +176,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
 
             public AutoMlMlState(IHostEnvironment env, Arguments args)
-                : this(env, SupportedMetric.ByName(Enum.GetName(typeof(Arguments.Metrics), args.Metric)), args.Engine.CreateComponent(env),
+                : this(env,
+                      PipelineSweeperSupportedMetrics.GetSupportedMetric(env, Enum.GetName(typeof(PipelineSweeperSupportedMetrics.Metrics), args.Metric)), 
+                      args.Engine.CreateComponent(env),
                       args.TerminatorArgs.CreateComponent(env), args.TrainerKind, requestedLearners: args.RequestedLearners)
             {
             }

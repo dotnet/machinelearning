@@ -15626,36 +15626,37 @@ namespace Microsoft.ML
 
         public abstract class AutoMlStateBase : ComponentKind {}
 
-        public enum AutoInferenceAutoMlMlStateArgumentsMetrics
+        public enum PipelineSweeperSupportedMetricsMetrics
         {
             Auc = 0,
             AccuracyMicro = 1,
             AccuracyMacro = 2,
-            L2 = 3,
-            F1 = 4,
-            AuPrc = 5,
-            TopKAccuracy = 6,
-            Rms = 7,
-            LossFn = 8,
-            RSquared = 9,
-            LogLoss = 10,
-            LogLossReduction = 11,
-            Ndcg = 12,
-            Dcg = 13,
-            PositivePrecision = 14,
-            PositiveRecall = 15,
-            NegativePrecision = 16,
-            NegativeRecall = 17,
-            DrAtK = 18,
-            DrAtPFpr = 19,
-            DrAtNumPos = 20,
-            NumAnomalies = 21,
-            ThreshAtK = 22,
-            ThreshAtP = 23,
-            ThreshAtNumPos = 24,
-            Nmi = 25,
-            AvgMinScore = 26,
-            Dbi = 27
+            L1 = 3,
+            L2 = 4,
+            F1 = 5,
+            AuPrc = 6,
+            TopKAccuracy = 7,
+            Rms = 8,
+            LossFn = 9,
+            RSquared = 10,
+            LogLoss = 11,
+            LogLossReduction = 12,
+            Ndcg = 13,
+            Dcg = 14,
+            PositivePrecision = 15,
+            PositiveRecall = 16,
+            NegativePrecision = 17,
+            NegativeRecall = 18,
+            DrAtK = 19,
+            DrAtPFpr = 20,
+            DrAtNumPos = 21,
+            NumAnomalies = 22,
+            ThreshAtK = 23,
+            ThreshAtP = 24,
+            ThreshAtNumPos = 25,
+            Nmi = 26,
+            AvgMinScore = 27,
+            Dbi = 28
         }
 
 
@@ -15668,7 +15669,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Supported metric for evaluator.
             /// </summary>
-            public AutoInferenceAutoMlMlStateArgumentsMetrics Metric { get; set; } = AutoInferenceAutoMlMlStateArgumentsMetrics.Auc;
+            public PipelineSweeperSupportedMetricsMetrics Metric { get; set; } = PipelineSweeperSupportedMetricsMetrics.Auc;
 
             /// <summary>
             /// AutoML engine (pipeline optimizer) that generates next candidates.

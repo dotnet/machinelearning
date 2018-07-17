@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// Runs a train-test experiment on the current pipeline, through entrypoints.
         /// </summary>
         public void RunTrainTestExperiment(IDataView trainData, IDataView testData,
-            AutoInference.SupportedMetric metric, MacroUtils.TrainerKinds trainerKind, out double testMetricValue,
+            SupportedMetric metric, MacroUtils.TrainerKinds trainerKind, out double testMetricValue,
             out double trainMetricValue)
         {
             var experiment = CreateTrainTestExperiment(trainData, testData, trainerKind, true, out var trainTestOutput);
