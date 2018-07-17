@@ -2510,6 +2510,11 @@ namespace Microsoft.ML
             public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
 
             /// <summary>
+            /// Name column name
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> NameColumn { get; set; }
+
+            /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
             /// </summary>
             public MacroUtilsTrainerKinds Kind { get; set; } = MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
@@ -2628,6 +2633,11 @@ namespace Microsoft.ML
             /// Column to use for grouping
             /// </summary>
             public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
+
+            /// <summary>
+            /// Name column name
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> NameColumn { get; set; }
 
 
             public sealed class Output
@@ -3410,6 +3420,46 @@ namespace Microsoft.ML
             /// </summary>
             public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> CandidateOutputs { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
 
+            /// <summary>
+            /// Column(s) to use as Role 'Label'
+            /// </summary>
+            public string[] LabelColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'Group'
+            /// </summary>
+            public string[] GroupColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'Weight'
+            /// </summary>
+            public string[] WeightColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'Name'
+            /// </summary>
+            public string[] NameColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'NumericFeature'
+            /// </summary>
+            public string[] NumericFeatureColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'CategoricalFeature'
+            /// </summary>
+            public string[] CategoricalFeatureColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'TextFeature'
+            /// </summary>
+            public string[] TextFeatureColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'ImagePath'
+            /// </summary>
+            public string[] ImagePathColumns { get; set; }
+
 
             public sealed class Output
             {
@@ -4020,6 +4070,11 @@ namespace Microsoft.ML
             /// </summary>
             public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
 
+            /// <summary>
+            /// Name column name
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> NameColumn { get; set; }
+
 
             public sealed class Output
             {
@@ -4080,9 +4135,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train a Average perceptron.
-        /// </summary>
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='docs/members/member[@name="AP"]/*' />
         public sealed partial class AveragedPerceptronBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -4586,9 +4639,7 @@ namespace Microsoft.ML
         }
 
 
-        /// <summary>
-        /// Uses a random forest learner to perform binary classification.
-        /// </summary>
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastForest"]/*' />
         public sealed partial class FastForestBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -4879,9 +4930,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Trains a random forest to fit target values using least-squares.
-        /// </summary>
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastForest"]/*' />
         public sealed partial class FastForestRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -5168,9 +5217,7 @@ namespace Microsoft.ML
         }
 
 
-        /// <summary>
-        /// Uses a logit-boost boosted tree learner to perform binary classification.
-        /// </summary>
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastTree"]/*' />
         public sealed partial class FastTreeBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -5559,9 +5606,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Trains gradient boosted decision trees to the LambdaRank quasi-gradient.
-        /// </summary>
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastTree"]/*' />
         public sealed partial class FastTreeRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -5985,9 +6030,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Trains gradient boosted decision trees to fit target values using least-squares.
-        /// </summary>
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastTree"]/*' />
         public sealed partial class FastTreeRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -6371,9 +6414,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.
-        /// </summary>
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name="FastTreeTweedieRegression"]/*' />
         public sealed partial class FastTreeTweedieRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -6762,9 +6803,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train a field-aware factorization machine for binary classification
-        /// </summary>
+        /// <include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='docs/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
         public sealed partial class FieldAwareFactorizationMachineBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7191,9 +7230,7 @@ namespace Microsoft.ML
         }
 
 
-        /// <summary>
-        /// K-means is a popular clustering algorithm. With K-means, the data is clustered into a specified number of clusters in order to minimize the within-cluster sum of squares. K-means++ improves upon K-means by using a better method for choosing the initial cluster centers.
-        /// </summary>
+        /// <include file='../Microsoft.ML.KMeansClustering/doc.xml' path='docs/members/member[@name="KMeans++"]/*' />
         public sealed partial class KMeansPlusPlusClusterer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7309,9 +7346,7 @@ namespace Microsoft.ML
         }
 
 
-        /// <summary>
-        /// Train an LightGBM binary class model
-        /// </summary>
+        /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
         public sealed partial class LightGbmBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7514,9 +7549,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train an LightGBM multi class model
-        /// </summary>
+        /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
         public sealed partial class LightGbmClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7719,9 +7752,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train an LightGBM ranking model
-        /// </summary>
+        /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
         public sealed partial class LightGbmRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -7924,9 +7955,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// LightGBM Regression
-        /// </summary>
+        /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
         public sealed partial class LightGbmRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8264,9 +8293,8 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train a logistic regression binary model
-        /// </summary>
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/member[@name="LBFGS"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
         public sealed partial class LogisticRegressionBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8414,9 +8442,8 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train a logistic regression multi class model
-        /// </summary>
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/member[@name="LBFGS"]/*' />
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
         public sealed partial class LogisticRegressionClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8637,9 +8664,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train a Online gradient descent perceptron.
-        /// </summary>
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='docs/members/member[@name="OGD"]/*' />
         public sealed partial class OnlineGradientDescentRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8792,9 +8817,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train an PCA Anomaly model.
-        /// </summary>
+        /// <include file='../Microsoft.ML.PCA/doc.xml' path='docs/members/member[@name="PCA"]/*' />
         public sealed partial class PcaAnomalyDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8888,9 +8911,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train an Poisson regression model.
-        /// </summary>
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='docs/members/member[@name="PoissonRegression"]/*' />
         public sealed partial class PoissonRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -9033,9 +9054,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train an SDCA binary model.
-        /// </summary>
+        /// <include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name="StochasticDualCoordinateAscentBinaryClassifier"]/*' />
         public sealed partial class StochasticDualCoordinateAscentBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -9174,9 +9193,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train an SDCA multi class model
-        /// </summary>
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='docs/members/member[@name="SDCA"]/*' />
         public sealed partial class StochasticDualCoordinateAscentClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -9299,9 +9316,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train an SDCA regression model
-        /// </summary>
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='docs/members/member[@name="SDCA"]/*' />
         public sealed partial class StochasticDualCoordinateAscentRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -9904,9 +9919,7 @@ namespace Microsoft.ML
 
         }
 
-        /// <summary>
-        /// Encodes the categorical variable with hash-based encoding
-        /// </summary>
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name="CategoricalHashOneHotVectorizer"]/*' />
         public sealed partial class CategoricalHashOneHotVectorizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -10079,9 +10092,7 @@ namespace Microsoft.ML
 
         }
 
-        /// <summary>
-        /// Encodes the categorical variable with one-hot encoding based on term dictionary
-        /// </summary>
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='docs/members/member[@name="CategoricalOneHotVectorizer"]/*' />
         public sealed partial class CategoricalOneHotVectorizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -10348,7 +10359,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Concatenates two columns of the same item type.
+        /// Concatenates one or more columns of the same item type.
         /// </summary>
         public sealed partial class ColumnConcatenator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
@@ -14012,9 +14023,7 @@ namespace Microsoft.ML
 
         }
 
-        /// <summary>
-        /// Train an PCA Anomaly model.
-        /// </summary>
+        /// <include file='../Microsoft.ML.PCA/doc.xml' path='docs/members/member[@name="PCA"]/*' />
         public sealed partial class PcaCalculator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -16132,6 +16141,15 @@ namespace Microsoft.ML
             internal override string ComponentName => "UP";
         }
 
+        public abstract class EnsembleBinaryDiversityMeasure : ComponentKind {}
+
+
+
+        public sealed class DisagreementDiversityMeasureEnsembleBinaryDiversityMeasure : EnsembleBinaryDiversityMeasure
+        {
+            internal override string ComponentName => "DisagreementDiversityMeasure";
+        }
+
         public abstract class EnsembleBinaryOutputCombiner : ComponentKind {}
 
 
@@ -16206,7 +16224,7 @@ namespace Microsoft.ML
             /// The metric type to be used to find the diversity among base learners
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
-            public EnsembleDiversityMeasure DiversityMetricType { get; set; }
+            public EnsembleBinaryDiversityMeasure DiversityMetricType { get; set; } = new DisagreementDiversityMeasureEnsembleBinaryDiversityMeasure();
 
             /// <summary>
             /// The proportion of best base learners to be selected. The range is 0.0-1.0
@@ -16257,29 +16275,6 @@ namespace Microsoft.ML
             internal override string ComponentName => "BestPerformanceSelector";
         }
 
-        public abstract class EnsembleDiversityMeasure : ComponentKind {}
-
-
-
-        public sealed class DisagreementDiversityMeasureEnsembleDiversityMeasure : EnsembleDiversityMeasure
-        {
-            internal override string ComponentName => "DisagreementDiversityMeasure";
-        }
-
-
-
-        public sealed class MultiDisagreementDiversityMeasureEnsembleDiversityMeasure : EnsembleDiversityMeasure
-        {
-            internal override string ComponentName => "MultiDisagreementDiversityMeasure";
-        }
-
-
-
-        public sealed class RegressionDisagreementDiversityMeasureEnsembleDiversityMeasure : EnsembleDiversityMeasure
-        {
-            internal override string ComponentName => "RegressionDisagreementDiversityMeasure";
-        }
-
         public abstract class EnsembleFeatureSelector : ComponentKind {}
 
 
@@ -16299,6 +16294,15 @@ namespace Microsoft.ML
             public float FeaturesSelectionProportion { get; set; } = 0.8f;
 
             internal override string ComponentName => "RandomFeatureSelector";
+        }
+
+        public abstract class EnsembleMulticlassDiversityMeasure : ComponentKind {}
+
+
+
+        public sealed class MultiDisagreementDiversityMeasureEnsembleMulticlassDiversityMeasure : EnsembleMulticlassDiversityMeasure
+        {
+            internal override string ComponentName => "MultiDisagreementDiversityMeasure";
         }
 
         public abstract class EnsembleMulticlassOutputCombiner : ComponentKind {}
@@ -16343,11 +16347,6 @@ namespace Microsoft.ML
 
         public sealed class MultiVotingEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
         {
-            /// <summary>
-            /// Whether to normalize the output of base models before combining them
-            /// </summary>
-            public bool Normalize { get; set; } = true;
-
             internal override string ComponentName => "MultiVoting";
         }
 
@@ -16391,7 +16390,7 @@ namespace Microsoft.ML
             /// The metric type to be used to find the diversity among base learners
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
-            public EnsembleDiversityMeasure DiversityMetricType { get; set; }
+            public EnsembleMulticlassDiversityMeasure DiversityMetricType { get; set; } = new MultiDisagreementDiversityMeasureEnsembleMulticlassDiversityMeasure();
 
             /// <summary>
             /// The proportion of best base learners to be selected. The range is 0.0-1.0
@@ -16434,6 +16433,15 @@ namespace Microsoft.ML
             public float ValidationDatasetProportion { get; set; } = 0.3f;
 
             internal override string ComponentName => "BestPerformanceSelectorMultiClass";
+        }
+
+        public abstract class EnsembleRegressionDiversityMeasure : ComponentKind {}
+
+
+
+        public sealed class RegressionDisagreementDiversityMeasureEnsembleRegressionDiversityMeasure : EnsembleRegressionDiversityMeasure
+        {
+            internal override string ComponentName => "RegressionDisagreementDiversityMeasure";
         }
 
         public abstract class EnsembleRegressionOutputCombiner : ComponentKind {}
@@ -16481,7 +16489,7 @@ namespace Microsoft.ML
             /// The metric type to be used to find the diversity among base learners
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
-            public EnsembleDiversityMeasure DiversityMetricType { get; set; }
+            public EnsembleRegressionDiversityMeasure DiversityMetricType { get; set; } = new RegressionDisagreementDiversityMeasureEnsembleRegressionDiversityMeasure();
 
             /// <summary>
             /// The proportion of best base learners to be selected. The range is 0.0-1.0

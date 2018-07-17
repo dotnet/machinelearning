@@ -187,7 +187,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // cause an error in verification, since it isn't included in the original 
             // dependency mapping (i.e., its level isn't in the dictionary).
             sampledTransforms.AddRange(AutoMlUtils.GetFinalFeatureConcat(Env, FullyTransformedData,
-                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms));
+                DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms, DataRoles));
             transformsBitMask = mask;
 
             return sampledTransforms.ToArray();
@@ -202,9 +202,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 .Select(t=>AvailableLearners[t.Index]).ToArray();
         }
 
-        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates)
+        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numCandidates, RoleMappedData dataRoles)
         {
             var prevCandidates = history.ToArray();
+            DataRoles = dataRoles;
 
             switch (_currentStage)
             {
@@ -220,7 +221,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         // number of candidates, using second stage logic.
                         UpdateLearners(GetTopLearners(prevCandidates));
                         _currentStage++;
-                        return GetNextCandidates(prevCandidates, numCandidates);
+                        return GetNextCandidates(prevCandidates, numCandidates, DataRoles);
                     }
                     else
                         return GetInitialPipelines(prevCandidates, remainingNum);
@@ -252,9 +253,11 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        private PipelinePattern[] GetInitialPipelines(IEnumerable<PipelinePattern> history, int numCandidates) =>
-            _secondaryEngines[_randomInit ? nameof(UniformRandomEngine) : nameof(DefaultsEngine)]
-                .GetNextCandidates(history, numCandidates);
+        private PipelinePattern[] GetInitialPipelines(IEnumerable<PipelinePattern> history, int numCandidates)
+        {
+            var engine = _secondaryEngines[_randomInit ? nameof(UniformRandomEngine) : nameof(DefaultsEngine)];
+            return engine.GetNextCandidates(history, numCandidates, DataRoles);
+        }
 
         private PipelinePattern[] NextCandidates(PipelinePattern[] history, int numCandidates,
             bool defaultHyperParams = false, bool uniformRandomTransforms = false)
@@ -294,8 +297,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 do
                 {   // Make sure transforms set is valid and have not seen pipeline before. 
                     // Repeat until passes or runs out of chances.
-                    pipeline = new PipelinePattern(SampleTransforms(learner, history,
-                        out var transformsBitMask, uniformRandomTransforms), learner, "", Env);
+                    pipeline = new PipelinePattern(
+                        SampleTransforms(learner, history, out var transformsBitMask, uniformRandomTransforms), 
+                        learner, "", Env);
                     hashKey = GetHashKey(transformsBitMask, learner);
                     valid = PipelineVerifier(pipeline, transformsBitMask) && !VisitedPipelines.Contains(hashKey);
                     count++;

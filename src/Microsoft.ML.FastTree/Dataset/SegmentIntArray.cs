@@ -168,11 +168,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
             max = 0;
             bits = TransitionCost;
-            //IEnumerator<int> ienum = ivalues.GetEnumerator();
-            //while (ienum.MoveNext())
             for (int i = 0; i < ivalues.Length; ++i)
             {
-                //uint val = (uint)ienum.Current;
                 uint val = (uint)ivalues[i];
                 if (val > max)
                     max = val;

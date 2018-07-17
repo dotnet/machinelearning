@@ -147,13 +147,13 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             {
                 RoleMappedData data;
                 if (trainSchema != null)
-                    data = RoleMappedData.Create(end, trainSchema.GetColumnRoleNames());
+                    data = new RoleMappedData(end, trainSchema.GetColumnRoleNames());
                 else
                 {
                     // We had a predictor, but no roles stored in the model. Just suppose
                     // default column names are OK, if present.
-                    data = TrainUtils.CreateExamplesOpt(end, DefaultColumnNames.Label,
-                        DefaultColumnNames.Features, DefaultColumnNames.GroupId, DefaultColumnNames.Weight, DefaultColumnNames.Name);
+                    data = new RoleMappedData(end, DefaultColumnNames.Label,
+                        DefaultColumnNames.Features, DefaultColumnNames.GroupId, DefaultColumnNames.Weight, DefaultColumnNames.Name, opt: true);
                 }
 
                 var scorePipe = ScoreUtils.GetScorer(rawPred, data, Host, trainSchema);

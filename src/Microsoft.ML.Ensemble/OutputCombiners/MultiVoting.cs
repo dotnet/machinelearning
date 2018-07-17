@@ -6,12 +6,11 @@ using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
-[assembly: LoadableClass(typeof(MultiVoting), typeof(MultiVoting.Arguments), typeof(SignatureCombiner), Voting.UserName, MultiVoting.LoadName)]
+[assembly: LoadableClass(typeof(MultiVoting), null, typeof(SignatureCombiner), Voting.UserName, MultiVoting.LoadName)]
 [assembly: LoadableClass(typeof(MultiVoting), null, typeof(SignatureLoadModel), Voting.UserName, MultiVoting.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
@@ -33,16 +32,12 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderSignature: LoaderSignature);
         }
 
-        [TlcModule.Component(Name = LoadName, FriendlyName = Voting.UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
+        private sealed class Arguments : ArgumentsBase
         {
-            public new bool Normalize = false;
-
-            public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiVoting(env, this);
         }
 
-        public MultiVoting(IHostEnvironment env, Arguments args)
-            : base(env, LoaderSignature, args)
+        public MultiVoting(IHostEnvironment env)
+            : base(env, LoaderSignature, new Arguments() { Normalize = false })
         {
             Host.Assert(!Normalize);
         }

@@ -27,12 +27,13 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using TPredictor = LinearRegressionPredictor;
 
+    /// <include file='./doc.xml' path='docs/members/member[@name="OGD"]/*' />
     public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<OnlineGradientDescentTrainer.Arguments, TPredictor>
     {
         internal const string LoadNameValue = "OnlineGradientDescent";
         internal const string UserNameValue = "Stochastic Gradient Descent (Regression)";
         internal const string Summary = "Stochastic gradient descent is an optimization method used to train a wide range of models in machine learning. "
-            + "In the TLC implementation of SGD, it is for linear regression.";
+            + "In the TLC implementation of OGD, it is for linear regression.";
         internal const string ShortName = "ogd";
 
         public sealed class Arguments : AveragedLinearArguments
@@ -89,7 +90,11 @@ namespace Microsoft.ML.Runtime.Learners
             return new LinearRegressionPredictor(Host, ref weights, bias);
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.OnlineGradientDescentRegressor", Desc = "Train a Online gradient descent perceptron.", UserName = UserNameValue, ShortName = OnlineGradientDescentTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.OnlineGradientDescentRegressor",
+            Desc = "Train a Online gradient descent perceptron.",
+            UserName = UserNameValue,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='docs/members/member[@name=""OGD""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -1338,33 +1338,30 @@ namespace Microsoft.ML.Runtime.FastTree
                     IDataView data = examples.Data;
 
                     // Convert the label column, if one exists.
-                    var labelInfo = examples.Schema.Label;
-                    if (labelInfo != null)
+                    var labelName = examples.Schema.Label?.Name;
+                    if (labelName != null)
                     {
                         var convArgs = new LabelConvertTransform.Arguments();
-                        var convCol = new LabelConvertTransform.Column() { Name = labelInfo.Name, Source = labelInfo.Name };
+                        var convCol = new LabelConvertTransform.Column() { Name = labelName, Source = labelName };
                         convArgs.Column = new LabelConvertTransform.Column[] { convCol };
                         data = new LabelConvertTransform(Host, convArgs, data);
-                        labelInfo = ColumnInfo.CreateFromName(data.Schema, convCol.Name, "converted label");
                     }
                     // Convert the group column, if one exists.
-                    var groupInfo = examples.Schema.Group;
-                    if (groupInfo != null)
+                    if (examples.Schema.Group != null)
                     {
                         var convArgs = new ConvertTransform.Arguments();
                         var convCol = new ConvertTransform.Column
                         {
                             ResultType = DataKind.U8
                         };
-                        convCol.Name = convCol.Source = groupInfo.Name;
+                        convCol.Name = convCol.Source = examples.Schema.Group.Name;
                         convArgs.Column = new ConvertTransform.Column[] { convCol };
                         data = new ConvertTransform(Host, convArgs, data);
-                        groupInfo = ColumnInfo.CreateFromName(data.Schema, convCol.Name, "converted group id");
                     }
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.
-                    examples = RoleMappedData.Create(data, examples.Schema.GetColumnRoleNames());
+                    examples = new RoleMappedData(data, examples.Schema.GetColumnRoleNames());
 
                     // Get the index of the columns in the transposed view, while we're at it composing
                     // the list of the columns we want to transpose.
@@ -3108,26 +3105,24 @@ namespace Microsoft.ML.Runtime.FastTree
             }
 
             string opType = "TreeEnsembleRegressor";
-            var node = OnnxUtils.MakeNode(opType, new List<string> { featureColumn },
-                new List<string>(outputNames), ctx.GetNodeName(opType));
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputNames, ctx.GetNodeName(opType));
 
-            OnnxUtils.NodeAddAttributes(node, "post_transform", PostTransform.None.GetDescription());
-            OnnxUtils.NodeAddAttributes(node, "n_targets", 1);
-            OnnxUtils.NodeAddAttributes(node, "base_values", new List<float>() { 0 });
-            OnnxUtils.NodeAddAttributes(node, "aggregate_function", AggregateFunction.Sum.GetDescription());
-            OnnxUtils.NodeAddAttributes(node, "nodes_treeids", nodesTreeids);
-            OnnxUtils.NodeAddAttributes(node, "nodes_nodeids", nodesIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_featureids", nodesFeatureIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_modes", nodeModes);
-            OnnxUtils.NodeAddAttributes(node, "nodes_values", nodesValues);
-            OnnxUtils.NodeAddAttributes(node, "nodes_truenodeids", nodesTrueNodeIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_falsenodeids", nodesFalseNodeIds);
-            OnnxUtils.NodeAddAttributes(node, "nodes_missing_value_tracks_true", missingValueTracksTrue);
-            OnnxUtils.NodeAddAttributes(node, "target_treeids", classTreeIds);
-            OnnxUtils.NodeAddAttributes(node, "target_nodeids", classNodeIds);
-            OnnxUtils.NodeAddAttributes(node, "target_ids", classIds);
-            OnnxUtils.NodeAddAttributes(node, "target_weights", classWeights);
-            ctx.AddNode(node);
+            node.AddAttribute("post_transform", PostTransform.None.GetDescription());
+            node.AddAttribute("n_targets", 1);
+            node.AddAttribute("base_values", new List<float>() { 0 });
+            node.AddAttribute("aggregate_function", AggregateFunction.Sum.GetDescription());
+            node.AddAttribute("nodes_treeids", nodesTreeids);
+            node.AddAttribute("nodes_nodeids", nodesIds);
+            node.AddAttribute("nodes_featureids", nodesFeatureIds);
+            node.AddAttribute("nodes_modes", nodeModes);
+            node.AddAttribute("nodes_values", nodesValues);
+            node.AddAttribute("nodes_truenodeids", nodesTrueNodeIds);
+            node.AddAttribute("nodes_falsenodeids", nodesFalseNodeIds);
+            node.AddAttribute("nodes_missing_value_tracks_true", missingValueTracksTrue);
+            node.AddAttribute("target_treeids", classTreeIds);
+            node.AddAttribute("target_nodeids", classNodeIds);
+            node.AddAttribute("target_ids", classIds);
+            node.AddAttribute("target_weights", classWeights);
 
             return true;
         }

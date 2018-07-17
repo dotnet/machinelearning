@@ -236,13 +236,12 @@ namespace Microsoft.ML.Runtime.Learners
             Host.Check(Utils.Size(outputs) == 1);
 
             string opType = "LinearRegressor";
-            var node = OnnxUtils.MakeNode(opType, new List<string> { featureColumn }, new List<string> (outputs), ctx.GetNodeName(opType));
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
             // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
-            OnnxUtils.NodeAddAttributes(node, "post_transform", 0);
-            OnnxUtils.NodeAddAttributes(node, "targets", 1);
-            OnnxUtils.NodeAddAttributes(node, "coefficients", Weight.DenseValues());
-            OnnxUtils.NodeAddAttributes(node, "intercepts", Bias);
-            ctx.AddNode(node);
+            node.AddAttribute("post_transform", 0);
+            node.AddAttribute("targets", 1);
+            node.AddAttribute("coefficients", Weight.DenseValues());
+            node.AddAttribute("intercepts", Bias);
             return true;
         }
 

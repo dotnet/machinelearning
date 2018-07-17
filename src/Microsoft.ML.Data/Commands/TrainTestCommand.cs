@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.Data
 
             ch.Trace("Binding columns");
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
-            var data = TrainUtils.CreateExamples(trainPipe, label, features, group, weight, name, customCols);
+            var data = new RoleMappedData(trainPipe, label, features, group, weight, name, customCols);
 
             RoleMappedData validData = null;
             if (!string.IsNullOrWhiteSpace(Args.ValidationFile))
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.Data
                     ch.Trace("Constructing the validation pipeline");
                     IDataView validPipe = CreateRawLoader(dataFile: Args.ValidationFile);
                     validPipe = ApplyTransformUtils.ApplyAllTransformsToData(Host, trainPipe, validPipe);
-                    validData = RoleMappedData.Create(validPipe, data.Schema.GetColumnRoleNames());
+                    validData = new RoleMappedData(validPipe, data.Schema.GetColumnRoleNames());
                 }
             }
 
@@ -189,8 +189,8 @@ namespace Microsoft.ML.Runtime.Data
             if (!evalComp.IsGood())
                 evalComp = EvaluateUtils.GetEvaluatorType(ch, scorePipe.Schema);
             var evaluator = evalComp.CreateInstance(Host);
-            var dataEval = TrainUtils.CreateExamplesOpt(scorePipe, label, features,
-                group, weight, name, customCols);
+            var dataEval = new RoleMappedData(scorePipe, label, features,
+                group, weight, name, customCols, opt: true);
             var metrics = evaluator.Evaluate(dataEval);
             MetricWriter.PrintWarnings(ch, metrics);
             evaluator.PrintFoldResults(ch, metrics);
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!string.IsNullOrWhiteSpace(Args.OutputDataFile))
             {
                 var perInst = evaluator.GetPerInstanceMetrics(dataEval);
-                var perInstData = TrainUtils.CreateExamples(perInst, label, null, group, weight, name, customCols);
+                var perInstData = new RoleMappedData(perInst, label, null, group, weight, name, customCols);
                 var idv = evaluator.GetPerInstanceDataViewToSave(perInstData);
                 MetricWriter.SavePerInstance(Host, ch, Args.OutputDataFile, idv);
             }

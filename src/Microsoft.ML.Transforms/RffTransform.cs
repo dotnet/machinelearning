@@ -27,20 +27,26 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class RffTransform : OneToOneTransformBase
     {
+        private static class Defaults
+        {
+            public const int NewDim = 1000;
+            public const bool UseSin = false;
+        }
+
         public sealed class Arguments
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
-            public int NewDim = 1000;
+            public int NewDim = Defaults.NewDim;
 
             [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel")]
             public SubComponent<IFourierDistributionSampler, SignatureFourierDistributionSampler> MatrixGenerator =
                 new SubComponent<IFourierDistributionSampler, SignatureFourierDistributionSampler>(GaussianFourierSampler.LoadName);
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "create two features for every random Fourier frequency? (one for cos and one for sin)")]
-            public bool UseSin = false;
+            public bool UseSin = Defaults.UseSin;
 
             [Argument(ArgumentType.LastOccurenceWins,
                 HelpText = "The seed of the random number generator for generating the new features (if unspecified, " +
@@ -230,6 +236,23 @@ namespace Microsoft.ML.Runtime.Data
             if (type.ItemType == NumberType.Float && type.ValueCount > 0)
                 return null;
             return "Expected R4 or vector of R4 with known size";
+        }
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="newDim">The number of random Fourier features to create.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        public RffTransform(IHostEnvironment env,
+            IDataView input,
+            int newDim,
+            string name,
+            string source = null)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, NewDim = newDim }, input)
+        {
         }
 
         /// <summary>

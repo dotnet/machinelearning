@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.PipelineInference;
 
@@ -30,8 +31,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
             : base(env, env.Register("UniformRandomEngine(AutoML)"))
         {}
 
-        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates)
+        public override PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates, RoleMappedData dataRoles)
         {
+            DataRoles = dataRoles;
             return GetRandomPipelines(numberOfCandidates);
         }
 
@@ -66,7 +68,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 // Always include features concat transform
                 selectedTransforms.AddRange(AutoMlUtils.GetFinalFeatureConcat(Env, FullyTransformedData,
-                    DependencyMapping, selectedTransforms.ToArray(), AvailableTransforms));
+                    DependencyMapping, selectedTransforms.ToArray(), AvailableTransforms, DataRoles));
 
                 // Compute hash key for checking if we've already seen this pipeline.
                 // However, if we keep missing, don't want to get stuck in infinite loop.

@@ -28,9 +28,8 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Float>>;
 
-    /// <summary>
-    /// SDCA linear multiclass trainer.
-    /// </summary>
+    // SDCA linear multiclass trainer.
+    /// <include file='./doc.xml' path='docs/members/member[@name="SDCA"]/*' />
     public class SdcaMultiClassTrainer : SdcaTrainerBase<TVectorPredictor>, ITrainerEx
     {
         public const string LoadNameValue = "SDCAMC";
@@ -382,11 +381,15 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     /// <summary>
-    /// A component to train an SDCA model.
+    /// The Entry Point for SDCA multiclass.
     /// </summary>
     public static partial class Sdca
     {
-        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentClassifier", Desc = "Train an SDCA multi class model", UserName = SdcaMultiClassTrainer.UserNameValue, ShortName = SdcaMultiClassTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentClassifier",
+            Desc = SdcaMultiClassTrainer.Summary,
+            UserName = SdcaMultiClassTrainer.UserNameValue,
+            ShortName = SdcaMultiClassTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='docs/members/member[@name=""SDCA""]/*' />" })]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, SdcaMultiClassTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

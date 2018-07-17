@@ -284,7 +284,11 @@ namespace Microsoft.ML.Runtime.PCA
             }
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector", Desc = "Train an PCA Anomaly model.", UserName = UserNameValue, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector",
+            Desc = "Train an PCA Anomaly model.",
+            UserName = UserNameValue,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='docs/members/member[@name=""PCA""]/*' />" })]
         public static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -298,13 +302,13 @@ namespace Microsoft.ML.Runtime.PCA
         }
     }
 
-    /// <summary>
-    /// An anomaly detector using PCA.
-    /// - The algorithm uses the top eigenvectors to approximate the subspace containing the normal class
-    /// - For each new instance, it computes the norm difference between the raw feature vector and the projected feature on that subspace.
-    /// - - If the error is close to 0, the instance is considered normal (non-anomaly).
-    /// </summary>
+    // An anomaly detector using PCA.
+    // - The algorithm uses the top eigenvectors to approximate the subspace containing the normal class
+    // - For each new instance, it computes the norm difference between the raw feature vector and the projected feature on that subspace.
+    // - - If the error is close to 0, the instance is considered normal (non-anomaly).
     // REVIEW: move the predictor to a different file and fold EigenUtils.cs to this file.
+    // REVIEW: Include the above detail in the XML documentation file. 
+    /// <include file='./doc.xml' path='docs/members/member[@name="PCA"]/*' />
     public sealed class PcaPredictor : PredictorBase<Float>,
         IValueMapper,
         ICanGetSummaryAsIDataView,

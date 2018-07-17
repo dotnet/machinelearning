@@ -31,6 +31,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
+    /// <include file='./doc.xml' path='docs/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeRegressionTrainer : BoostingFastTreeTrainerBase<FastTreeRegressionTrainer.Arguments, FastTreeRegressionPredictor>
     {
         public const string LoadNameValue = "FastTreeRegression";
@@ -448,7 +449,11 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public static partial class FastTree
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastTreeRegressor", Desc = FastTreeRegressionTrainer.Summary, UserName = FastTreeRegressionTrainer.UserNameValue, ShortName = FastTreeRegressionTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FastTreeRegressor",
+            Desc = FastTreeRegressionTrainer.Summary,
+            UserName = FastTreeRegressionTrainer.UserNameValue,
+            ShortName = FastTreeRegressionTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name=""FastTree""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastTreeRegressionTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

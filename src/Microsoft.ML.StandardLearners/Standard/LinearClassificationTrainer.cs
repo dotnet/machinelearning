@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.Learners
             ch.Assert(idvToFeedTrain.CanShuffle);
 
             var roles = examples.Schema.GetColumnRoleNames();
-            var examplesToFeedTrain = RoleMappedData.Create(idvToFeedTrain, roles);
+            var examplesToFeedTrain = new RoleMappedData(idvToFeedTrain, roles);
 
             ch.Assert(examplesToFeedTrain.Schema.Label != null);
             ch.Assert(examplesToFeedTrain.Schema.Feature != null);
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Runtime.Learners
             public int? MaxIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", null, isBool:true)]
+            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", null, isBool: true)]
             public bool Shuffle = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.", NullName = "<Auto>", ShortName = "checkFreq")]
@@ -1487,7 +1487,7 @@ namespace Microsoft.ML.Runtime.Learners
             public Double InitLearningRate = 0.01;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", null, isBool:true)]
+            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", null, isBool: true)]
             public bool Shuffle = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
@@ -1775,7 +1775,11 @@ namespace Microsoft.ML.Runtime.Learners
     /// </summary>
     public static partial class Sdca
     {
-        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier", Desc = "Train an SDCA binary model.", UserName = LinearClassificationTrainer.UserNameValue, ShortName = LinearClassificationTrainer.LoadNameValue)]
+        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier",
+            Desc = "Train an SDCA binary model.",
+            UserName = LinearClassificationTrainer.UserNameValue,
+            ShortName = LinearClassificationTrainer.LoadNameValue,
+            XmlInclude = new[] { @"<include file='../../docs/code/xmlIncludes/Learners.xml' path='docs/members/member[@name=""StochasticDualCoordinateAscentBinaryClassifier""]/*' />" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LinearClassificationTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

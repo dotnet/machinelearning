@@ -61,10 +61,24 @@ namespace Microsoft.ML.Runtime.Data
                 loaderSignature: LoaderSignature);
         }
 
+        /// <summary>
+        /// Controls the number of output rows produced by the <see cref="UngroupTransform"/> transform
+        /// </summary>
         public enum UngroupMode
         {
+            /// <summary>
+            /// The number of output rows is equal to the minimum length of pivot columns
+            /// </summary>
             Inner,
+
+            /// <summary>
+            /// The number of output rows is equal to the maximum length of pivot columns
+            /// </summary>
             Outer,
+
+            /// <summary>
+            /// The number of output rows is equal to the length of the first pivot column.
+            /// </summary>
             First
         }
 
@@ -78,6 +92,18 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly SchemaImpl _schemaImpl;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="mode">Specifies how to unroll multiple pivot columns of different size.</param>
+        /// <param name="columns">Columns to unroll, or 'pivot'</param>
+        public UngroupTransform(IHostEnvironment env, IDataView input, UngroupMode mode, params string[] columns)
+            : this(env, new Arguments() { Column = columns, Mode = mode }, input)
+        {
+        }
 
         public UngroupTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, LoaderSignature, input)

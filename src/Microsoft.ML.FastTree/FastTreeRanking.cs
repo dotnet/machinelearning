@@ -38,6 +38,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
+    /// <include file='./doc.xml' path='docs/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeRankingTrainer : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, FastTreeRankingPredictor>,
         IHasLabelGains
     {
@@ -579,7 +580,6 @@ namespace Microsoft.ML.Runtime.FastTree
                     _secondaryMetricShare = 0.0;
                     return;
                 }
-                //for (int i = 0; i < _secondaryGains.Length; ++i) _secondaryGains[i] *= cmd.secondaryMetricShare;
                 _secondaryInverseMaxDCGT = DCGCalculator.MaxDCG(_secondaryGains, Dataset.Boundaries,
                     new int[] { args.lambdaMartMaxTruncation })[0].Select(d => 1.0 / d).ToArray();
             }
@@ -726,7 +726,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 double inverseMaxDcg = _inverseMaxDcgt[query];
                 double secondaryInverseMaxDcg = _secondaryMetricShare == 0 ? 0.0 : _secondaryInverseMaxDcgt[query];
 
-                //int[] permutation = (threadIndex < 0 ? new int[numDocuments] : _permutationBuffers[threadIndex]);
                 int[] permutation = _permutationBuffers[threadIndex];
 
                 short[] labels = _labels;
@@ -1096,7 +1095,11 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public static partial class FastTree
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastTreeRanker", Desc = FastTreeRankingTrainer.Summary, UserName = FastTreeRankingTrainer.UserNameValue, ShortName = FastTreeRankingTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FastTreeRanker",
+            Desc = FastTreeRankingTrainer.Summary,
+            UserName = FastTreeRankingTrainer.UserNameValue,
+            ShortName = FastTreeRankingTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name=""FastTree""]/*' />" })]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, FastTreeRankingTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="labelNameType">The type of the label names from the metadata (either
         /// originating from the key value metadata of the training label column, or deserialized
         /// from the model of a bindable mapper)</param>
-        /// <returns>Whether we can call <see cref="MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound"/> with
+        /// <returns>Whether we can call <see cref="MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound{T}"/> with
         /// this mapper and expect it to succeed</returns>
         private static bool CanWrap(ISchemaBoundMapper mapper, ColumnType labelNameType)
         {
@@ -206,11 +206,9 @@ namespace Microsoft.ML.Runtime.Data
             if (Bindings.InfoCount >= 3 && ctx.ContainsColumn(outColumnNames[2]))
             {
                 string opType = "Binarizer";
-                var node = OnnxUtils.MakeNode(opType, new List<string> { ctx.GetVariableName(outColumnNames[2]) },
-                    new List<string> { ctx.GetVariableName(outColumnNames[0]) }, ctx.GetNodeName(opType));
-
-                OnnxUtils.NodeAddAttributes(node, "threshold", 0.5);
-                ctx.AddNode(node);
+                var node = ctx.CreateNode(opType, new[] { ctx.GetVariableName(outColumnNames[2]) },
+                    new[] { ctx.GetVariableName(outColumnNames[0]) }, ctx.GetNodeName(opType));
+                node.AddAttribute("threshold", 0.5);
             }
         }
 

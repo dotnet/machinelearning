@@ -11,9 +11,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer), typeof(FieldAwareFactorizationMachineTrainer.Arguments),
@@ -24,13 +22,14 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.FactorizationMachine
 {
-    /// <summary>
-    /// Train a field-aware factorization machine using ADAGRAD (an advanced stochastic gradient method). See references below
-    /// for details. This trainer is essentially faster the one introduced in [2] because of some implemtation tricks[3].
-    /// [1] http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
-    /// [2] http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
-    /// [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
-    /// </summary>
+    /*
+     Train a field-aware factorization machine using ADAGRAD (an advanced stochastic gradient method). See references below
+     for details. This trainer is essentially faster the one introduced in [2] because of some implemtation tricks[3].
+     [1] http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
+     [2] http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
+     [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+    */
+    /// <include file='./doc.xml' path='docs/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
     public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<RoleMappedData, FieldAwareFactorizationMachinePredictor>,
         IIncrementalTrainer<RoleMappedData, FieldAwareFactorizationMachinePredictor>, IValidatingTrainer<RoleMappedData>,
         IIncrementalValidatingTrainer<RoleMappedData, FieldAwareFactorizationMachinePredictor>
@@ -404,7 +403,11 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return _pred;
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.FieldAwareFactorizationMachineBinaryClassifier", Desc = FieldAwareFactorizationMachineTrainer.Summary, UserName = FieldAwareFactorizationMachineTrainer.UserName, ShortName = FieldAwareFactorizationMachineTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FieldAwareFactorizationMachineBinaryClassifier",
+            Desc = Summary,
+            UserName = UserName,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='docs/members/member[@name=""FieldAwareFactorizationMachineBinaryClassifier""]/*' />" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

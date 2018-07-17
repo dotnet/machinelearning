@@ -26,7 +26,14 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.DataPipe
 {
-    public class OptionalColumnTransform : RowToRowMapperTransformBase
+    /// <summary>
+    /// This transform is used to mark some of the columns (e.g. Label) optional during training so that the columns are not required during scoring.
+    /// When applied to new data, if any of the optional columns is not present a dummy columns is created having the same properties (e.g. 'name', 'type' etc.) as used during training.
+    /// The columns are filled with default values. The value is
+    ///     - scalar for scalar column
+    ///     - totally sparse vector for vector column. 
+    /// </summary>
+    public sealed class OptionalColumnTransform : RowToRowMapperTransformBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -231,6 +238,17 @@ namespace Microsoft.ML.Runtime.DataPipe
         private readonly Bindings _bindings;
 
         private const string RegistrationName = "OptionalColumn";
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="columns">Columns to transform.</param>
+        public OptionalColumnTransform(IHostEnvironment env, IDataView input, params string[] columns)
+            : this(env, new Arguments() { Column = columns }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
