@@ -87,10 +87,10 @@ namespace Microsoft.ML.Tests
                     }
                 }, images);
 
-                var grey = new ImageGreyscaleTransform(env, new ImageGreyscaleTransform.Arguments()
+                var grey = new ImageGrayscaleTransform(env, new ImageGrayscaleTransform.Arguments()
                 {
-                    Column = new ImageGreyscaleTransform.Column[1]{
-                        new ImageGreyscaleTransform.Column() {  Name= "ImageGrey", Source = "ImageCropped"}
+                    Column = new ImageGrayscaleTransform.Column[1]{
+                        new ImageGrayscaleTransform.Column() {  Name= "ImageGrey", Source = "ImageCropped"}
                     }
                 }, cropped);
 

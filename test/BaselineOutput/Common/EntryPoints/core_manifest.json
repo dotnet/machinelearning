@@ -17841,10 +17841,10 @@
       ]
     },
     {
-      "Name": "Transforms.ImageGreyscale",
+      "Name": "Transforms.ImageGrayscale",
       "Desc": "Convert image into grayscale.",
       "FriendlyName": "Image Greyscale Transform",
-      "ShortName": "ImageGreyscaleTransform",
+      "ShortName": "ImageGrayscaleTransform",
       "Inputs": [
         {
           "Name": "Column",

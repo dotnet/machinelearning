@@ -14,11 +14,11 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.ImageAnalytics;
 
-[assembly: LoadableClass(ImageGreyscaleTransform.Summary, typeof(ImageGreyscaleTransform), typeof(ImageGreyscaleTransform.Arguments), typeof(SignatureDataTransform),
-    ImageGreyscaleTransform.UserName, "ImageGreyscaleTransform", "ImageGreyscale")]
+[assembly: LoadableClass(ImageGrayscaleTransform.Summary, typeof(ImageGrayscaleTransform), typeof(ImageGrayscaleTransform.Arguments), typeof(SignatureDataTransform),
+    ImageGrayscaleTransform.UserName, "ImageGrayscaleTransform", "ImageGrayscale")]
 
-[assembly: LoadableClass(ImageGreyscaleTransform.Summary, typeof(ImageGreyscaleTransform), null, typeof(SignatureLoadDataTransform),
-    ImageGreyscaleTransform.UserName, ImageGreyscaleTransform.LoaderSignature)]
+[assembly: LoadableClass(ImageGrayscaleTransform.Summary, typeof(ImageGrayscaleTransform), null, typeof(SignatureLoadDataTransform),
+    ImageGrayscaleTransform.UserName, ImageGrayscaleTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
     /// Transform which takes one or many columns of <see cref="ImageType"/> type in IDataView and
     /// convert them to greyscale representation of the same image.
     /// </summary>
-    public sealed class ImageGreyscaleTransform : OneToOneTransformBase
+    public sealed class ImageGrayscaleTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         internal const string Summary = "Convert image into grayscale.";
 
         internal const string UserName = "Image Greyscale Transform";
-        public const string LoaderSignature = "ImageGreyscaleTransform";
+        public const string LoaderSignature = "ImageGrayscaleTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -67,12 +67,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 loaderSignature: LoaderSignature);
         }
 
-        private const string RegistrationName = "ImageGreyscale";
+        private const string RegistrationName = "ImageGrayscale";
 
-        /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        public ImageGreyscaleTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public ImageGrayscaleTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column, input, t => t is ImageType ? null : "Expected Image type")
         {
             Host.AssertNonEmpty(Infos);
@@ -80,7 +78,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             Metadata.Seal();
         }
 
-        private ImageGreyscaleTransform(IHost host, ModelLoadContext ctx, IDataView input)
+        private ImageGrayscaleTransform(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, ctx, input, t => t is ImageType ? null : "Expected Image type")
         {
             Host.AssertValue(ctx);
@@ -90,14 +88,14 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             Metadata.Seal();
         }
 
-        public static ImageGreyscaleTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static ImageGrayscaleTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(ctx, nameof(ctx));
             h.CheckValue(input, nameof(input));
             ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new ImageGreyscaleTransform(h, ctx, input));
+            return h.Apply("Loading Model", ch => new ImageGrayscaleTransform(h, ctx, input));
         }
 
         public override void Save(ModelSaveContext ctx)

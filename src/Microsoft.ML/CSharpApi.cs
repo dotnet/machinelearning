@@ -1090,16 +1090,16 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Transforms.HashConverter", input, output));
             }
 
-            public Microsoft.ML.Transforms.ImageGreyscale.Output Add(Microsoft.ML.Transforms.ImageGreyscale input)
+            public Microsoft.ML.Transforms.ImageGrayscale.Output Add(Microsoft.ML.Transforms.ImageGrayscale input)
             {
-                var output = new Microsoft.ML.Transforms.ImageGreyscale.Output();
+                var output = new Microsoft.ML.Transforms.ImageGrayscale.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ImageGreyscale input, Microsoft.ML.Transforms.ImageGreyscale.Output output)
+            public void Add(Microsoft.ML.Transforms.ImageGrayscale input, Microsoft.ML.Transforms.ImageGrayscale.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ImageGreyscale", input, output));
+                _jsonNodes.Add(Serialize("Transforms.ImageGrayscale", input, output));
             }
 
             public Microsoft.ML.Transforms.ImageLoader.Output Add(Microsoft.ML.Transforms.ImageLoader input)
@@ -11927,7 +11927,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed partial class ImageGreyscaleTransformColumn : OneToOneColumn<ImageGreyscaleTransformColumn>, IOneToOneColumn
+        public sealed partial class ImageGrayscaleTransformColumn : OneToOneColumn<ImageGrayscaleTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -11944,14 +11944,14 @@ namespace Microsoft.ML
         /// <summary>
         /// Convert image into grayscale.
         /// </summary>
-        public sealed partial class ImageGreyscale : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ImageGrayscale : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
-            public ImageGreyscale()
+            public ImageGrayscale()
             {
             }
             
-            public ImageGreyscale(params string[] inputColumns)
+            public ImageGrayscale(params string[] inputColumns)
             {
                 if (inputColumns != null)
                 {
@@ -11962,7 +11962,7 @@ namespace Microsoft.ML
                 }
             }
             
-            public ImageGreyscale(params (string inputColumn, string outputColumn)[] inputOutputColumns)
+            public ImageGrayscale(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
                 {
@@ -11975,15 +11975,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>() : new List<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>() : new List<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>() : new List<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageGreyscaleTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>() : new List<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11991,7 +11991,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public ImageGreyscaleTransformColumn[] Column { get; set; }
+            public ImageGrayscaleTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -12020,18 +12020,18 @@ namespace Microsoft.ML
                 {
                     if (!(previousStep is ILearningPipelineDataStep dataStep))
                     {
-                        throw new InvalidOperationException($"{ nameof(ImageGreyscale)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                        throw new InvalidOperationException($"{ nameof(ImageGrayscale)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
                     }
 
                     Data = dataStep.Data;
                 }
                 Output output = experiment.Add(this);
-                return new ImageGreyscalePipelineStep(output);
+                return new ImageGrayscalePipelineStep(output);
             }
 
-            private class ImageGreyscalePipelineStep : ILearningPipelineDataStep
+            private class ImageGrayscalePipelineStep : ILearningPipelineDataStep
             {
-                public ImageGreyscalePipelineStep(Output output)
+                public ImageGrayscalePipelineStep(Output output)
                 {
                     Data = output.OutputData;
                     Model = output.Model;
@@ -12061,7 +12061,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Load images from a file.
+        /// Load images from a files.
         /// </summary>
         public sealed partial class ImageLoader : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {

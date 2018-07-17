@@ -50,12 +50,12 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.ImageGreyscale", Desc = ImageGreyscaleTransform.Summary,
-            UserName = ImageGreyscaleTransform.UserName, ShortName = ImageGreyscaleTransform.LoaderSignature)]
-        public static CommonOutputs.TransformOutput ImageGreyscale(IHostEnvironment env, ImageGreyscaleTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.ImageGrayscale", Desc = ImageGrayscaleTransform.Summary,
+            UserName = ImageGrayscaleTransform.UserName, ShortName = ImageGrayscaleTransform.LoaderSignature)]
+        public static CommonOutputs.TransformOutput ImageGrayscale(IHostEnvironment env, ImageGrayscaleTransform.Arguments input)
         {
-            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageGreyscaleTransform", input);
-            var xf = new ImageGreyscaleTransform(h, input, input.Data);
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageGrayscaleTransform", input);
+            var xf = new ImageGrayscaleTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

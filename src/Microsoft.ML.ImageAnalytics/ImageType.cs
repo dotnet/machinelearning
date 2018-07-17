@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         {
             Contracts.CheckParam(height > 0, nameof(height));
             Contracts.CheckParam(width > 0, nameof(width));
-            Contracts.CheckParam((long)height * width <= int.MaxValue / 4, nameof(height), $"{nameof(height)} * {nameof(width)} is too large");
+            Contracts.CheckParam((long)height * width <= int.MaxValue / 4, nameof(height), nameof(height) + " * " + nameof(width) + " is too large");
             Height = height;
             Width = width;
         }
