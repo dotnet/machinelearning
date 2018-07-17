@@ -27,18 +27,15 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
-    /// <summary>
-    /// The Tweedie boosting model follows the mathematics established in:
-    /// Yang, Quan, and Zou. "Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models."
-    /// https://arxiv.org/pdf/1508.06378.pdf
-    /// </summary>
+    // The Tweedie boosting model follows the mathematics established in:
+    // Yang, Quan, and Zou. "Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models."
+    // https://arxiv.org/pdf/1508.06378.pdf
+    /// <include file='./doc.xml' path='docs/members/member[@name="FastTreeTweedieRegression"]/*' />
     public sealed partial class FastTreeTweedieTrainer : BoostingFastTreeTrainerBase<FastTreeTweedieTrainer.Arguments, FastTreeTweediePredictor>
     {
         public const string LoadNameValue = "FastTreeTweedieRegression";
         public const string UserNameValue = "FastTree (Boosted Trees) Tweedie Regression";
-        public const string Summary = "Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner " +
-                                        "is a generalization of Poisson, compound Poisson, and gamma regression.";
-
+        public const string Summary = "Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.";
         public const string ShortName = "fttweedie";
 
         private TestHistory _firstTestSetHistory;
@@ -460,7 +457,11 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public static partial class FastTree
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastTreeTweedieRegressor", Desc = FastTreeTweedieTrainer.Summary, UserName = FastTreeTweedieTrainer.UserNameValue, ShortName = FastTreeTweedieTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FastTreeTweedieRegressor",
+            Desc = FastTreeTweedieTrainer.Summary,
+            UserName = FastTreeTweedieTrainer.UserNameValue,
+            ShortName = FastTreeTweedieTrainer.ShortName,
+            XmlInclude = new [] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name=""FastTreeTweedieRegression""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainTweedieRegression(IHostEnvironment env, FastTreeTweedieTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

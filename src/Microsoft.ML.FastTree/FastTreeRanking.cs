@@ -38,6 +38,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
+    /// <include file='./doc.xml' path='docs/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeRankingTrainer : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, FastTreeRankingPredictor>,
         IHasLabelGains
     {
@@ -579,7 +580,6 @@ namespace Microsoft.ML.Runtime.FastTree
                     _secondaryMetricShare = 0.0;
                     return;
                 }
-                //for (int i = 0; i < _secondaryGains.Length; ++i) _secondaryGains[i] *= cmd.secondaryMetricShare;
                 _secondaryInverseMaxDCGT = DCGCalculator.MaxDCG(_secondaryGains, Dataset.Boundaries,
                     new int[] { args.lambdaMartMaxTruncation })[0].Select(d => 1.0 / d).ToArray();
             }
@@ -726,7 +726,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 double inverseMaxDcg = _inverseMaxDcgt[query];
                 double secondaryInverseMaxDcg = _secondaryMetricShare == 0 ? 0.0 : _secondaryInverseMaxDcgt[query];
 
-                //int[] permutation = (threadIndex < 0 ? new int[numDocuments] : _permutationBuffers[threadIndex]);
                 int[] permutation = _permutationBuffers[threadIndex];
 
                 short[] labels = _labels;
@@ -767,7 +766,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     {
                         // calculates the permutation that orders "scores" in descending order, without modifying "scores"
                         Array.Copy(_oneTwoThree, permutation, numDocuments);
-#if USE_FASTTREENATIVE2
+#if USE_FASTTREENATIVE
 
                         PermutationSort(permutation, scoresToUse, labels, numDocuments, begin);
                         // Get how far about baseline our current
@@ -818,12 +817,14 @@ namespace Microsoft.ML.Runtime.FastTree
                         if (!_trainDcg && (_costFunctionParam == 'c' || _useShiftedNdcg))
                         {
                             PermutationSort(permutation, scoresToUse, labels, numDocuments, begin);
-                            inverseMaxDcg = 1.0 / DCGCalculator.MaxDCGQuery(labels, begin, numDocuments, numDocuments, _labelCounts[query]);
+                            inverseMaxDcg = 1.0 / DcgCalculator.MaxDcgQuery(labels, begin, numDocuments, numDocuments, _labelCounts[query]);
                         }
-                        C_GetDerivatives(numDocuments, begin, pPermutation, pLabels,
+                        // A constant related to secondary labels, which does not exist in the current codebase.
+                        const bool secondaryIsolabelExclusive = false;
+                        GetDerivatives(numDocuments, begin, pPermutation, pLabels,
                                 pScores, pLambdas, pWeights, pDiscount,
                                 inverseMaxDcg, pGainLabels,
-                                _secondaryMetricShare, _secondaryIsolabelExclusive, secondaryInverseMaxDcg, pSecondaryGains,
+                                _secondaryMetricShare, secondaryIsolabelExclusive, secondaryInverseMaxDcg, pSecondaryGains,
                                 pSigmoidTable, _minScore, _maxScore, _sigmoidTable.Length, _scoreToSigmoidTableFactor,
                                 _costFunctionParam, _distanceWeight2, numActualResults, &lambdaSum, double.MinValue,
                                 _baselineAlphaCurrent, baselineDcgGap);
@@ -831,11 +832,11 @@ namespace Microsoft.ML.Runtime.FastTree
                         // For computing the "ideal" case of the DCGs.
                         if (_baselineDcg != null)
                         {
-                            if (scoresToUse == _scores)
-                                Array.Copy(_scores, begin, _scoresCopy, begin, numDocuments);
+                            if (scoresToUse == Scores)
+                                Array.Copy(Scores, begin, _scoresCopy, begin, numDocuments);
                             for (int i = begin; i < begin + numDocuments; ++i)
                             {
-                                _scoresCopy[i] += _gradient[i] / _weights[i];
+                                _scoresCopy[i] += Gradient[i] / Weights[i];
                             }
                             Array.Copy(_oneTwoThree, permutation, numDocuments);
                             PermutationSort(permutation, _scoresCopy, labels, numDocuments, begin);
@@ -1094,7 +1095,11 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public static partial class FastTree
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastTreeRanker", Desc = FastTreeRankingTrainer.Summary, UserName = FastTreeRankingTrainer.UserNameValue, ShortName = FastTreeRankingTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FastTreeRanker",
+            Desc = FastTreeRankingTrainer.Summary,
+            UserName = FastTreeRankingTrainer.UserNameValue,
+            ShortName = FastTreeRankingTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name=""FastTree""]/*' />" })]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, FastTreeRankingTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

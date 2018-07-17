@@ -43,6 +43,7 @@ namespace Microsoft.ML.Runtime.Data
             Mean,
             Minimum,
             Maximum,
+            SpecifiedValue,
 
             [HideEnumValue]
             Def = DefaultValue,
@@ -53,8 +54,6 @@ namespace Microsoft.ML.Runtime.Data
             [HideEnumValue]
             Max = Maximum,
 
-            [HideEnumValue]
-            SpecifiedValue,
             [HideEnumValue]
             Val = SpecifiedValue,
             [HideEnumValue]
@@ -186,6 +185,19 @@ namespace Microsoft.ML.Runtime.Data
         private readonly Delegate[] _isNAs;
 
         public override bool CanSaveOnnx => true;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="replacementKind">The replacement method to utilize.</param>
+        public NAReplaceTransform(IHostEnvironment env, IDataView input, string name, string source = null, ReplacementKind replacementKind = ReplacementKind.DefaultValue)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, ReplacementKind = replacementKind }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
@@ -617,20 +629,19 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
 
             string opType = "Imputer";
-            var node = OnnxUtils.MakeNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            OnnxUtils.NodeAddAttributes(node, "replaced_value_float", Single.NaN);
+            var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+            node.AddAttribute("replaced_value_float", Single.NaN);
 
             if (!Infos[iinfo].TypeSrc.IsVector)
-                OnnxUtils.NodeAddAttributes(node, "imputed_value_float", Enumerable.Repeat((float)_repValues[iinfo], 1));
+                node.AddAttribute("imputed_value_float", Enumerable.Repeat((float)_repValues[iinfo], 1));
             else
             {
                 if (_repIsDefault[iinfo] != null)
-                    OnnxUtils.NodeAddAttributes(node, "imputed_value_floats", (float[])_repValues[iinfo]);
+                    node.AddAttribute("imputed_value_floats", (float[])_repValues[iinfo]);
                 else
-                    OnnxUtils.NodeAddAttributes(node, "imputed_value_float", Enumerable.Repeat((float)_repValues[iinfo], 1));
+                    node.AddAttribute("imputed_value_float", Enumerable.Repeat((float)_repValues[iinfo], 1));
             }
 
-            ctx.AddNode(node);
             return true;
         }
 

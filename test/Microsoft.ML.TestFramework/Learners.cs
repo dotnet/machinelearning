@@ -35,16 +35,13 @@ namespace Microsoft.ML.Runtime.RunTests
         }
     }
 
-    public /*static*/ class TestLearnersBase
+    public class TestLearnersBase
     {
         // This ensures that the needed assemblies are loaded!
         static TestLearnersBase()
         {
             bool ok = true;
-            //ok &= typeof(BinaryNeuralNetwork) != null;
             ok &= typeof(FastTreeBinaryClassificationTrainer) != null;
-            //ok &= typeof(OneClassSvmTrainer) != null;
-            //ok &= typeof(LDSvmTrainer) != null;
             Contracts.Check(ok, "Missing assemblies!");
         }
 
@@ -264,6 +261,55 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             Trainer = new SubComponent("FastTreeBinaryClassification", "nl=5 mil=5 lr=0.25 iter=20 mb=255"),
             Tag = "FastTree",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMClassifier = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMBinary", "nt=1 nl=5 mil=5 lr=0.25 iter=20 mb=255"),
+            Tag = "LightGBM",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMGoss = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBM", "nt=1 iter=10 v=+ booster=goss lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMGoss",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMDart = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBM", "nt=1 iter=10 booster=dart lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMDart",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMMC = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMMC", "nt=1 iter=10 v=- lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMMC",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMReg = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 v=+ booster=gbdt{l1=0.2 l2=0.2} lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMReg",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMRegMae = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 em=mae v=+ lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMRegMae",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMRegRmse = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 em=rmse v=+ lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMRegRmse",
             BaselineProgress = true,
         };
 

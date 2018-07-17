@@ -26,6 +26,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
+    /// <include file='./doc.xml' path='docs/members/member[@name="PoissonRegression"]/*' />
     public sealed class PoissonRegression : LbfgsTrainerBase<Float, PoissonRegressionPredictor>
     {
         internal const string LoadNameValue = "PoissonRegression";
@@ -124,7 +125,11 @@ namespace Microsoft.ML.Runtime.Learners
             // No-op by design.
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.PoissonRegressor", Desc = "Train an Poisson regression model.", UserName = UserNameValue, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.PoissonRegressor", 
+            Desc = "Train an Poisson regression model.", 
+            UserName = UserNameValue, 
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='docs/members/member[@name=""PoissonRegression""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

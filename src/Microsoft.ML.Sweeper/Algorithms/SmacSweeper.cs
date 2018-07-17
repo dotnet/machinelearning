@@ -126,12 +126,12 @@ namespace Microsoft.ML.Runtime.Sweeper
             }
 
             ArrayDataViewBuilder dvBuilder = new ArrayDataViewBuilder(_host);
-            dvBuilder.AddColumn("Label", NumberType.Float, targets);
-            dvBuilder.AddColumn("Features", NumberType.Float, features);
+            dvBuilder.AddColumn(DefaultColumnNames.Label, NumberType.Float, targets);
+            dvBuilder.AddColumn(DefaultColumnNames.Features, NumberType.Float, features);
 
             IDataView view = dvBuilder.GetDataView();
             _host.Assert(view.GetRowCount() == targets.Length, "This data view will have as many rows as there have been evaluations");
-            RoleMappedData data = TrainUtils.CreateExamples(view, "Label", "Features");
+            RoleMappedData data = new RoleMappedData(view, DefaultColumnNames.Label, DefaultColumnNames.Features);
 
             using (IChannel ch = _host.Start("Single training"))
             {
@@ -180,34 +180,6 @@ namespace Microsoft.ML.Runtime.Sweeper
                 configs[j] = j % 2 == 0 ? eiChallengers[j / 2] : randomChallengers[j / 2];
 
             return configs;
-        }
-
-        private ParameterSet[] TreeOrderedCandidatesSearch(FastForestRegressionPredictor forest, int numOfCandidates, IEnumerable<IRunResult> previousRuns)
-        {
-            // Step 1: Get ordered list of all leaf values.
-            SortedList<double, Tuple<int, int>> leafValueList = new SortedList<double, Tuple<int, int>>(Comparer<double>.Create((x, y) => y.CompareTo(x)));
-            for (int i = 0; i < forest.TrainedEnsemble.NumTrees; i++)
-            {
-                RegressionTree t = forest.TrainedEnsemble.GetTreeAt(i);
-                for (int j = 0; j < t.NumLeaves; j++)
-                {
-                    double val = t.LeafValue(j);
-                    while (leafValueList.ContainsKey(val))
-                        val += Double.Epsilon;
-                    leafValueList.Add(val, Tuple.Create(i, j));
-                }
-            }
-
-            // Step 2: Go through, starting from best leaves.
-
-            //ch.Info("Ha ha, we trained {0} trees", ensemble.NumTrees);
-            //// This is a pretty silly example of inspecting the tree.
-            //int count = ensemble.Trees.Sum(t => t.SplitFeatures.Take(t.NumNodes).Count(f => f == 5));
-            //ch.Info("Our random forest ensemble used the feature with index 5, {0} times!!", count);
-            //double allLeavesSum = ensemble.Trees.Sum(t => t.LeafValues.Take(t.NumLeaves).Sum());
-            //ch.Info("Our random forest, across all leaves, summed to {0}", allLeavesSum);   
-            //int[] path = t.pathToLeaf(leafIndex);
-            return null;
         }
 
         /// <summary>

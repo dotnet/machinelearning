@@ -66,11 +66,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // For splitting the data into folds, this column is used for grouping rows and makes sure
             // that a group of rows is not split among folds.
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for stratification", ShortName = "strat", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for stratification", ShortName = "strat", SortOrder = 6)]
             public string StratificationColumn;
 
             // The number of folds to generate.
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of folds in k-fold cross-validation", ShortName = "k", SortOrder = 7)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of folds in k-fold cross-validation", ShortName = "k", SortOrder = 7)]
             public int NumFolds = 2;
 
             // REVIEW: suggest moving to subcomponents for evaluators, to allow for different parameters on the evaluators
@@ -78,14 +78,17 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 8)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 10)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 9)]
             public string LabelColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 11)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 10)]
             public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 12)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 11)]
             public Optional<string> GroupColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 12)]
+            public Optional<string> NameColumn = Optional<string>.Implicit(DefaultColumnNames.Name);
         }
 
         // REVIEW: This output would be much better as an array of CommonOutputs.ClassificationEvaluateOutput,
@@ -127,16 +130,19 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Multiple, HelpText = "Warning datasets", SortOrder = 4)]
             public IDataView[] Warnings;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 5)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The label column name", ShortName = "Label", SortOrder = 6)]
             public string LabelColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 7)]
             public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 12)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 8)]
             public Optional<string> GroupColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
 
-            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 9)]
+            public Optional<string> NameColumn = Optional<string>.Implicit(DefaultColumnNames.Name);
+
+            [Argument(ArgumentType.Required, HelpText = "Specifies the trainer kind, which determines the evaluator to be used.", SortOrder = 5)]
             public MacroUtils.TrainerKinds Kind = MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer;
         }
 
@@ -206,7 +212,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     TransformModel = null,
                     LabelColumn = input.LabelColumn,
                     GroupColumn = input.GroupColumn,
-                    WeightColumn = input.WeightColumn
+                    WeightColumn = input.WeightColumn,
+                    NameColumn = input.NameColumn
                 };
 
                 if (transformModelVarName != null)
@@ -377,10 +384,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
             combineArgs.LabelColumn = input.LabelColumn;
             combineArgs.WeightColumn = input.WeightColumn;
             combineArgs.GroupColumn = input.GroupColumn;
+            combineArgs.NameColumn = input.NameColumn;
 
             // Set the input bindings for the CombineMetrics entry point.
             var combineInputBindingMap = new Dictionary<string, List<ParameterBinding>>();
             var combineInputMap = new Dictionary<ParameterBinding, VariableBinding>();
+
+            var warningsArray = new SimpleParameterBinding(nameof(combineArgs.Warnings));
+            combineInputBindingMap.Add(nameof(combineArgs.Warnings), new List<ParameterBinding> { warningsArray });
+            combineInputMap.Add(warningsArray, new SimpleVariableBinding(warningsOutput.OutputData.VarName));
             var overallArray = new SimpleParameterBinding(nameof(combineArgs.OverallMetrics));
             combineInputBindingMap.Add(nameof(combineArgs.OverallMetrics), new List<ParameterBinding> { overallArray });
             combineInputMap.Add(overallArray, new SimpleVariableBinding(overallMetricsOutput.OutputData.VarName));
@@ -421,12 +433,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var eval = GetEvaluator(env, input.Kind);
 
             var perInst = EvaluateUtils.ConcatenatePerInstanceDataViews(env, eval, true, true, input.PerInstanceMetrics.Select(
-                idv => RoleMappedData.CreateOpt(idv, new[]
-                {
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, input.LabelColumn),
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Weight, input.WeightColumn.Value),
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Group, input.GroupColumn.Value)
-                })).ToArray(),
+                idv => new RoleMappedData(idv, opt: true,
+                    RoleMappedSchema.ColumnRole.Label.Bind(input.LabelColumn),
+                    RoleMappedSchema.ColumnRole.Weight.Bind(input.WeightColumn.Value),
+                    RoleMappedSchema.ColumnRole.Group.Bind(input.GroupColumn),
+                    RoleMappedSchema.ColumnRole.Name.Bind(input.NameColumn.Value))).ToArray(),
                 out var variableSizeVectorColumnNames);
 
             var warnings = input.Warnings != null ? new List<IDataView>(input.Warnings) : new List<IDataView>();

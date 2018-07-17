@@ -87,7 +87,7 @@ namespace Microsoft.ML.Runtime.Data
 
     /// <summary>
     /// A <see cref="IHostEnvironment"/> that is also a channel listener can attach
-    /// listeners for messages, as sent through <see cref="IChannelProvider.StartPipe"/>.
+    /// listeners for messages, as sent through <see cref="IChannelProvider.StartPipe{TMessage}"/>.
     /// </summary>
     public interface IMessageDispatcher : IHostEnvironment
     {

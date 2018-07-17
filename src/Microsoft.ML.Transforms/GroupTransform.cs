@@ -88,6 +88,18 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly GroupSchema _schema;
 
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="groupKey">Columns to group by</param>
+        /// <param name="columns">Columns to group together</param>
+        public GroupTransform(IHostEnvironment env, IDataView input, string groupKey, params string[] columns)
+            : this(env, new Arguments() { GroupKey = new[] { groupKey }, Column = columns }, input)
+        {
+        }
+
         public GroupTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, input)
         {

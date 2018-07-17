@@ -93,14 +93,14 @@ namespace Microsoft.ML.Runtime.Transforms
             };
         }
 
-        [TlcModule.EntryPoint(Desc = WordEmbeddingsTransform.Summary, UserName = WordEmbeddingsTransform.UserName)]
-        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.LightLda", Desc = LdaTransform.Summary, UserName = LdaTransform.UserName, ShortName = LdaTransform.ShortName)]
+        public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LdaTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
-            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "WordEmbeddings", input);
-            var view = new WordEmbeddingsTransform(h, input, input.Data);
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LightLda", input);
+            var view = new LdaTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

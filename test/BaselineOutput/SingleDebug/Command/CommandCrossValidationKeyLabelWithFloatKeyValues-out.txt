@@ -1,0 +1,44 @@
+maml.exe CV tr=FastRankRanking{t=1} strat=Strat threads=- norm=Warn prexf=rangefilter{col=Label min=20 max=25} prexf=term{col=Strat:Label} dout=%Output% loader=text{col=Features:R4:10-14 col=Label:R4:9 col=GroupId:TX:1 header+} data=%Data% out=%Output% xf=term{col=Label} xf=hash{col=GroupId}
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 40 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 10764 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 32 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 6396 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+NDCG@1:             0.000000
+NDCG@2:             0.000000
+NDCG@3:             0.000000
+DCG@1:              0.000000
+DCG@2:              0.000000
+DCG@3:              0.000000
+NDCG@1:             0.000000
+NDCG@2:             0.000000
+NDCG@3:             0.000000
+DCG@1:              0.000000
+DCG@2:              0.000000
+DCG@3:              0.000000
+
+OVERALL RESULTS
+---------------------------------------
+NDCG@1:             0.000000 (0.0000)
+NDCG@2:             0.000000 (0.0000)
+NDCG@3:             0.000000 (0.0000)
+DCG@1:              0.000000 (0.0000)
+DCG@2:              0.000000 (0.0000)
+DCG@3:              0.000000 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

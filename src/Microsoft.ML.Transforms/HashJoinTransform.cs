@@ -37,6 +37,14 @@ namespace Microsoft.ML.Runtime.Data
         public const int NumBitsMin = 1;
         public const int NumBitsLim = 32;
 
+        private static class Defaults
+        {
+            public const bool Join = true;
+            public const int HashBits = NumBitsLim - 1;
+            public const uint Seed = 314489979;
+            public const bool Ordered = true;
+        }
+
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
@@ -45,17 +53,17 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the values need to be combined for a single hash")]
-            public bool Join = true;
+            public bool Join = Defaults.Join;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = NumBitsLim - 1;
+            public int HashBits = Defaults.HashBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
-            public uint Seed = 314489979;
+            public uint Seed = Defaults.Seed;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the position of each term should be included in the hash", ShortName = "ord")]
-            public bool Ordered = true;
+            public bool Ordered = Defaults.Ordered;
         }
 
         public sealed class Column : OneToOneColumn
@@ -165,6 +173,25 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly ColumnInfoEx[] _exes;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="join">Whether the values need to be combined for a single hash.</param>
+        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+        public HashJoinTransform(IHostEnvironment env,
+            IDataView input,
+            string name,
+            string source = null,
+             bool join = Defaults.Join,
+            int hashBits = Defaults.HashBits)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, Join = join, HashBits = hashBits }, input)
+        {
+        }
 
         public HashJoinTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input, TestColumnType)

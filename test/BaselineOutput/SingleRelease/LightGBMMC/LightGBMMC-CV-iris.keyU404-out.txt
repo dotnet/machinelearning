@@ -1,0 +1,65 @@
+maml.exe CV tr=LightGBMMC{nt=1 iter=10 v=- lr=0.2 mil=10 nl=20} threads=- dout=%Output% loader=Text{col=Label:U4[0-4]:0 col=Features:1-4} data=%Data% seed=1
+Not adding a normalizer.
+Auto-tuning parameters: UseCat = False
+Auto-tuning parameters: UseSoftmax = False
+LightGBM objective=multiclassova
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Auto-tuning parameters: UseCat = False
+Auto-tuning parameters: UseSoftmax = False
+LightGBM objective=multiclassova
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================================
+PREDICTED ||     0 |     1 |     2 |     3 |     4 | Recall
+TRUTH     ||========================================
+        0 ||    21 |     0 |     0 |     0 |     0 | 1.0000
+        1 ||     0 |    27 |     3 |     0 |     0 | 0.9000
+        2 ||     0 |     2 |    26 |     0 |     0 | 0.9286
+        3 ||     0 |     0 |     0 |     0 |     0 | 0.0000
+        4 ||     0 |     0 |     0 |     0 |     0 | 0.0000
+          ||========================================
+Precision ||1.0000 |0.9310 |0.8966 |0.0000 |0.0000 |
+Accuracy(micro-avg): 0.936709
+Accuracy(macro-avg): 0.942857
+Log-loss:           0.312759
+Log-loss reduction: 71.240931
+
+Confusion table
+          ||========================================
+PREDICTED ||     0 |     1 |     2 |     3 |     4 | Recall
+TRUTH     ||========================================
+        0 ||    29 |     0 |     0 |     0 |     0 | 1.0000
+        1 ||     0 |    19 |     1 |     0 |     0 | 0.9500
+        2 ||     0 |     2 |    20 |     0 |     0 | 0.9091
+        3 ||     0 |     0 |     0 |     0 |     0 | 0.0000
+        4 ||     0 |     0 |     0 |     0 |     0 | 0.0000
+          ||========================================
+Precision ||1.0000 |0.9048 |0.9524 |0.0000 |0.0000 |
+Accuracy(micro-avg): 0.957746
+Accuracy(macro-avg): 0.953030
+Log-loss:           0.193390
+Log-loss reduction: 82.186746
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.947228 (0.0105)
+Accuracy(macro-avg): 0.947944 (0.0051)
+Log-loss:           0.253074 (0.0597)
+Log-loss reduction: 76.713839 (5.4729)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Loading data for LightGBM' started.
+[1] 'Loading data for LightGBM' finished in %Time%.
+[2] 'Training with LightGBM' started.
+[2] 'Training with LightGBM' finished in %Time%.
+[3] 'Loading data for LightGBM #2' started.
+[3] 'Loading data for LightGBM #2' finished in %Time%.
+[4] 'Training with LightGBM #2' started.
+[4] 'Training with LightGBM #2' finished in %Time%.
