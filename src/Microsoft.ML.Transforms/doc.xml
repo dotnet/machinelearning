@@ -126,7 +126,7 @@
       </example>
     </member>
 
-    <member>
+    <member name="OptionalColumnTransform">
       <summary>
         If the user wish to create additional columns with a particular type and default values, 
         or replicated the values from one column to another, changing their type, they can do so using this transform. 
@@ -294,7 +294,7 @@
       </example>
     </member>
     
-  <member>
+  <member name="Ungroup">
       <summary>
         Un-groups vector columns into sequences of rows, inverse of Group transform.
        </summary>
@@ -328,7 +328,7 @@
         </para>
       </remarks>
     </member>
-    <example  name="Ungroup">
+    <example name="Ungroup">
       <example>
         <code language="csharp">
           pipeline.Add(new Segregator(){ Column = new[]{&quot;Column1&quot; }, Mode = UngroupTransformUngroupMode.First} );
