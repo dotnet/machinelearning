@@ -42,7 +42,8 @@ namespace Microsoft.ML.Runtime.Transforms
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.NGramTranslator", Desc = Data.NgramTransform.Summary, UserName = Data.NgramTransform.UserName, ShortName = Data.NgramTransform.LoaderSignature)]
+        [TlcModule.EntryPoint(Name = "Transforms.NGramTranslator", Desc = Data.NgramTransform.Summary, 
+            UserName = Data.NgramTransform.UserName, ShortName = Data.NgramTransform.LoaderSignature)]
         public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NGramTransform", input);
@@ -54,7 +55,8 @@ namespace Microsoft.ML.Runtime.Transforms
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.Dictionarizer", Desc = Data.TermTransform.Summary, UserName = Data.TermTransform.UserName, ShortName = Data.TermTransform.LoaderSignature)]
+        [TlcModule.EntryPoint(Name = "Transforms.Dictionarizer", Desc = Data.TermTransform.Summary, 
+            UserName = Data.TermTransform.UserName, ShortName = Data.TermTransform.LoaderSignature)]
         public static CommonOutputs.TransformOutput TermTransform(IHostEnvironment env, TermTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "TermTransform", input);
@@ -66,7 +68,8 @@ namespace Microsoft.ML.Runtime.Transforms
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.SentimentAnalyzer", Desc = "Uses a pretrained sentiment model to score input strings", UserName = SentimentAnalyzingTransform.UserName, ShortName = SentimentAnalyzingTransform.ShortName)]
+        [TlcModule.EntryPoint(Name = "Transforms.SentimentAnalyzer", Desc = "Uses a pretrained sentiment model to score input strings",
+            UserName = SentimentAnalyzingTransform.UserName, ShortName = SentimentAnalyzingTransform.ShortName)]
         public static CommonOutputs.TransformOutput AnalyzeSentiment(IHostEnvironment env, SentimentAnalyzingTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SentimentAnalyzer", input);
@@ -78,7 +81,8 @@ namespace Microsoft.ML.Runtime.Transforms
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.CharacterTokenizer", Desc = CharTokenizeTransform.Summary, UserName = CharTokenizeTransform.UserName, ShortName = CharTokenizeTransform.LoaderSignature)]
+        [TlcModule.EntryPoint(Name = "Transforms.CharacterTokenizer", Desc = CharTokenizeTransform.Summary,
+            UserName = CharTokenizeTransform.UserName, ShortName = CharTokenizeTransform.LoaderSignature)]
         public static CommonOutputs.TransformOutput CharTokenize(IHostEnvironment env, CharTokenizeTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -93,7 +97,8 @@ namespace Microsoft.ML.Runtime.Transforms
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.LightLda", Desc = LdaTransform.Summary, UserName = LdaTransform.UserName, ShortName = LdaTransform.ShortName)]
+        [TlcModule.EntryPoint(Name = "Transforms.LightLda", Desc = LdaTransform.Summary,
+            UserName = LdaTransform.UserName, ShortName = LdaTransform.ShortName)]
         public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LdaTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -108,7 +113,8 @@ namespace Microsoft.ML.Runtime.Transforms
             };
         }
 
-        [TlcModule.EntryPoint(Desc = WordEmbeddingsTransform.Summary, UserName = WordEmbeddingsTransform.UserName)]
+        [TlcModule.EntryPoint(Name = "Transforms.WordEmbeddings", Desc = WordEmbeddingsTransform.Summary,
+            UserName = WordEmbeddingsTransform.UserName)]
         public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

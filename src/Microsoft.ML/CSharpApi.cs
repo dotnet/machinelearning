@@ -478,18 +478,6 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Models.TrainTestEvaluator", input, output));
             }
 
-            public Microsoft.ML.TextAnalytics.WordEmbeddings.Output Add(Microsoft.ML.TextAnalytics.WordEmbeddings input)
-            {
-                var output = new Microsoft.ML.TextAnalytics.WordEmbeddings.Output();
-                Add(input, output);
-                return output;
-            }
-
-            public void Add(Microsoft.ML.TextAnalytics.WordEmbeddings input, Microsoft.ML.TextAnalytics.WordEmbeddings.Output output)
-            {
-                _jsonNodes.Add(Serialize("TextAnalytics.WordEmbeddings", input, output));
-            }
-
             public Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier.Output Add(Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier input)
             {
                 var output = new Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier.Output();
@@ -1532,6 +1520,18 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Transforms.TwoHeterogeneousModelCombiner input, Microsoft.ML.Transforms.TwoHeterogeneousModelCombiner.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.TwoHeterogeneousModelCombiner", input, output));
+            }
+
+            public Microsoft.ML.Transforms.WordEmbeddings.Output Add(Microsoft.ML.Transforms.WordEmbeddings input)
+            {
+                var output = new Microsoft.ML.Transforms.WordEmbeddings.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Transforms.WordEmbeddings input, Microsoft.ML.Transforms.WordEmbeddings.Output output)
+            {
+                _jsonNodes.Add(Serialize("Transforms.WordEmbeddings", input, output));
             }
 
             public Microsoft.ML.Transforms.WordTokenizer.Output Add(Microsoft.ML.Transforms.WordTokenizer input)
@@ -4140,149 +4140,6 @@ namespace Microsoft.ML
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
-            }
-        }
-    }
-
-    namespace TextAnalytics
-    {
-        public enum WordEmbeddingsTransformPretrainedModelKind
-        {
-            GloVe50D = 0,
-            GloVe100D = 1,
-            GloVe200D = 2,
-            GloVe300D = 3,
-            GloVeTwitter25D = 4,
-            GloVeTwitter50D = 5,
-            GloVeTwitter100D = 6,
-            GloVeTwitter200D = 7,
-            FastTextWikipedia300D = 8,
-            Sswe = 9
-        }
-
-
-        public sealed partial class WordEmbeddingsTransformColumn : OneToOneColumn<WordEmbeddingsTransformColumn>, IOneToOneColumn
-        {
-            /// <summary>
-            /// Name of the new column
-            /// </summary>
-            public string Name { get; set; }
-
-            /// <summary>
-            /// Name of the source column
-            /// </summary>
-            public string Source { get; set; }
-
-        }
-
-        /// <summary>
-        /// Word Embeddings transform is a text featurizer which converts vectors of text tokens into sentence vectors using a pre-trained model
-        /// </summary>
-        public sealed partial class WordEmbeddings : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
-        {
-
-            public WordEmbeddings()
-            {
-            }
-            
-            public WordEmbeddings(params string[] inputColumns)
-            {
-                if (inputColumns != null)
-                {
-                    foreach (string input in inputColumns)
-                    {
-                        AddColumn(input);
-                    }
-                }
-            }
-            
-            public WordEmbeddings(params (string inputColumn, string outputColumn)[] inputOutputColumns)
-            {
-                if (inputOutputColumns != null)
-                {
-                    foreach (var inputOutput in inputOutputColumns)
-                    {
-                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
-                    }
-                }
-            }
-            
-            public void AddColumn(string inputColumn)
-            {
-                var list = Column == null ? new List<Microsoft.ML.TextAnalytics.WordEmbeddingsTransformColumn>() : new List<Microsoft.ML.TextAnalytics.WordEmbeddingsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.TextAnalytics.WordEmbeddingsTransformColumn>.Create(inputColumn));
-                Column = list.ToArray();
-            }
-
-            public void AddColumn(string outputColumn, string inputColumn)
-            {
-                var list = Column == null ? new List<Microsoft.ML.TextAnalytics.WordEmbeddingsTransformColumn>() : new List<Microsoft.ML.TextAnalytics.WordEmbeddingsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.TextAnalytics.WordEmbeddingsTransformColumn>.Create(outputColumn, inputColumn));
-                Column = list.ToArray();
-            }
-
-
-            /// <summary>
-            /// New column definition(s) (optional form: name:src)
-            /// </summary>
-            public WordEmbeddingsTransformColumn[] Column { get; set; }
-
-            /// <summary>
-            /// Pre-trained model used to create the vocabulary
-            /// </summary>
-            public WordEmbeddingsTransformPretrainedModelKind? ModelKind { get; set; } = WordEmbeddingsTransformPretrainedModelKind.Sswe;
-
-            /// <summary>
-            /// Filename for custom word embedding model
-            /// </summary>
-            public string CustomLookupTable { get; set; }
-
-            /// <summary>
-            /// Input dataset
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
-            {
-                /// <summary>
-                /// Transformed dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Transform model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
-
-            }
-            public Var<IDataView> GetInputData() => Data;
-            
-            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
-            {
-                if (previousStep != null)
-                {
-                    if (!(previousStep is ILearningPipelineDataStep dataStep))
-                    {
-                        throw new InvalidOperationException($"{ nameof(WordEmbeddings)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                    }
-
-                    Data = dataStep.Data;
-                }
-                Output output = experiment.Add(this);
-                return new WordEmbeddingsPipelineStep(output);
-            }
-
-            private class WordEmbeddingsPipelineStep : ILearningPipelineDataStep
-            {
-                public WordEmbeddingsPipelineStep(Output output)
-                {
-                    Data = output.OutputData;
-                    Model = output.Model;
-                }
-
-                public Var<IDataView> Data { get; }
-                public Var<ITransformModel> Model { get; }
             }
         }
     }
@@ -15592,6 +15449,149 @@ namespace Microsoft.ML
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
 
+            }
+        }
+    }
+
+    namespace Transforms
+    {
+        public enum WordEmbeddingsTransformPretrainedModelKind
+        {
+            GloVe50D = 0,
+            GloVe100D = 1,
+            GloVe200D = 2,
+            GloVe300D = 3,
+            GloVeTwitter25D = 4,
+            GloVeTwitter50D = 5,
+            GloVeTwitter100D = 6,
+            GloVeTwitter200D = 7,
+            FastTextWikipedia300D = 8,
+            Sswe = 9
+        }
+
+
+        public sealed partial class WordEmbeddingsTransformColumn : OneToOneColumn<WordEmbeddingsTransformColumn>, IOneToOneColumn
+        {
+            /// <summary>
+            /// Name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+        }
+
+        /// <summary>
+        /// Word Embeddings transform is a text featurizer which converts vectors of text tokens into sentence vectors using a pre-trained model
+        /// </summary>
+        public sealed partial class WordEmbeddings : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+            public WordEmbeddings()
+            {
+            }
+            
+            public WordEmbeddings(params string[] inputColumns)
+            {
+                if (inputColumns != null)
+                {
+                    foreach (string input in inputColumns)
+                    {
+                        AddColumn(input);
+                    }
+                }
+            }
+            
+            public WordEmbeddings(params (string inputColumn, string outputColumn)[] inputOutputColumns)
+            {
+                if (inputOutputColumns != null)
+                {
+                    foreach (var inputOutput in inputOutputColumns)
+                    {
+                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
+                    }
+                }
+            }
+            
+            public void AddColumn(string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>() : new List<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>.Create(inputColumn));
+                Column = list.ToArray();
+            }
+
+            public void AddColumn(string outputColumn, string inputColumn)
+            {
+                var list = Column == null ? new List<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>() : new List<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>.Create(outputColumn, inputColumn));
+                Column = list.ToArray();
+            }
+
+
+            /// <summary>
+            /// New column definition(s) (optional form: name:src)
+            /// </summary>
+            public WordEmbeddingsTransformColumn[] Column { get; set; }
+
+            /// <summary>
+            /// Pre-trained model used to create the vocabulary
+            /// </summary>
+            public WordEmbeddingsTransformPretrainedModelKind? ModelKind { get; set; } = WordEmbeddingsTransformPretrainedModelKind.Sswe;
+
+            /// <summary>
+            /// Filename for custom word embedding model
+            /// </summary>
+            public string CustomLookupTable { get; set; }
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(WordEmbeddings)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new WordEmbeddingsPipelineStep(output);
+            }
+
+            private class WordEmbeddingsPipelineStep : ILearningPipelineDataStep
+            {
+                public WordEmbeddingsPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
             }
         }
     }
