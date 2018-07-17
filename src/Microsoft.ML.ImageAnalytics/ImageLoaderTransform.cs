@@ -152,25 +152,25 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     if (src.Length > 0)
                     {
                         // Catch exceptions and pass null through. Should also log failures...
-                        try
-                        {
+                        //try
+                        //{
                             string path = src.ToString();
                             if (!string.IsNullOrWhiteSpace(_imageFolder))
                                 path = Path.Combine(_imageFolder, path);
                             dst = new Bitmap(path);
-                        }
-                        catch (Exception e)
-                        {
-                            // REVIEW: We catch everything since the documentation for new Bitmap(string)
-                            // appears to be incorrect. When the file isn't found, it throws an ArgumentException,
-                            // while the documentation says FileNotFoundException. Not sure what it will throw
-                            // in other cases, like corrupted file, etc.
+                        //}
+                        //catch (Exception e)
+                        //{
+                        //    // REVIEW: We catch everything since the documentation for new Bitmap(string)
+                        //    // appears to be incorrect. When the file isn't found, it throws an ArgumentException,
+                        //    // while the documentation says FileNotFoundException. Not sure what it will throw
+                        //    // in other cases, like corrupted file, etc.
 
-                            // REVIEW : Log failures.
-                            ch.Info(e.Message);
-                            ch.Info(e.StackTrace);
-                            dst = null;
-                        }
+                        //    // REVIEW : Log failures.
+                        //    ch.Info(e.Message);
+                        //    ch.Info(e.StackTrace);
+                        //    dst = null;
+                        //}
                     }
                 };
             return del;

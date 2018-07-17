@@ -43,6 +43,4 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return string.Format("Image<{0}, {1}>", Height, Width);
         }
     }
-
-
 }
