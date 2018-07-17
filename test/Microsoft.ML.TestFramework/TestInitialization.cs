@@ -199,14 +199,6 @@ namespace Microsoft.ML.Runtime.RunTests
         }
     }
 
-  /*  public partial class TestUtilities
-    {
-        public TestUtilities(ITestOutputHelper helper)
-        {
-            TestContext = new TestContext(helper);
-        }
-    }*/
-
     public partial class TestRepositoryReader : BaseTestBaseline
     {
         public TestRepositoryReader(ITestOutputHelper helper)

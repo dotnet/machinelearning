@@ -22,10 +22,25 @@ namespace Microsoft.ML.Runtime.Data
     {
         public enum ReplacementKind
         {
+            /// <summary>
+            /// Replace with the default value of the column based on it's type. For example, 'zero' for numeric and 'empty' for string/text columns.
+            /// </summary>
             [EnumValueDisplay("Zero/empty")]
             DefaultValue,
+
+            /// <summary>
+            /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
             Mean,
+
+            /// <summary>
+            /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
             Minimum,
+
+            /// <summary>
+            /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
             Maximum,
 
             [HideEnumValue]
@@ -90,6 +105,27 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string FriendlyName = "NA Handle Transform";
         internal const string ShortName = "NAHandle";
+
+        /// <summary>
+        /// A helper method to create <see cref="NAHandleTransform"/> for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="replaceWith">The replacement method to utilize.</param>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string name, string source = null, ReplacementKind replaceWith = ReplacementKind.DefaultValue)
+        {
+            var args = new Arguments()
+            {
+                Column = new[] 
+                {
+                    new Column() { Source = source ?? name, Name = name }
+                },
+                ReplaceWith = replaceWith
+            };
+            return Create(env, args, input);
+        }
 
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {

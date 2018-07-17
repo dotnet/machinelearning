@@ -1405,7 +1405,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// The <see cref="ISlotCursor.GetGetter"/> is parameterized by a type that becomes the
+        /// The <see cref="ISlotCursor.GetGetter{TValue}"/> is parameterized by a type that becomes the
         /// type parameter for a <see cref="VBuffer{T}"/>, and this is generally preferable and more
         /// sensible but for various reasons it's often a lot simpler to have a get-getter be over
         /// the actual type returned by the getter, that is, parameterize this by the actual

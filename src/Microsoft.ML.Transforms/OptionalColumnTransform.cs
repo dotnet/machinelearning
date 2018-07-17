@@ -234,6 +234,17 @@ namespace Microsoft.ML.Runtime.DataPipe
         private const string RegistrationName = "OptionalColumn";
 
         /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="columns">Columns to transform.</param>
+        public OptionalColumnTransform(IHostEnvironment env, IDataView input, params string[] columns)
+            : this(env, new Arguments() { Column = columns }, input)
+        {
+        }
+
+        /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
         public OptionalColumnTransform(IHostEnvironment env, Arguments args, IDataView input)

@@ -3418,6 +3418,46 @@ namespace Microsoft.ML
             /// </summary>
             public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> CandidateOutputs { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
 
+            /// <summary>
+            /// Column(s) to use as Role 'Label'
+            /// </summary>
+            public string[] LabelColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'Group'
+            /// </summary>
+            public string[] GroupColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'Weight'
+            /// </summary>
+            public string[] WeightColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'Name'
+            /// </summary>
+            public string[] NameColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'NumericFeature'
+            /// </summary>
+            public string[] NumericFeatureColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'CategoricalFeature'
+            /// </summary>
+            public string[] CategoricalFeatureColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'TextFeature'
+            /// </summary>
+            public string[] TextFeatureColumns { get; set; }
+
+            /// <summary>
+            /// Column(s) to use as Role 'ImagePath'
+            /// </summary>
+            public string[] ImagePathColumns { get; set; }
+
 
             public sealed class Output
             {

@@ -30,6 +30,13 @@ namespace Microsoft.ML.Runtime.Data
         public const string UserName = "Mutual Information Feature Selection Transform";
         public const string ShortName = "MIFeatureSelection";
 
+        private static class Defaults
+        {
+            public const string LabelColumn = DefaultColumnNames.Label;
+            public const int SlotsInOutput = 1000;
+            public const int NumBins = 256;
+        }
+
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", ShortName = "col",
@@ -38,18 +45,44 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab",
                 SortOrder = 4, Purpose = SpecialPurpose.ColumnName)]
-            public string LabelColumn = DefaultColumnNames.Label;
+            public string LabelColumn = Defaults.LabelColumn;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of slots to preserve in output", ShortName = "topk,numSlotsToKeep",
                 SortOrder = 1)]
-            public int SlotsInOutput = 1000;
+            public int SlotsInOutput = Defaults.SlotsInOutput;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of bins for R4/R8 columns, power of 2 recommended",
                 ShortName = "bins")]
-            public int NumBins = 256;
+            public int NumBins = Defaults.NumBins;
         }
 
         internal static string RegistrationName = "MutualInformationFeatureSelectionTransform";
+
+        /// <summary>
+        /// A helper method to create <see cref="IDataTransform"/> for selecting the top k slots ordered by their mutual information.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="labelColumn">Column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
+        /// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
+        /// <param name="columns">Columns to use for feature selection.</param>
+        public static IDataTransform Create(IHostEnvironment env,
+            IDataView input,
+            string labelColumn = Defaults.LabelColumn,
+            int slotsInOutput = Defaults.SlotsInOutput,
+            int numBins = Defaults.NumBins,
+            params string[] columns)
+        {
+            var args = new Arguments()
+            {
+                Column = columns,
+                LabelColumn = labelColumn,
+                SlotsInOutput = slotsInOutput,
+                NumBins = numBins
+            };
+            return Create(env, args, input);
+        }
 
         /// <summary>
         /// Create method corresponding to SignatureDataTransform.
