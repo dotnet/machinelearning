@@ -405,15 +405,20 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     getSrc(ref src);
 
                     int len = 0;
+                    
                     for (int i = 0; i < src.Count; i++)
                     {
                         if (src.Values[i].HasChars)
                         {
                             len += src.Values[i].Length;
-                            if (_useMarkerChars)
-                                len += TextMarkersCount;
+
+                            if (i > 0)
+                                len += 1;  // add space character that will be added
                         }
                     }
+
+                    if (_useMarkerChars)
+                        len += TextMarkersCount;
 
                     var values = dst.Values;
                     if (len > 0)
@@ -422,17 +427,33 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                             values = new ushort[len];
 
                         int index = 0;
+
+                        // VBuffer<DvText> can be a result of either concatenating text columns together 
+                        // or application of word tokenizer before char tokenizer.
+                        //
+                        // Considering VBuffer<DvText> as a single text stream.
+                        // Therefore, prepend and append start and end markers only once i.e. at the start and at end of vector.
+                        // Insert spaces after every piece of text in the vector.
+                        if (_useMarkerChars)
+                            values[index++] = TextStartMarker;
+
                         for (int i = 0; i < src.Count; i++)
                         {
                             if (!src.Values[i].HasChars)
                                 continue;
-                            if (_useMarkerChars)
-                                values[index++] = TextStartMarker;
+
+                            if (i > 0)
+                                values[index++] = ' ';
+
                             for (int ich = 0; ich < src.Values[i].Length; ich++)
+                            {
                                 values[index++] = src.Values[i][ich];
-                            if (_useMarkerChars)
-                                values[index++] = TextEndMarker;
+                            }
                         }
+
+                        if (_useMarkerChars)
+                            values[index++] = TextEndMarker;
+
                         Contracts.Assert(index == len);
                     }
 
