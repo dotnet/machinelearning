@@ -107,5 +107,20 @@ namespace Microsoft.ML.Runtime.Transforms
                 OutputData = view
             };
         }
+
+        [TlcModule.EntryPoint(Desc = WordEmbeddingsTransform.Summary, UserName = WordEmbeddingsTransform.UserName)]
+        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsTransform.Arguments input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(input, nameof(input));
+
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "WordEmbeddings", input);
+            var view = new WordEmbeddingsTransform(h, input, input.Data);
+            return new CommonOutputs.TransformOutput()
+            {
+                Model = new TransformModel(h, view, input.Data),
+                OutputData = view
+            };
+        }
     }
 }
