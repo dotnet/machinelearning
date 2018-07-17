@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         // scenarioWithoutHistory - simple test scenario we want to track the history and look for best iteration
         // lossIndex - index of lossFunction in case Test returns more than one loss (default should be 0)
         // lower is better: are we looking for minimum or maximum of loss function?
-        private protected TestHistory(Test scenarioWithoutHistory, int lossIndex)
+        internal TestHistory(Test scenarioWithoutHistory, int lossIndex)
             : base(null)
         {
             History = new List<TestResult[]>();
