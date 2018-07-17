@@ -22,12 +22,14 @@
       <seealso cref='Microsoft.ML.Trainers.LightGbmClassifier'/>
       <seealso cref='Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier'/>
       <seealso cref='Microsoft.ML.Models.OneVersusAll'/>
+    </member>
+    <example name="MultiClassNaiveBayesTrainer">
       <example>
-        <code>
+        <code language="csharp">
           pipeline.Add(new NaiveBayesClassifier(){ NormalizeFeatures = NormalizeOption.Auto, Caching = CachingOptions.Memory });
         </code>
       </example>
-    </member>
+    </example>
 
     <member name="OVA">
       <summary>
@@ -49,7 +51,7 @@
       <seealso cref='Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier'/>
       <seealso cref='Microsoft.ML.Trainers.NaiveBayesClassifier'/>
       <example>
-        <code>
+        <code language="csharp">
           pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
         </code>
       </example>

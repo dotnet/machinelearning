@@ -36,8 +36,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    /// <include file = './doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
-    /// <include file = './doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
+    /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
+    /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
     public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<VBuffer<Float>, MulticlassLogisticRegressionPredictor>
     {
         public const string LoadNameValue = "MultiClassLogisticRegression";

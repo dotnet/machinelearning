@@ -631,7 +631,8 @@ namespace Microsoft.ML.Runtime.Data
             Desc = UngroupTransform.Summary, 
             UserName = UngroupTransform.UserName, 
             ShortName = UngroupTransform.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""Ungroup""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""Ungroup""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""Ungroup""]/*' />"})]
         public static CommonOutputs.TransformOutput Ungroup(IHostEnvironment env, UngroupTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

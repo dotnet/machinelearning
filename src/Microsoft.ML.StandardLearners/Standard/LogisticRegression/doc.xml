@@ -12,8 +12,6 @@
         then the logistic regression is multinomial.
         <para>
           The optimization technique used for LogisticRegression Classifier is based on the limited memory Broyden-Fletcher-Goldfarb-Shanno (L-BFGS).
-          The L1 regularization is an implementation of OWLQN, based on
-          <a href="http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260">Scalable training of L1-regularized log-linear models</a>
           Both the L-BFGS and regular BFGS algorithms use quasi-Newtonian methods to estimate the computationally intensive 
           Hessian matrix in the equation used by Newton's method to calculate steps.
           But the L-BFGS approximation uses only a limited amount of memory to compute the next step direction,
@@ -31,8 +29,12 @@
           values would be penalized less. L1 and L2 regularization have different effects and uses that are complementary in certain respects.
         </para>
           <list type='bullet'>
-            <item><description>L1Weight can be applied to sparse models, when working with high-dimensional data.
-              It pulls small weights associated features that are relatively unimportant towards 0.</description></item>
+            <item><description>
+              L1Weight can be applied to sparse models, when working with high-dimensional data. It pulls small weights associated features
+              that are relatively unimportant towards 0.
+              L1 regularization is an implementation of OWLQN, based on:
+              <a href="http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260">Scalable training of L1-regularized log-linear models</a>
+            </description></item>
             <item><description>L2Weight is preferable for data that is not sparse. It pulls large weights towards zero.</description></item>
           </list>
           Adding the ridge penalty to the regularization overcomes some of lasso's limitations. It can improve its predictive accuracy, for example, when the number of predictors is greater than the sample size. If x = l1_weight and y = l2_weight, ax + by = c defines the linear span of the regularization terms.
@@ -49,14 +51,14 @@
     </member>
     <example name='LogisticRegressionClassifier'>
       <example>
-        <code>
+        <code language="csharp">
           pipeline.Add(new LogisticRegressionClassifier());
         </code>
       </example>
     </example>
     <example name='LogisticRegressionBinaryClassifier'>
       <example>
-        <code>
+        <code language="csharp">
           pipeline.Add(new LogisticRegressionBinaryClassifier());
         </code>
       </example>

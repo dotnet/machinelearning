@@ -679,7 +679,8 @@ namespace Microsoft.ML.Runtime.Data
             Desc = HashJoinTransform.Summary, 
             UserName = HashJoinTransform.UserName, 
             ShortName = HashJoinTransform.RegistrationName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""HashJoin""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""HashJoin""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""HashJoin""]/*' />"})]
         public static CommonOutputs.TransformOutput Apply(IHostEnvironment env, HashJoinTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

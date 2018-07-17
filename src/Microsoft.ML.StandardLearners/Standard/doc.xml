@@ -32,6 +32,43 @@
         </list>
        </remarks>
     </member>
+    <example name="StochasticDualCoordinateAscentBinaryClassifier">
+      <example>
+        <code language="csharp">
+          new StochasticDualCoordinateAscentBinaryClassifier()
+          {
+            MaxIterations = 100,
+            NumThreads = 7,
+            LossFunction = new SmoothedHingeLossSDCAClassificationLossFunction(),
+            Caching = Microsoft.ML.Models.CachingOptions.Disk
+          }
+        </code>
+      </example>
+    </example>
+    <example name="StochasticDualCoordinateAscentClassifier">
+      <example>
+        <code language="csharp">
+          new StochasticDualCoordinateAscentClassifier()
+          {
+            MaxIterations = 100,
+            NumThreads = 7,
+            LossFunction = new SmoothedHingeLossSDCAClassificationLossFunction()
+          }
+        </code>
+      </example>
+    </example>
+    <example name="StochasticDualCoordinateAscentRegressor">
+      <example>
+        <code language="csharp">
+          new StochasticDualCoordinateAscentRegressor
+          {
+            MaxIterations = 100,
+            NumThreads = 5,
+            LossFunction = new
+          }
+        </code>
+      </example>
+    </example>
  
   </members>
 </doc>

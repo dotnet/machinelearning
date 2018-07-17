@@ -19,6 +19,18 @@
         </list>
       </remarks>
     </member>
+    <example name="KMeans++">
+      <example>
+        <code language="csharp">
+          new KMeansPlusPlusClusterer
+          {
+            MaxIterations = 100,
+            NumThreads = 5,
+            InitAlgorithm = KMeansPlusPlusTrainerInitAlgorithm.KMeansParallel
+          }
+        </code>
+      </example>
+    </example>
    
   </members>
 </doc>

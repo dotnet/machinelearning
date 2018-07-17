@@ -21,7 +21,8 @@ namespace Microsoft.ML.Runtime.Transforms
             Desc = Data.TextTransform.Summary, 
             UserName = Data.TextTransform.UserName, 
             ShortName = Data.TextTransform.LoaderSignature,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""TextTransform""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""TextTransform""]/*' />" ,
+                                 @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""TextTransform""]/*' />"})]
         public static CommonOutputs.TransformOutput TextTransform(IHostEnvironment env, TextTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "TextTransform", input);
@@ -37,7 +38,8 @@ namespace Microsoft.ML.Runtime.Transforms
             Desc = Data.DelimitedTokenizeTransform.Summary,
             UserName = Data.DelimitedTokenizeTransform.UserName, 
             ShortName = Data.DelimitedTokenizeTransform.LoaderSignature,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""WordTokenizer""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""WordTokenizer""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""WordTokenizer""]/*' />"})]
         public static CommonOutputs.TransformOutput DelimitedTokenizeTransform(IHostEnvironment env, DelimitedTokenizeTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "DelimitedTokenizeTransform", input);
@@ -84,7 +86,8 @@ namespace Microsoft.ML.Runtime.Transforms
             Desc = "Uses a pretrained sentiment model to score input strings", 
             UserName = SentimentAnalyzingTransform.UserName, 
             ShortName = SentimentAnalyzingTransform.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""SentimentAnalyzer""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""SentimentAnalyzer""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""SentimentAnalyzer""]/*' />"})]
         public static CommonOutputs.TransformOutput AnalyzeSentiment(IHostEnvironment env, SentimentAnalyzingTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SentimentAnalyzer", input);
@@ -119,7 +122,8 @@ namespace Microsoft.ML.Runtime.Transforms
             Desc = LdaTransform.Summary, 
             UserName = LdaTransform.UserName, 
             ShortName = LdaTransform.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""LightLDA""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""LightLDA""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""LightLDA""]/*' />" })]
         public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LdaTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

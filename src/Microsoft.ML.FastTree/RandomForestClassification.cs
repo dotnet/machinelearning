@@ -213,7 +213,8 @@ namespace Microsoft.ML.Runtime.FastTree
             Desc = FastForestClassification.Summary,
             UserName = FastForestClassification.UserNameValue,
             ShortName = FastForestClassification.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />",
+                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastForestBinaryClassifier""]/*' />"})]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastForestClassification.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -246,7 +246,8 @@ namespace Microsoft.ML.Runtime.Data
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalOneHotVectorizer", 
             Desc = CategoricalTransform.Summary,
             UserName = CategoricalTransform.UserName, 
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalOneHotVectorizer""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalOneHotVectorizer""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CategoricalOneHotVectorizer""]/*' />"})]
         public static CommonOutputs.TransformOutput CatTransformDict(IHostEnvironment env, CategoricalTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -261,7 +262,8 @@ namespace Microsoft.ML.Runtime.Data
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer", 
             Desc = CategoricalHashTransform.Summary,
             UserName = CategoricalHashTransform.UserName ,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CategoricalHashOneHotVectorizer""]/*' />"})]
         public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, CategoricalHashTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -276,7 +278,8 @@ namespace Microsoft.ML.Runtime.Data
         [TlcModule.EntryPoint(Name = "Transforms.TextToKeyConverter",
             Desc = TermTransform.Summary, 
             UserName = TermTransform.UserName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""TextToKey""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""TextToKey""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""TextToKey""]/*' />" })]
         public static CommonOutputs.TransformOutput TextToKey(IHostEnvironment env, TermTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

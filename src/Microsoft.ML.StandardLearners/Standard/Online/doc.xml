@@ -13,6 +13,18 @@
         and an option to update the weight vector using the average of the vectors seen over time (averaged argument is set to True by default).
       </remarks>
     </member>
+    <example>
+      <example name="OGD">
+        <code language="csharp">
+          new OnlineGradientDescentRegressor()
+          {
+            NumIterations = 10,
+            L2RegularizerWeight = 0.6f,
+            LossFunction = new PoissonLossRegressionLossFunction()
+          }
+        </code>
+      </example>
+    </example>
 
     <member name="AP">
       <summary>
@@ -39,6 +51,18 @@
         <para><a href='http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200'>Large Margin Classification Using the Perceptron Algorithm</a></para>
       </remarks>
     </member>
+    <example>
+      <example name="AP">
+        <code language="csharp">
+          new AveragedPerceptronBinaryClassifier()
+          {
+            NumIterations = 10,
+            L2RegularizerWeight = 0.01f,
+            LossFunction = new ExpLossClassificationLossFunction()
+          }
+        </code>
+      </example>
+    </example>
 
   </members>
 </doc>

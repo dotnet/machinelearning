@@ -22,22 +22,24 @@
         It converts a collection of text columns to a matrix of token  ngrams/skip-grams counts.
         Features are made of (word/character) n-grams/skip-grams​ and the number of features are equal to the vocabulary size found by analyzing the data.
       </remarks>
+    </member>
+    <example name="TextTransform">
       <example>
-        <code>
+        <code language="csharp">
           pipeline.Add(new TextFeaturizer(&quot;Features&quot;, &quot;SentimentText&quot;)
           {
-            KeepDiacritics = false,
-            KeepPunctuations = false,
-            TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
-            OutputTokens = true,
-            StopWordsRemover = new PredefinedStopWordsRemover(),
-            VectorNormalizer = TextTransformTextNormKind.L2,
-            CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
-            WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
+          KeepDiacritics = false,
+          KeepPunctuations = false,
+          TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
+          OutputTokens = true,
+          StopWordsRemover = new PredefinedStopWordsRemover(),
+          VectorNormalizer = TextTransformTextNormKind.L2,
+          CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
+          WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
           });
         </code>
       </example>
-    </member>
+    </example>
 
     <member name="WordTokenizer">
       <summary>
@@ -51,12 +53,14 @@
         Empty strings and strings containing only spaces are dropped.
         This transform is not typically used on its own, but it is one of the transforms composing the Text Featurizer.
       </remarks>
+    </member>
+    <example name="WordTokenizer">
       <example>
-        <code>
+        <code language="csharp">
           pipeline.Add( new WordTokenizer(&quot;TextColumn&quot;){ TermSeparators = &quot;&apos; &apos;, &apos;\t&apos;, &apos;;&apos;&quot;  } );
         </code>
       </example>
-    </member>
+    </example>
 
     <member name="NgramTranslator">
       <summary>
@@ -69,12 +73,17 @@
         Embedding ngrams in a vector space allows their contents to be compared in an efficient manner. 
         The slot values in the vector can be weighted by the following factors:
         <list>
-          <item><description>term frequency - The number of occurrences of the slot in the text</description></item>
-          <item><description>
-              inverse document frequency - A ratio (the logarithm of inverse relative slot frequency)
-              that measures the information a slot provides by determining how common or rare it is across the entire text.
-            </description></item>
-            <item><description>term frequency-inverse document frequency - the product term frequency and the inverse document frequency.</description></item>
+          <item>term frequency
+            <description> the number of occurrences of the slot in the text</description>
+          </item>
+          <item>inverse document frequency
+            <description> a ratio (the logarithm of inverse relative slot frequency)
+              that measures the information a slot provides by determining how common or rare it is across the entire text.</description>
+          </item>
+            <item>
+              term frequency-inverse document frequency
+              <description> the product term frequency and the inverse document frequency.</description>
+            </item>
         </list>
         This transform is not typically used on its own, but it is one of the transforms composing the <see cref="Microsoft.ML.Transforms.TextFeaturizer">Text Featurizer</see> .
       </remarks>
@@ -83,7 +92,7 @@
       <seealso cref="Microsoft.ML.Transforms.TextFeaturizer"/>
       <seealso cref="Microsoft.ML.Transforms.CharacterTokenizer"/>
       <example>
-        <code>
+        <code language="csharp">
           pipeline.Add(new NGramTranslator(&quot;TextColumn&quot;){ Weighting=NgramTransformWeightingCriteria.TfIdf  } );
       </code>
       </example>
@@ -103,16 +112,18 @@
           (where 0 is a negative sentiment and 1 is a positive sentiment).</para> 
           <para>Currently it supports only English.</para>
       </remarks>
-      <example>
-        <code>
+    </member>
+    <exaple>
+      <example name="SentimentAnalyzer">
+        <code language="csharp">
           pipeline.Add(new SentimentAnalyzer(){ Source = &quot;TextColumn&quot; }  );
         </code>
       </example>
-    </member>
+    </exaple>
 
     <member name="CharacterTokenizer">
       <summary>
-        This transform breaks text into individual tokens, each consisting of individual character.
+        This transform breaks text into individual tokens, each consisting of individual characters.
       </summary>
       <remarks>
       This transform is not typically used on its own, but it is one of the transforms composing the 
@@ -123,7 +134,7 @@
       <seealso cref="Microsoft.ML.Transforms.NGramTranslator"/>
       <seealso cref="Microsoft.ML.Transforms.TextFeaturizer"/>
       <example>
-        <code>
+        <code language="csharp">
           pipeline.Add(new CharacterTokenizer("TextCol1" , "TextCol2" ) );
         </code>
       </example>
@@ -154,12 +165,14 @@
           </list>
         </para>
       </remarks>
+    </member>
+    <example name="LightLDA">
       <example>
-        <code>
+        <code language="csharp">
           pipeline.Add(new LightLda(("InTextCol" , "OutTextCol")));
         </code>
       </example>
-    </member>
+    </example>
 
   </members>
 </doc>

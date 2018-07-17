@@ -35,6 +35,43 @@
         </list>  
     </remarks>
     </member>
+    <example name='FastTreeRanker'>
+      <example>
+        <code language="csharp">
+          new FastTreeRanker
+          {
+            SortingAlgorithm = "DescendingReverse",
+            OptimizationAlgorithm = BoostedTreeArgsOptimizationAlgorithmType.AcceleratedGradientDescent
+          }
+        </code>
+      </example>
+    </example>
+    <example name='FastTreeRegressor'>
+      <example>
+        <code language="csharp">
+          new FastTreeRegressor
+          {
+            NumTrees = 200,
+            EarlyStoppingRule = new GLEarlyStoppingCriterion(),
+            LearningRates = 0.4f,
+            DropoutRate = 0.05f
+          }
+        </code>
+      </example>
+    </example>
+    <example name='FastTreeBinaryClassifier'>
+      <example>
+        <code language="csharp">
+          new FastTreeBinaryClassifier
+          {
+            NumTrees = 100,
+            EarlyStoppingRule = new PQEarlyStoppingCriterion(),
+            LearningRates = 0.4f,
+            DropoutRate = 0.05f
+          }
+        </code>
+      </example>
+    </example>
     
     <member name="FastForest">
       <summary>
@@ -65,6 +102,31 @@
         </list>
       </remarks>
     </member>
+    <example name='FastForestBinaryClassifier'>
+      <example>
+        <code language="csharp">
+          new FastForestBinaryClassifier
+          {
+            NumTrees = 100,
+            NumLeaves = 50,
+            Calibrator = new FixedPlattCalibratorCalibratorTrainer()
+          }
+        </code>
+      </example>
+    </example>
+    <example name='FastForestRegressor'>
+      <example>
+        <code language="csharp">
+          new FastForestRegressor
+          {
+            NumTrees = 100,
+            NumLeaves = 50,
+            NumThreads = 5,
+            EntropyCoefficient = 0.3
+          }
+        </code>
+      </example>
+    </example>
 
     <member name="FastTreeTweedieRegression">
       <summary>
@@ -120,7 +182,7 @@
         <para>The TreeLeafFeaturizer is also producing the third vector, T, which is defined as Ti(x) = output of tree #i on example x.</para>
       </remarks>
       <example>
-        <code>
+        <code language="csharp">
           pipeline.Add(new TreeLeafFeaturizer())
         </code>
       </example>

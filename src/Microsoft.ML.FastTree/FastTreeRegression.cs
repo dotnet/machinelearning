@@ -453,7 +453,8 @@ namespace Microsoft.ML.Runtime.FastTree
             Desc = FastTreeRegressionTrainer.Summary,
             UserName = FastTreeRegressionTrainer.UserNameValue,
             ShortName = FastTreeRegressionTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTree""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTree""]/*' />",
+                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastTreeRegressor""]/*' />"})]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastTreeRegressionTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -541,7 +541,8 @@ namespace Microsoft.ML.Runtime.Data
             Desc = Summary,
             UserName = UserName, 
             ShortName = ShortName, 
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name=""PCA""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name=""PCA""]/*' />",
+                                 @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name=""PcaCalculator""]/*' />"})]
         public static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "Pca", input);

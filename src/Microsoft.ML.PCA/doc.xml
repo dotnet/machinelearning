@@ -23,14 +23,28 @@
           </description></item>
         </list>
       </remarks>
+    </member>
+    <example name='PcaCalculator'>
       <example>
         An example of how to add the PcaCalculator transform to a pipeline with a column named &quot;Features&quot;.
-        <code>
+        <code language="csharp">
           string[] features = new string[&quot;Sepal length&quot;, &quot;Sepal width&quot;, &quot;Petal length&quot;, &quot;Petal width&quot;];
           pipeline.Add(new PcaCalculator(columns){ Rank = 3 });
         </code>
       </example>
-    </member>
+    </example>
+    <example name='PcaAnomalyDetector'>
+      <example>
+        <code language="csharp">
+          new PcaAnomalyDetector
+          {
+            Rank = 40,
+            Oversampling = 40,
+            NormalizeFeatures = Microsoft.ML.Models.NormalizeOption.Warn
+          }
+        </code>
+      </example>
+    </example>
     
   </members>
 </doc>
