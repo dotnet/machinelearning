@@ -16,10 +16,6 @@ namespace Microsoft.ML.Runtime
         // etc. This interface seems like the most natural conduit for that sort
         // of extra information.
 
-        // REVIEW: Can we please have consistent naming here?
-        // 'Need' vs. 'Want' looks arbitrary to me, and it's grammatically more correct to
-        // be 'Needs' / 'Wants' anyway.
-
         /// <summary>
         /// Whether the trainer needs to see data in normalized form. Only non-parametric learners will tend to produce
         /// normalization here.
