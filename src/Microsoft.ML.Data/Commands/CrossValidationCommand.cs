@@ -538,7 +538,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (_getValidationDataView != null)
                     {
                         ch.Assert(_applyTransformsToValidationData != null);
-                        if (!TrainUtils.CanUseValidationData(trainer))
+                        if (!trainer.Info.SupportsValidation)
                             ch.Warning("Trainer does not accept validation dataset.");
                         else
                         {

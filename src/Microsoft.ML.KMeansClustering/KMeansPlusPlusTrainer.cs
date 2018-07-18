@@ -29,7 +29,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Runtime.KMeans
 {
     /// <include file='./doc.xml' path='docs/members/member[@name="KMeans++"]/*' />
-    public class KMeansPlusPlusTrainer : TrainerBase<RoleMappedData, KMeansPredictor>
+    public class KMeansPlusPlusTrainer : TrainerBase<KMeansPredictor>
     {
         public const string LoadNameValue = "KMeansPlusPlus";
         internal const string UserNameValue = "KMeans++ Clustering";
@@ -74,11 +74,6 @@ namespace Microsoft.ML.Runtime.KMeans
         }
 
         private readonly int _k;
-        private int _dimensionality;
-
-        // The coordinates of the final centroids at the end of the training. During training
-        // it holds the centroids of the previous iteration.
-        private readonly VBuffer<Float>[] _centroids;
 
         private readonly int _maxIterations; // max number of iterations to train
         private readonly Float _convergenceThreshold; // convergence thresholds
@@ -86,6 +81,9 @@ namespace Microsoft.ML.Runtime.KMeans
         private readonly long _accelMemBudgetMb;
         private readonly InitAlgorithm _initAlgorithm;
         private readonly int _numThreads;
+
+        public override TrainerInfo Info { get; }
+        public override PredictionKind PredictionKind => PredictionKind.Clustering;
 
         public KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
@@ -101,8 +99,6 @@ namespace Microsoft.ML.Runtime.KMeans
             Host.CheckUserArg(args.OptTol > 0, nameof(args.OptTol), "Tolerance must be positive");
             _convergenceThreshold = args.OptTol;
 
-            _centroids = new VBuffer<Float>[_k];
-
             Host.CheckUserArg(args.AccelMemBudgetMb > 0, nameof(args.AccelMemBudgetMb), "Must be positive");
             _accelMemBudgetMb = args.AccelMemBudgetMb;
 
@@ -111,36 +107,38 @@ namespace Microsoft.ML.Runtime.KMeans
             Host.CheckUserArg(!args.NumThreads.HasValue || args.NumThreads > 0, nameof(args.NumThreads),
                 "Must be either null or a positive integer.");
             _numThreads = ComputeNumThreads(Host, args.NumThreads);
+            Info = new TrainerInfo();
         }
 
-        public override bool NeedNormalization => true;
-        public override bool NeedCalibration => false;
-        public override bool WantCaching => true;
-        public override PredictionKind PredictionKind => PredictionKind.Clustering;
-
-        public override void Train(RoleMappedData data)
+        public override KMeansPredictor Train(TrainContext context)
         {
-            Host.CheckValue(data, nameof(data));
+            Host.CheckValue(context, nameof(context));
+            var data = context.TrainingSet;
 
-            data.CheckFeatureFloatVector(out _dimensionality);
-            Contracts.Assert(_dimensionality > 0);
+            data.CheckFeatureFloatVector(out int dimensionality);
+            Contracts.Assert(dimensionality > 0);
 
             using (var ch = Host.Start("Training"))
             {
-                TrainCore(ch, data);
+                var pred = TrainCore(ch, data, dimensionality);
                 ch.Done();
+                return pred;
             }
         }
 
-        private void TrainCore(IChannel ch, RoleMappedData data)
+        private KMeansPredictor TrainCore(IChannel ch, RoleMappedData data, int dimensionality)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
 
-            // REVIEW: In high-dimensionality cases this is less than ideal
-            // and we should consider using sparse buffers.
+            // REVIEW: In high-dimensionality cases this is less than ideal and we should consider
+            // using sparse buffers for the centroids.
+
+            // The coordinates of the final centroids at the end of the training. During training
+            // it holds the centroids of the previous iteration.
+            var centroids = new VBuffer<Float>[_k];
             for (int i = 0; i < _k; i++)
-                _centroids[i] = VBufferUtils.CreateDense<Float>(_dimensionality);
+                centroids[i] = VBufferUtils.CreateDense<Float>(dimensionality);
 
             ch.Info("Initializing centroids");
             long missingFeatureCount;
@@ -154,29 +152,29 @@ namespace Microsoft.ML.Runtime.KMeans
             // pay attention to their incoming set of centroids and incrementally train.
             if (_initAlgorithm == InitAlgorithm.KMeansPlusPlus)
             {
-                KMeansPlusPlusInit.Initialize(Host, _numThreads, ch, cursorFactory, _k, _dimensionality,
-                    _centroids, out missingFeatureCount, out totalTrainingInstances);
+                KMeansPlusPlusInit.Initialize(Host, _numThreads, ch, cursorFactory, _k, dimensionality,
+                    centroids, out missingFeatureCount, out totalTrainingInstances);
             }
             else if (_initAlgorithm == InitAlgorithm.Random)
             {
                 KMeansRandomInit.Initialize(Host, _numThreads, ch, cursorFactory, _k,
-                    _centroids, out missingFeatureCount, out totalTrainingInstances);
+                    centroids, out missingFeatureCount, out totalTrainingInstances);
             }
             else
             {
                 // Defaulting to KMeans|| initialization.
-                KMeansBarBarInitialization.Initialize(Host, _numThreads, ch, cursorFactory, _k, _dimensionality,
-                    _centroids, _accelMemBudgetMb, out missingFeatureCount, out totalTrainingInstances);
+                KMeansBarBarInitialization.Initialize(Host, _numThreads, ch, cursorFactory, _k, dimensionality,
+                    centroids, _accelMemBudgetMb, out missingFeatureCount, out totalTrainingInstances);
             }
 
-            KMeansUtils.VerifyModelConsistency(_centroids);
+            KMeansUtils.VerifyModelConsistency(centroids);
             ch.Info("Centroids initialized, starting main trainer");
 
             KMeansLloydsYinYangTrain.Train(
-                Host, _numThreads, ch, cursorFactory, totalTrainingInstances, _k, _dimensionality, _maxIterations,
-                _accelMemBudgetMb, _convergenceThreshold, _centroids);
+                Host, _numThreads, ch, cursorFactory, totalTrainingInstances, _k, dimensionality, _maxIterations,
+                _accelMemBudgetMb, _convergenceThreshold, centroids);
 
-            KMeansUtils.VerifyModelConsistency(_centroids);
+            KMeansUtils.VerifyModelConsistency(centroids);
             ch.Info("Model trained successfully on {0} instances", totalTrainingInstances);
             if (missingFeatureCount > 0)
             {
@@ -184,11 +182,7 @@ namespace Microsoft.ML.Runtime.KMeans
                     "{0} instances with missing features detected and ignored. Consider using MissingHandler.",
                     missingFeatureCount);
             }
-        }
-
-        public override KMeansPredictor CreatePredictor()
-        {
-            return new KMeansPredictor(Host, _k, _centroids, copyIn: true);
+            return new KMeansPredictor(Host, _k, centroids, copyIn: true);
         }
 
         private static int ComputeNumThreads(IHost host, int? argNumThreads)

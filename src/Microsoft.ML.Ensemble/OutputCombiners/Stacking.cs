@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         {
             public Arguments()
             {
-                BasePredictorType = new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureBinaryClassifierTrainer>("FastTreeBinaryClassification");
+                BasePredictorType = new SubComponent<ITrainer<TScalarPredictor>, SignatureBinaryClassifierTrainer>("FastTreeBinaryClassification");
             }
 
             public IBinaryOutputCombiner CreateComponent(IHostEnvironment env) => new Stacking(env, this);

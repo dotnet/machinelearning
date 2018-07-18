@@ -139,9 +139,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             public int WindowSize = 5;
         }
 
-        protected internal Queue<Float> PastScores;
+        protected Queue<Float> PastScores;
 
-        internal MovingWindowEarlyStoppingCriterion(Arguments args, bool lowerIsBetter)
+        private protected MovingWindowEarlyStoppingCriterion(Arguments args, bool lowerIsBetter)
             : base(args, lowerIsBetter)
         {
             Contracts.CheckUserArg(0 <= Args.Threshold && args.Threshold <= 1, nameof(args.Threshold), "Must be in range [0,1].");

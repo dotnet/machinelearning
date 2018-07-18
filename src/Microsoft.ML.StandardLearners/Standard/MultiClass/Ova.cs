@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using CR = RoleMappedSchema.ColumnRole;
     using TScalarPredictor = IPredictorProducing<Float>;
-    using TScalarTrainer = ITrainer<RoleMappedData, IPredictorProducing<Float>>;
+    using TScalarTrainer = ITrainer<IPredictorProducing<Float>>;
 
     public sealed class Ova : MetaMulticlassTrainer<OvaPredictor, Ova.Arguments>
     {
@@ -81,9 +81,10 @@ namespace Microsoft.ML.Runtime.Learners
                 .Prepend(CR.Label.Bind(dstName));
             var td = new RoleMappedData(view, roles);
 
-            trainer.Train(td);
+            // REVIEW: In principle we could support validation sets and the like via the train context, but
+            // this is currently unsupported.
+            var predictor = trainer.Train(td);
 
-            var predictor = trainer.CreatePredictor();
             if (Args.UseProbabilities)
             {
                 ICalibratorTrainer calibrator;

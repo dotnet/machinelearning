@@ -45,9 +45,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
         }
 
-        public override bool NeedCalibration { get { return false; } }
-
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         protected override void CheckLabel(RoleMappedData data)
         {
@@ -106,7 +104,7 @@ namespace Microsoft.ML.Runtime.Learners
             return -(y * dot - lambda) * weight;
         }
 
-        public override PoissonRegressionPredictor CreatePredictor()
+        protected override PoissonRegressionPredictor CreatePredictor()
         {
             VBuffer<Float> weights = default(VBuffer<Float>);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
