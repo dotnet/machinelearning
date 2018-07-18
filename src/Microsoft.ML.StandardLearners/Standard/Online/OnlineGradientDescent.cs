@@ -58,11 +58,6 @@ namespace Microsoft.ML.Runtime.Learners
             LossFunction = args.LossFunction.CreateComponent(env);
         }
 
-        public override bool NeedCalibration
-        {
-            get { return false; }
-        }
-
         public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
 
         protected override void CheckLabel(RoleMappedData data)
@@ -70,7 +65,7 @@ namespace Microsoft.ML.Runtime.Learners
             data.CheckRegressionLabel();
         }
 
-        public override TPredictor CreatePredictor()
+        protected override TPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
             VBuffer<Float> weights = default(VBuffer<Float>);

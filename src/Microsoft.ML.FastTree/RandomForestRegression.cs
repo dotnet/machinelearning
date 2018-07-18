@@ -53,11 +53,11 @@ namespace Microsoft.ML.Runtime.FastTree
                 loaderSignature: LoaderSignature);
         }
 
-        protected override uint VerNumFeaturesSerialized { get { return 0x00010003; } }
+        protected override uint VerNumFeaturesSerialized => 0x00010003;
 
-        protected override uint VerDefaultValueSerialized { get { return 0x00010005; } }
+        protected override uint VerDefaultValueSerialized => 0x00010005;
 
-        protected override uint VerCategoricalSplitSerialized { get { return 0x00010006; } }
+        protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
         internal FastForestRegressionPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount,
             string innerArgs, int samplesCount)
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return new FastForestRegressionPredictor(env, ctx);
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         protected override void Map(ref VBuffer<Float> src, ref Float dst)
         {
@@ -158,15 +158,14 @@ namespace Microsoft.ML.Runtime.FastTree
         {
         }
 
-        public override bool NeedCalibration
-        {
-            get { return false; }
-        }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
-
-        public override void Train(RoleMappedData trainData)
+        public override FastForestRegressionPredictor Train(TrainContext context)
         {
+            Host.CheckValue(context, nameof(context));
+            var trainData = context.TrainingSet;
+            ValidData = context.ValidationSet;
+
             using (var ch = Host.Start("Training"))
             {
                 ch.CheckValue(trainData, nameof(trainData));
@@ -178,13 +177,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainCore(ch);
                 ch.Done();
             }
-        }
-
-        public override FastForestRegressionPredictor CreatePredictor()
-        {
-            Host.Check(TrainedEnsemble != null,
-                "The predictor cannot be created before training is complete");
-
             return new FastForestRegressionPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs, Args.QuantileSampleCount);
         }
 

@@ -687,8 +687,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         private static bool NeedCalibration(IHostEnvironment env, IChannel ch, ICalibratorTrainer calibrator,
             ITrainer trainer, IPredictor predictor, RoleMappedSchema schema)
         {
-            var trainerEx = trainer as ITrainerEx;
-            if (trainerEx == null || !trainerEx.NeedCalibration)
+            if (!trainer.Info.NeedCalibration)
             {
                 ch.Info("Not training a calibrator because it is not needed.");
                 return false;

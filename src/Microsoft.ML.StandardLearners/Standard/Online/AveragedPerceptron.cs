@@ -49,15 +49,12 @@ namespace Microsoft.ML.Runtime.Learners
             public int MaxCalibrationExamples = 1000000;
         }
 
+        protected override bool NeedCalibration => true;
+
         public AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, UserNameValue)
         {
             LossFunction = Args.LossFunction.CreateComponent(env);
-        }
-
-        public override bool NeedCalibration
-        {
-            get { return true; }
         }
 
         public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
@@ -68,7 +65,7 @@ namespace Microsoft.ML.Runtime.Learners
             data.CheckBinaryLabel();
         }
 
-        public override LinearBinaryPredictor CreatePredictor()
+        protected override LinearBinaryPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
 

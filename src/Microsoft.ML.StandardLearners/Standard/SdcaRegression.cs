@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.Learners
     using TScalarPredictor = IPredictorWithFeatureWeights<Float>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
-    public sealed class SdcaRegressionTrainer : SdcaTrainerBase<IPredictor>, ITrainer<RoleMappedData, TScalarPredictor>, ITrainerEx
+    public sealed class SdcaRegressionTrainer : SdcaTrainerBase<TScalarPredictor>
     {
         public const string LoadNameValue = "SDCAR";
         public const string UserNameValue = "Fast Linear Regression (SA-SDCA)";
@@ -51,11 +51,7 @@ namespace Microsoft.ML.Runtime.Learners
         private readonly ISupportSdcaRegressionLoss _loss;
         private readonly Arguments _args;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
-
-        public override bool NeedCalibration { get { return false; } }
-
-        protected override int WeightArraySize { get { return 1; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         public SdcaRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, LoadNameValue)
@@ -66,22 +62,16 @@ namespace Microsoft.ML.Runtime.Learners
             _args = args;
         }
 
-        public override IPredictor CreatePredictor()
+        protected override TScalarPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
         {
-            Contracts.Assert(WeightArraySize == 1);
-            Contracts.Assert(Utils.Size(Weights) == 1);
-            Contracts.Assert(Utils.Size(Bias) == 1);
-            Host.Check(Weights[0].Length > 0);
-            VBuffer<Float> maybeSparseWeights = VBufferUtils.CreateEmpty<Float>(Weights[0].Length);
-            VBufferUtils.CreateMaybeSparseCopy(ref Weights[0], ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
-            return new LinearRegressionPredictor(Host, ref maybeSparseWeights, Bias[0]);
-        }
+            Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
+            Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
+            Host.CheckParam(weights[0].Length > 0, nameof(weights));
 
-        TScalarPredictor ITrainer<RoleMappedData, TScalarPredictor>.CreatePredictor()
-        {
-            var predictor = CreatePredictor() as TScalarPredictor;
-            Contracts.AssertValue(predictor);
-            return predictor;
+            VBuffer<Float> maybeSparseWeights = default;
+            VBufferUtils.CreateMaybeSparseCopy(ref weights[0], ref maybeSparseWeights,
+                Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
+            return new LinearRegressionPredictor(Host, ref maybeSparseWeights, bias[0]);
         }
 
         protected override Float GetInstanceWeight(FloatLabelCursor cursor)
@@ -89,9 +79,10 @@ namespace Microsoft.ML.Runtime.Learners
             return cursor.Weight;
         }
 
-        protected override void CheckLabel(RoleMappedData examples)
+        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckRegressionLabel();
+            weightSetCount = 1;
         }
 
         // REVIEW: No extra benefits from using more threads in training.

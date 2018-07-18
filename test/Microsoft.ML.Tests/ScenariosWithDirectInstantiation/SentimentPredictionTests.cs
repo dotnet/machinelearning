@@ -79,10 +79,9 @@ namespace Microsoft.ML.Scenarios
                 });
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
-                trainer.Train(trainRoles);
+                var pred = trainer.Train(trainRoles);
 
                 // Get scorer and evaluate the predictions from test data
-                var pred = trainer.CreatePredictor();
                 IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
                 var metrics = EvaluateBinary(env, testDataScorer);
                 ValidateBinaryMetrics(metrics);

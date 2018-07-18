@@ -152,7 +152,7 @@ namespace Microsoft.ML.Runtime.Data
             RoleMappedData validData = null;
             if (!string.IsNullOrWhiteSpace(Args.ValidationFile))
             {
-                if (!TrainUtils.CanUseValidationData(trainer))
+                if (!trainer.Info.SupportsValidation)
                 {
                     ch.Warning("Ignoring validationFile: Trainer does not accept validation dataset.");
                 }

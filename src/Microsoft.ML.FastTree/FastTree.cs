@@ -44,8 +44,7 @@ namespace Microsoft.ML.Runtime.FastTree
     }
 
     public abstract class FastTreeTrainerBase<TArgs, TPredictor> :
-        TrainerBase<RoleMappedData, TPredictor>,
-        IValidatingTrainer<RoleMappedData>
+        TrainerBase<TPredictor>
         where TArgs : TreeArgs, new()
         where TPredictor : IPredictorProducing<Float>
     {
@@ -82,17 +81,21 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected string InnerArgs => CmdParser.GetSettings(Host, Args, new TArgs());
 
-        public override bool NeedNormalization => false;
-
-        public override bool WantCaching => false;
+        public override TrainerInfo Info { get; }
 
         public bool HasCategoricalFeatures => Utils.Size(CategoricalFeatures) > 0;
 
-        protected internal FastTreeTrainerBase(IHostEnvironment env, TArgs args)
+        private protected virtual bool NeedCalibration => false;
+
+        private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args)
             : base(env, RegisterName)
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
+            // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
+            // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
+            // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
+            Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration);
             int numThreads = Args.NumThreads ?? Environment.ProcessorCount;
             if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
             {
@@ -124,14 +127,6 @@ namespace Microsoft.ML.Runtime.FastTree
         protected abstract TreeLearner ConstructTreeLearner(IChannel ch);
 
         protected abstract ObjectiveFunctionBase ConstructObjFunc(IChannel ch);
-
-        public void Train(RoleMappedData trainData, RoleMappedData validationData)
-        {
-            // REVIEW: Idiotic. This should be reversed... the other train method should
-            // be put in here, rather than having this "hidden argument" through an instance field.
-            ValidData = validationData;
-            Train(trainData);
-        }
 
         protected virtual Float GetMaxLabel()
         {
@@ -1887,7 +1882,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         missingInstances = cursor.BadFeaturesRowCount;
                     }
 
-                    ch.Check(totalInstances > 0, TrainerBase.NoTrainingInstancesMessage);
+                    ch.Check(totalInstances > 0, "All instances skipped due to missing features.");
 
                     if (missingInstances > 0)
                         ch.Warning("Skipped {0} instances with missing features during training", missingInstances);
@@ -2813,7 +2808,7 @@ namespace Microsoft.ML.Runtime.FastTree
         public bool CanSavePfa => true;
         public bool CanSaveOnnx => true;
 
-        protected internal FastTreePredictionWrapper(IHostEnvironment env, string name, Ensemble trainedEnsemble, int numFeatures, string innerArgs)
+        protected FastTreePredictionWrapper(IHostEnvironment env, string name, Ensemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
         {
             Host.CheckValue(trainedEnsemble, nameof(trainedEnsemble));

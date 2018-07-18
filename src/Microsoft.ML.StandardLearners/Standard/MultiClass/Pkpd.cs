@@ -26,7 +26,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    using TScalarTrainer = ITrainer<RoleMappedData, IPredictorProducing<Float>>;
+    using TScalarTrainer = ITrainer<IPredictorProducing<Float>>;
     using TScalarPredictor = IPredictorProducing<Float>;
     using TDistPredictor = IDistPredictorProducing<Float, Float>;
     using CR = RoleMappedSchema.ColumnRole;
@@ -101,14 +101,13 @@ namespace Microsoft.ML.Runtime.Learners
                 .Prepend(CR.Label.Bind(dstName));
             var td = new RoleMappedData(view, roles);
 
-            trainer.Train(td);
+            var predictor = trainer.Train(td);
 
             ICalibratorTrainer calibrator;
             if (!Args.Calibrator.IsGood())
                 calibrator = null;
             else
                 calibrator = Args.Calibrator.CreateInstance(Host);
-            TScalarPredictor predictor = trainer.CreatePredictor();
             var res = CalibratorUtils.TrainCalibratorIfNeeded(Host, ch, calibrator, Args.MaxCalibrationExamples,
                 trainer, predictor, td);
             var dist = res as TDistPredictor;
