@@ -1,0 +1,254 @@
+{
+  "irVersion": "3",
+  "producerName": "ML.NET",
+  "producerVersion": "##VERSION##",
+  "domain": "Onnx",
+  "graph": {
+    "node": [
+      {
+        "input": [
+          "Features"
+        ],
+        "output": [
+          "Features0"
+        ],
+        "name": "Scaler",
+        "opType": "Scaler",
+        "attribute": [
+          {
+            "name": "offset",
+            "floats": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "scale",
+            "floats": [
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Features0"
+        ],
+        "output": [
+          "Score"
+        ],
+        "name": "LinearRegressor",
+        "opType": "LinearRegressor",
+        "attribute": [
+          {
+            "name": "post_transform",
+            "s": "Tk9ORQ==",
+            "type": "STRING"
+          },
+          {
+            "name": "targets",
+            "i": "1",
+            "type": "INT"
+          },
+          {
+            "name": "coefficients",
+            "floats": [
+              2.65961528,
+              1.67937088,
+              1.94177413,
+              1.42409813,
+              0.8528432,
+              2.93048859,
+              1.74959779,
+              1.58030224,
+              0.594869137
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "intercepts",
+            "floats": [
+              -6.18361759
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Score"
+        ],
+        "output": [
+          "linearOutput"
+        ],
+        "name": "Affine",
+        "opType": "Affine",
+        "attribute": [
+          {
+            "name": "alpha",
+            "f": 1,
+            "type": "FLOAT"
+          },
+          {
+            "name": "beta",
+            "f": -1E-07,
+            "type": "FLOAT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "linearOutput"
+        ],
+        "output": [
+          "Probability"
+        ],
+        "name": "Sigmoid",
+        "opType": "Sigmoid"
+      },
+      {
+        "input": [
+          "Probability"
+        ],
+        "output": [
+          "PredictedLabel"
+        ],
+        "name": "Binarizer",
+        "opType": "Binarizer",
+        "attribute": [
+          {
+            "name": "threshold",
+            "f": 0.5,
+            "type": "FLOAT"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      }
+    ],
+    "name": "BinaryClassificationLRSaveModelToOnnxTest",
+    "input": [
+      {
+        "name": "Features",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "output": [
+      {
+        "name": "PredictedLabel",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Probability",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "valueInfo": [
+      {
+        "name": "Features0",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "opsetImport": [
+    {
+      "domain": "ai.onnx.ml",
+      "version": "1"
+    },
+    {
+      "version": "7"
+    }
+  ]
+}

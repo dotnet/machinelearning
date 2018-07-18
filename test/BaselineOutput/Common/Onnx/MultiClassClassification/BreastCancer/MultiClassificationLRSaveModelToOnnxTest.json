@@ -1,0 +1,205 @@
+{
+  "irVersion": "3",
+  "producerName": "ML.NET",
+  "producerVersion": "##VERSION##",
+  "domain": "Onnx",
+  "graph": {
+    "node": [
+      {
+        "input": [
+          "Features"
+        ],
+        "output": [
+          "Features0"
+        ],
+        "name": "Scaler",
+        "opType": "Scaler",
+        "attribute": [
+          {
+            "name": "offset",
+            "floats": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "scale",
+            "floats": [
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Features0"
+        ],
+        "output": [
+          "PredictedLabel",
+          "Score"
+        ],
+        "name": "LinearClassifier",
+        "opType": "LinearClassifier",
+        "attribute": [
+          {
+            "name": "post_transform",
+            "s": "Tk9ORQ==",
+            "type": "STRING"
+          },
+          {
+            "name": "multi_class",
+            "i": "1",
+            "type": "INT"
+          },
+          {
+            "name": "coefficients",
+            "floats": [
+              -1.580597,
+              -0.825419068,
+              -1.05039239,
+              -0.792811632,
+              -0.3859166,
+              -1.59029889,
+              -1.01633275,
+              -0.8349985,
+              -0.33220613,
+              1.58059549,
+              0.825418651,
+              1.05039132,
+              0.792811334,
+              0.385915875,
+              1.59029746,
+              1.01633251,
+              0.8349976,
+              0.332205653
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "intercepts",
+            "floats": [
+              3.362308,
+              -3.36230659
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "classlabels_ints",
+            "ints": [
+              "0",
+              "1"
+            ],
+            "type": "INTS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      }
+    ],
+    "name": "MultiClassificationLRSaveModelToOnnxTest",
+    "input": [
+      {
+        "name": "Features",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "output": [
+      {
+        "name": "PredictedLabel",
+        "type": {
+          "tensorType": {
+            "elemType": "INT64",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "2"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "valueInfo": [
+      {
+        "name": "Features0",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "opsetImport": [
+    {
+      "domain": "ai.onnx.ml",
+      "version": "1"
+    },
+    {
+      "version": "7"
+    }
+  ]
+}

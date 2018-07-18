@@ -719,7 +719,7 @@ namespace Microsoft.ML.Runtime.Data
             var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
             node.AddAttribute("classes_strings", terms.DenseValues());
             node.AddAttribute("default_int64", -1);
-            node.AddAttribute("default_string", DvText.Empty);
+            node.AddAttribute("default_string", " "); //Temporary fix, since DvText.Empty is not supported by Lotus because it is empty string.
             return true;
         }
 
