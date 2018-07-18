@@ -106,26 +106,6 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        /// <summary>
-        /// Class containing some information about an exectuted pipeline.
-        /// These are analogous to IRunResult for smart sweepers.
-        /// </summary>
-        public sealed class RunSummary
-        {
-            public double MetricValue { get; }
-            public double TrainingMetricValue { get; }
-            public int NumRowsInTraining { get; }
-            public long RunTimeMilliseconds { get; }
-
-            public RunSummary(double metricValue, int numRows, long runTimeMilliseconds, double trainingMetricValue)
-            {
-                MetricValue = metricValue;
-                TrainingMetricValue = trainingMetricValue;
-                NumRowsInTraining = numRows;
-                RunTimeMilliseconds = runTimeMilliseconds;
-            }
-        }
-
         [TlcModule.ComponentKind("AutoMlStateBase")]
         public interface ISupportAutoMlStateFactory : IComponentFactory<IMlState>
         { }
@@ -262,8 +242,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     testMetricVal += 1e-10;
 
                 // Save performance score
-                candidate.PerformanceSummary =
-                    new RunSummary(testMetricVal, randomizedNumberOfRows, stopwatch.ElapsedMilliseconds, trainMetricVal);
+                candidate.PerformanceSummary = new PipelineSweeperRunSummary(testMetricVal, randomizedNumberOfRows, stopwatch.ElapsedMilliseconds, trainMetricVal);
                 _sortedSampledElements.Add(candidate.PerformanceSummary.MetricValue, candidate);
                 _history.Add(candidate);
             }
@@ -434,14 +413,17 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 using (var ch = _host.Start("Suggested Pipeline"))
                 {
+                    ch.Info($"PipelineSweeper Iteration Number : {_history.Count}");
                     ch.Info($"PipelineSweeper Pipeline Id : {pipeline.UniqueId}");
+
                     foreach (var transform in pipeline.Transforms)
                     {
                         ch.Info($"PipelineSweeper Transform : {transform.Transform}");
                     }
+
                     ch.Info($"PipelineSweeper Learner : {pipeline.Learner}");
-                    ch.Info($"PipelineSweeper Train Metric Value: {pipeline.PerformanceSummary.TrainingMetricValue}");
-                    ch.Info($"PipelineSweeper Test Metric Value: {pipeline.PerformanceSummary.MetricValue}");
+                    ch.Info($"PipelineSweeper Train Metric Value : {pipeline.PerformanceSummary.TrainingMetricValue}");
+                    ch.Info($"PipelineSweeper Test Metric Value : {pipeline.PerformanceSummary.MetricValue}");
                 }
             }
 
@@ -459,8 +441,6 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 if (_terminator is IterationTerminator itr)
                     currentBatchSize = Math.Min(itr.RemainingIterations(_history), numberOfCandidates);
                 BatchCandidates = AutoMlEngine.GetNextCandidates(_sortedSampledElements.Select(kvp => kvp.Value), currentBatchSize, _dataRoles);
-
-
 
                 return BatchCandidates;
             }
