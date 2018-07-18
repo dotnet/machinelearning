@@ -80,16 +80,13 @@ namespace Microsoft.ML.Runtime.Learners
         private Float _weightsUpdateScale;
         private Float _biasUpdate;
 
+        protected override bool NeedCalibration => true;
+
         public LinearSvm(IHostEnvironment env, Arguments args)
             : base(args, env, UserNameValue)
         {
             Contracts.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), UserErrorPositive);
             Contracts.CheckUserArg(args.BatchSize > 0, nameof(args.BatchSize), UserErrorPositive);
-        }
-
-        public override bool NeedCalibration
-        {
-            get { return true; }
         }
 
         public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
@@ -221,7 +218,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public override TPredictor CreatePredictor()
+        protected override TPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
             return new LinearBinaryPredictor(Host, ref Weights, Bias);

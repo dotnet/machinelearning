@@ -10,10 +10,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.ML.Runtime.FastTree.Internal
 {
-    public class TestResult : IComparable<TestResult>
+    public sealed class TestResult : IComparable<TestResult>
     {
-        private double _finalValue;
-
         public enum ValueOperator : int
         {
             None = 0, // the final value will be the raw value,
@@ -36,33 +34,31 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             // the raw value should be the same constant for all test results.
         }
 
-        public string LossFunctionName { get; private set; }
+        public string LossFunctionName { get; }
 
         /// <summary>
         /// Raw value used for calculating final test result value.
         /// </summary>
-        public double RawValue { get; private set; }
+        public double RawValue { get; }
 
         /// <summary>
         /// The factor used for calculating final test result value.
         /// </summary>
-        public double Factor { get; private set; }
+        public double Factor { get; }
 
         /// <summary>
         /// The operator used for calculating final test result value.
         /// Final value = Operator(RawValue, Factor)
         /// </summary>
-        public ValueOperator Operator { get; private set; }
+        public ValueOperator Operator { get; }
 
         /// <summary>
         /// Indicates that the lower value of this metric is better
         /// This is used for early stopping (with TestHistory and TestWindowWithTolerance)
         /// </summary>
-        public bool LowerIsBetter { get; private set; }
+        public bool LowerIsBetter { get; }
 
-        public double FinalValue {
-            get { return _finalValue; }
-        }
+        public double FinalValue { get; }
 
         public TestResult(string lossFunctionName, double rawValue, double factor, bool lowerIsBetter, ValueOperator valueOperator)
         {
@@ -72,7 +68,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             Operator = valueOperator;
             LowerIsBetter = lowerIsBetter;
 
-            CalculateFinalValue();
+            FinalValue = CalculateFinalValue();
         }
 
         public int CompareTo(TestResult o)
@@ -124,7 +120,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 (ValueOperator)valueOperator);
         }
 
-        private void CalculateFinalValue()
+        private double CalculateFinalValue()
         {
             switch (Operator)
             {
@@ -133,14 +129,11 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 case ValueOperator.Min:
                 case ValueOperator.None:
                 case ValueOperator.Sum:
-                    _finalValue = RawValue;
-                    break;
+                    return RawValue;
                 case ValueOperator.Average:
-                    _finalValue = RawValue / Factor;
-                    break;
+                    return RawValue / Factor;
                 case ValueOperator.SqrtAverage:
-                    _finalValue = Math.Sqrt(RawValue / Factor);
-                    break;
+                    return Math.Sqrt(RawValue / Factor);
                 default:
                     throw Contracts.Except("Unsupported value operator: {0}", Operator);
             }
@@ -157,7 +150,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         //The method returns one or more losses on a given Dataset
         public abstract IEnumerable<TestResult> ComputeTests(double[] scores);
-        public Test(ScoreTracker scoreTracker)
+        private protected Test(ScoreTracker scoreTracker)
         {
             ScoreTracker = scoreTracker;
             if (ScoreTracker != null)
@@ -207,13 +200,13 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         protected IList<TestResult[]> History;
         protected int Iteration { get; private set; }
 
-        public TestResult BestResult { get; protected internal set; }
-        public int BestIteration { get; protected internal set; }
+        public TestResult BestResult { get; private protected set; }
+        public int BestIteration { get; private protected set; }
 
         // scenarioWithoutHistory - simple test scenario we want to track the history and look for best iteration
         // lossIndex - index of lossFunction in case Test returns more than one loss (default should be 0)
         // lower is better: are we looking for minimum or maximum of loss function?
-        public TestHistory(Test scenarioWithoutHistory, int lossIndex)
+        internal TestHistory(Test scenarioWithoutHistory, int lossIndex)
             : base(null)
         {
             History = new List<TestResult[]>();
