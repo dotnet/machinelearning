@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 int batchSize = 5;
                 int numIterations = 10;
                 int numTransformLevels = 3;
-                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(env, "Auc");
+                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
                 // Using the simple, uniform random sampling (with replacement) engine
                 PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(env);
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 int numIterations = 35;
                 int numTransformLevels = 1;
                 int numSampleRows = 100;
-                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(env, "AccuracyMicro");
+                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.AccuracyMicro);
 
                 // Using the simple, uniform random sampling (with replacement) engine
                 PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(env);
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Runtime.RunTests
             int numTransformLevels = 3;
             using (var env = new TlcEnvironment())
             {
-                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(env, "Auc");
+                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
                 // Using the simple, uniform random sampling (with replacement) brain
                 PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.RunTests
             int numTransformLevels = 1;
             using (var env = new TlcEnvironment())
             {
-                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(env, "L1");
+                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.AccuracyMicro);
 
                 // Using the simple, uniform random sampling (with replacement) brain
                 PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var retainedLearnerNames = new[] { $"LogisticRegressionBinaryClassifier", $"FastTreeBinaryClassifier" };
             using (var env = new TlcEnvironment())
             {
-                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(env, "Auc");
+                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
                 // Using the simple, uniform random sampling (with replacement) brain.
                 PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);

@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.RunTests
             const int numTransformLevels = 2;
             using (var env = new TlcEnvironment())
             {
-                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(env, "Auc");
+                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
                 // Using the simple, uniform random sampling (with replacement) engine
                 PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(Env);
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 AutoInference.AutoMlMlState amlsOut = (AutoInference.AutoMlMlState)exp.GetOutput(output.State);
                 Assert.NotNull(amlsOut);
                 Assert.Equal(amlsOut.GetAllEvaluatedPipelines().Length, numIterations);
-                Assert.True(amlsOut.GetBestPipeline().PerformanceSummary.MetricValue > 0.1);
+                Assert.True(amlsOut.GetBestPipeline().PerformanceSummary.MetricValue > 0.8);
             }
         }
 

@@ -2,17 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.PipelineInference;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
-using Newtonsoft.Json.Linq;
+using System;
 
 namespace Microsoft.ML.Runtime.PipelineInference
 {
@@ -54,53 +45,102 @@ namespace Microsoft.ML.Runtime.PipelineInference
             Dbi
         };
 
-        /// <summary>
-        /// Map Enum Metrics to a SupportedMetric
-        /// </summary>
-        private static readonly Dictionary<string, SupportedMetric> _map = new Dictionary<string, SupportedMetric>
+        public static SupportedMetric GetSupportedMetric(Metrics metric)
         {
-            { Metrics.Auc.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Auc, true)},
-            { Metrics.AccuracyMicro.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AccuracyMicro, true)},
-            { Metrics.AccuracyMacro.ToString(),  new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AccuracyMacro, true)},
-            { Metrics.L1.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.L1, false)},
-            { Metrics.L2.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.L2, false)},
-            { Metrics.F1.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.F1, true)},
-            { Metrics.AuPrc.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AuPrc, true)},
-            { Metrics.TopKAccuracy.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.TopKAccuracy, true)},
-            { Metrics.Rms.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Rms, false)},
-            { Metrics.LossFn.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LossFn, false)},
-            { Metrics.RSquared.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.RSquared, false)},
-            { Metrics.LogLoss.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LogLoss, false)},
-            { Metrics.LogLossReduction.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LogLossReduction, true)},
-            { Metrics.Ndcg.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Ndcg, true)},
-            { Metrics.Dcg.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Dcg, true)},
-            { Metrics.PositivePrecision.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.PositivePrecision, true)},
-            { Metrics.PositiveRecall.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.PositiveRecall, true)},
-            { Metrics.NegativePrecision.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NegativePrecision, true)},
-            { Metrics.NegativeRecall.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NegativeRecall, true)},
-            { Metrics.DrAtK.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtK, true)},
-            { Metrics.DrAtPFpr.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtPFpr, true)},
-            { Metrics.DrAtNumPos.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtNumPos, true)},
-            { Metrics.NumAnomalies.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NumAnomalies, true)},
-            { Metrics.ThreshAtK.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtK, false)},
-            { Metrics.ThreshAtP.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtP, false)},
-            { Metrics.ThreshAtNumPos.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtNumPos, false)},
-            { Metrics.Nmi.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Nmi, false)},
-            { Metrics.AvgMinScore.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AvgMinScore, false)},
-            { Metrics.Dbi.ToString(), new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Dbi, false)}
-        };
-
-        public static SupportedMetric GetSupportedMetric(IHostEnvironment env, string metricName)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckNonEmpty(metricName, nameof(metricName));
-
-            if (_map.ContainsKey(metricName))
+            SupportedMetric supportedMetric = null;
+            switch(metric)
             {
-                return _map[metricName];
+                case Metrics.Auc:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Auc, true);
+                    break;
+                case Metrics.AccuracyMicro:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AccuracyMicro, true);
+                    break;
+                case Metrics.AccuracyMacro:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AccuracyMacro, true);
+                    break;
+                case Metrics.L1:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.L1, false);
+                    break;
+                case Metrics.L2:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.L2, false);
+                    break;
+                case Metrics.F1:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.F1, true);
+                    break;
+                case Metrics.AuPrc:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AuPrc, true);
+                    break;
+                case Metrics.TopKAccuracy:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.TopKAccuracy, true);
+                    break;
+                case Metrics.Rms:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Rms, false);
+                    break;
+                case Metrics.LossFn:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LossFn, false);
+                    break;
+                case Metrics.RSquared:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.RSquared, false);
+                    break;
+                case Metrics.LogLoss:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LogLoss, false);
+                    break;
+                case Metrics.LogLossReduction:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LogLossReduction, true);
+                    break;
+                case Metrics.Ndcg:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Ndcg, true);
+                    break;
+                case Metrics.Dcg:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Dcg, true);
+                    break;
+                case Metrics.PositivePrecision:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.PositivePrecision, true);
+                    break;
+                case Metrics.PositiveRecall:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.PositiveRecall, true);
+                    break;
+                case Metrics.NegativePrecision:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NegativePrecision, true);
+                    break;
+                case Metrics.NegativeRecall:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NegativeRecall, true);
+                    break;
+                case Metrics.DrAtK:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtK, true);
+                    break;
+                case Metrics.DrAtPFpr:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtPFpr, true);
+                    break;
+                case Metrics.DrAtNumPos:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtNumPos, true);
+                    break;
+                case Metrics.NumAnomalies:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NumAnomalies, true);
+                    break;
+                case Metrics.ThreshAtK:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtK, false);
+                    break;
+                case Metrics.ThreshAtP:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtP, false);
+                    break;
+                case Metrics.ThreshAtNumPos:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtNumPos, false);
+                    break;
+                case Metrics.Nmi:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Nmi, true);
+                    break;
+                case Metrics.AvgMinScore:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AvgMinScore, false);
+                    break;
+                case Metrics.Dbi:
+                    supportedMetric = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Dbi, false);
+                    break;
+                default:
+                    throw new NotSupportedException($"Metric '{metric}' not supported.");
             }
-
-            throw new NotSupportedException($"Metric '{metricName}' not supported.");
+            return supportedMetric;
         }
     }
 
