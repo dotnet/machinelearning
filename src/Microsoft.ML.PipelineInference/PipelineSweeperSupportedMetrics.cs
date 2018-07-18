@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         };
 
         /// <summary>
-        /// Mapp Enum Metrics to a SupportedMetric
+        /// Map Enum Metrics to a SupportedMetric
         /// </summary>
         private static readonly Dictionary<string, SupportedMetric> _map = new Dictionary<string, SupportedMetric>
         {

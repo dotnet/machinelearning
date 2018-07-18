@@ -431,6 +431,18 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     d += 1e-3;
                 _sortedSampledElements.Add(d, pipeline);
                 _history.Add(pipeline);
+
+                using (var ch = _host.Start("Suggested Pipeline"))
+                {
+                    ch.Info($"PipelineSweeper Pipeline Id : {pipeline.UniqueId}");
+                    foreach (var transform in pipeline.Transforms)
+                    {
+                        ch.Info($"PipelineSweeper Transform : {transform.Transform}");
+                    }
+                    ch.Info($"PipelineSweeper Learner : {pipeline.Learner}");
+                    ch.Info($"PipelineSweeper Train Metric Value: {pipeline.PerformanceSummary.TrainingMetricValue}");
+                    ch.Info($"PipelineSweeper Test Metric Value: {pipeline.PerformanceSummary.MetricValue}");
+                }
             }
 
             public void AddEvaluated(PipelinePattern[] pipelines)
@@ -448,18 +460,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     currentBatchSize = Math.Min(itr.RemainingIterations(_history), numberOfCandidates);
                 BatchCandidates = AutoMlEngine.GetNextCandidates(_sortedSampledElements.Select(kvp => kvp.Value), currentBatchSize, _dataRoles);
 
-                using (var ch = _host.Start("Suggested Pipeline"))
-                {
-                    foreach (var pipeline in BatchCandidates)
-                    {
-                        ch.Info($"AutoInference Pipeline Id : {pipeline.UniqueId}");
-                        foreach (var transform in pipeline.Transforms)
-                        {
-                            ch.Info($"AutoInference Transform : {transform.Transform}");
-                        }
-                        ch.Info($"AutoInference Learner : {pipeline.Learner}");
-                    }
-                }
+
 
                 return BatchCandidates;
             }
