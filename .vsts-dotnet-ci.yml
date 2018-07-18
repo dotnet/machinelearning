@@ -6,4 +6,4 @@ resources:
 queue:
   container: rhel7
 steps:
-    -script: printenv
+- script: printenv
