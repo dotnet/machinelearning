@@ -228,7 +228,7 @@ namespace Microsoft.ML.Runtime.Data
                 _columnsLoaded = InitColumns(schemaDataSet);
                 Schema = CreateSchema(_host, _columnsLoaded);
             }
-            else if (Schema == null && files.Count == 0)
+            else if (Schema == null)
             {
                 throw _host.Except("Parquet loader must be created with one file");
             }
