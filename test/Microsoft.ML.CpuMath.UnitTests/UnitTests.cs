@@ -81,11 +81,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             {
                 // act
                 var nativeOutput = NativeDotU(psrc, pdst, len);
-                var myOutput = CpuMathUtils.DotProductDense(src, dst, len);
-                output.WriteLine($"{nativeOutput} == {myOutput}");
+                var managedOutput = CpuMathUtils.DotProductDense(src, dst, len);
+                output.WriteLine($"{nativeOutput} == {managedOutput}");
 
                 // assert
-                Assert.True(nativeOutput == myOutput);
+                Assert.True(nativeOutput == managedOutput);
             }
         }
 
@@ -120,11 +120,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             {
                 // act
                 var nativeOutput = NativeDotSU(psrc, pdst, pidx, idxlen);
-                var myOutput = CpuMathUtils.DotProductSparse(src, dst, idx, idxlen);
-                output.WriteLine($"{nativeOutput} == {myOutput}");
+                var managedOutput = CpuMathUtils.DotProductSparse(src, dst, idx, idxlen);
+                output.WriteLine($"{nativeOutput} == {managedOutput}");
 
                 // assert
-                Assert.True(nativeOutput == myOutput);
+                Assert.True(nativeOutput == managedOutput);
             }
         }
 
@@ -148,11 +148,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             {
                 // act
                 var nativeOutput = NativeSumSqU(psrc, len);
-                var myOutput = CpuMathUtils.SumSq(src, len);
-                output.WriteLine($"{nativeOutput} == {myOutput}");
+                var managedOutput = CpuMathUtils.SumSq(src, len);
+                output.WriteLine($"{nativeOutput} == {managedOutput}");
 
                 // assert
-                Assert.True(nativeOutput == myOutput);
+                Assert.True(nativeOutput == managedOutput);
             }
         }
 
@@ -184,11 +184,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 NativeAddU(psrc, pnative, len);
 
                 CpuMathUtils.Add(src, dst, len);
-                var myOutput = dst;
-                output.WriteLine($"{nativeOutput} == {myOutput}");
+                var managedOutput = dst;
+                output.WriteLine($"{nativeOutput} == {managedOutput}");
 
                 // assert
-                Assert.Equal(myOutput, nativeOutput);
+                Assert.Equal(managedOutput, nativeOutput);
             }
         }
 
@@ -228,11 +228,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 NativeAddSU(psrc, pidx, pnative, idxlen);
 
                 CpuMathUtils.Add(src, idx, dst, idxlen);
-                var myOutput = dst;
-                output.WriteLine($"{nativeOutput} == {myOutput}");
+                var managedOutput = dst;
+                output.WriteLine($"{nativeOutput} == {managedOutput}");
 
                 // assert
-                Assert.Equal(myOutput, nativeOutput);
+                Assert.Equal(managedOutput, nativeOutput);
             }
         }
 
@@ -264,11 +264,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 NativeAddScaleU(scale, psrc, pnative, len);
 
                 CpuMathUtils.AddScale(scale, src, dst, len);
-                var myOutput = dst;
-                output.WriteLine($"{nativeOutput} == {myOutput}");
+                var managedOutput = dst;
+                output.WriteLine($"{nativeOutput} == {managedOutput}");
 
                 // assert
-                Assert.Equal(myOutput, nativeOutput);
+                Assert.Equal(managedOutput, nativeOutput);
             }
         }
 
@@ -308,11 +308,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 NativeAddScaleSU(scale, psrc, pidx, pnative, idxlen);
 
                 CpuMathUtils.AddScale(scale, src, idx, dst, idxlen);
-                var myOutput = dst;
-                output.WriteLine($"{nativeOutput} == {myOutput}");
+                var managedOutput = dst;
+                output.WriteLine($"{nativeOutput} == {managedOutput}");
 
                 // assert
-                Assert.Equal(myOutput, nativeOutput);
+                Assert.Equal(managedOutput, nativeOutput);
             }
         }
 
@@ -341,11 +341,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 NativeScaleU(scale, pnative, len);
 
                 CpuMathUtils.Scale(scale, dst, len);
-                var myOutput = dst;
-                output.WriteLine($"{nativeOutput} == {myOutput}");
+                var managedOutput = dst;
+                output.WriteLine($"{nativeOutput} == {managedOutput}");
 
                 // assert
-                Assert.Equal(myOutput, nativeOutput);
+                Assert.Equal(managedOutput, nativeOutput);
             }
         }
 
@@ -372,11 +372,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             {
                 // act
                 var nativeOutput = NativeDist2(psrc, pdst, len);
-                var myOutput = CpuMathUtils.L2DistSquared(src, dst, len);
-                output.WriteLine($"{nativeOutput} == {myOutput}");
+                var managedOutput = CpuMathUtils.L2DistSquared(src, dst, len);
+                output.WriteLine($"{nativeOutput} == {managedOutput}");
 
                 // assert
-                Assert.Equal(myOutput, nativeOutput);
+                Assert.Equal(managedOutput, nativeOutput);
             }
         }
 
@@ -400,11 +400,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             {
                 // act
                 var nativeOutput = NativeSumAbsU(psrc, len);
-                var myOutput = CpuMathUtils.SumAbs(src, len);
-                output.WriteLine($"{nativeOutput} == {myOutput}");
+                var managedOutput = CpuMathUtils.SumAbs(src, len);
+                output.WriteLine($"{nativeOutput} == {managedOutput}");
 
                 // assert
-                Assert.Equal(myOutput, nativeOutput);
+                Assert.Equal(managedOutput, nativeOutput);
             }
         }
 
@@ -439,11 +439,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 NativeMulElementWiseU(psrc1, psrc2, pnative, len);
 
                 CpuMathUtils.MulElementWise(src1, src2, dst, len);
-                var myOutput = dst;
-                output.WriteLine($"{nativeOutput} == {myOutput}");
+                var managedOutput = dst;
+                output.WriteLine($"{nativeOutput} == {managedOutput}");
 
                 // assert
-                Assert.Equal(myOutput, nativeOutput);
+                Assert.Equal(managedOutput, nativeOutput);
             }
         }
     }
