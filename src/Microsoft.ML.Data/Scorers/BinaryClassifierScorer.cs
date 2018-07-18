@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="labelNameType">The type of the label names from the metadata (either
         /// originating from the key value metadata of the training label column, or deserialized
         /// from the model of a bindable mapper)</param>
-        /// <returns>Whether we can call <see cref="MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound"/> with
+        /// <returns>Whether we can call <see cref="MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound{T}"/> with
         /// this mapper and expect it to succeed</returns>
         private static bool CanWrap(ISchemaBoundMapper mapper, ColumnType labelNameType)
         {
