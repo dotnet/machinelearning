@@ -488,10 +488,10 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected virtual IFileHandle OpenInputFileCore(IHostEnvironment env, string path)
         {
-#pragma warning disable TLC_NoThis // Do not use 'this' keyword for member access
+#pragma warning disable MSML_NoThis // Do not use 'this' keyword for member access
             this.AssertValue(env);
             this.CheckNonWhiteSpace(path, nameof(path));
-#pragma warning restore TLC_NoThis // Do not use 'this' keyword for member access
+#pragma warning restore MSML_NoThis // Do not use 'this' keyword for member access
             if (Master != null)
                 return Master.OpenInputFileCore(env, path);
             return new SimpleFileHandle(env, path, needsWrite: false, autoDelete: false);
@@ -511,10 +511,10 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected virtual IFileHandle CreateOutputFileCore(IHostEnvironment env, string path)
         {
-#pragma warning disable TLC_NoThis // Do not use 'this' keyword for member access
+#pragma warning disable MSML_NoThis // Do not use 'this' keyword for member access
             this.AssertValue(env);
             this.CheckNonWhiteSpace(path, nameof(path));
-#pragma warning restore TLC_NoThis // Do not use 'this' keyword for member access
+#pragma warning restore MSML_NoThis // Do not use 'this' keyword for member access
             if (Master != null)
                 return Master.CreateOutputFileCore(env, path);
             return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: false);
@@ -532,9 +532,9 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected IFileHandle CreateAndRegisterTempFile(IHostEnvironment env, string suffix = null, string prefix = null)
         {
-#pragma warning disable TLC_NoThis // Do not use 'this' keyword for member access
+#pragma warning disable MSML_NoThis // Do not use 'this' keyword for member access
             this.AssertValue(env);
-#pragma warning restore TLC_NoThis // Do not use 'this' keyword for member access
+#pragma warning restore MSML_NoThis // Do not use 'this' keyword for member access
 
             if (Master != null)
                 return Master.CreateAndRegisterTempFile(env, suffix, prefix);
@@ -556,10 +556,10 @@ namespace Microsoft.ML.Runtime.Data
 
         protected virtual IFileHandle CreateTempFileCore(IHostEnvironment env, string suffix = null, string prefix = null)
         {
-#pragma warning disable TLC_NoThis // Do not use 'this' keyword for member access
+#pragma warning disable MSML_NoThis // Do not use 'this' keyword for member access
             this.CheckParam(!HasBadFileCharacters(suffix), nameof(suffix));
             this.CheckParam(!HasBadFileCharacters(prefix), nameof(prefix));
-#pragma warning restore TLC_NoThis // Do not use 'this' keyword for member access
+#pragma warning restore MSML_NoThis // Do not use 'this' keyword for member access
 
             Guid guid = Guid.NewGuid();
             string path = Path.GetFullPath(Path.Combine(Path.GetTempPath(), prefix + guid.ToString() + suffix));

@@ -1113,7 +1113,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 return;
 
             string dir;
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
             try
             {
                 // Relative paths are interpreted as local.
@@ -1134,6 +1134,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             if (!Directory.Exists(dir))
                 throw Contracts.ExceptUserArg(userArgument, "Cannot find directory '{0}'.", dir);
         }
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
     }
 }
