@@ -153,7 +153,7 @@ namespace Microsoft.ML.Tests
                 }
             });
 
-            pipeline.Add(new LightGbmBinaryClassifier() { NumLeaves = 2, NumBoostRound = 1, MinDataPerLeaf = 2});
+            pipeline.Add(new LightGbmBinaryClassifier() { NumLeaves = 2, NumBoostRound = 1, MinDataPerLeaf = 2 });
 
             var model = pipeline.Train<BreastCancerDataAllColumns, BreastCancerPrediction>();
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
@@ -213,8 +213,8 @@ namespace Microsoft.ML.Tests
                     }
                 }
             });
-            
-            pipeline.Add(new LogisticRegressionBinaryClassifier());
+
+            pipeline.Add(new LogisticRegressionBinaryClassifier() { UseThreads = false });
 
             var model = pipeline.Train<BreastCancerDataAllColumns, BreastCancerPrediction>();
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
@@ -276,8 +276,8 @@ namespace Microsoft.ML.Tests
             });
 
             pipeline.Add(new Dictionarizer("Label"));
-            pipeline.Add(new LogisticRegressionClassifier());
-            
+            pipeline.Add(new LogisticRegressionClassifier() { UseThreads = false });
+
             var model = pipeline.Train<BreastCancerDataAllColumns, BreastCancerMCPrediction>();
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "MultiClassClassification", "BreastCancer");
             var onnxPath = GetOutputPath(subDir, "MultiClassificationLRSaveModelToOnnxTest.onnx");
