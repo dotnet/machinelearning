@@ -30,7 +30,11 @@
     <example name="FieldAwareFactorizationMachineBinaryClassifier">
       <example>
         <code language="csharp">
-          pipeline.Add(new FieldAwareFactorizationMachineBinaryClassifier(){ LearningRate = 0.5f, Iter=2 });
+          pipeline.Add(new FieldAwareFactorizationMachineBinaryClassifier
+          { 
+            LearningRate = 0.5f, 
+            Iter=2 
+          });
         </code>
       </example>
     </example>

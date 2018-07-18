@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Learners
     /// 2, we would train classifiers for the pairs (0,0), (0,1), (0,2), (1,1), (1,2),
     /// and(2,2). For each binary classifier, an input data point is considered a
     /// positive example if it is in either of the two classes in the pair, and a
-    /// negative example otherwise.At prediction time, the probabilities for each
+    /// negative example otherwise. At prediction time, the probabilities for each
     /// pair of classes is considered as the probability of being in either class of
     /// the pair given the data, and the final predictive probabilities out of that
     /// per class are calculated given the probability that an example is in any given
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.Learners
     /// practical due to, usually, memory constraints.For example, while a multiclass
     /// logistic regression is a more principled way to solve a multiclass problem, it
     /// requires that the learner store a lot more intermediate state in the form of
-    /// L-BFGS history for all classes * simultaneously*, rather than just one-by-one
+    /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
     /// as would be needed for OVA.
     /// </summary>
     public sealed class Pkpd : MetaMulticlassTrainer<PkpdPredictor, Pkpd.Arguments>

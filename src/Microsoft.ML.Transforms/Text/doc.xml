@@ -28,14 +28,14 @@
         <code language="csharp">
           pipeline.Add(new TextFeaturizer(&quot;Features&quot;, &quot;SentimentText&quot;)
           {
-          KeepDiacritics = false,
-          KeepPunctuations = false,
-          TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
-          OutputTokens = true,
-          StopWordsRemover = new PredefinedStopWordsRemover(),
-          VectorNormalizer = TextTransformTextNormKind.L2,
-          CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
-          WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
+            KeepDiacritics = false,
+            KeepPunctuations = false,
+            TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
+            OutputTokens = true,
+            StopWordsRemover = new PredefinedStopWordsRemover(),
+            VectorNormalizer = TextTransformTextNormKind.L2,
+            CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
+            WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
           });
         </code>
       </example>
@@ -43,7 +43,6 @@
 
     <member name="WordTokenizer">
       <summary>
-        The input to this transform is text, and the output is a vector of text containing the words (tokens) in the original text. 
         The separator is space, but can be specified as any other character (or multiple characters) if needed.
       </summary>
       <remarks>
@@ -57,7 +56,10 @@
     <example name="WordTokenizer">
       <example>
         <code language="csharp">
-          pipeline.Add( new WordTokenizer(&quot;TextColumn&quot;){ TermSeparators = &quot;&apos; &apos;, &apos;\t&apos;, &apos;;&apos;&quot;  } );
+          pipeline.Add( new WordTokenizer(&quot;TextColumn&quot;)
+          { 
+            TermSeparators = &quot;&apos; &apos;, &apos;\t&apos;, &apos;;&apos;&quot;  
+          });
         </code>
       </example>
     </example>
@@ -73,15 +75,17 @@
         Embedding ngrams in a vector space allows their contents to be compared in an efficient manner. 
         The slot values in the vector can be weighted by the following factors:
         <list>
-          <item>term frequency
+          <item>
+            <term>term frequency</term>
             <description> the number of occurrences of the slot in the text</description>
           </item>
-          <item>inverse document frequency
+          <item>
+            <term>inverse document frequency</term>
             <description> a ratio (the logarithm of inverse relative slot frequency)
               that measures the information a slot provides by determining how common or rare it is across the entire text.</description>
           </item>
             <item>
-              term frequency-inverse document frequency
+              <term>term frequency-inverse document frequency</term>
               <description> the product term frequency and the inverse document frequency.</description>
             </item>
         </list>
@@ -93,7 +97,10 @@
       <seealso cref="Microsoft.ML.Transforms.CharacterTokenizer"/>
       <example>
         <code language="csharp">
-          pipeline.Add(new NGramTranslator(&quot;TextColumn&quot;){ Weighting=NgramTransformWeightingCriteria.TfIdf  } );
+          pipeline.Add(new NGramTranslator(&quot;TextColumn&quot;)
+          { 
+            Weighting=NgramTransformWeightingCriteria.TfIdf  
+          });
       </code>
       </example>
     </member>
@@ -116,7 +123,10 @@
     <exaple>
       <example name="SentimentAnalyzer">
         <code language="csharp">
-          pipeline.Add(new SentimentAnalyzer(){ Source = &quot;TextColumn&quot; }  );
+          pipeline.Add(new SentimentAnalyzer()
+          { 
+            Source = &quot;TextColumn&quot; 
+          });
         </code>
       </example>
     </exaple>
@@ -135,7 +145,7 @@
       <seealso cref="Microsoft.ML.Transforms.TextFeaturizer"/>
       <example>
         <code language="csharp">
-          pipeline.Add(new CharacterTokenizer("TextCol1" , "TextCol2" ) );
+          pipeline.Add(new CharacterTokenizer(&quot;TextCol1&quot; , &quot;TextCol2&quot; ));
         </code>
       </example>
     </member>

@@ -7,7 +7,8 @@
         Train an SDCA linear model.
       </summary>
       <remarks>
-        This classifier is a trainer based on the Stochastic DualCoordinate Ascent(SDCA) method, a state-of-the-art optimization technique for convex objective functions.
+        This classifier is a trainer based on the Stochastic DualCoordinate Ascent(SDCA) method, a state-of-the-art optimization technique for convex,
+        dual coordinate, objective functions.
         The algorithm can be scaled for use on large out-of-memory data sets due to a semi-asynchronized implementation that supports multi-threading.
         <para>
           Convergence is underwritten by periodically enforcing synchronization between primal and dual updates in a separate thread.
@@ -35,7 +36,7 @@
     <example name="StochasticDualCoordinateAscentBinaryClassifier">
       <example>
         <code language="csharp">
-          new StochasticDualCoordinateAscentBinaryClassifier()
+          new StochasticDualCoordinateAscentBinaryClassifier
           {
             MaxIterations = 100,
             NumThreads = 7,
@@ -48,7 +49,7 @@
     <example name="StochasticDualCoordinateAscentClassifier">
       <example>
         <code language="csharp">
-          new StochasticDualCoordinateAscentClassifier()
+          new StochasticDualCoordinateAscentClassifier
           {
             MaxIterations = 100,
             NumThreads = 7,
@@ -63,8 +64,7 @@
           new StochasticDualCoordinateAscentRegressor
           {
             MaxIterations = 100,
-            NumThreads = 5,
-            LossFunction = new
+            NumThreads = 5
           }
         </code>
       </example>

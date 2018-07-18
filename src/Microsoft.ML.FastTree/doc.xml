@@ -24,7 +24,7 @@
           The output of the ensemble produced by MART on a given instance is the sum of the tree outputs.
         </para>
         <list type='bullet'>
-          <item><description> In case of a binary classification problem, the output is converted to a probability by using some form of calibration.</description></item>
+          <item><description>In case of a binary classification problem, the output is converted to a probability by using some form of calibration.</description></item>
           <item><description>In case of a regression problem, the output is the predicted value of the function.</description></item>
           <item><description>In case of a ranking problem, the instances are ordered by the output value of the ensemble.</description></item>
         </list>
@@ -163,7 +163,7 @@
         There are a number of famous or popular examples of this technique:
         <list>
           <item><description>A deep neural net trained on the ImageNet dataset, with the last layer removed, is commonly used to compute the 'projection' of the image into the 'semantic feature space'.
-            It is observed that the Euclidian distance in this space often correlates with the 'semantic similarity': that is, all pictures of pizza are located close together,
+            It is observed that the Euclidean distance in this space often correlates with the 'semantic similarity': that is, all pictures of pizza are located close together,
             and far away from pictures of kittens. </description></item>
           <item><description>A matrix factorization and/or LDA model is also often used to extract the 'latent topics' or 'latent features' associated with users and items.</description></item>
           <item><description>The weights of the linear model are often used as a crude indicator of 'feature importance'. At the very minimum, the 0-weight features are not needed by the model,

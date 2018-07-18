@@ -4,7 +4,7 @@
     
     <member name="PCA">
       <summary>
-        PCA is a dimensionality-reduction transform which computes the projection of the feature vector to onto a low-rank subspace. 
+        PCA is a dimensionality-reduction transform which computes the projection of the feature vector onto a low-rank subspace. 
       </summary>
       <remarks>
       <a href='https://en.wikipedia.org/wiki/Principal_component_analysis'>Principle Component Analysis (PCA)</a> is a dimensionality-reduction algorithm which computes the projection of the feature vector to onto a low-rank subspace.

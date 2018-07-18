@@ -6,7 +6,7 @@
         Removes missing values from vector type columns.
       </summary>
       <remarks>
-        This transform emoves the entire row if any of the input columns have a missing value in that row.
+        This transform removes the entire row if any of the input columns have a missing value in that row.
         This preprocessing is required for many ML algorithms that cannot work with missing values.
         Useful if any missing entry invalidates the entire row.
         If the <see cref="Microsoft.ML.Runtime.Data.NAFilter.Defaults.Complement"/> is set to true, this transform would do the exact opposite,
@@ -29,7 +29,7 @@
       <remarks>
         The TextToKeyConverter transform builds up term vocabularies (dictionaries).
         The TextToKey Converter and the <see cref="T:Microsoft.ML.Transforms.HashConverter"/> are the two one primary mechanisms by which raw input is transformed into keys.
-        If multiple columns are used, each column builds/uses exactly one vocabulary (dictionary).
+        If multiple columns are used, each column builds/uses exactly one vocabulary.
         The output columns are KeyType-valued.
         The Key value is the one-based index of the item in the dictionary.
         If the key is not found in the dictionary, it is assigned the missing value indicator.
@@ -42,7 +42,10 @@
     <example name="TextToKey">
       <example>
         <code language="csharp">
-          pipeline.Add(new TextToKeyConverter((&quot;Column&quot;, &quot;OutColumn&quot;)){ Sort = TermTransformSortOrder.Occurrence });
+          pipeline.Add(new TextToKeyConverter((&quot;Column&quot;, &quot;OutColumn&quot;))
+          { 
+            Sort = TermTransformSortOrder.Occurrence 
+          });
         </code>
       </example>
     </example>

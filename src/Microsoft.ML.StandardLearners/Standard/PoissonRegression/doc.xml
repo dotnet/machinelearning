@@ -15,7 +15,7 @@
     <example>
       <example name="PoissonRegression">
         <code language="csharp">
-          new PoissonRegressor()
+          new PoissonRegressor
           {
             MaxIterations = 100,
             L2Weight = 0.6f

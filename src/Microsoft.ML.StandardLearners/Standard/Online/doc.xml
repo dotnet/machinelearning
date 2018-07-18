@@ -16,7 +16,7 @@
     <example>
       <example name="OGD">
         <code language="csharp">
-          new OnlineGradientDescentRegressor()
+          new OnlineGradientDescentRegressor
           {
             NumIterations = 10,
             L2RegularizerWeight = 0.6f,
@@ -54,7 +54,7 @@
     <example>
       <example name="AP">
         <code language="csharp">
-          new AveragedPerceptronBinaryClassifier()
+          new AveragedPerceptronBinaryClassifier
           {
             NumIterations = 10,
             L2RegularizerWeight = 0.01f,

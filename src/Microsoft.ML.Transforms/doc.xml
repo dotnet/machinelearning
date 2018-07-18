@@ -15,7 +15,12 @@
     <example name="CategoricalHashOneHotVectorizer">
       <example>
         <code language="csharp">
-          pipeline.Add(new CategoricalHashOneHotVectorizer(&quot;Text1&quot;) { HashBits = 10, Seed = 314489979, OutputKind = CategoricalTransformOutputKind.Bag });
+          pipeline.Add(new CategoricalHashOneHotVectorizer(&quot;Text1&quot;) 
+          { 
+            HashBits = 10, 
+            Seed = 314489979, 
+            OutputKind = CategoricalTransformOutputKind.Bag 
+          });
         </code>
       </example>
     </example>
@@ -68,34 +73,11 @@
     <example name="CountFeatureSelection">
        <example>
         <code language="csharp">
-          pipeline.Add(new FeatureSelectorByCount() { Column = new[]{ &quot;Feature1&quot; }, Count = 2 });
-        </code>
-      </example>
-    </example>
-
-    <member name="MutualInformationFeatureSelection">
-      <summary>
-        Selects the top k slots across all specified columns ordered by their mutual information with the label column.
-      </summary>
-      <remarks>
-        <para>
-          The mutual information of two random variables X and Y is a measure of the mutual dependence between the variables.
-          Formally, the mutual information can be written as:
-        </para>
-          <para>I(X;Y) = E[log(p(x,y)) - log(p(x)) - log(p(y))]</para>
-        <para>where the expectation is taken over the joint distribution of X and Y. 
-        Here p(x,y) is the joint probability density function of X and Y, p(x) and p(y) are the marginal probability density functions of X and Y respectively. 
-        In general, a higher mutual information between the dependent variable (or label) and an independent variable (or feature) means 
-        that the label has higher mutual dependence over that feature.
-        The mutual information feature selection mode selects the features based on the mutual information. 
-        It keeps the top SlotsInOutput features with the largest mutual information with the label.
-        </para>
-      </remarks>
-    </member>
-    <example name="MutualInformationFeatureSelection">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new FeatureSelectorByMutualInformation() { Column = new[]{ &quot;Feature1&quot; }, SlotsInOutput = 6 });
+          pipeline.Add(new FeatureSelectorByCount
+          { 
+            Column = new[]{ &quot;Feature1&quot; }, 
+            Count = 2 
+          });
         </code>
       </example>
     </example>
@@ -110,36 +92,44 @@
           Formally, the mutual information can be written as:
         </para>
         <para>I(X;Y) = E[log(p(x,y)) - log(p(x)) - log(p(y))]</para>
-        <para>
-          where the expectation is taken over the joint distribution of X and Y.
-          Here p(x,y) is the joint probability density function of X and Y, p(x) and p(y) are the marginal probability density functions of X and Y respectively.
-          In general, a higher mutual information between the dependent variable (or label) and an independent variable (or feature) means
-          that the label has higher mutual dependence over that feature.
-          The mutual information feature selection mode selects the features based on the mutual information.
-          It keeps the top SlotsInOutput features with the largest mutual information with the label.
+        <para>where the expectation is taken over the joint distribution of X and Y. 
+        Here p(x,y) is the joint probability density function of X and Y, p(x) and p(y) are the marginal probability density functions of X and Y respectively. 
+        In general, a higher mutual information between the dependent variable (or label) and an independent variable (or feature) means 
+        that the label has higher mutual dependence over that feature.
+        It keeps the top SlotsInOutput features with the largest mutual information with the label.
         </para>
       </remarks>
+    </member>
+    <example name="MutualInformationFeatureSelection">
       <example>
         <code language="csharp">
-          pipeline.Add(new FeatureSelectorByMutualInformation() { Column = new[]{ &quot;Feature1&quot;}, SlotsInOutput = 6 });
+          pipeline.Add(new FeatureSelectorByMutualInformation
+          { 
+            Column = new[]{ &quot;Feature1&quot; }, 
+            SlotsInOutput = 6 
+           });
         </code>
       </example>
-    </member>
+    </example>
 
     <member name="OptionalColumnTransform">
       <summary>
-        If the user wish to create additional columns with a particular type and default values, 
-        or replicated the values from one column to another, changing their type, they can do so using this transform. 
-        This transform can be used as a workaround to create a Label column after deserializing a model, for prediction. 
-        Some transforms in the serialized model operate on the Label column, and would throw errors during prediction if such a column is not found. 
+        Creates a new column with the specified type and default values.
       </summary>
-      <remarks>        
+      <remarks>
+        If the user wish to create additional columns with a particular type and default values,
+        or replicated the values from one column to another, changing their type, they can do so using this transform.
+        This transform can be used as a workaround to create a Label column after deserializing a model, for prediction.
+        Some transforms in the serialized model operate on the Label column, and would throw errors during prediction if such a column is not found.
       </remarks>
     </member>
     <example name="OptionalColumnTransform">
       <example>
         <code language="csharp">
-          pipeline.Add(new OptionalColumnCreator() { Column = new[]{ &quot;OptColumn&quot;} });
+          pipeline.Add(new OptionalColumnCreator 
+          { 
+            Column = new[]{ &quot;OptColumn&quot;} 
+          });
         </code>
       </example>
     </example>
@@ -209,7 +199,10 @@
     <example name="NAReplace">
       <example>
         <code language="csharp">
-          pipeline.Add(new MissingValueSubstitutor(&quot;FeatureCol&quot;){ ReplacementKind = NAReplaceTransformReplacementKind.Mean });
+          pipeline.Add(new MissingValueSubstitutor(&quot;FeatureCol&quot;)
+          { 
+            ReplacementKind = NAReplaceTransformReplacementKind.Mean 
+          });
         </code>
       </example>
     </example>
@@ -252,7 +245,10 @@
     <example name="NAHandle">
       <example>
         <code language="csharp">
-          pipeline.Add(new MissingValueHandler(&quot;FeatureCol&quot;, &quot;CleanFeatureCol&quot;) { ReplaceWith  = NAHandleTransformReplacementKind.Mean });
+          pipeline.Add(new MissingValueHandler(&quot;FeatureCol&quot;, &quot;CleanFeatureCol&quot;) 
+          { 
+              ReplaceWith  = NAHandleTransformReplacementKind.Mean 
+          });
         </code>
       </example>
     </example>
@@ -271,7 +267,10 @@
       <seealso cref=" Microsoft.ML.Transforms.GcNormalize"></seealso>
       <example>
         <code language="csharp">
-          pipeline.Add(new LpNormalizer("FeatureCol"){ NormKind = LpNormNormalizerTransformNormalizerKind.L1Norm});
+          pipeline.Add(new LpNormalizer(&quot;FeatureCol&quot;)
+          { 
+            NormKind = LpNormNormalizerTransformNormalizerKind.L1Norm
+          });
         </code>
       </example>
     </member>
@@ -289,7 +288,10 @@
       <seealso cref=" Microsoft.ML.Transforms.LpNormalizer"></seealso>
       <example>
         <code language="csharp">
-          pipeline.Add(new GlobalContrastNormalizer(&quot;FeatureCol&quot;){ SubMean= false });
+          pipeline.Add(new GlobalContrastNormalizer(&quot;FeatureCol&quot;)
+          { 
+            SubMean= false
+          });
         </code>
       </example>
     </member>
@@ -299,7 +301,7 @@
         Un-groups vector columns into sequences of rows, inverse of Group transform.
        </summary>
       <remarks>
-        <para>This can be thought of as an inverse of the CombinerByContiguousGroupId. 
+        <para>This can be thought of as an inverse of the <see cref="T:Microsoft.ML.Transforms.CombinerByContiguousGroupId"/>.  
         For all specified vector columns ("pivot" columns), performs the "ungroup" (or "unroll") operation as outlined below.
         </para>
         <para>If the only pivot column is called P, and has size K, then for every row of the input we will produce 
@@ -312,9 +314,9 @@
         <list type="bullet">
           <item><description>A number of output rows is controlled by the 'mode' parameter. 
             <list type="bullet">
-              <item>outer<description> it is equal to the maximum length of pivot columns</description></item>
-              <item>inner<description> it is equal to the minimum length of pivot columns</description></item>
-              <item>first<description> it is equal to the length of the first pivot column</description></item>
+              <item><term>outer</term><description> it is equal to the maximum length of pivot columns</description></item>
+              <item><term>inner</term><description> it is equal to the minimum length of pivot columns</description></item>
+              <item><term>first</term><description> it is equal to the length of the first pivot column</description></item>
             </list>
             </description>
           </item>
@@ -331,15 +333,18 @@
     <example name="Ungroup">
       <example>
         <code language="csharp">
-          pipeline.Add(new Segregator(){ Column = new[]{&quot;Column1&quot; }, Mode = UngroupTransformUngroupMode.First} );
+          pipeline.Add(new Segregator
+          { 
+              Column = new[]{&quot;Column1&quot; },
+              Mode = UngroupTransformUngroupMode.First
+          });
         </code>
       </example>
     </example>
 
     <member name="KeyToText">
       <summary>
-        The KeyToValueTransform utilizes KeyValues metadata to map key indices to the corresponding values in the
-        KeyValues metadata.
+        Helps retrieving the original values from a key column. 
       </summary>
       <remarks>
         The KeyToTextConverter is the complement of the <see  cref="TextToKeyConverter"/> transform.
@@ -368,14 +373,17 @@
        The resulting data will have all the group key columns preserved, 
        and the aggregated columns will become variable-length vectors of the original types.
        <para>This transform essentially performs the following SQL-like operation:</para> 
-       <para>GroupKey1, GroupKey2, ... GroupKeyK, LIST(Value1), LIST(Value2), ... LIST(ValueN)</para> 
+       <para>SELECT GroupKey1, GroupKey2, ... GroupKeyK, LIST(Value1), LIST(Value2), ... LIST(ValueN)</para> 
        <para>FROM Data</para> 
        <para>GROUP BY GroupKey1, GroupKey2, ... GroupKeyK.</para> 
       </remarks>
        <seealso cref="Microsoft.ML.Transforms.Segregator"/>
       <example>
         <code language="csharp">
-          pipeline.Add(new CombinerByContiguousGroupId(){ GroupKey = new []{"Key1", "Key2" } } );
+          pipeline.Add(new CombinerByContiguousGroupId
+          { 
+            GroupKey = new []{&quot;Key1&quot;, &quot;Key2&quot; } 
+          });
         </code>
       </example>
     </member>
