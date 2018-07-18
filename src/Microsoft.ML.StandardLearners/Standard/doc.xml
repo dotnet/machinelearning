@@ -7,8 +7,7 @@
         Train an SDCA linear model.
       </summary>
       <remarks>
-        This classifier is a trainer based on the Stochastic DualCoordinate Ascent(SDCA) method, a state-of-the-art optimization technique for convex,
-        dual coordinate, objective functions.
+        This classifier is a trainer based on the Stochastic Dual Coordinate Ascent(SDCA) method, a state-of-the-art optimization technique for convex objective functions.
         The algorithm can be scaled for use on large out-of-memory data sets due to a semi-asynchronized implementation that supports multi-threading.
         <para>
           Convergence is underwritten by periodically enforcing synchronization between primal and dual updates in a separate thread.

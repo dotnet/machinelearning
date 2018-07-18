@@ -43,7 +43,7 @@
 
     <member name="WordTokenizer">
       <summary>
-        The separator is space, but can be specified as any other character (or multiple characters) if needed.
+        This transform splits the text into words using the separator character(s).
       </summary>
       <remarks>
         The input for this transform is a <see cref="Microsoft.ML.Runtime.Data.DvText">DvText</see> or a vector of <see cref="Microsoft.ML.Runtime.Data.DvText">DvTexts</see>,
