@@ -133,7 +133,7 @@
 
     <member name="CharacterTokenizer">
       <summary>
-        This transform breaks text into individual tokens, each consisting of individual characters.
+        This transform breaks text into individual tokens, each consisting of an individual character.
       </summary>
       <remarks>
       This transform is not typically used on its own, but it is one of the transforms composing the 
