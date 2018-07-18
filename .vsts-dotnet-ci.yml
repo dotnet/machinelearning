@@ -4,6 +4,7 @@ resources:
     image: microsoft/dotnet-buildtools-prereqs:rhel7_prereqs_2
     
 queue:
+  name: DotNetCore-Linux
   container: rhel7
 steps:
 - script: printenv
