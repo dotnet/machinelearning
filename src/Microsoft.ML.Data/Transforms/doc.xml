@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<doc>
+  <members>
+    <member name="NAFilter">
+      <summary>
+        Removes missing values from vector type columns.
+      </summary>
+      <remarks>
+        This transform removes the entire row if any of the input columns have a missing value in that row.
+        This preprocessing is required for many ML algorithms that cannot work with missing values.
+        Useful if any missing entry invalidates the entire row.
+        If the <see cref="Microsoft.ML.Runtime.Data.NAFilter.Defaults.Complement"/> is set to true, this transform would do the exact opposite,
+        it will keep only the rows that have missing values.
+      </remarks>
+      <seealso cref="Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"></seealso>
+    </member>
+    <example name="NAFilter">
+      <example>
+        <code language="csharp">
+          pipeline.Add(new MissingValuesRowDropper(&quot;Column1&quot;));
+        </code>
+      </example>
+    </example>
+
+    <member name="TextToKey">
+      <summary>
+        Converts input values (words, numbers, etc.) to index in a dictionary.
+      </summary>
+      <remarks>
+        The TextToKeyConverter transform builds up term vocabularies (dictionaries).
+        The TextToKey Converter and the <see cref="T:Microsoft.ML.Transforms.HashConverter"/> are the two one primary mechanisms by which raw input is transformed into keys.
+        If multiple columns are used, each column builds/uses exactly one vocabulary.
+        The output columns are KeyType-valued.
+        The Key value is the one-based index of the item in the dictionary.
+        If the key is not found in the dictionary, it is assigned the missing value indicator.
+        This dictionary mapping values to keys is most commonly learnt from the unique values in input data,
+        but can be defined through other means: either with the mapping defined directly on the command line, or as loaded from an external file.
+      </remarks>
+      <seealso cref="T:Microsoft.ML.Transforms.HashConverter"/>
+      <seealso cref="T:Microsoft.ML.Transforms.KeyToTextConverter"/>
+    </member>
+    <example name="TextToKey">
+      <example>
+        <code language="csharp">
+          pipeline.Add(new TextToKeyConverter((&quot;Column&quot;, &quot;OutColumn&quot;))
+          { 
+            Sort = TermTransformSortOrder.Occurrence 
+          });
+        </code>
+      </example>
+    </example>
+    
+  </members>
+</doc>

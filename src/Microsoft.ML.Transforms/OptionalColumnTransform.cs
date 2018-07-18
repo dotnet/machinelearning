@@ -26,14 +26,8 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.DataPipe
 {
-    /// <summary>
-    /// This transform is used to mark some of the columns (e.g. Label) optional during training so that the columns are not required during scoring.
-    /// When applied to new data, if any of the optional columns is not present a dummy columns is created having the same properties (e.g. 'name', 'type' etc.) as used during training.
-    /// The columns are filled with default values. The value is
-    ///     - scalar for scalar column
-    ///     - totally sparse vector for vector column. 
-    /// </summary>
-    public sealed class OptionalColumnTransform : RowToRowMapperTransformBase
+    /// <include file='doc.xml' path='doc/members/member[@name="OptionalColumnTransform"]/*' />
+    public class OptionalColumnTransform : RowToRowMapperTransformBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -477,7 +471,13 @@ namespace Microsoft.ML.Runtime.DataPipe
             }
         }
 
-        [TlcModule.EntryPoint(Desc = Summary, Name = "Transforms.OptionalColumnCreator", UserName = UserName, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Desc = Summary, 
+            Name = "Transforms.OptionalColumnCreator", 
+            UserName = UserName, 
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""OptionalColumnTransform""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""OptionalColumnTransform""]/*' />"})]
+
         public static CommonOutputs.TransformOutput MakeOptional(IHostEnvironment env, Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "OptionalColumn", input);

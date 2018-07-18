@@ -28,7 +28,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 
 namespace Microsoft.ML.Runtime.KMeans
 {
-    /// <include file='./doc.xml' path='docs/members/member[@name="KMeans++"]/*' />
+    /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
     public class KMeansPlusPlusTrainer : TrainerBase<KMeansPredictor>
     {
         public const string LoadNameValue = "KMeansPlusPlus";
@@ -207,7 +207,8 @@ namespace Microsoft.ML.Runtime.KMeans
             Desc = Summary,
             UserName = UserNameValue,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='docs/members/member[@name=""KMeans++""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/member[@name=""KMeans++""]/*' />",
+                                 @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/example[@name=""KMeans++""]/*' />"})]
         public static CommonOutputs.ClusteringOutput TrainKMeans(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

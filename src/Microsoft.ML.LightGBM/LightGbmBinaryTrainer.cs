@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         }
     }
 
-    /// <include file='./doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float, IPredictorWithFeatureWeights<float>>
     {
         internal const string UserName = "LightGBM Binary Classifier";
@@ -133,7 +133,8 @@ namespace Microsoft.ML.Runtime.LightGBM
             Desc = LightGbmBinaryTrainer.Summary,
             UserName = LightGbmBinaryTrainer.UserName, 
             ShortName = LightGbmBinaryTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name=""LightGBM""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
+                                 @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmBinaryClassifier""]/*' />"})]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));

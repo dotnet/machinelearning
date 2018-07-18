@@ -20,7 +20,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.LightGBM
 {
-    /// <include file='./doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmRegressionPredictor : FastTreePredictionWrapper
     {
         public const string LoaderSignature = "LightGBMRegressionExec";
@@ -123,7 +123,8 @@ namespace Microsoft.ML.Runtime.LightGBM
             Desc = LightGbmRegressorTrainer.Summary, 
             UserName = LightGbmRegressorTrainer.UserNameValue, 
             ShortName = LightGbmRegressorTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name=""LightGBM""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
+                                 @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmRegressor""]/*' />"})]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));

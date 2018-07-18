@@ -38,7 +38,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
-    /// <include file='./doc.xml' path='docs/members/member[@name="FastTree"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeRankingTrainer : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, FastTreeRankingPredictor>,
         IHasLabelGains
     {
@@ -1096,7 +1096,8 @@ namespace Microsoft.ML.Runtime.FastTree
             Desc = FastTreeRankingTrainer.Summary,
             UserName = FastTreeRankingTrainer.UserNameValue,
             ShortName = FastTreeRankingTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name=""FastTree""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTree""]/*' />",
+                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastTreeRanker""]/*' />"})]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, FastTreeRankingTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
