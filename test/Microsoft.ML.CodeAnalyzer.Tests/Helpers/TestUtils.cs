@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
+using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
@@ -17,6 +20,19 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
                 Severity = desc.DefaultSeverity,
                 Location = new DiagnosticResultLocation("Test0.cs", line, column),
             };
+        }
+
+        public static ref string EnsureSourceLoaded(ref string source, string resourceName)
+        {
+            if (source == null)
+            {
+                string loadedSource;
+                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
+                using (var reader = new StreamReader(stream))
+                    loadedSource = reader.ReadToEnd();
+                Interlocked.CompareExchange(ref source, loadedSource, null);
+            }
+            return ref source;
         }
     }
 }
