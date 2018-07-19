@@ -129,57 +129,57 @@ namespace Microsoft.ML.Runtime.Api
                         if (outputType.GetElementType() == typeof(string))
                         {
                             Ch.Assert(colType.ItemType.IsText);
-                            return CreateArrayGetterDelegate<String, DvText>(index, x => x == null ? DvText.NA : new DvText(x));
+                            return CreateConvertingArrayGetterDelegate<String, DvText>(index, x => x == null ? DvText.NA : new DvText(x));
                         }
                         else if (outputType.GetElementType() == typeof(int))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I4);
-                            return CreateArrayGetterDelegate<int, DvInt4>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<int, DvInt4>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(int?))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I4);
-                            return CreateArrayGetterDelegate<int?, DvInt4>(index, x => x ?? DvInt4.NA);
+                            return CreateConvertingArrayGetterDelegate<int?, DvInt4>(index, x => x ?? DvInt4.NA);
                         }
                         else if (outputType.GetElementType() == typeof(long))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I8);
-                            return CreateArrayGetterDelegate<long, DvInt8>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<long, DvInt8>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(long?))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I8);
-                            return CreateArrayGetterDelegate<long?, DvInt8>(index, x => x ?? DvInt8.NA);
+                            return CreateConvertingArrayGetterDelegate<long?, DvInt8>(index, x => x ?? DvInt8.NA);
                         }
                         else if (outputType.GetElementType() == typeof(short))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I2);
-                            return CreateArrayGetterDelegate<short, DvInt2>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<short, DvInt2>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(short?))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I2);
-                            return CreateArrayGetterDelegate<short?, DvInt2>(index, x => x ?? DvInt2.NA);
+                            return CreateConvertingArrayGetterDelegate<short?, DvInt2>(index, x => x ?? DvInt2.NA);
                         }
                         else if (outputType.GetElementType() == typeof(sbyte))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I1);
-                            return CreateArrayGetterDelegate<sbyte, DvInt1>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<sbyte, DvInt1>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(sbyte?))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I1);
-                            return CreateArrayGetterDelegate<sbyte?, DvInt1>(index, x => x ?? DvInt1.NA);
+                            return CreateConvertingArrayGetterDelegate<sbyte?, DvInt1>(index, x => x ?? DvInt1.NA);
                         }
                         else if (outputType.GetElementType() == typeof(bool))
                         {
                             Ch.Assert(colType.ItemType.IsBool);
-                            return CreateArrayGetterDelegate<bool, DvBool>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<bool, DvBool>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(bool?))
                         {
                             Ch.Assert(colType.ItemType.IsBool);
-                            return CreateArrayGetterDelegate<bool?, DvBool>(index, x => x ?? DvBool.NA);
+                            return CreateConvertingArrayGetterDelegate<bool?, DvBool>(index, x => x ?? DvBool.NA);
                         }
 
                         // T[] -> VBuffer<T>
@@ -205,67 +205,67 @@ namespace Microsoft.ML.Runtime.Api
                         {
                             // String -> DvText
                             Ch.Assert(colType.IsText);
-                            return CreateGetterDelegate<String, DvText>(index, x => x == null ? DvText.NA : new DvText(x));
+                            return CreateConvertingGetterDelegate<String, DvText>(index, x => x == null ? DvText.NA : new DvText(x));
                         }
                         else if (outputType == typeof(bool))
                         {
                             // Bool -> DvBool
                             Ch.Assert(colType.IsBool);
-                            return CreateGetterDelegate<bool, DvBool>(index, x => x);
+                            return CreateConvertingGetterDelegate<bool, DvBool>(index, x => x);
                         }
                         else if (outputType == typeof(bool?))
                         {
                             // Bool? -> DvBool
                             Ch.Assert(colType.IsBool);
-                            return CreateGetterDelegate<bool?, DvBool>(index, x => x ?? DvBool.NA);
+                            return CreateConvertingGetterDelegate<bool?, DvBool>(index, x => x ?? DvBool.NA);
                         }
                         else if (outputType == typeof(int))
                         {
                             // int -> DvInt4
                             Ch.Assert(colType == NumberType.I4);
-                            return CreateGetterDelegate<int, DvInt4>(index, x => x);
+                            return CreateConvertingGetterDelegate<int, DvInt4>(index, x => x);
                         }
                         else if (outputType == typeof(int?))
                         {
                             // int? -> DvInt4
                             Ch.Assert(colType == NumberType.I4);
-                            return CreateGetterDelegate<int?, DvInt4>(index, x => x ?? DvInt4.NA);
+                            return CreateConvertingGetterDelegate<int?, DvInt4>(index, x => x ?? DvInt4.NA);
                         }
                         else if (outputType == typeof(short))
                         {
                             // short -> DvInt2
                             Ch.Assert(colType == NumberType.I2);
-                            return CreateGetterDelegate<short, DvInt2>(index, x => x);
+                            return CreateConvertingGetterDelegate<short, DvInt2>(index, x => x);
                         }
                         else if (outputType == typeof(short?))
                         {
                             // short? -> DvInt2
                             Ch.Assert(colType == NumberType.I2);
-                            return CreateGetterDelegate<short?, DvInt2>(index, x => x ?? DvInt2.NA);
+                            return CreateConvertingGetterDelegate<short?, DvInt2>(index, x => x ?? DvInt2.NA);
                         }
                         else if (outputType == typeof(long))
                         {
                             // long -> DvInt8
                             Ch.Assert(colType == NumberType.I8);
-                            return CreateGetterDelegate<long, DvInt8>(index, x => x);
+                            return CreateConvertingGetterDelegate<long, DvInt8>(index, x => x);
                         }
                         else if (outputType == typeof(long?))
                         {
                             // long? -> DvInt8
                             Ch.Assert(colType == NumberType.I8);
-                            return CreateGetterDelegate<long?, DvInt8>(index, x => x ?? DvInt8.NA);
+                            return CreateConvertingGetterDelegate<long?, DvInt8>(index, x => x ?? DvInt8.NA);
                         }
                         else if (outputType == typeof(sbyte))
                         {
                             // sbyte -> DvInt1
                             Ch.Assert(colType == NumberType.I1);
-                            return CreateGetterDelegate<sbyte, DvInt1>(index, x => x);
+                            return CreateConvertingGetterDelegate<sbyte, DvInt1>(index, x => x);
                         }
                         else if (outputType == typeof(sbyte?))
                         {
                             // sbyte? -> DvInt1
                             Ch.Assert(colType == NumberType.I1);
-                            return CreateGetterDelegate<sbyte?, DvInt1>(index, x => x ?? DvInt1.NA);
+                            return CreateConvertingGetterDelegate<sbyte?, DvInt1>(index, x => x ?? DvInt1.NA);
                         }
                         // T -> T
                         if (outputType.IsGenericType && outputType.GetGenericTypeDefinition() == typeof(Nullable<>))
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Runtime.Api
                     return (Delegate)meth.Invoke(this, new object[] { index });
                 }
 
-                private Delegate CreateArrayGetterDelegate<TSrc, TDst>(int index, Func<TSrc, TDst> convert)
+                private Delegate CreateConvertingArrayGetterDelegate<TSrc, TDst>(int index, Func<TSrc, TDst> convert)
                 {
                     var peek = DataView._peeks[index] as Peek<TRow, TSrc[]>;
                     Ch.AssertValue(peek);
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Runtime.Api
                     });
                 }
 
-                private Delegate CreateGetterDelegate<TSrc, TDst>(int index, Func<TSrc, TDst> convert)
+                private Delegate CreateConvertingGetterDelegate<TSrc, TDst>(int index, Func<TSrc, TDst> convert)
                 {
                     var peek = DataView._peeks[index] as Peek<TRow, TSrc>;
                     Ch.AssertValue(peek);
