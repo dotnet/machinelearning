@@ -284,6 +284,9 @@ namespace Microsoft.ML.Runtime.Api
                     return (Delegate)meth.Invoke(this, new object[] { index });
                 }
 
+                // REVIEW: The converting getter invokes a type conversion delegate on every call, so it's inherently slower
+                // than the 'direct' getter. We don't have good indication of this to the user, and the selection 
+                // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
                 private Delegate CreateConvertingArrayGetterDelegate<TSrc, TDst>(int index, Func<TSrc, TDst> convert)
                 {
                     var peek = DataView._peeks[index] as Peek<TRow, TSrc[]>;

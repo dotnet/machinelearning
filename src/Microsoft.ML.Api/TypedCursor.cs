@@ -436,6 +436,9 @@ namespace Microsoft.ML.Runtime.Api
                 return (Action<TRow>)meth.Invoke(this, new object[] { input, index, poke, peek });
             }
 
+            // REVIEW: The converting getter invokes a type conversion delegate on every call, so it's inherently slower
+            // than the 'direct' getter. We don't have good indication of this to the user, and the selection 
+            // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
             private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(IRow input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
             {
                 var getter = input.GetGetter<VBuffer<TSrc>>(col);
