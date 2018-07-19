@@ -287,29 +287,57 @@ namespace Microsoft.ML.Runtime.Api
                         Ch.Assert(colType.ItemType.IsBool);
                         return CreateVBufferSetter<DvBool, bool>(input, index, poke, peek, x => Convert.ToBoolean(x.RawValue));
                     }
+                    else if (fieldType.GetElementType() == typeof(bool?))
+                    {
+                        Ch.Assert(colType.ItemType.IsBool);
+                        return CreateVBufferSetter<DvBool, bool?>(input, index, poke, peek, x => (bool?)x);
+                    }
                     else if (fieldType.GetElementType() == typeof(int))
                     {
                         Ch.Assert(colType.ItemType == NumberType.I4);
                         return CreateVBufferSetter<DvInt4, int>(input, index, poke, peek, x => (int)x);
+                    }
+                    else if (fieldType.GetElementType() == typeof(int?))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I4);
+                        return CreateVBufferSetter<DvInt4, int?>(input, index, poke, peek, x => (int?)x);
                     }
                     else if (fieldType.GetElementType() == typeof(short))
                     {
                         Ch.Assert(colType.ItemType == NumberType.I2);
                         return CreateVBufferSetter<DvInt2, short>(input, index, poke, peek, x => (short)x);
                     }
+                    else if (fieldType.GetElementType() == typeof(short?))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I2);
+                        return CreateVBufferSetter<DvInt2, short?>(input, index, poke, peek, x => (short?)x);
+                    }
                     else if (fieldType.GetElementType() == typeof(long))
                     {
                         Ch.Assert(colType.ItemType == NumberType.I8);
                         return CreateVBufferSetter<DvInt8, long>(input, index, poke, peek, x => (long)x);
+                    }
+                    else if (fieldType.GetElementType() == typeof(long?))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I8);
+                        return CreateVBufferSetter<DvInt8, long?>(input, index, poke, peek, x => (long?)x);
                     }
                     else if (fieldType.GetElementType() == typeof(sbyte))
                     {
                         Ch.Assert(colType.ItemType == NumberType.I1);
                         return CreateVBufferSetter<DvInt1, sbyte>(input, index, poke, peek, x => (sbyte)x);
                     }
+                    else if (fieldType.GetElementType() == typeof(sbyte?))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I1);
+                        return CreateVBufferSetter<DvInt1, sbyte?>(input, index, poke, peek, x => (sbyte?)x);
+                    }
 
                     // VBuffer<T> -> T[]
-                    Ch.Assert(fieldType.GetElementType() == colType.ItemType.RawType);
+                    if (fieldType.GetElementType().IsGenericType && fieldType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
+                        Ch.Assert(colType.ItemType.RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
+                    else
+                        Ch.Assert(colType.ItemType.RawType == fieldType.GetElementType());
                     del = CreateVBufferDirectSetter<int>;
                     genericType = fieldType.GetElementType();
                 }
@@ -353,7 +381,7 @@ namespace Microsoft.ML.Runtime.Api
                     {
                         Ch.Assert(colType == NumberType.I4);
                         Ch.Assert(peek == null);
-                        return CreateActionSetter<DvInt4, int?>(input, index, poke, x => x.IsNA ? (int?)null : (int)x);
+                        return CreateActionSetter<DvInt4, int?>(input, index, poke, x => (int?)x);
                     }
                     else if (fieldType == typeof(short))
                     {
@@ -365,7 +393,7 @@ namespace Microsoft.ML.Runtime.Api
                     {
                         Ch.Assert(colType == NumberType.I2);
                         Ch.Assert(peek == null);
-                        return CreateActionSetter<DvInt2, short?>(input, index, poke, x => x.IsNA ? (short?)null : (short)x);
+                        return CreateActionSetter<DvInt2, short?>(input, index, poke, x => (short?)x);
                     }
                     else if (fieldType == typeof(long))
                     {
@@ -377,7 +405,7 @@ namespace Microsoft.ML.Runtime.Api
                     {
                         Ch.Assert(colType == NumberType.I8);
                         Ch.Assert(peek == null);
-                        return CreateActionSetter<DvInt8, long?>(input, index, poke, x => x.IsNA ? (long?)null : (long)x);
+                        return CreateActionSetter<DvInt8, long?>(input, index, poke, x => (long?)x);
                     }
                     else if (fieldType == typeof(sbyte))
                     {
@@ -389,7 +417,7 @@ namespace Microsoft.ML.Runtime.Api
                     {
                         Ch.Assert(colType == NumberType.I1);
                         Ch.Assert(peek == null);
-                        return CreateActionSetter<DvInt1, sbyte?>(input, index, poke, x => x.IsNA ? (sbyte?)null : (sbyte)x);
+                        return CreateActionSetter<DvInt1, sbyte?>(input, index, poke, x => (sbyte?)x);
                     }
                     // T -> T
                     if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Nullable<>))

@@ -459,6 +459,22 @@ namespace Microsoft.ML.EntryPoints.Tests
             public double[] fDouble;
             public bool[] fBool;
         }
+        public class ClassWithNullableArrays
+        {
+            public string[] fString;
+            public int?[] fInt;
+            public uint?[] fuInt;
+            public short?[] fShort;
+            public ushort?[] fuShort;
+            public sbyte?[] fsByte;
+            public byte?[] fByte;
+            public long?[] fLong;
+            public ulong?[] fuLong;
+            public float?[] fFloat;
+            public double?[] fDouble;
+            public bool?[] fBool;
+        }
+
 
         [Fact]
         public void BackAndForthConversionWithArrays()
@@ -470,9 +486,20 @@ namespace Microsoft.ML.EntryPoints.Tests
                     fsByte = new sbyte[3]{ -127,127,0}, fShort = new short[3]{ 0, 1225, 32767 }, fuInt =new uint[2]{ 0, uint.MaxValue},
                     fuLong = new ulong[2]{ ulong.MaxValue, 0}, fuShort = new ushort[2]{ 0, ushort.MaxValue}
                 },
-                new ClassWithArrays(){ fInt = new int[3]{ -2,1,0}, fFloat = new float[3]{ 0.99f, 0f, -0.99f}, fString =new string[2]{  "lola","hola"} }
+                new ClassWithArrays(){ fInt = new int[3]{ -2,1,0}, fFloat = new float[3]{ 0.99f, 0f, -0.99f}, fString =new string[2]{"",null} },
+                new ClassWithArrays()
             };
 
+            var nullableData = new List<ClassWithNullableArrays>()
+            {
+                new ClassWithNullableArrays(){ fInt = new int?[3]{ null,-1,1}, fFloat = new float?[3]{ -0.99f, null, 0.99f}, fString =new string[2]{ null, ""},
+                    fBool =new bool?[3]{true,null, false }, fByte = new byte?[4]{ 0,125,null,255}, fDouble=new double?[3]{ -1,null, 1}, fLong = new long?[]{null,-1,1} ,
+                    fsByte = new sbyte?[3]{ -127,127,null}, fShort = new short?[3]{ 0, null, 32767 }, fuInt =new uint?[4]{null,42 ,0, uint.MaxValue},
+                    fuLong = new ulong?[3]{ ulong.MaxValue, null, 0}, fuShort = new ushort?[3]{ 0,null, ushort.MaxValue}
+                },
+                new ClassWithNullableArrays(){ fInt = new int?[3]{ -2,1,0}, fFloat = new float?[3]{ 0.99f, 0f, -0.99f}, fString =new string[2]{  "lola","hola"} },
+                new ClassWithNullableArrays()
+            };
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
@@ -483,7 +510,18 @@ namespace Microsoft.ML.EntryPoints.Tests
                     Assert.True(CompareThrougReflection(enumeratorSimple.Current, originalEnumerator.Current));
                 }
                 Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+
+                var nullableDataView = ComponentCreation.CreateDataView(env, nullableData);
+                var enumeratorNullable = nullableDataView.AsEnumerable<ClassWithNullableArrays>(env, false).GetEnumerator();
+                var originalNullalbleEnumerator = nullableData.GetEnumerator();
+                while (enumeratorNullable.MoveNext() && originalNullalbleEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThrougReflection(enumeratorNullable.Current, originalNullalbleEnumerator.Current));
+                }
+                Assert.True(!enumeratorNullable.MoveNext() && !originalNullalbleEnumerator.MoveNext());
             }
         }
+
+
     }
 }

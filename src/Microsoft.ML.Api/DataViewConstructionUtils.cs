@@ -129,36 +129,64 @@ namespace Microsoft.ML.Runtime.Api
                         if (outputType.GetElementType() == typeof(string))
                         {
                             Ch.Assert(colType.ItemType.IsText);
-                            return CreateArrayGetterDelegate<String, DvText>(index, (x) => new DvText(x));
+                            return CreateArrayGetterDelegate<String, DvText>(index, x => new DvText(x));
                         }
                         else if (outputType.GetElementType() == typeof(int))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I4);
-                            return CreateArrayGetterDelegate<int, DvInt4>(index, (x) => x);
+                            return CreateArrayGetterDelegate<int, DvInt4>(index, x => x);
+                        }
+                        else if (outputType.GetElementType() == typeof(int?))
+                        {
+                            Ch.Assert(colType.ItemType == NumberType.I4);
+                            return CreateArrayGetterDelegate<int?, DvInt4>(index, x => x ?? DvInt4.NA);
                         }
                         else if (outputType.GetElementType() == typeof(long))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I8);
-                            return CreateArrayGetterDelegate<long, DvInt8>(index, (x) => x);
+                            return CreateArrayGetterDelegate<long, DvInt8>(index, x => x);
+                        }
+                        else if (outputType.GetElementType() == typeof(long?))
+                        {
+                            Ch.Assert(colType.ItemType == NumberType.I8);
+                            return CreateArrayGetterDelegate<long?, DvInt8>(index, x => x ?? DvInt8.NA);
                         }
                         else if (outputType.GetElementType() == typeof(short))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I2);
-                            return CreateArrayGetterDelegate<short, DvInt2>(index, (x) => x);
+                            return CreateArrayGetterDelegate<short, DvInt2>(index, x => x);
+                        }
+                        else if (outputType.GetElementType() == typeof(short?))
+                        {
+                            Ch.Assert(colType.ItemType == NumberType.I2);
+                            return CreateArrayGetterDelegate<short?, DvInt2>(index, x => x ?? DvInt2.NA);
                         }
                         else if (outputType.GetElementType() == typeof(sbyte))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I1);
-                            return CreateArrayGetterDelegate<sbyte, DvInt1>(index, (x) => x);
+                            return CreateArrayGetterDelegate<sbyte, DvInt1>(index, x => x);
+                        }
+                        else if (outputType.GetElementType() == typeof(sbyte?))
+                        {
+                            Ch.Assert(colType.ItemType == NumberType.I1);
+                            return CreateArrayGetterDelegate<sbyte?, DvInt1>(index, x => x ?? DvInt1.NA);
                         }
                         else if (outputType.GetElementType() == typeof(bool))
                         {
                             Ch.Assert(colType.ItemType.IsBool);
-                            return CreateArrayGetterDelegate<bool, DvBool>(index, (x)=>x);
+                            return CreateArrayGetterDelegate<bool, DvBool>(index, x => x);
+                        }
+                        else if (outputType.GetElementType() == typeof(bool?))
+                        {
+                            Ch.Assert(colType.ItemType.IsBool);
+                            return CreateArrayGetterDelegate<bool?, DvBool>(index, x => x ?? DvBool.NA);
                         }
 
                         // T[] -> VBuffer<T>
-                        Ch.Assert(outputType.GetElementType() == colType.ItemType.RawType);
+                        if (outputType.GetElementType().IsGenericType && outputType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
+                            Ch.Assert(Nullable.GetUnderlyingType(outputType.GetElementType()) == colType.ItemType.RawType);
+                        else
+                            Ch.Assert(outputType.GetElementType() == colType.ItemType.RawType);
                         del = CreateDirectArrayGetterDelegate<int>;
                         genericType = outputType.GetElementType();
                     }
