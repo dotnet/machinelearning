@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <!-- Once we validate this, we ought to move this to one of the higher level directory files. -->
-    <ProjectReference Include="..\..\analyzer\Microsoft.ML.CodeAnalyzer\Microsoft.ML.CodeAnalyzer.csproj">
+    <ProjectReference Include="..\..\tools-local\Microsoft.ML.CodeAnalyzer\Microsoft.ML.CodeAnalyzer.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <OutputItemType>Analyzer</OutputItemType>
     </ProjectReference>

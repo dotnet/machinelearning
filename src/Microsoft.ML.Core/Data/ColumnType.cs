@@ -496,7 +496,7 @@ namespace Microsoft.ML.Runtime.Data
             get { return R4; }
         }
 
-        public new static NumberType FromKind(DataKind kind)
+        new public static NumberType FromKind(DataKind kind)
         {
             switch (kind)
             {
@@ -908,7 +908,7 @@ namespace Microsoft.ML.Runtime.Data
             return _dims[idim];
         }
 
-        public new PrimitiveType ItemType { get { return _itemType; } }
+        new public PrimitiveType ItemType { get { return _itemType; } }
 
         internal override ColumnType ItemTypeCore { get { return _itemType; } }
 
