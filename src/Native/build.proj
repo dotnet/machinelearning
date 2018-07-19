@@ -10,8 +10,12 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
   <!-- Target that builds all the native binaries in the Native folder -->
-  <Target Name="Build" DependsOnTargets="BuildNativeUnix;BuildNativeWindows;PreparePackageAssets" /> 
+  <Target Name="Build" DependsOnTargets="BuildNativeUnix;BuildNativeWindows;PreparePackageAssets" />
 
+  <PropertyGroup>
+    <PlaceholderFile>$(PkgDir)_._</PlaceholderFile>
+  </PropertyGroup>
+  
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <GenerateVersionSourceFile>true</GenerateVersionSourceFile>
     <NativeVersionSourceFile>$(BaseIntermediateOutputPath)version.c</NativeVersionSourceFile>
@@ -68,19 +72,29 @@
       <PackageRid>$(PackageRid)-$(TargetArchitecture)</PackageRid>
     </PropertyGroup>
 
-    <ItemGroup>
+    <ItemGroup Condition="'$(UseIntrinsics)' != 'true'">
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
+                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\native" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(UseIntrinsics)' == 'true'">
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0" />
+      <NativePackageAsset Include="$(PlaceholderFile)"
+                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netcoreapp3.0" />
+    </ItemGroup>
+
+    <ItemGroup>
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FastTreeNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
-	  <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FactorizationMachineNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
     </ItemGroup>
 
     <ItemGroup>
-      <NativePackageAsset Condition="'$(OS)' == 'Windows_NT' OR '$(StripNativeSymbols)' == 'True'"
+      <NativePackageAsset Condition="('$(OS)' == 'Windows_NT' OR '$(StripNativeSymbols)' == 'True')
+                                     AND '%(NativePackageAsset.Identity)' != '$(PlaceholderFile)'"
                           Include="@(NativePackageAsset->'%(RootDir)%(Directory)%(Filename)$(NativeLibSymbolExtension)')" />
     </ItemGroup>
 
