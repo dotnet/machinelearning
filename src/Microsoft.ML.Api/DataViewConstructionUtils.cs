@@ -184,43 +184,43 @@ namespace Microsoft.ML.Runtime.Api
                         {
                             // Bool -> DvBool
                             Ch.Assert(colType.IsBool);
-                            return CreateGetterDelegate<bool, DvBool>(index, (x) => x);
+                            return CreateGetterDelegate<bool, DvBool>(index, x => x);
                         }
                         else if (outputType == typeof(bool?))
                         {
                             // Bool? -> DvBool
                             Ch.Assert(colType.IsBool);
-                            return CreateGetterDelegate<bool?, DvBool>(index, (x) => x.HasValue ? x.Value : DvBool.NA);
+                            return CreateGetterDelegate<bool?, DvBool>(index, x => x ?? DvBool.NA);
                         }
                         else if (outputType == typeof(int))
                         {
                             // int -> DvInt4
                             Ch.Assert(colType == NumberType.I4);
-                            return CreateGetterDelegate<int, DvInt4>(index, (x) => x);
+                            return CreateGetterDelegate<int, DvInt4>(index, x => x);
                         }
                         else if (outputType == typeof(int?))
                         {
                             // int -> DvInt4
                             Ch.Assert(colType == NumberType.I4);
-                            return CreateGetterDelegate<int?, DvInt4>(index, (x) => x.HasValue ? x.Value : DvInt4.NA);
+                            return CreateGetterDelegate<int?, DvInt4>(index, x => x ?? DvInt4.NA);
                         }
                         else if (outputType == typeof(short))
                         {
                             // short -> DvInt2
                             Ch.Assert(colType == NumberType.I2);
-                            return CreateGetterDelegate<short, DvInt2>(index, (x) => x);
+                            return CreateGetterDelegate<short, DvInt2>(index, x => x);
                         }
                         else if (outputType == typeof(short?))
                         {
                             // short? -> DvInt2
                             Ch.Assert(colType == NumberType.I2);
-                            return CreateGetterDelegate<short?, DvInt2>(index, (x) => x.HasValue ? x.Value : DvInt2.NA);
+                            return CreateGetterDelegate<short?, DvInt2>(index, x => x ?? DvInt2.NA);
                         }
                         else if (outputType == typeof(long))
                         {
                             // long -> DvInt8
                             Ch.Assert(colType == NumberType.I8);
-                            return CreateGetterDelegate<long, DvInt8>(index, (x) => x);
+                            return CreateGetterDelegate<long, DvInt8>(index, x => x);
                         }
                         else if (outputType == typeof(long?))
                         {

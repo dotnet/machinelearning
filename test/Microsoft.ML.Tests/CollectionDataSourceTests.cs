@@ -12,6 +12,7 @@ using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -238,15 +239,15 @@ namespace Microsoft.ML.EntryPoints.Tests
             public string fString;
         }
 
-        public bool CompareObjectValues(object x, object y)
+        public bool CompareObjectValues(object x, object y, Type type)
         {
             //handle string conversion.
             //by default behaviour for DvText is to be empty string, while for string is null.
             //so if we do roundtrip string-> DvText -> string all null string become empty strings.
             //therefore replace all null values to empty string if field is string.
-            if (x.GetType() == typeof(string) && x == null)
+            if (type == typeof(string) && x == null)
                 x = "";
-            if (y.GetType() == typeof(string) && y == null)
+            if (type == typeof(string) && y == null)
                 y = "";
             if (x == null && y == null)
                 return true;
@@ -268,7 +269,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 }
                 else
                 {
-                    if (!CompareObjectValues(xvalue, yvalue))
+                    if (!CompareObjectValues(xvalue, yvalue, field.FieldType))
                         return false;
                 }
 
@@ -284,7 +285,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             if (x.Length != y.Length)
                 return false;
             for (int i = 0; i < x.Length; i++)
-                if (!CompareObjectValues(x.GetValue(i), y.GetValue(i)))
+                if (!CompareObjectValues(x.GetValue(i), y.GetValue(i), x.GetType().GetElementType()))
                     return false;
             return true;
         }
@@ -304,10 +305,13 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 new ConversionSimpleClass(){ fInt=int.MaxValue-1, fuInt=uint.MaxValue-1, fBool=true, fsByte=sbyte.MaxValue-1, fByte = byte.MaxValue-1,
                     fDouble =double.MaxValue-1, fFloat=float.MaxValue-1, fLong=long.MaxValue-1, fuLong = ulong.MaxValue-1,
-                    fShort =short.MaxValue-1, fuShort = ushort.MaxValue-1, fString="ha"},
+                    fShort =short.MaxValue-1, fuShort = ushort.MaxValue-1, fString=null},
                 new ConversionSimpleClass(){ fInt=int.MaxValue, fuInt=uint.MaxValue, fBool=true, fsByte=sbyte.MaxValue, fByte = byte.MaxValue,
                     fDouble =double.MaxValue, fFloat=float.MaxValue, fLong=long.MaxValue, fuLong = ulong.MaxValue,
-                    fShort =short.MaxValue, fuShort = ushort.MaxValue, fString="ooh"},
+                   fShort =short.MaxValue, fuShort = ushort.MaxValue, fString="ooh"},
+                new ConversionSimpleClass(){ fInt=int.MinValue+1, fuInt=uint.MinValue+1, fBool=true, fsByte=sbyte.MinValue+1, fByte = byte.MinValue+1,
+                    fDouble =double.MinValue+1, fFloat=float.MinValue+1, fLong=long.MinValue+1, fuLong = ulong.MinValue+1,
+                    fShort =short.MinValue+1, fuShort = ushort.MinValue+1, fString=""},
                 new ConversionSimpleClass(){},
             };
 
@@ -319,6 +323,9 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ConversionNullalbeClass(){ fInt=int.MaxValue, fuInt=uint.MaxValue, fBool=true, fsByte=sbyte.MaxValue, fByte = byte.MaxValue,
                     fDouble =double.MaxValue, fFloat=float.MaxValue, fLong=long.MaxValue, fuLong = ulong.MaxValue,
                     fShort =short.MaxValue, fuShort = ushort.MaxValue, fString="ooh"},
+                 new ConversionNullalbeClass(){ fInt=int.MinValue+1, fuInt=uint.MinValue+1, fBool=true, fsByte=sbyte.MinValue+1, fByte = byte.MinValue+1,
+                    fDouble =double.MinValue+1, fFloat=float.MinValue+1, fLong=long.MinValue+1, fuLong = ulong.MinValue+1,
+                    fShort =short.MinValue+1, fuShort = ushort.MinValue+1, fString=""},
                 new ConversionNullalbeClass()
             };
 
@@ -341,6 +348,76 @@ namespace Microsoft.ML.EntryPoints.Tests
                     Assert.True(CompareThrougReflection(enumeratorNullable.Current, originalNullableEnumerator.Current));
                 }
                 Assert.True(!enumeratorNullable.MoveNext() && !originalNullableEnumerator.MoveNext());
+            }
+        }
+
+        public class ConversionNotSupportedMinValueClass
+        {
+            public int fInt;
+            public long fLong;
+            public short fShort;
+            public sbyte fSByte;
+        }
+
+        [Fact]
+        public void ConversionExceptionsBehavior()
+        {
+            using (var env = new TlcEnvironment())
+            {
+                var data = new ConversionNotSupportedMinValueClass[1];
+                foreach (var field in typeof(ConversionNotSupportedMinValueClass).GetFields())
+                {
+                    data[0] = new ConversionNotSupportedMinValueClass();
+                    bool gotException = false;
+                    FieldInfo fi;
+                    if ((fi = field.FieldType.GetField("MinValue")) != null)
+                    {
+                        field.SetValue(data[0], fi.GetValue(null));
+                    }
+                    var dataView = ComponentCreation.CreateDataView(env, data);
+                    var enumerator = dataView.AsEnumerable<ConversionNotSupportedMinValueClass>(env, false).GetEnumerator();
+                    try
+                    {
+                        enumerator.MoveNext();
+                    }
+                    catch
+                    {
+                        gotException = true;
+                    }
+                    Assert.True(gotException);
+                }
+            }
+        }
+
+        public class ConversionLossMinValueClass
+        {
+            public int? fInt;
+            public long? fLong;
+            public short? fShort;
+            public sbyte? fSByte;
+        }
+
+        [Fact]
+        public void ConversionMinValueToNullBehavior()
+        {
+            using (var env = new TlcEnvironment())
+            {
+                var data = new List<ConversionLossMinValueClass>(){
+                    new ConversionLossMinValueClass(){ fSByte = null,fInt = null,fLong = null,fShort = null},
+                    new ConversionLossMinValueClass(){fSByte = sbyte.MinValue,fInt = int.MinValue,fLong = long.MinValue,fShort = short.MinValue}
+                };
+
+                foreach (var field in typeof(ConversionLossMinValueClass).GetFields())
+                {
+
+                    var dataView = ComponentCreation.CreateDataView(env, data);
+                    var enumerator = dataView.AsEnumerable<ConversionLossMinValueClass>(env, false).GetEnumerator();
+                    while (enumerator.MoveNext())
+                    {
+                        Assert.True(enumerator.Current.fInt == null && enumerator.Current.fLong == null &&
+                            enumerator.Current.fSByte == null && enumerator.Current.fShort == null);
+                    }
+                }
             }
         }
 
@@ -390,7 +467,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 new ClassWithArrays(){ fInt = new int[3]{ 0,1,2}, fFloat = new float[3]{ -0.99f, 0f, 0.99f}, fString =new string[2]{ "hola", "lola"},
                     fBool =new bool[2]{true, false }, fByte = new byte[3]{ 0,124,255}, fDouble=new double[3]{ -1,0, 1}, fLong = new long[]{ 0,1,2} ,
-                    fsByte = new sbyte[3]{ -128,127,0}, fShort = new short[3]{ 0, 1225, 32767 }, fuInt =new uint[2]{ 0, uint.MaxValue},
+                    fsByte = new sbyte[3]{ -127,127,0}, fShort = new short[3]{ 0, 1225, 32767 }, fuInt =new uint[2]{ 0, uint.MaxValue},
                     fuLong = new ulong[2]{ ulong.MaxValue, 0}, fuShort = new ushort[2]{ 0, ushort.MaxValue}
                 },
                 new ClassWithArrays(){ fInt = new int[3]{ -2,1,0}, fFloat = new float[3]{ 0.99f, 0f, -0.99f}, fString =new string[2]{  "lola","hola"} }
