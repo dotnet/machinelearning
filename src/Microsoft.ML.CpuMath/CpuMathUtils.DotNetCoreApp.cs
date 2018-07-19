@@ -39,7 +39,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 if (!tran)
                 {
                     Contracts.Assert(0 <= crun && crun <= dst.Size);
-                    SseIntrinsics.MatMulASse(add, mat, src, dst, crun, src.Size);
+                    SseIntrinsics.MatMulA(add, mat, src, dst, crun, src.Size);
                 }
                 else
                 {
@@ -50,6 +50,44 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             else
             {
                 // TODO: Software fallback.
+            }
+        }
+
+        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
+            int posMin, int iposMin, int iposLim, AlignedArray dst, int crun)
+        {
+            Contracts.Assert(Compat(mat));
+            Contracts.Assert(Compat(srcValues));
+            Contracts.Assert(Compat(dst));
+            Contracts.AssertValue(rgposSrc);
+            Contracts.Assert(0 <= iposMin && iposMin <= iposLim && iposLim <= rgposSrc.Length);
+            Contracts.Assert(mat.Size == dst.Size * srcValues.Size);
+
+            if (iposMin >= iposLim)
+            {
+                if (!add)
+                    dst.ZeroItems();
+                return;
+            }
+            Contracts.AssertNonEmpty(rgposSrc);
+            unsafe
+            {
+                fixed (float* pdst = &dst.Items[0])
+                fixed (float* pmat = &mat.Items[0])
+                fixed (float* psrc = &srcValues.Items[0])
+                fixed (int* ppossrc = &rgposSrc[0])
+                {
+                    if (!tran)
+                    {
+                        Contracts.Assert(0 <= crun && crun <= dst.Size);
+                        SseIntrinsics.MatMulPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
+                    }
+                    else
+                    {
+                        Contracts.Assert(0 <= crun && crun <= srcValues.Size);
+                        SseIntrinsics.MatMulTranPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
+                    }
+                }
             }
         }
 
