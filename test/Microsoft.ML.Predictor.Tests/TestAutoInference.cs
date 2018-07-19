@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 int batchSize = 5;
                 int numIterations = 10;
                 int numTransformLevels = 3;
-                AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.Auc;
+                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
                 // Using the simple, uniform random sampling (with replacement) engine
                 PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(env);
@@ -69,379 +69,6 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
-        [TestCategory("EntryPoints")]
-        public void TestPipelineSweeperMacroNoTransforms()
-        {
-            // Set up inputs for experiment
-            string pathData = GetDataPath("adult.train");
-            string pathDataTest = GetDataPath("adult.test");
-            const int numOfSampleRows = 1000;
-            const string schema = "sep=, col=Features:R4:0,2,4,10-12 col=Label:R4:14 header=+";
-
-            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
-#pragma warning disable 0618
-            var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
-            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
-            var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
-#pragma warning restore 0618
-            const int batchSize = 5;
-            const int numIterations = 20;
-            const int numTransformLevels = 2;
-            AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.Auc;
-
-            // Using the simple, uniform random sampling (with replacement) engine
-            PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(Env);
-
-            // Create search object
-            var amls = new AutoInference.AutoMlMlState(Env, metric, autoMlEngine, new IterationTerminator(numIterations),
-                MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer, datasetTrain, datasetTest);
-
-            // Infer search space
-            amls.InferSearchSpace(numTransformLevels);
-
-            // Create macro object
-            var pipelineSweepInput = new Microsoft.ML.Models.PipelineSweeper()
-            {
-                BatchSize = batchSize,
-            };
-
-            var exp = new Experiment(Env);
-            var output = exp.Add(pipelineSweepInput);
-            exp.Compile();
-            exp.SetInput(pipelineSweepInput.TrainingData, datasetTrain);
-            exp.SetInput(pipelineSweepInput.TestingData, datasetTest);
-            exp.SetInput(pipelineSweepInput.State, amls);
-            exp.SetInput(pipelineSweepInput.CandidateOutputs, new IDataView[0]);
-            exp.Run();
-
-            // Make sure you get back an AutoMlState, and that it ran for correct number of iterations
-            // with at least minimal performance values (i.e., best should have AUC better than 0.1 on this dataset).
-            AutoInference.AutoMlMlState amlsOut = (AutoInference.AutoMlMlState)exp.GetOutput(output.State);
-            Assert.NotNull(amlsOut);
-            Assert.Equal(amlsOut.GetAllEvaluatedPipelines().Length, numIterations);
-            Assert.True(amlsOut.GetBestPipeline().PerformanceSummary.MetricValue > 0.1);
-        }
-
-        [Fact]
-        [TestCategory("EntryPoints")]
-        public void EntryPointPipelineSweepSerialization()
-        {
-            // Get datasets
-            var pathData = GetDataPath("adult.train");
-            var pathDataTest = GetDataPath("adult.test");
-            const int numOfSampleRows = 1000;
-            int numIterations = 10;
-            const string schema =
-                "sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
-                "col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
-            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
-#pragma warning disable 0618
-            var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
-            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
-            var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
-#pragma warning restore 0618
-
-            // Define entrypoint graph
-            string inputGraph = @"
-                {
-                  'Nodes': [
-                    {
-                      'Name': 'Models.PipelineSweeper',
-                      'Inputs': {
-                        'TrainingData': '$TrainingData',
-                        'TestingData': '$TestingData',
-                        'StateArguments': {
-                            'Name': 'AutoMlState',
-                            'Settings': {
-                                'Metric': 'Auc',
-                                'Engine': {
-                                    'Name': 'UniformRandom'
-                                },
-                                'TerminatorArgs': {
-                                    'Name': 'IterationLimited',
-                                    'Settings': {
-                                        'FinalHistoryLength': 10
-                                    }
-                                },
-                                'TrainerKind': 'SignatureBinaryClassifierTrainer'
-                            }
-                        },
-                        'BatchSize': 5
-                      },
-                      'Outputs': {
-                        'State': '$StateOut',
-                        'Results': '$ResultsOut'
-                      }
-                    },
-                  ]
-                }";
-
-            JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
-            // Test if ToJson() works properly.
-            var nodes = new JArray(graph.AllNodes.Select(node => node.ToJson()));
-            var runner = new GraphRunner(Env, catalog, nodes);
-            runner.SetInput("TrainingData", datasetTrain);
-            runner.SetInput("TestingData", datasetTest);
-            runner.RunAll();
-
-            var results = runner.GetOutput<IDataView>("ResultsOut");
-            Assert.NotNull(results);
-            var rows = PipelinePattern.ExtractResults(Env, results,
-                "Graph", "MetricValue", "PipelineId", "TrainingMetricValue", "FirstInput", "PredictorModel");
-            Assert.True(rows.Length == numIterations);
-        }
-
-        [Fact]
-        public void EntryPointPipelineSweep()
-        {
-            // Get datasets
-            var pathData = GetDataPath("adult.tiny.with-schema.txt");
-            var pathDataTest = GetDataPath("adult.tiny.with-schema.txt");
-            const int numOfSampleRows = 1000;
-            int numIterations = 4;
-            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
-#pragma warning disable 0618
-            var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain }).Data.Take(numOfSampleRows);
-            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
-            var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest }).Data.Take(numOfSampleRows);
-#pragma warning restore 0618
-            // Define entrypoint graph
-            string inputGraph = @"
-                {
-                  'Nodes': [                                
-                    {
-                      'Name': 'Models.PipelineSweeper',
-                      'Inputs': {
-                        'TrainingData': '$TrainingData',
-                        'TestingData': '$TestingData',
-                        'StateArguments': {
-                            'Name': 'AutoMlState',
-                            'Settings': {
-                                'Metric': 'Auc',
-                                'Engine': {
-                                    'Name': 'UniformRandom'
-                                },
-                                'TerminatorArgs': {
-                                    'Name': 'IterationLimited',
-                                    'Settings': {
-                                        'FinalHistoryLength': 4
-                                    }
-                                },
-                                'TrainerKind': 'SignatureBinaryClassifierTrainer'
-                            }
-                        },
-                        'BatchSize': 2
-                      },
-                      'Outputs': {
-                        'State': '$StateOut',
-                        'Results': '$ResultsOut'
-                      }
-                    },
-                  ]
-                }";
-
-            JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
-            runner.SetInput("TrainingData", datasetTrain);
-            runner.SetInput("TestingData", datasetTest);
-            runner.RunAll();
-
-            var autoMlState = runner.GetOutput<AutoInference.AutoMlMlState>("StateOut");
-            Assert.NotNull(autoMlState);
-            var allPipelines = autoMlState.GetAllEvaluatedPipelines();
-            var bestPipeline = autoMlState.GetBestPipeline();
-            Assert.Equal(allPipelines.Length, numIterations);
-            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.1);
-
-            var results = runner.GetOutput<IDataView>("ResultsOut");
-            Assert.NotNull(results);
-            var rows = PipelinePattern.ExtractResults(Env, results,
-                "Graph", "MetricValue", "PipelineId", "TrainingMetricValue", "FirstInput", "PredictorModel");
-            Assert.True(rows.Length == numIterations);
-            Assert.True(rows.All(r => r.TrainingMetricValue > 0.1));
-        }
-
-        [Fact]
-        [TestCategory("EntryPoints")]
-        public void EntryPointPipelineSweepRoles()
-        {
-            // Get datasets
-            var pathData = GetDataPath("adult.train");
-            var pathDataTest = GetDataPath("adult.test");
-            const int numOfSampleRows = 100;
-            int numIterations = 2;
-            const string schema =
-                "sep=, col=age:R4:0 col=workclass:TX:1 col=fnlwgt:R4:2 col=education:TX:3 col=education_num:R4:4 col=marital_status:TX:5 col=occupation:TX:6 " +
-                "col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=Features:R4:10-12 col=native_country:TX:13 col=IsOver50K_:R4:14 header=+";
-            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
-#pragma warning disable 0618
-            var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
-            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
-            var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
-#pragma warning restore 0618
-
-            // Define entrypoint graph
-            string inputGraph = @"
-                {
-                  'Nodes': [
-                    {
-                      'Name': 'Models.PipelineSweeper',
-                      'Inputs': {
-                        'TrainingData': '$TrainingData',
-                        'TestingData': '$TestingData',
-                        'LabelColumns': ['IsOver50K_'],
-                        'WeightColumns': ['education_num'],
-                        'NameColumns': ['education'],
-                        'TextFeatureColumns': ['workclass', 'marital_status', 'occupation'],
-                        'StateArguments': {
-                            'Name': 'AutoMlState',
-                            'Settings': {
-                                'Metric': 'Auc',
-                                'Engine': {
-                                    'Name': 'Defaults'
-                                },
-                                'TerminatorArgs': {
-                                    'Name': 'IterationLimited',
-                                    'Settings': {
-                                        'FinalHistoryLength': 2
-                                    }
-                                },
-                                'TrainerKind': 'SignatureBinaryClassifierTrainer',
-                                'RequestedLearners' : [
-                                    'LogisticRegressionBinaryClassifier',
-                                    'FastTreeBinaryClassifier'
-                                ]
-                            }
-                        },
-                        'BatchSize': 1
-                      },
-                      'Outputs': {
-                        'State': '$StateOut',
-                        'Results': '$ResultsOut'
-                      }
-                    },
-                  ]
-                }";
-
-            JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var runner = new GraphRunner(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
-            runner.SetInput("TrainingData", datasetTrain);
-            runner.SetInput("TestingData", datasetTest);
-            runner.RunAll();
-
-            var autoMlState = runner.GetOutput<AutoInference.AutoMlMlState>("StateOut");
-            Assert.NotNull(autoMlState);
-            var allPipelines = autoMlState.GetAllEvaluatedPipelines();
-            var bestPipeline = autoMlState.GetBestPipeline();
-            Assert.Equal(allPipelines.Length, numIterations);
-
-            var trainAuc = bestPipeline.PerformanceSummary.TrainingMetricValue;
-            var testAuc = bestPipeline.PerformanceSummary.MetricValue;
-            Assert.True((0.94 < trainAuc) && (trainAuc < 0.95));
-            Assert.True((0.815 < testAuc) && (testAuc < 0.825));
-
-            var results = runner.GetOutput<IDataView>("ResultsOut");
-            Assert.NotNull(results);
-            var rows = PipelinePattern.ExtractResults(Env, results,
-                "Graph", "MetricValue", "PipelineId", "TrainingMetricValue", "FirstInput", "PredictorModel");
-            Assert.True(rows.Length == numIterations);
-            Assert.True(rows.All(r => r.TrainingMetricValue > 0.1));
-        }
-
-        [Fact]
-        public void TestRocketPipelineEngine()
-        {
-            // Get datasets
-            var pathData = GetDataPath("adult.train");
-            var pathDataTest = GetDataPath("adult.test");
-            const int numOfSampleRows = 1000;
-            int numIterations = 35;
-            const string schema =
-                "sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
-                "col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
-            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
-#pragma warning disable 0618
-            var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
-            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
-            var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
-#pragma warning restore 0618
-            // Define entrypoint graph
-            string inputGraph = @"
-                {
-                  'Nodes': [                                
-                    {
-                      'Name': 'Models.PipelineSweeper',
-                      'Inputs': {
-                        'TrainingData': '$TrainingData',
-                        'TestingData': '$TestingData',
-                        'StateArguments': {
-                            'Name': 'AutoMlState',
-                            'Settings': {
-                                'Metric': 'Auc',
-                                'Engine': {
-                                    'Name': 'Rocket',
-                                    'Settings' : {
-                                        'TopKLearners' : 2,
-                                        'SecondRoundTrialsPerLearner' : 5
-                                    },
-                                },
-                                'TerminatorArgs': {
-                                    'Name': 'IterationLimited',
-                                    'Settings': {
-                                        'FinalHistoryLength': 35
-                                    }
-                                },
-                                'TrainerKind': 'SignatureBinaryClassifierTrainer'
-                            }
-                        },
-                        'BatchSize': 5
-                      },
-                      'Outputs': {
-                        'State': '$StateOut',
-                        'Results': '$ResultsOut'
-                      }
-                    },
-                  ]
-                }";
-
-            JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
-            runner.SetInput("TrainingData", datasetTrain);
-            runner.SetInput("TestingData", datasetTest);
-            runner.RunAll();
-
-            var autoMlState = runner.GetOutput<AutoInference.AutoMlMlState>("StateOut");
-            Assert.NotNull(autoMlState);
-            var allPipelines = autoMlState.GetAllEvaluatedPipelines();
-            var bestPipeline = autoMlState.GetBestPipeline();
-            Assert.Equal(allPipelines.Length, numIterations);
-            Assert.True(bestPipeline.PerformanceSummary.MetricValue > 0.1);
-
-            var results = runner.GetOutput<IDataView>("ResultsOut");
-            Assert.NotNull(results);
-            var rows = PipelinePattern.ExtractResults(Env, results,
-                "Graph", "MetricValue", "PipelineId", "TrainingMetricValue", "FirstInput", "PredictorModel");
-            Assert.True(rows.Length == numIterations);
-        }
-
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void TestTextDatasetLearn()
         {
@@ -452,7 +79,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 int numIterations = 35;
                 int numTransformLevels = 1;
                 int numSampleRows = 100;
-                AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.AccuracyMicro;
+                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.AccuracyMicro);
 
                 // Using the simple, uniform random sampling (with replacement) engine
                 PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(env);
@@ -504,27 +131,6 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void TestSupportedMetricsByName()
-        {
-            var names = new List<string>()
-            {
-                AutoInference.SupportedMetric.AccuracyMacro.Name,
-                AutoInference.SupportedMetric.AccuracyMicro.Name,
-                AutoInference.SupportedMetric.Auc.Name,
-                AutoInference.SupportedMetric.AuPrc.Name,
-                AutoInference.SupportedMetric.Dbi.Name,
-                AutoInference.SupportedMetric.F1.Name,
-                AutoInference.SupportedMetric.LogLossReduction.Name
-            };
-
-            foreach (var name in names)
-            {
-                var metric = AutoInference.SupportedMetric.ByName(name);
-                Assert.Equal(metric.Name, name);
-            }
-        }
-
-        [Fact]
         public void TestHyperparameterFreezing()
         {
             string pathData = GetDataPath("adult.train");
@@ -532,41 +138,44 @@ namespace Microsoft.ML.Runtime.RunTests
             int batchSize = 1;
             int numIterations = 10;
             int numTransformLevels = 3;
-            AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.Auc;
+            using (var env = new TlcEnvironment())
+            {
+                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
-            // Using the simple, uniform random sampling (with replacement) brain
-            PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);
+                // Using the simple, uniform random sampling (with replacement) brain
+                PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);
 
-            // Run initial experiments
-            var amls = AutoInference.InferPipelines(Env, autoMlBrain, pathData, "", out var _, numTransformLevels, batchSize,
-                metric, out var bestPipeline, numOfSampleRows, new IterationTerminator(numIterations),
-                MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer);
+                // Run initial experiments
+                var amls = AutoInference.InferPipelines(Env, autoMlBrain, pathData, "", out var _, numTransformLevels, batchSize,
+                    metric, out var bestPipeline, numOfSampleRows, new IterationTerminator(numIterations),
+                    MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer);
 
-            // Clear results
-            amls.ClearEvaluatedPipelines();
+                // Clear results
+                amls.ClearEvaluatedPipelines();
 
-            // Get space, remove transforms and all but one learner, freeze hyperparameters on learner.
-            var space = amls.GetSearchSpace();
-            var transforms = space.Item1.Where(t =>
-                t.ExpertType != typeof(TransformInference.Experts.Categorical)).ToArray();
-            var learners = new[] { space.Item2.First() };
-            var hyperParam = learners[0].PipelineNode.SweepParams.First();
-            var frozenParamValue = hyperParam.RawValue;
-            hyperParam.Frozen = true;
-            amls.UpdateSearchSpace(learners, transforms);
+                // Get space, remove transforms and all but one learner, freeze hyperparameters on learner.
+                var space = amls.GetSearchSpace();
+                var transforms = space.Item1.Where(t =>
+                    t.ExpertType != typeof(TransformInference.Experts.Categorical)).ToArray();
+                var learners = new[] { space.Item2.First() };
+                var hyperParam = learners[0].PipelineNode.SweepParams.First();
+                var frozenParamValue = hyperParam.RawValue;
+                hyperParam.Frozen = true;
+                amls.UpdateSearchSpace(learners, transforms);
 
-            // Allow for one more iteration
-            amls.UpdateTerminator(new IterationTerminator(numIterations + 1));
+                // Allow for one more iteration
+                amls.UpdateTerminator(new IterationTerminator(numIterations + 1));
 
-            // Do learning. Only retained learner should be left in all pipelines.
-            bestPipeline = amls.InferPipelines(numTransformLevels, batchSize, numOfSampleRows);
+                // Do learning. Only retained learner should be left in all pipelines.
+                bestPipeline = amls.InferPipelines(numTransformLevels, batchSize, numOfSampleRows);
 
-            // Make sure all pipelines have retained learner
-            Assert.True(amls.GetAllEvaluatedPipelines().All(p => p.Learner.LearnerName == learners[0].LearnerName));
+                // Make sure all pipelines have retained learner
+                Assert.True(amls.GetAllEvaluatedPipelines().All(p => p.Learner.LearnerName == learners[0].LearnerName));
 
-            // Make sure hyperparameter value did not change
-            Assert.NotNull(bestPipeline);
-            Assert.Equal(bestPipeline.Learner.PipelineNode.SweepParams.First().RawValue, frozenParamValue);
+                // Make sure hyperparameter value did not change
+                Assert.NotNull(bestPipeline);
+                Assert.Equal(bestPipeline.Learner.PipelineNode.SweepParams.First().RawValue, frozenParamValue);
+            }
         }
 
         [Fact(Skip = "Dataset not available.")]
@@ -577,26 +186,29 @@ namespace Microsoft.ML.Runtime.RunTests
             int batchSize = 5;
             int numIterations = 10;
             int numTransformLevels = 1;
-            AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.L1;
+            using (var env = new TlcEnvironment())
+            {
+                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.AccuracyMicro);
 
-            // Using the simple, uniform random sampling (with replacement) brain
-            PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);
+                // Using the simple, uniform random sampling (with replacement) brain
+                PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);
 
-            // Run initial experiments
-            var amls = AutoInference.InferPipelines(Env, autoMlBrain, pathData, "", out var _, numTransformLevels, batchSize,
-            metric, out var bestPipeline, numOfSampleRows, new IterationTerminator(numIterations),
-            MacroUtils.TrainerKinds.SignatureRegressorTrainer);
+                // Run initial experiments
+                var amls = AutoInference.InferPipelines(Env, autoMlBrain, pathData, "", out var _, numTransformLevels, batchSize,
+                metric, out var bestPipeline, numOfSampleRows, new IterationTerminator(numIterations),
+                MacroUtils.TrainerKinds.SignatureRegressorTrainer);
 
-            // Allow for one more iteration
-            amls.UpdateTerminator(new IterationTerminator(numIterations + 1));
+                // Allow for one more iteration
+                amls.UpdateTerminator(new IterationTerminator(numIterations + 1));
 
-            // Do learning. Only retained learner should be left in all pipelines.
-            bestPipeline = amls.InferPipelines(numTransformLevels, batchSize, numOfSampleRows);
+                // Do learning. Only retained learner should be left in all pipelines.
+                bestPipeline = amls.InferPipelines(numTransformLevels, batchSize, numOfSampleRows);
 
-            // Make sure hyperparameter value did not change
-            Assert.NotNull(bestPipeline);
-            Assert.True(amls.GetAllEvaluatedPipelines().All(
-            p => p.PerformanceSummary.MetricValue >= bestPipeline.PerformanceSummary.MetricValue));
+                // Make sure hyperparameter value did not change
+                Assert.NotNull(bestPipeline);
+                Assert.True(amls.GetAllEvaluatedPipelines().All(
+                p => p.PerformanceSummary.MetricValue >= bestPipeline.PerformanceSummary.MetricValue));
+            }
         }
 
         [Fact]
@@ -608,102 +220,26 @@ namespace Microsoft.ML.Runtime.RunTests
             int numIterations = 1;
             int numTransformLevels = 2;
             var retainedLearnerNames = new[] { $"LogisticRegressionBinaryClassifier", $"FastTreeBinaryClassifier" };
-            AutoInference.SupportedMetric metric = AutoInference.SupportedMetric.Auc;
+            using (var env = new TlcEnvironment())
+            {
+                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
-            // Using the simple, uniform random sampling (with replacement) brain.
-            PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);
+                // Using the simple, uniform random sampling (with replacement) brain.
+                PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);
 
-            // Run initial experiment.
-            var amls = AutoInference.InferPipelines(Env, autoMlBrain, pathData, "", out var _,
-            numTransformLevels, batchSize, metric, out var _, numOfSampleRows,
-            new IterationTerminator(numIterations), MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer);
+                // Run initial experiment.
+                var amls = AutoInference.InferPipelines(Env, autoMlBrain, pathData, "", out var _,
+                numTransformLevels, batchSize, metric, out var _, numOfSampleRows,
+                new IterationTerminator(numIterations), MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer);
 
-            // Keep only logistic regression and FastTree.
-            amls.KeepSelectedLearners(retainedLearnerNames);
-            var space = amls.GetSearchSpace();
+                // Keep only logistic regression and FastTree.
+                amls.KeepSelectedLearners(retainedLearnerNames);
+                var space = amls.GetSearchSpace();
 
-            // Make sure only learners left are those retained.
-            Assert.Equal(retainedLearnerNames.Length, space.Item2.Length);
-            Assert.True(space.Item2.All(l => retainedLearnerNames.Any(r => r == l.LearnerName)));
-        }
-
-        [Fact]
-        public void TestRequestedLearners()
-        {
-            // Get datasets
-            var pathData = GetDataPath("adult.train");
-            var pathDataTest = GetDataPath("adult.test");
-            const int numOfSampleRows = 100;
-            const string schema =
-                "sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
-                "col=relationship:TX:7 col=race:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
-            var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
-#pragma warning disable 0618
-            var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
-            var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
-            var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
-            var requestedLearners = new[] { $"LogisticRegressionBinaryClassifier", $"FastTreeBinaryClassifier" };
-#pragma warning restore 0618
-            // Define entrypoint graph
-            string inputGraph = @"
-                {
-                  'Nodes': [                                
-                    {
-                      'Name': 'Models.PipelineSweeper',
-                      'Inputs': {
-                        'TrainingData': '$TrainingData',
-                        'TestingData': '$TestingData',
-                        'StateArguments': {
-                            'Name': 'AutoMlState',
-                            'Settings': {
-                                'Metric': 'Auc',
-                                'Engine': {
-                                    'Name': 'Rocket',
-                                    'Settings' : {
-                                        'TopKLearners' : 2,
-                                        'SecondRoundTrialsPerLearner' : 0
-                                    },
-                                },
-                                'TerminatorArgs': {
-                                    'Name': 'IterationLimited',
-                                    'Settings': {
-                                        'FinalHistoryLength': 35
-                                    }
-                                },
-                                'TrainerKind': 'SignatureBinaryClassifierTrainer',
-                                'RequestedLearners' : [
-                                    'LogisticRegressionBinaryClassifier',
-                                    'FastTreeBinaryClassifier'
-                                ]
-                            }
-                        },
-                        'BatchSize': 5
-                      },
-                      'Outputs': {
-                        'State': '$StateOut',
-                        'Results': '$ResultsOut'
-                      }
-                    },
-                  ]
-                }";
-
-            JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
-            runner.SetInput("TrainingData", datasetTrain);
-            runner.SetInput("TestingData", datasetTest);
-            runner.RunAll();
-
-            var autoMlState = runner.GetOutput<AutoInference.AutoMlMlState>("StateOut");
-            Assert.NotNull(autoMlState);
-            var space = autoMlState.GetSearchSpace();
-
-            // Make sure only learners left are those retained.
-            Assert.Equal(requestedLearners.Length, space.Item2.Length);
-            Assert.True(space.Item2.All(l => requestedLearners.Any(r => r == l.LearnerName)));
+                // Make sure only learners left are those retained.
+                Assert.Equal(retainedLearnerNames.Length, space.Item2.Length);
+                Assert.True(space.Item2.All(l => retainedLearnerNames.Any(r => r == l.LearnerName)));
+            }
         }
 
         [Fact]

@@ -205,9 +205,8 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="env">The host environment to use to potentially instantiate the transform</param>
         /// <param name="data">The role-mapped data that is potentially going to be modified by this method.</param>
-        /// <param name="trainer">The trainer to query with <see cref="NormalizeUtils.NeedNormalization(ITrainer)"/>.
-        /// This method will not modify <paramref name="data"/> if the return from that is <c>null</c> or
-        /// <c>false</c>.</param>
+        /// <param name="trainer">The trainer to query as to whether it wants normalization. If the
+        /// <see cref="ITrainer.Info"/>'s <see cref="TrainerInfo.NeedNormalization"/> is <c>true</c></param>
         /// <returns>True if the normalizer was applied and <paramref name="data"/> was modified</returns>
         public static bool CreateIfNeeded(IHostEnvironment env, ref RoleMappedData data, ITrainer trainer)
         {
@@ -215,14 +214,12 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(data, nameof(data));
             env.CheckValue(trainer, nameof(trainer));
 
-            // If this is false or null, we do not want to normalize.
-            if (trainer.NeedNormalization() != true)
-                return false;
-            // If this is true or null, we do not want to normalize.
-            if (data.Schema.FeaturesAreNormalized() != false)
+            // If the trainer does not need normalization, or if the features either don't exist
+            // or are not normalized, return false.
+            if (!trainer.Info.NeedNormalization || data.Schema.FeaturesAreNormalized() != false)
                 return false;
             var featInfo = data.Schema.Feature;
-            env.AssertValue(featInfo); // Should be defined, if FEaturesAreNormalized returned a definite value.
+            env.AssertValue(featInfo); // Should be defined, if FeaturesAreNormalized returned a definite value.
 
             var view = CreateMinMaxNormalizer(env, data.Data, name: featInfo.Name);
             data = new RoleMappedData(view, data.Schema.GetColumnRoleNames());
@@ -363,20 +360,6 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class NormalizeUtils
     {
-        /// <summary>
-        /// Tells whether the trainer wants normalization.
-        /// </summary>
-        /// <remarks>This method works via testing whether the trainer implements the optional interface
-        /// <see cref="ITrainerEx"/>, via the Boolean <see cref="ITrainerEx.NeedNormalization"/> property.
-        /// If <paramref name="trainer"/> does not implement that interface, then we return <c>null</c></remarks>
-        /// <param name="trainer">The trainer to query</param>
-        /// <returns>Whether the trainer wants normalization</returns>
-        public static bool? NeedNormalization(this ITrainer trainer)
-        {
-            Contracts.CheckValue(trainer, nameof(trainer));
-            return (trainer as ITrainerEx)?.NeedNormalization;
-        }
-
         /// <summary>
         /// Returns whether the feature column in the schema is indicated to be normalized. If the features column is not
         /// specified on the schema, then this will return <c>null</c>.

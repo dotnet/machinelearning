@@ -26,41 +26,33 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    public sealed class MultiClassNaiveBayesTrainer : TrainerBase<RoleMappedData, MultiClassNaiveBayesPredictor>
+    /// <include file='doc.xml' path='doc/members/member[@name="MultiClassNaiveBayesTrainer"]' /> 
+    public sealed class MultiClassNaiveBayesTrainer : TrainerBase<MultiClassNaiveBayesPredictor>
     {
         public const string LoadName = "MultiClassNaiveBayes";
         internal const string UserName = "Multiclass Naive Bayes";
         internal const string ShortName = "MNB";
         internal const string Summary = "Trains a multiclass Naive Bayes predictor that supports binary feature values.";
-        internal const string Remarks = @"<remarks>
-<a href ='https://en.wikipedia.org/wiki/Naive_Bayes_classifier'>Naive Bayes</a> is a probabilistic classifier that can be used for multiclass problems. 
-Using Bayes' theorem, the conditional probability for a sample belonging to a class can be calculated based on the sample count for each feature combination groups.
-However, Naive Bayes Classifier is feasible only if the number of features and the values each feature can take is relatively small.
-It also assumes that the features are strictly independent.
-</remarks>";
 
         public sealed class Arguments : LearnerInputBaseWithLabel
         {
         }
 
-        private MultiClassNaiveBayesPredictor _predictor;
-
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        public override bool NeedNormalization => false;
-
-        public override bool NeedCalibration => false;
-
-        public override bool WantCaching => false;
+        private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
+        public override TrainerInfo Info => _info;
 
         public MultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadName)
         {
+            Host.CheckValue(args, nameof(args));
         }
 
-        public override void Train(RoleMappedData data)
+        public override MultiClassNaiveBayesPredictor Train(TrainContext context)
         {
-            Host.CheckValue(data, nameof(data));
+            Host.CheckValue(context, nameof(context));
+            var data = context.TrainingSet;
             Host.Check(data.Schema.Label != null, "Missing Label column");
             Host.Check(data.Schema.Label.Type == NumberType.Float || data.Schema.Label.Type is KeyType,
                 "Invalid type for Label column, only floats and known-size keys are supported");
@@ -89,6 +81,7 @@ It also assumes that the features are strictly independent.
                     if (cursor.Row.Position > int.MaxValue)
                     {
                         ch.Warning("Stopping training because maximum number of rows have been traversed");
+                        ch.Done();
                         break;
                     }
 
@@ -118,21 +111,20 @@ It also assumes that the features are strictly independent.
 
                     examplesProcessed += 1;
                 }
+                ch.Done();
             }
 
             Array.Resize(ref labelHistogram, labelCount);
             Array.Resize(ref featureHistogram, labelCount);
-            _predictor = new MultiClassNaiveBayesPredictor(Host, labelHistogram, featureHistogram, featureCount);
-        }
-
-        public override MultiClassNaiveBayesPredictor CreatePredictor()
-        {
-            return _predictor;
+            return new MultiClassNaiveBayesPredictor(Host, labelHistogram, featureHistogram, featureCount);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.NaiveBayesClassifier",
             Desc = "Train a MultiClassNaiveBayesTrainer.",
-            UserName = UserName, ShortName = ShortName)]
+            UserName = UserName, 
+            ShortName = ShortName, 
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name=""MultiClassNaiveBayesTrainer""]'/>",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/example[@name=""MultiClassNaiveBayesTrainer""]'/>" })]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
