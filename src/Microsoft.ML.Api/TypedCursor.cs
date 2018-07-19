@@ -285,7 +285,7 @@ namespace Microsoft.ML.Runtime.Api
                     else if (fieldType.GetElementType() == typeof(bool))
                     {
                         Ch.Assert(colType.ItemType.IsBool);
-                        return CreateVBufferSetter<DvBool, bool>(input, index, poke, peek, x => Convert.ToBoolean(x.RawValue));
+                        return CreateVBufferSetter<DvBool, bool>(input, index, poke, peek, x => (bool)x);
                     }
                     else if (fieldType.GetElementType() == typeof(bool?))
                     {
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Runtime.Api
                     {
                         Ch.Assert(colType.IsBool);
                         Ch.Assert(peek == null);
-                        return CreateActionSetter<DvBool, bool>(input, index, poke, x => Convert.ToBoolean(x.RawValue));
+                        return CreateActionSetter<DvBool, bool>(input, index, poke, x => (bool)x);
                     }
                     else if (fieldType == typeof(bool?))
                     {
