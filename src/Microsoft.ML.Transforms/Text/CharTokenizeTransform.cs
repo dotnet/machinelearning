@@ -64,12 +64,13 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         public const string LoaderSignature = "CharToken";
         public const string UserName = "Character Tokenizer Transform";
 
+        public static uint CurrentModelVersion = 0x00010002;
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "CHARTOKN",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
+                verWrittenCur: CurrentModelVersion,
+                verReadableCur: CurrentModelVersion,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
         }
@@ -84,6 +85,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         private volatile string _keyValuesStr;
         private volatile int[] _keyValuesBoundaries;
 
+        private const ushort UnitSeparator = 0x1f;
         private const ushort TextStartMarker = 0x02;
         private const ushort TextEndMarker = 0x03;
         private const int TextMarkersCount = 2;
@@ -119,6 +121,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             // <base>
             // byte: _useMarkerChars value.
             _useMarkerChars = ctx.Reader.ReadBoolByte();
+            CurrentModelVersion = ctx.Header.ModelVerReadable;
 
             _type = GetOutputColumnType();
             SetMetadata();
@@ -397,15 +400,55 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             int cv = Infos[iinfo].TypeSrc.VectorSize;
             Contracts.Assert(cv >= 0);
 
+            var version = GetVersionInfo();
             var getSrc = GetSrcGetter<VBuffer<DvText>>(input, iinfo);
             var src = default(VBuffer<DvText>);
-            return
-                (ref VBuffer<ushort> dst) =>
+
+            ValueGetter<VBuffer<ushort>> valueGetterOldVersion = (ref VBuffer<ushort> dst) =>
                 {
                     getSrc(ref src);
 
                     int len = 0;
-                    
+                    for (int i = 0; i < src.Count; i++)
+                    {
+                        if (src.Values[i].HasChars)
+                        {
+                            len += src.Values[i].Length;
+                            if (_useMarkerChars)
+                                len += TextMarkersCount;
+                        }
+                    }
+
+                    var values = dst.Values;
+                    if (len > 0)
+                    {
+                        if (Utils.Size(values) < len)
+                            values = new ushort[len];
+
+                        int index = 0;
+                        for (int i = 0; i < src.Count; i++)
+                        {
+                            if (!src.Values[i].HasChars)
+                                continue;
+                            if (_useMarkerChars)
+                                values[index++] = TextStartMarker;
+                            for (int ich = 0; ich < src.Values[i].Length; ich++)
+                                values[index++] = src.Values[i][ich];
+                            if (_useMarkerChars)
+                                values[index++] = TextEndMarker;
+                        }
+                        Contracts.Assert(index == len);
+                    }
+
+                    dst = new VBuffer<ushort>(len, values, dst.Indices);
+                };
+
+            ValueGetter < VBuffer<ushort> > valueGetterCurrentVersion = (ref VBuffer<ushort> dst) =>
+                {
+                    getSrc(ref src);
+
+                    int len = 0;
+
                     for (int i = 0; i < src.Count; i++)
                     {
                         if (src.Values[i].HasChars)
@@ -413,7 +456,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                             len += src.Values[i].Length;
 
                             if (i > 0)
-                                len += 1;  // add space character that will be added
+                                len += 1;  // add UnitSeparator character to len that will be added
                         }
                     }
 
@@ -429,11 +472,11 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         int index = 0;
 
                         // VBuffer<DvText> can be a result of either concatenating text columns together 
-                        // or application of word tokenizer before char tokenizer.
+                        // or application of word tokenizer before char tokenizer in TextTransform.
                         //
                         // Considering VBuffer<DvText> as a single text stream.
                         // Therefore, prepend and append start and end markers only once i.e. at the start and at end of vector.
-                        // Insert spaces after every piece of text in the vector.
+                        // Insert UnitSeparator after every piece of text in the vector.
                         if (_useMarkerChars)
                             values[index++] = TextStartMarker;
 
@@ -443,7 +486,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                                 continue;
 
                             if (i > 0)
-                                values[index++] = ' ';
+                                values[index++] = UnitSeparator;
 
                             for (int ich = 0; ich < src.Values[i].Length; ich++)
                             {
@@ -459,6 +502,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                     dst = new VBuffer<ushort>(len, values, dst.Indices);
                 };
+            return CurrentModelVersion < version.VerReadableCur ? valueGetterOldVersion : valueGetterCurrentVersion;
         }
     }
 }
