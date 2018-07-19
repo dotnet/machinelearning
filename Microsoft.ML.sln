@@ -87,6 +87,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.CpuMath", "Mic
 		pkg\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.nupkgproj = pkg\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.nupkgproj
 		pkg\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.symbols.nupkgproj = pkg\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.symbols.nupkgproj
 	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools-local", "tools-local", "{7F13E156-3EBA-4021-84A5-CD56BA72F99E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CodeAnalyzer", "tools-local\Microsoft.ML.CodeAnalyzer\Microsoft.ML.CodeAnalyzer.csproj", "{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}"
