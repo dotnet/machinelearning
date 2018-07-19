@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System;
 
@@ -25,70 +24,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             float* q = p + a.GetBase((long)p);
             Contracts.Assert(((long)q & (CbAlign - 1)) == 0);
             return q;
-        }
-
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
-        {
-            Contracts.Assert(Compat(mat));
-            Contracts.Assert(Compat(src));
-            Contracts.Assert(Compat(dst));
-            Contracts.Assert(mat.Size == dst.Size * src.Size);
-
-            if (Sse.IsSupported)
-            {
-                if (!tran)
-                {
-                    Contracts.Assert(0 <= crun && crun <= dst.Size);
-                    SseIntrinsics.MatMulA(add, mat, src, dst, crun, src.Size);
-                }
-                else
-                {
-                    Contracts.Assert(0 <= crun && crun <= src.Size);
-                    SseIntrinsics.MatMulTranA(add, mat, src, dst, dst.Size, crun);
-                }
-            }
-            else
-            {
-                // TODO: Software fallback.
-            }
-        }
-
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
-            int posMin, int iposMin, int iposLim, AlignedArray dst, int crun)
-        {
-            Contracts.Assert(Compat(mat));
-            Contracts.Assert(Compat(srcValues));
-            Contracts.Assert(Compat(dst));
-            Contracts.AssertValue(rgposSrc);
-            Contracts.Assert(0 <= iposMin && iposMin <= iposLim && iposLim <= rgposSrc.Length);
-            Contracts.Assert(mat.Size == dst.Size * srcValues.Size);
-
-            if (iposMin >= iposLim)
-            {
-                if (!add)
-                    dst.ZeroItems();
-                return;
-            }
-            Contracts.AssertNonEmpty(rgposSrc);
-            unsafe
-            {
-                fixed (float* pdst = &dst.Items[0])
-                fixed (float* pmat = &mat.Items[0])
-                fixed (float* psrc = &srcValues.Items[0])
-                fixed (int* ppossrc = &rgposSrc[0])
-                {
-                    if (!tran)
-                    {
-                        Contracts.Assert(0 <= crun && crun <= dst.Size);
-                        SseIntrinsics.MatMulPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
-                    }
-                    else
-                    {
-                        Contracts.Assert(0 <= crun && crun <= srcValues.Size);
-                        SseIntrinsics.MatMulTranPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
-                    }
-                }
-            }
         }
 
         public static void Scale(float a, float[] dst, int count)
