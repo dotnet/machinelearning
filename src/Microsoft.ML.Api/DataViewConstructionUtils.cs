@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Api
                         if (outputType.GetElementType() == typeof(string))
                         {
                             Ch.Assert(colType.ItemType.IsText);
-                            return CreateArrayGetterDelegate<String, DvText>(index, x => new DvText(x));
+                            return CreateArrayGetterDelegate<String, DvText>(index, x => x == null ? DvText.NA : new DvText(x));
                         }
                         else if (outputType.GetElementType() == typeof(int))
                         {
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.Api
                         {
                             // String -> DvText
                             Ch.Assert(colType.IsText);
-                            return CreateGetterDelegate<String, DvText>(index, (x) => x == null ? DvText.NA : new DvText(x));
+                            return CreateGetterDelegate<String, DvText>(index, x => x == null ? DvText.NA : new DvText(x));
                         }
                         else if (outputType == typeof(bool))
                         {
@@ -253,19 +253,19 @@ namespace Microsoft.ML.Runtime.Api
                         {
                             // long? -> DvInt8
                             Ch.Assert(colType == NumberType.I8);
-                            return CreateGetterDelegate<long?, DvInt8>(index, (x) => x.HasValue ? x.Value : DvInt8.NA);
+                            return CreateGetterDelegate<long?, DvInt8>(index, x => x ?? DvInt8.NA);
                         }
                         else if (outputType == typeof(sbyte))
                         {
                             // sbyte -> DvInt1
                             Ch.Assert(colType == NumberType.I1);
-                            return CreateGetterDelegate<sbyte, DvInt1>(index, (x) => (DvInt1)x);
+                            return CreateGetterDelegate<sbyte, DvInt1>(index, x => x);
                         }
                         else if (outputType == typeof(sbyte?))
                         {
                             // sbyte? -> DvInt1
                             Ch.Assert(colType == NumberType.I1);
-                            return CreateGetterDelegate<sbyte?, DvInt1>(index, (x) => x.HasValue ? x.Value : DvInt1.NA);
+                            return CreateGetterDelegate<sbyte?, DvInt1>(index, x => x ?? DvInt1.NA);
                         }
                         // T -> T
                         if (outputType.IsGenericType && outputType.GetGenericTypeDefinition() == typeof(Nullable<>))
