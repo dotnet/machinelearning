@@ -26,7 +26,7 @@ namespace Microsoft.ML.CodeAnalyzer
 
     using Debug = System.Diagnostics.Debug;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ContractsCheckNameofFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(NameFixProvider)), Shared]
     public sealed class NameFixProvider : CodeFixProvider
     {
         private const string PrivateTitle = "Fix name";

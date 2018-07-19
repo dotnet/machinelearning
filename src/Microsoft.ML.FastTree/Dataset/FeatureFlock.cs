@@ -919,7 +919,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             {
                 var binStats = virtualBins[i];
                 catFeatureCount += 1 + binStats.SubFeatures.Length;
-                                
+
                 sumGTTargets += binStats.SumTargets;
                 gtCount += binStats.Count;
                 docsInCurrentGroup += binStats.Count;

@@ -803,9 +803,9 @@ namespace Microsoft.ML.Runtime.Data
 
     public static partial class TreeFeaturize
     {
-        [TlcModule.EntryPoint(Name = "Transforms.TreeLeafFeaturizer", 
-            Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary, 
-            UserName = TreeEnsembleFeaturizerTransform.UserName, 
+        [TlcModule.EntryPoint(Name = "Transforms.TreeLeafFeaturizer",
+            Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary,
+            UserName = TreeEnsembleFeaturizerTransform.UserName,
             ShortName = TreeEnsembleFeaturizerBindableMapper.LoadNameShort,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""TreeEnsembleFeaturizerTransform""]'/>" })]
         public static CommonOutputs.TransformOutput Featurizer(IHostEnvironment env, TreeEnsembleFeaturizerTransform.ArgumentsForEntryPoint input)

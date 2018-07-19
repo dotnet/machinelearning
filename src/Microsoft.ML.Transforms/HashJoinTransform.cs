@@ -702,9 +702,9 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class HashJoin
     {
-        [TlcModule.EntryPoint(Name = "Transforms.HashConverter", 
-            Desc = HashJoinTransform.Summary, 
-            UserName = HashJoinTransform.UserName, 
+        [TlcModule.EntryPoint(Name = "Transforms.HashConverter",
+            Desc = HashJoinTransform.Summary,
+            UserName = HashJoinTransform.UserName,
             ShortName = HashJoinTransform.RegistrationName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""HashJoin""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""HashJoin""]/*' />"})]

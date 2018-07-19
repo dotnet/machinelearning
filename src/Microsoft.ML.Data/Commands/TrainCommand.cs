@@ -222,9 +222,9 @@ namespace Microsoft.ML.Runtime.Data
                 return userName;
             if (userName == defaultName)
                 return null;
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
             throw ectx.ExceptUserArg(argName, $"Could not find column '{userName}'");
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
         }
 
         public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name,

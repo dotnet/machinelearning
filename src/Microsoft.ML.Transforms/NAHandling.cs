@@ -11,9 +11,9 @@ namespace Microsoft.ML.Runtime.Data
 {
     public static class NAHandling
     {
-        [TlcModule.EntryPoint(Name = "Transforms.MissingValuesDropper", 
+        [TlcModule.EntryPoint(Name = "Transforms.MissingValuesDropper",
             Desc = NADropTransform.Summary,
-            UserName = NADropTransform.FriendlyName, 
+            UserName = NADropTransform.FriendlyName,
             ShortName = NADropTransform.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""NADrop""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""NADrop""]/*' />" })]
@@ -28,11 +28,11 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.MissingValuesRowDropper", 
-            Desc = NAFilter.Summary, 
-            UserName = NAFilter.FriendlyName, 
+        [TlcModule.EntryPoint(Name = "Transforms.MissingValuesRowDropper",
+            Desc = NAFilter.Summary,
+            UserName = NAFilter.FriendlyName,
             ShortName = NAFilter.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name=""NAFilter""]/*' />",  
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name=""NAFilter""]/*' />",
                                  @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name=""NAFilter""]/*' />"})]
         public static CommonOutputs.TransformOutput Filter(IHostEnvironment env, NAFilter.Arguments input)
         {
@@ -45,9 +45,9 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.MissingValueHandler", 
-            Desc = NAHandleTransform.Summary, 
-            UserName = NAHandleTransform.FriendlyName, 
+        [TlcModule.EntryPoint(Name = "Transforms.MissingValueHandler",
+            Desc = NAHandleTransform.Summary,
+            UserName = NAHandleTransform.FriendlyName,
             ShortName = NAHandleTransform.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name=""NAHandle""]/*' />",
                                  @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name=""NAHandle""]/*' />" })]
@@ -62,9 +62,9 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.MissingValueIndicator", 
-            Desc = NAIndicatorTransform.Summary, 
-            UserName = NAIndicatorTransform.FriendlyName, 
+        [TlcModule.EntryPoint(Name = "Transforms.MissingValueIndicator",
+            Desc = NAIndicatorTransform.Summary,
+            UserName = NAIndicatorTransform.FriendlyName,
             ShortName = NAIndicatorTransform.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""NAIndicator""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""NAIndicator""]/*' />"})]
@@ -79,9 +79,9 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.MissingValueSubstitutor", 
-            Desc = NAReplaceTransform.Summary, 
-            UserName = NAReplaceTransform.FriendlyName, 
+        [TlcModule.EntryPoint(Name = "Transforms.MissingValueSubstitutor",
+            Desc = NAReplaceTransform.Summary,
+            UserName = NAReplaceTransform.FriendlyName,
             ShortName = NAReplaceTransform.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""NAReplace""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""NAReplace""]/*' />"})]

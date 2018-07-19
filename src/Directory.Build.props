@@ -14,4 +14,12 @@
 
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)\..\tools-local\Microsoft.ML.CodeAnalyzer\Microsoft.ML.CodeAnalyzer.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Analyzer</OutputItemType>
+    </ProjectReference>
+    
+  </ItemGroup>
+
 </Project>

@@ -542,7 +542,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    public new static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    new public static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
                         List<int> nz = null;
@@ -605,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    public new static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    new public static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
                         int cv = Math.Max(1, typeSrc.VectorSize);
@@ -869,7 +869,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    public new static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    new public static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
                         host.CheckValue(ctx, nameof(ctx));
@@ -934,7 +934,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    public new static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    new public static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
                         int cv = Math.Max(1, typeSrc.VectorSize);
@@ -1053,7 +1053,7 @@ namespace Microsoft.ML.Runtime.Data
                         Host.Assert(0 <= _offset & _offset <= 1);
                     }
 
-                    public new static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    new public static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
                         host.CheckValue(ctx, nameof(ctx));
@@ -1135,7 +1135,7 @@ namespace Microsoft.ML.Runtime.Data
                         }
                     }
 
-                    public new static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    new public static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
                         int cv = Math.Max(1, typeSrc.VectorSize);

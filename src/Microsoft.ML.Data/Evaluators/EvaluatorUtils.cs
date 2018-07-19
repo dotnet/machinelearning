@@ -115,10 +115,10 @@ namespace Microsoft.ML.Runtime.Data
             ColumnInfo info;
             if (!string.IsNullOrWhiteSpace(name))
             {
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
                 if (!ColumnInfo.TryCreateFromName(schema, name, out info))
                     throw ectx.ExceptUserArg(argName, "Score column is missing");
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
                 return info;
             }
 
@@ -145,9 +145,9 @@ namespace Microsoft.ML.Runtime.Data
             if (!string.IsNullOrWhiteSpace(defName) && ColumnInfo.TryCreateFromName(schema, defName, out info))
                 return info;
 
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
             throw ectx.ExceptUserArg(argName, "Score column is missing");
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
         }
 
         /// <summary>
@@ -168,12 +168,12 @@ namespace Microsoft.ML.Runtime.Data
             if (!string.IsNullOrWhiteSpace(name))
             {
                 ColumnInfo info;
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
                 if (!ColumnInfo.TryCreateFromName(schema, name, out info))
                     throw ectx.ExceptUserArg(argName, "{0} column is missing", valueKind);
                 if (!testType(info.Type))
                     throw ectx.ExceptUserArg(argName, "{0} column has incompatible type", valueKind);
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
                 return info;
             }
 

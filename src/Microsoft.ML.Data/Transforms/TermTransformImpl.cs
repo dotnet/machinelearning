@@ -346,7 +346,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 private readonly ValueGetter<T> _getter;
                 private T _val;
-                private new readonly Builder<T> _bldr;
+                new private readonly Builder<T> _bldr;
 
                 public ImplOne(ValueGetter<T> getter, int max, Builder<T> bldr)
                     : base(bldr, max)
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 private readonly ValueGetter<VBuffer<T>> _getter;
                 private VBuffer<T> _val;
-                private new readonly Builder<T> _bldr;
+                new private readonly Builder<T> _bldr;
                 private bool _addedDefaultFromSparse;
 
                 public ImplVec(ValueGetter<VBuffer<T>> getter, int max, Builder<T> bldr)

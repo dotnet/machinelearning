@@ -31,6 +31,7 @@ namespace Microsoft.ML.CodeAnalyzer
 
         public override void Initialize(AnalysisContext context)
         {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.RegisterSymbolAction(AnalyzeField, SymbolKind.Field);
             context.RegisterSymbolAction(AnalyzeProperty, SymbolKind.Property);
         }

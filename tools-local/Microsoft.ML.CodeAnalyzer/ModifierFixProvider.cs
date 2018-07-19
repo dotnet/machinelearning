@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.ML.CodeAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ContractsCheckNameofFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ModifierFixProvider)), Shared]
     public sealed class ModifierFixProvider : CodeFixProvider
     {
         private const string Title = "Have access modifiers , put new first";

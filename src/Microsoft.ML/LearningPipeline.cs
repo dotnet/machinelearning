@@ -14,7 +14,7 @@ using System.IO;
 
 namespace Microsoft.ML
 {
-    class ScorerPipelineStep : ILearningPipelineDataStep
+    public sealed class ScorerPipelineStep : ILearningPipelineDataStep
     {
         public ScorerPipelineStep(Var<IDataView> data, Var<ITransformModel> model)
         {
@@ -25,7 +25,6 @@ namespace Microsoft.ML
         public Var<IDataView> Data { get; }
         public Var<ITransformModel> Model { get; }
     }
-
 
     /// <summary>
     /// The <see cref="LearningPipeline"/> class is used to define the steps needed to perform a desired machine learning task.<para/>
@@ -48,7 +47,7 @@ namespace Microsoft.ML
     [DebuggerTypeProxy(typeof(LearningPipelineDebugProxy))]
     public class LearningPipeline : ICollection<ILearningPipelineItem>
     {
-        private List<ILearningPipelineItem> Items { get; } = new List<ILearningPipelineItem>();
+        private List<ILearningPipelineItem> Items { get; }
         private readonly int? _seed;
         private readonly int _conc;
 
@@ -56,9 +55,8 @@ namespace Microsoft.ML
         /// Construct an empty <see cref="LearningPipeline"/> object.
         /// </summary>
         public LearningPipeline()
+            : this(conc: 0)
         {
-            _seed = null;
-            _conc = 0;
         }
 
         /// <summary>
@@ -68,6 +66,7 @@ namespace Microsoft.ML
         /// <param name="conc">Specify concurrency factor (default value - autoselection)</param>
         internal LearningPipeline(int? seed = null, int conc = 0)
         {
+            Items = new List<ILearningPipelineItem>();
             _seed = seed;
             _conc = conc;
         }

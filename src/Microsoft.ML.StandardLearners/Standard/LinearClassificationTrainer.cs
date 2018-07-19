@@ -1736,7 +1736,7 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = "Train an SDCA binary model.",
             UserName = LinearClassificationTrainer.UserNameValue,
             ShortName = LinearClassificationTrainer.LoadNameValue,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />", 
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name=""StochasticDualCoordinateAscentBinaryClassifier""]/*'/>" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LinearClassificationTrainer.Arguments input)
         {

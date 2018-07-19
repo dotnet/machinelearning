@@ -7,12 +7,12 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Runtime.Internal.Internallearn
 {
-#pragma warning disable TLC_GeneralName // This structure should be deprecated anyway.
+#pragma warning disable MSML_GeneralName // This structure should be deprecated anyway.
     // REVIEW: Get rid of this. Everything should be in the ArgumentAttribute (or a class
     // derived from ArgumentAttribute).
     [AttributeUsage(AttributeTargets.Field)]
     public class TGUIAttribute : Attribute
-#pragma warning restore TLC_GeneralName
+#pragma warning restore MSML_GeneralName
     {
         // Display parameters
         public string Label { get; set; }

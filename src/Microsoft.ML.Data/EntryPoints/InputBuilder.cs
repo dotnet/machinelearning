@@ -791,7 +791,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class Deprecated
         {
-            public new static string ToString() => "Deprecated";
+            new public static string ToString() => "Deprecated";
             public const string Message = "Message";
         }
 
@@ -800,7 +800,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class SweepableLongParam
         {
-            public new static string ToString() => "SweepRange";
+            new public static string ToString() => "SweepRange";
             public const string RangeType = "RangeType";
             public const string Max = "Max";
             public const string Min = "Min";
@@ -814,7 +814,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class SweepableFloatParam
         {
-            public new static string ToString() => "SweepRange";
+            new public static string ToString() => "SweepRange";
             public const string RangeType = "RangeType";
             public const string Max = "Max";
             public const string Min = "Min";
@@ -828,14 +828,14 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class SweepableDiscreteParam
         {
-            public new static string ToString() => "SweepRange";
+            new public static string ToString() => "SweepRange";
             public const string RangeType = "RangeType";
             public const string Options = "Values";
         }
 
         public static class PipelineSweeperSupportedMetrics
         {
-            public new static string ToString() => "SupportedMetric";
+            new public static string ToString() => "SupportedMetric";
             public const string Auc = BinaryClassifierEvaluator.Auc;
             public const string AccuracyMicro = Data.MultiClassClassifierEvaluator.AccuracyMicro;
             public const string AccuracyMacro = MultiClassClassifierEvaluator.AccuracyMacro;

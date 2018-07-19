@@ -298,7 +298,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 {   // Make sure transforms set is valid and have not seen pipeline before. 
                     // Repeat until passes or runs out of chances.
                     pipeline = new PipelinePattern(
-                        SampleTransforms(learner, history, out var transformsBitMask, uniformRandomTransforms), 
+                        SampleTransforms(learner, history, out var transformsBitMask, uniformRandomTransforms),
                         learner, "", Env);
                     hashKey = GetHashKey(transformsBitMask, learner);
                     valid = PipelineVerifier(pipeline, transformsBitMask) && !VisitedPipelines.Contains(hashKey);

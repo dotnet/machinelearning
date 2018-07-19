@@ -653,9 +653,9 @@ namespace Microsoft.ML.Runtime.Data
 
     public static partial class GroupingOperations
     {
-        [TlcModule.EntryPoint(Name = "Transforms.Segregator", 
-            Desc = UngroupTransform.Summary, 
-            UserName = UngroupTransform.UserName, 
+        [TlcModule.EntryPoint(Name = "Transforms.Segregator",
+            Desc = UngroupTransform.Summary,
+            UserName = UngroupTransform.UserName,
             ShortName = UngroupTransform.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""Ungroup""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""Ungroup""]/*' />"})]

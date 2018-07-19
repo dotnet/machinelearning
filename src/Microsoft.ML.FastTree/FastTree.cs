@@ -3000,13 +3000,13 @@ namespace Microsoft.ML.Runtime.FastTree
             [Description("BRANCH_LT")]
             BranchLT,
             [Description("BRANCH_GTE")]
-            BranchGTE,
+            BranchGte,
             [Description("BRANCH_GT")]
             BranchGT,
             [Description("BRANCH_EQ")]
-            BranchEQ,
+            BranchEq,
             [Description("BRANCH_LT")]
-            BranchNEQ,
+            BranchNeq,
             [Description("LEAF")]
             Leaf
         };
@@ -3070,7 +3070,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     nodesValues.Add(tree.RawThresholds[nodeIndex]);
                     nodesTrueNodeIds.Add(tree.LteChild[nodeIndex] < 0 ? ~tree.LteChild[nodeIndex] + tree.NumNodes : tree.LteChild[nodeIndex]);
                     nodesFalseNodeIds.Add(tree.GtChild[nodeIndex] < 0 ? ~tree.GtChild[nodeIndex] + tree.NumNodes : tree.GtChild[nodeIndex]);
-                    if (tree._defaultValueForMissing?[nodeIndex] <= tree.RawThresholds[nodeIndex])
+                    if (tree.DefaultValueForMissing?[nodeIndex] <= tree.RawThresholds[nodeIndex])
                         missingValueTracksTrue.Add(true);
                     else
                         missingValueTracksTrue.Add(false);

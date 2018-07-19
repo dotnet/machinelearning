@@ -612,10 +612,10 @@ namespace Microsoft.ML.Runtime.Data
                             termMap[i] = TermMap.TextImpl.Create(c, host);
                     }
                 });
-#pragma warning disable TLC_NoMessagesForLoadContext // Vaguely useful.
+#pragma warning disable MSML_NoMessagesForLoadContext // Vaguely useful.
             if (!b)
                 throw Host.ExceptDecode("Missing {0} model", dir);
-#pragma warning restore TLC_NoMessagesForLoadContext
+#pragma warning restore MSML_NoMessagesForLoadContext
             _termMap = new BoundTermMap[cinfo];
             for (int i = 0; i < cinfo; ++i)
                 _termMap[i] = termMap[i].Bind(this, i);

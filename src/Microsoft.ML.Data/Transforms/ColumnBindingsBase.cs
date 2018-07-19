@@ -324,17 +324,17 @@ namespace Microsoft.ML.Runtime.Data
                 if (string.IsNullOrWhiteSpace(name))
                 {
                     throw user ?
-#pragma warning disable TLC_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
+#pragma warning disable MSML_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
                         Contracts.ExceptUserArg(standardColumnArgName, "New column needs a name") :
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
                         Contracts.ExceptDecode("New column needs a name");
                 }
                 if (_nameToInfoIndex.ContainsKey(name))
                 {
                     throw user ?
-#pragma warning disable TLC_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
+#pragma warning disable MSML_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
                         Contracts.ExceptUserArg(standardColumnArgName, "New column '{0}' specified multiple times", name) :
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
                         Contracts.ExceptDecode("New column '{0}' specified multiple times", name);
                 }
                 _nameToInfoIndex.Add(name, iinfo);
@@ -686,10 +686,10 @@ namespace Microsoft.ML.Runtime.Data
                 for (int j = 0; j < src.Length; j++)
                 {
                     Contracts.CheckUserArg(!string.IsNullOrWhiteSpace(src[j]), nameof(ManyToOneColumn.Source));
-#pragma warning disable TLC_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
+#pragma warning disable MSML_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
                     if (!input.TryGetColumnIndex(src[j], out srcIndices[j]))
                         throw Contracts.ExceptUserArg(standardColumnArgName, "Source column '{0}' not found", src[j]);
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
                     srcTypes[j] = input.GetColumnType(srcIndices[j]);
                     var size = srcTypes[j].ValueCount;
                     srcSize = size == 0 ? null : checked(srcSize + size);
@@ -700,10 +700,10 @@ namespace Microsoft.ML.Runtime.Data
                     string reason = testTypes(srcTypes);
                     if (reason != null)
                     {
-#pragma warning disable TLC_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
+#pragma warning disable MSML_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
                         throw Contracts.ExceptUserArg(standardColumnArgName, "Column '{0}' has invalid source types: {1}. Source types: '{2}'.",
                             item.Name, reason, string.Join(", ", srcTypes.Select(type => type.ToString())));
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
                     }
                 }
                 Infos[i] = new ColInfo(srcSize.GetValueOrDefault(), srcIndices, srcTypes);

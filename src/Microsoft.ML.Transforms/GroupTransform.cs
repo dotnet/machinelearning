@@ -664,9 +664,9 @@ namespace Microsoft.ML.Runtime.Data
 
     public static partial class GroupingOperations
     {
-        [TlcModule.EntryPoint(Name = "Transforms.CombinerByContiguousGroupId", 
-            Desc = GroupTransform.Summary, 
-            UserName = GroupTransform.UserName, 
+        [TlcModule.EntryPoint(Name = "Transforms.CombinerByContiguousGroupId",
+            Desc = GroupTransform.Summary,
+            UserName = GroupTransform.UserName,
             ShortName = GroupTransform.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""Group""]/*' />" })]
         public static CommonOutputs.TransformOutput Group(IHostEnvironment env, GroupTransform.Arguments input)

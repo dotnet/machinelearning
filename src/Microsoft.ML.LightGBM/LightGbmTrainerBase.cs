@@ -479,8 +479,8 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        private void GetFeatureValueSparse(IChannel ch, FloatLabelCursor cursor, 
-            CategoricalMetaData catMetaData, IRandom rand, out int[] indices, 
+        private void GetFeatureValueSparse(IChannel ch, FloatLabelCursor cursor,
+            CategoricalMetaData catMetaData, IRandom rand, out int[] indices,
             out float[] featureValues, out int cnt)
         {
             if (catMetaData.CategoricalBoudaries != null)

@@ -743,7 +743,7 @@ namespace Microsoft.ML.Runtime.Training
             return true;
         }
 
-        public new sealed class Factory : FactoryBase<FeatureFloatVectorCursor>
+        new public sealed class Factory : FactoryBase<FeatureFloatVectorCursor>
         {
             public Factory(RoleMappedData data, CursOpt opt = CursOpt.Features)
                 : base(data, opt)
@@ -810,7 +810,7 @@ namespace Microsoft.ML.Runtime.Training
             return base.Accept();
         }
 
-        public new sealed class Factory : FactoryBase<FloatLabelCursor>
+        new public sealed class Factory : FactoryBase<FloatLabelCursor>
         {
             public Factory(RoleMappedData data, CursOpt opt = CursOpt.Label)
                 : base(data, opt)
@@ -883,7 +883,7 @@ namespace Microsoft.ML.Runtime.Training
             return base.Accept();
         }
 
-        public new sealed class Factory : FactoryBase<MultiClassLabelCursor>
+        new public sealed class Factory : FactoryBase<MultiClassLabelCursor>
         {
             private readonly int _classCount;
 

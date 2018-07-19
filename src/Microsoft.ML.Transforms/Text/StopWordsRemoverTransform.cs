@@ -84,8 +84,10 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             Italian = 6,
             Spanish = 7,
             Portuguese = 8,
+#pragma warning disable MSML_GeneralName // These names correspond to file names, so this is fine in this case.
             Portuguese_Brazilian = 9,
             Norwegian_Bokmal = 10,
+#pragma warning restore MSML_GeneralName
             Russian = 11,
             Polish = 12,
             Czech = 13,

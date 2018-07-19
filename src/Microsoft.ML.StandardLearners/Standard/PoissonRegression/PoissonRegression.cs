@@ -123,9 +123,9 @@ namespace Microsoft.ML.Runtime.Learners
             // No-op by design.
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.PoissonRegressor", 
-            Desc = "Train an Poisson regression model.", 
-            UserName = UserNameValue, 
+        [TlcModule.EntryPoint(Name = "Trainers.PoissonRegressor",
+            Desc = "Train an Poisson regression model.",
+            UserName = UserNameValue,
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='doc/members/member[@name=""PoissonRegression""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='doc/members/example[@name=""PoissonRegression""]/*' />"})]
