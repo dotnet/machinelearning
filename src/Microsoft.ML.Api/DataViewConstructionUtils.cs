@@ -194,7 +194,6 @@ namespace Microsoft.ML.Runtime.Api
                     {
                         // VBuffer<T> -> VBuffer<T>
                         // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<DvText>?
-                        // REVIEW: why it's int and not long?
                         Ch.Assert(outputType.IsGenericType);
                         Ch.Assert(outputType.GetGenericTypeDefinition() == typeof(VBuffer<>));
                         Ch.Assert(outputType.GetGenericArguments()[0] == colType.ItemType.RawType);
@@ -228,7 +227,7 @@ namespace Microsoft.ML.Runtime.Api
                         }
                         else if (outputType == typeof(int?))
                         {
-                            // int -> DvInt4
+                            // int? -> DvInt4
                             Ch.Assert(colType == NumberType.I4);
                             return CreateGetterDelegate<int?, DvInt4>(index, x => x ?? DvInt4.NA);
                         }
@@ -264,7 +263,7 @@ namespace Microsoft.ML.Runtime.Api
                         }
                         else if (outputType == typeof(sbyte?))
                         {
-                            // sbyte -> DvInt1
+                            // sbyte? -> DvInt1
                             Ch.Assert(colType == NumberType.I1);
                             return CreateGetterDelegate<sbyte?, DvInt1>(index, (x) => x.HasValue ? x.Value : DvInt1.NA);
                         }

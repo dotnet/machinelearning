@@ -6,7 +6,6 @@ using System;
 using System.Reflection;
 using System.Reflection.Emit;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -19,7 +18,7 @@ namespace Microsoft.ML.Runtime.Api
         private static OpCode GetAssignmentOpCode(Type t)
         {
             // REVIEW: This should be a Dictionary<Type, OpCode> based solution.
-            // DvTexts, strings, arrays, and VBuffers.
+            // DvTypes, strings, arrays, all nullable types, VBuffers and UInt128.
             if (t == typeof(DvInt8) || t == typeof(DvInt4) || t == typeof(DvInt2) || t == typeof(DvInt1) ||
                 t == typeof(DvBool) || t == typeof(DvText) || t == typeof(string) || t.IsArray ||
                 (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(VBuffer<>)) ||
