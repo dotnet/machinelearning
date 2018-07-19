@@ -3,20 +3,24 @@
     <OutputType>Exe</OutputType>
     <LangVersion>7.2</LangVersion>
     <StartupObject>Microsoft.ML.CpuMath.PerformanceTests.Program</StartupObject>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  
   <ItemGroup>
     <Compile Remove="BenchmarkDotNet.Artifacts\**" />
     <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**" />
     <None Remove="BenchmarkDotNet.Artifacts\**" />
   </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.10.14" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
   </ItemGroup>
+  
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
   </ItemGroup>
