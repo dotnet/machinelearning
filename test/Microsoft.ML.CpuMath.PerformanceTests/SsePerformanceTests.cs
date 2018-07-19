@@ -21,7 +21,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         private readonly int idxlen = 1000003;
         private readonly int len = 1000003;
         private readonly int expRange = EXP_MAX / 2;
-        private readonly int seed = 2;
+        private readonly int seed = 253421;
         private readonly float scale = 1.11f;
 
         [GlobalSetup]
