@@ -327,7 +327,8 @@ namespace Microsoft.ML.Runtime.Api
                 // This field does not need a column.
                 // REVIEW: maybe validate the channel attribute now, instead 
                 // of later at cursor creation.
-                if (fieldInfo.FieldType == typeof(IChannel))
+                // Const fields not need to be mapped.
+                if (fieldInfo.FieldType == typeof(IChannel) || fieldInfo.IsLiteral)
                     continue;
 
                 if (fieldInfo.GetCustomAttribute<NoColumnAttribute>() != null)

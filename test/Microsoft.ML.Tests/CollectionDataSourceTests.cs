@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -205,5 +206,207 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float[] PredictedLabels;
         }
 
+        public class ConversionSimpleClass
+        {
+            public int fInt;
+            public uint fuInt;
+            public short fShort;
+            public ushort fuShort;
+            public sbyte fsByte;
+            public byte fByte;
+            public long fLong;
+            public ulong fuLong;
+            public float fFloat;
+            public double fDouble;
+            public bool fBool;
+            public string fString;
+        }
+
+        public class ConversionNullalbeClass
+        {
+            public int? fInt;
+            public uint? fuInt;
+            public short? fShort;
+            public ushort? fuShort;
+            public sbyte? fsByte;
+            public byte? fByte;
+            public long? fLong;
+            public ulong? fuLong;
+            public float? fFloat;
+            public double? fDouble;
+            public bool? fBool;
+            public string fString;
+        }
+
+        public bool CompareObjectValues(object x, object y)
+        {
+            //handle string conversion.
+            //by default behaviour for DvText is to be empty string, while for string is null.
+            //so if we do roundtrip string-> DvText -> string all null string become empty strings.
+            //therefore replace all null values to empty string if field is string.
+            if (x.GetType() == typeof(string) && x == null)
+                x = "";
+            if (y.GetType() == typeof(string) && y == null)
+                y = "";
+            if (x == null && y == null)
+                return true;
+            if (x == null && y != null)
+                return false;
+            return (x.Equals(y));
+        }
+
+        public bool CompareThrougReflection<T>(T x, T y)
+        {
+            foreach (var field in typeof(T).GetFields())
+            {
+                var xvalue = field.GetValue(x);
+                var yvalue = field.GetValue(y);
+                if (field.FieldType.IsArray)
+                {
+                    if (!CompareArrayValues(xvalue as Array, yvalue as Array))
+                        return false;
+                }
+                else
+                {
+                    if (!CompareObjectValues(xvalue, yvalue))
+                        return false;
+                }
+
+            }
+            return true;
+        }
+
+        public bool CompareArrayValues(Array x, Array y)
+        {
+            if (x == null && y == null) return true;
+            if ((x == null && y != null) || (y == null && x != null))
+                return false;
+            if (x.Length != y.Length)
+                return false;
+            for (int i = 0; i < x.Length; i++)
+                if (!CompareObjectValues(x.GetValue(i), y.GetValue(i)))
+                    return false;
+            return true;
+        }
+
+        public class ClassWithConstField
+        {
+            public const string ConstString = "N";
+            public string fString;
+            public const int ConstInt = 100;
+            public int fInt;
+        }
+
+        [Fact]
+        public void BackAndForthConversionWithBasicTypes()
+        {
+            var data = new List<ConversionSimpleClass>()
+            {
+                new ConversionSimpleClass(){ fInt=int.MaxValue-1, fuInt=uint.MaxValue-1, fBool=true, fsByte=sbyte.MaxValue-1, fByte = byte.MaxValue-1,
+                    fDouble =double.MaxValue-1, fFloat=float.MaxValue-1, fLong=long.MaxValue-1, fuLong = ulong.MaxValue-1,
+                    fShort =short.MaxValue-1, fuShort = ushort.MaxValue-1, fString="ha"},
+                new ConversionSimpleClass(){ fInt=int.MaxValue, fuInt=uint.MaxValue, fBool=true, fsByte=sbyte.MaxValue, fByte = byte.MaxValue,
+                    fDouble =double.MaxValue, fFloat=float.MaxValue, fLong=long.MaxValue, fuLong = ulong.MaxValue,
+                    fShort =short.MaxValue, fuShort = ushort.MaxValue, fString="ooh"},
+                new ConversionSimpleClass(){},
+            };
+
+            var dataNullable = new List<ConversionNullalbeClass>()
+            {
+                new ConversionNullalbeClass(){ fInt=int.MaxValue-1, fuInt=uint.MaxValue-1, fBool=true, fsByte=sbyte.MaxValue-1, fByte = byte.MaxValue-1,
+                    fDouble =double.MaxValue-1, fFloat=float.MaxValue-1, fLong=long.MaxValue-1, fuLong = ulong.MaxValue-1,
+                    fShort =short.MaxValue-1, fuShort = ushort.MaxValue-1, fString="ha"},
+                new ConversionNullalbeClass(){ fInt=int.MaxValue, fuInt=uint.MaxValue, fBool=true, fsByte=sbyte.MaxValue, fByte = byte.MaxValue,
+                    fDouble =double.MaxValue, fFloat=float.MaxValue, fLong=long.MaxValue, fuLong = ulong.MaxValue,
+                    fShort =short.MaxValue, fuShort = ushort.MaxValue, fString="ooh"},
+                new ConversionNullalbeClass()
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ConversionSimpleClass>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThrougReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                }
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+
+                dataView = ComponentCreation.CreateDataView(env, dataNullable);
+                var enumeratorNullable = dataView.AsEnumerable<ConversionNullalbeClass>(env, false).GetEnumerator();
+                var originalNullableEnumerator = dataNullable.GetEnumerator();
+                while (enumeratorNullable.MoveNext() && originalNullableEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThrougReflection(enumeratorNullable.Current, originalNullableEnumerator.Current));
+                }
+                Assert.True(!enumeratorNullable.MoveNext() && !originalNullableEnumerator.MoveNext());
+            }
+        }
+
+        [Fact]
+        public void ClassWithConstFieldsConversion()
+        {
+            var data = new List<ClassWithConstField>()
+            {
+                new ClassWithConstField(){ fInt=1, fString ="lala" },
+                new ClassWithConstField(){ fInt=-1, fString ="" },
+                new ClassWithConstField(){ fInt=0, fString =null }
+            };
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithConstField>(env, false).GetEnumerator();
+
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThrougReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                }
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+            }
+        }
+
+        public class ClassWithArrays
+        {
+            public string[] fString;
+            public int[] fInt;
+            public uint[] fuInt;
+            public short[] fShort;
+            public ushort[] fuShort;
+            public sbyte[] fsByte;
+            public byte[] fByte;
+            public long[] fLong;
+            public ulong[] fuLong;
+            public float[] fFloat;
+            public double[] fDouble;
+            public bool[] fBool;
+        }
+
+        [Fact]
+        public void BackAndForthConversionWithArrays()
+        {
+            var data = new List<ClassWithArrays>()
+            {
+                new ClassWithArrays(){ fInt = new int[3]{ 0,1,2}, fFloat = new float[3]{ -0.99f, 0f, 0.99f}, fString =new string[2]{ "hola", "lola"},
+                    fBool =new bool[2]{true, false }, fByte = new byte[3]{ 0,124,255}, fDouble=new double[3]{ -1,0, 1}, fLong = new long[]{ 0,1,2} ,
+                    fsByte = new sbyte[3]{ -128,127,0}, fShort = new short[3]{ 0, 1225, 32767 }, fuInt =new uint[2]{ 0, uint.MaxValue},
+                    fuLong = new ulong[2]{ ulong.MaxValue, 0}, fuShort = new ushort[2]{ 0, ushort.MaxValue}
+                },
+                new ClassWithArrays(){ fInt = new int[3]{ -2,1,0}, fFloat = new float[3]{ 0.99f, 0f, -0.99f}, fString =new string[2]{  "lola","hola"} }
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithArrays>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThrougReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                }
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+            }
+        }
     }
 }
