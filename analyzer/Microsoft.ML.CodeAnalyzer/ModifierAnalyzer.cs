@@ -12,23 +12,39 @@ using Microsoft.CSharp.RuntimeBinder;
 namespace Microsoft.ML.CodeAnalyzer
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class ExplicitAccessModifierAnalyzer : DiagnosticAnalyzer
+    public sealed class ModifierAnalyzer : DiagnosticAnalyzer
     {
         private const string Category = "Declaration";
-        public const string DiagnosticId = "MSML_ExplicitAccessModifiers";
 
-        private const string Title = "Must have explicit access modifiers, as the first modifiers";
-        private const string Format = "Symbol '{0}' did not have access modifiers as the leading modifiers";
-        private const string Description =
-            "All symbols should have an explicit access modifier, and the access modifiers should " +
-            "come before all other modifiers.";
+        public static class AccessModifierDiagnostic
+        {
+            public const string Id = "MSML_ExplicitAccessModifiers";
+            private const string Title = "Must have explicit access modifiers, as the first modifiers (after new)";
+            private const string Format = "Symbol '{0}' did not have access modifiers as the leading modifiers (after new)";
+            private const string Description =
+                "All symbols should have an explicit access modifier, and the access modifiers should " +
+                "come before all other modifiers except new.";
 
-        private static DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Format, Category,
-                DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+            internal static DiagnosticDescriptor Rule =
+                new DiagnosticDescriptor(Id, Title, Format, Category,
+                    DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+        }
+
+        public static class NewModifierDiagnostic
+        {
+            public const string Id = "MSML_NewAccessModifierFirst";
+            private const string Title = "If present, new must be the first rule";
+            private const string Format = "Symbol '{0}' had a 'new' modifier, but it was not the first modifier";
+            private const string Description =
+                "If the 'new' modifier is present, it should be the first modifier.";
+
+            internal static DiagnosticDescriptor Rule =
+                new DiagnosticDescriptor(Id, Title, Format, Category,
+                    DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+        }
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(Rule);
+            ImmutableArray.Create(AccessModifierDiagnostic.Rule, NewModifierDiagnostic.Rule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -66,30 +82,36 @@ namespace Microsoft.ML.CodeAnalyzer
             catch (RuntimeBinderException) { }
 
             SyntaxTokenList mods = dynNode.Modifiers;
+            bool newNotFirst = false;
             bool anyAccessor = false;
+            // Whether any accessor modifier was observed after a non-new, non-accessor variable.
             bool anyAccessorAfterNon = false;
             bool isStatic = false;
 
-            // You can have multiple accessor declarations. Make sure they appear before any other modifiers.
+            // You can have multiple accessor declarations. Make sure they appear before any
+            // other modifiers except "new".
             if (mods.Count > 0)
             {
                 anyAccessor = IsAccessorMod(mods[0]);
                 isStatic = mods[0].IsKind(SyntaxKind.StaticKeyword);
+
                 for (int i = 1; i < mods.Count; ++i)
                 {
                     var mod = mods[i];
                     if (IsAccessorMod(mod))
                     {
                         anyAccessor = true;
-                        anyAccessorAfterNon |= !IsAccessorMod(mods[i - 1]);
+                        anyAccessorAfterNon |= !IsAccessorMod(mods[i - 1]) &&
+                            !mods[i - 1].IsKind(SyntaxKind.NewKeyword);
                     }
                     isStatic |= mod.IsKind(SyntaxKind.StaticKeyword);
+                    newNotFirst |= mod.IsKind(SyntaxKind.NewKeyword);
                 }
             }
-            if (anyAccessor && !anyAccessorAfterNon)
+            if (anyAccessor && !anyAccessorAfterNon && !newNotFirst)
                 return;
             if (isStatic && node.IsKind(SyntaxKind.ConstructorDeclaration))
-                return; // Static constructors can't have fields.
+                return; // Static constructors can't have other modifiers, so in this case back off.
 
             // Great, now we have to find the identifier.
 
@@ -107,7 +129,8 @@ namespace Microsoft.ML.CodeAnalyzer
                     break;
             }
 
-            var diagnostic = Diagnostic.Create(Rule, idToken.GetLocation(), idToken.Text);
+            var rule = newNotFirst ? NewModifierDiagnostic.Rule : AccessModifierDiagnostic.Rule;
+            var diagnostic = Diagnostic.Create(rule, idToken.GetLocation(), idToken.Text);
             context.ReportDiagnostic(diagnostic);
         }
     }

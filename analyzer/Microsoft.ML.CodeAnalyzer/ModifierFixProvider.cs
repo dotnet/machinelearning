@@ -19,12 +19,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.ML.CodeAnalyzer
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ContractsCheckNameofFixProvider)), Shared]
-    public sealed class ExplicitAccessModifierFixProvider : CodeFixProvider
+    public sealed class ModifierFixProvider : CodeFixProvider
     {
-        private const string Title = "Explicitly declare access modifier";
-        private static string Id => ExplicitAccessModifierAnalyzer.DiagnosticId;
+        private const string Title = "Have access modifiers , put new first";
+        private static string Id => ModifierAnalyzer.AccessModifierDiagnostic.Id;
+        private static string NewId => ModifierAnalyzer.NewModifierDiagnostic.Id;
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(Id);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(Id, NewId);
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;
@@ -49,6 +50,8 @@ namespace Microsoft.ML.CodeAnalyzer
         {
             context.RegisterCodeFix(CodeAction.Create(Title,
                 c => Fix(context.Document, mods, withModifier, def, node, c), Id), diag);
+            context.RegisterCodeFix(CodeAction.Create(Title,
+                c => Fix(context.Document, mods, withModifier, def, node, c), NewId), diag);
         }
 
         private static IEnumerable<SyntaxToken> WithAccessorFirst(SyntaxTokenList mods, SyntaxKind def)
@@ -58,7 +61,13 @@ namespace Microsoft.ML.CodeAnalyzer
 
             foreach (var mod in mods)
             {
-                if (ExplicitAccessModifierAnalyzer.IsAccessorMod(mod))
+                if (mod.IsKind(SyntaxKind.NewKeyword))
+                    yield return mod.WithTriviaFrom(defTok);
+            }
+
+            foreach (var mod in mods)
+            {
+                if (ModifierAnalyzer.IsAccessorMod(mod))
                 {
                     anyAccessor = true;
                     yield return mod.WithTriviaFrom(defTok);
@@ -68,7 +77,7 @@ namespace Microsoft.ML.CodeAnalyzer
                 yield return SyntaxFactory.Token(def);
             foreach (var mod in mods)
             {
-                if (!ExplicitAccessModifierAnalyzer.IsAccessorMod(mod))
+                if (!ModifierAnalyzer.IsAccessorMod(mod) && !mod.IsKind(SyntaxKind.NewKeyword))
                     yield return mod.WithTriviaFrom(defTok);
             }
         }
@@ -78,6 +87,7 @@ namespace Microsoft.ML.CodeAnalyzer
             where T : SyntaxNode
         {
             var newMods = SyntaxFactory.TokenList(WithAccessorFirst(mods, def));
+
             var head = newMods[0];
             var tree = await document.GetSyntaxTreeAsync(cancellationToken);
             var root = await tree.GetRootAsync(cancellationToken);
@@ -106,7 +116,7 @@ namespace Microsoft.ML.CodeAnalyzer
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             const SyntaxKind privateAc = SyntaxKind.PrivateKeyword;
-            var diagnostic = context.Diagnostics.FirstOrDefault(d => d.Id == Id);
+            var diagnostic = context.Diagnostics.FirstOrDefault(d => d.Id == Id || d.Id == NewId);
             if (diagnostic == null)
                 return;
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);

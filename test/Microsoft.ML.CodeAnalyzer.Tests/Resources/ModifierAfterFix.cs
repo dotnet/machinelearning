@@ -60,4 +60,20 @@ namespace TestNamespace
     {
         int GetStuffPlus1(ITest1 other);
     }
+
+    public class Mycroft
+    {
+        public int Method0() => 0;
+        public int Method1() => 1;
+        public int Method2() => 2;
+        protected internal int Method3() => 3;
+    }
+
+    public class Sherlock : Mycroft
+    {
+        new private int Method0() => 10;
+        new public int Method1() => 11;
+        new public int Method2() => 12;
+        new protected internal int Method3() => 13;
+    }
 }

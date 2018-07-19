@@ -7,13 +7,14 @@ using Xunit;
 
 namespace Microsoft.ML.CodeAnalyzer.Tests
 {
-    public sealed class ExplicitAccessModifierTest : DiagnosticVerifier<ExplicitAccessModifierAnalyzer>
+    public sealed class ModifierTest : DiagnosticVerifier<ModifierAnalyzer>
     {
         [Fact]
         public void ExplicitAccessModifier()
         {
             var analyzer = GetCSharpDiagnosticAnalyzer();
             var diag = analyzer.SupportedDiagnostics[0];
+            var newDiag = analyzer.SupportedDiagnostics[1];
 
             var expected = new DiagnosticResult[] {
                 diag.CreateDiagnosticResult(5, 11, "TypeName"),
@@ -29,25 +30,28 @@ namespace Microsoft.ML.CodeAnalyzer.Tests
                 diag.CreateDiagnosticResult(46, 14, "Silly"),
                 diag.CreateDiagnosticResult(51, 34, "-"),
                 diag.CreateDiagnosticResult(59, 15, "ITest2"),
+                diag.CreateDiagnosticResult(74, 17, "Method0"),
+                newDiag.CreateDiagnosticResult(75, 24, "Method1"),
+                newDiag.CreateDiagnosticResult(77, 36, "Method3"),
             };
 
             VerifyCSharpDiagnostic(TestSource, expected);
         }
 
         private static string _testSource;
-        internal static string TestSource => TestUtils.EnsureSourceLoaded(ref _testSource, "ExplicitAccessBeforeFix.cs");
+        internal static string TestSource => TestUtils.EnsureSourceLoaded(ref _testSource, "ModifierBeforeFix.cs");
     }
 
-    public sealed class ExplicitAccessModifierFixTest : CodeFixVerifier<ExplicitAccessModifierAnalyzer, ExplicitAccessModifierFixProvider>
+    public sealed class ModifierFixTest : CodeFixVerifier<ModifierAnalyzer, ModifierFixProvider>
     {
         [Fact]
         public void ExplicitAccessModifierFix()
         {
             VerifyCSharpFix("namespace Bubba { class Foo {}}", "namespace Bubba { internal class Foo {}}");
-            VerifyCSharpFix(ExplicitAccessModifierTest.TestSource, ExpectedFix);
+            VerifyCSharpFix(ModifierTest.TestSource, ExpectedFix);
         }
 
         private static string _expectedFix;
-        private static string ExpectedFix => TestUtils.EnsureSourceLoaded(ref _expectedFix, "ExplicitAccessAfterFix.cs");
+        private static string ExpectedFix => TestUtils.EnsureSourceLoaded(ref _expectedFix, "ModifierAfterFix.cs");
     }
 }
