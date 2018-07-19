@@ -78,9 +78,9 @@
     </ItemGroup>
     <ItemGroup Condition="'$(UseIntrinsics)' == 'true'">
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\lib\netstandard2.0" />
+                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0" />
       <NativePackageAsset Include="$(PlaceholderFile)"
-                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\lib\netcoreapp3.0" />
+                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netcoreapp3.0" />
     </ItemGroup>
 
     <ItemGroup>
