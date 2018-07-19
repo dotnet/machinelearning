@@ -38,11 +38,15 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return outputValue;
         }
 
-        public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
+        public static PipelineSweeperRunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
         {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(result, nameof(result));
+            env.CheckNonEmpty(metricColumnName, nameof(metricColumnName));
+
             double testingMetricValue = ExtractValueFromIdv(env, result, metricColumnName);
             double trainingMetricValue = trainResult != null ? ExtractValueFromIdv(env, trainResult, metricColumnName)  : double.MinValue;
-            return new AutoInference.RunSummary(testingMetricValue, 0, 0, trainingMetricValue);
+            return new PipelineSweeperRunSummary(testingMetricValue, 0, 0, trainingMetricValue);
         }
 
         public static CommonInputs.IEvaluatorInput CloneEvaluatorInstance(CommonInputs.IEvaluatorInput evalInput) =>
@@ -566,14 +570,15 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return learner.PipelineNode.HyperSweeperParamSet;
         }
 
-        public static IRunResult ConvertToRunResult(RecipeInference.SuggestedRecipe.SuggestedLearner learner,
-            AutoInference.RunSummary rs, bool isMetricMaximizing) =>
-                new RunResult(ConvertToParameterSet(learner.PipelineNode.SweepParams, learner), rs.MetricValue, isMetricMaximizing);
+        public static IRunResult ConvertToRunResult(RecipeInference.SuggestedRecipe.SuggestedLearner learner, PipelineSweeperRunSummary rs, bool isMetricMaximizing)
+        {
+            return new RunResult(ConvertToParameterSet(learner.PipelineNode.SweepParams, learner), rs.MetricValue, isMetricMaximizing);
+        }
 
-        public static IRunResult[] ConvertToRunResults(PipelinePattern[] history, bool isMetricMaximizing) =>
-            history.Select(h =>
-                ConvertToRunResult(h.Learner, h.PerformanceSummary, isMetricMaximizing)).ToArray();
-
+        public static IRunResult[] ConvertToRunResults(PipelinePattern[] history, bool isMetricMaximizing)
+        {
+            return history.Select(h => ConvertToRunResult(h.Learner, h.PerformanceSummary, isMetricMaximizing)).ToArray();
+        }
         /// <summary>
         /// Method to convert set of sweepable hyperparameters into strings of a format understood
         /// by the current smart hyperparameter sweepers.
