@@ -1,15 +1,15 @@
 resources:
   containers:
-  - container: rhel7
+  - container: centos7
     image: microsoft/dotnet-buildtools-prereqs:centos-7-b46d863-20180719033416
 
 phases:
 - template: /build/ci/phase-template.yml
   parameters:
-    name: RHEL7
+    name: Linux
     buildScript: ./build.sh
     queue:
-      container: rhel7
+      container: centos7
 
 - template: /build/ci/phase-template.yml
   parameters:
