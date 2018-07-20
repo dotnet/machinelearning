@@ -138,8 +138,12 @@ namespace Microsoft.ML.Runtime.Transforms
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.WordEmbeddings", Desc = WordEmbeddingsTransform.Summary,
-            UserName = WordEmbeddingsTransform.UserName)]
+        [TlcModule.EntryPoint(Name = "Transforms.WordEmbeddings",
+            Desc = WordEmbeddingsTransform.Summary,
+            UserName = WordEmbeddingsTransform.UserName,
+            ShortName = WordEmbeddingsTransform.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""WordEmbeddings""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""WordEmbeddings""]/*' />" })]
         public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

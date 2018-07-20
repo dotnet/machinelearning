@@ -21454,7 +21454,7 @@
       "Name": "Transforms.WordEmbeddings",
       "Desc": "Word Embeddings transform is a text featurizer which converts vectors of text tokens into sentence vectors using a pre-trained model",
       "FriendlyName": "Word Embeddings Transform",
-      "ShortName": null,
+      "ShortName": "WordEmbeddings",
       "Inputs": [
         {
           "Name": "Column",

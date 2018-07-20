@@ -18,13 +18,14 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(WordEmbeddingsTransform.Summary, typeof(IDataTransform), typeof(WordEmbeddingsTransform), typeof(WordEmbeddingsTransform.Arguments),
-    typeof(SignatureDataTransform), WordEmbeddingsTransform.UserName, "WordEmbeddingsTransform", "WordEmbeddings", DocName = "transform/WordEmbeddingsTransform.md")]
+    typeof(SignatureDataTransform), WordEmbeddingsTransform.UserName, "WordEmbeddingsTransform", WordEmbeddingsTransform.ShortName, DocName = "transform/WordEmbeddingsTransform.md")]
 
 [assembly: LoadableClass(typeof(WordEmbeddingsTransform), null, typeof(SignatureLoadDataTransform),
     WordEmbeddingsTransform.UserName, WordEmbeddingsTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
     public sealed class WordEmbeddingsTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
@@ -62,6 +63,7 @@ namespace Microsoft.ML.Runtime.Data
         internal const string Summary = "Word Embeddings transform is a text featurizer which converts vectors of text tokens into sentence " +
             "vectors using a pre-trained model";
         internal const string UserName = "Word Embeddings Transform";
+        internal const string ShortName = "WordEmbeddings";
         public const string LoaderSignature = "WordEmbeddingsTransform";
 
         public static VersionInfo GetVersionInfo()

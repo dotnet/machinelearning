@@ -15474,9 +15474,8 @@ namespace Microsoft.ML
 
         }
 
-        /// <summary>
-        /// Word Embeddings transform is a text featurizer which converts vectors of text tokens into sentence vectors using a pre-trained model
-        /// </summary>
+        /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="WordEmbeddings"]/*' />
         public sealed partial class WordEmbeddings : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
