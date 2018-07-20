@@ -142,8 +142,6 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(Infos.Length == Utils.Size(args.Column));
 
             _customLookup = !string.IsNullOrWhiteSpace(args.CustomLookupTable);
-            string modelFileName = "";
-
             if (_customLookup)
             {
                 _modelKind = null;
@@ -152,16 +150,10 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 _modelKind = args.ModelKind;
-                _modelFileNameWithPath = EnsureModelFile(env, out _linesToSkip, (PretrainedModelKind)_modelKind, out modelFileName);
+                _modelFileNameWithPath = EnsureModelFile(env, out _linesToSkip, (PretrainedModelKind)_modelKind);
             }
 
-            if (string.IsNullOrWhiteSpace(_modelFileNameWithPath))
-            {
-                throw Host.Except("Model file for Word Embedding transform could not be found! " +
-                    @"Please copy the model file '{0}' from '\\cloudmltlc\TLC\releases\Resources\3.8\TextAnalytics\WordVectors\' " +
-                    @"to '<Your TLC folder>\WordVectors\{0}', and creating the 'WordVectors' folder as needed.",
-                    modelFileName);
-            }
+            Host.CheckNonWhiteSpace(_modelFileNameWithPath, nameof(_modelFileNameWithPath));
             _currentVocab = GetVocabularyDictionary(out _dimension);
             _outputType = new VectorType(NumberType.R4, 3 * _dimension);
             Metadata.Seal();
@@ -172,8 +164,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.AssertValue(ctx);
             Host.AssertNonEmpty(Infos);
-            string modelFileName = "";
-
             _customLookup = ctx.Reader.ReadBoolByte();
 
             if (_customLookup)
@@ -184,16 +174,10 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 _modelKind = (PretrainedModelKind)ctx.Reader.ReadUInt32();
-                _modelFileNameWithPath = EnsureModelFile(Host, out _linesToSkip, (PretrainedModelKind)_modelKind, out modelFileName);
+                _modelFileNameWithPath = EnsureModelFile(Host, out _linesToSkip, (PretrainedModelKind)_modelKind);
             }
 
-            if (_modelFileNameWithPath == null)
-            {
-                throw Host.Except("Model file for Word Embedding transform could not be found! " +
-                    @"Please copy the model file '{0}' from '\\cloudmltlc\TLC\releases\Resources\3.8\TextAnalytics\WordVectors\' " +
-                    @"to '<Your bin folder>\WordVectors\{0}', and creating the 'WordVectors' folder as needed.",
-                    modelFileName);
-            }
+            Host.CheckNonWhiteSpace(_modelFileNameWithPath, nameof(_modelFileNameWithPath));
             _currentVocab = GetVocabularyDictionary(out _dimension);
             _outputType = new VectorType(NumberType.R4, 3 * _dimension);
             Metadata.Seal();
@@ -345,19 +329,19 @@ namespace Microsoft.ML.Runtime.Data
         private static Dictionary<PretrainedModelKind, int> _linesToSkipInModels = new Dictionary<PretrainedModelKind, int>()
             { { PretrainedModelKind.FastTextWikipedia300D, 1 } };
 
-        private string EnsureModelFile(IHostEnvironment env, out int linesToSkip, PretrainedModelKind kind, out string modelFileName)
+        private string EnsureModelFile(IHostEnvironment env, out int linesToSkip, PretrainedModelKind kind)
         {
             linesToSkip = 0;
             if (_modelsMetaData.ContainsKey(kind))
             {
-                modelFileName = _modelsMetaData[kind];
+                var modelFileName = _modelsMetaData[kind];
                 if (_linesToSkipInModels.ContainsKey(kind))
                     linesToSkip = _linesToSkipInModels[kind];
                 using (var ch = Host.Start("Ensuring resources"))
                 {
                     string dir = kind == PretrainedModelKind.Sswe ? Path.Combine("Text", "Sswe") : "WordVectors";
                     var url = $"{dir}/{modelFileName}";
-                    var ensureModel = ResourceManagerUtils.Instance.EnsureResource(env, ch, url, modelFileName, dir, Timeout);
+                    var ensureModel = ResourceManagerUtils.Instance.EnsureResource(Host, ch, url, modelFileName, dir, Timeout);
                     ensureModel.Wait();
                     var errorResult = ResourceManagerUtils.GetErrorMessage(out var errorMessage, ensureModel.Result);
                     if (errorResult != null)
@@ -370,8 +354,7 @@ namespace Microsoft.ML.Runtime.Data
                     return ensureModel.Result.FileName;
                 }
             }
-            modelFileName = "";
-            return null;
+            throw Host.Except($"Can't map model kind = {kind} to specific file, please refer to https://aka.ms/MLNetIssue for assistance");
         }
 
         private Model GetVocabularyDictionary(out int dimension)

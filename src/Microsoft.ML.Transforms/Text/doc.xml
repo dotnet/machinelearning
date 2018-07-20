@@ -206,6 +206,25 @@
           ngram_TransformedText as the input to WordEmbedding, the ngram_TransformedText column will be overwritten by the output from 
           WordEmbedding. The output from WordEmbedding is named ngram_TransformedText.__
         </para>
+        <para>
+          License attributes for pretrained models:
+          <list type="bullet">
+            <item>
+              <description>
+                &quot;fastText Wikipedia 300D&quot; by Facebook, Inc. is licensed under <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA 3.0</a> based on:
+                P. Bojanowski*, E. Grave*, A. Joulin, T. Mikolov,<a href="https://arxiv.org/abs/1607.04606">Enriching Word Vectors with Subword Information</a>
+                %40article%7Bbojanowski2016enriching%2C%0A%20%20title%3D%7BEnriching%20Word%20Vectors%20with%20Subword%20Information%7D%2C%0A%20%20author%3D%7BBojanowski%2C%20Piotr%20and%20Grave%2C%20Edouard%20and%20Joulin%2C%20Armand%20and%20Mikolov%2C%20Tomas%7D%2C%0A%20%20journal%3D%7BarXiv%20preprint%20arXiv%3A1607.04606%7D%2C%0A%20%20year%3D%7B2016%7D%0A%7D
+                More information can be found <a href="https://github.com/facebookresearch/fastText/blob/master/pretrained-vectors.md">here</a>.
+              </description>
+            </item>
+            <item>
+              <description>
+                Glove models by Stanford University, or (Jeffrey Pennington, Richard Socher, Christopher D. Manning) is licensed under <a href="https://opendatacommons.org/licenses/pddl/1.0/">PDDL</a>.
+                More information can be found <a href="https://nlp.stanford.edu/projects/glove/">here</a>.
+              </description>
+          </item>
+        </list>
+        </para>
       </remarks>
     </member>
     <example name="WordEmbeddings">
