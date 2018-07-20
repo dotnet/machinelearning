@@ -29,10 +29,14 @@ namespace Microsoft.ML.CodeAnalyzer.Tests
                 diag.CreateDiagnosticResult(40, 14, "Enum1"),
                 diag.CreateDiagnosticResult(46, 14, "Silly"),
                 diag.CreateDiagnosticResult(51, 34, "-"),
-                diag.CreateDiagnosticResult(59, 15, "ITest2"),
-                diag.CreateDiagnosticResult(74, 17, "Method0"),
-                newDiag.CreateDiagnosticResult(75, 24, "Method1"),
-                newDiag.CreateDiagnosticResult(77, 36, "Method3"),
+                diag.CreateDiagnosticResult(53, 13, "this"),
+                diag.CreateDiagnosticResult(61, 15, "ITest2"),
+                diag.CreateDiagnosticResult(76, 17, "Method0"),
+                newDiag.CreateDiagnosticResult(77, 24, "Method1"),
+                newDiag.CreateDiagnosticResult(79, 36, "Method3"),
+                diag.CreateDiagnosticResult(84, 23, "AwesomeDelegate"),
+                diag.CreateDiagnosticResult(85, 31, "Ev"),
+                diag.CreateDiagnosticResult(86, 31, "EvProp"),
             };
 
             VerifyCSharpDiagnostic(TestSource, expected);
@@ -47,8 +51,18 @@ namespace Microsoft.ML.CodeAnalyzer.Tests
         [Fact]
         public void ExplicitAccessModifierFix()
         {
-            VerifyCSharpFix("namespace Bubba { class Foo {}}", "namespace Bubba { internal class Foo {}}");
+            VerifyCSharpFix(
+                "namespace Bubba { class Foo {}}",
+                "namespace Bubba { internal class Foo {}}");
             VerifyCSharpFix(ModifierTest.TestSource, ExpectedFix);
+        }
+
+        [Fact]
+        public void IndexerModifierFix()
+        {
+            VerifyCSharpFix(
+                "namespace Bubba { public class Foo { int this[int i] => i + 2} }",
+                "namespace Bubba { public class Foo { private int this[int i] => i + 2} }");
         }
 
         private static string _expectedFix;

@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CSharp.RuntimeBinder;
 
 namespace Microsoft.ML.CodeAnalyzer
 {
@@ -65,7 +64,7 @@ namespace Microsoft.ML.CodeAnalyzer
                 case SyntaxKind.PropertyDeclaration:
                     return ((PropertyDeclarationSyntax)node).ExplicitInterfaceSpecifier;
                 case SyntaxKind.EventDeclaration:
-                    return ((PropertyDeclarationSyntax)node).ExplicitInterfaceSpecifier;
+                    return ((EventDeclarationSyntax)node).ExplicitInterfaceSpecifier;
                 case SyntaxKind.MethodDeclaration:
                     return ((MethodDeclarationSyntax)node).ExplicitInterfaceSpecifier;
                 default:

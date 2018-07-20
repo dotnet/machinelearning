@@ -49,6 +49,8 @@ namespace TestNamespace
 
         public static TypeName operator +(TypeName a, TypeName b) => new TypeName(1);
         private static TypeName operator -(TypeName a, TypeName b) => new TypeName(2);
+
+        private int this[int i] => i + 2;
     }
 
     public interface ITest1
@@ -75,5 +77,12 @@ namespace TestNamespace
         new public int Method1() => 11;
         new public int Method2() => 12;
         new protected internal int Method3() => 13;
+    }
+
+    public class EventBoy
+    {
+        private delegate void AwesomeDelegate();
+        private event AwesomeDelegate Ev;
+        private event AwesomeDelegate EvProp { get; }
     }
 }

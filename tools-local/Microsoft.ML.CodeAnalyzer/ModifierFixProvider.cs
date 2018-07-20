@@ -125,17 +125,18 @@ namespace Microsoft.ML.CodeAnalyzer
             SyntaxNode parent;
             if (!identifier.IsKind(SyntaxKind.IdentifierToken))
             {
-                // Maybe it's an operator?
-                parent = identifier.Parent.FirstAncestorOrSelf<OperatorDeclarationSyntax>();
-                if (parent == null)
-                    return;
+                // Maybe it's an operator or indexer?
+                parent = (SyntaxNode)identifier.Parent.FirstAncestorOrSelf<OperatorDeclarationSyntax>()
+                    ?? identifier.Parent.FirstAncestorOrSelf<IndexerDeclarationSyntax>();
             }
             else
             {
                 parent = identifier.Parent;
                 if (parent.IsKind(SyntaxKind.VariableDeclarator))
-                    parent = parent.FirstAncestorOrSelf<FieldDeclarationSyntax>();
+                    parent = parent.FirstAncestorOrSelf<BaseFieldDeclarationSyntax>();
             }
+            if (parent == null)
+                return;
 
             // I don't see a Roslyn convenience to find the default access modifier?
             switch (parent.Kind())
@@ -144,10 +145,18 @@ namespace Microsoft.ML.CodeAnalyzer
                     var field = (FieldDeclarationSyntax)parent;
                     RegisterFix(context, diagnostic, field.Modifiers, field.WithModifiers, privateAc, field);
                     break;
+                case SyntaxKind.EventFieldDeclaration:
+                    var efield = (EventFieldDeclarationSyntax)parent;
+                    RegisterFix(context, diagnostic, efield.Modifiers, efield.WithModifiers, privateAc, efield);
+                    break;
                 case SyntaxKind.PropertyDeclaration:
                     var prop = (PropertyDeclarationSyntax)parent;
                     RegisterFix(context, diagnostic, prop.Modifiers, prop.WithModifiers, privateAc, prop);
                     break;
+                case SyntaxKind.EventDeclaration:
+                    var evDec = (EventDeclarationSyntax)parent;
+                    RegisterFix(context, diagnostic, evDec.Modifiers, evDec.WithModifiers, privateAc, evDec);
+                        break;
                 case SyntaxKind.ClassDeclaration:
                     var cls = (ClassDeclarationSyntax)parent;
                     RegisterFix(context, diagnostic, cls.Modifiers, cls.WithModifiers, IsNested(parent), cls);
