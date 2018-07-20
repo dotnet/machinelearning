@@ -230,7 +230,7 @@
     <example name="WordEmbeddings">
       <example>
         <code language="csharp">
-          pipeline.Add(new WordEmbeddings((&quot;InVectorTextCol" , &quot;OutTextCol&quot;)));
+          pipeline.Add(new WordEmbeddings((&quot;InVectorTextCol&quot; , &quot;OutTextCol&quot;)));
         </code>
       </example>
     </example>
