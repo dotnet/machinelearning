@@ -10,6 +10,7 @@
 
 namespace Microsoft.ML.CodeAnalyzer {
     using System;
+    using System.Reflection;
     
     
     /// <summary>
@@ -39,7 +40,7 @@ namespace Microsoft.ML.CodeAnalyzer {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.ML.CodeAnalyzer.Descriptions", typeof(Descriptions).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.ML.CodeAnalyzer.Descriptions", typeof(Descriptions).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
