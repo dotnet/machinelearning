@@ -1,0 +1,21 @@
+resources:
+  containers:
+  - container: rhel7
+    image: microsoft/dotnet-buildtools-prereqs:centos-7-b46d863-20180719033416
+
+phases:
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: RHEL7
+    buildScript: ./build.sh
+    queue:
+      container: rhel7
+
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: Windows_NT
+    buildScript: build.cmd
+    queue:
+      name: Hosted VS2017
+      demands:
+        - agent.os -equals Windows_NT
