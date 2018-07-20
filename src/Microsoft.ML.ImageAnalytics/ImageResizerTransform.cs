@@ -132,9 +132,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         {
             return new VersionInfo(
                 modelSignature: "IMGSCALF",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Swith from OpenCV to Bitmap
+                verReadableCur: 0x00010002,
+                verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature);
         }
 
@@ -143,9 +144,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         // This is parallel to Infos.
         private readonly ColInfoEx[] _exes;
 
-        /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
         public ImageResizerTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column, input, t => t is ImageType ? null : "Expected Image type")
         {

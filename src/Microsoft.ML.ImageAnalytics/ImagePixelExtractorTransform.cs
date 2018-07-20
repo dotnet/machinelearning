@@ -228,9 +228,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         {
             return new VersionInfo(
                 modelSignature: "IMGPXEXT",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Swith from OpenCV to Bitmap
+                verReadableCur: 0x00010002,
+                verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature);
         }
 
@@ -239,9 +240,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         private readonly ColInfoEx[] _exes;
         private readonly VectorType[] _types;
 
-        /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
         public ImagePixelExtractorTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input,
                 t => t is ImageType ? null : "Expected Image type")
@@ -439,7 +438,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     {
                         int idst = 0;
                         for (int y = 0; y < h; ++y)
-                        {
                             for (int x = 0; x < w; x++)
                             {
                                 var pb = src.GetPixel(y, x);
@@ -465,8 +463,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                                     if (b) { vf[idst++] = (pb.G - offset) * scale; }
                                 }
                             }
-                        }
-
                         Host.Assert(idst == size);
                     }
                     else
