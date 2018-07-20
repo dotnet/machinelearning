@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -54,7 +55,92 @@ namespace Microsoft.ML.CodeAnalyzer
                 SyntaxKind.ClassDeclaration, SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration,
                 SyntaxKind.DelegateDeclaration, SyntaxKind.EnumDeclaration,
                 SyntaxKind.ConstructorDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.IndexerDeclaration,
-                SyntaxKind.OperatorDeclaration);
+                SyntaxKind.OperatorDeclaration, SyntaxKind.EventDeclaration, SyntaxKind.EventFieldDeclaration);
+        }
+
+        private static ExplicitInterfaceSpecifierSyntax Explicit(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.PropertyDeclaration:
+                    return ((PropertyDeclarationSyntax)node).ExplicitInterfaceSpecifier;
+                case SyntaxKind.EventDeclaration:
+                    return ((PropertyDeclarationSyntax)node).ExplicitInterfaceSpecifier;
+                case SyntaxKind.MethodDeclaration:
+                    return ((MethodDeclarationSyntax)node).ExplicitInterfaceSpecifier;
+                default:
+                    return null;
+            }
+        }
+
+        private static SyntaxTokenList Mods(SyntaxNode node, out SyntaxToken idToken)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                    var fNode = (BaseFieldDeclarationSyntax)node;
+                    idToken = fNode.Declaration.Variables.FirstOrDefault().Identifier;
+                    return fNode.Modifiers;
+
+                case SyntaxKind.PropertyDeclaration:
+                    var pNode = (PropertyDeclarationSyntax)node;
+                    idToken = pNode.Identifier;
+                    return pNode.Modifiers;
+
+                case SyntaxKind.EventDeclaration:
+                    var evNode = (EventDeclarationSyntax)node;
+                    idToken = evNode.Identifier;
+                    return evNode.Modifiers;
+
+                case SyntaxKind.ClassDeclaration:
+                    var cNode = (ClassDeclarationSyntax)node;
+                    idToken = cNode.Identifier;
+                    return cNode.Modifiers;
+
+                case SyntaxKind.InterfaceDeclaration:
+                    var iNode = (InterfaceDeclarationSyntax)node;
+                    idToken = iNode.Identifier;
+                    return iNode.Modifiers;
+
+                case SyntaxKind.StructDeclaration:
+                    var sNode = (StructDeclarationSyntax)node;
+                    idToken = sNode.Identifier;
+                    return sNode.Modifiers;
+
+                case SyntaxKind.DelegateDeclaration:
+                    var dNode = (DelegateDeclarationSyntax)node;
+                    idToken = dNode.Identifier;
+                    return dNode.Modifiers;
+
+                case SyntaxKind.EnumDeclaration:
+                    var eNode = (EnumDeclarationSyntax)node;
+                    idToken = eNode.Identifier;
+                    return eNode.Modifiers;
+
+                case SyntaxKind.ConstructorDeclaration:
+                    var coNode = (ConstructorDeclarationSyntax)node;
+                    idToken = coNode.Identifier;
+                    return coNode.Modifiers;
+
+                case SyntaxKind.MethodDeclaration:
+                    var mNode = (MethodDeclarationSyntax)node;
+                    idToken = mNode.Identifier;
+                    return mNode.Modifiers;
+
+                case SyntaxKind.IndexerDeclaration:
+                    var inNode = (IndexerDeclarationSyntax)node;
+                    idToken = inNode.ThisKeyword; // Close enough.
+                    return inNode.Modifiers;
+
+                case SyntaxKind.OperatorDeclaration:
+                    var oNode = (OperatorDeclarationSyntax)node;
+                    idToken = ((OperatorDeclarationSyntax)node).OperatorToken;
+                    return oNode.Modifiers;
+
+                default:
+                    throw new Exception("Should be impossible");
+            }
         }
 
         internal static bool IsAccessorMod(SyntaxToken token)
@@ -73,16 +159,11 @@ namespace Microsoft.ML.CodeAnalyzer
             if (node.Parent.Kind() == SyntaxKind.InterfaceDeclaration)
                 return;
 
-            dynamic dynNode = context.Node;
-            try
-            {
-                ExplicitInterfaceSpecifierSyntax expSyntax = dynNode.ExplicitInterfaceSpecifier;
-                if (expSyntax != null)
-                    return;
-            }
-            catch (RuntimeBinderException) { }
+            if (Explicit(node) != null)
+                return;
 
-            SyntaxTokenList mods = dynNode.Modifiers;
+            SyntaxTokenList mods = Mods(node, out var idToken);
+
             bool newNotFirst = false;
             bool anyAccessor = false;
             // Whether any accessor modifier was observed after a non-new, non-accessor variable.
@@ -115,20 +196,6 @@ namespace Microsoft.ML.CodeAnalyzer
                 return; // Static constructors can't have other modifiers, so in this case back off.
 
             // Great, now we have to find the identifier.
-
-            SyntaxToken idToken;
-            switch (node.Kind())
-            {
-                case SyntaxKind.FieldDeclaration:
-                    idToken = ((FieldDeclarationSyntax)node).Declaration.Variables.FirstOrDefault().Identifier;
-                    break;
-                case SyntaxKind.OperatorDeclaration:
-                    idToken = ((OperatorDeclarationSyntax)node).OperatorToken;
-                    break;
-                default:
-                    idToken = dynNode.Identifier;
-                    break;
-            }
 
             var rule = newNotFirst ? NewModifierDiagnostic.Rule : AccessModifierDiagnostic.Rule;
             var diagnostic = Diagnostic.Create(rule, idToken.GetLocation(), idToken.Text);

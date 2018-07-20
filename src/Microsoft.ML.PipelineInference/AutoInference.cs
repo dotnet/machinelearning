@@ -157,7 +157,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             public AutoMlMlState(IHostEnvironment env, Arguments args)
                 : this(env,
-                      PipelineSweeperSupportedMetrics.GetSupportedMetric(args.Metric), 
+                      PipelineSweeperSupportedMetrics.GetSupportedMetric(args.Metric),
                       args.Engine.CreateComponent(env),
                       args.TerminatorArgs.CreateComponent(env), args.TrainerKind, requestedLearners: args.RequestedLearners)
             {
