@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using TPredictor = LinearRegressionPredictor;
 
-    /// <include file='./doc.xml' path='docs/members/member[@name="OGD"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="OGD"]/*' />
     public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<OnlineGradientDescentTrainer.Arguments, TPredictor>
     {
         internal const string LoadNameValue = "OnlineGradientDescent";
@@ -58,11 +58,6 @@ namespace Microsoft.ML.Runtime.Learners
             LossFunction = args.LossFunction.CreateComponent(env);
         }
 
-        public override bool NeedCalibration
-        {
-            get { return false; }
-        }
-
         public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
 
         protected override void CheckLabel(RoleMappedData data)
@@ -70,7 +65,7 @@ namespace Microsoft.ML.Runtime.Learners
             data.CheckRegressionLabel();
         }
 
-        public override TPredictor CreatePredictor()
+        protected override TPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
             VBuffer<Float> weights = default(VBuffer<Float>);
@@ -94,7 +89,8 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = "Train a Online gradient descent perceptron.",
             UserName = UserNameValue,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='docs/members/member[@name=""OGD""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name=""OGD""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name=""OGD""]/*' />"})]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

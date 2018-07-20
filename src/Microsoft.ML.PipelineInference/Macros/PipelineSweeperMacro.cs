@@ -239,8 +239,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 if (node.Context.TryGetVariable(ExperimentUtils.GenerateOverallMetricVarName(pipeline.UniqueId), out var v) &&
                     node.Context.TryGetVariable(AutoMlUtils.GenerateOverallTrainingMetricVarName(pipeline.UniqueId), out var v2))
                 {
-                    pipeline.PerformanceSummary =
-                        AutoMlUtils.ExtractRunSummary(env, (IDataView)v.Value, autoMlState.Metric.Name, (IDataView)v2.Value);
+                    pipeline.PerformanceSummary = AutoMlUtils.ExtractRunSummary(env, (IDataView)v.Value, autoMlState.Metric.Name, (IDataView)v2.Value);
                     autoMlState.AddEvaluated(pipeline);
                 }
             }

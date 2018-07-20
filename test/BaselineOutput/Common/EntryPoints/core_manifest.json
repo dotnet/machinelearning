@@ -22546,6 +22546,7 @@
                   "Auc",
                   "AccuracyMicro",
                   "AccuracyMacro",
+                  "L1",
                   "L2",
                   "F1",
                   "AuPrc",

@@ -70,15 +70,14 @@ namespace Microsoft.ML.Scenarios
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features");
 
                 // Train
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments());
+                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { NumThreads = 1 } );
 
                 // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
                 var cached = new CacheDataView(env, trans, prefetch: null);
                 var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
-                trainer.Train(trainRoles);
+                var pred = trainer.Train(trainRoles);
 
                 // Get scorer and evaluate the predictions from test data
-                var pred = trainer.CreatePredictor();
                 IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
                 var metrics = Evaluate(env, testDataScorer);
                 CompareMatrics(metrics);
