@@ -24,8 +24,10 @@ phases:
       condition: succeededOrFailed()
       inputs:
         testRunner: 'vSTest'
+        searchFolder: '$(System.DefaultWorkingDirectory)/bin'
         testResultsFiles: '**/*.trx'
         testRunTitle: Machinelearning_Tests_$(_phaseName)_$(_configuration)_$(Build.BuildNumber)
         configuration: $(_configuration)
+        mergeTestResults: true
     - script: $(_buildScript) -buildPackages
       displayName: Build Packages
