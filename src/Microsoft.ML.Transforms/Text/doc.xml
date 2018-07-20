@@ -179,7 +179,7 @@
     <example name="LightLDA">
       <example>
         <code language="csharp">
-          pipeline.Add(new LightLda(("InTextCol" , "OutTextCol")));
+          pipeline.Add(new LightLda((&quot;InTextCol&quot; , &quot;OutTextCol&quot;)));
         </code>
       </example>
     </example>
@@ -192,16 +192,16 @@
         WordEmbeddings wrap different embedding models, such as GloVe. Users can specify which embedding to use. 
         The available options are various versions of <a href="https://nlp.stanford.edu/projects/glove/">GloVe Models</a>, <a href="https://en.wikipedia.org/wiki/FastText">FastText</a>, and <a href="http://anthology.aclweb.org/P/P14/P14-1146.pdf">Sswe</a>.
         <para>
-          Note: As WordEmbedding requires a column with text vector, e.g. %3C'This', 'is', 'good'%3E, users need to create an input column by:
+          Note: As WordEmbedding requires a column with text vector, e.g. %3C%27This%27, %27is%27, %27good%27%3E, users need to create an input column by:
           <list type="bullet">
           <item><description>concatenating columns with TX type,</description></item>
             <item>
-              <description>or using the output_tokens=True for NGramFeaturizer() to convert a column with sentences like "This is good" into %3C'This', 'is', 'good' %3E. 
-              The column for the output token column is renamed with a prefix of '_TranformedText'.</description>
+              <description>or using the output_tokens=True for NGramFeaturizer() to convert a column with sentences like "This is good" into %3C%27This%27, %27is%27, %27good%27 %3E. 
+              The column for the output token column is renamed with a prefix of %27_TranformedText%27.</description>
             </item>
         </list>
           In the following example, after the NGramFeaturizer, features named ngram.__ are generated. A new column named ngram_TransformedText is
-          also created with the text vector, similar as running .split(' '). However, due to the variable length of this column it cannot be properly
+          also created with the text vector, similar as running .split(%27 %27). However, due to the variable length of this column it cannot be properly
           converted to pandas dataframe, thus any pipelines/transforms output this text vector column will throw errors. However, we use 
           ngram_TransformedText as the input to WordEmbedding, the ngram_TransformedText column will be overwritten by the output from 
           WordEmbedding. The output from WordEmbedding is named ngram_TransformedText.__
@@ -211,7 +211,7 @@
     <example name="WordEmbeddings">
       <example>
         <code language="csharp">
-          pipeline.Add(new WordEmbeddings(("InTextCol" , "OutTextCol")));
+          pipeline.Add(new WordEmbeddings((&quot;InVectorTextCol" , &quot;OutTextCol&quot;)));
         </code>
       </example>
     </example>
