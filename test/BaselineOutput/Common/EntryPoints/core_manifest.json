@@ -17918,7 +17918,7 @@
     },
     {
       "Name": "Transforms.ImageLoader",
-      "Desc": "Load images from a file.",
+      "Desc": "Load images from a files.",
       "FriendlyName": "Image Loader Transform",
       "ShortName": "ImageLoaderTransform",
       "Inputs": [
