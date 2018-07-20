@@ -156,7 +156,7 @@ namespace Microsoft.ML.CodeAnalyzer
                 case SyntaxKind.EventDeclaration:
                     var evDec = (EventDeclarationSyntax)parent;
                     RegisterFix(context, diagnostic, evDec.Modifiers, evDec.WithModifiers, privateAc, evDec);
-                        break;
+                    break;
                 case SyntaxKind.ClassDeclaration:
                     var cls = (ClassDeclarationSyntax)parent;
                     RegisterFix(context, diagnostic, cls.Modifiers, cls.WithModifiers, IsNested(parent), cls);
