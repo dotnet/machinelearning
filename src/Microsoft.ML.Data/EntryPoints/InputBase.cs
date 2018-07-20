@@ -164,9 +164,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         }
                     case CachingOptions.Auto:
                         {
-                            ITrainerEx trainerEx = trainer as ITrainerEx;
                             // REVIEW: we should switch to hybrid caching in future.
-                            if (!(input.TrainingData is BinaryLoader) && (trainerEx == null || trainerEx.WantCaching))
+                            if (!(input.TrainingData is BinaryLoader) && trainer.Info.WantCaching)
                                 // default to Memory so mml is on par with maml
                                 cachingType = Cache.CachingType.Memory;
                             break;

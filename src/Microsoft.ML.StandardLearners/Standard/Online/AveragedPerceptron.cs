@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Learners
     //     - Loss function. By default, hinge loss (aka max-margin avgd perceptron)
     //     - Feature normalization. By default, rescaling between min and max values for every feature
     //     - Prediction calibration to produce probabilities. Off by default, if on, uses exponential (aka Platt) calibration.
-    /// <include file='./doc.xml' path='docs/members/member[@name="AP"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="AP"]/*' />
     public sealed class AveragedPerceptronTrainer :
         AveragedLinearTrainer<AveragedPerceptronTrainer.Arguments, LinearBinaryPredictor>
     {
@@ -49,15 +49,12 @@ namespace Microsoft.ML.Runtime.Learners
             public int MaxCalibrationExamples = 1000000;
         }
 
+        protected override bool NeedCalibration => true;
+
         public AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, UserNameValue)
         {
             LossFunction = Args.LossFunction.CreateComponent(env);
-        }
-
-        public override bool NeedCalibration
-        {
-            get { return true; }
         }
 
         public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
@@ -68,7 +65,7 @@ namespace Microsoft.ML.Runtime.Learners
             data.CheckBinaryLabel();
         }
 
-        public override LinearBinaryPredictor CreatePredictor()
+        protected override LinearBinaryPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
 
@@ -94,7 +91,8 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = Summary,
             UserName = UserNameValue,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='docs/members/member[@name=""AP""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name=""AP""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name=""AP""]/*' />"})]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

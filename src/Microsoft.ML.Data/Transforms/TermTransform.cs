@@ -29,14 +29,14 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// TermTransform builds up term vocabularies (dictionaries).
-    /// Notes:
-    /// * Each column builds/uses exactly one "vocabulary" (dictionary).
-    /// * Output columns are KeyType-valued.
-    /// * The Key value is the one-based index of the item in the dictionary.
-    /// * Not found is assigned the value zero.
-    /// </summary>
+
+    // TermTransform builds up term vocabularies (dictionaries).
+    // Notes:
+    // * Each column builds/uses exactly one "vocabulary" (dictionary).
+    // * Output columns are KeyType-valued.
+    // * The Key value is the one-based index of the item in the dictionary.
+    // * Not found is assigned the value zero.
+    /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
     public sealed partial class TermTransform : OneToOneTransformBase, ITransformTemplate
     {
         public abstract class ColumnBase : OneToOneColumn

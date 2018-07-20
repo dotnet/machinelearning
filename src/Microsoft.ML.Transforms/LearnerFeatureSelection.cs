@@ -33,8 +33,8 @@ namespace Microsoft.ML.Runtime.Data
             public int? NumSlotsToKeep;
 
             [Argument(ArgumentType.Multiple, HelpText = "Filter", ShortName = "f", SortOrder = 1)]
-            public SubComponent<ITrainer<RoleMappedData, IPredictorWithFeatureWeights<Single>>, SignatureFeatureScorerTrainer> Filter =
-                new SubComponent<ITrainer<RoleMappedData, IPredictorWithFeatureWeights<Single>>, SignatureFeatureScorerTrainer>("SDCA");
+            public SubComponent<ITrainer<IPredictorWithFeatureWeights<Single>>, SignatureFeatureScorerTrainer> Filter =
+                new SubComponent<ITrainer<IPredictorWithFeatureWeights<Single>>, SignatureFeatureScorerTrainer>("SDCA");
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for features", ShortName = "feat,col", SortOrder = 3, Purpose = SpecialPurpose.ColumnName)]
             public string FeatureColumn = DefaultColumnNames.Features;
