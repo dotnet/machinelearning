@@ -190,21 +190,12 @@
       </summary>
       <remarks>
         WordEmbeddings wrap different embedding models, such as GloVe. Users can specify which embedding to use. 
-        The available options are various versions of <a href="https://nlp.stanford.edu/projects/glove/">GloVe Models</a>, <a href="https://en.wikipedia.org/wiki/FastText">FastText</a>, and <a href="http://anthology.aclweb.org/P/P14/P14-1146.pdf">Sswe</a>.
+        The available options are various versions of <a href="https://nlp.stanford.edu/projects/glove/">GloVe Models</a>, <a href="https://en.wikipedia.org/wiki/FastText">fastText</a>, and <a href="http://anthology.aclweb.org/P/P14/P14-1146.pdf">Sswe</a>.
         <para>
-          Note: As WordEmbedding requires a column with text vector, e.g. %3C%27This%27, %27is%27, %27good%27%3E, users need to create an input column by:
-          <list type="bullet">
-          <item><description>concatenating columns with TX type,</description></item>
-            <item>
-              <description>or using the output_tokens=True for NGramFeaturizer() to convert a column with sentences like "This is good" into %3C%27This%27, %27is%27, %27good%27 %3E. 
-              The column for the output token column is renamed with a prefix of %27_TranformedText%27.</description>
-            </item>
-        </list>
-          In the following example, after the NGramFeaturizer, features named ngram.__ are generated. A new column named ngram_TransformedText is
-          also created with the text vector, similar as running .split(%27 %27). However, due to the variable length of this column it cannot be properly
-          converted to pandas dataframe, thus any pipelines/transforms output this text vector column will throw errors. However, we use 
-          ngram_TransformedText as the input to WordEmbedding, the ngram_TransformedText column will be overwritten by the output from 
-          WordEmbedding. The output from WordEmbedding is named ngram_TransformedText.__
+          Note: As WordEmbedding requires a column with text vector, e.g. %3C%27This%27, %27is%27, %27good%27%3E, users need to create an input column by
+          using DelimitedTokenizeTransform on top of Text column which will break text into tokens by specified separators, or by using the output_tokens=True for TextTransform
+          to convert a column with sentences like "This is good" into %3C%27This%27, %27is%27, %27good%27 %3E.
+          The column for the output token column is renamed with a prefix of %27_TranformedText%27.
         </para>
         <para>
           License attributes for pretrained models:
@@ -219,8 +210,8 @@
             </item>
             <item>
               <description>
-                Glove models by Stanford University, or (Jeffrey Pennington, Richard Socher, Christopher D. Manning) is licensed under <a href="https://opendatacommons.org/licenses/pddl/1.0/">PDDL</a>.
-                More information can be found <a href="https://nlp.stanford.edu/projects/glove/">here</a>.
+                GloVe models by Stanford University, or (Jeffrey Pennington, Richard Socher, and Christopher D. Manning. 2014. <a href="https://nlp.stanford.edu/pubs/glove.pdf">GloVe: Global Vectors for Word Representation</a>) is licensed under <a href="https://opendatacommons.org/licenses/pddl/1.0/">PDDL</a>.
+                More information can be found <a href="https://nlp.stanford.edu/projects/glove/">here</a>. Repository can be found <a href="https://github.com/stanfordnlp/GloVe">here</a>.
               </description>
           </item>
         </list>
