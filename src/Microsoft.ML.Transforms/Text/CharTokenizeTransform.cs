@@ -64,13 +64,16 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         public const string LoaderSignature = "CharToken";
         public const string UserName = "Character Tokenizer Transform";
 
-        public static uint CurrentModelVersion = 0x00010002;
+        // Keep track of the model that was saved with ver:0x00010001
+        private readonly bool _isSeparatorStartEnd = false;
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "CHARTOKN",
-                verWrittenCur: CurrentModelVersion,
-                verReadableCur: CurrentModelVersion,
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002,  // Updated to use UnitSeparator <US> character instead of using <ETX><STX> for vector inputs.
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
         }
@@ -121,7 +124,9 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             // <base>
             // byte: _useMarkerChars value.
             _useMarkerChars = ctx.Reader.ReadBoolByte();
-            CurrentModelVersion = ctx.Header.ModelVerReadable;
+
+            var version = GetVersionInfo();
+            _isSeparatorStartEnd = ctx.Header.ModelVerReadable < version.VerReadableCur || ctx.Reader.ReadBoolByte();
 
             _type = GetOutputColumnType();
             SetMetadata();
@@ -148,6 +153,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             // byte: _useMarkerChars value.
             SaveBase(ctx);
             ctx.Writer.WriteBoolByte(_useMarkerChars);
+            ctx.Writer.WriteBoolByte(_isSeparatorStartEnd);
         }
 
         protected override ColumnType GetColumnTypeCore(int iinfo)
@@ -400,11 +406,10 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             int cv = Infos[iinfo].TypeSrc.VectorSize;
             Contracts.Assert(cv >= 0);
 
-            var version = GetVersionInfo();
             var getSrc = GetSrcGetter<VBuffer<DvText>>(input, iinfo);
             var src = default(VBuffer<DvText>);
 
-            ValueGetter<VBuffer<ushort>> valueGetterOldVersion = (ref VBuffer<ushort> dst) =>
+            ValueGetter<VBuffer<ushort>> getterWithStartEndSep = (ref VBuffer<ushort> dst) =>
                 {
                     getSrc(ref src);
 
@@ -443,7 +448,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     dst = new VBuffer<ushort>(len, values, dst.Indices);
                 };
 
-            ValueGetter < VBuffer<ushort> > valueGetterCurrentVersion = (ref VBuffer<ushort> dst) =>
+            ValueGetter < VBuffer<ushort> > getterWithUnitSep = (ref VBuffer<ushort> dst) =>
                 {
                     getSrc(ref src);
 
@@ -502,7 +507,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                     dst = new VBuffer<ushort>(len, values, dst.Indices);
                 };
-            return CurrentModelVersion < version.VerReadableCur ? valueGetterOldVersion : valueGetterCurrentVersion;
+            return _isSeparatorStartEnd ? getterWithStartEndSep : getterWithUnitSep;
         }
     }
 }
