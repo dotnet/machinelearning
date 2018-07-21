@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<docs>
+<doc>
   <members>
     
     <member name="OGD">
       <summary>
         Stochastic gradient descent is an optimization method used to train a wide range of models in machine learning. 
-        In the ML.Net the implementation of OGD, it is for linear regression. 
+        In the ML.Net the implementation of OGD, is for linear regression. 
       </summary>
       <remarks>
         Stochastic gradient descent uses a simple yet efficient iterative technique to fit model coefficients using error gradients for convex loss functions.
@@ -13,6 +13,18 @@
         and an option to update the weight vector using the average of the vectors seen over time (averaged argument is set to True by default).
       </remarks>
     </member>
+    <example>
+      <example name="OGD">
+        <code language="csharp">
+          new OnlineGradientDescentRegressor
+          {
+            NumIterations = 10,
+            L2RegularizerWeight = 0.6f,
+            LossFunction = new PoissonLossRegressionLossFunction()
+          }
+        </code>
+      </example>
+    </example>
 
     <member name="AP">
       <summary>
@@ -39,6 +51,18 @@
         <para><a href='http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200'>Large Margin Classification Using the Perceptron Algorithm</a></para>
       </remarks>
     </member>
+    <example>
+      <example name="AP">
+        <code language="csharp">
+          new AveragedPerceptronBinaryClassifier
+          {
+            NumIterations = 10,
+            L2RegularizerWeight = 0.01f,
+            LossFunction = new ExpLossClassificationLossFunction()
+          }
+        </code>
+      </example>
+    </example>
 
   </members>
-</docs>
+</doc>

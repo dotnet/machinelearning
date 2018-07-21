@@ -55,13 +55,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
         private readonly IHostEnvironment _env;
         public readonly TransformInference.SuggestedTransform[] Transforms;
         public readonly RecipeInference.SuggestedRecipe.SuggestedLearner Learner;
-        public AutoInference.RunSummary PerformanceSummary { get; set; }
+        public PipelineSweeperRunSummary PerformanceSummary { get; set; }
         public string LoaderSettings { get; set; }
         public Guid UniqueId { get; }
 
         public PipelinePattern(TransformInference.SuggestedTransform[] transforms,
             RecipeInference.SuggestedRecipe.SuggestedLearner learner,
-            string loaderSettings, IHostEnvironment env, AutoInference.RunSummary summary = null)
+            string loaderSettings, IHostEnvironment env, PipelineSweeperRunSummary summary = null)
         {
             // Make sure internal pipeline nodes and sweep params are cloned, not shared.
             // Cloning the transforms and learner rather than assigning outright
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// Runs a train-test experiment on the current pipeline, through entrypoints.
         /// </summary>
         public void RunTrainTestExperiment(IDataView trainData, IDataView testData,
-            AutoInference.SupportedMetric metric, MacroUtils.TrainerKinds trainerKind, out double testMetricValue,
+            SupportedMetric metric, MacroUtils.TrainerKinds trainerKind, out double testMetricValue,
             out double trainMetricValue)
         {
             var experiment = CreateTrainTestExperiment(trainData, testData, trainerKind, true, out var trainTestOutput);

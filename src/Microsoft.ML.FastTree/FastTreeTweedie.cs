@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.FastTree
     // The Tweedie boosting model follows the mathematics established in:
     // Yang, Quan, and Zou. "Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models."
     // https://arxiv.org/pdf/1508.06378.pdf
-    /// <include file='./doc.xml' path='docs/members/member[@name="FastTreeTweedieRegression"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="FastTreeTweedieRegression"]/*' />
     public sealed partial class FastTreeTweedieTrainer : BoostingFastTreeTrainerBase<FastTreeTweedieTrainer.Arguments, FastTreeTweediePredictor>
     {
         public const string LoadNameValue = "FastTreeTweedieRegression";
@@ -42,12 +42,7 @@ namespace Microsoft.ML.Runtime.FastTree
         private Test _trainRegressionTest;
         private Test _testRegressionTest;
 
-        public override bool NeedCalibration
-        {
-            get { return false; }
-        }
-
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         public FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)
             : base(env, args)
@@ -55,8 +50,12 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckUserArg(1 <= Args.Index && Args.Index <= 2, nameof(Args.Index), "Must be in the range [1, 2]");
         }
 
-        public override void Train(RoleMappedData trainData)
+        public override FastTreeTweediePredictor Train(TrainContext context)
         {
+            Host.CheckValue(context, nameof(context));
+            var trainData = context.TrainingSet;
+            ValidData = context.ValidationSet;
+
             using (var ch = Host.Start("Training"))
             {
                 ch.CheckValue(trainData, nameof(trainData));
@@ -68,12 +67,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainCore(ch);
                 ch.Done();
             }
-        }
-
-        public override FastTreeTweediePredictor CreatePredictor()
-        {
-            Host.Check(TrainedEnsemble != null,
-                "The predictor cannot be created before training is complete");
             return new FastTreeTweediePredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 
@@ -409,11 +402,11 @@ namespace Microsoft.ML.Runtime.FastTree
                 loaderSignature: LoaderSignature);
         }
 
-        protected override uint VerNumFeaturesSerialized { get { return 0x00010001; } }
+        protected override uint VerNumFeaturesSerialized => 0x00010001;
 
-        protected override uint VerDefaultValueSerialized { get { return 0x00010002; } }
+        protected override uint VerDefaultValueSerialized => 0x00010002;
 
-        protected override uint VerCategoricalSplitSerialized { get { return 0x00010003; } }
+        protected override uint VerCategoricalSplitSerialized => 0x00010003;
 
         internal FastTreeTweediePredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -452,7 +445,7 @@ namespace Microsoft.ML.Runtime.FastTree
             dst = MathUtils.ExpSlow(dst);
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
     }
 
     public static partial class FastTree
@@ -461,7 +454,7 @@ namespace Microsoft.ML.Runtime.FastTree
             Desc = FastTreeTweedieTrainer.Summary,
             UserName = FastTreeTweedieTrainer.UserNameValue,
             ShortName = FastTreeTweedieTrainer.ShortName,
-            XmlInclude = new [] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name=""FastTreeTweedieRegression""]/*' />" })]
+            XmlInclude = new [] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTreeTweedieRegression""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainTweedieRegression(IHostEnvironment env, FastTreeTweedieTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
