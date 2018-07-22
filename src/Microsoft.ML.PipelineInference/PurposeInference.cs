@@ -147,9 +147,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         else if (Regex.IsMatch(column.ColumnName, @"^m_rating$", RegexOptions.IgnoreCase))
                             column.SuggestedPurpose = ColumnPurpose.Label;
                         else if (Regex.IsMatch(column.ColumnName, @"^m_queryid$", RegexOptions.IgnoreCase))
-                            column.SuggestedPurpose = ColumnPurpose.GroupId;
-                        else if (Regex.IsMatch(column.ColumnName, @"groupid", RegexOptions.IgnoreCase))
-                            column.SuggestedPurpose = ColumnPurpose.GroupId;
+                            column.SuggestedPurpose = ColumnPurpose.Group;
+                        else if (Regex.IsMatch(column.ColumnName, @"group", RegexOptions.IgnoreCase))
+                            column.SuggestedPurpose = ColumnPurpose.Group;
                         else if (Regex.IsMatch(column.ColumnName, @"^m_\w+id$", RegexOptions.IgnoreCase))
                             column.SuggestedPurpose = ColumnPurpose.Name;
                         else if (Regex.IsMatch(column.ColumnName, @"^id$", RegexOptions.IgnoreCase))
@@ -318,8 +318,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// <param name="data">The data to use for inference.</param>
         /// <param name="columnIndices">Indices of columns that we're interested in.</param>
         /// <param name="args">Additional arguments to inference.</param>
+        /// <param name="dataRoles">(Optional) User defined Role mappings for data.</param>
         /// <returns>The result includes the array of auto-detected column purposes.</returns>
-        public static InferenceResult InferPurposes(IHostEnvironment env, IDataView data, IEnumerable<int> columnIndices, Arguments args)
+        public static InferenceResult InferPurposes(IHostEnvironment env, IDataView data, IEnumerable<int> columnIndices, Arguments args,
+            RoleMappedData dataRoles = null)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("InferPurposes");
@@ -330,14 +332,25 @@ namespace Microsoft.ML.Runtime.PipelineInference
             using (var ch = host.Start("InferPurposes"))
             {
                 var takenData = data.Take(args.MaxRowsToRead);
-                var cols = columnIndices.Select(x => new IntermediateColumn(takenData, x)).ToArray();
+                var cols = columnIndices.Select(x => new IntermediateColumn(takenData, x)).ToList();
                 data = takenData;
+
+                if (dataRoles != null)
+                {
+                    var items = dataRoles.Schema.GetColumnRoles();
+                    foreach(var item in items)
+                    {
+                        Enum.TryParse(item.Key.Value, out ColumnPurpose purpose);
+                        var col = cols.Find(x => x.ColumnName == item.Value.Name);
+                        col.SuggestedPurpose = purpose;
+                    }
+                }
 
                 foreach (var expert in GetExperts())
                 {
                     using (var expertChannel = host.Start(expert.GetType().ToString()))
                     {
-                        expert.Apply(expertChannel, cols);
+                        expert.Apply(expertChannel, cols.ToArray());
                         expertChannel.Done();
                     }
                 }

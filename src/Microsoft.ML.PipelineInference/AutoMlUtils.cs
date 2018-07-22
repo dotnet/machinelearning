@@ -38,11 +38,15 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return outputValue;
         }
 
-        public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
+        public static PipelineSweeperRunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
         {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(result, nameof(result));
+            env.CheckNonEmpty(metricColumnName, nameof(metricColumnName));
+
             double testingMetricValue = ExtractValueFromIdv(env, result, metricColumnName);
             double trainingMetricValue = trainResult != null ? ExtractValueFromIdv(env, trainResult, metricColumnName)  : double.MinValue;
-            return new AutoInference.RunSummary(testingMetricValue, 0, 0, trainingMetricValue);
+            return new PipelineSweeperRunSummary(testingMetricValue, 0, 0, trainingMetricValue);
         }
 
         public static CommonInputs.IEvaluatorInput CloneEvaluatorInstance(CommonInputs.IEvaluatorInput evalInput) =>
@@ -257,7 +261,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// (In other words, if there would be nothing for that concatenate transform to do.)
         /// </summary>
         private static TransformInference.SuggestedTransform[] GetFinalFeatureConcat(IHostEnvironment env,
-            IDataView dataSample, int[] excludedColumnIndices, int level, int atomicIdOffset)
+            IDataView dataSample, int[] excludedColumnIndices, int level, int atomicIdOffset, RoleMappedData dataRoles)
         {
             var finalArgs = new TransformInference.Arguments
             {
@@ -266,7 +270,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 ExcludedColumnIndices = excludedColumnIndices
             };
 
-            var featuresConcatTransforms = TransformInference.InferConcatNumericFeatures(env, dataSample, finalArgs);
+            var featuresConcatTransforms = TransformInference.InferConcatNumericFeatures(env, dataSample, finalArgs, dataRoles);
 
             for (int i = 0; i < featuresConcatTransforms.Length; i++)
             {
@@ -282,7 +286,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// </summary>
         public static TransformInference.SuggestedTransform[] GetFinalFeatureConcat(IHostEnvironment env, IDataView data,
             AutoInference.DependencyMap dependencyMapping, TransformInference.SuggestedTransform[] selectedTransforms,
-            TransformInference.SuggestedTransform[] allTransforms)
+            TransformInference.SuggestedTransform[] allTransforms, RoleMappedData dataRoles)
         {
             int level = 1;
             int atomicGroupLimit = 0;
@@ -292,7 +296,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 atomicGroupLimit = allTransforms.Max(t => t.AtomicGroupId) + 1;
             }
             var excludedColumnIndices = GetExcludedColumnIndices(selectedTransforms, data, dependencyMapping);
-            return GetFinalFeatureConcat(env, data, excludedColumnIndices, level, atomicGroupLimit);
+            return GetFinalFeatureConcat(env, data, excludedColumnIndices, level, atomicGroupLimit, dataRoles);
         }
 
         public static IDataView ApplyTransformSet(IHostEnvironment env, IDataView data, TransformInference.SuggestedTransform[] transforms)
@@ -566,14 +570,15 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return learner.PipelineNode.HyperSweeperParamSet;
         }
 
-        public static IRunResult ConvertToRunResult(RecipeInference.SuggestedRecipe.SuggestedLearner learner,
-            AutoInference.RunSummary rs, bool isMetricMaximizing) =>
-                new RunResult(ConvertToParameterSet(learner.PipelineNode.SweepParams, learner), rs.MetricValue, isMetricMaximizing);
+        public static IRunResult ConvertToRunResult(RecipeInference.SuggestedRecipe.SuggestedLearner learner, PipelineSweeperRunSummary rs, bool isMetricMaximizing)
+        {
+            return new RunResult(ConvertToParameterSet(learner.PipelineNode.SweepParams, learner), rs.MetricValue, isMetricMaximizing);
+        }
 
-        public static IRunResult[] ConvertToRunResults(PipelinePattern[] history, bool isMetricMaximizing) =>
-            history.Select(h =>
-                ConvertToRunResult(h.Learner, h.PerformanceSummary, isMetricMaximizing)).ToArray();
-
+        public static IRunResult[] ConvertToRunResults(PipelinePattern[] history, bool isMetricMaximizing)
+        {
+            return history.Select(h => ConvertToRunResult(h.Learner, h.PerformanceSummary, isMetricMaximizing)).ToArray();
+        }
         /// <summary>
         /// Method to convert set of sweepable hyperparameters into strings of a format understood
         /// by the current smart hyperparameter sweepers.

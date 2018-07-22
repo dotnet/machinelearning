@@ -546,12 +546,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             {
                 get
                 {
-                    //if (virtualIndex < _index) throw new Exception("Index must move forward");
-
                     if (virtualIndex < _nextIndex)
                         return 0;
-
-                    //if (virtualIndex >= _array._length) throw new IndexOutOfRangeException();
 
                     if (virtualIndex == _nextIndex)
                         return _array._values[_pos];
@@ -561,7 +557,6 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     {
                         while (_pos < _array._values.Length)
                         {
-                            //_index = _nextIndex;
                             _nextIndex += pDeltas[_pos];
                             if (virtualIndex < _nextIndex)
                                 return 0;

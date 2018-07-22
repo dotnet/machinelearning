@@ -685,8 +685,7 @@ namespace Microsoft.ML.Runtime.RunTests
             // This tests that the SchemaBindableCalibratedPredictor doesn't get confused if its sub-predictor is already calibrated.
             var fastForest = new FastForestClassification(Env, new FastForestClassification.Arguments());
             var rmd = new RoleMappedData(splitOutput.TrainData[0], "Label", "Features");
-            fastForest.Train(rmd);
-            var ffModel = new PredictorModel(Env, rmd, splitOutput.TrainData[0], fastForest.CreatePredictor());
+            var ffModel = new PredictorModel(Env, rmd, splitOutput.TrainData[0], fastForest.Train(rmd));
             var calibratedFfModel = Calibrate.Platt(Env,
                 new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[0], UncalibratedPredictorModel = ffModel }).PredictorModel;
             var twiceCalibratedFfModel = Calibrate.Platt(Env,
@@ -791,7 +790,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Data = splitOutput.TestData[nModels],
                     PredictorModel = regressionEnsembleModel
                 }).ScoredData;
-            
+
             var anomalyEnsembleModel = EntryPoints.EnsembleCreator.CreateAnomalyPipelineEnsemble(Env,
                 new EntryPoints.EnsembleCreator.PipelineAnomalyInput()
                 {
@@ -1219,9 +1218,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 var mlr = new MulticlassLogisticRegression(Env, new MulticlassLogisticRegression.Arguments());
                 var rmd = new RoleMappedData(data, "Label", "Features");
-                mlr.Train(rmd);
 
-                predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.CreatePredictor());
+                predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.Train(rmd));
                 var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
@@ -3421,8 +3419,6 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
 
-            /*var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input
-            { InputFile = inputFile, CustomSchema =  "header+ col=Label:0 col=Features:Num:1-9"*/
             var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
             {
                 Arguments =

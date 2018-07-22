@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
     ///    Performs the following operation on a vector X:
     ///         Y = (s * X - M) / D, where s is a scale, M is mean and D is either L2 norm or standard deviation.
     ///    Usage examples and Matlab code:
-    ///    <see href="http://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf"/>
+    ///    <a href="http://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf">http://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf</a>.
     /// </summary>
     public sealed class LpNormNormalizerTransform : OneToOneTransformBase
     {
@@ -666,7 +666,11 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class LpNormalization
     {
-        [TlcModule.EntryPoint(Name = "Transforms.LpNormalizer", Desc = LpNormNormalizerTransform.Summary, UserName = LpNormNormalizerTransform.UserNameLP, ShortName = LpNormNormalizerTransform.ShortNameLP)]
+        [TlcModule.EntryPoint(Name = "Transforms.LpNormalizer", 
+            Desc = LpNormNormalizerTransform.Summary, 
+            UserName = LpNormNormalizerTransform.UserNameLP, 
+            ShortName = LpNormNormalizerTransform.ShortNameLP,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""LpNormalize""]/*' />" })]
         public static CommonOutputs.TransformOutput Normalize(IHostEnvironment env, LpNormNormalizerTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LpNormalize", input);
@@ -678,7 +682,11 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.GlobalContrastNormalizer", Desc = LpNormNormalizerTransform.GcnSummary, UserName = LpNormNormalizerTransform.UserNameGn, ShortName = LpNormNormalizerTransform.ShortNameGn)]
+        [TlcModule.EntryPoint(Name = "Transforms.GlobalContrastNormalizer", 
+            Desc = LpNormNormalizerTransform.GcnSummary, 
+            UserName = LpNormNormalizerTransform.UserNameGn, 
+            ShortName = LpNormNormalizerTransform.ShortNameGn,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""GcNormalize""]/*' />" })]
         public static CommonOutputs.TransformOutput GcNormalize(IHostEnvironment env, LpNormNormalizerTransform.GcnArguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "GcNormalize", input);

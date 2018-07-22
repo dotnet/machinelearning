@@ -38,7 +38,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
-    /// <include file='./doc.xml' path='docs/members/member[@name="FastTree"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeRankingTrainer : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, FastTreeRankingPredictor>,
         IHasLabelGains
     {
@@ -50,8 +50,6 @@ namespace Microsoft.ML.Runtime.FastTree
         private IEnsembleCompressor<short> _ensembleCompressor;
         private Test _specialTrainSetTest;
         private TestHistory _firstTestSetHistory;
-
-        public override bool NeedCalibration => false;
 
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 
@@ -65,8 +63,12 @@ namespace Microsoft.ML.Runtime.FastTree
             return GetLabelGains().Length - 1;
         }
 
-        public override void Train(RoleMappedData trainData)
+        public override FastTreeRankingPredictor Train(TrainContext context)
         {
+            Host.CheckValue(context, nameof(context));
+            var trainData = context.TrainingSet;
+            ValidData = context.ValidationSet;
+
             using (var ch = Host.Start("Training"))
             {
                 var maxLabel = GetLabelGains().Length - 1;
@@ -75,11 +77,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 FeatureCount = trainData.Schema.Feature.Type.ValueCount;
                 ch.Done();
             }
-        }
-
-        public override FastTreeRankingPredictor CreatePredictor()
-        {
-            Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
             return new FastTreeRankingPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 
@@ -580,7 +577,6 @@ namespace Microsoft.ML.Runtime.FastTree
                     _secondaryMetricShare = 0.0;
                     return;
                 }
-                //for (int i = 0; i < _secondaryGains.Length; ++i) _secondaryGains[i] *= cmd.secondaryMetricShare;
                 _secondaryInverseMaxDCGT = DCGCalculator.MaxDCG(_secondaryGains, Dataset.Boundaries,
                     new int[] { args.lambdaMartMaxTruncation })[0].Select(d => 1.0 / d).ToArray();
             }
@@ -727,7 +723,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 double inverseMaxDcg = _inverseMaxDcgt[query];
                 double secondaryInverseMaxDcg = _secondaryMetricShare == 0 ? 0.0 : _secondaryInverseMaxDcgt[query];
 
-                //int[] permutation = (threadIndex < 0 ? new int[numDocuments] : _permutationBuffers[threadIndex]);
                 int[] permutation = _permutationBuffers[threadIndex];
 
                 short[] labels = _labels;
@@ -1065,11 +1060,11 @@ namespace Microsoft.ML.Runtime.FastTree
                 loaderSignature: LoaderSignature);
         }
 
-        protected override uint VerNumFeaturesSerialized { get { return 0x00010002; } }
+        protected override uint VerNumFeaturesSerialized => 0x00010002;
 
-        protected override uint VerDefaultValueSerialized { get { return 0x00010004; } }
+        protected override uint VerDefaultValueSerialized => 0x00010004;
 
-        protected override uint VerCategoricalSplitSerialized { get { return 0x00010005; } }
+        protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
         internal FastTreeRankingPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -1092,7 +1087,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return new FastTreeRankingPredictor(env, ctx);
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Ranking; } }
+        public override PredictionKind PredictionKind => PredictionKind.Ranking;
     }
 
     public static partial class FastTree
@@ -1101,7 +1096,8 @@ namespace Microsoft.ML.Runtime.FastTree
             Desc = FastTreeRankingTrainer.Summary,
             UserName = FastTreeRankingTrainer.UserNameValue,
             ShortName = FastTreeRankingTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name=""FastTree""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTree""]/*' />",
+                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastTreeRanker""]/*' />"})]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, FastTreeRankingTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

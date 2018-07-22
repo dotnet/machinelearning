@@ -24,11 +24,10 @@ namespace Microsoft.ML.Runtime.Data
     using StopWordsLang = StopWordsRemoverTransform.Language;
     using CaseNormalizationMode = TextNormalizerTransform.CaseNormalizationMode;
 
-    /// <summary>
-    /// A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts 
-    /// of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
-    /// integer index mapping through hashing) as an option.
-    /// </summary>
+    // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts 
+    // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
+    // integer index mapping through hashing) as an option.
+    /// <include file='doc.xml' path='doc/members/member[@name="TextTransform"]/*' />
     public static class TextTransform
     {
         /// <summary>

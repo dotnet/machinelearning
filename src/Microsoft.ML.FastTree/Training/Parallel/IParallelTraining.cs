@@ -33,20 +33,20 @@ namespace Microsoft.ML.Runtime.FastTree
     /// <summary>
     /// Interface used for parallel training.
     /// Mainly contains three parts:
-    /// 1. interactive with IO: <see href="GetLocalBinConstructionFeatures" />, <see href="SyncGlobalBoundary" />.
+    /// 1. interactive with IO: <see cref="GetLocalBinConstructionFeatures" />, <see cref="SyncGlobalBoundary" />.
     ///    Data will be partitioned by rows in Data parallel and Voting Parallel.
     ///    To speed up the find bin process, it let different workers to find bins for different features.
     ///    Then perform global sync up.
     ///    In Feature parallel, every machines holds all data, so this is unneeded.
-    /// 2. interactive with TreeLearner: <see href="InitIteration" />, <see href="CacheHistogram" />, <see href="IsNeedFindLocalBestSplit" />, 
-    ///        <see href="IsSkipNonSplittableHistogram" />, <see href="FindGlobalBestSplit" />, <see href="GetGlobalDataCountInLeaf" />, <see href="PerformGlobalSplit" />.
+    /// 2. interactive with TreeLearner: <see cref="InitIteration" />, <see cref="CacheHistogram" />, <see cref="IsNeedFindLocalBestSplit" />, 
+    ///        <see cref="IsSkipNonSplittableHistogram" />, <see cref="FindGlobalBestSplit" />, <see cref="GetGlobalDataCountInLeaf" />, <see cref="PerformGlobalSplit" />.
     ///    A full process is:
-    ///        Use <see href="InitIteration" /> to alter local active features.
-    ///        Use <see href="GetGlobalDataCountInLeaf" /> to check smaller leaf and larger leaf.
-    ///        Use <see href="CacheHistogram" />, <see href="IsNeedFindLocalBestSplit" /> and <see href="IsSkipNonSplittableHistogram" /> to interactive with Feature histograms.
-    ///        Use <see href="FindGlobalBestSplit" /> to sync up global best split
-    ///        Use <see href="PerformGlobalSplit" /> to record global num_data in leaves.
-    /// 3. interactive with Application : <see href="GlobalMean" />.
+    ///        Use <see cref="InitIteration" /> to alter local active features.
+    ///        Use <see cref="GetGlobalDataCountInLeaf" /> to check smaller leaf and larger leaf.
+    ///        Use <see cref="CacheHistogram" />, <see cref="IsNeedFindLocalBestSplit" /> and <see cref="IsSkipNonSplittableHistogram" /> to interactive with Feature histograms.
+    ///        Use <see cref="FindGlobalBestSplit" /> to sync up global best split
+    ///        Use <see cref="PerformGlobalSplit" /> to record global num_data in leaves.
+    /// 3. interactive with Application : <see cref="GlobalMean" />.
     ///    Output of leaves is calculated by newton step ( - sum(first_order_gradients) / sum(second_order_gradients)).
     ///    If data is partitioned by row, it needs to a sync up for these sum result.
     ///    So It needs to call this to get the real output of leaves.

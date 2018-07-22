@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime.TextAnalytics;
 
 namespace Microsoft.ML.Runtime.TextAnalytics
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="SentimentAnalyzer"]/*' />
     public static class SentimentAnalyzingTransform
     {
         public sealed class Arguments : TransformInputBase

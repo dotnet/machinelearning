@@ -18,7 +18,7 @@ using Microsoft.ML.Runtime.LightGBM;
 namespace Microsoft.ML.Runtime.LightGBM
 {
 
-    /// <include file='./doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<VBuffer<float>, OvaPredictor>
     {
         public const string Summary = "LightGBM Multi Class Classifier";
@@ -29,9 +29,10 @@ namespace Microsoft.ML.Runtime.LightGBM
         private const double _maxNumClass = 1e6;
         private int _numClass;
         private int _tlcNumClass;
+        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         public LightGbmMulticlassTrainer(IHostEnvironment env, LightGbmArguments args)
-            : base(env, args, PredictionKind.MultiClassClassification, "LightGBMMulticlass")
+            : base(env, args, LoadNameValue)
         {
             _numClass = -1;
         }
@@ -53,7 +54,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return new LightGbmBinaryPredictor(Host, GetBinaryEnsemble(classID), FeatureCount, innerArgs);
         }
 
-        public override OvaPredictor CreatePredictor()
+        private protected override OvaPredictor CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete.");
 
@@ -185,7 +186,8 @@ namespace Microsoft.ML.Runtime.LightGBM
             Desc = "Train a LightGBM multi class model.", 
             UserName = LightGbmMulticlassTrainer.Summary, 
             ShortName = LightGbmMulticlassTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name=""LightGBM""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
+                                 @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmClassifier""]/*' />"})]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));

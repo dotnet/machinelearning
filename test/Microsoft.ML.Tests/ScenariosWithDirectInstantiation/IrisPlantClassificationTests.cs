@@ -70,15 +70,14 @@ namespace Microsoft.ML.Scenarios
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features");
 
                 // Train
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments());
+                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { NumThreads = 1 } );
 
                 // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
                 var cached = new CacheDataView(env, trans, prefetch: null);
                 var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
-                trainer.Train(trainRoles);
+                var pred = trainer.Train(trainRoles);
 
                 // Get scorer and evaluate the predictions from test data
-                var pred = trainer.CreatePredictor();
                 IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
                 var metrics = Evaluate(env, testDataScorer);
                 CompareMatrics(metrics);
@@ -89,7 +88,7 @@ namespace Microsoft.ML.Scenarios
 
                 // Get feature importance i.e. weight vector
                 var summary = ((MulticlassLogisticRegressionPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
-                Assert.Equal(7.757867, Convert.ToDouble(summary[0].Value), 5);
+                Assert.Equal(7.757864, Convert.ToDouble(summary[0].Value), 5);
             }
         }
 
@@ -97,10 +96,10 @@ namespace Microsoft.ML.Scenarios
         {
             IrisPrediction prediction = model.Predict(new IrisData()
             {
-                SepalLength = 3.3f,
-                SepalWidth = 1.6f,
-                PetalLength = 0.2f,
-                PetalWidth = 5.1f,
+                SepalLength = 5.1f,
+                SepalWidth = 3.3f,
+                PetalLength = 1.6f,
+                PetalWidth = 0.2f,
             });
 
             Assert.Equal(1, prediction.PredictedLabels[0], 2);
@@ -109,10 +108,10 @@ namespace Microsoft.ML.Scenarios
 
             prediction = model.Predict(new IrisData()
             {
-                SepalLength = 3.1f,
-                SepalWidth = 5.5f,
-                PetalLength = 2.2f,
-                PetalWidth = 6.4f,
+                SepalLength = 6.4f,
+                SepalWidth = 3.1f,
+                PetalLength = 5.5f,
+                PetalWidth = 2.2f,
             });
 
             Assert.Equal(0, prediction.PredictedLabels[0], 2);
@@ -121,10 +120,10 @@ namespace Microsoft.ML.Scenarios
 
             prediction = model.Predict(new IrisData()
             {
-                SepalLength = 3.1f,
-                SepalWidth = 2.5f,
-                PetalLength = 1.2f,
-                PetalWidth = 4.4f,
+                SepalLength = 4.4f,
+                SepalWidth = 3.1f,
+                PetalLength = 2.5f,
+                PetalWidth = 1.2f,
             });
 
             Assert.Equal(.2, prediction.PredictedLabels[0], 1);

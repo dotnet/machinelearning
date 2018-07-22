@@ -35,11 +35,10 @@ namespace Microsoft.ML.Runtime.Data
     {
     }
 
-    /// <summary>
-    /// The input for this transform is a DvText or a vector of DvTexts, and its output is a vector of DvTexts,
-    /// corresponding to the tokens in the input text, split using a set of user specified separator characters.
-    /// Empty strings and strings containing only spaces are dropped.
-    /// </summary>
+    // The input for this transform is a DvText or a vector of DvTexts, and its output is a vector of DvTexts,
+    // corresponding to the tokens in the input text, split using a set of user specified separator characters.
+    // Empty strings and strings containing only spaces are dropped.
+    /// <include file='doc.xml' path='doc/members/member[@name="WordTokenizer"]/*' />
     public sealed class DelimitedTokenizeTransform : OneToOneTransformBase, ITokenizeTransform
     {
         public class Column : OneToOneColumn

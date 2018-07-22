@@ -110,8 +110,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             //get all the trainers for this task, and generate the initial set of candidates.
             // Exclude the hidden learners, and the metalinear learners. 
-            var trainers = ComponentCatalog.GetAllDerivedClasses(typeof(ITrainer), predictorType)
-                .Where(cls => !cls.IsHidden && !typeof(IMetaLinearTrainer).IsAssignableFrom(cls.Type));
+            var trainers = ComponentCatalog.GetAllDerivedClasses(typeof(ITrainer), predictorType).Where(cls => !cls.IsHidden);
 
             var loaderSubComponent = new SubComponent("TextLoader", loaderSettings);
             string loader = $" loader={loaderSubComponent}";

@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// This class produces a sample without replacement from a stream of data of type <typeparamref name="T"/>. 
     /// It is instantiated with a delegate that gets the next data point, and builds a reservoir in one pass by calling <see cref="Sample"/> 
     /// for every data point in the stream. In case the next data point does not get 'picked' into the reservoir, the delegate is not invoked.
-    /// Sampling is done according to the algorithm in this paper: <see href="http://epubs.siam.org/doi/pdf/10.1137/1.9781611972740.53"/>.
+    /// Sampling is done according to the algorithm in this paper: <a href="http://epubs.siam.org/doi/pdf/10.1137/1.9781611972740.53">http://epubs.siam.org/doi/pdf/10.1137/1.9781611972740.53</a>.
     /// </summary>
     public sealed class ReservoirSamplerWithoutReplacement<T> : IReservoirSampler<T>
     {
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// This class produces a sample with replacement from a stream of data of type <typeparamref name="T"/>. 
     /// It is instantiated with a delegate that gets the next data point, and builds a reservoir in one pass by calling <see cref="Sample"/> 
     /// for every data point in the stream. In case the next data point does not get 'picked' into the reservoir, the delegate is not invoked.
-    /// Sampling is done according to the algorithm in this paper: <see href="http://epubs.siam.org/doi/pdf/10.1137/1.9781611972740.53"/>.
+    /// Sampling is done according to the algorithm in this paper: <a href="http://epubs.siam.org/doi/pdf/10.1137/1.9781611972740.53">http://epubs.siam.org/doi/pdf/10.1137/1.9781611972740.53</a>.
     /// </summary>
     public sealed class ReservoirSamplerWithReplacement<T> : IReservoirSampler<T>
     {

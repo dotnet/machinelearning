@@ -27,13 +27,12 @@ using Microsoft.ML.Runtime.Model.Onnx;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// This transform can transform either scalars or vectors (both fixed and variable size),
-    /// creating output columns that are identical to the input columns except for replacing NA values
-    /// with either the default value, user input, or imputed values (min/max/mean are currently supported).
-    /// Imputation modes are supported for vectors both by slot and across all slots.
-    /// </summary>
-    /// REVIEW: May make sense to implement the transform template interface.
+    // This transform can transform either scalars or vectors (both fixed and variable size),
+    // creating output columns that are identical to the input columns except for replacing NA values
+    // with either the default value, user input, or imputed values (min/max/mean are currently supported).
+    // Imputation modes are supported for vectors both by slot and across all slots.
+    // REVIEW: May make sense to implement the transform template interface.
+    /// <include file='doc.xml' path='doc/members/member[@name="NAReplace"]/*' />
     public sealed partial class NAReplaceTransform : OneToOneTransformBase
     {
         public enum ReplacementKind
@@ -185,6 +184,19 @@ namespace Microsoft.ML.Runtime.Data
         private readonly Delegate[] _isNAs;
 
         public override bool CanSaveOnnx => true;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="replacementKind">The replacement method to utilize.</param>
+        public NAReplaceTransform(IHostEnvironment env, IDataView input, string name, string source = null, ReplacementKind replacementKind = ReplacementKind.DefaultValue)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, ReplacementKind = replacementKind }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
