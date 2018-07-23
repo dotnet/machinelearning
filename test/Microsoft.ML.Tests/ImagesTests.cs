@@ -54,11 +54,11 @@ namespace Microsoft.ML.Tests
                     {
                         pathGetter(ref path);
                         bitmapCropGetter(ref bitmap);
+                        Assert.NotNull(bitmap);
                         var fileToSave = GetOutputPath(Path.GetFileNameWithoutExtension(path.ToString()) + ".cropped.jpg");
                         bitmap.Save(fileToSave, System.Drawing.Imaging.ImageFormat.Jpeg);
                     }
                 }
-
             }
         }
 
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Tests
         {
             using (var env = new TlcEnvironment())
             {
-                var imageHeight = 100;
+                var imageHeight = 150;
                 var imageWidth = 100;
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
@@ -102,6 +102,7 @@ namespace Microsoft.ML.Tests
                     while (cursor.MoveNext())
                     {
                         bitmapGetter(ref bitmap);
+                        Assert.NotNull(bitmap);
                         for (int x = 0; x < imageWidth; x++)
                             for (int y = 0; y < imageHeight; y++)
                             {
@@ -111,9 +112,7 @@ namespace Microsoft.ML.Tests
                             }
                     }
                 }
-
             }
-
         }
 
         [Fact]
@@ -122,7 +121,7 @@ namespace Microsoft.ML.Tests
             using (var env = new TlcEnvironment())
             {
                 var imageHeight = 100;
-                var imageWidth = 100;
+                var imageWidth = 130;
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
@@ -167,16 +166,16 @@ namespace Microsoft.ML.Tests
                     while (cursor.MoveNext())
                     {
                         bitmapGetter(ref restoredBitmap);
+                        Assert.NotNull(restoredBitmap);
                         bitmapCropGetter(ref croppedBitmap);
+                        Assert.NotNull(croppedBitmap);
                         for (int x = 0; x < imageWidth; x++)
                             for (int y = 0; y < imageHeight; y++)
                             {
                                 Assert.True(croppedBitmap.GetPixel(x, y) == restoredBitmap.GetPixel(x, y));
                             }
                     }
-
                 }
-
             }
         }
     }
