@@ -80,7 +80,6 @@ namespace Microsoft.ML.Runtime.Data
         private static object _embeddingsLock = new object();
         private readonly VectorType _outputType;
         private readonly bool _customLookup;
-        private readonly int _dimension;
         private readonly int _linesToSkip;
         private static Dictionary<string, WeakReference<Model>> _vocab = new Dictionary<string, WeakReference<Model>>();
 
@@ -152,8 +151,8 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             Host.CheckNonWhiteSpace(_modelFileNameWithPath, nameof(_modelFileNameWithPath));
-            _currentVocab = GetVocabularyDictionary(out _dimension);
-            _outputType = new VectorType(NumberType.R4, 3 * _dimension);
+            _currentVocab = GetVocabularyDictionary();
+            _outputType = new VectorType(NumberType.R4, 3 * _currentVocab.Dimension);
             Metadata.Seal();
         }
 
@@ -176,8 +175,8 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             Host.CheckNonWhiteSpace(_modelFileNameWithPath, nameof(_modelFileNameWithPath));
-            _currentVocab = GetVocabularyDictionary(out _dimension);
-            _outputType = new VectorType(NumberType.R4, 3 * _dimension);
+            _currentVocab = GetVocabularyDictionary();
+            _outputType = new VectorType(NumberType.R4, 3 * _currentVocab.Dimension);
             Metadata.Seal();
         }
 
@@ -239,6 +238,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var srcGetter = input.GetGetter<VBuffer<DvText>>(info.Source);
             var src = default(VBuffer<DvText>);
+            int dimension = _currentVocab.Dimension;
             float[] wordVector = new float[_currentVocab.Dimension];
 
             return
@@ -247,34 +247,37 @@ namespace Microsoft.ML.Runtime.Data
                     int deno = 0;
                     srcGetter(ref src);
                     var values = dst.Values;
-                    Utils.EnsureSize(ref values, 3 * _dimension, keepOld: false);
-                    Array.Clear(values, 0, 3 * _dimension);
-                    for (int i = 0; i < src.Count; i++)
-                        deno = FillOutputVector(ref src.Values[i], values, wordVector, deno);
+                    Utils.EnsureSize(ref values, 3 * dimension, keepOld: false);
+                    int offset = 2 * dimension;
+                    for (int i = 0; i < dimension; i++)
+                    {
+                        values[i] = int.MaxValue;
+                        values[i + dimension] = 0;
+                        values[i + offset] = int.MinValue;
+                    }
+                    for (int word = 0; word < src.Count; word++)
+                    {
+                        if (_currentVocab.GetWordVector(ref src.Values[word], wordVector))
+                        {
+                            deno++;
+                            for (int i = 0; i < dimension; i++)
+                            {
+                                float currentTerm = wordVector[i];
+                                if (values[i] < currentTerm)
+                                    values[i] = currentTerm;
+                                values[dimension + i] += currentTerm;
+                                if (values[offset + i] > currentTerm)
+                                    values[offset + i] = currentTerm;
+                            }
+                        }
+                    }
 
                     if (deno != 0)
-                        for (int index = 0; index < _dimension; index++)
-                            values[index + _dimension] /= deno;
+                        for (int index = 0; index < dimension; index++)
+                            values[index + dimension] /= deno;
 
                     dst = new VBuffer<float>(values.Length, values, dst.Indices);
                 };
-        }
-
-        private int FillOutputVector(ref DvText src, float[] val, float[] wordVector, int deno)
-        {
-            if (_currentVocab.GetWordVector(ref src, wordVector))
-            {
-                deno++;
-                int offset = 2 * _dimension;
-                for (int i = 0; i < _dimension; i++)
-                {
-                    float currentTerm = wordVector[i];
-                    val[i] = val[i] < currentTerm ? val[i] : currentTerm;
-                    val[_dimension + i] += currentTerm;
-                    val[offset + i] = val[offset + i] > currentTerm ? val[offset + i] : currentTerm;
-                }
-            }
-            return deno;
         }
 
         public enum PretrainedModelKind
@@ -355,9 +358,9 @@ namespace Microsoft.ML.Runtime.Data
             throw Host.Except($"Can't map model kind = {kind} to specific file, please refer to https://aka.ms/MLNetIssue for assistance");
         }
 
-        private Model GetVocabularyDictionary(out int dimension)
+        private Model GetVocabularyDictionary()
         {
-            dimension = 0;
+            int dimension = 0;
             if (!File.Exists(_modelFileNameWithPath))
                 throw Host.Except("Custom word embedding model file '{0}' could not be found for Word Embeddings transform.", _modelFileNameWithPath);
 
@@ -437,7 +440,6 @@ namespace Microsoft.ML.Runtime.Data
                         pch.Checkpoint(lineNumber);
                     }
                 }
-                dimension = model.Dimension;
                 _vocab[_modelFileNameWithPath] = new WeakReference<Model>(model, false);
                 return model;
             }
