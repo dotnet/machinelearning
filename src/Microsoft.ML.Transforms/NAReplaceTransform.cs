@@ -632,13 +632,13 @@ namespace Microsoft.ML.Runtime.Data
             node.AddAttribute("replaced_value_float", Single.NaN);
 
             if (!Infos[iinfo].TypeSrc.IsVector)
-                node.AddAttribute("imputed_value_float", Enumerable.Repeat((float)_repValues[iinfo], 1));
+                node.AddAttribute("imputed_value_floats", Enumerable.Repeat((float)_repValues[iinfo], 1));
             else
             {
                 if (_repIsDefault[iinfo] != null)
                     node.AddAttribute("imputed_value_floats", (float[])_repValues[iinfo]);
                 else
-                    node.AddAttribute("imputed_value_float", Enumerable.Repeat((float)_repValues[iinfo], 1));
+                    node.AddAttribute("imputed_value_floats", Enumerable.Repeat((float)_repValues[iinfo], 1));
             }
 
             return true;

@@ -44,9 +44,9 @@ To build ML.NET from source please visit our [developers guide](docs/project-doc
 
 |    | x64 Debug | x64 Release |
 |:---|----------------:|------------------:|
-|**Linux**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_release/lastCompletedBuild)|
+|**Linux**|[![x64-debug](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
 |**macOS**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_release/lastCompletedBuild)|
-|**Windows**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_release/lastCompletedBuild)|
+|**Windows**|[![x64-debug](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
 
 ## Contributing
 

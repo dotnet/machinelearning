@@ -719,7 +719,10 @@ namespace Microsoft.ML.Runtime.Data
             var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
             node.AddAttribute("classes_strings", terms.DenseValues());
             node.AddAttribute("default_int64", -1);
-            node.AddAttribute("default_string", DvText.Empty);
+            //default_string needs to be an empty string but there is a BUG in Lotus that 
+            //throws a validation error when default_string is empty. As a work around, set
+            //default_string to a space.
+            node.AddAttribute("default_string", " ");
             return true;
         }
 
