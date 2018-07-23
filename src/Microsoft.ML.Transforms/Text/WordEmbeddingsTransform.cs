@@ -247,7 +247,7 @@ namespace Microsoft.ML.Runtime.Data
                     int deno = 0;
                     srcGetter(ref src);
                     var values = dst.Values;
-                    Utils.EnsureSize(ref values, 3 * dimension, keepOld: false);
+                    Utils.EnsureSize(ref values, 3 * dimension);
                     int offset = 2 * dimension;
                     for (int i = 0; i < dimension; i++)
                     {
