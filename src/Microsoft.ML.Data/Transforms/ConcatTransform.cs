@@ -723,7 +723,6 @@ namespace Microsoft.ML.Runtime.Data
                 var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),
                     new[] { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType));
 
-                node.AddAttribute("inputList", inputList.Select(x => x.Key));
                 node.AddAttribute("inputdimensions", inputList.Select(x => x.Value));
             }
         }
