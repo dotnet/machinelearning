@@ -35,6 +35,7 @@ namespace Microsoft.ML.Tests
                     },
                     ImageFolder = imageFolder
                 }, data);
+
                 var cropped = new ImageResizerTransform(env, new ImageResizerTransform.Arguments()
                 {
                     Column = new ImageResizerTransform.Column[1]{
