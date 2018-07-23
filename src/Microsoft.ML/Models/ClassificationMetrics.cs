@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System.Collections.Generic;
+using static Microsoft.ML.Runtime.Data.MetricKinds;
 
 namespace Microsoft.ML.Models
 {
@@ -128,6 +129,12 @@ namespace Microsoft.ML.Models
         public double[] PerClassLogLoss { get; private set; }
 
         /// <summary>
+        /// For cross validation gives fold number or standard deviation or average across all metrics.
+        /// In other cases equal to null.
+        /// </summary>
+        public string FoldIndex { get; private set; }
+
+        /// <summary>
         /// Gets the confusion matrix, or error matrix, of the classifier.
         /// </summary>
         public ConfusionMatrix ConfusionMatrix { get; private set; }
@@ -155,6 +162,9 @@ namespace Microsoft.ML.Models
 
             [ColumnName(MultiClassClassifierEvaluator.PerClassLogLoss)]
             public double[] PerClassLogLoss;
+
+            [ColumnName(ColumnNames.FoldIndex)]
+            public string FoldIndex;
 #pragma warning restore 649 // never assigned
         }
     }
