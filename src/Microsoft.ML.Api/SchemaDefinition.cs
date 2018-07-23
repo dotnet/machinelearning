@@ -329,6 +329,9 @@ namespace Microsoft.ML.Runtime.Api
                 // of later at cursor creation.
                 if (fieldInfo.FieldType == typeof(IChannel))
                     continue;
+                // Const fields do not need to be mapped.
+                if (fieldInfo.IsLiteral)
+                    continue;
 
                 if (fieldInfo.GetCustomAttribute<NoColumnAttribute>() != null)
                     continue;

@@ -1,6 +1,7 @@
 parameters:
   name: ''
   buildScript: ''
+  dockerImage: ''
   queue: {}
 
 phases:
@@ -8,6 +9,9 @@ phases:
     variables:
       _buildScript: ${{ parameters.buildScript }}
       _phaseName: ${{ parameters.name }}
+      # if dockerImage is not equal to '' then run under docker container
+      ${{ if ne(parameters.dockerImage, '') }}:
+        _PREVIEW_VSTS_DOCKER_IMAGE: ${{ parameters.dockerImage }}
     queue:
       parallel: 2
       matrix:
