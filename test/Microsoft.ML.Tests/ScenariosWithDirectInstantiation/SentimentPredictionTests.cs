@@ -177,7 +177,7 @@ namespace Microsoft.ML.Scenarios
                 var metrics = EvaluateBinary(env, testDataScorer);
 
                 // SSWE is a simple word embedding model + we train on a really small dataset, so metrics are not great.
-                Assert.Equal(.666, metrics.Accuracy, 4);
+                Assert.Equal(.6667, metrics.Accuracy, 4);
                 Assert.Equal(.71, metrics.Auc, 1);
                 Assert.Equal(.57, metrics.Auprc, 2);
                 // Create prediction engine and test predictions
