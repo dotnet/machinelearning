@@ -251,9 +251,9 @@ namespace Microsoft.ML.Runtime.Data
                     int offset = 2 * dimension;
                     for (int i = 0; i < dimension; i++)
                     {
-                        values[i] = int.MaxValue;
+                        values[i] = float.MaxValue;
                         values[i + dimension] = 0;
-                        values[i + offset] = int.MinValue;
+                        values[i + offset] = float.MinValue;
                     }
                     for (int word = 0; word < src.Count; word++)
                     {
