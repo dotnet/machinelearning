@@ -263,10 +263,10 @@ namespace Microsoft.ML.Runtime.Data
                             for (int i = 0; i < dimension; i++)
                             {
                                 float currentTerm = wordVector[i];
-                                if (values[i] < currentTerm)
+                                if (values[i] > currentTerm)
                                     values[i] = currentTerm;
                                 values[dimension + i] += currentTerm;
-                                if (values[offset + i] > currentTerm)
+                                if (values[offset + i] < currentTerm)
                                     values[offset + i] = currentTerm;
                             }
                         }
