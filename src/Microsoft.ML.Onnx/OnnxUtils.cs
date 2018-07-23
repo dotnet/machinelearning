@@ -252,10 +252,10 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             model.Domain = domain;
             model.ProducerName = producerName;
             model.ProducerVersion = producerVersion;
-            model.IrVersion = (long)UniversalModelFormat.Onnx.Version.IrVersion;
+            model.IrVersion = (long)Version.IrVersion;
             model.ModelVersion = modelVersion;
             model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx.ml", Version = 1 });
-            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx", Version = 6 });
+            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "", Version = 7 });
             model.Graph = new GraphProto();
             var graph = model.Graph;
             graph.Node.Add(nodes);

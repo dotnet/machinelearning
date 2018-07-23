@@ -845,12 +845,12 @@ namespace Microsoft.ML.Runtime.Learners
 
             string opType = "LinearClassifier";
             var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
-            // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
-            node.AddAttribute("post_transform", 0);
+            // Selection of logit or probit output transform. enum {'NONE', 'SOFTMAX', 'LOGISTIC', 'SOFTMAX_ZERO', 'PROBIT}
+            node.AddAttribute("post_transform", "NONE");
             node.AddAttribute("multi_class", true);
             node.AddAttribute("coefficients", _weights.SelectMany(w => w.DenseValues()));
             node.AddAttribute("intercepts", _biases);
-            node.AddAttribute("classlabels_strings", _labelNames);
+            node.AddAttribute("classlabels_ints", Enumerable.Range(0, _numClasses).Select(x => (long)x));
             return true;
         }
 
