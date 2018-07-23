@@ -179,7 +179,7 @@ namespace Microsoft.ML.Scenarios
                 // SSWE is a simple word embedding model + we train on a really small dataset, so metrics are not great.
                 Assert.Equal(.6667, metrics.Accuracy, 4);
                 Assert.Equal(.71, metrics.Auc, 1);
-                Assert.Equal(.57, metrics.Auprc, 2);
+                Assert.Equal(.58, metrics.Auprc, 2);
                 // Create prediction engine and test predictions
                 var model = env.CreateBatchPredictionEngine<SentimentData, SentimentPrediction>(testDataScorer);
                 var sentiments = GetTestData();
