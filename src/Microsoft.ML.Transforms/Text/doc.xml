@@ -192,8 +192,8 @@
         WordEmbeddings wrap different embedding models, such as GloVe. Users can specify which embedding to use. 
         The available options are various versions of <a href="https://nlp.stanford.edu/projects/glove/">GloVe Models</a>, <a href="https://en.wikipedia.org/wiki/FastText">fastText</a>, and <a href="http://anthology.aclweb.org/P/P14/P14-1146.pdf">SSWE</a>.
         <para>
-          Note: As WordEmbedding requires a column with text vector, e.g. %3C%27This%27, %27is%27, %27good%27%3E, users need to create an input column by
-          using the output_tokens=True for TextTransform to convert a column with sentences like "This is good" into %3C%27This%27, %27is%27, %27good%27 %3E.
+          Note: As WordEmbedding requires a column with text vector, e.g. %3C%27this%27, %27is%27, %27good%27%3E, users need to create an input column by
+          using the output_tokens=True for TextTransform to convert a column with sentences like "This is good" into %3C%27this%27, %27is%27, %27good%27 %3E.
           The column for the output token column is renamed original column with a prefix of %27_TranformedText%27.
         </para>
         <para>
