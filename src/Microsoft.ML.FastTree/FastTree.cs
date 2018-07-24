@@ -1143,7 +1143,7 @@ namespace Microsoft.ML.Runtime.FastTree
 #endif
                 Double[] bub = BinUpperBounds[fi];
                 ch.Assert(bub.Length == 2);
-                //REVIEW: leaving out check for the value to reduced memory consuption and going with 
+                //REVIEW: leaving out check for the value to reduced memory consuption and going with
                 //leap of faith based on what the user told.
                 binnedValues[i] = hotFeatureStarts[subfeature] + 1;
                 hotCount++;
@@ -1380,7 +1380,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         // There is no good mechanism to filter out rows with missing feature values on transposed data.
                         // So, we instead perform one featurization pass which, if successful, will remain one pass but,
                         // if we ever encounter missing values will become a "detect missing features" pass, which will
-                        // in turn inform a necessary featurization pass secondary 
+                        // in turn inform a necessary featurization pass secondary
                         SlotDropper slotDropper = null;
                         bool[] localConstructBinFeatures = Utils.CreateArray<bool>(NumFeatures, true);
 
@@ -1661,7 +1661,7 @@ namespace Microsoft.ML.Runtime.FastTree
             }
 
             /// <summary>
-            /// Returns a slot dropper object that has ranges of slots to be dropped, 
+            /// Returns a slot dropper object that has ranges of slots to be dropped,
             /// based on an examination of the feature values.
             /// </summary>
             private static SlotDropper ConstructDropSlotRanges(ISlotCursor cursor,
@@ -2198,7 +2198,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 int limMade = startFeatureIndex;
                 int countBins = 1; // Count of bins we'll need to represent. Starts at 1, accumulates "hot" features.
                 // Tracking for n-hot flocks.
-                long countHotRows = 0; // The count of hot "rows" 
+                long countHotRows = 0; // The count of hot "rows"
                 long hotNThreshold = (long)(0.1 * NumExamples);
                 bool canBeOneHot = true;
 
@@ -2617,7 +2617,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 // Parallel to the subsequence of _values in min to lim, indicates the index where
                 // we should start to look for the next value, if the corresponding value list in
                 // _values is sparse. If the corresponding value list is dense the entry at this
-                // position is not used. 
+                // position is not used.
                 private readonly int[] _perFeaturePosition;
                 private readonly int[] _featureIndices;
 #if DEBUG
@@ -2790,7 +2790,7 @@ namespace Microsoft.ML.Runtime.FastTree
         // Inner args is used only for documentation purposes when saving comments to INI files.
         protected readonly string InnerArgs;
 
-        // The total number of features used in training (takes the value of zero if the 
+        // The total number of features used in training (takes the value of zero if the
         // written version of the loaded model is less than VerNumFeaturesSerialized)
         protected readonly int NumFeatures;
 
@@ -3266,8 +3266,8 @@ namespace Microsoft.ML.Runtime.FastTree
         }
 
         /// <summary>
-        /// Returns the leaf node in the requested tree for the given feature vector, and populates 'path' with the list of 
-        /// internal nodes in the path from the root to that leaf. If 'path' is null a new list is initialized. All elements 
+        /// Returns the leaf node in the requested tree for the given feature vector, and populates 'path' with the list of
+        /// internal nodes in the path from the root to that leaf. If 'path' is null a new list is initialized. All elements
         /// in 'path' are cleared before filling in the current path nodes.
         /// </summary>
         public int GetLeaf(int treeId, ref VBuffer<Float> features, ref List<int> path)

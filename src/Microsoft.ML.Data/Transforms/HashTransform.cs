@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.Data
 
     /// <summary>
     /// This transform can hash either single valued columns or vector columns. For vector columns,
-    /// it hashes each slot separately. 
+    /// it hashes each slot separately.
     /// It can hash either text values or key values.
     /// </summary>
     public sealed class HashTransform : OneToOneTransformBase, ITransformTemplate

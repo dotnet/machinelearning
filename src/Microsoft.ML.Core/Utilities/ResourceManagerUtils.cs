@@ -91,7 +91,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="relativeUrl">The relative url from which to download.
         /// This is appended to the url defined in <see cref="TlcResourcesUrl"/>.</param>
         /// <param name="fileName">The name of the file to save.</param>
-        /// <param name="dir">The directory where the file should be saved to. The file will be saved in a directory with the specified name inside 
+        /// <param name="dir">The directory where the file should be saved to. The file will be saved in a directory with the specified name inside
         /// a folder called "tlc-resources" in the <see cref="Environment.SpecialFolder.ApplicationData"/> directory.</param>
         /// <param name="timeout">An integer indicating the number of milliseconds to wait before timing out while downloading a resource.</param>
         /// <returns>The download results, containing the file path where the resources was (or should have been) downloaded to, and an error message

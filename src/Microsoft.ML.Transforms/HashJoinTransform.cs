@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class ColumnInfoEx
         {
-            // Either VBuffer<Key<U4>> or a single Key<U4>. 
+            // Either VBuffer<Key<U4>> or a single Key<U4>.
             // Note that if CustomSlotMap contains only one array, the output type of the transform will a single Key<U4>.
             // This corresponds to the join=+ case, although now it's possible to omit certain slots entirely.
             // If # of hash bits is less than 31, the key type will have a positive count.

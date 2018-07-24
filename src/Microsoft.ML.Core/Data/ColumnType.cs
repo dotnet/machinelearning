@@ -692,11 +692,11 @@ namespace Microsoft.ML.Runtime.Data
     /// meaningful. Examples are SSNs, phone numbers, auto-generated/incremented key values,
     /// class numbers, etc. For example, in multi-class classification, the label is typically
     /// a class number which is naturally a KeyType.
-    /// 
+    ///
     /// KeyTypes can be contiguous (the class number example), in which case they can have
     /// a cardinality/Count. For non-contiguous KeyTypes the Count property returns zero.
     /// Any KeyType (contiguous or not) can have a Min value. The Min value is always >= 0.
-    /// 
+    ///
     /// Note that the representation value does not necessarily match the logical value.
     /// For example, if a KeyType has range 1000-5000, then it has a Min of 1000, Count
     /// of 4001, but the representational values are 1-4001. The representation value zero
@@ -951,7 +951,7 @@ namespace Microsoft.ML.Runtime.Data
             if (other == null)
                 return false;
 
-            // REVIEW: Perhaps we should allow the case when _itemType is 
+            // REVIEW: Perhaps we should allow the case when _itemType is
             // a sub-type of other._itemType (in particular for key types)
             if (!_itemType.Equals(other._itemType))
                 return false;

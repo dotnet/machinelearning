@@ -13,16 +13,16 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// This interface is an analogy to <see cref="IRow"/> that encapsulates the contents of a single
     /// column.
-    /// 
+    ///
     /// Note that in the same sense that <see cref="IRow"/> is not thread safe, implementors of this interface
     /// by similar token must not be considered thread safe by users of the interface, and by the same token
     /// implementors should feel free to write their implementations with the expectation that only one thread
     /// will be calling it at a time.
-    /// 
+    ///
     /// Similarly, in the same sense that an <see cref="IRow"/> can have its values "change under it" by having
     /// the underlying cursor move, so too might this item have its values change under it, and they will if
     /// they were directly instantiated from a row.
-    /// 
+    ///
     /// Generally actual implementors of this interface should not implement this directly, but instead implement
     /// <see cref="IColumn{T}"/>.
     /// </summary>

@@ -91,8 +91,8 @@ namespace Microsoft.ML.Runtime.Sweeper
         {
             int numOfCandidates = maxSweeps;
 
-            // Initialization: Will enter here on first iteration and use the default (random) 
-            // sweeper to generate initial candidates.             
+            // Initialization: Will enter here on first iteration and use the default (random)
+            // sweeper to generate initial candidates.
             int numRuns = previousRuns == null ? 0 : previousRuns.Count();
             if (numRuns < _args.NumberInitialPopulation)
                 return _randomSweeper.ProposeSweeps(Math.Min(numOfCandidates, _args.NumberInitialPopulation - numRuns), previousRuns);
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Runtime.Sweeper
         /// <returns>Array of parameter sets, which will then be evaluated.</returns>
         private ParameterSet[] GreedyPlusRandomSearch(ParameterSet[] parents, FastForestRegressionPredictor forest, int numOfCandidates, IEnumerable<IRunResult> previousRuns)
         {
-            // REVIEW: The IsMetricMaximizing flag affects the comparator, so that 
+            // REVIEW: The IsMetricMaximizing flag affects the comparator, so that
             // performing Max() should get the best, regardless of if it is maximizing or
             // minimizing.
             RunResult bestRun = (RunResult)previousRuns.Max();

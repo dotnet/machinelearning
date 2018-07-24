@@ -170,7 +170,7 @@ namespace Microsoft.ML.Runtime.Data
                     while (cursor.MoveNext())
                     {
                         // If the row has bad values, the good values are still being used for training.
-                        // The comparisons in the code below are arranged so that NaNs in the input are not recorded. 
+                        // The comparisons in the code below are arranged so that NaNs in the input are not recorded.
                         // REVIEW: Should infinities and/or NaNs be filtered before the normalization? Should we not record infinities for min/max?
                         // Currently, infinities are recorded and will result in zero scale which in turn will result in NaN output for infinity input.
                         bool any = false;
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
             {
                 var typeSrc = Infos[iinfo].TypeSrc;
-                // REVIEW: this check (was even an assert) here is too late. Apparently, no-one tests compatibility 
+                // REVIEW: this check (was even an assert) here is too late. Apparently, no-one tests compatibility
                 // of the types at deserialization (aka re-application), which is a bug.
                 if (typeSrc.ValueCount == 0)
                     throw Host.Except("Column '{0}' is a vector of variable size, which is not supported for normalizers", Infos[iinfo].Name);

@@ -64,7 +64,7 @@ namespace Microsoft.ML.Models
         /// </summary>
         /// <remarks>
         /// The micro-average is the fraction of instances predicted correctly.
-        /// 
+        ///
         /// The micro-average metric weighs each class according to the number of instances that belong
         /// to it in the dataset.
         /// </remarks>
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Models
         /// The macro-average is computed by taking the average over all the classes of the fraction
         /// of correct predictions in this class (the number of correctly predicted instances in the class,
         /// divided by the total number of instances in the class).
-        /// 
+        ///
         /// The macro-average metric gives the same weight to each class, no matter how many instances from
         /// that class the dataset contains.
         /// </remarks>

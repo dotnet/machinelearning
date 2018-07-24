@@ -62,8 +62,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             /// <summary>
             /// Get the name of the variable asssigned to the Data or Training Data input, based on what is the first node of the subgraph.
-            /// A better way to do this would be with a ICanBeSubGraphFirstNode common interface between ITransformInput and ITrainerInputs 
-            /// and a custom deserializer. 
+            /// A better way to do this would be with a ICanBeSubGraphFirstNode common interface between ITransformInput and ITrainerInputs
+            /// and a custom deserializer.
             /// </summary>
             public string GetSubgraphFirstNodeDataVarName(IExceptionContext ectx)
             {
@@ -462,7 +462,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// <summary>
         /// The InferPipelines methods are just public portals to the internal function that handle different
         /// types of data being passed in: training IDataView, path to training file, or train and test files.
-        /// </summary>        
+        /// </summary>
         public static AutoMlMlState InferPipelines(IHostEnvironment env, PipelineOptimizerBase autoMlEngine,
             IDataView trainData, IDataView testData, int numTransformLevels, int batchSize, SupportedMetric metric,
             out PipelinePattern bestPipeline, ITerminator terminator, MacroUtils.TrainerKinds trainerKind)
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             Contracts.CheckValue(env, nameof(env));
 
-            // REVIEW: Should be able to infer schema by itself, without having to 
+            // REVIEW: Should be able to infer schema by itself, without having to
             // infer recipes. Look into this.
             // Set loader settings through inference
             RecipeInference.InferRecipesFromData(env, trainDataPath, schemaDefinitionFile,

@@ -861,7 +861,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// Parsing utilities for converting between transform column argument objects and 
+    /// Parsing utilities for converting between transform column argument objects and
     /// command line representations.
     /// </summary>
     public static class ColumnParsingUtils

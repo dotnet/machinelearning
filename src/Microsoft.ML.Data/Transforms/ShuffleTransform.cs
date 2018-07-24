@@ -260,7 +260,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // The desired functionality is to support some permutations of whether we allow
             // shuffling at the source level, or not.
-            // 
+            //
             // Pool       | Source   | Options
             // -----------+----------+--------
             // Randonly   | Never    | poolOnly+
@@ -301,14 +301,14 @@ namespace Microsoft.ML.Runtime.Data
         /// over a pool of size P. Logically, externally, the cursor acts as if you have this pool
         /// P and whenever you randomly sample and yield a row from it, that row is then discarded
         /// and replaced with the next row from the input source cursor.
-        /// 
+        ///
         /// It would also be possible to implement in a way that cleaves closely to this logical
         /// interpretation, but this would be inefficient. We instead have a buffer of larger size
         /// P+B. A consumer (running presumably in the main thread) sampling and fetching items and a
         /// producer (running in a task, which may be running in a different thread) filling the buffer
         /// with items to sample, utilizing this extra space to enable an efficient possibly
         /// multithreaded scheme.
-        /// 
+        ///
         /// The consumer, for its part, at any given time "owns" a contiguous portion of this buffer.
         /// (A contiguous portion of this buffer we consider to be able to wrap around, from the end
         /// to the beginning. The buffer is accessed in a "circular" fashion.) Consider that this portion
@@ -319,18 +319,18 @@ namespace Microsoft.ML.Runtime.Data
         /// rows ready to be sampled in future iterations, but that we are not sampling yet (in order
         /// to behave equivalently to the simple logical model of at any given time sampling P items).
         /// The producer owns the complement of the portion owned by the consumer.
-        /// 
+        ///
         /// As the cursor progresses, the producer fills in successive items in its portion of the
         /// buffer it owns, and passes them off to the consumer (not one item at a time, but rather in
         /// batches, to keep down the amount of intertask communication). The consumer in addition to
         /// taking ownership of these items, will also periodically pass dead items back to the producer
         /// (again, not one dead item at a time, but in batches when the number of dead items reaches
         /// a certain threshold).
-        /// 
+        ///
         /// This communication is accomplished using a pair of BufferBlock instances, through which
         /// the producer and consumer are notified how many additional items they can take ownership
         /// of.
-        /// 
+        ///
         /// As the consumer "selects" a row from the pool of selectable rows each time it moves to
         /// the next row, this randomly selected row is considered to be the "first" index, since this
         /// makes its subsequent transition to being a dead row much simpler. It would be inefficient to
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Runtime.Data
         /// first, of course, so one rather swaps an index, so that these nicely behavior contiguous
         /// circular indices, get mapped in an index within the buffers, through a permutation maintained
         /// in the pipeIndices array.
-        /// 
+        ///
         /// The result is something functionally equivalent to but but considerably faster than the
         /// simple implementation described in the first paragraph.
         /// </summary>

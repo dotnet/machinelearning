@@ -42,12 +42,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// </summary>
         public bool[] CategoricalSplit { get; }
         /// <summary>
-        /// Array of categorical values for the categorical feature that might be chosen as 
+        /// Array of categorical values for the categorical feature that might be chosen as
         /// a split feature for a node.
         /// </summary>
         public int[][] CategoricalSplitFeatures;
         /// <summary>
-        /// For a given categorical feature that is chosen as a split feature for a node, this 
+        /// For a given categorical feature that is chosen as a split feature for a node, this
         /// array contains it's start and end range in the input feature vector at prediction time.
         /// </summary>
         public int[][] CategoricalSplitFeatureRanges;
@@ -1198,7 +1198,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         private void ToTreeEnsembleFormatForCategoricalSplit(StringBuilder sbEvaluator, StringBuilder sbInput, FeaturesToContentMap featureContents,
             ref int evaluatorCounter, Dictionary<int, int> featureToId, Dictionary<int, int> categoricalSplitNodeToId)
         {
-            //REVIEW: Can all these conditions even be true? 
+            //REVIEW: Can all these conditions even be true?
             if (CategoricalSplitFeatures == null ||
                 CategoricalSplitFeatures.Length == 0 ||
                 CategoricalSplitFeatures.All(val => val == null))
@@ -1518,7 +1518,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 var ghostLeaf = GetLeafFrom(ref src, otherWay);
                 var ghostOutput = GetOutput(ghostLeaf);
 
-                // If the ghost got a smaller output, the contribution of the feature is positive, so 
+                // If the ghost got a smaller output, the contribution of the feature is positive, so
                 // the contribution is true minus ghost.
                 contributions.AddFeature(ifeat, (Float)(trueOutput - ghostOutput));
             }

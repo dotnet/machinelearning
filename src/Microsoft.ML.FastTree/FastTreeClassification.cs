@@ -334,7 +334,7 @@ namespace Microsoft.ML.Runtime.FastTree
     }
 
     /// <summary>
-    /// The Entry Point for the FastTree Binary Classifier. 
+    /// The Entry Point for the FastTree Binary Classifier.
     /// </summary>
     public static partial class FastTree
     {

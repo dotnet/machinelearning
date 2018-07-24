@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             ch.Info("Residual Deviance: \t{0} (on {1} degrees of freedom)", deviance, Math.Max(NumGoodRows - numParams, 0));
 
-            // Compute null deviance, i.e., the deviance of null hypothesis. 
+            // Compute null deviance, i.e., the deviance of null hypothesis.
             // Cap the prior positive rate at 1e-15.
             Double priorPosRate = _posWeight / WeightSum;
             Contracts.Assert(0 <= priorPosRate && priorPosRate <= 1);
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Runtime.Learners
             var hessian = new Double[hessianDimension];
 
             // Initialize diagonal elements with L2 regularizers except for the first entry (index 0)
-            // Since bias is not regularized. 
+            // Since bias is not regularized.
             if (L2Weight > 0)
             {
                 // i is the array index of the diagonal entry at iRow-th row and iRow-th column.

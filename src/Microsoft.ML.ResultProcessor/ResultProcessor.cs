@@ -1134,7 +1134,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
         /// <summary>
         /// Deserialize a predictor, returning as an object
-        /// </summary>		
+        /// </summary>
         private static object Load(Stream stream)
         {
             BinaryFormatter bf = new BinaryFormatter();

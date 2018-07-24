@@ -1215,7 +1215,7 @@ namespace Microsoft.ML.Runtime.Data
                         private VBuffer<T> _inputValue;
                         // The delegate to get the input value.
                         private readonly ValueGetter<VBuffer<T>> _inputGetter;
-                        // The limit of _inputValue.Indices 
+                        // The limit of _inputValue.Indices
                         private readonly int[] _srcIndicesLims;
                         // Convenient accessor since we use this all over the place.
                         private int[] Lims { get { return Parent._lims; } }

@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             if (weights != null)
             {
                 Contracts.Assert(weights.Length == GetNumRows());
-                // Skip SetWeights if all weights are same. 
+                // Skip SetWeights if all weights are same.
                 bool allSame = true;
                 for (int i = 1; i < weights.Length; ++i)
                 {

@@ -187,7 +187,7 @@ namespace Microsoft.ML.Models
         public List<ClusterMetrics> ClusterMetrics;
         public PredictionModel<TInput, TOutput>[] PredictorModels;
 
-        //REVIEW: Add warnings and per instance results and implement 
+        //REVIEW: Add warnings and per instance results and implement
         //metrics for ranking, clustering and anomaly detection.
     }
 }

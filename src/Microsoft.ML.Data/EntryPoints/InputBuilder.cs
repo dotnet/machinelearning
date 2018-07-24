@@ -14,8 +14,8 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
 {
     /// <summary>
-    /// The class that creates and wraps around an instance of an input object and gradually populates all fields, keeping track of missing 
-    /// required values. The values can be set from their JSON representation (during the graph parsing stage), as well as directly 
+    /// The class that creates and wraps around an instance of an input object and gradually populates all fields, keeping track of missing
+    /// required values. The values can be set from their JSON representation (during the graph parsing stage), as well as directly
     /// (in the process of graph execution).
     /// </summary>
     public sealed class InputBuilder
@@ -515,7 +515,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         }
 
         /// <summary>
-        /// Ensures that the given value can be assigned to an entry point field with 
+        /// Ensures that the given value can be assigned to an entry point field with
         /// type <paramref name="type"/>. This method will wrap the value in the option
         /// type if needed and throw an exception if the value isn't assignable.
         /// </summary>

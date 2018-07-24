@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
     /// <summary>
     /// A delegate for indexed sets of functions with gradients.
-    /// 
+    ///
     /// REVIEW: I didn't add an <see cref="IProgressChannelProvider"/> here, since it looks like this code is not actually
     /// accessed from anywhere. Maybe it should go away?
     /// </summary>

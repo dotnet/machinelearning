@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     /// This <see cref="IntArray"/> implementation represents a sequence of values using parallel
     /// arrays of both values, as well as deltas indicating the number of values to the next
     /// explicit value. Values "between" these deltas are implicitly zero.
-    /// 
+    ///
     /// Note that it is possible to misuse the deltas by making some of them themselves 0, allowing
     /// us to represent multiple values per row. In this case, <see cref="IntArray.GetEnumerator"/>
     /// and <see cref="IntArray.GetIndexer"/> will not have sensible values, but

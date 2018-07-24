@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             IntPtr ret,
             int type);
 
-        #endregion 
+        #endregion
 
         #region API ERROR
 

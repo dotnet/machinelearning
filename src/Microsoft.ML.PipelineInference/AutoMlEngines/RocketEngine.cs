@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     }
                 }
 
-                // Take average mass as weight, and take convex combination of 
+                // Take average mass as weight, and take convex combination of
                 // learner-specific weight and unconditioned weight.
                 allWeight /= allCounts > 0 ? allCounts : 1;
                 learnerWeight /= learnerCounts > 0 ? learnerCounts : 1;
@@ -182,9 +182,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
             sampledTransforms.AddRange(remainingAvailableTransforms.Where(t =>
                 AutoMlUtils.AtomicGroupPresent(mask, t.AtomicGroupId)));
 
-            // Add final features concat transform. NOTE: computed bitmask should always 
-            // exclude the final features concat. If we forget to exclude that one, will 
-            // cause an error in verification, since it isn't included in the original 
+            // Add final features concat transform. NOTE: computed bitmask should always
+            // exclude the final features concat. If we forget to exclude that one, will
+            // cause an error in verification, since it isn't included in the original
             // dependency mapping (i.e., its level isn't in the dictionary).
             sampledTransforms.AddRange(AutoMlUtils.GetFinalFeatureConcat(Env, FullyTransformedData,
                 DependencyMapping, sampledTransforms.ToArray(), AvailableTransforms, DataRoles));
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     var remainingNum = Math.Min(numStageOneTrials - prevCandidates.Length, numCandidates);
                     if (remainingNum < 1)
                     {
-                        // Select top k learners, update stage, then get requested 
+                        // Select top k learners, update stage, then get requested
                         // number of candidates, using second stage logic.
                         UpdateLearners(GetTopLearners(prevCandidates));
                         _currentStage++;
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     AutoMlUtils.PopulateSweepableParams(learner);
 
                 do
-                {   // Make sure transforms set is valid and have not seen pipeline before. 
+                {   // Make sure transforms set is valid and have not seen pipeline before.
                     // Repeat until passes or runs out of chances.
                     pipeline = new PipelinePattern(
                         SampleTransforms(learner, history, out var transformsBitMask, uniformRandomTransforms),

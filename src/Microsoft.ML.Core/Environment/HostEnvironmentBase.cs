@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Data
 
     /// <summary>
     /// A basic host environment suited for many environments.
-    /// This also supports modifying the concurrency factor, provides the ability to subscribe to pipes via the 
+    /// This also supports modifying the concurrency factor, provides the ability to subscribe to pipes via the
     /// AddListener/RemoveListener methods, and exposes the <see cref="ProgressReporting.ProgressTracker"/> to
     /// query progress.
     /// </summary>
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Runtime.Data
             /// This field is actually used as a <see cref="MulticastDelegate"/>, which holds the listener actions
             /// for all listeners that are currently subscribed. The action itself is an immutable object, so every time
             /// any listener subscribes or unsubscribes, the field is replaced with a modified version of the delegate.
-            /// 
+            ///
             /// The field can be null, if no listener is currently subscribed.
             /// </summary>
             private volatile Action<IMessageSource, TMessage> _listenerAction;

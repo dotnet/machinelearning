@@ -447,10 +447,10 @@ namespace Microsoft.ML.Runtime.Data
         /// type. The input type, whatever it is, must have <see cref="ItemType"/> as its input item
         /// type, and will produce either <see cref="OutputType"/>, or a vector type with that output
         /// type if the input was a vector.
-        /// 
+        ///
         /// Note that instances of this class can be shared among multiple <see cref="TermTransform"/>
         /// instances. To associate this with a particular transform, use the <see cref="Bind"/> method.
-        /// 
+        ///
         /// These are the immutable and serializable analogs to the <see cref="Builder"/> used in
         /// training.
         /// </summary>

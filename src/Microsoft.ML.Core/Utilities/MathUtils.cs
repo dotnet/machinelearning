@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         /// <summary>
         /// Finds the first index of the max element of the array.
-        /// NaNs are ignored. If all the elements to consider are NaNs, -1 is 
+        /// NaNs are ignored. If all the elements to consider are NaNs, -1 is
         /// returned. The caller should distinguish in this case between two
         /// possibilities:
         /// 1) The number of the element to consider is zero.
@@ -147,8 +147,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Finds the first index of the max element of the array. 
-        /// NaNs are ignored. If all the elements to consider are NaNs, -1 is 
+        /// Finds the first index of the max element of the array.
+        /// NaNs are ignored. If all the elements to consider are NaNs, -1 is
         /// returned. The caller should distinguish in this case between two
         /// possibilities:
         /// 1) The number of the element to consider is zero.
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         /// <summary>
         /// Finds the first index of the minimum element of the array.
-        /// NaNs are ignored. If all the elements to consider are NaNs, -1 is 
+        /// NaNs are ignored. If all the elements to consider are NaNs, -1 is
         /// returned. The caller should distinguish in this case between two
         /// possibilities:
         /// 1) The number of the element to consider is zero.
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         /// <summary>
         /// Finds the first index of the minimum element of the array.
-        /// NaNs are ignored. If all the elements to consider are NaNs, -1 is 
+        /// NaNs are ignored. If all the elements to consider are NaNs, -1 is
         /// returned. The caller should distinguish in this case between two
         /// possibilities:
         /// 1) The number of the element to consider is zero.
@@ -849,7 +849,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Math.Sin returns the input value for inputs with large magnitude. We return NaN instead, for consistency 
+        /// Math.Sin returns the input value for inputs with large magnitude. We return NaN instead, for consistency
         /// with Math.Sin(infinity).
         /// </summary>
         public static double Sin(double a)
@@ -859,7 +859,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Math.Cos returns the input value for inputs with large magnitude. We return NaN instead, for consistency 
+        /// Math.Cos returns the input value for inputs with large magnitude. We return NaN instead, for consistency
         /// with Math.Cos(infinity).
         /// </summary>
         public static double Cos(double a)

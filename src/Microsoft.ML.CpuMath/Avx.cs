@@ -7,7 +7,7 @@ using System;
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     /// <summary>
-    /// Keep Avx.cs in sync with Sse.cs. When making changes to one, use BeyondCompare or a similar tool 
+    /// Keep Avx.cs in sync with Sse.cs. When making changes to one, use BeyondCompare or a similar tool
     /// to view diffs and propagate appropriate changes to the other.
     /// </summary>
     public static class AvxUtils

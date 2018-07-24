@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         public bool NoSweep { get; set; }
 
         //Settings are automatically populated for fields that are classes.
-        //The below is an extension of the framework to add settings for 
+        //The below is an extension of the framework to add settings for
         //boolean type fields.
         public bool ShowSettingsForCheckbox { get; set; }
         public object Settings { get; set; }

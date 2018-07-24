@@ -28,9 +28,9 @@ namespace Microsoft.ML
 
     /// <summary>
     /// The <see cref="LearningPipeline"/> class is used to define the steps needed to perform a desired machine learning task.<para/>
-    /// The steps are defined by adding a data loader (e.g. <see cref="TextLoader"/>) followed by zero or more transforms (e.g. <see cref="Microsoft.ML.Transforms.TextFeaturizer"/>) 
+    /// The steps are defined by adding a data loader (e.g. <see cref="TextLoader"/>) followed by zero or more transforms (e.g. <see cref="Microsoft.ML.Transforms.TextFeaturizer"/>)
     /// and at most one trainer/learner (e.g. <see cref="Microsoft.ML.Trainers.FastTreeBinaryClassifier"/>) in the pipeline.
-    /// 
+    ///
     /// </summary>
     /// <example>
     /// <para/>
@@ -40,7 +40,7 @@ namespace Microsoft.ML
     /// pipeline.Add(new TextLoader &lt;SentimentData&gt; (dataPath, separator: ","));
     /// pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
     /// pipeline.Add(new FastTreeBinaryClassifier());
-    /// 
+    ///
     /// var model = pipeline.Train&lt;SentimentData, SentimentPrediction&gt;();
     /// </code>
     /// </example>
@@ -78,7 +78,7 @@ namespace Microsoft.ML
         public bool IsReadOnly => false;
 
         /// <summary>
-        /// Add a data loader, transform or trainer into the pipeline. 
+        /// Add a data loader, transform or trainer into the pipeline.
         /// Possible data loader(s), transforms and trainers options are
         /// <para>
         /// Data Loader:

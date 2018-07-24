@@ -164,7 +164,7 @@ namespace Microsoft.ML.Runtime.Data
         public override bool CanShuffle { get { return false; } }
 
         /// <summary>
-        /// Returns the computed count of rows remaining after skip and take operation.  
+        /// Returns the computed count of rows remaining after skip and take operation.
         /// Returns null if count is unknown.
         /// </summary>
         public override long? GetRowCount(bool lazy = true)
