@@ -2,9 +2,15 @@
 
 This document describes in detail the under-the-hood mechanism that ML.NET uses to automate the creation of `IDataView` schema, with the goal to make it as convenient to the end user as possible, while not incurring extra computational costs.
 
+For a better understanding of `IDataView` principles and type system please refer to:
+* [IDataView Design Principles](IDataViewDesignPrinciples.md)
+* [IDataView Type System](IDataViewTypeSystem.md)
+
 ## Introduction
 
-Every dataset in ML.NET is an `IDataView`, which is, for the purposes of this document, a collection of rows that share the same columns. The set of columns, their names, types and other metadata is known as the *schema* of the `IDataView`, and it's represented as an `ISchema` object.
+Every dataset in ML.NET is represented as an `IDataView`, which is, for the purposes of this document, a collection of rows that share the same columns. The set of columns, their names, types and other metadata is known as the *schema* of the `IDataView`, and it's represented as an `ISchema` object.
+
+In this document, we will be using the terms *data view* and `IDataView` interchangeably, same for *schema* and `ISchema`.
 
 Before any new data enters ML.NET, the user needs to somehow define how the schema of the data will look like.
 To do this, the following questions need to be answered:
@@ -16,7 +22,7 @@ These items above are very similar to the definition of fields in a C# class: na
 Because of this similarity, ML.NET offers a common convenient mechanism for creating a schema: it is done via defining a C# class.
 
 For example, the below class definition can be used to define a data view with 5 float columns:
-```(csharp)
+```C#
 public class IrisData
 {
     public float Label;
@@ -34,7 +40,7 @@ It works in the other direction too: you can take an `IDataView`, and read it as
 
 Let's see how we can create a new `IDataView` out of an in-memory array, run some operations on it, and then read it back into the array.
 
-```(csharp)
+```C#
 public class IrisData
 {
     public float Label;
@@ -79,12 +85,12 @@ static void Main(string[] args)
         .ToArray();
 }
 ```
-After this code runs, `arr` will contain two `IrisVectorData` objects, each having `Features` filled with the actual values of the features.
+After this code runs, `arr` will contain two `IrisVectorData` objects, each having `Features` filled with the actual values of the features (the 4 concatenated columns).
 
 ### Streaming data views
 
-What if the original data doesn't support seeking, kile if it's some form of `IEnumerable<IrisData>` instead of `IList<IrisData>`? Well, we can simply use another helper function:
-```(csharp)
+What if the original data doesn't support seeking, like if it's some form of `IEnumerable<IrisData>` instead of `IList<IrisData>`? Well, we can simply use another helper function:
+```C#
 var streamingDv = env.CreateStreamingDataView<IrisData>(dataEnumerable);
 ```
 The only subtle difference is, the resulting `streamingDv` will not support shuffling (a property that's useful to some ML application).
@@ -97,7 +103,7 @@ Obviously, in the example above this would lead to incorrect behavior, as the `a
 
 Sometimes, we don't even want to *populate* the row object per row. For example, we only want to see every 100th row of the data, so there's no need to populate the remaining 99% row objects. In this case, you can use `AsCursorable<OutType>` method:
 
-```(csharp)
+```C#
 var cursorable = dv.AsCursorable<IrisVectorData>(env);
 // You can create as many simultaneous cursors as you like, they are independent.
 using (var cursor = cursorable.GetCursor())
@@ -121,7 +127,7 @@ Please note that **cursors are not thread-safe**: they have mutable state inside
 
 ML.NET's `PredictionEngine` is attempting to turn a sequence of data transforms (maybe capped by a predictor, but not necessarily) into a 'black box' that takes strongly typed inputs and returns strongly typed outputs. The name is a little misleading: the `PredictionEngine` object doesn't require a predictor to be present in the pipeline, it can be just a sequence of transforms like in the below example:
 
-```(csharp)
+```C#
 var engine = env.CreatePredictionEngine<IrisData, IrisVectorData>(dv);
 var output = engine.Predict(new IrisData { Label = 1, PetalLength = 1, SepalLength = 1, PetalWidth = 1, SepalWidth = 1 });
 ```
@@ -137,8 +143,8 @@ If you ever see the error message that says: `An attempt was made to keep iterat
 `IDataView` [type system](IDataViewTypeSystem.md) differs slightly from the C# type system, so a 1-1 mapping between column types and C# types is not always feasible. 
 Below are the most notable examples of the differences:
 
-* `IDataView` vector columns may have a fixed (and known) size, C# arrays can not. You can use `[VectorType(N)]` attribute to an array field to specify that the column is a vector of fixed size N. This is often necessary: most ML components don't work with variable-size vectors, they require fixed-size ones.
-* `IDataView`'s **key types** don't have an underlying C# type either. To declare a key-type column, you need to make your field an `uint`, and decorate it with `[KeyType(Min=A, Count=B)]` to denote that the field is a key with the specified range of values.
+* `IDataView` vector columns often have a fixed (and known) size. The C# array type best corresponds to a 'variable size' vector: the one that can have different number of slots on every row. You can use `[VectorType(N)]` attribute to an array field to specify that the column is a vector of fixed size N. This is often necessary: most ML components don't work with variable-size vectors, they require fixed-size ones.
+* `IDataView`'s [key types](IDataViewTypeSystem.md#key-types)  don't have a natural underlying C# type either. To declare a key-type column, you need to make your field an `uint`, and decorate it with `[KeyType]` to denote that the field is a key, and not a regular unsigned integer.
 
 ### Full list of type mappings
 The below table illustrates what C# types are mapped to what `IDataView` types:
@@ -178,7 +184,7 @@ As you can see from the table and notes above, certain `IDataView` types can onl
 
 You can use a `SchemaDefinition` object to re-map a type to an `IDataView` schema programmatically. It gives you the same powers as the attributes, but at runtime.
 Please see the below example.
-```(csharp)
+```C#
 // Vector size is only known at runtime.
 int numberOfFeatures = 4;
 
@@ -195,7 +201,11 @@ var dataView = env.CreateDataView<IrisVectorData>(arr, schemaDef);
 var predictionEngine = env.CreatePredictionEngine<IrisData, IrisVectorData>(dv, outputSchemaDefinition: schemaDef);
 ```
 
-In addition to the above, you can use `SchemaDefinition` to add per-column metadata, or even a 'value generator' (so that the column value is not read from the field, but computed using a delegate).
+In addition to the above, you can use `SchemaDefinition` to add per-column metadata:
+```C#
+// Add column metadata.
+schemaDef["Label"].AddMetadata(MetadataUtils.Kinds.HasMissingValues, false);
+```
 
 ## Limitations
 
@@ -204,7 +214,9 @@ It was our design decision to not allow these scenarios, thus simplifying the ot
 
 Here is the list of things that are only possible via the low-level interface:
 * Creating or reading a data view, where even column *types* are not known at compile time (so you cannot create a C# class to define the schema)
-* Reading a different subset of columns on every row: the cursor always populates the entire row object.
+  * This can happen if you write a general-purpose machine learning tool that can ingest different kinds of datasets.
+* Reading a subset of columns that differs from one row to another: the cursor always populates the entire row object.
 * Reading column metadata from the data view.
-* Accessing the 'hidden' data view columns by index.
-* Creating 'cursor sets'.
+* Accessing the 'hidden' data view columns by index. 
+  * Hidden columns are those that have the same name as other columns and a smaller index. They are not accessible by name.
+* Creating 'cursor sets': this is a feature that lets you iterate over data in multiple parallel threads by splitting the data between multiple 'sibling' cursors.
