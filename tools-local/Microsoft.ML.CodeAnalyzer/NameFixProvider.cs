@@ -32,7 +32,7 @@ namespace Microsoft.ML.CodeAnalyzer
         private const string PrivateTitle = "Fix name";
 
         private static ImmutableArray<string> _fixable = ImmutableArray.Create(
-            NameAnalyzer.PrivateFieldName.Id, NameAnalyzer.GeneralName.Id, InterfaceNameAnalyzer.Id,
+            NameAnalyzer.PrivateFieldName.Id, NameAnalyzer.GeneralName.Id,
             ParameterVariableNameAnalyzer.Id, TypeParamNameAnalyzer.Id);
         private static ImmutableHashSet<string> _fixableSet = ImmutableHashSet<string>.Empty.Union(_fixable);
 
