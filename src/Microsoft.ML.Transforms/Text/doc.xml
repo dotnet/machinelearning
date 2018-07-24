@@ -194,7 +194,8 @@
         <para>
           Note: As WordEmbedding requires a column with text vector, e.g. %3C%27this%27, %27is%27, %27good%27%3E, users need to create an input column by
           using the output_tokens=True for TextTransform to convert a column with sentences like "This is good" into %3C%27this%27, %27is%27, %27good%27 %3E.
-          The column for the output token column is renamed original column with a prefix of %27_TranformedText%27.
+          The suffix of %27_TransformedText%27 is added to the original column name to create the output token column. For instance if the input column is %27body%27,
+          the output tokens column is named %27body_TransformedText%27.
         </para>
         <para>
           License attributes for pretrained models:

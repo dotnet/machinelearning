@@ -404,18 +404,13 @@ namespace Microsoft.ML.Runtime.Data
                                 dimension = words.Length - 1;
                                 if (model == null)
                                     model = new Model(dimension);
-                                if (model.Dimension != dimension)
-                                    ch.Warning($"Dimension mismatch while reading model file: '{_modelFileNameWithPath}', line number {lineNumber + 1}, expected dimension = {model.Dimension}, received dimension = {dimension}");
+                                float tmp;
+                                string key = words[0];
+                                float[] value = words.Skip(1).Select(x => float.TryParse(x, out tmp) ? tmp : Single.NaN).ToArray();
+                                if (!value.Contains(Single.NaN))
+                                    model.AddWordVector(ch, key, value);
                                 else
-                                {
-                                    float tmp;
-                                    string key = words[0];
-                                    float[] value = words.Skip(1).Select(x => float.TryParse(x, out tmp) ? tmp : Single.NaN).ToArray();
-                                    if (!value.Contains(Single.NaN))
-                                        model.AddWordVector(ch, key, value);
-                                    else
-                                        ch.Warning($"Parsing error while reading model file: '{_modelFileNameWithPath}', line number {lineNumber + 1}");
-                                }
+                                    ch.Warning($"Parsing error while reading model file: '{_modelFileNameWithPath}', line number {lineNumber + 1}");
                             }
                             lineNumber++;
                         }
