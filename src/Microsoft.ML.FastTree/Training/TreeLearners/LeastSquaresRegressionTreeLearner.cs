@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     /// <summary>
     /// Trains regression trees.
     /// </summary>
-    public class LeastSquaresRegressionTreeLearner : TreeLearner
+    public class LeastSquaresRegressionTreeLearner : TreeLearner, ILeafSplitStatisticsCalculator
     {
         // parameters
         protected readonly int MinDocsInLeaf;
@@ -1202,4 +1202,13 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
         }
     }
+
+
+    public interface ILeafSplitStatisticsCalculator
+    {
+        double CalculateSplittedLeafOutput(int count, double sumTargets, double sumWeights);
+
+        double GetLeafSplitGain(int count, double sumTargets, double sumWeights);
+    }
+    
 }

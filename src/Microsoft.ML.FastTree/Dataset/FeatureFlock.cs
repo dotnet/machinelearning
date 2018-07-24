@@ -190,19 +190,56 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         }
 
-        public void FillSplitCandidates(
-            Dataset trainData, double sumTargets,
-            LeastSquaresRegressionTreeLearner.LeafSplitCandidates leafSplitCandidates,
-            int globalFeatureIndex, double minDocsInLeaf,
-            double gainConfidenceInSquaredStandardDeviations, double entropyCoefficient)
+        public void FillSplitCandidates(LeastSquaresRegressionTreeLearner learner, LeastSquaresRegressionTreeLearner.LeafSplitCandidates leafSplitCandidates,
+            int flock, int[] featureUseCount, double featureFirstUsePenalty, double featureReusePenalty, double minDocsInLeaf,
+            bool hasWeights, double gainConfidenceInSquaredStandardDeviations, double entropyCoefficient)
         {
-            int flockIndex;
-            int subfeatureIndex;
-            trainData.MapFeatureToFlockAndSubFeature(globalFeatureIndex, out flockIndex, out subfeatureIndex);
+            int featureMin = learner.TrainData.FlockToFirstFeature(flock);
+            int featureLim = featureMin + learner.TrainData.Flocks[flock].Count;
+            foreach (var feature in learner.GetActiveFeatures(featureMin, featureLim))
+            {
+                int subfeature = feature - featureMin;
+                Contracts.Assert(0 <= subfeature && subfeature < Flock.Count);
+                Contracts.Assert(subfeature <= feature);
+                Contracts.Assert(learner.TrainData.FlockToFirstFeature(flock) == feature - subfeature);
 
-            double trust = trainData.Flocks[flockIndex].Trust(subfeatureIndex);
+                if (!IsSplittable[subfeature])
+                    continue;
+
+                Contracts.Assert(featureUseCount[feature] >= 0);
+
+                double trust = learner.TrainData.Flocks[flock].Trust(subfeature);
+                double usePenalty = (featureUseCount[feature] == 0) ?
+                featureFirstUsePenalty : featureReusePenalty * Math.Log(featureUseCount[feature] + 1);
+                int totalCount = leafSplitCandidates.NumDocsInLeaf;
+                double sumTargets = leafSplitCandidates.SumTargets;
+                double sumWeights = leafSplitCandidates.SumWeights;
+
+                FindBestSplitForFeature(learner, leafSplitCandidates, totalCount, sumTargets, sumWeights,
+                    feature, flock, subfeature, minDocsInLeaf,
+                    hasWeights, gainConfidenceInSquaredStandardDeviations, entropyCoefficient,
+                    trust, usePenalty);
+
+                if (leafSplitCandidates.FlockToBestFeature != null)
+                {
+                    if (leafSplitCandidates.FlockToBestFeature[flock] == -1 ||
+                        leafSplitCandidates.FeatureSplitInfo[leafSplitCandidates.FlockToBestFeature[flock]].Gain <
+                        leafSplitCandidates.FeatureSplitInfo[feature].Gain)
+                    {
+                        leafSplitCandidates.FlockToBestFeature[flock] = feature;
+                    }
+                }
+            }
+        }
+
+        public void FindBestSplitForFeature(ILeafSplitStatisticsCalculator leafCalculator,
+            LeastSquaresRegressionTreeLearner.LeafSplitCandidates leafSplitCandidates,
+            int totalCount, double sumTargets, double sumWeights,
+            int featureIndex, int flockIndex, int subfeatureIndex, double minDocsInLeaf,
+            bool hasWeights, double gainConfidenceInSquaredStandardDeviations, double entropyCoefficient,
+            double trust, double usePenalty)
+        {
             double minDocsForThis = minDocsInLeaf / trust;
-
             double bestSumGTTargets = double.NaN;
             double bestSumGTWeights = double.NaN;
             double bestShiftedGain = double.NegativeInfinity;
@@ -211,8 +248,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             double sumGTTargets = 0.0;
             double sumGTWeights = eps;
             int gtCount = 0;
-            int totalCount = leafSplitCandidates.Targets.Length;
-            double gainShift = (sumTargets * sumTargets) / totalCount;
+            sumWeights = 2 * eps;
+            double gainShift = leafCalculator.GetLeafSplitGain(totalCount, sumTargets, sumWeights);
 
             // We get to this more explicit handling of the zero case since, under the influence of
             // numerical error, especially under single precision, the histogram computed values can
@@ -234,6 +271,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 var binStats = GetBinStats(b);
                 t--;
                 sumGTTargets += binStats.SumTargets;
+                if (hasWeights)
+                    sumGTWeights += binStats.SumWeights;
                 gtCount += binStats.Count;
 
                 // Advance until GTCount is high enough.
@@ -246,8 +285,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     break;
 
                 // Calculate the shifted gain, including the LTE child.
-                double currentShiftedGain = (sumGTTargets * sumGTTargets) / gtCount
-                    + ((sumTargets - sumGTTargets) * (sumTargets - sumGTTargets)) / lteCount;
+                double currentShiftedGain = leafCalculator.GetLeafSplitGain(gtCount, sumGTTargets, sumGTWeights)
+                    + leafCalculator.GetLeafSplitGain(lteCount, sumTargets - sumGTTargets, sumWeights - sumGTWeights);
 
                 // Test whether we are meeting the min shifted gain confidence criteria for this split.
                 if (currentShiftedGain < minShiftedGain)
@@ -274,137 +313,17 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 }
             }
             // set the appropriate place in the output vectors
-            leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].Feature = flockIndex;
-            leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].Threshold = bestThreshold;
-            leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].LteOutput = (sumTargets - bestSumGTTargets) / (totalCount - bestGTCount);
-            leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].GTOutput = (bestSumGTTargets - bestSumGTWeights) / bestGTCount;
-            leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].LteCount = totalCount - bestGTCount;
-            leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].GTCount = bestGTCount;
+            leafSplitCandidates.FeatureSplitInfo[featureIndex].CategoricalSplit = false;
+            leafSplitCandidates.FeatureSplitInfo[featureIndex].Feature = featureIndex;
+            leafSplitCandidates.FeatureSplitInfo[featureIndex].Threshold = bestThreshold;
+            leafSplitCandidates.FeatureSplitInfo[featureIndex].LteOutput = leafCalculator.CalculateSplittedLeafOutput(totalCount - bestGTCount, sumTargets - bestSumGTTargets, sumWeights - bestSumGTWeights);
+            leafSplitCandidates.FeatureSplitInfo[featureIndex].GTOutput = leafCalculator.CalculateSplittedLeafOutput(bestGTCount, bestSumGTTargets, bestSumGTWeights);
+            leafSplitCandidates.FeatureSplitInfo[featureIndex].LteCount = totalCount - bestGTCount;
+            leafSplitCandidates.FeatureSplitInfo[featureIndex].GTCount = bestGTCount;
 
-            leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].Gain = (bestShiftedGain - gainShift) * trust;
+            leafSplitCandidates.FeatureSplitInfo[featureIndex].Gain = (bestShiftedGain - gainShift) * trust - usePenalty;
             double erfcArg = Math.Sqrt((bestShiftedGain - gainShift) * (totalCount - 1) / (2 * leafSplitCandidates.VarianceTargets * totalCount));
-            leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].GainPValue = ProbabilityFunctions.Erfc(erfcArg);
-        }
-
-        public void FillSplitCandidates(LeastSquaresRegressionTreeLearner learner, LeastSquaresRegressionTreeLearner.LeafSplitCandidates leafSplitCandidates,
-            int flock, int[] featureUseCount, double featureFirstUsePenalty, double featureReusePenalty, double minDocsInLeaf,
-            bool hasWeights, double gainConfidenceInSquaredStandardDeviations, double entropyCoefficient)
-        {
-            int featureMin = learner.TrainData.FlockToFirstFeature(flock);
-            int featureLim = featureMin + learner.TrainData.Flocks[flock].Count;
-            foreach (var feature in learner.GetActiveFeatures(featureMin, featureLim))
-            {
-                int subfeature = feature - featureMin;
-                Contracts.Assert(0 <= subfeature && subfeature < Flock.Count);
-                Contracts.Assert(subfeature <= feature);
-                Contracts.Assert(learner.TrainData.FlockToFirstFeature(flock) == feature - subfeature);
-
-                if (!IsSplittable[subfeature])
-                    continue;
-
-                Contracts.Assert(featureUseCount[feature] >= 0);
-
-                double trust = learner.TrainData.Flocks[flock].Trust(subfeature);
-                double minDocsForThis = minDocsInLeaf / trust;
-                double usePenalty = (featureUseCount[feature] == 0) ?
-                featureFirstUsePenalty : featureReusePenalty * Math.Log(featureUseCount[feature] + 1);
-
-                double bestSumGTTargets = double.NaN;
-                double bestSumGTWeights = double.NaN;
-                double bestShiftedGain = double.NegativeInfinity;
-                const double eps = 1e-10;
-                int bestGTCount = -1;
-                double sumGTTargets = 0.0;
-                double sumGTWeights = eps;
-                int gtCount = 0;
-                int totalCount = leafSplitCandidates.NumDocsInLeaf;
-                double sumTargets = leafSplitCandidates.SumTargets;
-                double sumWeights = leafSplitCandidates.SumWeights + 2 * eps;
-                double gainShift = learner.GetLeafSplitGain(totalCount, sumTargets, sumWeights);
-
-                // We get to this more explicit handling of the zero case since, under the influence of
-                // numerical error, especially under single precision, the histogram computed values can
-                // be wildly inaccurate even to the point where 0 unshifted gain may become a strong
-                // criteria.
-                double minShiftedGain = gainConfidenceInSquaredStandardDeviations <= 0 ? 0.0 :
-                   (gainConfidenceInSquaredStandardDeviations * leafSplitCandidates.VarianceTargets
-                   * totalCount / (totalCount - 1) + gainShift);
-
-                // re-evaluate if the histogram is splittable
-                IsSplittable[subfeature] = false;
-                int t = Flock.BinCount(subfeature);
-                uint bestThreshold = (uint)t;
-                t--;
-                int min = GetMinBorder(subfeature);
-                int max = GetMaxBorder(subfeature);
-                for (int b = max; b >= min; --b)
-                {
-                    var binStats = GetBinStats(b);
-                    t--;
-                    sumGTTargets += binStats.SumTargets;
-                    if (hasWeights)
-                        sumGTWeights += binStats.SumWeights;
-                    gtCount += binStats.Count;
-
-                    // Advance until GTCount is high enough.
-                    if (gtCount < minDocsForThis)
-                        continue;
-                    int lteCount = totalCount - gtCount;
-
-                    // If LTECount is too small, we are finished.
-                    if (lteCount < minDocsForThis)
-                        break;
-
-                    // Calculate the shifted gain, including the LTE child.
-                    double currentShiftedGain = learner.GetLeafSplitGain(gtCount, sumGTTargets, sumGTWeights)
-                        + learner.GetLeafSplitGain(lteCount, sumTargets - sumGTTargets, sumWeights - sumGTWeights);
-
-                    // Test whether we are meeting the min shifted gain confidence criteria for this split.
-                    if (currentShiftedGain < minShiftedGain)
-                        continue;
-
-                    // If this point in the code is reached, the histogram is splittable.
-                    IsSplittable[subfeature] = true;
-
-                    if (entropyCoefficient > 0)
-                    {
-                        // Consider the entropy of the split.
-                        double entropyGain = (totalCount * Math.Log(totalCount) - lteCount * Math.Log(lteCount) - gtCount * Math.Log(gtCount));
-                        currentShiftedGain += entropyCoefficient * entropyGain;
-                    }
-
-                    // Is t the best threshold so far?
-                    if (currentShiftedGain > bestShiftedGain)
-                    {
-                        bestGTCount = gtCount;
-                        bestSumGTTargets = sumGTTargets;
-                        bestSumGTWeights = sumGTWeights;
-                        bestThreshold = (uint)t;
-                        bestShiftedGain = currentShiftedGain;
-                    }
-                }
-                // set the appropriate place in the output vectors
-                leafSplitCandidates.FeatureSplitInfo[feature].CategoricalSplit = false;
-                leafSplitCandidates.FeatureSplitInfo[feature].Feature = feature;
-                leafSplitCandidates.FeatureSplitInfo[feature].Threshold = bestThreshold;
-                leafSplitCandidates.FeatureSplitInfo[feature].LteOutput = learner.CalculateSplittedLeafOutput(totalCount - bestGTCount, sumTargets - bestSumGTTargets, sumWeights - bestSumGTWeights);
-                leafSplitCandidates.FeatureSplitInfo[feature].GTOutput = learner.CalculateSplittedLeafOutput(bestGTCount, bestSumGTTargets, bestSumGTWeights);
-                leafSplitCandidates.FeatureSplitInfo[feature].LteCount = totalCount - bestGTCount;
-                leafSplitCandidates.FeatureSplitInfo[feature].GTCount = bestGTCount;
-
-                leafSplitCandidates.FeatureSplitInfo[feature].Gain = (bestShiftedGain - gainShift) * trust - usePenalty;
-                double erfcArg = Math.Sqrt((bestShiftedGain - gainShift) * (totalCount - 1) / (2 * leafSplitCandidates.VarianceTargets * totalCount));
-                leafSplitCandidates.FeatureSplitInfo[feature].GainPValue = ProbabilityFunctions.Erfc(erfcArg);
-                if (leafSplitCandidates.FlockToBestFeature != null)
-                {
-                    if (leafSplitCandidates.FlockToBestFeature[flock] == -1 ||
-                        leafSplitCandidates.FeatureSplitInfo[leafSplitCandidates.FlockToBestFeature[flock]].Gain <
-                        leafSplitCandidates.FeatureSplitInfo[feature].Gain)
-                    {
-                        leafSplitCandidates.FlockToBestFeature[flock] = feature;
-                    }
-                }
-            }
+            leafSplitCandidates.FeatureSplitInfo[featureIndex].GainPValue = ProbabilityFunctions.Erfc(erfcArg);
         }
 
         public void FillSplitCandidatesCategorical(LeastSquaresRegressionTreeLearner learner,

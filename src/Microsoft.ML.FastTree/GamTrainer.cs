@@ -218,8 +218,9 @@ namespace Microsoft.ML.Runtime.FastTree
         protected int InputLength;
         private LeastSquaresRegressionTreeLearner.LeafSplitCandidates _leafSplitCandidates;
         private SufficientStatsBase[] _histogram;
+        private ILeafSplitStatisticsCalculator _leafSplitHelper;
 
-        protected bool HasWeights => TrainSet?.SampleWeights != null;
+        private bool HasWeights => TrainSet?.SampleWeights != null;
 
         //Results of Training
         protected double[][] BinEffects;
@@ -245,6 +246,7 @@ namespace Microsoft.ML.Runtime.FastTree
             Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false);
             _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
             _entropyCoefficient = Args.EntropyCoefficient * 1e-6;
+
             int numThreads = args.NumThreads ?? Environment.ProcessorCount;
             if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
             {
@@ -337,6 +339,8 @@ namespace Microsoft.ML.Runtime.FastTree
 
                 pch.SetHeader(new ProgressHeader("iterations"), e => e.SetProgress(0, iteration, iterations));
 
+                var sumWeights = HasWeights ? TrainSet.SampleWeights.Sum() : 0;
+
                 for (int i = iteration; iteration < iterations; iteration++)
                 {
                     using (Timer.Time(TimerEvent.Iteration))
@@ -344,15 +348,15 @@ namespace Microsoft.ML.Runtime.FastTree
                         var gradient = obj.GetGradient(ch, scores);
                         var sumTargets = gradient.Sum();
 
-                        SumUpsAcrossFlocks(gradient, sumTargets);
-                        TrainOnEachFeature(gradient, scores, sumTargets);
+                        SumUpsAcrossFlocks(gradient, sumTargets, sumWeights);
+                        TrainOnEachFeature(gradient, scores, sumTargets, sumWeights);
                         scores = UpdateScores();
                     }
                 }
             }
         }
 
-        private void SumUpsAcrossFlocks(double[] gradient, double sumTargets)
+        private void SumUpsAcrossFlocks(double[] gradient, double sumTargets, double sumWeights)
         {
             var sumupTask = ThreadTaskManager.MakeTask(
                (flockIndex) =>
@@ -362,7 +366,7 @@ namespace Microsoft.ML.Runtime.FastTree
                              null,
                              TrainSet.NumDocs,
                              sumTargets,
-                             0,
+                             sumWeights,
                              gradient,
                              TrainSet.SampleWeights,
                              null);
@@ -371,25 +375,29 @@ namespace Microsoft.ML.Runtime.FastTree
             sumupTask.RunTask();
         }
 
-        private void TrainOnEachFeature(double[] gradient, double[] scores, double sumTargets)
+        private void TrainOnEachFeature(double[] gradient, double[] scores, double sumTargets, double sumWeights)
         {
             var trainTask = ThreadTaskManager.MakeTask(
                 (feature) =>
                 {
-                    TrainingIteration(feature, gradient, scores, sumTargets);
+                    TrainingIteration(feature, gradient, scores, sumTargets, sumWeights);
                 }, TrainSet.NumFeatures);
             trainTask.RunTask();
         }
-        private void TrainingIteration(int globalFeatureIndex, double[] gradient, double[] scores, double sumTargets)
+        private void TrainingIteration(int globalFeatureIndex, double[] gradient, double[] scores, double sumTargets, double sumWeights)
         {
             int flockIndex;
             int subFeatureIndex;
             TrainSet.MapFeatureToFlockAndSubFeature(globalFeatureIndex, out flockIndex, out subFeatureIndex);
 
-            _histogram[flockIndex].FillSplitCandidates(TrainSet, sumTargets,
-                _leafSplitCandidates, globalFeatureIndex,
-                 0, _gainConfidenceInSquaredStandardDeviations, _entropyCoefficient);
+            // Compute the split for the feature
+            _histogram[flockIndex].FindBestSplitForFeature(_leafSplitHelper, _leafSplitCandidates,
+                _leafSplitCandidates.Targets.Length, sumTargets, sumWeights,
+                globalFeatureIndex, flockIndex, subFeatureIndex, 0, HasWeights,
+                _gainConfidenceInSquaredStandardDeviations, _entropyCoefficient,
+                TrainSet.Flocks[flockIndex].Trust(subFeatureIndex), 0);
 
+            // Adjust the model
             if (_leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].Gain > 0)
                 AddOutputsToBins(globalFeatureIndex, flockIndex, subFeatureIndex);
         }
@@ -460,6 +468,7 @@ namespace Microsoft.ML.Runtime.FastTree
             {
                 InitializeGamHistograms();
                 _leafSplitCandidates = new LeastSquaresRegressionTreeLearner.LeafSplitCandidates(TrainSet);
+                _leafSplitHelper = new LeafSplitHelper(HasWeights);
             }
         }
 
@@ -469,6 +478,48 @@ namespace Microsoft.ML.Runtime.FastTree
         }
 
         protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
+
+        protected class LeafSplitHelper : ILeafSplitStatisticsCalculator
+        {
+            private bool _hasWeights;
+
+            public LeafSplitHelper(bool hasWeights)
+            {
+                _hasWeights = hasWeights;
+            }
+
+            /// <summary>
+            /// Returns the split gain for a particular leaf. Used on two leaves to calculate
+            /// the squared error gain for a particular leaf.
+            /// </summary>
+            /// <param name="count">Number of documents in this leaf</param>
+            /// <param name="sumTargets">Sum of the target values for this leaf</param>
+            /// <param name="sumWeights">Sum of the weights for this leaf, not meaningful if
+            /// <see cref="HasWeights"/> is <c>false</c></param>
+            /// <returns>The gain in least squared error</returns>
+            public double GetLeafSplitGain(int count, double sumTargets, double sumWeights)
+            {
+                if (!_hasWeights)
+                    return (sumTargets * sumTargets) / count;
+                return -4.0 * (Math.Abs(sumTargets) + sumWeights);
+            }
+
+            /// <summary>
+            /// Calculates the output value for a leaf after splitting.
+            /// </summary>
+            /// <param name="count">Number of documents in this leaf</param>
+            /// <param name="sumTargets">Sum of the target values for this leaf</param>
+            /// <param name="sumWeights">Sum of the weights for this leaf, not meaningful if
+            /// <see cref="HasWeights"/> is <c>false</c></param>
+            /// <returns>The output value for a leaf</returns>
+            public double CalculateSplittedLeafOutput(int count, double sumTargets, double sumWeights)
+            {
+                if (!_hasWeights)
+                    return sumTargets / count;
+                Contracts.Assert(sumWeights != 0);
+                return sumTargets / sumWeights;
+            }
+        }
     }
 
     public class BinaryClassGamPredictor : GamPredictorBase
