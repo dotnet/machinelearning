@@ -241,6 +241,7 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckParam(0 <= args.GainConfidenceLevel && args.GainConfidenceLevel < 1, nameof(args.GainConfidenceLevel), "Must be in [0, 1).");
             Host.CheckParam(0 < args.MaxBins, nameof(args.MaxBins), "Must be posittive.");
             Host.CheckParam(0 < args.NumIterations, nameof(args.NumIterations), "Must be positive.");
+            Host.CheckParam(0 < args.MinDocuments, nameof(args.MinDocuments), "Must be positive.");
 
             Args = args;
             Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false);
@@ -393,7 +394,7 @@ namespace Microsoft.ML.Runtime.FastTree
             // Compute the split for the feature
             _histogram[flockIndex].FindBestSplitForFeature(_leafSplitHelper, _leafSplitCandidates,
                 _leafSplitCandidates.Targets.Length, sumTargets, sumWeights,
-                globalFeatureIndex, flockIndex, subFeatureIndex, 0, HasWeights,
+                globalFeatureIndex, flockIndex, subFeatureIndex, Args.MinDocuments, HasWeights,
                 _gainConfidenceInSquaredStandardDeviations, _entropyCoefficient,
                 TrainSet.Flocks[flockIndex].Trust(subFeatureIndex), 0);
 
