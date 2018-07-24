@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public static extern int BoosterAddValidData(IntPtr handle, IntPtr validset);
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterSaveModelToString", CallingConvention = CallingConvention.StdCall)]
-        public unsafe static extern int BoosterSaveModelToString(IntPtr handle,
+        public static extern unsafe int BoosterSaveModelToString(IntPtr handle,
             int numIteration,
             int bufferLen,
             ref int outLen,
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public static extern int BoosterGetEvalCounts(IntPtr handle, ref int outLen);
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterGetEval", CallingConvention = CallingConvention.StdCall)]
-        public unsafe static extern int BoosterGetEval(IntPtr handle, int dataIdx,
+        public static extern unsafe int BoosterGetEval(IntPtr handle, int dataIdx,
                                  ref int outLen, double* outResult);
 
         #endregion

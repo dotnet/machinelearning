@@ -495,7 +495,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private sealed class RowColumnRow : IRow
         {
-            private readonly static DefaultCountedImpl _defCount = new DefaultCountedImpl();
+            private static readonly DefaultCountedImpl _defCount = new DefaultCountedImpl();
             private readonly ICounted _counted;
             private readonly IColumn[] _columns;
             private readonly SchemaImpl _schema;

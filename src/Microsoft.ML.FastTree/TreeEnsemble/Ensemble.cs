@@ -359,7 +359,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     {
         public FeatureToGainMap() { }
         // Override default Dictionary to return 0.0 for non-eisting keys
-        new public double this[int key] {
+        public new double this[int key] {
             get {
                 TryGetValue(key, out double retval);
                 return retval;

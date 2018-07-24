@@ -368,7 +368,7 @@ namespace Microsoft.ML.Runtime.Data
             return new Builder(this, index, schemaSrc, indexSrc, (k, i) => set.Contains(k));
         }
 
-        new public void Seal()
+        public new void Seal()
         {
             base.Seal();
         }

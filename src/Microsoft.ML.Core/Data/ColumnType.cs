@@ -325,7 +325,7 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class TextType : PrimitiveType
     {
-        private volatile static TextType _instance;
+        private static volatile TextType _instance;
         public static TextType Instance
         {
             get
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(IsNumber);
         }
 
-        private volatile static NumberType _instI1;
+        private static volatile NumberType _instI1;
         public static NumberType I1
         {
             get
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instU1;
+        private static volatile NumberType _instU1;
         public static NumberType U1
         {
             get
@@ -392,7 +392,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instI2;
+        private static volatile NumberType _instI2;
         public static NumberType I2
         {
             get
@@ -403,7 +403,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instU2;
+        private static volatile NumberType _instU2;
         public static NumberType U2
         {
             get
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instI4;
+        private static volatile NumberType _instI4;
         public static NumberType I4
         {
             get
@@ -425,7 +425,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instU4;
+        private static volatile NumberType _instU4;
         public static NumberType U4
         {
             get
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instI8;
+        private static volatile NumberType _instI8;
         public static NumberType I8
         {
             get
@@ -447,7 +447,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instU8;
+        private static volatile NumberType _instU8;
         public static NumberType U8
         {
             get
@@ -458,7 +458,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instUG;
+        private static volatile NumberType _instUG;
         public static NumberType UG
         {
             get
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instR4;
+        private static volatile NumberType _instR4;
         public static NumberType R4
         {
             get
@@ -480,7 +480,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instR8;
+        private static volatile NumberType _instR8;
         public static NumberType R8
         {
             get
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Runtime.Data
             get { return R4; }
         }
 
-        new public static NumberType FromKind(DataKind kind)
+        public static new NumberType FromKind(DataKind kind)
         {
             switch (kind)
             {
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class BoolType : PrimitiveType
     {
-        private volatile static BoolType _instance;
+        private static volatile BoolType _instance;
         public static BoolType Instance
         {
             get
@@ -589,7 +589,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class DateTimeType : PrimitiveType
     {
-        private volatile static DateTimeType _instance;
+        private static volatile DateTimeType _instance;
         public static DateTimeType Instance
         {
             get
@@ -621,7 +621,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class DateTimeZoneType : PrimitiveType
     {
-        private volatile static DateTimeZoneType _instance;
+        private static volatile DateTimeZoneType _instance;
         public static DateTimeZoneType Instance
         {
             get
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class TimeSpanType : PrimitiveType
     {
-        private volatile static TimeSpanType _instance;
+        private static volatile TimeSpanType _instance;
         public static TimeSpanType Instance
         {
             get
@@ -908,7 +908,7 @@ namespace Microsoft.ML.Runtime.Data
             return _dims[idim];
         }
 
-        new public PrimitiveType ItemType { get { return _itemType; } }
+        public new PrimitiveType ItemType { get { return _itemType; } }
 
         internal override ColumnType ItemTypeCore { get { return _itemType; } }
 

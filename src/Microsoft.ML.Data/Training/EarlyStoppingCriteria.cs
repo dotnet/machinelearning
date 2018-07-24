@@ -247,7 +247,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     public sealed class LPEarlyStoppingCriterion : MovingWindowEarlyStoppingCriterion
     {
         [TlcModule.Component(FriendlyName = "Low Progress (LP)", Name = "LP", Desc = "Stops in case of low progress.")]
-        new public sealed class Arguments : MovingWindowEarlyStoppingCriterion.Arguments, IEarlyStoppingCriterionFactory
+        public new sealed class Arguments : MovingWindowEarlyStoppingCriterion.Arguments, IEarlyStoppingCriterionFactory
         {
             public IEarlyStoppingCriterion CreateComponent(IHostEnvironment env, bool lowerIsBetter)
             {
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     public sealed class PQEarlyStoppingCriterion : MovingWindowEarlyStoppingCriterion
     {
         [TlcModule.Component(FriendlyName = "Generality to Progress Ratio (PQ)", Name = "PQ", Desc = "Stops in case of generality to progress ration exceeds threshold.")]
-        new public sealed class Arguments : MovingWindowEarlyStoppingCriterion.Arguments, IEarlyStoppingCriterionFactory
+        public new sealed class Arguments : MovingWindowEarlyStoppingCriterion.Arguments, IEarlyStoppingCriterionFactory
         {
             public IEarlyStoppingCriterion CreateComponent(IHostEnvironment env, bool lowerIsBetter)
             {

@@ -1063,7 +1063,7 @@ namespace Microsoft.ML.Runtime.Data
                     return _view.Schema.GetColumnName(SrcCol);
                 }
 
-                public override abstract ColumnType GetColumnType(int col);
+                public abstract override ColumnType GetColumnType(int col);
                 #endregion
 
                 private abstract class RowBase<TSplitter> : IRow

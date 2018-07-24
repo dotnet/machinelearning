@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// </summary>
     public sealed class ResourceManagerUtils
     {
-        private volatile static ResourceManagerUtils _instance;
+        private static volatile ResourceManagerUtils _instance;
         public static ResourceManagerUtils Instance
         {
             get

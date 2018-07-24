@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             return a.CbAlign == CbAlign;
         }
 
-        private unsafe static float* Ptr(AlignedArray a, float* p)
+        private static unsafe float* Ptr(AlignedArray a, float* p)
         {
             Contracts.AssertValue(a);
             float* q = p + a.GetBase((long)p);

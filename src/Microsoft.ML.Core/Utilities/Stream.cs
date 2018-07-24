@@ -979,7 +979,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return returnArray;
         }
 
-        public unsafe static void ReadBytes(this BinaryReader reader, void* destination, long destinationSizeInBytes, long bytesToRead, ref byte[] work)
+        public static unsafe void ReadBytes(this BinaryReader reader, void* destination, long destinationSizeInBytes, long bytesToRead, ref byte[] work)
         {
             Contracts.AssertValue(reader);
             Contracts.Assert(bytesToRead >= 0);
@@ -1007,7 +1007,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
         }
 
-        public unsafe static void ReadBytes(this BinaryReader reader, void* destination, long destinationSizeInBytes, long bytesToRead)
+        public static unsafe void ReadBytes(this BinaryReader reader, void* destination, long destinationSizeInBytes, long bytesToRead)
         {
             byte[] work = null;
             ReadBytes(reader, destination, destinationSizeInBytes, bytesToRead, ref work);

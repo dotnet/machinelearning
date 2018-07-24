@@ -1264,19 +1264,19 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             Contracts.Assert(AllBinUpperBounds.Select((b, f) => HotFeatureStarts[f + 1] - HotFeatureStarts[f] + 1 == b.Length).All(i => i));
         }
 
-        public override sealed double[] BinUpperBounds(int featureIndex)
+        public sealed override double[] BinUpperBounds(int featureIndex)
         {
             Contracts.Assert(0 <= featureIndex && featureIndex < Count);
             return AllBinUpperBounds[featureIndex];
         }
 
-        public override sealed double Trust(int featureIndex)
+        public sealed override double Trust(int featureIndex)
         {
             Contracts.Assert(0 <= featureIndex && featureIndex < Count);
             return 1;
         }
 
-        public override sealed int BinCount(int featureIndex)
+        public sealed override int BinCount(int featureIndex)
         {
             Contracts.Assert(0 <= featureIndex && featureIndex < Count);
             return AllBinUpperBounds[featureIndex].Length;

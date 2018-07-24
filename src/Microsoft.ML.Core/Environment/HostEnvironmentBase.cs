@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            new public IHost Register(string name, int? seed = null, bool? verbose = null, int? conc = null)
+            public new IHost Register(string name, int? seed = null, bool? verbose = null, int? conc = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 IHost host;

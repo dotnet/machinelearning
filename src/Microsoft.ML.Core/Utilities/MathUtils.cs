@@ -331,9 +331,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return (absDiff / maxAbs) <= maxRelErr;
         }
 
-        private readonly static int[] _possiblePrimeMod30 = new int[] { 1, 7, 11, 13, 17, 19, 23, 29 };
-        private readonly static double _constantForLogGamma = 0.5 * Math.Log(2 * Math.PI);
-        private readonly static double[] _coeffsForLogGamma = { 12.0, -360.0, 1260.0, -1680.0, 1188.0 };
+        private static readonly int[] _possiblePrimeMod30 = new int[] { 1, 7, 11, 13, 17, 19, 23, 29 };
+        private static readonly double _constantForLogGamma = 0.5 * Math.Log(2 * Math.PI);
+        private static readonly double[] _coeffsForLogGamma = { 12.0, -360.0, 1260.0, -1680.0, 1188.0 };
 
         /// <summary>
         /// Returns the log of the gamma function, using the Stirling approximation
