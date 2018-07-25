@@ -125,8 +125,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             // byte: _useMarkerChars value.
             _useMarkerChars = ctx.Reader.ReadBoolByte();
 
-            var version = GetVersionInfo();
-            _isSeparatorStartEnd = ctx.Header.ModelVerReadable < version.VerReadableCur || ctx.Reader.ReadBoolByte();
+            _isSeparatorStartEnd = ctx.Header.ModelVerReadable < 0x00010002 || ctx.Reader.ReadBoolByte();
 
             _type = GetOutputColumnType();
             SetMetadata();
