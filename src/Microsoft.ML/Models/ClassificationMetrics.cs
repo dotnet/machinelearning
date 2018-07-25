@@ -52,7 +52,8 @@ namespace Microsoft.ML.Models
                         LogLossReduction = metric.LogLossReduction,
                         TopKAccuracy = metric.TopKAccuracy,
                         PerClassLogLoss = metric.PerClassLogLoss,
-                        ConfusionMatrix = confusionMatrices.Current
+                        ConfusionMatrix = confusionMatrices.Current,
+                        RowTag =metric.RowTag,
                     });
 
             }
@@ -129,10 +130,10 @@ namespace Microsoft.ML.Models
         public double[] PerClassLogLoss { get; private set; }
 
         /// <summary>
-        /// For cross validation gives fold number or standard deviation or average across all metrics.
-        /// In other cases equal to null.
+        /// For cross-validation, this is equal to "Fold N" for per-fold metric rows, "Overall" for the average metrics and "STD" for standard deviation.
+        /// For non-CV scenarios, this is equal to null
         /// </summary>
-        public string FoldIndex { get; private set; }
+        public string RowTag { get; private set; }
 
         /// <summary>
         /// Gets the confusion matrix, or error matrix, of the classifier.
@@ -164,7 +165,7 @@ namespace Microsoft.ML.Models
             public double[] PerClassLogLoss;
 
             [ColumnName(ColumnNames.FoldIndex)]
-            public string FoldIndex;
+            public string RowTag;
 #pragma warning restore 649 // never assigned
         }
     }
