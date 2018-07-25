@@ -287,9 +287,7 @@ namespace Microsoft.ML.Runtime.Api
         /// </summary>
         public Column this[string columnName]
         {
-#pragma warning disable MSML_NoThis // Do not use 'this' keyword for member access
             get => this.FirstOrDefault(x => x.ColumnName == columnName);
-#pragma warning restore MSML_NoThis // Do not use 'this' keyword for member access
             set
             {
                 Contracts.CheckValue(value, nameof(value));

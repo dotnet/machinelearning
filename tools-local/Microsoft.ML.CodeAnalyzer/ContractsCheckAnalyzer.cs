@@ -20,7 +20,7 @@ namespace Microsoft.ML.CodeAnalyzer
 
         private const string Category = "Contracts";
 
-        public static class NameofDiagnostic
+        internal static class NameofDiagnostic
         {
             public const string Id = "MSML_ContractsNameUsesNameof";
             private const string Title = "Contracts argument for names is not a nameof";
@@ -34,7 +34,7 @@ namespace Microsoft.ML.CodeAnalyzer
                     DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
         }
 
-        public static class ExceptionDiagnostic
+        internal static class ExceptionDiagnostic
         {
             public const string Id = "MSML_ContractsExceptAsExpression";
             private const string Title = "Contracts.Except used as expression";
@@ -48,7 +48,7 @@ namespace Microsoft.ML.CodeAnalyzer
                     DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
         }
 
-        public static class SimpleMessageDiagnostic
+        internal static class SimpleMessageDiagnostic
         {
             public const string Id = "MSML_ContractsCheckMessageNotLiteralOrIdentifier";
             private const string Title = "Contracts.Check argument for message may involve formatting";
@@ -60,7 +60,7 @@ namespace Microsoft.ML.CodeAnalyzer
                     description: Descriptions.ContractsCheckMessageNotLiteralOrIdentifier);
         }
 
-        public static class DecodeMessageWithLoadContextDiagnostic
+        internal static class DecodeMessageWithLoadContextDiagnostic
         {
             public const string Id = "MSML_NoMessagesForLoadContext";
             private const string Title = "Contracts.Check argument for message may involve formatting";

@@ -69,15 +69,17 @@ namespace Microsoft.ML.Runtime.PipelineInference
             {
                 var nodes = Graph.GetNodes();
 
-                ectx.Check(nodes != null, "Empty Subgraph");
-                ectx.Check(nodes[0] != null, "Empty Subgraph");
+                ectx.Check(nodes != null || nodes.Count == 0, "Empty Subgraph");
+                ectx.Check(nodes[0] != null, "Subgraph's first note is empty");
                 ectx.Check(nodes[0][FieldNames.Inputs] != null, "Empty subgraph node inputs.");
 
                 string variableName;
                 if (!GetDataVariableName(ectx, "Data", nodes[0][FieldNames.Inputs], out variableName))
                     GetDataVariableName(ectx, "TrainingData", nodes[0][FieldNames.Inputs], out variableName);
 
-                ectx.CheckNonEmpty(variableName, nameof(variableName), "Subgraph needs to start with an ITransformInput, or an ITrainerInput. Check your subgraph, or account for variation of the name of the Data input here.");
+                ectx.CheckNonEmpty(variableName, nameof(variableName), "Subgraph needs to start with an" +
+                    nameof(CommonInputs.ITransformInput) + ", or an " + nameof(CommonInputs.ITrainerInput) +
+                    ". Check your subgraph, or account for variation of the name of the Data input here.");
                 return variableName;
             }
 

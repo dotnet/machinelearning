@@ -15,7 +15,7 @@ namespace Microsoft.ML.CodeAnalyzer
     public sealed class SingleVariableDeclarationAnalyzer : DiagnosticAnalyzer
     {
         private const string Category = "Declaration";
-        public const string DiagnosticId = "MSML_SingleVariableDeclaration";
+        internal const string DiagnosticId = "MSML_SingleVariableDeclaration";
 
         private const string Title = "Have only a single variable present per declaration";
         private const string Format = "Variables '{0}' were all part of a single declaration, and should be broken up";

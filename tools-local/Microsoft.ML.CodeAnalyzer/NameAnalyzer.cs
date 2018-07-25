@@ -42,7 +42,7 @@ namespace Microsoft.ML.CodeAnalyzer
             return Diagnostic.Create(rule, identifier.GetLocation(), props, newArgs);
         }
 
-        public static class PrivateFieldName
+        internal static class PrivateFieldName
         {
             public const string Id = "MSML_PrivateFieldName";
             private const string Title = "Private field name not _camelCased";
@@ -55,7 +55,7 @@ namespace Microsoft.ML.CodeAnalyzer
                     DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
         }
 
-        public static class GeneralName
+        internal static class GeneralName
         {
             public const string Id = "MSML_GeneralName";
             private const string Title = "This name should be PascalCased";

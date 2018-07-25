@@ -71,6 +71,15 @@ namespace Microsoft.ML.CodeAnalyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All instance fields or properties should be initialized in a constructor, not in the field. C# allows yone to specify initializers on instance members in either the constructor, or just on the field itself. However, taking advantage of that capability means that to comprehend the post-constructor state of an object a reader will have to read at least two places. To help keep code more comprehensible we disallow using field initializers, and insist that everything be in the constructor. Obviously this does n [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string InstanceInitializerInConstructor {
+            get {
+                return ResourceManager.GetString("InstanceInitializerInConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CheckDecode and ExceptDecode are used to report badly formatted data. If a message is provided then users expect that to be something actionable. So: if it is data the user themselves formatted or provided, then messages here are really useful. However, if in the context of a ModelLoadContext, this is practically always data Microsoft.ML formatted itself, and users inevitably find the specifics here confusing because they suppose these details are something they can do something about. So: generally, we sho [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string NoMessagesForLoadContext {

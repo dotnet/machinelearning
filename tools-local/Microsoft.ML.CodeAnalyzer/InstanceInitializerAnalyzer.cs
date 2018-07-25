@@ -15,16 +15,15 @@ namespace Microsoft.ML.CodeAnalyzer
     public sealed class InstanceInitializerAnalyzer : DiagnosticAnalyzer
     {
         private const string Category = "Declaration";
-        public const string DiagnosticId = "MSML_NoInstanceInitializers";
+        internal const string DiagnosticId = "MSML_NoInstanceInitializers";
 
         private const string Title = "No initializers on instance fields or properties";
         private const string Format = "Member {0} has a {1} initialier outside the constructor";
-        private const string Description =
-            "All instance fields or properties should be initialized in a constructor, not in the field";
 
         private static DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(DiagnosticId, Title, Format, Category,
-                DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+                DiagnosticSeverity.Warning, isEnabledByDefault: true,
+                description: Descriptions.InstanceInitializerInConstructor);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(Rule);

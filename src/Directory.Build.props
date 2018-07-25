@@ -16,12 +16,13 @@
 
   <ItemGroup>
     <ProjectReference
-      Condition="'$(UseMLCodeAnalyzer)' != 'false'"
+      Condition="'$(UseMLCodeAnalyzer)' != 'false' and '$(MSBuildProjectExtension)' == '.csproj'"
       Include="$(MSBuildThisFileDirectory)\..\tools-local\Microsoft.ML.CodeAnalyzer\Microsoft.ML.CodeAnalyzer.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <OutputItemType>Analyzer</OutputItemType>
     </ProjectReference>
-    <PackageReference Condition="'$(UseStyleCopAnalyzer)' != 'false'" Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="All" />
+    <PackageReference Condition="'$(UseStyleCopAnalyzer)' != 'false' and '$(MSBuildProjectExtension)' == '.csproj'"
+      Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
