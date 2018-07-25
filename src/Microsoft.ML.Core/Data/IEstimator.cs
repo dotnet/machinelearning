@@ -111,6 +111,11 @@ namespace Microsoft.ML.Core.Data
         /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
         /// </summary>
         IDataView Transform(TIn input);
+
+        /// <summary>
+        /// The output schema of the transformer.
+        /// </summary>
+        ISchema GetOutputSchema();
     }
 
     /// <summary>
@@ -139,7 +144,7 @@ namespace Microsoft.ML.Core.Data
     /// The data transformer, in addition to being a transformer, also exposes the input schema shape. It is handy for
     /// evaluating what kind of columns the transformer expects.
     /// </summary>
-    public interface IDataTransformer : ITransformer<IDataView>
+    public interface IDataTransformer
     {
         /// <summary>
         /// Schema propagation for transformers.
@@ -147,6 +152,12 @@ namespace Microsoft.ML.Core.Data
         /// Returns <c>null</c> iff the schema is invalid (then a call to Transform with this data will fail).
         /// </summary>
         ISchema GetOutputSchema(ISchema inputSchema);
+
+        /// <summary>
+        /// Take the data in, make transformations, output the data.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
+        /// </summary>
+        IDataView Transform(IDataView input);
     }
 
     public interface IDataEstimator

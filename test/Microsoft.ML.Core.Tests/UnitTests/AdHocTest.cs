@@ -78,6 +78,12 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             {
                 return new TextLoader(new TlcEnvironment(), _args, input);
             }
+
+            ISchema ITransformer<IMultiStreamSource>.GetOutputSchema()
+            {
+                var emptyData = new TextLoader(new TlcEnvironment(), _args, new MultiFileSource(null));
+                return emptyData.Schema;
+            }
         }
 
         public class TransformerPipe<TIn> : ITransformer<TIn>
@@ -97,6 +103,19 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 foreach (var xf in _chain)
                     idv = xf.Transform(idv);
                 return idv;
+            }
+
+            public (ITransformer<TIn>, IEnumerable<IDataTransformer>) GetParts()
+            {
+                return (_start, _chain);
+            }
+
+            public ISchema GetOutputSchema()
+            {
+                var s = _start.GetOutputSchema();
+                foreach (var xf in _chain)
+                    s = xf.GetOutputSchema(s);
+                return s;
             }
         }
 
@@ -118,7 +137,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 return this;
             }
 
-            public ITransformer<TIn> Fit(TIn input)
+            public TransformerPipe<TIn> Fit(TIn input)
             {
                 var start = _start.Fit(input);
 
@@ -140,7 +159,24 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
             public SchemaShape GetOutputSchema()
             {
-                throw new System.NotImplementedException();
+                var shape = _start.GetOutputSchema();
+                foreach (var xf in _estimatorChain)
+                {
+                    shape = xf.GetOutputSchema(shape);
+                    if (shape == null)
+                        return null;
+                }
+                return shape;
+            }
+
+            public (IEstimator<TIn>, IEnumerable<IDataEstimator>) GetParts()
+            {
+                return (_start, _estimatorChain);
+            }
+
+            ITransformer<TIn> IEstimator<TIn>.Fit(TIn input)
+            {
+                return Fit(input);
             }
         }
 
@@ -300,6 +336,26 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
+        public class MyPredictionEngine<TSrc, TDst>
+                    where TSrc : class
+                    where TDst : class, new()
+        {
+            private readonly PredictionEngine<TSrc, TDst> _engine;
+
+            public MyPredictionEngine(IHostEnvironment env, ISchema inputSchema, IEnumerable<IDataTransformer> steps)
+            {
+                IDataView dv = new EmptyDataView(env, inputSchema);
+                foreach (var s in steps)
+                    dv = s.Transform(dv);
+                _engine = env.CreatePredictionEngine<TSrc, TDst>(dv);
+            }
+
+            public TDst Predict(TSrc example)
+            {
+                return _engine.Predict(example);
+            }
+        }
+
 
         public class IrisPrediction
         {
@@ -330,6 +386,19 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             var scoredTrainData = model.Transform(new MultiFileSource(@"e:\data\iris.txt"))
                 .AsEnumerable<IrisPrediction>(env, reuseRowObject: false)
                 .ToArray();
+
+            ITransformer<IMultiStreamSource> loader;
+            IEnumerable<IDataTransformer> steps;
+            (loader, steps) = model.GetParts();
+
+            var engine = new MyPredictionEngine<IrisData, IrisPrediction>(env, loader.GetOutputSchema(), steps);
+            IrisPrediction prediction = engine.Predict(new IrisData()
+            {
+                SepalLength = 5.1f,
+                SepalWidth = 3.3f,
+                PetalLength = 1.6f,
+                PetalWidth = 0.2f,
+            });
         }
     }
 }
