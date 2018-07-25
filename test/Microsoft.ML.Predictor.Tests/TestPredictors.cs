@@ -233,6 +233,14 @@ namespace Microsoft.ML.Runtime.RunTests
 
         [Fact]
         [TestCategory("Binary")]
+        public void BinaryClassifierSymSgdTest()
+        {
+            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true);
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Binary")]
         public void BinaryClassifierTesterThresholdingTest()
         {
             var binaryPredictors = new[] { TestLearners.logisticRegression };

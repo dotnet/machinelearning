@@ -4,10 +4,11 @@
 
 #pragma once
 #include "../Stdafx.h"
-#include "mkl.h"
-#ifndef COMPILER_GCC
-#pragma comment(lib, "../../../Libraries/MKL/Win/Microsoft.ML.MklImports.lib")
-#endif
+
+extern "C" float cblas_sdot(const int vecSize, const float* denseVecX, const int incX, const float* denseVecY, const int incY);
+extern "C" float cblas_sdoti(const int sparseVecSize, const float* sparseVecValues, const int* sparseVecIndices, float* denseVec);
+extern "C" void cblas_saxpy(const int vecSize, const float coef, const float* denseVecX, const int incX, float* denseVecY, const int incY);
+extern "C" void cblas_saxpyi(const int sparseVecSize, const float coef, const float* sparseVecValues, const int* sparseVecIndices, float* denseVec);
 
 float SDOT(const int vecSize, const float* denseVecX, const float* denseVecY) {
 	return cblas_sdot(vecSize, denseVecX, 1, denseVecY, 1);

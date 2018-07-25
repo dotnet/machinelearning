@@ -5,10 +5,17 @@ set(SOURCES
 )
 
 if(WIN32)
+    link_directories(${CMAKE_SOURCE_DIR}/../../packages/MlNetMklDeps/runtimes/win-x64/native)
 else()
     list(APPEND SOURCES ${VERSION_FILE_PATH})
+	if(APPLE)
+	    link_directories(${CMAKE_SOURCE_DIR}/../../packages/MlNetMklDeps/runtimes/osx-x64/native)
+	else()
+	    link_directories(${CMAKE_SOURCE_DIR}/../../packages/MlNetMklDeps/runtimes/linux-x64/native)
+	endif()
 endif()
 
 add_library(SymSgdNative SHARED ${SOURCES} ${RESOURCES})
+target_link_libraries(SymSgdNative Microsoft.ML.MklImports)
 
 install_library_and_symbols (SymSgdNative)

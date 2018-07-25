@@ -92,9 +92,6 @@ namespace Microsoft.ML.Runtime.SymSgd
         public override TPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            LinearPredictor pred = (context.InitialPredictor as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
-            pred = pred ?? context.InitialPredictor as LinearPredictor;
-            Host.CheckParam(pred != null, nameof(context.InitialPredictor), "Not a linear predictor.");
             return base.Train(context);
         }
 
@@ -665,7 +662,7 @@ namespace Microsoft.ML.Runtime.SymSgd
 
         private static unsafe class Native
         {
-            internal const string DllName = @"SymSgdNative";
+            internal const string DllName = "SymSgdNative";
 
             [DllImport(DllName), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
