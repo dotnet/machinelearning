@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
     using StopWordsLang = StopWordsRemoverTransform.Language;
     using CaseNormalizationMode = TextNormalizerTransform.CaseNormalizationMode;
 
-    // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts 
+    // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
     // integer index mapping through hashing) as an option.
     /// <include file='doc.xml' path='doc/members/member[@name="TextTransform"]/*' />
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Runtime.Data
                     var col = new DelimitedTokenizeTransform.Column();
                     col.Source = textCols[i];
                     col.Name = GenerateColumnName(view.Schema, textCols[i], "WordTokenizer");
-                    
+
                     xfCols[i] = col;
 
                     wordTokCols[i] = col.Name;

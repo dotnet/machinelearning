@@ -220,7 +220,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     while (currentTopic < _topics[i])
                     {
                         //use a value to smooth the count so that we get dense output on each topic
-                        //the smooth value is usually set to 0.1 
+                        //the smooth value is usually set to 0.1
                         topicRet.Add(new KeyValuePair<int, float>(currentTopic, (float)_alpha));
                         currentTopic++;
                     }

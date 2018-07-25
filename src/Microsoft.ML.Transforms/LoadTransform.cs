@@ -17,14 +17,14 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// Load specific transforms from the specified model file. Allows one to 'cherry pick' transforms from 
+    /// Load specific transforms from the specified model file. Allows one to 'cherry pick' transforms from
     /// a serialized chain, or to apply a pre-trained transform to a different (but still compatible) data view.
     /// </summary>
     public static class LoadTransform
     {
         public class Arguments
         {
-            // REVIEW: make it not required, and make commands fill in the missing model file with the default 
+            // REVIEW: make it not required, and make commands fill in the missing model file with the default
             // input model file. This requires some hacking in DataDiagnosticCommand.
             [Argument(ArgumentType.Required, HelpText = "Model file to load the transforms from", ShortName = "in",
                 SortOrder = 1, IsInputFileName = true)]

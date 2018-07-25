@@ -400,10 +400,10 @@ namespace Microsoft.ML.Runtime.Training
         /// delegate of the cursor, indicating what additional options should be specified on subsequent
         /// passes over the data. The base implementation checks if any rows were skipped, and if none were
         /// skipped, it signals the context that it needn't bother with any filtering checks.
-        /// 
+        ///
         /// Because the result will be "or"-red, a perfectly acceptable implementation is that this
         /// return the default <see cref="CursOpt"/>, in which case the flags will not ever change.
-        /// 
+        ///
         /// If the cursor was created with a signal delegate, the return value of this method will be sent
         /// to that delegate.
         /// </summary>

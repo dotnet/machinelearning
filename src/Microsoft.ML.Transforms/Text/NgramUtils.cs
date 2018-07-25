@@ -134,7 +134,7 @@ namespace Microsoft.ML.Runtime.Data
             _bldr.GetResult(ref dst);
         }
 
-        // Returns false if there is no need to process more ngrams. 
+        // Returns false if there is no need to process more ngrams.
         private bool ProcessNgrams(int icol)
         {
             Contracts.Assert(_queue.Count > 0);
@@ -171,8 +171,8 @@ namespace Microsoft.ML.Runtime.Data
             return true;
         }
 
-        // Uses DFS. When called with i and skips, it assumes that the 
-        // first i terms in the _ngram array are already populated using "skips" skips, 
+        // Uses DFS. When called with i and skips, it assumes that the
+        // first i terms in the _ngram array are already populated using "skips" skips,
         // and it adds the (i+1)st term. It then recursively calls ProcessSkipNgrams
         // to add the next term.
         private bool ProcessSkipNgrams(int icol, int i, int skips)

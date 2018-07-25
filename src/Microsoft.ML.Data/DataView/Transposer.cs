@@ -1041,7 +1041,6 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 #region ISchema implementation
-
                 // Subclasses should implement ColumnCount and GetColumnType.
                 public override bool TryGetColumnIndex(string name, out int col)
                 {
@@ -1062,8 +1061,6 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
                     return _view.Schema.GetColumnName(SrcCol);
                 }
-
-                public override abstract ColumnType GetColumnType(int col);
                 #endregion
 
                 private abstract class RowBase<TSplitter> : IRow
@@ -1215,7 +1212,7 @@ namespace Microsoft.ML.Runtime.Data
                         private VBuffer<T> _inputValue;
                         // The delegate to get the input value.
                         private readonly ValueGetter<VBuffer<T>> _inputGetter;
-                        // The limit of _inputValue.Indices 
+                        // The limit of _inputValue.Indices
                         private readonly int[] _srcIndicesLims;
                         // Convenient accessor since we use this all over the place.
                         private int[] Lims { get { return Parent._lims; } }

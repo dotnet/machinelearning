@@ -9,7 +9,7 @@ using System.Security;
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
-    internal unsafe static class Thunk
+    internal static unsafe class Thunk
     {
         internal const string NativePath = "CpuMathNative";
 

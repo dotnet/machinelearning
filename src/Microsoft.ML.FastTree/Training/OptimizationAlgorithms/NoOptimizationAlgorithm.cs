@@ -7,7 +7,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     /// <summary>
     /// This is dummy optimizer. As Random forest does not have any boosting based optimization, this is place holder to be consistent
     /// with other fast tree based applications
-    /// </summary>    
+    /// </summary>
     public class RandomForestOptimizer : GradientDescent
     {
         private IGradientAdjuster _gradientWrapper;

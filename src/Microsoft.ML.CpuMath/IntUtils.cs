@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             return Div64Core(lo, hi, den, out rem);
         }
 
-        // REVIEW: on Linux, the hardware divide-by-zero exception is not translated into 
+        // REVIEW: on Linux, the hardware divide-by-zero exception is not translated into
         // a managed exception properly by CoreCLR so the process will crash. This is a temporary fix
         // until CoreCLR addresses this issue.
         [DllImport(Thunk.NativePath, CharSet = CharSet.Unicode, EntryPoint = "Div64"), SuppressUnmanagedCodeSecurity]

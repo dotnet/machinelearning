@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         // Weight of this tree in the ensemble
 
         // for each non-leaf, we keep the following data
-        public Float[] _defaultValueForMissing;
+        public Float[] DefaultValueForMissing;
         private double[] _splitGain;
         private double[] _gainPValue;
         // The value of this non-leaf node, prior to split when it was a leaf.
@@ -42,12 +42,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// </summary>
         public bool[] CategoricalSplit { get; }
         /// <summary>
-        /// Array of categorical values for the categorical feature that might be chosen as 
+        /// Array of categorical values for the categorical feature that might be chosen as
         /// a split feature for a node.
         /// </summary>
         public int[][] CategoricalSplitFeatures;
         /// <summary>
-        /// For a given categorical feature that is chosen as a split feature for a node, this 
+        /// For a given categorical feature that is chosen as a split feature for a node, this
         /// array contains it's start and end range in the input feature vector at prediction time.
         /// </summary>
         public int[][] CategoricalSplitFeatureRanges;
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             _gainPValue = new double[maxLeaves - 1];
             _previousLeafValue = new double[maxLeaves - 1];
             Thresholds = new UInt32[maxLeaves - 1];
-            _defaultValueForMissing = null;
+            DefaultValueForMissing = null;
             LteChild = new int[maxLeaves - 1];
             GtChild = new int[maxLeaves - 1];
             LeafValues = new double[maxLeaves];
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             _splitGain = splitGain;
             _gainPValue = gainPValue;
             RawThresholds = rawThresholds;
-            _defaultValueForMissing = defaultValueForMissing;
+            DefaultValueForMissing = defaultValueForMissing;
             LteChild = lteChild;
             GtChild = gtChild;
             LeafValues = leafValues;
@@ -222,10 +222,10 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
             CheckValid(Contracts.Check);
 
-            if (_defaultValueForMissing != null)
+            if (DefaultValueForMissing != null)
             {
                 bool allZero = true;
-                foreach (var val in _defaultValueForMissing)
+                foreach (var val in DefaultValueForMissing)
                 {
                     if (val != 0.0f)
                     {
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     }
                 }
                 if (allZero)
-                    _defaultValueForMissing = null;
+                    DefaultValueForMissing = null;
             }
         }
 
@@ -300,9 +300,9 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             Thresholds = reader.ReadUIntArray();
             RawThresholds = reader.ReadFloatArray();
 
-            _defaultValueForMissing = null;
+            DefaultValueForMissing = null;
             if (usingDefaultValue)
-                _defaultValueForMissing = reader.ReadFloatArray();
+                DefaultValueForMissing = reader.ReadFloatArray();
 
             LeafValues = reader.ReadDoubleArray();
             // Informational...
@@ -313,10 +313,10 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             CheckValid(Contracts.CheckDecode);
 
             // Check the need of _defaultValueForMissing
-            if (_defaultValueForMissing != null)
+            if (DefaultValueForMissing != null)
             {
                 bool allZero = true;
-                foreach (var val in _defaultValueForMissing)
+                foreach (var val in DefaultValueForMissing)
                 {
                     if (val != 0.0f)
                     {
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     }
                 }
                 if (allZero)
-                    _defaultValueForMissing = null;
+                    DefaultValueForMissing = null;
             }
         }
 
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
             writer.WriteUIntArray(Thresholds);
             writer.WriteFloatArray(RawThresholds);
-            writer.WriteFloatArray(_defaultValueForMissing);
+            writer.WriteFloatArray(DefaultValueForMissing);
             writer.WriteDoubleArray(LeafValues);
 
             writer.WriteDoubleArray(_splitGain);
@@ -804,12 +804,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         private Float GetFeatureValue(Float x, int node)
         {
             // Not need to convert missing vaules.
-            if (_defaultValueForMissing == null)
+            if (DefaultValueForMissing == null)
                 return x;
 
             if (Double.IsNaN(x))
             {
-                return _defaultValueForMissing[node];
+                return DefaultValueForMissing[node];
             }
             else
             {
@@ -1198,7 +1198,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         private void ToTreeEnsembleFormatForCategoricalSplit(StringBuilder sbEvaluator, StringBuilder sbInput, FeaturesToContentMap featureContents,
             ref int evaluatorCounter, Dictionary<int, int> featureToId, Dictionary<int, int> categoricalSplitNodeToId)
         {
-            //REVIEW: Can all these conditions even be true? 
+            //REVIEW: Can all these conditions even be true?
             if (CategoricalSplitFeatures == null ||
                 CategoricalSplitFeatures.Length == 0 ||
                 CategoricalSplitFeatures.All(val => val == null))
@@ -1518,7 +1518,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 var ghostLeaf = GetLeafFrom(ref src, otherWay);
                 var ghostOutput = GetOutput(ghostLeaf);
 
-                // If the ghost got a smaller output, the contribution of the feature is positive, so 
+                // If the ghost got a smaller output, the contribution of the feature is positive, so
                 // the contribution is true minus ghost.
                 contributions.AddFeature(ifeat, (Float)(trueOutput - ghostOutput));
             }
