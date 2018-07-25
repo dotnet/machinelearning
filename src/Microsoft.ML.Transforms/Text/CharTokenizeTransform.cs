@@ -107,7 +107,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             _type = GetOutputColumnType();
             SetMetadata();
-            _isSeparatorStartEnd = false;
         }
 
         private static ColumnType GetOutputColumnType()
