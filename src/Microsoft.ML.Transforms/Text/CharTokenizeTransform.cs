@@ -65,7 +65,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         public const string UserName = "Character Tokenizer Transform";
 
         // Keep track of the model that was saved with ver:0x00010001
-        private readonly bool _isSeparatorStartEnd = false;
+        private readonly bool _isSeparatorStartEnd;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -107,6 +107,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             _type = GetOutputColumnType();
             SetMetadata();
+            _isSeparatorStartEnd = false;
         }
 
         private static ColumnType GetOutputColumnType()
@@ -475,7 +476,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                         int index = 0;
 
-                        // VBuffer<DvText> can be a result of either concatenating text columns together 
+                        // VBuffer<DvText> can be a result of either concatenating text columns together
                         // or application of word tokenizer before char tokenizer in TextTransform.
                         //
                         // Considering VBuffer<DvText> as a single text stream.
