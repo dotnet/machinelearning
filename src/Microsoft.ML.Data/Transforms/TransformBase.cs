@@ -596,7 +596,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Called by <see cref="SaveAsPfa"/>. Should be implemented by subclasses that return
-        /// <c>true</c> from <see cref="CanSavePfa"/>. Will be called 
+        /// <c>true</c> from <see cref="CanSavePfa"/>. Will be called
         /// </summary>
         /// <param name="ctx">The context. Can be used to declare cells, access other information,
         /// and whatnot. This method should not actually, however, declare the variable corresponding

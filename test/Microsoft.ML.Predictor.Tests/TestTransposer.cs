@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Contracts.Assert(result);
                     Assert.True(trueIndex == index, $"Transpose schema had column '{names[i]}' at unexpected index");
                 }
-                // Check the contents 
+                // Check the contents
                 Assert.Null(trans.TransposeSchema.GetSlotType(2)); // C check to see that it's not transposable.
                 TransposeCheckHelper<DvInt4>(view, 0, trans); // A check.
                 TransposeCheckHelper<Double>(view, 1, trans); // B check.

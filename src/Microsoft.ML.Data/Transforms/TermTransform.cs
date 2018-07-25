@@ -612,10 +612,10 @@ namespace Microsoft.ML.Runtime.Data
                             termMap[i] = TermMap.TextImpl.Create(c, host);
                     }
                 });
-#pragma warning disable TLC_NoMessagesForLoadContext // Vaguely useful.
+#pragma warning disable MSML_NoMessagesForLoadContext // Vaguely useful.
             if (!b)
                 throw Host.ExceptDecode("Missing {0} model", dir);
-#pragma warning restore TLC_NoMessagesForLoadContext
+#pragma warning restore MSML_NoMessagesForLoadContext
             _termMap = new BoundTermMap[cinfo];
             for (int i = 0; i < cinfo; ++i)
                 _termMap[i] = termMap[i].Bind(this, i);
@@ -719,7 +719,7 @@ namespace Microsoft.ML.Runtime.Data
             var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
             node.AddAttribute("classes_strings", terms.DenseValues());
             node.AddAttribute("default_int64", -1);
-            //default_string needs to be an empty string but there is a BUG in Lotus that 
+            //default_string needs to be an empty string but there is a BUG in Lotus that
             //throws a validation error when default_string is empty. As a work around, set
             //default_string to a space.
             node.AddAttribute("default_string", " ");

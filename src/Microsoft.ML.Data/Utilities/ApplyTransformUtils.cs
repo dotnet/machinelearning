@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Backtrack the chain until we reach a chain start or a non-transform.
             // REVIEW: we 'unwrap' the composite data loader here and step through its pipeline.
-            // It's probably more robust to make CompositeDataLoader not even be an IDataView, this 
+            // It's probably more robust to make CompositeDataLoader not even be an IDataView, this
             // would force the user to do the right thing and unwrap on his end.
             var cdl = chain as CompositeDataLoader;
             if (cdl != null)

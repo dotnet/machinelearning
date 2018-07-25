@@ -261,7 +261,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         /// <summary>
-        /// The valid names for the components and entry points must consist of letters, digits, underscores and dots, 
+        /// The valid names for the components and entry points must consist of letters, digits, underscores and dots,
         /// and begin with a letter or digit.
         /// </summary>
         private static readonly Regex _nameRegex = new Regex(@"^\w[_\.\w]*$", RegexOptions.Compiled);

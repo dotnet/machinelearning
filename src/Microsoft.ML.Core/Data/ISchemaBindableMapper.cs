@@ -9,15 +9,15 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// A mapper that can be bound to a <see cref="RoleMappedSchema"/> (which is an ISchema, with mappings from column kinds
-    /// to columns). Binding an <see cref="ISchemaBindableMapper"/> to a <see cref="RoleMappedSchema"/> produces an 
+    /// to columns). Binding an <see cref="ISchemaBindableMapper"/> to a <see cref="RoleMappedSchema"/> produces an
     /// <see cref="ISchemaBoundMapper"/>, which is an interface that has methods to return the names and indices of the input columns
     /// needed by the mapper to compute its output. The <see cref="ISchemaBoundRowMapper"/> is an extention to this interface, that
-    /// can also produce an output IRow given an input IRow. The IRow produced generally contains only the output columns of the mapper, and not 
+    /// can also produce an output IRow given an input IRow. The IRow produced generally contains only the output columns of the mapper, and not
     /// the input columns (but there is nothing preventing an <see cref="ISchemaBoundRowMapper"/> from mapping input columns directly to outputs).
-    /// This interface is implemented by wrappers of IValueMapper based predictors, which are predictors that take a single 
+    /// This interface is implemented by wrappers of IValueMapper based predictors, which are predictors that take a single
     /// features column. New predictors can implement <see cref="ISchemaBindableMapper"/> directly. Implementing <see cref="ISchemaBindableMapper"/>
     /// includes implementing a corresponding <see cref="ISchemaBoundMapper"/> (or <see cref="ISchemaBoundRowMapper"/>) and a corresponding ISchema
-    /// for the output schema of the <see cref="ISchemaBoundMapper"/>. In case the <see cref="ISchemaBoundRowMapper"/> interface is implemented, 
+    /// for the output schema of the <see cref="ISchemaBoundMapper"/>. In case the <see cref="ISchemaBoundRowMapper"/> interface is implemented,
     /// the SimpleRow class can be used in the <see cref="ISchemaBoundRowMapper.GetOutputRow"/> method.
     /// </summary>
     public interface ISchemaBindableMapper
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.Data
 
     /// <summary>
     /// This interface extends <see cref="ISchemaBoundMapper"/> with an additional method: <see cref="GetOutputRow"/>. This method
-    /// takes an input IRow and a predicate indicating which output columns are active, and returns a new IRow 
+    /// takes an input IRow and a predicate indicating which output columns are active, and returns a new IRow
     /// containing the output columns.
     /// </summary>
     public interface ISchemaBoundRowMapper : ISchemaBoundMapper
@@ -67,11 +67,11 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Get an IRow based on the input IRow with the indicated active columns. The active columns are those for which
-        /// predicate(col) returns true. The schema of the returned IRow will be the same as the OutputSchema, but getting 
+        /// predicate(col) returns true. The schema of the returned IRow will be the same as the OutputSchema, but getting
         /// values on inactive columns will throw. Null predicates are disallowed.
         /// The schema of input should match the InputSchema.
         /// This method creates a live connection between the input IRow and the output IRow. In particular, when the
-        /// getters of the output IRow are invoked, they invoke the getters of the input row and base the output values on 
+        /// getters of the output IRow are invoked, they invoke the getters of the input row and base the output values on
         /// the current values of the input IRow. The output IRow values are re-computed when requested through the getters.
         /// The optional disposer is invoked by the cursor wrapping, when it no longer needs the IRow.
         /// If no action is needed when the cursor is Disposed, the override should set disposer to null,
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.Data
         /// predicate(col) returns true. Getting values on inactive columns will throw. Null predicates are disallowed.
         /// The schema of input should match the InputSchema.
         /// This method creates a live connection between the input IRow and the output IRow. In particular, when the
-        /// getters of the output IRow are invoked, they invoke the getters of the input row and base the output values on 
+        /// getters of the output IRow are invoked, they invoke the getters of the input row and base the output values on
         /// the current values of the input IRow. The output IRow values are re-computed when requested through the getters.
         /// The optional disposer is invoked by the cursor wrapping, when it no longer needs the IRow.
         /// If no action is needed when the cursor is Disposed, the override should set disposer to null,

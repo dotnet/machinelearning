@@ -320,7 +320,7 @@ namespace Microsoft.ML.Runtime.Learners
                 return pred;
             }
         }
-        
+
         private void TrainCore(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
