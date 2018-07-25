@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     Contracts.Assert(ibCur <= ibLim);
                     if (i >= lim)
                     {
-                        // Need to make sure that we have reached the end of the sequence in the pool at the 
+                        // Need to make sure that we have reached the end of the sequence in the pool at the
                         // same time that we reached the end of sequence.
                         if (ibCur == ibLim)
                             return idCur;

@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void InferRecipesCommandTest()
         {
-            var datasets = new Tuple<string, string>[] 
+            var datasets = new Tuple<string, string>[]
             {
                 Tuple.Create(
                     GetDataPath(Path.Combine("..", "data", "wikipedia-detox-250-line-data.tsv")),

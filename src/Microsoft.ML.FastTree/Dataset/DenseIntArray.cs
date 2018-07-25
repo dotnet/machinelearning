@@ -70,18 +70,18 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
 #if USE_FASTTREENATIVE
         [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall)]
-        private unsafe static extern int C_Sumup_float(
+        private static extern unsafe int C_Sumup_float(
             int numBits, byte* pData, int* pIndices, float* pSampleOutputs, double* pSampleOutputWeights,
             FloatType* pSumTargetsByBin, double* pSumTargets2ByBin, int* pCountByBin,
             int totalCount, double totalSampleOutputs, double totalSampleOutputWeights);
 
         [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall)]
-        private unsafe static extern int C_Sumup_double(
+        private static extern unsafe int C_Sumup_double(
             int numBits, byte* pData, int* pIndices, double* pSampleOutputs, double* pSampleOutputWeights,
             FloatType* pSumTargetsByBin, double* pSumTargets2ByBin, int* pCountByBin,
             int totalCount, double totalSampleOutputs, double totalSampleOutputWeights);
 
-        protected unsafe static void SumupCPlusPlusDense(SumupInputData input, FeatureHistogram histogram,
+        protected static unsafe void SumupCPlusPlusDense(SumupInputData input, FeatureHistogram histogram,
             byte* data, int numBits)
         {
             using (Timer.Time(TimerEvent.SumupCppDense))

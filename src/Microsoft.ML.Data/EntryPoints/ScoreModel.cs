@@ -15,9 +15,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
     /// <summary>
     /// This module handles scoring a <see cref="IPredictorModel"/> against a new dataset.
     /// As a result, we return both the scored data and the scoring transform as a <see cref="ITransformModel"/>.
-    /// 
-    /// REVIEW: This module does not support 'exotic' scoring scenarios, like recommendation and quantile regression 
-    /// (those where the user-defined scorer settings are necessary to identify the scorer). We could resolve this by 
+    ///
+    /// REVIEW: This module does not support 'exotic' scoring scenarios, like recommendation and quantile regression
+    /// (those where the user-defined scorer settings are necessary to identify the scorer). We could resolve this by
     /// adding a sub-component for extra scorer args, or by creating specialized EPs for these scenarios.
     /// </summary>
     public static partial class ScoreModel

@@ -493,7 +493,7 @@ namespace Microsoft.ML.Runtime.CommandLine
 
 #if CORECLR
         /// <summary>
-        /// Fix the window width for the Core build to remove the kernel32.dll dependency. 
+        /// Fix the window width for the Core build to remove the kernel32.dll dependency.
         /// </summary>
         /// <returns></returns>
         public static int GetConsoleWindowWidth()
@@ -620,7 +620,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                     string[] nicks;
                     // Semantics of ShortName:
                     //    The string provided represents an array of names separated by commas and spaces, once empty entries are removed.
-                    //    'null' or a singleton array with containing only the long field name means "use the default short name", 
+                    //    'null' or a singleton array with containing only the long field name means "use the default short name",
                     //    and is represented by the null 'nicks' array.
                     //    'String.Empty' or a string containing only spaces and commas means "no short name", and is represented by an empty 'nicks' array.
                     if (attr.ShortName == null)
@@ -1666,7 +1666,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 }
                 else if (IsMultiSubComponent)
                 {
-                    // REVIEW: the kind should not be separated from settings: everything related 
+                    // REVIEW: the kind should not be separated from settings: everything related
                     // to one item should go into one value, not multiple values
                     if (IsTaggedCollection)
                     {

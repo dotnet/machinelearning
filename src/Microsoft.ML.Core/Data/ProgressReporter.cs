@@ -202,8 +202,8 @@ namespace Microsoft.ML.Runtime.Data
 
             /// <summary>
             /// This is a 'derived' or 'subordinate' progress channel.
-            /// 
-            /// The subordinates' Start/Stop events and checkpoints will not be propagated. 
+            ///
+            /// The subordinates' Start/Stop events and checkpoints will not be propagated.
             /// When the status is requested, all of the subordinate channels are also invoked,
             /// and the resulting metrics are then returned in the order of their 'subordinate level'.
             /// If there's more than one channel with the same level, the order is not defined.
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Runtime.Data
                 public void Checkpoint(params Double?[] values)
                 {
                     // We are ignoring all checkpoints from subordinates.
-                    // REVIEW: maybe this could be changed in the future. Right now it seems that 
+                    // REVIEW: maybe this could be changed in the future. Right now it seems that
                     // this limitation is reasonable.
                 }
             }
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// This class listens to the progress reporting channels, caches all checkpoints and
         /// start/stop events and, on demand, requests current progress on all active calculations.
-        /// 
+        ///
         /// The public methods of this class should only be called from one thread.
         /// </summary>
         public sealed class ProgressTracker
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// For each calculation, its properties.
             /// This list is protected by <see cref="_lock"/>, and it's updated every time a new calculation starts.
-            /// The entries are cleaned up when the start and stop events are reported (that is, after the first 
+            /// The entries are cleaned up when the start and stop events are reported (that is, after the first
             /// pull request after the calculation's 'Stop' event).
             /// </summary>
             private readonly List<CalculationInfo> _infos;
@@ -319,8 +319,8 @@ namespace Microsoft.ML.Runtime.Data
             private readonly HashSet<string> _namesUsed;
 
             /// <summary>
-            /// This class is an 'event log' for one calculation. 
-            /// 
+            /// This class is an 'event log' for one calculation.
+            ///
             /// Every time a calculation is 'started', it gets its own log, so if there are multiple 'start' calls,
             /// there will be multiple logs.
             /// </summary>
@@ -425,12 +425,12 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             /// <summary>
-            /// Get progress reports from all current calculations. 
+            /// Get progress reports from all current calculations.
             /// For every calculation the following events will be returned:
             /// * A start event.
             /// * Each checkpoint.
-            /// * If the calculation is finished, the stop event. 
-            /// 
+            /// * If the calculation is finished, the stop event.
+            ///
             /// Each of the above events will be returned exactly once.
             /// If, for one calculation, there's no events in the above categories, the tracker will
             /// request ('pull') the current progress and return this as an event.
@@ -490,14 +490,14 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// The actual progress (amount of completed units), in the units that are contained in the header.
             /// Parallel to the header's <see cref="ProgressHeader.UnitNames"/>. Null value indicates 'not applicable now'.
-            /// 
+            ///
             /// The computation should not modify these arrays directly, and instead rely on <see cref="SetMetric"/>,
             /// <see cref="SetProgress(int,double)"/> and <see cref="SetProgress(int,double,double)"/>.
             /// </summary>
             public readonly Double?[] Progress;
 
             /// <summary>
-            /// The lim values of each progress unit. 
+            /// The lim values of each progress unit.
             /// Parallel to the header's <see cref="ProgressHeader.UnitNames"/>. Null value indicates unbounded or unknown.
             /// </summary>
             public readonly Double?[] ProgressLim;

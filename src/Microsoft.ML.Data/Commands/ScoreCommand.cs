@@ -291,9 +291,9 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Given a predictor and an optional scorer SubComponent, produces a compatible ISchemaBindableMapper.
         /// First, it tries to instantiate the bindable mapper using the <paramref name="scorerSettings"/>
-        /// (this will only succeed if there's a registered BindableMapper creation method with load name equal to the one 
+        /// (this will only succeed if there's a registered BindableMapper creation method with load name equal to the one
         /// of the scorer).
-        /// If the above fails, it checks whether the predictor implements <see cref="ISchemaBindableMapper"/> 
+        /// If the above fails, it checks whether the predictor implements <see cref="ISchemaBindableMapper"/>
         /// directly.
         /// If this also isn't true, it will create a 'matching' standard mapper.
         /// </summary>
