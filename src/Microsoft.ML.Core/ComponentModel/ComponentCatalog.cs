@@ -914,12 +914,18 @@ namespace Microsoft.ML.Runtime
         public static bool TryCreateInstance<TRes, TSig>(IHostEnvironment env, out TRes result, string name, string options, params object[] extra)
             where TRes : class
         {
+            return TryCreateInstance<TRes>(env, typeof(TSig), out result, name, options, extra);
+        }
+
+        public static bool TryCreateInstance<TRes>(IHostEnvironment env, Type signatureType, out TRes result, string name, string options, params object[] extra)
+            where TRes : class
+        {
             Contracts.CheckValue(env, nameof(env));
-            env.Check(typeof(TSig).BaseType == typeof(MulticastDelegate));
+            env.Check(signatureType.BaseType == typeof(MulticastDelegate));
             env.CheckValueOrNull(name);
 
             string nameLower = (name ?? "").ToLowerInvariant().Trim();
-            LoadableClassInfo info = FindClassCore(new LoadableClassInfo.Key(nameLower, typeof(TSig)));
+            LoadableClassInfo info = FindClassCore(new LoadableClassInfo.Key(nameLower, signatureType));
             if (info == null)
             {
                 result = null;

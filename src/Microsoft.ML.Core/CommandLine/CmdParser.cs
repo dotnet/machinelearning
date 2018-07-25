@@ -810,8 +810,9 @@ namespace Microsoft.ML.Runtime.CommandLine
                     }
                     else
                     {
-                        Report("Error: Failed to find component with name '{0}' for option '{1}'", value, arg.LongName);
-                        hadError |= true;
+                        hadError |= !arg.SetValue(this, ref values[arg.Index], value, tag, destination);
+                        if (!IsCurlyGroup(value) && i + 1 < strs.Length && IsCurlyGroup(strs[i + 1]))
+                            hadError |= !arg.SetValue(this, ref values[arg.Index], strs[++i], "", destination);
                     }
                     continue;
                 }
@@ -1532,6 +1533,8 @@ namespace Microsoft.ML.Runtime.CommandLine
             // Used for help and composing settings strings.
             public readonly object DefaultValue;
 
+            private readonly Type _signatureType;
+
             // For custom types.
             private readonly ArgumentInfo _infoCustom;
             private readonly ConstructorInfo _ctorCustom;
@@ -1559,6 +1562,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 IsDefault = attr is DefaultArgumentAttribute;
                 Contracts.Assert(!IsDefault || Utils.Size(ShortNames) == 0);
                 IsHidden = attr.Hide;
+                _signatureType = attr.SignatureType;
 
                 if (field.FieldType.IsArray)
                 {
@@ -1637,10 +1641,10 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                 var values = val.Values;
                 bool error = false;
-                if (IsSingleSubComponent)
+
+                void BuildSubComponent(SubComponent com)
                 {
                     bool haveKind = false;
-                    var com = SubComponent.Create(ItemType);
                     for (int i = 0; i < Utils.Size(values);)
                     {
                         string str = (string)values[i].Value;
@@ -1661,8 +1665,26 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                     if (Utils.Size(values) > 0)
                         com.Settings = values.Select(x => (string)x.Value).ToArray();
+                }
 
+                if (IsSingleSubComponent)
+                {
+                    var com = SubComponent.Create(ItemType);
+                    BuildSubComponent(com);
                     Field.SetValue(destination, com);
+                }
+                else if (IsComponentFactory)
+                {
+                    var com = new SubComponent();
+                    BuildSubComponent(com);
+
+                    Contracts.Check(_signatureType != null, "ComponentFactory Arguments need a SignatureType set.");
+                    var factory = ComponentFactoryFactory.CreateComponentFactory(
+                        ItemType, 
+                        _signatureType, 
+                        com.Kind,
+                        CombineSettings(com.Settings));
+                    Field.SetValue(destination, factory);
                 }
                 else if (IsMultiSubComponent)
                 {
@@ -1732,6 +1754,49 @@ namespace Microsoft.ML.Runtime.CommandLine
                 return error;
             }
 
+            private static class ComponentFactoryFactory
+            {
+                public static IComponentFactory CreateComponentFactory(Type fieldType, Type signatureType, string name, string options)
+                {
+                    Contracts.Check(fieldType != null &&
+                        typeof(IComponentFactory).IsAssignableFrom(fieldType) &&
+                        fieldType.IsGenericType &&
+                        fieldType.GenericTypeArguments.Length == 1);
+
+                    return (IComponentFactory)Activator.CreateInstance(
+                        typeof(ComponentFactory<>).MakeGenericType(fieldType.GenericTypeArguments),
+                        signatureType,
+                        name,
+                        options);
+                }
+
+                private class ComponentFactory<TComponent> : IComponentFactory<TComponent>
+                    where TComponent : class
+                {
+                    private readonly Type _signatureType;
+                    private readonly string _name;
+                    private readonly string _options;
+
+                    public ComponentFactory(Type signatureType, string name, string options)
+                    {
+                        _signatureType = signatureType;
+                        _name = name;
+                        _options = options;
+                    }
+
+                    public TComponent CreateComponent(IHostEnvironment env)
+                    {
+                        env.Check(ComponentCatalog.TryCreateInstance(env,
+                            _signatureType,
+                            out TComponent result,
+                            _name,
+                            _options));
+
+                        return result;
+                    }
+                }
+            }
+
             private bool ReportMissingRequiredArgument(CmdParser owner, ArgValue val)
             {
                 if (!IsRequired || val != null)
@@ -1784,7 +1849,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                     }
                     val.Values.Add(new KeyValuePair<string, object>(tag, newValue));
                 }
-                else if (IsSingleSubComponent)
+                else if (IsSingleSubComponent || IsComponentFactory)
                 {
                     Contracts.Assert(newValue is string || newValue == null);
                     Contracts.Assert((string)newValue != "");
@@ -1834,7 +1899,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                     return false;
                 }
 
-                if (IsSubComponentItemType)
+                if (IsSubComponentItemType || IsComponentFactory)
                 {
                     value = data;
                     return true;

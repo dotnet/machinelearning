@@ -34,6 +34,7 @@ namespace Microsoft.ML.Runtime.CommandLine
         private string _specialPurpose;
         private VisibilityType _visibility;
         private string _name;
+        private Type _signatureType;
 
         /// <summary>
         /// Allows control of command line parsing.
@@ -138,6 +139,12 @@ namespace Microsoft.ML.Runtime.CommandLine
         public bool IsRequired
         {
             get { return ArgumentType.Required == (_type & ArgumentType.Required); }
+        }
+
+        public Type SignatureType
+        {
+            get { return _signatureType; }
+            set { _signatureType = value; }
         }
     }
 }
