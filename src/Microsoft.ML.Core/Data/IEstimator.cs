@@ -149,9 +149,12 @@ namespace Microsoft.ML.Core.Data
         ISchema GetOutputSchema(ISchema inputSchema);
     }
 
-    public interface IDataEstimator : IEstimator<IDataView>
+    public interface IDataEstimator
     {
-        new IDataTransformer Fit(IDataView input);
+        /// <summary>
+        /// Train and return a transformer.
+        /// </summary>
+        IDataTransformer Fit(IDataView input);
 
         /// <summary>
         /// Schema propagation for estimators.
