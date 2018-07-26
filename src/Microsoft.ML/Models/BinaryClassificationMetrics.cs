@@ -35,11 +35,11 @@ namespace Microsoft.ML.Models
             List<BinaryClassificationMetrics> metrics = new List<BinaryClassificationMetrics>();
             var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
 
-            int Index = 0;
+            int index = 0;
             foreach(var metric in metricsEnumerable)
             {
 
-                if (Index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
+                if (index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
                 {
                     throw env.Except("Confusion matrices didn't have enough matrices.");
                 }

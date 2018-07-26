@@ -19,7 +19,7 @@ namespace Microsoft.ML.Models
         {
         }
 
-        internal static List<ClassificationMetrics> FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix, 
+        internal static List<ClassificationMetrics> FromMetrics(IHostEnvironment env, IDataView overallMetrics, IDataView confusionMatrix,
             int confusionMatriceStartIndex = 0)
         {
             Contracts.AssertValue(env);
@@ -35,14 +35,14 @@ namespace Microsoft.ML.Models
             List<ClassificationMetrics> metrics = new List<ClassificationMetrics>();
             var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
 
-            int Index = 0;
+            int index = 0;
             foreach (var metric in metricsEnumerable)
             {
-                if (Index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
+                if (index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
                 {
                     throw env.Except("Confusion matrices didn't have enough matrices.");
                 }
-                
+
                 metrics.Add(
                     new ClassificationMetrics()
                     {
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Models
         /// </summary>
         /// <remarks>
         /// The micro-average is the fraction of instances predicted correctly.
-        /// 
+        ///
         /// The micro-average metric weighs each class according to the number of instances that belong
         /// to it in the dataset.
         /// </remarks>
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Models
         /// The macro-average is computed by taking the average over all the classes of the fraction
         /// of correct predictions in this class (the number of correctly predicted instances in the class,
         /// divided by the total number of instances in the class).
-        /// 
+        ///
         /// The macro-average metric gives the same weight to each class, no matter how many instances from
         /// that class the dataset contains.
         /// </remarks>

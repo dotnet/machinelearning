@@ -11,7 +11,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// This is a data view that is a 'zip' of several data views.
-    /// The length of the zipped data view is equal to the shortest of the lengths of the components. 
+    /// The length of the zipped data view is equal to the shortest of the lengths of the components.
     /// </summary>
     public sealed class ZipDataView : IDataView
     {
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var srcPredicates = _schema.GetInputPredicates(predicate);
 
-            // REVIEW: if we know the row counts, we could only open cursor if it has needed columns, and have the 
+            // REVIEW: if we know the row counts, we could only open cursor if it has needed columns, and have the
             // outer cursor handle the early stopping. If we don't know row counts, we need to open all the cursors because
             // we don't know which one will be the shortest.
             // One reason this is not done currently is because the API has 'somewhat mutable' data views, so potentially this
@@ -88,8 +88,8 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Create an <see cref="IRowCursor"/> with no requested columns on a data view. 
-        /// Potentially, this can be optimized by calling GetRowCount(lazy:true) first, and if the count is not known, 
+        /// Create an <see cref="IRowCursor"/> with no requested columns on a data view.
+        /// Potentially, this can be optimized by calling GetRowCount(lazy:true) first, and if the count is not known,
         /// wrapping around GetCursor().
         /// </summary>
         private IRowCursor GetMinimumCursor(IDataView dv)

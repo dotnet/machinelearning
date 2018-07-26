@@ -542,7 +542,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    public new static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    public static new ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
                         List<int> nz = null;
@@ -605,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    public new static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    public static new ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
                         int cv = Math.Max(1, typeSrc.VectorSize);
@@ -869,7 +869,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    public new static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    public static new ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
                         host.CheckValue(ctx, nameof(ctx));
@@ -934,7 +934,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    public new static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    public static new ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
                         int cv = Math.Max(1, typeSrc.VectorSize);
@@ -1053,7 +1053,7 @@ namespace Microsoft.ML.Runtime.Data
                         Host.Assert(0 <= _offset & _offset <= 1);
                     }
 
-                    public new static ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    public static new ImplOne Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
                         host.CheckValue(ctx, nameof(ctx));
@@ -1135,7 +1135,7 @@ namespace Microsoft.ML.Runtime.Data
                         }
                     }
 
-                    public new static ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    public static new ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
                         int cv = Math.Max(1, typeSrc.VectorSize);
@@ -1282,7 +1282,7 @@ namespace Microsoft.ML.Runtime.Data
                 // but infinities and NaN to NaN.
                 // REVIEW: If min <= 0 and max >= 0, then why not fix zero for this slot and simply scale by 1 / max(abs(..))?
                 // We could even be more aggressive about it, and fix zero if 0 < min < max <= 2 * min.
-                // Then the common case where features are in the range [1, N] (and integer valued) wouldn't subtract 1 every time.... 
+                // Then the common case where features are in the range [1, N] (and integer valued) wouldn't subtract 1 every time....
                 if (!(max > min))
                     scale = offset = 0;
                 else if ((scale = 1 / (max - min)) == 0)
@@ -1304,7 +1304,7 @@ namespace Microsoft.ML.Runtime.Data
                 // In the case where max <= min, the slot contains no useful information (since it is either constant, or
                 // is all NaNs, or has no rows), so we force it to zero.
                 // Note that setting scale to zero effectively maps finite values to zero,
-                // but infinities and NaN to NaN. 
+                // but infinities and NaN to NaN.
                 offset = 0;
                 if (!(max > min))
                     scale = 0;
@@ -1323,7 +1323,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 // In the case where stdev==0, the slot contains no useful information (since it is constant),
                 // so we force it to zero. Note that setting scale to zero effectively maps finite values to zero,
-                // but infinities and NaN to NaN. 
+                // but infinities and NaN to NaN.
                 if (stddev == 0)
                     scale = offset = 0;
                 else if ((scale = 1 / (TFloat)stddev) == 0)
@@ -1340,7 +1340,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 // In the case where stdev==0, the slot contains no useful information (since it is constant),
                 // so we force it to zero. Note that setting scale to zero effectively maps finite values to zero,
-                // but infinities and NaN to NaN. 
+                // but infinities and NaN to NaN.
                 offset = 0;
                 if (meanSquaredError == 0)
                     scale = 0;

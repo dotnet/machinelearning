@@ -748,7 +748,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         /// <summary>
         /// Returns a vector of feature contributions for a given example.
-        /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees. 
+        /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees.
         /// If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
         /// </summary>
         internal void GetFeatureContributions(ref VBuffer<Float> features, ref VBuffer<Float> contribs, ref BufferBuilder<Float> builder)
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 for (int i = 0; i < features.Count; ++i)
                 {
                     int j;
-                    // Where we have a sparse output, 
+                    // Where we have a sparse output,
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out j))
                     {
                         int index = Algorithms.FindFirstGE(_binUpperBounds[j], features.Values[i]);
@@ -1116,7 +1116,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     public long Version { get; }
 
                     /// <summary>
-                    /// For features belonging to the same categorical, this value will be the same, 
+                    /// For features belonging to the same categorical, this value will be the same,
                     /// Set to -1 for non-categoricals.
                     /// </summary>
                     public int CategoricalFeatureIndex { get; }

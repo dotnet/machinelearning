@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         private readonly CancellationTokenSource _ctSource;
         private readonly object _lock;
 
-        // The stored exception 
+        // The stored exception
         private string _component;
         private Exception _ex;
 

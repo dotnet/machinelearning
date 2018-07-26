@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     /// These objects are stateful, reusable objects that enable the collection of sufficient
     /// stats per feature flock, per node or leaf of a tree, to enable it to find the "best"
     /// splits.
-    /// 
+    ///
     /// Each instance of this corresponds to a single flock, but multiple of these will be created
     /// per flock. Note that feature indices, whenever present, refer to the feature within the
     /// particular flock the same as they do with <see cref="FeatureFlockBase"/>.
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         protected abstract double GetBinGradient(int featureIndex, double bias);
 
         /// <summary>
-        /// Get a fullcopy of histogram for one sub feature. 
+        /// Get a fullcopy of histogram for one sub feature.
         /// </summary>
         public void CopyFeatureHistogram(int subfeatureIndex, ref PerBinStats[] hist)
         {
@@ -919,7 +919,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             {
                 var binStats = virtualBins[i];
                 catFeatureCount += 1 + binStats.SubFeatures.Length;
-                                
+
                 sumGTTargets += binStats.SumTargets;
                 gtCount += binStats.Count;
                 docsInCurrentGroup += binStats.Count;
@@ -1039,7 +1039,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     /// A feature flock is a collection of features, grouped together because storing the
     /// features and performing the key operations on them in a collection can be done
     /// more efficiently than if they were stored as separate features.
-    /// 
+    ///
     /// Since this is a collection of features, feature specific quantities and methods
     /// will have a feature index parameter. Note that this index is always, for every
     /// flock, from 0 up to but not including <see cref="FeatureFlockBase.Count"/>. Now,
@@ -1132,7 +1132,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         public abstract double[] BinUpperBounds(int featureIndex);
 
         /// <summary>
-        /// If you need to implement <see cref="GetIndexer"/> you can use 
+        /// If you need to implement <see cref="GetIndexer"/> you can use
         /// <see cref="GenericIntArrayForwardIndexer"/>. This will be slower than a
         /// specialized implementation but is at least a useful shim.
         /// </summary>
@@ -1216,10 +1216,10 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// <example>
         /// Imagine we have a six row dataset, with two features, which if stored separately in,
         /// say, a <see cref="SingletonFeatureFlock"/>, would have bin values as follows.
-        /// 
+        ///
         /// <c>f0 = { 0, 1, 0, 0, 2, 0}</c>
         /// <c>f1 = { 0, 0, 1, 0, 0, 1}</c>
-        /// 
+        ///
         /// These two are a candidate for a <see cref="OneHotFeatureFlock"/>, because they never both
         /// have a non-zero bin value for any row. Then, in order to represent this in this feature,
         /// we would pass in this value for the <paramref name="bins"/>:
@@ -1231,18 +1231,18 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// what feature is which can be reconstructed from <paramref name="hotFeatureStarts"/>, which
         /// for each feature specifies the range in <paramref name="bins"/> corresponding to the
         /// "logical" bin value for that feature starting from 1.
-        /// 
+        ///
         /// Note that it would also have been legal for <paramref name="hotFeatureStarts"/> to be
         /// larger than the actual observed range, e.g., it could have been:
         /// <c><paramref name="hotFeatureStarts"/> = { 1, 5, 8}</c>
         /// or something. This could happen if binning happened over a different dataset from the data
         /// being represented right now, for example, but this is a more complex case.
-        /// 
+        ///
         /// The <paramref name="binUpperBounds"/> would contain the upper bounds for both of these features,
         /// which would be arrays large enough so that the maximum value of the logical bin for each feature
         /// in the flock could index it. (So in this example, the first bin upper bound would be at least
         /// length 3, and the second at least length 2.)
-        /// 
+        ///
         /// The <paramref name="categorical"/> indicates if the flock is a categorical feature.
         /// </example>
         protected SinglePartitionedIntArrayFlockBase(TIntArray bins, int[] hotFeatureStarts, double[][] binUpperBounds, bool categorical = false)
@@ -1264,19 +1264,19 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             Contracts.Assert(AllBinUpperBounds.Select((b, f) => HotFeatureStarts[f + 1] - HotFeatureStarts[f] + 1 == b.Length).All(i => i));
         }
 
-        public override sealed double[] BinUpperBounds(int featureIndex)
+        public sealed override double[] BinUpperBounds(int featureIndex)
         {
             Contracts.Assert(0 <= featureIndex && featureIndex < Count);
             return AllBinUpperBounds[featureIndex];
         }
 
-        public override sealed double Trust(int featureIndex)
+        public sealed override double Trust(int featureIndex)
         {
             Contracts.Assert(0 <= featureIndex && featureIndex < Count);
             return 1;
         }
 
-        public override sealed int BinCount(int featureIndex)
+        public sealed override int BinCount(int featureIndex)
         {
             Contracts.Assert(0 <= featureIndex && featureIndex < Count);
             return AllBinUpperBounds[featureIndex].Length;

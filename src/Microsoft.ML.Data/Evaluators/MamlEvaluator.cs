@@ -10,10 +10,10 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// This interface is used by Maml components (the <see cref="EvaluateCommand"/>, the <see cref="CrossValidationCommand"/> 
+    /// This interface is used by Maml components (the <see cref="EvaluateCommand"/>, the <see cref="CrossValidationCommand"/>
     /// and the <see cref="EvaluateTransform"/> to evaluate, print and save the results.
-    /// The input <see cref="RoleMappedData"/> to the <see cref="IEvaluator.Evaluate"/> and the <see cref="IEvaluator.GetPerInstanceMetrics"/> methods 
-    /// should be assumed to contain only the following column roles: label, group, weight and name. Any other columns needed for 
+    /// The input <see cref="RoleMappedData"/> to the <see cref="IEvaluator.Evaluate"/> and the <see cref="IEvaluator.GetPerInstanceMetrics"/> methods
+    /// should be assumed to contain only the following column roles: label, group, weight and name. Any other columns needed for
     /// evaluation should be searched for by name in the <see cref="ISchema"/>.
     /// </summary>
     public interface IMamlEvaluator : IEvaluator

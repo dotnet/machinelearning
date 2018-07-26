@@ -618,7 +618,7 @@ namespace Microsoft.ML.Runtime.Data
             /// is equivalent to also having waited on <c>i-1</c>, <c>i-2</c>, etc.
             /// Note that this is position within the cache, that is, a row index,
             /// as opposed to position within the cursor.
-            /// 
+            ///
             /// This method should be thread safe because in the parallel cursor
             /// case it will be used by multiple threads.
             /// </summary>
@@ -955,23 +955,23 @@ namespace Microsoft.ML.Runtime.Data
         /// next job ids before they push the completed jobs to the consumer. So the workers are
         /// then subject to being blocked until their current completed jobs are fully accepted
         /// (i.e. added to the to-consume queue).
-        /// 
+        ///
         /// How it works:
         /// Suppose we have 7 workers (w0,..,w6) and 14 jobs (j0,..,j13).
         /// Initially, jobs get assigned to workers using a shared counter.
         /// Here is an example outcome of using a shared counter:
         /// w1->j0, w6->j1, w0->j2, w3->j3, w4->j4, w5->j5, w2->j6.
-        /// 
+        ///
         /// Suppose workers finished jobs in the following order:
         /// w5->j5, w0->j2, w6->j1, w4->j4, w3->j3,w1->j0, w2->j6.
-        /// 
+        ///
         /// w5 finishes processing j5 first, but will be blocked until the processing of jobs
         /// j0,..,j4 completes since the consumer can consume jobs in order only.
         /// Therefore, the next available job (j7) should not be assigned to w5. It should be
-        /// assigned to the worker whose job *get consumed first* (w1 since it processes j0 
-        /// which is the first job) *not* to the worker who completes its job first (w5 in 
+        /// assigned to the worker whose job *get consumed first* (w1 since it processes j0
+        /// which is the first job) *not* to the worker who completes its job first (w5 in
         /// this example).
-        /// 
+        ///
         /// So, a shared counter can be used to assign jobs to workers initially but should
         /// not be used onwards.
         /// </summary>

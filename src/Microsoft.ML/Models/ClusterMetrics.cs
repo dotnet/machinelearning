@@ -58,7 +58,7 @@ namespace Microsoft.ML.Models
         /// </summary>
         /// <remarks>
         /// NMI is a measure of the mutual dependence between the true and predicted cluster labels for instances in the dataset.
-        /// NMI ranges between 0 and 1 where "0" indicates clustering is random and "1" indicates clustering is perfect w.r.t true labels. 
+        /// NMI ranges between 0 and 1 where "0" indicates clustering is random and "1" indicates clustering is perfect w.r.t true labels.
         /// </remarks>
         public double Nmi { get; private set; }
 
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Models
         /// </summary>
         /// <remarks>
         /// AvgMinScore is the average squared-distance of examples from the respective cluster centroids.
-        /// It is defined as 
+        /// It is defined as
         /// AvgMinScore  = (1/m) * sum ((xi - c(xi))^2)
         /// where m is the number of instances in the dataset.
         /// xi is the i'th instance and c(xi) is the centriod of the predicted cluster for xi.

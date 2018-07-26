@@ -19,7 +19,6 @@ namespace Microsoft.ML.EntryPoints.Tests
         public LearningPipelineTests(ITestOutputHelper output)
             : base(output)
         {
-
         }
 
         [Fact]

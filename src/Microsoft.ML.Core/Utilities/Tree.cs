@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         /// <summary>
         /// This is the key for this child node in its parent, if any. If this is not
-        /// a child of any parent, that is, it is the root of its own tree, then 
+        /// a child of any parent, that is, it is the root of its own tree, then
         /// </summary>
         public TKey Key { get { return _key; } }
 
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Adds a node as a child of this node. This will disconnect the 
+        /// Adds a node as a child of this node. This will disconnect the
         /// </summary>
         /// <param name="key"></param>
         /// <param name="newChild"></param>

@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         /// <summary>
         /// The resulting schema once applied to this model. The <see cref="InputSchema"/> might have
-        /// columns that are not needed by this transform and these columns will be seen in the 
+        /// columns that are not needed by this transform and these columns will be seen in the
         /// <see cref="OutputSchema"/> produced by this transform.
         /// </summary>
         public ISchema OutputSchema => _chain.Schema;

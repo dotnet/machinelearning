@@ -471,9 +471,9 @@ namespace Microsoft.ML.Runtime.DataPipe
             }
         }
 
-        [TlcModule.EntryPoint(Desc = Summary, 
-            Name = "Transforms.OptionalColumnCreator", 
-            UserName = UserName, 
+        [TlcModule.EntryPoint(Desc = Summary,
+            Name = "Transforms.OptionalColumnCreator",
+            UserName = UserName,
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""OptionalColumnTransform""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""OptionalColumnTransform""]/*' />"})]

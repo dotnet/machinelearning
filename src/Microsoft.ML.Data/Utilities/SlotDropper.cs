@@ -91,7 +91,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         }
 
         /// <summary>
-        /// Drops slots from src and populates the dst with the resulting vector. Slots are 
+        /// Drops slots from src and populates the dst with the resulting vector. Slots are
         /// dropped based on min and max slots that were passed at the constructor.
         /// </summary>
         public void DropSlots<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst)

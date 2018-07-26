@@ -557,7 +557,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is 
+                // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is
                 // no need to zero them out.
                 featuresAligned.CopyFrom(src.Indices, src.Values, 0, 0, src.Count, zeroItems: false);
                 CpuUtils.MatTimesSrc(false, false, transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,

@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.Numeric
         }
 
         /// <summary>
-        ///  Sparsify vector A (keep at most <paramref name="top"/>+<paramref name="bottom"/> values) 
+        ///  Sparsify vector A (keep at most <paramref name="top"/>+<paramref name="bottom"/> values)
         /// and optionally rescale values to the [-1, 1] range.
         /// <param name="a">Vector to be sparsified and normalized.</param>
         /// <param name="top">How many top (positive) elements to preserve after sparsification.</param>
