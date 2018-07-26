@@ -10,7 +10,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // .Net 4.6's Buffer.MemoryCopy.
         // REVIEW: Remove once we're on a version of .NET which includes
         // Buffer.MemoryCopy.
-        public unsafe static void MemoryCopy(void* source, void* destination, long destinationSizeInBytes, long sourceBytesToCopy)
+        public static unsafe void MemoryCopy(void* source, void* destination, long destinationSizeInBytes, long sourceBytesToCopy)
         {
             // MemCpy has undefined behavior when handed overlapping source and
             // destination buffers.

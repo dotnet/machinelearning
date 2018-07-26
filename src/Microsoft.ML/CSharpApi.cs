@@ -4193,7 +4193,7 @@ namespace Microsoft.ML
             /// <summary>
             /// L2 Regularization Weight
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("L2RegularizerWeight", 0f, 0.5f)]
+            [TlcModule.SweepableFloatParamAttribute("L2RegularizerWeight", 0f, 0.4f)]
             public float L2RegularizerWeight { get; set; }
 
             /// <summary>
@@ -8722,7 +8722,7 @@ namespace Microsoft.ML
             /// <summary>
             /// L2 Regularization Weight
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("L2RegularizerWeight", 0f, 0.5f)]
+            [TlcModule.SweepableFloatParamAttribute("L2RegularizerWeight", 0f, 0.4f)]
             public float L2RegularizerWeight { get; set; }
 
             /// <summary>

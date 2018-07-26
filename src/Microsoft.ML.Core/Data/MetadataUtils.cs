@@ -74,9 +74,9 @@ namespace Microsoft.ML.Runtime.Data
 
             /// <summary>
             /// Metadata kind that indicates the ranges within a column that are categorical features.
-            /// The value is a vector type of ints with dimension of two. The first dimension 
+            /// The value is a vector type of ints with dimension of two. The first dimension
             /// represents the number of categorical features and second dimension represents the range
-            /// and is of size two. The range has start and end index(both inclusive) of categorical 
+            /// and is of size two. The range has start and end index(both inclusive) of categorical
             /// slots within that column.
             /// </summary>
             public const string CategoricalSlotRanges = "CategoricalSlotRanges";
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Returns a vector type with item type int and the given size. 
+        /// Returns a vector type with item type int and the given size.
         /// The range count must be a positive integer.
         /// This is a standard type for metadata consisting of multiple int values that represent
         /// categorical slot ranges with in a column.
@@ -386,12 +386,12 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// The categoricalFeatures is a vector of the indices of categorical features slots. 
+        /// The categoricalFeatures is a vector of the indices of categorical features slots.
         /// This vector should always have an even number of elements, and the elements should be parsed in groups of two consecutive numbers.
         /// So if its value is the range of numbers: 0,2,3,4,8,9
         /// look at it as [0,2],[3,4],[8,9].
         /// The way to interpret that is: feature with indices 0, 1, and 2 are one categorical
-        /// Features with indices 3 and 4 are another categorical. Features 5 and 6 don't appear there, so they are not categoricals. 
+        /// Features with indices 3 and 4 are another categorical. Features 5 and 6 don't appear there, so they are not categoricals.
         /// </summary>
         public static bool TryGetCategoricalFeatureIndices(ISchema schema, int colIndex, out int[] categoricalFeatures)
         {

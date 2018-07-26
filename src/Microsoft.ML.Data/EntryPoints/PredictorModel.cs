@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 // REVIEW: address the asymmetry in the way we're loading and saving the model.
                 // Effectively, we have methods to load the transform model from a model.zip, but don't have
-                // methods to compose the model.zip out of transform model, predictor and role mappings 
+                // methods to compose the model.zip out of transform model, predictor and role mappings
                 // (we use the TrainUtils.SaveModel that does all three).
 
                 // Create the chain of transforms for saving.

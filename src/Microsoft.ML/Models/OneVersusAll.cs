@@ -13,15 +13,15 @@ namespace Microsoft.ML.Models
     public sealed partial class OneVersusAll
     {
         /// <summary>
-        /// One-versus-all, OvA, learner (also known as One-vs.-rest, "OvR") is a multi-class learner 
+        /// One-versus-all, OvA, learner (also known as One-vs.-rest, "OvR") is a multi-class learner
         /// with the strategy to fit one binary classifier per class in the dataset.
-        /// It trains the provided binary classifier for each class against the other classes, where the current 
+        /// It trains the provided binary classifier for each class against the other classes, where the current
         /// class is treated as the positive labels and examples in other classes are treated as the negative classes.
         /// See <a href="https://en.wikipedia.org/wiki/Multiclass_classification#One-vs.-rest">wikipedia</a> page.
         /// </summary>
         ///<example>
         /// In order to use it all you need to do is add it to pipeline as regular learner:
-        /// 
+        ///
         /// pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
         /// </example>
         /// <remarks>

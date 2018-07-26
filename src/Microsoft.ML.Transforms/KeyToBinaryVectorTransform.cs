@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
 
         // These arrays are parallel to Infos.
         // * _concat is whether, given the current input, there are multiple output instance vectors
-        //   to concatenate. 
+        //   to concatenate.
         // * _types contains the output column types.
         private readonly bool[] _concat;
 

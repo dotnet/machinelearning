@@ -433,7 +433,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// <summary>
         /// Build a token for component default value. This will look up the component in the catalog, and if it finds an entry, it will
         /// build a JSON structure that would be parsed into the default value.
-        /// 
+        ///
         /// This is an inherently fragile setup in case when the factory is not trivial, but it will work well for 'property bag' factories
         /// that we are currently using.
         /// </summary>
@@ -462,7 +462,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             }
             catch (MissingMemberException ex)
             {
-                // There was no default constructor found. 
+                // There was no default constructor found.
                 // This should never happen, since ModuleCatalog would error out if there is no default ctor.
                 ectx.Assert(false);
                 throw ectx.Except(ex, "Couldn't find default constructor");

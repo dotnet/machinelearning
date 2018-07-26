@@ -4001,7 +4001,7 @@
           "SweepRange": {
             "RangeType": "Float",
             "Min": 0.0,
-            "Max": 0.5
+            "Max": 0.4
           }
         },
         {
@@ -13878,7 +13878,7 @@
           "SweepRange": {
             "RangeType": "Float",
             "Min": 0.0,
-            "Max": 0.5
+            "Max": 0.4
           }
         },
         {

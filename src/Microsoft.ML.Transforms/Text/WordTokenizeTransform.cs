@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Public constructor corresponding to SignatureTokenizeTransform. It accepts arguments of type ArgumentsBase, 
+        /// Public constructor corresponding to SignatureTokenizeTransform. It accepts arguments of type ArgumentsBase,
         /// and a separate array of columns (constructed from the caller -WordBag/WordHashBag- arguments).
         /// </summary>
         public DelimitedTokenizeTransform(IHostEnvironment env, TokenizeArguments args, IDataView input, OneToOneColumn[] columns)

@@ -65,8 +65,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             // Make sure internal pipeline nodes and sweep params are cloned, not shared.
             // Cloning the transforms and learner rather than assigning outright
-            // ensures that this will be the case. Doing this here allows us to not 
-            // worry about changing hyperparameter values in candidate pipelines 
+            // ensures that this will be the case. Doing this here allows us to not
+            // worry about changing hyperparameter values in candidate pipelines
             // possibly overwritting other pipelines.
             Transforms = transforms.Select(t => t.Clone()).ToArray();
             Learner = learner.Clone();
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         /// <summary>
         /// This method will return some indentifying string for the pipeline,
-        /// based on transforms, learner, and (eventually) hyperparameters. 
+        /// based on transforms, learner, and (eventually) hyperparameters.
         /// </summary>
         public override string ToString() => $"{Learner}+{string.Join("+", Transforms.Select(t => t.ToString()))}";
 
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             Var<IDataView> firstInput = new Var<IDataView> { VarName = graphDef.GetSubgraphFirstNodeDataVarName(_env) };
             var finalOutput = graphDef.ModelOutput;
 
-            // TrainTestMacro 
+            // TrainTestMacro
             var trainTestInput = new Models.TrainTestEvaluator
             {
                 TransformModel = null,
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             var firstInput = new Var<IDataView> { VarName = graphDef.GetSubgraphFirstNodeDataVarName(_env) };
             var finalOutput = graphDef.ModelOutput;
 
-            // TrainTestMacro 
+            // TrainTestMacro
             var trainTestInput = new Models.TrainTestEvaluator
             {
                 Nodes = subGraph,

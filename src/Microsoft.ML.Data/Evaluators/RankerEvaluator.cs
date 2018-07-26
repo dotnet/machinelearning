@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Data
         public const string MaxDcg = "MaxDCG";
 
         /// <summary>
-        /// The ranking evaluator outputs a data view by this name, which contains metrics aggregated per group. 
+        /// The ranking evaluator outputs a data view by this name, which contains metrics aggregated per group.
         /// It contains four columns: GroupId, NDCG, DCG and MaxDCG. Each row in the data view corresponds to one
         /// group in the scored data.
         /// </summary>

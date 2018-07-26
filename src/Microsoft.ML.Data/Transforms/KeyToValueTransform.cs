@@ -85,7 +85,6 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>

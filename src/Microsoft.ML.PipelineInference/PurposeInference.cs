@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Data;
 namespace Microsoft.ML.Runtime.PipelineInference
 {
     /// <summary>
-    /// Automatic inference of column purposes for the data view. 
+    /// Automatic inference of column purposes for the data view.
     /// This is used in the context of text import wizard, but can be used outside as well.
     /// </summary>
     public static class PurposeInference
@@ -51,10 +51,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
         }
 
         /// <summary>
-        /// The design is the same as for <see cref="ColumnTypeInference"/>: there's a sequence of 'experts' 
-        /// that each look at all the columns. Every expert may or may not assign the 'answer' (suggested purpose) 
-        /// to a column. If the expert needs some information about the column (for example, the column values), 
-        /// this information is lazily calculated by the column object, not the expert itself, to allow the reuse 
+        /// The design is the same as for <see cref="ColumnTypeInference"/>: there's a sequence of 'experts'
+        /// that each look at all the columns. Every expert may or may not assign the 'answer' (suggested purpose)
+        /// to a column. If the expert needs some information about the column (for example, the column values),
+        /// this information is lazily calculated by the column object, not the expert itself, to allow the reuse
         /// of the same information by another expert.
         /// </summary>
         private interface IPurposeInferenceExpert

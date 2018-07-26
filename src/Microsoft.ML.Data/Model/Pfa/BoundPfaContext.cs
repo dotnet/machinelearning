@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
         /// </summary>
         private readonly Dictionary<string, string> _nameToVarName;
         /// <summary>
-        /// This contains a map of those names in 
+        /// This contains a map of those names in
         /// </summary>
         private readonly HashSet<string> _unavailable;
 

@@ -19,20 +19,20 @@ using Microsoft.ML.Runtime.FastTree.Internal;
 namespace Microsoft.ML.Runtime.Sweeper.Algorithms
 {
     /// <summary>
-    /// Kernel Density Optimization (KDO) is a sequential model-based optimization method originally developed by George D. Montanez (me). 
+    /// Kernel Density Optimization (KDO) is a sequential model-based optimization method originally developed by George D. Montanez (me).
     /// The search space consists of a unit hypercube, with one dimension per hyperparameter (it is a spatial method, so scaling the dimensions
     /// to the unit hypercube is critical). The idea is that the exploration of the cube to find good values is performed by creating an approximate
     /// (and biased) kernel density estimate of the space (where density corresponds to metric performance), concentrating mass in regions of better
     /// performance, then drawing samples from the pdf.
-    /// 
-    /// To trade off exploration versus exploitation, an fitness proportional mutation scheme is used. Uniform random points are selected during 
+    ///
+    /// To trade off exploration versus exploitation, an fitness proportional mutation scheme is used. Uniform random points are selected during
     /// initialization and during the runs (parameter controls how often). A Gaussian model is fit to the distribution of performance values, and
-    /// each evaluated point in the history is given a value between 0 and 1 corresponding to the CDF evaluation of its performance under the 
-    /// Gaussian. Points with low quantile values are mutated more strongly than those with higher values, which allows the method to hone in 
+    /// each evaluated point in the history is given a value between 0 and 1 corresponding to the CDF evaluation of its performance under the
+    /// Gaussian. Points with low quantile values are mutated more strongly than those with higher values, which allows the method to hone in
     /// precisely when approaching really good regions.
-    /// 
+    ///
     /// Categorical parameters are handled by forming a categorical distribution on possible values weighted by observed performance of each value,
-    /// taken independently. 
+    /// taken independently.
     /// </summary>
 
     public sealed class KdoSweeper : ISweeper
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
             var prevRuns = previousRuns?.ToArray() ?? new IRunResult[0];
             var numSweeps = Math.Min(numOfCandidates, _args.NumberInitialPopulation - prevRuns.Length);
 
-            // Initialization: Will enter here on first iteration and use the default (random) 
+            // Initialization: Will enter here on first iteration and use the default (random)
             // sweeper to generate initial candidates.
             if (prevRuns.Length < _args.NumberInitialPopulation)
             {
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
         }
 
         /// <summary>
-        /// New version of CategoryToWeights method, which fixes an issue where we could 
+        /// New version of CategoryToWeights method, which fixes an issue where we could
         /// potentially assign a lot of mass to bad categories.
         /// </summary>
         private double[] CategoriesToWeights(DiscreteValueGenerator param, IRunResult[] previousRuns)
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
             for (int i = 0; i < weights.Length; i++)
                 weights[i] /= (counts[i] > 0 ? counts[i] : 1);
 
-            // If any learner has not been seen, default it's average to 
+            // If any learner has not been seen, default it's average to
             // best value to encourage exploration of untried algorithms.
             double bestVal = isMaximizing ?
                 previousRuns.Cast<RunResult>().Where(r => r.HasMetricValue).Max(r => r.MetricValue) :

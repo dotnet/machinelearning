@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
     /// <summary>
     /// A delegate for indexed sets of functions with gradients.
-    /// 
+    ///
     /// REVIEW: I didn't add an <see cref="IProgressChannelProvider"/> here, since it looks like this code is not actually
     /// accessed from anywhere. Maybe it should go away?
     /// </summary>
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <summary>
         /// The head of the test output
         /// </summary>
-        public readonly static string Header = "Trial    Numeric deriv     Analytic deriv    Difference     Normalized";
+        public static readonly string Header = "Trial    Numeric deriv     Analytic deriv    Difference     Normalized";
 
         /// <summary>
         /// Tests the gradient using finite differences on each axis (appropriate for small functions)

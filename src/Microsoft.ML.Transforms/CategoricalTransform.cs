@@ -243,9 +243,9 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class Categorical
     {
-        [TlcModule.EntryPoint(Name = "Transforms.CategoricalOneHotVectorizer", 
+        [TlcModule.EntryPoint(Name = "Transforms.CategoricalOneHotVectorizer",
             Desc = CategoricalTransform.Summary,
-            UserName = CategoricalTransform.UserName, 
+            UserName = CategoricalTransform.UserName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalOneHotVectorizer""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CategoricalOneHotVectorizer""]/*' />"})]
         public static CommonOutputs.TransformOutput CatTransformDict(IHostEnvironment env, CategoricalTransform.Arguments input)
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer", 
+        [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer",
             Desc = CategoricalHashTransform.Summary,
             UserName = CategoricalHashTransform.UserName ,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />",
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.TextToKeyConverter",
-            Desc = TermTransform.Summary, 
+            Desc = TermTransform.Summary,
             UserName = TermTransform.UserName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name=""TextToKey""]/*' />",
                                  @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name=""TextToKey""]/*' />" })]
@@ -291,8 +291,8 @@ namespace Microsoft.ML.Runtime.Data
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.KeyToTextConverter", 
-            Desc = "KeyToValueTransform utilizes KeyValues metadata to map key indices to the corresponding values in the KeyValues metadata.", 
+        [TlcModule.EntryPoint(Name = "Transforms.KeyToTextConverter",
+            Desc = "KeyToValueTransform utilizes KeyValues metadata to map key indices to the corresponding values in the KeyValues metadata.",
             UserName = KeyToValueTransform.UserName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""KeyToText""]/*' />" })]
         public static CommonOutputs.TransformOutput KeyToText(IHostEnvironment env, KeyToValueTransform.Arguments input)
