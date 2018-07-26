@@ -31,14 +31,18 @@ namespace Microsoft.ML.Core.Data
             public readonly VectorKind Kind;
             public readonly DataKind ItemKind;
             public readonly bool IsKey;
+            public readonly string[] MetadataKinds;
 
-            public Column(string name, VectorKind vecKind, DataKind itemKind, bool isKey)
+            public Column(string name, VectorKind vecKind, DataKind itemKind, bool isKey, string[] metadataKinds)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
+                Contracts.CheckValue(metadataKinds, nameof(metadataKinds));
+
                 Name = name;
                 Kind = vecKind;
                 ItemKind = itemKind;
                 IsKey = isKey;
+                MetadataKinds = metadataKinds;
             }
         }
 
@@ -68,9 +72,14 @@ namespace Microsoft.ML.Core.Data
                         vecKind = Column.VectorKind.VariableVector;
                     else
                         vecKind = Column.VectorKind.Scalar;
+
                     var kind = type.ItemType.RawKind;
                     var isKey = type.ItemType.IsKey;
-                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, kind, isKey));
+
+                    var metadataNames = schema.GetMetadataTypes(iCol)
+                        .Select(kvp => kvp.Key)
+                        .ToArray();
+                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, kind, isKey, metadataNames));
                 }
             }
             return new SchemaShape(cols.ToArray());
@@ -93,14 +102,14 @@ namespace Microsoft.ML.Core.Data
     /// <summary>
     /// The 'data reader' takes certain kind of input and turns it into an <see cref="IDataView"/>.
     /// </summary>
-    /// <typeparam name="TIn">The type of input the reader takes.</typeparam>
-    public interface IDataReader<TIn>
+    /// <typeparam name="TSource">The type of input the reader takes.</typeparam>
+    public interface IDataReader<in TSource>
     {
         /// <summary>
         /// Take the data in, make transformations, output the data.
         /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
         /// </summary>
-        IDataView Read(TIn input);
+        IDataView Read(TSource input);
 
         /// <summary>
         /// The output schema of the reader.
@@ -111,16 +120,16 @@ namespace Microsoft.ML.Core.Data
     /// <summary>
     /// Sometimes we need to 'fit' an <see cref="IDataReader{TIn}"/>. This interface is representing the 'unfitted' version.
     /// </summary>
-    /// <typeparam name="TIn">The type of input the estimator (and eventually transformer) takes.</typeparam>
-    public interface IDataReaderEstimator<TIn>
+    /// <typeparam name="TSource">The type of input the estimator (and eventually transformer) takes.</typeparam>
+    public interface IDataReaderEstimator<in TSource>
     {
         /// <summary>
         /// Train and return a transformer.
         /// 
-        /// REVIEW: you could consider the transformer to take a different <typeparamref name="TIn"/>, but we don't have such components
+        /// REVIEW: you could consider the transformer to take a different <typeparamref name="TSource"/>, but we don't have such components
         /// yet, so why complicate matters?
         /// </summary>
-        IDataReader<TIn> Fit(TIn input);
+        IDataReader<TSource> Fit(TSource input);
 
         /// <summary>
         /// The 'promise' of the output schema.
@@ -130,12 +139,12 @@ namespace Microsoft.ML.Core.Data
     }
 
     /// <summary>
-    /// A DataReader estimator that provides more details about the produced reader, in the form of <typeparamref name="TTransformer"/>.
+    /// A DataReader estimator that provides more details about the produced reader, in the form of <typeparamref name="TReader"/>.
     /// </summary>
-    public interface IDataReaderEstimator<TIn, out TTransformer> : IDataReaderEstimator<TIn>
-        where TTransformer : IDataReader<TIn>
+    public interface IDataReaderEstimator<in TSource, out TReader> : IDataReaderEstimator<TSource>
+        where TReader : IDataReader<TSource>
     {
-        new TTransformer Fit(TIn input);
+        new TReader Fit(TSource input);
     }
 
     /// <summary>
@@ -157,18 +166,19 @@ namespace Microsoft.ML.Core.Data
         /// </summary>
         IDataView Transform(IDataView input);
     }
-
+    
     /// <summary>
     /// The estimator (in Spark terminology) is an 'untrained transformer'. It needs to 'fit' on the data to manufacture
     /// a transformer.
     /// It also provides the 'schema propagation' like transformers do, but over <see cref="SchemaShape"/> instead of <see cref="ISchema"/>.
     /// </summary>
-    public interface IEstimator
+    public interface IEstimator<out TTransformer>
+        where TTransformer : ITransformer
     {
         /// <summary>
         /// Train and return a transformer.
         /// </summary>
-        ITransformer Fit(IDataView input);
+        TTransformer Fit(IDataView input);
 
         /// <summary>
         /// Schema propagation for estimators.
@@ -176,14 +186,5 @@ namespace Microsoft.ML.Core.Data
         /// Returns <c>null</c> iff the schema shape is invalid (then a call to <see cref="Fit"/> with this data will fail).
         /// </summary>
         SchemaShape GetOutputSchema(SchemaShape inputSchema);
-    }
-
-    /// <summary>
-    /// An estimator that provides more details about the produced transformer, in the form of <typeparamref name="TTransformer"/>.
-    /// </summary>
-    public interface IDataEstimator<out TTransformer> : IEstimator
-        where TTransformer : ITransformer
-    {
-        new TTransformer Fit(IDataView input);
     }
 }
