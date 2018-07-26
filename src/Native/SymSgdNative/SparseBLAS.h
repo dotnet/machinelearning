@@ -11,17 +11,17 @@ extern "C" void cblas_saxpy(const int vecSize, const float coef, const float* de
 extern "C" void cblas_saxpyi(const int sparseVecSize, const float coef, const float* sparseVecValues, const int* sparseVecIndices, float* denseVec);
 
 float SDOT(const int vecSize, const float* denseVecX, const float* denseVecY) {
-	return cblas_sdot(vecSize, denseVecX, 1, denseVecY, 1);
+    return cblas_sdot(vecSize, denseVecX, 1, denseVecY, 1);
 }
 
 float SDOTI(const int sparseVecSize, const int* sparseVecIndices, const float* sparseVecValues, float* denseVec) {
-	return cblas_sdoti(sparseVecSize, sparseVecValues, sparseVecIndices, denseVec);
+    return cblas_sdoti(sparseVecSize, sparseVecValues, sparseVecIndices, denseVec);
 }
 
 void SAXPY(const int vecSize, const float* denseVecX, float* denseVecY, float coef) {
-	return cblas_saxpy(vecSize, coef, denseVecX, 1, denseVecY, 1);
+    return cblas_saxpy(vecSize, coef, denseVecX, 1, denseVecY, 1);
 }
 
 void SAXPYI(const int sparseVecSize, const int* sparseVecIndices, const float* sparseVecValues, float* denseVec, float coef) {
-	cblas_saxpyi(sparseVecSize, coef, sparseVecValues, sparseVecIndices, denseVec);
+    cblas_saxpyi(sparseVecSize, coef, sparseVecValues, sparseVecIndices, denseVec);
 }

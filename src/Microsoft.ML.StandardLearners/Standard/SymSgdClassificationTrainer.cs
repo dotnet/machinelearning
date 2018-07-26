@@ -151,14 +151,14 @@ namespace Microsoft.ML.Runtime.SymSgd
         }
 
         /// <summary>
-        /// ArrayManager stores multiple arrays of type <typeparamref name="T"/> in a "very long" array whose size is specified by accelChunkSize. 
+        /// ArrayManager stores multiple arrays of type <typeparamref name="T"/> in a "very long" array whose size is specified by accelChunkSize.
         /// Once one of the very long arrays is full, another one is allocated to store additional arrays. The required memory
         /// for this buffering is limited by memorySize.
-        /// 
+        ///
         /// Note that these very long arrays can be reused. This means that learning can be done in batches without the overhead associated
         /// with allocation.
-        /// 
-        /// The benefit of this way of storage is that only a handful of new calls will be needed 
+        ///
+        /// The benefit of this way of storage is that only a handful of new calls will be needed
         /// which saves time.
         /// </summary>
         /// <typeparam name="T">The type of arrays to be stored</typeparam>
@@ -188,13 +188,13 @@ namespace Microsoft.ML.Runtime.SymSgd
             // This list holds very long arrays.
             private readonly List<VeryLongArray> _storage;
             // Length of each very long array
-            // This is not readonly because there might be an instance where the length of the 
+            // This is not readonly because there might be an instance where the length of the
             // instance is longer than _veryLongArrayLength and we have to adjust it
             private int _veryLongArrayLength;
             // This index is used to walk over _storage list. During storing or giving an array,
             // we are at _storage[_storageIndex].
             private int _storageIndex;
-            // This index is used within a very long array from _storage[_storageIndex]. During storing or 
+            // This index is used within a very long array from _storage[_storageIndex]. During storing or
             // giving an array, we are at _storage[_storageIndex][_indexInCurArray].
             private int _indexInCurArray;
             // This is used to access AccelMemBudget, AccelChunkSize and UsedMemory
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Runtime.SymSgd
             /// Tries to add array <paramref name="instArray"/> to the storage without violating the restriction of memorySize.
             /// </summary>
             /// <param name="instArray">The array to be added</param>
-            /// <param name="instArrayLength">Length of the array. <paramref name="instArray"/>.Length is unreliable since TLC cursoring 
+            /// <param name="instArrayLength">Length of the array. <paramref name="instArray"/>.Length is unreliable since TLC cursoring
             /// has its own allocation mechanism.</param>
             /// <returns>Return if the allocation was successful</returns>
             public bool AddToStorage(T[] instArray, int instArrayLength)
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Runtime.SymSgd
             }
 
             /// <summary>
-            /// This is a soft clear, meaning that it doesn't reallocate, only sets _storageIndex and 
+            /// This is a soft clear, meaning that it doesn't reallocate, only sets _storageIndex and
             /// _indexInCurArray to 0.
             /// </summary>
             public void ResetIndexing()
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Runtime.SymSgd
             }
 
             /// <summary>
-            /// Gives an array of <paramref name="size"/>. 
+            /// Gives an array of <paramref name="size"/>.
             /// </summary>
             /// <param name="size">The size of array to give</param>
             /// <param name="outGcHandle"></param>

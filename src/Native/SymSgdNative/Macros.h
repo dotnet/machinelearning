@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 #pragma once
-#define MAX(__X__, __Y__) (((__X__) < (__Y__)) ? (__Y__) : (__X__))
 #define MIN(__X__, __Y__) (((__X__) > (__Y__)) ? (__Y__) : (__X__))
 
 // This is a very large prime number used for permutation

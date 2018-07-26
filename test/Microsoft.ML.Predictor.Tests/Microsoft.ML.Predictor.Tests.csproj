@@ -27,7 +27,7 @@
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FactorizationMachineNative" />
-	<NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
   </ItemGroup>
   
 </Project>
