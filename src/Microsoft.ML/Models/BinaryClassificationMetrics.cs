@@ -35,8 +35,13 @@ namespace Microsoft.ML.Models
             List<BinaryClassificationMetrics> metrics = new List<BinaryClassificationMetrics>();
             var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
 
+<<<<<<< HEAD
             int index = 0;
             foreach(var metric in metricsEnumerable)
+=======
+            int Index = 0;
+            foreach (var metric in metricsEnumerable)
+>>>>>>> c083812a4ea5e627680e93e8f6d764ea673b2257
             {
 
                 if (index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
@@ -58,7 +63,7 @@ namespace Microsoft.ML.Models
                         Entropy = metric.Entropy,
                         F1Score = metric.F1Score,
                         Auprc = metric.Auprc,
-                        FoldIndex = metric.FoldIndex,
+                        RowTag = metric.RowTag,
                         ConfusionMatrix = confusionMatrices.Current,
                     });
 
@@ -165,10 +170,10 @@ namespace Microsoft.ML.Models
         public ConfusionMatrix ConfusionMatrix { get; private set; }
 
         /// <summary>
-        /// For cross validation gives fold number or standard deviation or average across all metrics.
-        /// In other cases equal to null.
+        /// For cross-validation, this is equal to "Fold N" for per-fold metric rows, "Overall" for the average metrics and "STD" for standard deviation.
+        /// For non-CV scenarios, this is equal to null
         /// </summary>
-        public string FoldIndex { get; private set; }
+        public string RowTag { get; private set; }
 
         /// <summary>
         /// This class contains the public fields necessary to deserialize from IDataView.
@@ -210,7 +215,7 @@ namespace Microsoft.ML.Models
             public Double Auprc;
 
             [ColumnName(ColumnNames.FoldIndex)]
-            public string FoldIndex;
+            public string RowTag;
 #pragma warning restore 649 // never assigned
         }
     }
