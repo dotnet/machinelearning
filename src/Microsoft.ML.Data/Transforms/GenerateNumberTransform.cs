@@ -24,9 +24,9 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// This transform adds columns containing either random numbers distributed 
+    /// This transform adds columns containing either random numbers distributed
     /// uniformly between 0 and 1 or an auto-incremented integer starting at zero.
-    /// It will be used in conjunction with a filter transform to create random 
+    /// It will be used in conjunction with a filter transform to create random
     /// partitions of the data, used in cross validation.
     /// </summary>
     public sealed class GenerateNumberTransform : RowToRowTransformBase

@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private sealed class ValueCreatorCache
         {
-            private volatile static ValueCreatorCache _instance;
+            private static volatile ValueCreatorCache _instance;
             public static ValueCreatorCache Instance
             {
                 get

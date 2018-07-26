@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Model
         }
 
         /// <summary>
-        /// Loads all transforms from the model stream, applies them sequentially to the provided data, and returns 
+        /// Loads all transforms from the model stream, applies them sequentially to the provided data, and returns
         /// the resulting data. If there are no transforms in the stream, or if there's no DataLoader stream at all
         /// (this can happen if the model is produced by old TL), returns the source data.
         /// If the DataLoader stream is invalid, throws.
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.Model
         }
 
         /// <summary>
-        /// Loads all transforms from the model stream, applies them sequentially to the provided data, and returns 
+        /// Loads all transforms from the model stream, applies them sequentially to the provided data, and returns
         /// the resulting data. If there are no transforms in the stream, or if there's no DataLoader stream at all
         /// (this can happen if the model is produced by old TL), returns the source data.
         /// If the DataLoader stream is invalid, throws.
@@ -157,8 +157,8 @@ namespace Microsoft.ML.Runtime.Model
         }
 
         /// <summary>
-        /// Loads data view (loader and transforms) from <paramref name="rep"/> if <paramref name="loadTransforms"/> is set to true, 
-        /// otherwise loads loader only. 
+        /// Loads data view (loader and transforms) from <paramref name="rep"/> if <paramref name="loadTransforms"/> is set to true,
+        /// otherwise loads loader only.
         /// </summary>
         public static IDataLoader LoadLoader(IHostEnvironment env, RepositoryReader rep, IMultiStreamSource files, bool loadTransforms)
         {
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.Model
         }
 
         /// <summary>
-        /// REVIEW: consider adding an overload that returns <see cref="VBuffer{DvText}"/> 
+        /// REVIEW: consider adding an overload that returns <see cref="VBuffer{DvText}"/>
         /// Loads optionally feature names from the repository directory.
         /// Returns false iff no stream was found for feature names, iff result is set to null.
         /// </summary>
@@ -342,7 +342,7 @@ namespace Microsoft.ML.Runtime.Model
         }
 
         /// <summary>
-        /// The RepositoryStreamWrapper is a IMultiStreamSource wrapper of a Stream object in a repository. 
+        /// The RepositoryStreamWrapper is a IMultiStreamSource wrapper of a Stream object in a repository.
         /// It is used to deserialize RoleMappings.txt from a model zip file.
         /// </summary>
         private sealed class RepositoryStreamWrapper : IMultiStreamSource
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Runtime.Model
             public TextReader OpenTextReader(int index) { return new StreamReader(Open(index)); }
 
             /// <summary>
-            /// A custom entry stream wrapper that includes custom dispose logic for disposing the entry 
+            /// A custom entry stream wrapper that includes custom dispose logic for disposing the entry
             /// when the stream is disposed.
             /// </summary>
             private sealed class EntryStream : Stream

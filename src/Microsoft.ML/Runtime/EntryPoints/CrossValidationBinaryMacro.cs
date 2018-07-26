@@ -48,12 +48,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Required, HelpText = "The training subgraph", SortOrder = 3)]
             public JArray Nodes;
 
-            // This is the subgraph input, that shows that the subgraph should only require one 
+            // This is the subgraph input, that shows that the subgraph should only require one
             // IDataView as input and indicates the variable name (in the subgraph) for it.
             [Argument(ArgumentType.Required, HelpText = "The training subgraph inputs", SortOrder = 4)]
             public SubGraphInput Inputs = new SubGraphInput();
 
-            // This is the subgraph output, that shows that the subgraph should produce one 
+            // This is the subgraph output, that shows that the subgraph should produce one
             // IPredictorModel as output and indicates the variable name (in the subgraph) for it.
             [Argument(ArgumentType.Required, HelpText = "The training subgraph outputs", SortOrder = 5)]
             public SubGraphOutput Outputs = new SubGraphOutput();

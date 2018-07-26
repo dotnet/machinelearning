@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             Contracts.AssertValue(val);
             Func<TlcModule.RangeAttribute, object, bool> fn = IsValueWithinRange<int>;
             // Avoid trying to cast double as float. If range
-            // was specified using floats, but value being checked 
+            // was specified using floats, but value being checked
             // is double, change range to be of type double
             if (range.Type == typeof(float) && val is double)
                 range.CastToDouble();

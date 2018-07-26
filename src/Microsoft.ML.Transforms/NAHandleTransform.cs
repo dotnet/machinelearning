@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             var args = new Arguments()
             {
-                Column = new[] 
+                Column = new[]
                 {
                     new Column() { Source = source ?? name, Name = name }
                 },

@@ -18,7 +18,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' /> 
+    /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
     public static class CountFeatureSelectionTransform
     {
         public const string Summary = "Selects the slots for which the count of non-default values is greater than or equal to a threshold.";

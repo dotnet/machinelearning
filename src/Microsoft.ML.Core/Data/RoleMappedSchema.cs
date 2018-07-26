@@ -88,10 +88,10 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     /// <remarks>
     /// Note that instances of this class are, like instances of <see cref="ISchema"/>, immutable.
-    /// 
+    ///
     /// It is often the case that one wishes to bundle the actual data with the role mappings, not just the schema. For
     /// that case, please use the <see cref="RoleMappedData"/> class.
-    /// 
+    ///
     /// Note that there is no need for components consuming a <see cref="RoleMappedData"/> or <see cref="RoleMappedSchema"/>
     /// to make use of every defined mapping. Consuming components are also expected to ignore any <see cref="ColumnRole"/>
     /// they do not handle. They may very well however complain if a mapping they wanted to see is not present, or the column(s)

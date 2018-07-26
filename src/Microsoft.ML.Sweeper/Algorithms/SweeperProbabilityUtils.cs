@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
 
         /// <summary>
         /// This performs (slow) roulette-wheel sampling of a categorical distribution. Should be swapped for other
-        /// method as soon as one is available. 
+        /// method as soon as one is available.
         /// </summary>
         /// <param name="numSamples">Number of samples to draw.</param>
         /// <param name="weights">Weights for distribution (should sum to 1).</param>
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
         }
 
         /// <summary>
-        /// Simple binary search method for finding smallest index in array where value 
+        /// Simple binary search method for finding smallest index in array where value
         /// meets or exceeds what you're looking for.
         /// </summary>
         /// <param name="a">Array to search</param>
