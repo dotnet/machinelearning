@@ -16,19 +16,9 @@ namespace Microsoft.ML.Core.Data
     /// </summary>
     public sealed class SchemaShape
     {
-        public readonly ColumnBase[] Columns;
+        public readonly Column[] Columns;
 
-        public abstract class ColumnBase
-        {
-            public readonly string Name;
-            public ColumnBase(string name)
-            {
-                Contracts.CheckNonEmpty(name, nameof(name));
-                Name = name;
-            }
-        }
-
-        public sealed class RelaxedColumn : ColumnBase
+        public sealed class Column
         {
             public enum VectorKind
             {
@@ -37,33 +27,22 @@ namespace Microsoft.ML.Core.Data
                 VariableVector
             }
 
+            public readonly string Name;
             public readonly VectorKind Kind;
             public readonly DataKind ItemKind;
             public readonly bool IsKey;
 
-            public RelaxedColumn(string name, VectorKind kind, DataKind itemKind, bool isKey)
-                : base(name)
+            public Column(string name, VectorKind vecKind, DataKind itemKind, bool isKey)
             {
-                Kind = kind;
+                Contracts.CheckNonEmpty(name, nameof(name));
+                Name = name;
+                Kind = vecKind;
                 ItemKind = itemKind;
                 IsKey = isKey;
             }
         }
 
-        public sealed class StrictColumn : ColumnBase
-        {
-            // REVIEW: do we ever need strict columns? Maybe we should only have relaxed?
-            public readonly ColumnType ColumnType;
-
-            public StrictColumn(string name, ColumnType columnType)
-                : base(name)
-            {
-                Contracts.CheckValue(columnType, nameof(columnType));
-                ColumnType = columnType;
-            }
-        }
-
-        public SchemaShape(ColumnBase[] columns)
+        public SchemaShape(Column[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             Columns = columns;
@@ -75,12 +54,24 @@ namespace Microsoft.ML.Core.Data
         public static SchemaShape Create(ISchema schema)
         {
             Contracts.CheckValue(schema, nameof(schema));
-            var cols = new List<ColumnBase>();
+            var cols = new List<Column>();
 
             for (int iCol = 0; iCol < schema.ColumnCount; iCol++)
             {
                 if (!schema.IsHidden(iCol))
-                    cols.Append(new StrictColumn(schema.GetColumnName(iCol), schema.GetColumnType(iCol)));
+                {
+                    Column.VectorKind vecKind;
+                    var type = schema.GetColumnType(iCol);
+                    if (type.IsKnownSizeVector)
+                        vecKind = Column.VectorKind.Vector;
+                    else if (type.IsVector)
+                        vecKind = Column.VectorKind.VariableVector;
+                    else
+                        vecKind = Column.VectorKind.Scalar;
+                    var kind = type.ItemType.RawKind;
+                    var isKey = type.ItemType.IsKey;
+                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, kind, isKey));
+                }
             }
             return new SchemaShape(cols.ToArray());
         }
@@ -88,7 +79,7 @@ namespace Microsoft.ML.Core.Data
         /// <summary>
         /// Returns the column with a specified <paramref name="name"/>, and <c>null</c> if there is no such column.
         /// </summary>
-        public ColumnBase FindColumn(string name)
+        public Column FindColumn(string name)
         {
             Contracts.CheckValue(name, nameof(name));
             return Columns.FirstOrDefault(x => x.Name == name);
@@ -141,6 +132,15 @@ namespace Microsoft.ML.Core.Data
     }
 
     /// <summary>
+    /// An estimator that provides more details about the produced transformer, in the form of <typeparamref name="TTransformer"/>.
+    /// </summary>
+    public interface IEstimator<TIn, TTransformer>: IEstimator<TIn>
+        where TTransformer: ITransformer<TIn>
+    {
+        new TTransformer Fit(TIn input);
+    }
+
+    /// <summary>
     /// The data transformer, in addition to being a transformer, also exposes the input schema shape. It is handy for
     /// evaluating what kind of columns the transformer expects.
     /// </summary>
@@ -173,5 +173,14 @@ namespace Microsoft.ML.Core.Data
         /// Returns <c>null</c> iff the schema shape is invalid (then a call to <see cref="Fit"/> with this data will fail).
         /// </summary>
         SchemaShape GetOutputSchema(SchemaShape inputSchema);
+    }
+
+    /// <summary>
+    /// A data estimator that provides more details about the produced transformer, in the form of <typeparamref name="TTransformer"/>.
+    /// </summary>
+    public interface IDataEstimator<TTransformer>: IDataEstimator
+        where TTransformer: IDataTransformer
+    {
+        new TTransformer Fit(IDataView input);
     }
 }
