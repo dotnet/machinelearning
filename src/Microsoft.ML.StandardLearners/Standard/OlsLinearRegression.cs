@@ -28,6 +28,8 @@ using System.Runtime.InteropServices;
     "OLS Linear Regression Executor",
     OlsLinearRegressionPredictor.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
+
 namespace Microsoft.ML.Runtime.Learners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="Ols"]/*' />
@@ -458,24 +460,24 @@ namespace Microsoft.ML.Runtime.Learners
                         throw Contracts.Except();
                 }
             }
+        }
 
-            [TlcModule.EntryPoint(Name = "Trainers.OrdinaryLeastSquaresRegressor", 
-                Desc = "Train an OLS regression model.", 
-                UserName = UserNameValue, 
-                ShortName = ShortName,
-                XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""Ols""]/*' />" })]
-            public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
-            {
-                Contracts.CheckValue(env, nameof(env));
-                var host = env.Register("TrainOLS");
-                host.CheckValue(input, nameof(input));
-                EntryPointUtils.CheckInputArgs(host, input);
+        [TlcModule.EntryPoint(Name = "Trainers.OrdinaryLeastSquaresRegressor",
+            Desc = "Train an OLS regression model.",
+            UserName = UserNameValue,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""Ols""]/*' />" })]
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register("TrainOLS");
+            host.CheckValue(input, nameof(input));
+            EntryPointUtils.CheckInputArgs(host, input);
 
-                return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.RegressionOutput>(host, input,
-                    () => new OlsLinearRegressionTrainer(host, input),
-                    () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                    () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
-            }
+            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.RegressionOutput>(host, input,
+                () => new OlsLinearRegressionTrainer(host, input),
+                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
+                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
     }
 

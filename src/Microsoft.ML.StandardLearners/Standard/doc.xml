@@ -80,10 +80,11 @@
       </remarks>
        <example>
         <code language="csharp">
-          new StochasticDualCoordinateAscentRegressor
+          new OrdinaryLeastSquaresRegressor
           {
-            MaxIterations = 100,
-            NumThreads = 5
+            L2Weight = 0.1,
+            PerParameterSignificance = false,
+            NormalizeFeatures  = Microsoft.ML.Models.NormalizeOption.Yes
           }
         </code>
       </example>
