@@ -1,5 +1,5 @@
 <Project DefaultTargets="Pack">
 
-  <Import Project="Microsoft.ML.Parquet.nupkgproj" />
+  <Import Project="MlNetMklDeps.nupkgproj" />
 
 </Project>

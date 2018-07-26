@@ -5,9 +5,4 @@
     <PackageDescription>Intel(R) MKL dependencies for ML.Net.</PackageDescription>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
-    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
-  </ItemGroup>
-
 </Project>

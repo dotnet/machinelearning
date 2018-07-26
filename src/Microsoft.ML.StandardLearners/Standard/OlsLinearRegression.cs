@@ -30,6 +30,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.Learners
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="Ols"]/*' />
     public sealed class OlsLinearRegressionTrainer : TrainerBase<OlsLinearRegressionPredictor>
     {
         public sealed class Arguments : LearnerInputBaseWithWeight
@@ -51,11 +52,6 @@ namespace Microsoft.ML.Runtime.Learners
         public const string ShortName = "ols";
         internal const string Summary = "The ordinary least square regression fits the target function as a linear function of the numerical features "
             + "that minimizes the square loss function.";
-        internal const string Remarks = @"<remarks>
-<a href='https://en.wikipedia.org/wiki/Ordinary_least_squares'>Ordinary least squares (OLS)</a> is a parameterized regression method. 
-It assumes that the conditional mean of the dependent variable follows a linear function of the dependent variables.
-By minimizing the squares of the difference between observed values and the predictions, the parameters of the regressor can be estimated.
-</remarks>";
 
         private readonly Float _l2Weight;
         private readonly bool _perParameterSignificance;
@@ -461,6 +457,24 @@ By minimizing the squares of the difference between observed values and the pred
                     default:
                         throw Contracts.Except();
                 }
+            }
+
+            [TlcModule.EntryPoint(Name = "Trainers.OrdinaryLeastSquaresRegressor", 
+                Desc = "Train an OLS regression model.", 
+                UserName = UserNameValue, 
+                ShortName = ShortName,
+                XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""Ols""]/*' />" })]
+            public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
+            {
+                Contracts.CheckValue(env, nameof(env));
+                var host = env.Register("TrainOLS");
+                host.CheckValue(input, nameof(input));
+                EntryPointUtils.CheckInputArgs(host, input);
+
+                return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.RegressionOutput>(host, input,
+                    () => new OlsLinearRegressionTrainer(host, input),
+                    () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
+                    () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
             }
         }
     }
