@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Runtime.EntryPoints
 {
     /// <summary>
-    /// The module that splits the input dataset into the specified number of cross-validation folds, and outputs the 'training' 
+    /// The module that splits the input dataset into the specified number of cross-validation folds, and outputs the 'training'
     /// and 'testing' portion of the input for each fold.
     /// </summary>
     public static class CVSplit

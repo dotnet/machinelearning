@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// The anomaly detection evaluator outputs a data view by this name, which contains the the examples 
+        /// The anomaly detection evaluator outputs a data view by this name, which contains the the examples
         /// with the top scores in the test set. It contains the three columns listed below, with each row corresponding
         /// to one test example.
         /// </summary>

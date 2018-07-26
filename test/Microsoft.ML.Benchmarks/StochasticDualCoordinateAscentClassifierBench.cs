@@ -23,7 +23,7 @@ namespace Microsoft.ML.Benchmarks
         private static IrisData[][] s_batches;
         private static readonly int[] s_batchSizes = new int[] { 1, 2, 5 };
         private readonly Random r = new Random(0);
-        private readonly static IrisData s_example = new IrisData()
+        private static readonly IrisData s_example = new IrisData()
         {
             SepalLength = 3.3f,
             SepalWidth = 1.6f,

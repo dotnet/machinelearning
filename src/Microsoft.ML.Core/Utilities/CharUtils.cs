@@ -13,8 +13,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     public static class CharUtils
     {
         private const int CharsCount = 0x10000;
-        private volatile static char[] _lowerInvariantChars;
-        private volatile static char[] _upperInvariantChars;
+        private static volatile char[] _lowerInvariantChars;
+        private static volatile char[] _upperInvariantChars;
 
         private static char[] EnsureLowerInvariant()
         {

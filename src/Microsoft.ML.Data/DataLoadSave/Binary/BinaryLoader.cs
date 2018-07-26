@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             public readonly ColumnType Type;
 
             /// <summary>
-            /// The compression scheme used on this column's blocks. 
+            /// The compression scheme used on this column's blocks.
             /// </summary>
             public readonly CompressionKind Compression;
 
@@ -971,7 +971,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         }
 
         /// <summary>
-        /// Write the parameters of a loader to the save context. Can be called by <see cref="SaveInstance"/>, where there's no actual 
+        /// Write the parameters of a loader to the save context. Can be called by <see cref="SaveInstance"/>, where there's no actual
         /// loader, only default parameters.
         /// </summary>
         private static void SaveParameters(ModelSaveContext ctx, int threads, string generatedRowIndexName, Double shuffleBlocks)
@@ -991,7 +991,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         }
 
         /// <summary>
-        /// Save a zero-row dataview that will be used to infer schema information, used in the case 
+        /// Save a zero-row dataview that will be used to infer schema information, used in the case
         /// where the binary loader is instantiated with no input streams.
         /// </summary>
         private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, ISchema schema, out int[] unsavableColIndices)
@@ -1017,10 +1017,10 @@ namespace Microsoft.ML.Runtime.Data.IO
         }
 
         /// <summary>
-        /// Given the schema and a model context, save an imaginary instance of a binary loader with the 
-        /// specified schema. Deserialization from this context should produce a real binary loader that 
+        /// Given the schema and a model context, save an imaginary instance of a binary loader with the
+        /// specified schema. Deserialization from this context should produce a real binary loader that
         /// has the specified schema.
-        /// 
+        ///
         /// This is used in an API scenario, when the data originates from something other than a loader.
         /// Since our model file requires a loader at the beginning, we have to construct a bogus 'binary' loader
         /// to begin the pipe with, with the assumption that the user will bypass the loader at deserialization
@@ -1042,9 +1042,9 @@ namespace Microsoft.ML.Runtime.Data.IO
             int[] unsavable;
             SaveSchema(env, ctx, schema, out unsavable);
             // REVIEW: we silently ignore unsavable columns.
-            // This method is invoked only in an API scenario, where we need to save a loader but we only have a schema. 
-            // In this case, the API user is likely not subscribed to our environment's channels. Also, in this case, the presence of 
-            // unsavable columns is not necessarily a bad thing: the user typically provides his own data when loading the transforms, 
+            // This method is invoked only in an API scenario, where we need to save a loader but we only have a schema.
+            // In this case, the API user is likely not subscribed to our environment's channels. Also, in this case, the presence of
+            // unsavable columns is not necessarily a bad thing: the user typically provides his own data when loading the transforms,
             // thus bypassing the bogus loader.
         }
 

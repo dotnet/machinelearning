@@ -632,7 +632,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// <summary>
         /// Checks the given JSON object key-value pair is a valid EntryPoint input and
         /// extracts out any variables that need to be populated. These variables will be
-        /// added to the EntryPoint context. Input parameters that are not set to variables 
+        /// added to the EntryPoint context. Input parameters that are not set to variables
         /// will be immediately set using the input builder instance.
         /// </summary>
         private void CheckAndSetInputValue(KeyValuePair<string, JToken> pair)
@@ -692,7 +692,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         /// <summary>
         /// Checks the given JSON object key-value pair is a valid EntryPoint output.
-        /// Extracts out any variables that need to be populated and adds them to the 
+        /// Extracts out any variables that need to be populated and adds them to the
         /// EntryPoint context.
         /// </summary>
         private void CheckAndMarkOutputValue(KeyValuePair<string, JToken> pair)
@@ -1073,8 +1073,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             VariableName = varName;
         }
 
-        // A regex to validate an EntryPoint variable value accessor string. Valid EntryPoint variable names 
-        // can be any sequence of alphanumeric characters and underscores. They must start with a letter or underscore. 
+        // A regex to validate an EntryPoint variable value accessor string. Valid EntryPoint variable names
+        // can be any sequence of alphanumeric characters and underscores. They must start with a letter or underscore.
         // An EntryPoint variable can be followed with an array or dictionary specifier, which begins
         // with '[', contains either an integer or alphanumeric string, optionally wrapped in single-quotes,
         // followed with ']'.

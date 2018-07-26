@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     {
         public const string LoaderSignature = "LightGBMBinaryExec";
         public const string RegistrationName = "LightGBMBinaryPredictor";
-        
+
         private static VersionInfo GetVersionInfo()
         {
             // REVIEW: can we decouple the version from FastTree predictor version ?
@@ -129,9 +129,9 @@ namespace Microsoft.ML.Runtime.LightGBM
     public static partial class LightGbm
     {
         [TlcModule.EntryPoint(
-            Name = "Trainers.LightGbmBinaryClassifier", 
+            Name = "Trainers.LightGbmBinaryClassifier",
             Desc = LightGbmBinaryTrainer.Summary,
-            UserName = LightGbmBinaryTrainer.UserName, 
+            UserName = LightGbmBinaryTrainer.UserName,
             ShortName = LightGbmBinaryTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
                                  @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmBinaryClassifier""]/*' />"})]

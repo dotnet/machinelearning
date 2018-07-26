@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             exp.Add(evalNode, evalOutput);
             subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
 
-            // Marks as an atomic unit that can be run in 
+            // Marks as an atomic unit that can be run in
             // a distributed fashion.
             foreach (var subGraphNode in subGraphNodes)
                 subGraphNode.StageId = input.PipelineId;

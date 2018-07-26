@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
     {
         // REVIEW: consider including multiple files via IMultiStreamSource.
 
-        // REVIEW: right now, it expects 0x0A being the trailing character of line break. 
+        // REVIEW: right now, it expects 0x0A being the trailing character of line break.
         // Consider a more general implementation.
 
         private const int BufferSizeMb = 4;
@@ -73,12 +73,12 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public long? ApproximateRowCount => _approximateRowCount;
 
         /// <summary>
-        /// Create a <see cref="TextFileSample"/> by reading multiple chunks from the file (or other source) and 
+        /// Create a <see cref="TextFileSample"/> by reading multiple chunks from the file (or other source) and
         /// then stitching them together. The algorithm is as follows:
         /// 0. If the source is not seekable, revert to <see cref="CreateFromHead"/>.
         /// 1. If the file length is less than 2 * <see cref="BufferSizeMb"/>, revert to <see cref="CreateFromHead"/>.
         /// 2. Read first <see cref="FirstChunkSizeMb"/> MB chunk. Determine average line length in the chunk.
-        /// 3. Determine how large one chunk should be, and how many chunks there should be, to end up 
+        /// 3. Determine how large one chunk should be, and how many chunks there should be, to end up
         /// with <see cref="BufferSizeMb"/> * <see cref="OversamplingRate"/> MB worth of lines.
         /// 4. Determine seek locations and read the chunks.
         /// 5. Stitch and return a <see cref="TextFileSample"/>.
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 Contracts.Assert(count == firstChunk.Length);
                 if (!IsEncodingOkForSampling(firstChunk))
                     return CreateFromHead(path);
-                // REVIEW: CreateFromHead still truncates the file before the last 0x0A byte. For multi-byte encoding, 
+                // REVIEW: CreateFromHead still truncates the file before the last 0x0A byte. For multi-byte encoding,
                 // this might cause an unfinished string to be present in the buffer. Right now this is considered an acceptable
                 // price to pay for parse-free processing.
 
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 long approximateRowCount = (long)(lineCount * fileSize * 1.0 / firstChunk.Length);
                 var firstNewline = Array.FindIndex(firstChunk, x => x == '\n');
 
-                // First line may be header, so we exclude it. The remaining lineCount-1 line breaks are 
+                // First line may be header, so we exclude it. The remaining lineCount-1 line breaks are
                 // splitting the text into lineCount lines, and the last line is actually half-size.
                 Double averageLineLength = 2.0 * (firstChunk.Length - firstNewline) / (lineCount * 2 - 1);
                 averageLineLength = Math.Max(averageLineLength, 3);
@@ -173,9 +173,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         /// <summary>
         /// Given an array of chunks of the text file, of which the first chunk is the head,
-        /// this method trims incomplete lines from the beginning and end of each chunk 
+        /// this method trims incomplete lines from the beginning and end of each chunk
         /// (except that it doesn't trim the beginning of the first chunk and end of last chunk if we read whole file),
-        /// then joins the rest together to form a final byte buffer and returns a <see cref="TextFileSample"/> 
+        /// then joins the rest together to form a final byte buffer and returns a <see cref="TextFileSample"/>
         /// wrapped around it.
         /// </summary>
         /// <param name="wholeFile">did we read whole file</param>
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         }
 
         /// <summary>
-        /// Detect whether we can auto-detect EOL characters without parsing. 
+        /// Detect whether we can auto-detect EOL characters without parsing.
         /// If we do, we can cheaply sample from different file locations and trim the partial strings.
         /// The encodings that pass the test are UTF8 and all single-byte encodings.
         /// </summary>
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // First check if a BOM/signature exists (sourced from http://www.unicode.org/faq/utf_bom.html#bom4)
             if (buffer.Length >= 4 && buffer[0] == 0x00 && buffer[1] == 0x00 && buffer[2] == 0xFE && buffer[3] == 0xFF)
             {
-                // UTF-32, big-endian 
+                // UTF-32, big-endian
                 return false;
             }
             if (buffer.Length >= 4 && buffer[0] == 0xFF && buffer[1] == 0xFE && buffer[2] == 0x00 && buffer[3] == 0x00)
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 return true;
             }
 
-            // No BOM/signature was found, so now we need to 'sniff' the file to see if can manually discover the encoding. 
+            // No BOM/signature was found, so now we need to 'sniff' the file to see if can manually discover the encoding.
             int sniffLim = Math.Min(1000, buffer.Length);
 
             // Some text files are encoded in UTF8, but have no BOM/signature. Hence the below manually checks for a UTF8 pattern. This code is based off
