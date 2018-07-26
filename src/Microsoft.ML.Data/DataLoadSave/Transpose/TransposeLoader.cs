@@ -531,7 +531,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         }
 
         /// <summary>
-        /// Save a zero-row dataview that will be used to infer schema information, used in the case 
+        /// Save a zero-row dataview that will be used to infer schema information, used in the case
         /// where the tranpsose loader is instantiated with no input streams.
         /// </summary>
         private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, ISchema schema)

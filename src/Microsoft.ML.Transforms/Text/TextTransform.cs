@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
     using StopWordsLang = StopWordsRemoverTransform.Language;
     using CaseNormalizationMode = TextNormalizerTransform.CaseNormalizationMode;
 
-    // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts 
+    // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
     // integer index mapping through hashing) as an option.
     /// <include file='doc.xml' path='doc/members/member[@name="TextTransform"]/*' />
@@ -262,35 +262,15 @@ namespace Microsoft.ML.Runtime.Data
                 view = new ConcatTransform(h, new ConcatTransform.Arguments() { Column = xfCols }, view);
             }
 
-            if (tparams.NeedsWordTokenizationTransform)
-            {
-                var xfCols = new DelimitedTokenizeTransform.Column[textCols.Length];
-                wordTokCols = new string[textCols.Length];
-                for (int i = 0; i < textCols.Length; i++)
-                {
-                    var col = new DelimitedTokenizeTransform.Column();
-                    col.Source = textCols[i];
-                    col.Name = GenerateColumnName(view.Schema, textCols[i], "WordTokenizer");
-                    
-                    xfCols[i] = col;
-
-                    wordTokCols[i] = col.Name;
-                    tempCols.Add(col.Name);
-                }
-
-                view = new DelimitedTokenizeTransform(h, new DelimitedTokenizeTransform.Arguments() { Column = xfCols }, view);
-            }
-
             if (tparams.NeedsNormalizeTransform)
             {
-                string[] srcCols = wordTokCols == null ? textCols : wordTokCols;
-                var xfCols = new TextNormalizerCol[srcCols.Length];
-                string[] dstCols = new string[srcCols.Length];
-                for (int i = 0; i < srcCols.Length; i++)
+                var xfCols = new TextNormalizerCol[textCols.Length];
+                string[] dstCols = new string[textCols.Length];
+                for (int i = 0; i < textCols.Length; i++)
                 {
-                    dstCols[i] = GenerateColumnName(view.Schema, srcCols[i], "TextNormalizer");
+                    dstCols[i] = GenerateColumnName(view.Schema, textCols[i], "TextNormalizer");
                     tempCols.Add(dstCols[i]);
-                    xfCols[i] = new TextNormalizerCol() { Source = srcCols[i], Name = dstCols[i] };
+                    xfCols[i] = new TextNormalizerCol() { Source = textCols[i], Name = dstCols[i] };
                 }
 
                 view = new TextNormalizerTransform(h,
@@ -303,10 +283,26 @@ namespace Microsoft.ML.Runtime.Data
                         TextCase = tparams.TextCase
                     }, view);
 
-                if (wordTokCols != null)
-                    wordTokCols = dstCols;
-                else
-                    textCols = dstCols;
+                textCols = dstCols;
+            }
+
+            if (tparams.NeedsWordTokenizationTransform)
+            {
+                var xfCols = new DelimitedTokenizeTransform.Column[textCols.Length];
+                wordTokCols = new string[textCols.Length];
+                for (int i = 0; i < textCols.Length; i++)
+                {
+                    var col = new DelimitedTokenizeTransform.Column();
+                    col.Source = textCols[i];
+                    col.Name = GenerateColumnName(view.Schema, textCols[i], "WordTokenizer");
+
+                    xfCols[i] = col;
+
+                    wordTokCols[i] = col.Name;
+                    tempCols.Add(col.Name);
+                }
+
+                view = new DelimitedTokenizeTransform(h, new DelimitedTokenizeTransform.Arguments() { Column = xfCols }, view);
             }
 
             if (tparams.NeedsRemoveStopwordsTransform)
@@ -360,7 +356,7 @@ namespace Microsoft.ML.Runtime.Data
             if (tparams.CharExtractorFactory != null)
             {
                 {
-                    var srcCols = wordTokCols ?? textCols;
+                    var srcCols = tparams.NeedsRemoveStopwordsTransform ? wordTokCols : textCols;
                     charTokCols = new string[srcCols.Length];
                     var xfCols = new CharTokenizeTransform.Column[srcCols.Length];
                     for (int i = 0; i < srcCols.Length; i++)

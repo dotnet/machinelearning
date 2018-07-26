@@ -697,7 +697,7 @@ namespace Microsoft.ML.Runtime.Data
             var keyCounts = _bindings.Infos[iinfo].SrcTypes.Select(
                 t => t.ItemType.KeyCount > 0 ? (uint)t.ItemType.KeyCount : uint.MaxValue).ToArray();
 
-            // REVIEW: Special casing the srcCount==1 case could potentially improve perf. 
+            // REVIEW: Special casing the srcCount==1 case could potentially improve perf.
             ValueGetter<VBuffer<Float>> del =
                 (ref VBuffer<Float> dst) =>
                 {
@@ -990,7 +990,7 @@ namespace Microsoft.ML.Runtime.Data
                         Contracts.Assert(0 <= icol && icol < srcIndices.Length);
                         Contracts.AssertValue(_srcTextGetters[srcIndices[icol]]);
                         var result = finder(ngram, lim, icol, ref more);
-                        // For the hashing NgramIdFinder, a result of -1 indicates that 
+                        // For the hashing NgramIdFinder, a result of -1 indicates that
                         // a slot does not exist for the given ngram. We do not pass ngrams
                         // that do not have a slot to the InvertHash collector.
                         if (result != -1)

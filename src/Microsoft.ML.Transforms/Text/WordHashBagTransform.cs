@@ -100,8 +100,8 @@ namespace Microsoft.ML.Runtime.Data
 
             // To each input column to the WordHashBagTransform, a tokenize transform is applied,
             // followed by applying WordHashVectorizeTransform.
-            // Since WordHashBagTransform is a many-to-one column transform, for each 
-            // WordHashBagTransform.Column we may need to define multiple tokenize transform columns. 
+            // Since WordHashBagTransform is a many-to-one column transform, for each
+            // WordHashBagTransform.Column we may need to define multiple tokenize transform columns.
             // NgramHashExtractorTransform may need to define an identical number of HashTransform.Columns.
             // The intermediate columns are dropped at the end of using a DropColumnsTransform.
             IDataView view = input;
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// A transform that turns a collection of tokenized text (vector of DvText) into numerical feature vectors 
+    /// A transform that turns a collection of tokenized text (vector of DvText) into numerical feature vectors
     /// using the hashing trick.
     /// </summary>
     public static class NgramHashExtractorTransform
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="HashTransform.Arguments"/> and 
+        /// This class is a merger of <see cref="HashTransform.Arguments"/> and
         /// <see cref="NgramHashTransform.Arguments"/>, with the ordered option,
         /// the rehashUnigrams option and the allLength option removed.
         /// </summary>
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "Columns must be specified");
 
-            // To each input column to the NgramHashExtractorArguments, a HashTransform using 31 
+            // To each input column to the NgramHashExtractorArguments, a HashTransform using 31
             // bits (to minimize collisions) is applied first, followed by an NgramHashTransform.
             IDataView view = input;
 

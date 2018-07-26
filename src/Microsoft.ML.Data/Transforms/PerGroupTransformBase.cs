@@ -308,7 +308,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!_newGroupInInputCursorDel())
                     return true;
 
-                // If this is the first step, we need to move next on _groupCursor. Otherwise, the position of _groupCursor is 
+                // If this is the first step, we need to move next on _groupCursor. Otherwise, the position of _groupCursor is
                 // at the start of the next group.
                 if (_groupCursor.State == CursorState.NotStarted)
                 {

@@ -1028,7 +1028,7 @@ namespace Microsoft.ML.Runtime.FastTree
             }
 
             [DllImport("FastTreeNative", EntryPoint = "C_GetDerivatives", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-            private unsafe static extern void GetDerivatives(
+            private static extern unsafe void GetDerivatives(
                 int numDocuments, int begin, int* pPermutation, short* pLabels,
                 double* pScores, double* pLambdas, double* pWeights, double* pDiscount,
                 double inverseMaxDcg, double* pGainLabels,

@@ -39,7 +39,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Given a destination type, IRow, and column index, return a ValueGetter for the column
-        /// with a conversion to typeDst, if needed. This is a weakly typed version of 
+        /// with a conversion to typeDst, if needed. This is a weakly typed version of
         /// <see cref="GetGetterAs{TDst}"/>.
         /// </summary>
         /// <seealso cref="GetGetterAs{TDst}"/>
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// This method returns a small helper delegate that returns whether we are at the start
-        /// of a new group, that is, we have just started, or the key-value at indicated column 
+        /// of a new group, that is, we have just started, or the key-value at indicated column
         /// is different than it was, in the last call. This is practically useful for determining
         /// group boundaries. Note that the delegate will return true on the first row.
         /// </summary>

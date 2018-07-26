@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.FastTree
             }
             // LogitBoost is naturally calibrated to
             // output probabilities when transformed using
-            // the logistic function, so if we have trained no 
+            // the logistic function, so if we have trained no
             // calibrator, transform the scores using that.
 
             // REVIEW: Need a way to signal the outside world that we prefer simple sigmoid?

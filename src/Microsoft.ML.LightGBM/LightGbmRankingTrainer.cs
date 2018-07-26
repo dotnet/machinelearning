@@ -127,9 +127,9 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// </summary>
     public static partial class LightGbm
     {
-        [TlcModule.EntryPoint(Name = "Trainers.LightGbmRanker", 
-            Desc = "Train a LightGBM ranking model.", 
-            UserName = LightGbmRankingTrainer.UserName, 
+        [TlcModule.EntryPoint(Name = "Trainers.LightGbmRanker",
+            Desc = "Train a LightGBM ranking model.",
+            UserName = LightGbmRankingTrainer.UserName,
             ShortName = LightGbmRankingTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
                                  @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmRanker""]/*' />"})]

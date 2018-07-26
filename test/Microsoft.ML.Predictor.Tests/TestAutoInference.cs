@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data;
 #pragma warning restore 0618
 
-                // REVIEW: Theoretically, it could be the case that a new, very bad learner is introduced and 
+                // REVIEW: Theoretically, it could be the case that a new, very bad learner is introduced and
                 // we get unlucky and only select it every time, such that this test fails. Not
                 // likely at all, but a non-zero probability. Should be ok, since all current learners are returning d > .80.
                 bestPipeline.RunTrainTestExperiment(datasetTrain, datasetTest, metric, MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer,

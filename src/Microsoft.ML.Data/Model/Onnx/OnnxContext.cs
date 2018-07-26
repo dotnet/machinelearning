@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public abstract string AddIntermediateVariable(ColumnType type, string colName, bool skip = false);
 
         /// <summary>
-        /// Creates an ONNX node 
+        /// Creates an ONNX node
         /// </summary>
         /// <param name="opType">The name of the ONNX operator to apply</param>
         /// <param name="inputs">The names of the variables as inputs</param>

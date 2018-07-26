@@ -22,7 +22,7 @@ namespace Microsoft.ML.Models
         /// </summary>
         /// <typeparam name="TInput">Class type that represents input schema.</typeparam>
         /// <typeparam name="TOutput">Class type that represents prediction schema.</typeparam>
-        /// <param name="pipeline">Machine learning pipeline that contains <see cref="ILearningPipelineLoader"/>, 
+        /// <param name="pipeline">Machine learning pipeline that contains <see cref="ILearningPipelineLoader"/>,
         /// transforms and at least one trainer.</param>
         /// <param name="testData"><see cref="ILearningPipelineLoader"/> that represents the test dataset.</param>
         /// <returns>Metrics and predictor model.</returns>
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Models
         public ClusterMetrics ClusterMetrics;
         public PredictionModel<TInput, TOutput> PredictorModels;
 
-        //REVIEW: Add warnings and per instance results and implement 
+        //REVIEW: Add warnings and per instance results and implement
         //metrics for ranking, clustering and anomaly detection.
     }
 }

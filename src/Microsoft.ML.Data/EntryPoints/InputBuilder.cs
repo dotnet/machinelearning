@@ -14,8 +14,8 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
 {
     /// <summary>
-    /// The class that creates and wraps around an instance of an input object and gradually populates all fields, keeping track of missing 
-    /// required values. The values can be set from their JSON representation (during the graph parsing stage), as well as directly 
+    /// The class that creates and wraps around an instance of an input object and gradually populates all fields, keeping track of missing
+    /// required values. The values can be set from their JSON representation (during the graph parsing stage), as well as directly
     /// (in the process of graph execution).
     /// </summary>
     public sealed class InputBuilder
@@ -515,7 +515,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         }
 
         /// <summary>
-        /// Ensures that the given value can be assigned to an entry point field with 
+        /// Ensures that the given value can be assigned to an entry point field with
         /// type <paramref name="type"/>. This method will wrap the value in the option
         /// type if needed and throw an exception if the value isn't assignable.
         /// </summary>
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class Deprecated
         {
-            public new static string ToString() => "Deprecated";
+            public static new string ToString() => "Deprecated";
             public const string Message = "Message";
         }
 
@@ -800,7 +800,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class SweepableLongParam
         {
-            public new static string ToString() => "SweepRange";
+            public static new string ToString() => "SweepRange";
             public const string RangeType = "RangeType";
             public const string Max = "Max";
             public const string Min = "Min";
@@ -814,7 +814,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class SweepableFloatParam
         {
-            public new static string ToString() => "SweepRange";
+            public static new string ToString() => "SweepRange";
             public const string RangeType = "RangeType";
             public const string Max = "Max";
             public const string Min = "Min";
@@ -828,14 +828,14 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class SweepableDiscreteParam
         {
-            public new static string ToString() => "SweepRange";
+            public static new string ToString() => "SweepRange";
             public const string RangeType = "RangeType";
             public const string Options = "Values";
         }
 
         public static class PipelineSweeperSupportedMetrics
         {
-            public new static string ToString() => "SupportedMetric";
+            public static new string ToString() => "SupportedMetric";
             public const string Auc = BinaryClassifierEvaluator.Auc;
             public const string AccuracyMicro = Data.MultiClassClassifierEvaluator.AccuracyMicro;
             public const string AccuracyMacro = MultiClassClassifierEvaluator.AccuracyMacro;
