@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System.Collections.Generic;
+using static Microsoft.ML.Runtime.Data.MetricKinds;
 
 namespace Microsoft.ML.Models
 {
@@ -51,7 +52,8 @@ namespace Microsoft.ML.Models
                         LogLossReduction = metric.LogLossReduction,
                         TopKAccuracy = metric.TopKAccuracy,
                         PerClassLogLoss = metric.PerClassLogLoss,
-                        ConfusionMatrix = confusionMatrices.Current
+                        ConfusionMatrix = confusionMatrices.Current,
+                        RowTag = metric.RowTag,
                     });
 
             }
@@ -128,6 +130,12 @@ namespace Microsoft.ML.Models
         public double[] PerClassLogLoss { get; private set; }
 
         /// <summary>
+        /// For cross-validation, this is equal to "Fold N" for per-fold metric rows, "Overall" for the average metrics and "STD" for standard deviation.
+        /// For non-CV scenarios, this is equal to null
+        /// </summary>
+        public string RowTag { get; private set; }
+
+        /// <summary>
         /// Gets the confusion matrix, or error matrix, of the classifier.
         /// </summary>
         public ConfusionMatrix ConfusionMatrix { get; private set; }
@@ -155,6 +163,9 @@ namespace Microsoft.ML.Models
 
             [ColumnName(MultiClassClassifierEvaluator.PerClassLogLoss)]
             public double[] PerClassLogLoss;
+
+            [ColumnName(ColumnNames.FoldIndex)]
+            public string RowTag;
 #pragma warning restore 649 // never assigned
         }
     }

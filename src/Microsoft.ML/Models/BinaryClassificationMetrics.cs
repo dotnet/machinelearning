@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
+using static Microsoft.ML.Runtime.Data.MetricKinds;
 
 namespace Microsoft.ML.Models
 {
@@ -35,7 +36,7 @@ namespace Microsoft.ML.Models
             var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
 
             int index = 0;
-            foreach(var metric in metricsEnumerable)
+            foreach (var metric in metricsEnumerable)
             {
 
                 if (index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
@@ -57,6 +58,7 @@ namespace Microsoft.ML.Models
                         Entropy = metric.Entropy,
                         F1Score = metric.F1Score,
                         Auprc = metric.Auprc,
+                        RowTag = metric.RowTag,
                         ConfusionMatrix = confusionMatrices.Current,
                     });
 
@@ -163,6 +165,12 @@ namespace Microsoft.ML.Models
         public ConfusionMatrix ConfusionMatrix { get; private set; }
 
         /// <summary>
+        /// For cross-validation, this is equal to "Fold N" for per-fold metric rows, "Overall" for the average metrics and "STD" for standard deviation.
+        /// For non-CV scenarios, this is equal to null
+        /// </summary>
+        public string RowTag { get; private set; }
+
+        /// <summary>
         /// This class contains the public fields necessary to deserialize from IDataView.
         /// </summary>
         private sealed class SerializationClass
@@ -200,6 +208,9 @@ namespace Microsoft.ML.Models
 
             [ColumnName(BinaryClassifierEvaluator.AuPrc)]
             public Double Auprc;
+
+            [ColumnName(ColumnNames.FoldIndex)]
+            public string RowTag;
 #pragma warning restore 649 // never assigned
         }
     }
