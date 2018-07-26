@@ -420,7 +420,7 @@ namespace Microsoft.ML.Runtime.Data
                             lineNumber++;
                         }
 
-                        // Handle first line of the embedding file separately since some embedding files including fastText have a single-line header 
+                        // Handle first line of the embedding file separately since some embedding files including fastText have a single-line header
                         string[] wordsInFirstLine = firstLine.TrimEnd().Split(delimiters);
                         dimension = wordsInFirstLine.Length - 1;
                         if (model == null)
