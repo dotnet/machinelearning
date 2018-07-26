@@ -60,7 +60,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "IMGGREY ",
+                modelSignature: "IMGGRAYT",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         private const string RegistrationName = "ImageGrayscale";
 
-        /// Public constructor corresponding to SignatureDataTransform.
+        // Public constructor corresponding to SignatureDataTransform.
         public ImageGrayscaleTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column, input, t => t is ImageType ? null : "Expected Image type")
         {
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return Infos[iinfo].TypeSrc;
         }
 
-        public ColorMatrix GreyscaleColorMatrix = new ColorMatrix(
+        private static ColorMatrix _grayscaleColorMatrix = new ColorMatrix(
                 new float[][]
                 {
                     new float[] {.3f, .3f, .3f, 0, 0},
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
                     dst = new Bitmap(src.Width, src.Height);
                     ImageAttributes attributes = new ImageAttributes();
-                    attributes.SetColorMatrix(GreyscaleColorMatrix);
+                    attributes.SetColorMatrix(_grayscaleColorMatrix);
                     var srcRectangle = new Rectangle(0, 0, src.Width, src.Height);
                     using (var g = Graphics.FromImage(dst))
                     {

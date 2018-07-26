@@ -244,7 +244,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         private readonly ColInfoEx[] _exes;
         private readonly ImageType[] _types;
 
-        /// Public constructor corresponding to SignatureDataTransform.
+        // Public constructor corresponding to SignatureDataTransform.
         public VectorToImageTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input,
                 t => t is VectorType ? null : "Expected VectorType type")
@@ -323,7 +323,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 _exes[i].Save(ctx);
         }
 
-
         protected override ColumnType GetColumnTypeCore(int iinfo)
         {
             Host.Assert(0 <= iinfo & iinfo < Infos.Length);
@@ -381,35 +380,35 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     for (int x = 0; x < width; x++)
                         for (int y = 0; y < height; ++y)
                         {
-                            float R = 0;
-                            float G = 0;
-                            float B = 0;
-                            float A = 0;
+                            float red = 0;
+                            float green = 0;
+                            float blue = 0;
+                            float alpha = 0;
                             if (ex.Interleave)
                             {
                                 if (ex.Alpha) position++;
-                                if (ex.Red) R = Convert.ToSingle(values[position++]);
-                                if (ex.Green) G = Convert.ToSingle(values[position++]);
-                                if (ex.Blue) B = Convert.ToSingle(values[position++]);
+                                if (ex.Red) red = Convert.ToSingle(values[position++]);
+                                if (ex.Green) green = Convert.ToSingle(values[position++]);
+                                if (ex.Blue) blue = Convert.ToSingle(values[position++]);
                             }
                             else
                             {
                                 position = y * width + x;
-                                if (ex.Alpha) { A = Convert.ToSingle(values[position]); position += cpix; }
-                                if (ex.Red) { R = Convert.ToSingle(values[position]); position += cpix; }
-                                if (ex.Green) { G = Convert.ToSingle(values[position]); position += cpix; }
-                                if (ex.Blue) { B = Convert.ToSingle(values[position]); position += cpix; }
+                                if (ex.Alpha) { alpha = Convert.ToSingle(values[position]); position += cpix; }
+                                if (ex.Red) { red = Convert.ToSingle(values[position]); position += cpix; }
+                                if (ex.Green) { green = Convert.ToSingle(values[position]); position += cpix; }
+                                if (ex.Blue) { blue = Convert.ToSingle(values[position]); position += cpix; }
                             }
                             Color pixel;
                             if (!needScale)
-                                pixel = Color.FromArgb((int)A, (int)R, (int)G, (int)B);
+                                pixel = Color.FromArgb((int)alpha, (int)red, (int)green, (int)blue);
                             else
                             {
                                 pixel = Color.FromArgb(
-                                    (int)((A - offset) * scale),
-                                    (int)((R - offset) * scale),
-                                    (int)((G - offset) * scale),
-                                    (int)((B - offset) * scale));
+                                    (int)((alpha - offset) * scale),
+                                    (int)((red - offset) * scale),
+                                    (int)((green - offset) * scale),
+                                    (int)((blue - offset) * scale));
                             }
                             dst.SetPixel(x, y, pixel);
                         }

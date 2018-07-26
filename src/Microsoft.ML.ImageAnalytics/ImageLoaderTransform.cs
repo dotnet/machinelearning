@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         private const string RegistrationName = "ImageLoader";
 
-        /// Public constructor corresponding to SignatureDataTransform.
+        // Public constructor corresponding to SignatureDataTransform.
         public ImageLoaderTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column, input, TestIsText)
         {

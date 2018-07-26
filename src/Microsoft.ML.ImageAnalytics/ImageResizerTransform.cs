@@ -144,7 +144,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         // This is parallel to Infos.
         private readonly ColInfoEx[] _exes;
 
-        /// Public constructor corresponding to SignatureDataTransform.
+        // Public constructor corresponding to SignatureDataTransform.
         public ImageResizerTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column, input, t => t is ImageType ? null : "Expected Image type")
         {

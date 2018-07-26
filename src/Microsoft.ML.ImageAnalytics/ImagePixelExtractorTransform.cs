@@ -240,7 +240,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         private readonly ColInfoEx[] _exes;
         private readonly VectorType[] _types;
 
-        /// Public constructor corresponding to SignatureDataTransform.
+        // Public constructor corresponding to SignatureDataTransform.
         public ImagePixelExtractorTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input,
                 t => t is ImageType ? null : "Expected Image type")
