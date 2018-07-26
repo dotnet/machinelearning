@@ -95,7 +95,7 @@ namespace Microsoft.ML.Core.Data
         }
 
         // REVIEW: I think we should have an IsCompatible method to check if it's OK to use one schema shape
-        // as an input to another schema shape. I started writing, but realized that there's more than one way to check for 
+        // as an input to another schema shape. I started writing, but realized that there's more than one way to check for
         // the 'compatibility': as in, 'CAN be compatible' vs. 'WILL be compatible'.
     }
 
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Core.Data
     {
         /// <summary>
         /// Train and return a transformer.
-        /// 
+        ///
         /// REVIEW: you could consider the transformer to take a different <typeparamref name="TSource"/>, but we don't have such components
         /// yet, so why complicate matters?
         /// </summary>
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Core.Data
     }
 
     /// <summary>
-    /// The transformer is a component that transforms data. 
+    /// The transformer is a component that transforms data.
     /// It also supports 'schema propagation' to answer the question of 'how the data with this schema look after you transform it?'.
     /// </summary>
     public interface ITransformer
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Core.Data
         /// </summary>
         IDataView Transform(IDataView input);
     }
-    
+
     /// <summary>
     /// The estimator (in Spark terminology) is an 'untrained transformer'. It needs to 'fit' on the data to manufacture
     /// a transformer.
