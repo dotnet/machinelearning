@@ -262,6 +262,30 @@ namespace Microsoft.ML.Runtime.Data
                 view = new ConcatTransform(h, new ConcatTransform.Arguments() { Column = xfCols }, view);
             }
 
+            if (tparams.NeedsNormalizeTransform)
+            {
+                var xfCols = new TextNormalizerCol[textCols.Length];
+                string[] dstCols = new string[textCols.Length];
+                for (int i = 0; i < textCols.Length; i++)
+                {
+                    dstCols[i] = GenerateColumnName(view.Schema, textCols[i], "TextNormalizer");
+                    tempCols.Add(dstCols[i]);
+                    xfCols[i] = new TextNormalizerCol() { Source = textCols[i], Name = dstCols[i] };
+                }
+
+                view = new TextNormalizerTransform(h,
+                    new TextNormalizerArgs()
+                    {
+                        Column = xfCols,
+                        KeepDiacritics = tparams.KeepDiacritics,
+                        KeepNumbers = tparams.KeepNumbers,
+                        KeepPunctuations = tparams.KeepPunctuations,
+                        TextCase = tparams.TextCase
+                    }, view);
+
+                textCols = dstCols;
+            }
+
             if (tparams.NeedsWordTokenizationTransform)
             {
                 var xfCols = new DelimitedTokenizeTransform.Column[textCols.Length];
@@ -279,34 +303,6 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 view = new DelimitedTokenizeTransform(h, new DelimitedTokenizeTransform.Arguments() { Column = xfCols }, view);
-            }
-
-            if (tparams.NeedsNormalizeTransform)
-            {
-                string[] srcCols = wordTokCols == null ? textCols : wordTokCols;
-                var xfCols = new TextNormalizerCol[srcCols.Length];
-                string[] dstCols = new string[srcCols.Length];
-                for (int i = 0; i < srcCols.Length; i++)
-                {
-                    dstCols[i] = GenerateColumnName(view.Schema, srcCols[i], "TextNormalizer");
-                    tempCols.Add(dstCols[i]);
-                    xfCols[i] = new TextNormalizerCol() { Source = srcCols[i], Name = dstCols[i] };
-                }
-
-                view = new TextNormalizerTransform(h,
-                    new TextNormalizerArgs()
-                    {
-                        Column = xfCols,
-                        KeepDiacritics = tparams.KeepDiacritics,
-                        KeepNumbers = tparams.KeepNumbers,
-                        KeepPunctuations = tparams.KeepPunctuations,
-                        TextCase = tparams.TextCase
-                    }, view);
-
-                if (wordTokCols != null)
-                    wordTokCols = dstCols;
-                else
-                    textCols = dstCols;
             }
 
             if (tparams.NeedsRemoveStopwordsTransform)
@@ -360,7 +356,7 @@ namespace Microsoft.ML.Runtime.Data
             if (tparams.CharExtractorFactory != null)
             {
                 {
-                    var srcCols = wordTokCols ?? textCols;
+                    var srcCols = tparams.NeedsRemoveStopwordsTransform ? wordTokCols : textCols;
                     charTokCols = new string[srcCols.Length];
                     var xfCols = new CharTokenizeTransform.Column[srcCols.Length];
                     for (int i = 0; i < srcCols.Length; i++)
