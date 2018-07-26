@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return Infos[iinfo].TypeSrc;
         }
 
-        private static ColorMatrix _grayscaleColorMatrix = new ColorMatrix(
+        private static readonly ColorMatrix _grayscaleColorMatrix = new ColorMatrix(
                 new float[][]
                 {
                     new float[] {.3f, .3f, .3f, 0, 0},
