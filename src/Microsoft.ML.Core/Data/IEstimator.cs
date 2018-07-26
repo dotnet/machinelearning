@@ -91,30 +91,28 @@ namespace Microsoft.ML.Core.Data
     }
 
     /// <summary>
-    /// The generic transformer takes any kind of input and turns it into an <see cref="IDataView"/>.
-    /// Think of this as data loaders. Data transformers are also these, but they also implement <see cref="IDataTransformer"/>.
+    /// The 'data reader' takes certain kind of input and turns it into an <see cref="IDataView"/>.
     /// </summary>
-    /// <typeparam name="TIn">The type of input the transformer takes.</typeparam>
-    public interface ITransformer<TIn>
+    /// <typeparam name="TIn">The type of input the reader takes.</typeparam>
+    public interface IDataReader<TIn>
     {
         /// <summary>
         /// Take the data in, make transformations, output the data.
         /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
         /// </summary>
-        IDataView Transform(TIn input);
+        IDataView Read(TIn input);
 
         /// <summary>
-        /// The output schema of the transformer.
+        /// The output schema of the reader.
         /// </summary>
         ISchema GetOutputSchema();
     }
 
     /// <summary>
-    /// Estimator is a Spark name for 'trainable component'. Like a normalizer, or an SvmLightLoader.
-    /// It needs to be 'fitted' to create a <see cref="ITransformer{TIn}"/>.
+    /// Sometimes we need to 'fit' an <see cref="IDataReader{TIn}"/>. This interface is representing the 'unfitted' version.
     /// </summary>
     /// <typeparam name="TIn">The type of input the estimator (and eventually transformer) takes.</typeparam>
-    public interface IEstimator<TIn>
+    public interface IDataReaderEstimator<TIn>
     {
         /// <summary>
         /// Train and return a transformer.
@@ -122,7 +120,7 @@ namespace Microsoft.ML.Core.Data
         /// REVIEW: you could consider the transformer to take a different <typeparamref name="TIn"/>, but we don't have such components
         /// yet, so why complicate matters?
         /// </summary>
-        ITransformer<TIn> Fit(TIn input);
+        IDataReader<TIn> Fit(TIn input);
 
         /// <summary>
         /// The 'promise' of the output schema.
@@ -132,19 +130,19 @@ namespace Microsoft.ML.Core.Data
     }
 
     /// <summary>
-    /// An estimator that provides more details about the produced transformer, in the form of <typeparamref name="TTransformer"/>.
+    /// A DataReader estimator that provides more details about the produced reader, in the form of <typeparamref name="TTransformer"/>.
     /// </summary>
-    public interface IEstimator<TIn, TTransformer>: IEstimator<TIn>
-        where TTransformer: ITransformer<TIn>
+    public interface IDataReaderEstimator<TIn, out TTransformer> : IDataReaderEstimator<TIn>
+        where TTransformer : IDataReader<TIn>
     {
         new TTransformer Fit(TIn input);
     }
 
     /// <summary>
-    /// The data transformer, in addition to being a transformer, also exposes the input schema shape. It is handy for
-    /// evaluating what kind of columns the transformer expects.
+    /// The transformer is a component that transforms data. 
+    /// It also supports 'schema propagation' to answer the question of 'how the data with this schema look after you transform it?'.
     /// </summary>
-    public interface IDataTransformer
+    public interface ITransformer
     {
         /// <summary>
         /// Schema propagation for transformers.
@@ -160,12 +158,17 @@ namespace Microsoft.ML.Core.Data
         IDataView Transform(IDataView input);
     }
 
-    public interface IDataEstimator
+    /// <summary>
+    /// The estimator (in Spark terminology) is an 'untrained transformer'. It needs to 'fit' on the data to manufacture
+    /// a transformer.
+    /// It also provides the 'schema propagation' like transformers do, but over <see cref="SchemaShape"/> instead of <see cref="ISchema"/>.
+    /// </summary>
+    public interface IEstimator
     {
         /// <summary>
         /// Train and return a transformer.
         /// </summary>
-        IDataTransformer Fit(IDataView input);
+        ITransformer Fit(IDataView input);
 
         /// <summary>
         /// Schema propagation for estimators.
@@ -176,10 +179,10 @@ namespace Microsoft.ML.Core.Data
     }
 
     /// <summary>
-    /// A data estimator that provides more details about the produced transformer, in the form of <typeparamref name="TTransformer"/>.
+    /// An estimator that provides more details about the produced transformer, in the form of <typeparamref name="TTransformer"/>.
     /// </summary>
-    public interface IDataEstimator<TTransformer>: IDataEstimator
-        where TTransformer: IDataTransformer
+    public interface IDataEstimator<out TTransformer> : IEstimator
+        where TTransformer : ITransformer
     {
         new TTransformer Fit(IDataView input);
     }

@@ -67,7 +67,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             };
         }
 
-        public class MyTextLoader : IEstimator<IMultiStreamSource>, ITransformer<IMultiStreamSource>
+        public class MyTextLoader : IDataReaderEstimator<IMultiStreamSource>, IDataReader<IMultiStreamSource>
         {
             private readonly TextLoader.Arguments _args;
             private readonly IHostEnvironment _env;
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 _args = args;
             }
 
-            public ITransformer<IMultiStreamSource> Fit(IMultiStreamSource input)
+            public IDataReader<IMultiStreamSource> Fit(IMultiStreamSource input)
             {
                 return this;
             }
@@ -89,38 +89,38 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 return SchemaShape.Create(emptyData.Schema);
             }
 
-            public IDataView Transform(IMultiStreamSource input)
+            public IDataView Read(IMultiStreamSource input)
             {
                 return new TextLoader(new TlcEnvironment(), _args, input);
             }
 
-            ISchema ITransformer<IMultiStreamSource>.GetOutputSchema()
+            ISchema IDataReader<IMultiStreamSource>.GetOutputSchema()
             {
                 var emptyData = new TextLoader(new TlcEnvironment(), _args, new MultiFileSource(null));
                 return emptyData.Schema;
             }
         }
 
-        public class TransformerPipe<TIn> : ITransformer<TIn>
+        public class TransformerPipe<TIn> : IDataReader<TIn>
         {
-            private readonly ITransformer<TIn> _start;
-            private readonly IDataTransformer[] _chain;
+            private readonly IDataReader<TIn> _start;
+            private readonly ITransformer[] _chain;
 
-            public TransformerPipe(ITransformer<TIn> start, IDataTransformer[] chain)
+            public TransformerPipe(IDataReader<TIn> start, ITransformer[] chain)
             {
                 _start = start;
                 _chain = chain;
             }
 
-            public IDataView Transform(TIn input)
+            public IDataView Read(TIn input)
             {
-                var idv = _start.Transform(input);
+                var idv = _start.Read(input);
                 foreach (var xf in _chain)
                     idv = xf.Transform(idv);
                 return idv;
             }
 
-            public (ITransformer<TIn> start, IEnumerable<IDataTransformer> chain) GetParts()
+            public (IDataReader<TIn> start, IEnumerable<ITransformer> chain) GetParts()
             {
                 return (start: _start, chain: _chain);
             }
@@ -134,19 +134,50 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        public class EstimatorPipe<TIn> : IEstimator<TIn>
+        public class EstimatorPipe<TIn, TTrans> : IDataReaderEstimator<TIn, TTrans>
+            where TTrans : IDataReader<TIn>
         {
-            private readonly IEstimator<TIn> _start;
-            private readonly List<IDataEstimator> _estimatorChain = new List<IDataEstimator>();
+            private readonly IDataReaderEstimator<TIn> _start;
+            private readonly IEstimator[] _chain;
+
+            public EstimatorPipe(IDataReaderEstimator<TIn> start, IEstimator[] chain)
+            {
+                Contracts.CheckValue(start, nameof(start));
+                Contracts.CheckNonEmpty(chain, nameof(chain));
+
+                _start = start;
+                _chain = chain;
+            }
+
+            public TTrans Fit(TIn input)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public SchemaShape GetOutputSchema()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            IDataReader<TIn> IDataReaderEstimator<TIn>.Fit(TIn input)
+            {
+                return Fit(input);
+            }
+        }
+
+        public class EstimatorPipe<TIn> : IDataReaderEstimator<TIn>
+        {
+            private readonly IDataReaderEstimator<TIn> _start;
+            private readonly List<IEstimator> _estimatorChain = new List<IEstimator>();
             private readonly IHostEnvironment _env = new TlcEnvironment();
 
 
-            public EstimatorPipe(IEstimator<TIn> start)
+            public EstimatorPipe(IDataReaderEstimator<TIn> start)
             {
                 _start = start;
             }
 
-            public EstimatorPipe<TIn> Append(IDataEstimator est)
+            public EstimatorPipe<TIn> Append(IEstimator est)
             {
                 _estimatorChain.Add(est);
                 return this;
@@ -156,8 +187,8 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             {
                 var start = _start.Fit(input);
 
-                var idv = start.Transform(input);
-                var xfs = new List<IDataTransformer>();
+                var idv = start.Read(input);
+                var xfs = new List<ITransformer>();
                 foreach (var est in _estimatorChain)
                 {
                     var xf = est.Fit(idv);
@@ -167,7 +198,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 return new TransformerPipe<TIn>(start, xfs.ToArray());
             }
 
-            public IEstimator<TIn> GetEstimator()
+            public IDataReaderEstimator<TIn> GetEstimator()
             {
                 return this;
             }
@@ -184,18 +215,18 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 return shape;
             }
 
-            public (IEstimator<TIn>, IEnumerable<IDataEstimator>) GetParts()
+            public (IDataReaderEstimator<TIn>, IEnumerable<IEstimator>) GetParts()
             {
                 return (_start, _estimatorChain);
             }
 
-            ITransformer<TIn> IEstimator<TIn>.Fit(TIn input)
+            IDataReader<TIn> IDataReaderEstimator<TIn>.Fit(TIn input)
             {
                 return Fit(input);
             }
         }
 
-        public class MyConcat : IDataEstimator
+        public class MyConcat : IEstimator
         {
             private readonly ConcatTransform _xf;
             private readonly IHostEnvironment _env;
@@ -215,7 +246,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 _xf = xf;
             }
 
-            public IDataTransformer Fit(IDataView input)
+            public ITransformer Fit(IDataView input)
             {
                 var xf = new ConcatTransform(_env, input, _name, _source);
                 return new TransformWrapper(_env, xf);
@@ -236,7 +267,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        public class MyNormalizer : IDataEstimator
+        public class MyNormalizer : IEstimator
         {
             private readonly IHostEnvironment _env;
             private readonly string _col;
@@ -247,7 +278,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 _col = col;
             }
 
-            public IDataTransformer Fit(IDataView input)
+            public ITransformer Fit(IDataView input)
             {
                 var xf = NormalizeTransform.CreateMinMaxNormalizer(_env, input, _col);
                 return new TransformWrapper(_env, xf);
@@ -259,7 +290,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        public class MySdca : IDataEstimator
+        public class MySdca : IEstimator
         {
 
             private readonly IHostEnvironment _env;
@@ -269,7 +300,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 _env = env;
             }
 
-            public IDataTransformer Fit(IDataView input)
+            public ITransformer Fit(IDataView input)
             {
                 // Train
                 var trainer = new SdcaMultiClassTrainer(_env, new SdcaMultiClassTrainer.Arguments() { NumThreads = 1 });
@@ -289,7 +320,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 throw new System.NotImplementedException();
             }
 
-            private sealed class Transformer : IDataTransformer
+            private sealed class Transformer : ITransformer
             {
                 private IHostEnvironment _env;
                 private IPredictor _pred;
@@ -322,7 +353,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         {
             private readonly PredictionEngine<TSrc, TDst> _engine;
 
-            public MyPredictionEngine(IHostEnvironment env, ISchema inputSchema, IEnumerable<IDataTransformer> steps)
+            public MyPredictionEngine(IHostEnvironment env, ISchema inputSchema, IEnumerable<ITransformer> steps)
             {
                 IDataView dv = new EmptyDataView(env, inputSchema);
                 foreach (var s in steps)
@@ -336,7 +367,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        public class MyLogisticRegression : IDataEstimator
+        public class MyLogisticRegression : IEstimator
         {
             private readonly IHostEnvironment _env;
 
@@ -345,7 +376,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 _env = env;
             }
 
-            public IDataTransformer Fit(IDataView input)
+            public ITransformer Fit(IDataView input)
             {
                 // Train
                 var trainer = new LogisticRegression(_env, new LogisticRegression.Arguments());
@@ -368,7 +399,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        public class PredictorTransformer : IDataTransformer
+        public class PredictorTransformer : ITransformer
         {
             private readonly IHostEnvironment _env;
             public readonly IPredictor Predictor;
@@ -396,7 +427,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        public class TransformWrapper : IDataTransformer
+        public class TransformWrapper : ITransformer
         {
             private readonly IHostEnvironment _env;
             private readonly IDataTransform _xf;
@@ -418,11 +449,11 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        public sealed class TransformerChain : IDataTransformer
+        public sealed class TransformerChain : ITransformer
         {
-            private readonly IDataTransformer[] _transformers;
+            private readonly ITransformer[] _transformers;
 
-            public TransformerChain(params IDataTransformer[] transformers)
+            public TransformerChain(params ITransformer[] transformers)
             {
                 _transformers = transformers.ToArray();
             }
@@ -439,7 +470,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 return s;
             }
 
-            public IEnumerable<IDataTransformer> GetParts()
+            public IEnumerable<ITransformer> GetParts()
             {
                 return _transformers;
             }
@@ -455,25 +486,25 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        public class MyOva : IDataEstimator
+        public class MyOva : IEstimator
         {
             private readonly IHostEnvironment _env;
-            private readonly IDataEstimator _binaryEstimator;
+            private readonly IEstimator _binaryEstimator;
 
-            public MyOva(IHostEnvironment env, IDataEstimator binaryEstimator)
+            public MyOva(IHostEnvironment env, IEstimator binaryEstimator)
             {
                 _env = env;
                 _binaryEstimator = binaryEstimator;
             }
 
-            public IDataTransformer Fit(IDataView input)
+            public ITransformer Fit(IDataView input)
             {
                 var cached = new CacheDataView(_env, input, prefetch: null);
 
                 var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
                 trainRoles.CheckMultiClassLabel(out var numClasses);
 
-                var predictors = new IDataTransformer[numClasses];
+                var predictors = new ITransformer[numClasses];
                 var names = Enumerable.Range(0, numClasses).Select(x => $"Score_{x}").ToArray();
                 for (int iClass = 0; iClass < numClasses; iClass++)
                 {
@@ -492,7 +523,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 return new TransformerChain(allPredictors, finalConcat);
             }
 
-            public IDataTransformer PredictorAwareFit(IDataView input)
+            public ITransformer PredictorAwareFit(IDataView input)
             {
                 var cached = new CacheDataView(_env, input, prefetch: null);
 
@@ -549,12 +580,12 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
             var model = pipeline.Fit(new MultiFileSource(@"e:\data\iris.txt"));
 
-            var scoredTrainData = model.Transform(new MultiFileSource(@"e:\data\iris.txt"))
+            var scoredTrainData = model.Read(new MultiFileSource(@"e:\data\iris.txt"))
                 .AsEnumerable<IrisPrediction>(env, reuseRowObject: false)
                 .ToArray();
 
-            ITransformer<IMultiStreamSource> loader;
-            IEnumerable<IDataTransformer> steps;
+            IDataReader<IMultiStreamSource> loader;
+            IEnumerable<ITransformer> steps;
             (loader, steps) = model.GetParts();
 
             var engine = new MyPredictionEngine<IrisData, IrisPrediction>(env, loader.GetOutputSchema(), steps);
@@ -583,8 +614,8 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             var model = pipeline.Fit(new MultiFileSource(@"e:\data\iris.txt"));
             var s = model.GetOutputSchema();
 
-            ITransformer<IMultiStreamSource> loader;
-            IEnumerable<IDataTransformer> steps;
+            IDataReader<IMultiStreamSource> loader;
+            IEnumerable<ITransformer> steps;
             (loader, steps) = model.GetParts();
 
             var engine = new MyPredictionEngine<IrisData, IrisPrediction>(env, loader.GetOutputSchema(), steps);
