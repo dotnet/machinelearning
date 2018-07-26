@@ -35,13 +35,8 @@ namespace Microsoft.ML.Models
             List<BinaryClassificationMetrics> metrics = new List<BinaryClassificationMetrics>();
             var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
 
-<<<<<<< HEAD
             int index = 0;
             foreach(var metric in metricsEnumerable)
-=======
-            int Index = 0;
-            foreach (var metric in metricsEnumerable)
->>>>>>> c083812a4ea5e627680e93e8f6d764ea673b2257
             {
 
                 if (index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
