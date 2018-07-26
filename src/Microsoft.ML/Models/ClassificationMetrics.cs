@@ -53,7 +53,7 @@ namespace Microsoft.ML.Models
                         TopKAccuracy = metric.TopKAccuracy,
                         PerClassLogLoss = metric.PerClassLogLoss,
                         ConfusionMatrix = confusionMatrices.Current,
-                        RowTag =metric.RowTag,
+                        RowTag = metric.RowTag,
                     });
 
             }

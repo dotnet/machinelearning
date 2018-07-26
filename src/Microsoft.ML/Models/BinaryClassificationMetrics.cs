@@ -36,7 +36,7 @@ namespace Microsoft.ML.Models
             var confusionMatrices = ConfusionMatrix.Create(env, confusionMatrix).GetEnumerator();
 
             int index = 0;
-            foreach(var metric in metricsEnumerable)
+            foreach (var metric in metricsEnumerable)
             {
 
                 if (index++ >= confusionMatriceStartIndex && !confusionMatrices.MoveNext())
