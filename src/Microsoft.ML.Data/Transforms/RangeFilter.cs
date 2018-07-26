@@ -184,9 +184,9 @@ namespace Microsoft.ML.Runtime.Data
             // int: id of column name
             // double: min
             // double: max
-            // byte: complement 
-            // byte: includeMin 
-            // byte: includeMax 
+            // byte: complement
+            // byte: includeMin
+            // byte: includeMax
             ctx.Writer.Write(sizeof(Float));
             ctx.SaveNonEmptyString(Source.Schema.GetColumnName(_index));
             Host.Assert(_min < _max);

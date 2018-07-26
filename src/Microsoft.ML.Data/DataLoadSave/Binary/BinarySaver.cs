@@ -850,7 +850,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <param name="type">The type of the codec to write and utilize</param>
         /// <param name="value">The value to encode and write</param>
         /// <param name="bytesWritten">The number of bytes written</param>
-        /// <returns>Whether the write was successful or not</returns> 
+        /// <returns>Whether the write was successful or not</returns>
         public bool TryWriteTypeAndValue<T>(Stream stream, ColumnType type, ref T value, out int bytesWritten)
         {
             _host.CheckValue(stream, nameof(stream));

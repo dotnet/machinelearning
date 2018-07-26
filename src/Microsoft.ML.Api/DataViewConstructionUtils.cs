@@ -285,7 +285,7 @@ namespace Microsoft.ML.Runtime.Api
                 }
 
                 // REVIEW: The converting getter invokes a type conversion delegate on every call, so it's inherently slower
-                // than the 'direct' getter. We don't have good indication of this to the user, and the selection 
+                // than the 'direct' getter. We don't have good indication of this to the user, and the selection
                 // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
                 private Delegate CreateConvertingArrayGetterDelegate<TSrc, TDst>(int index, Func<TSrc, TDst> convert)
                 {
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// An in-memory data view based on the IList of data. 
+        /// An in-memory data view based on the IList of data.
         /// Supports shuffling.
         /// </summary>
         private sealed class ListDataView<TRow> : DataViewBase<TRow>
@@ -492,11 +492,11 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// An in-memory data view based on the IEnumerable of data. 
+        /// An in-memory data view based on the IEnumerable of data.
         /// Doesn't support shuffling.
-        /// 
+        ///
         /// This class is public because prediction engine wants to call its <see cref="SetData"/>
-        /// for performance reasons. 
+        /// for performance reasons.
         /// </summary>
         public sealed class StreamingDataView<TRow> : DataViewBase<TRow>
             where TRow : class
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Runtime.Api
 
         /// <summary>
         /// This represents the 'infinite data view' over one (mutable) user-defined object.
-        /// The 'current row' object can be updated at any time, this will affect all the 
+        /// The 'current row' object can be updated at any time, this will affect all the
         /// newly created cursors, but not the ones already existing.
         /// </summary>
         public sealed class SingleRowLoopDataView<TRow> : DataViewBase<TRow>
@@ -731,7 +731,7 @@ namespace Microsoft.ML.Runtime.Api
         /// </summary>
         public ColumnType MetadataType;
         /// <summary>
-        /// The string identifier of the metadata. Some identifiers have special meaning, 
+        /// The string identifier of the metadata. Some identifiers have special meaning,
         /// like "SlotNames", but any other identifiers can be used.
         /// </summary>
         public readonly string Kind;
@@ -757,7 +757,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Constructor for metadata of value type T.
         /// </summary>
-        /// <param name="kind">The string identifier of the metadata. Some identifiers have special meaning, 
+        /// <param name="kind">The string identifier of the metadata. Some identifiers have special meaning,
         /// like "SlotNames", but any other identifiers can be used.</param>
         /// <param name="value">Metadata value.</param>
         /// <param name="metadataType">Type of the metadata.</param>

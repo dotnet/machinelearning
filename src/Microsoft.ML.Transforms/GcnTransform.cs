@@ -666,9 +666,9 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class LpNormalization
     {
-        [TlcModule.EntryPoint(Name = "Transforms.LpNormalizer", 
-            Desc = LpNormNormalizerTransform.Summary, 
-            UserName = LpNormNormalizerTransform.UserNameLP, 
+        [TlcModule.EntryPoint(Name = "Transforms.LpNormalizer",
+            Desc = LpNormNormalizerTransform.Summary,
+            UserName = LpNormNormalizerTransform.UserNameLP,
             ShortName = LpNormNormalizerTransform.ShortNameLP,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""LpNormalize""]/*' />" })]
         public static CommonOutputs.TransformOutput Normalize(IHostEnvironment env, LpNormNormalizerTransform.Arguments input)
@@ -682,9 +682,9 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.GlobalContrastNormalizer", 
-            Desc = LpNormNormalizerTransform.GcnSummary, 
-            UserName = LpNormNormalizerTransform.UserNameGn, 
+        [TlcModule.EntryPoint(Name = "Transforms.GlobalContrastNormalizer",
+            Desc = LpNormNormalizerTransform.GcnSummary,
+            UserName = LpNormNormalizerTransform.UserNameGn,
             ShortName = LpNormNormalizerTransform.ShortNameGn,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""GcNormalize""]/*' />" })]
         public static CommonOutputs.TransformOutput GcNormalize(IHostEnvironment env, LpNormNormalizerTransform.GcnArguments input)

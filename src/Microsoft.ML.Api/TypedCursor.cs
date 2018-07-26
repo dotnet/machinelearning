@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.Api
 
     /// <summary>
     /// Implementation of the strongly typed Cursorable.
-    /// Similarly to the 'DataView{T}, this class uses IL generation to create the 'poke' methods that 
+    /// Similarly to the 'DataView{T}, this class uses IL generation to create the 'poke' methods that
     /// write directly into the fields of the user-defined type.
     /// </summary>
     internal sealed class TypedCursorable<TRow> : ICursorable<TRow>
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Runtime.Api
             }
 
             // REVIEW: The converting getter invokes a type conversion delegate on every call, so it's inherently slower
-            // than the 'direct' getter. We don't have good indication of this to the user, and the selection 
+            // than the 'direct' getter. We don't have good indication of this to the user, and the selection
             // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
             private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(IRow input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
             {

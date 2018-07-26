@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// A bindable mapper wrapper for tree ensembles, that creates a bound mapper with three outputs:
-    /// 1. A vector containing the individual tree outputs of the tree ensemble. 
+    /// 1. A vector containing the individual tree outputs of the tree ensemble.
     /// 2. An indicator vector for the leaves that the feature vector falls on in the tree ensemble.
     /// 3. An indicator vector for the internal nodes on the paths that the feature vector falls on in the tree ensemble.
     /// </summary>
@@ -192,15 +192,15 @@ namespace Microsoft.ML.Runtime.Data
 
                 // A vector containing the output of each tree on a given example.
                 var treeValueType = new VectorType(NumberType.Float, _owner._ensemble.NumTrees);
-                // An indicator vector with length = the total number of leaves in the ensemble, indicating which leaf the example 
+                // An indicator vector with length = the total number of leaves in the ensemble, indicating which leaf the example
                 // ends up in all the trees in the ensemble.
                 var leafIdType = new VectorType(NumberType.Float, _owner._totalLeafCount);
-                // An indicator vector with length = the total number of nodes in the ensemble, indicating the nodes on 
+                // An indicator vector with length = the total number of nodes in the ensemble, indicating the nodes on
                 // the paths of the example in all the trees in the ensemble.
                 // The total number of nodes in a binary tree is equal to the number of internal nodes + the number of leaf nodes,
                 // and it is also equal to the number of children of internal nodes (which is 2 * the number of internal nodes)
-                // plus one (since the root node is not a child of any node). So we have #internal + #leaf = 2*(#internal) + 1, 
-                // which means that #internal = #leaf - 1. 
+                // plus one (since the root node is not a child of any node). So we have #internal + #leaf = 2*(#internal) + 1,
+                // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
                 var pathIdType = new VectorType(NumberType.Float, _owner._totalLeafCount - _owner._ensemble.NumTrees);
                 _outputSchema = new Schema(ectx, owner, treeValueType, leafIdType, pathIdType);
@@ -563,8 +563,8 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// REVIEW: Ideally we should have only one arguments class by using IComponentFactory for the model. 
-        /// For now it probably warrants a REVIEW comment here in case we'd like to merge these two arguments in the future. 
+        /// REVIEW: Ideally we should have only one arguments class by using IComponentFactory for the model.
+        /// For now it probably warrants a REVIEW comment here in case we'd like to merge these two arguments in the future.
         /// Also, it might be worthwhile to extract the common arguments to a base class.
         /// </summary>
         [TlcModule.EntryPointKind(typeof(CommonInputs.IFeaturizerInput))]
@@ -803,9 +803,9 @@ namespace Microsoft.ML.Runtime.Data
 
     public static partial class TreeFeaturize
     {
-        [TlcModule.EntryPoint(Name = "Transforms.TreeLeafFeaturizer", 
-            Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary, 
-            UserName = TreeEnsembleFeaturizerTransform.UserName, 
+        [TlcModule.EntryPoint(Name = "Transforms.TreeLeafFeaturizer",
+            Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary,
+            UserName = TreeEnsembleFeaturizerTransform.UserName,
             ShortName = TreeEnsembleFeaturizerBindableMapper.LoadNameShort,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""TreeEnsembleFeaturizerTransform""]'/>" })]
         public static CommonOutputs.TransformOutput Featurizer(IHostEnvironment env, TreeEnsembleFeaturizerTransform.ArgumentsForEntryPoint input)

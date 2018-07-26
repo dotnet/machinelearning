@@ -40,9 +40,9 @@ namespace Microsoft.ML.Runtime.LightGBM
         private protected readonly LightGbmArguments Args;
 
         /// <summary>
-        /// Stores argumments as objects to convert them to invariant string type in the end so that 
-        /// the code is culture agnostic. When retrieving key value from this dictionary as string 
-        /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]). 
+        /// Stores argumments as objects to convert them to invariant string type in the end so that
+        /// the code is culture agnostic. When retrieving key value from this dictionary as string
+        /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]).
         /// </summary>
         private protected readonly Dictionary<string, object> Options;
         private protected readonly IParallel ParallelTraining;
@@ -467,7 +467,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                                     hotIdx = j;
                             }
                         }
-                        // All-Zero is category 0. 
+                        // All-Zero is category 0.
                         fv = hotIdx - catMetaData.CategoricalBoudaries[i] + 1;
                     }
                     featureValues[i] = fv;
@@ -479,8 +479,8 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        private void GetFeatureValueSparse(IChannel ch, FloatLabelCursor cursor, 
-            CategoricalMetaData catMetaData, IRandom rand, out int[] indices, 
+        private void GetFeatureValueSparse(IChannel ch, FloatLabelCursor cursor,
+            CategoricalMetaData catMetaData, IRandom rand, out int[] indices,
             out float[] featureValues, out int cnt)
         {
             if (catMetaData.CategoricalBoudaries != null)
@@ -680,7 +680,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                         // Need push rows to LightGBM.
                         if (numElem + cursor.Features.Count > features.Length)
                         {
-                            // Mini batch size is greater than size of one row. 
+                            // Mini batch size is greater than size of one row.
                             // So, at least we have the data of one row.
                             ch.Assert(curRowCount > 0);
                             Utils.EnsureSize(ref indptr, curRowCount + 1);

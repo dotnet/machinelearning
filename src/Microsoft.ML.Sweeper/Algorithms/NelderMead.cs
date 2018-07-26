@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                 // REVIEW: ideas about how to support discrete values:
                 // 1. assign each discrete value a random number (1-n) to make mirroring possible
                 // 2. each time we need to mirror a discrete value, sample from the remaining value
-                // 2.1. make the sampling non-uniform by learning "weights" for the different discrete values based on 
+                // 2.1. make the sampling non-uniform by learning "weights" for the different discrete values based on
                 // the metric values that we get when using them. (E.g. if, for a given discrete value, we get a bad result,
                 // we lower its weight, but if we get a good result we increase its weight).
                 var parameterNumeric = parameter as INumericValueGenerator;

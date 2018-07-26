@@ -57,8 +57,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public override bool ContainsColumn(string colName) => _columnNameMap.ContainsKey(colName);
 
         /// <summary>
-        /// Stops tracking a column. If removeVariable is true then it also removes the 
-        /// variable associated with it, this is useful in the event where an output variable is 
+        /// Stops tracking a column. If removeVariable is true then it also removes the
+        /// variable associated with it, this is useful in the event where an output variable is
         /// created before realizing the transform cannot actually save as ONNX.
         /// </summary>
         /// <param name="colName">IDataView column name to stop tracking</param>
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         }
 
         /// <summary>
-        /// Removes an ONNX variable. If removeColumn is true then it also removes the 
+        /// Removes an ONNX variable. If removeColumn is true then it also removes the
         /// IDataView column associated with it.
         /// </summary>
         /// <param name="variableName">ONNX variable to remove.</param>
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         }
 
         /// <summary>
-        /// Retrieves the variable name that maps to the IDataView column name at a 
+        /// Retrieves the variable name that maps to the IDataView column name at a
         /// given point in the pipeline execution.
         /// </summary>
         /// <returns>Column Name mapping.</returns>
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         }
 
         /// <summary>
-        /// Retrieves the variable name that maps to the IDataView column name at a 
+        /// Retrieves the variable name that maps to the IDataView column name at a
         /// given point in the pipeline execution.
         /// </summary>
         /// <returns>Column Name mapping.</returns>
