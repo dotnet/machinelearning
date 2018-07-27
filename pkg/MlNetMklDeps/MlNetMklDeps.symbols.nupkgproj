@@ -1,5 +1,0 @@
-<Project DefaultTargets="Pack">
-
-  <Import Project="MlNetMklDeps.nupkgproj" />
-
-</Project>

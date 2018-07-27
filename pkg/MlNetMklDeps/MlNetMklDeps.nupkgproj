@@ -1,8 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
-
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageDescription>Intel(R) MKL dependencies for ML.Net.</PackageDescription>
-  </PropertyGroup>
-
-</Project>
