@@ -100,14 +100,14 @@ namespace Microsoft.ML.Core.Data
     }
 
     /// <summary>
-    /// The 'data reader' takes certain kind of input and turns it into an <see cref="IDataView"/>.
+    /// The 'data reader' takes a certain kind of input and turns it into an <see cref="IDataView"/>.
     /// </summary>
     /// <typeparam name="TSource">The type of input the reader takes.</typeparam>
     public interface IDataReader<in TSource>
     {
         /// <summary>
-        /// Take the data in, make transformations, output the data.
-        /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
+        /// Produce the data view from the specified input.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual reading happens here, just schema validation.
         /// </summary>
         IDataView Read(TSource input);
 
@@ -118,33 +118,25 @@ namespace Microsoft.ML.Core.Data
     }
 
     /// <summary>
-    /// Sometimes we need to 'fit' an <see cref="IDataReader{TIn}"/>. This interface is representing the 'unfitted' version.
+    /// Sometimes we need to 'fit' an <see cref="IDataReader{TIn}"/>.
+    /// A DataReader estimator is the object that does it.
     /// </summary>
-    /// <typeparam name="TSource">The type of input the estimator (and eventually transformer) takes.</typeparam>
-    public interface IDataReaderEstimator<in TSource>
+    public interface IDataReaderEstimator<in TSource, out TReader>
+        where TReader : IDataReader<TSource>
     {
         /// <summary>
-        /// Train and return a transformer.
+        /// Train and return a data reader.
         ///
         /// REVIEW: you could consider the transformer to take a different <typeparamref name="TSource"/>, but we don't have such components
         /// yet, so why complicate matters?
         /// </summary>
-        IDataReader<TSource> Fit(TSource input);
+        TReader Fit(TSource input);
 
         /// <summary>
         /// The 'promise' of the output schema.
         /// It will be used for schema propagation.
         /// </summary>
         SchemaShape GetOutputSchema();
-    }
-
-    /// <summary>
-    /// A DataReader estimator that provides more details about the produced reader, in the form of <typeparamref name="TReader"/>.
-    /// </summary>
-    public interface IDataReaderEstimator<in TSource, out TReader> : IDataReaderEstimator<TSource>
-        where TReader : IDataReader<TSource>
-    {
-        new TReader Fit(TSource input);
     }
 
     /// <summary>

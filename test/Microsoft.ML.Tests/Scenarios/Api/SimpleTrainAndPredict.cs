@@ -61,6 +61,40 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             }
         }
 
+        [Fact]
+        public void New_SimpleTrainAndPredict()
+        {
+            var dataPath = GetDataPath(SentimentDataPath);
+            var testDataPath = GetDataPath(SentimentTestPath);
+
+            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            {
+                // Pipeline.
+                var pipeline = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
+                    .StartPipe() // Actually optional
+                    .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()))
+                    .Append(new MySdca(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
+
+                // Train.
+                var model = pipeline.Fit(new MultiFileSource(dataPath));
+
+                (var reader, var pipe) = model.GetParts();
+                // Create prediction engine and test predictions.
+                var engine = new MyPredictionEngine<SentimentData, SentimentPrediction>(env, reader.GetOutputSchema(), pipe);
+
+                // Take a couple examples out of the test data and run predictions on top.
+                var testData = reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))
+                    .AsEnumerable<SentimentData>(env, false);
+                foreach (var input in testData.Take(5))
+                {
+                    var prediction = engine.Predict(input);
+                    // Verify that predictions match and scores are separated from zero.
+                    Assert.Equal(input.Sentiment, prediction.Sentiment);
+                    Assert.True(input.Sentiment && prediction.Score > 1 || !input.Sentiment && prediction.Score < -1);
+                }
+            }
+        }
+
         private static TextTransform.Arguments MakeSentimentTextTransformArgs()
         {
             return new TextTransform.Arguments()

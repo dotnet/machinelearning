@@ -10,6 +10,7 @@ using System.Linq;
 using Xunit;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Tests.Scenarios.Api;
 
 namespace Microsoft.ML.Core.Tests.UnitTests
 {
@@ -68,7 +69,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             };
         }
 
-        public class MyTextLoader : IDataReaderEstimator<IMultiStreamSource>, IDataReader<IMultiStreamSource>
+        public class MyTextLoader : IDataReaderEstimator<IMultiStreamSource, IDataReader<IMultiStreamSource>>, IDataReader<IMultiStreamSource>
         {
             private readonly TextLoader.Arguments _args;
             private readonly IHostEnvironment _env;
@@ -215,59 +216,6 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             {
                 Contracts.CheckValue(estimator, nameof(estimator));
                 return new EstimatorChain<TNewTrans>(_chain.Append(estimator).ToArray());
-            }
-        }
-
-        public class ReaderPipe<TIn, TTrans> : IDataReaderEstimator<TIn, CompositeReader<TIn>>
-            where TTrans : class, ITransformer
-        {
-            private readonly IDataReaderEstimator<TIn> _start;
-            private readonly EstimatorChain<TTrans> _estimatorChain;
-            private readonly IHostEnvironment _env = new TlcEnvironment();
-
-
-            public ReaderPipe(IDataReaderEstimator<TIn> start)
-            {
-                _start = start;
-                _estimatorChain = EstimatorChain<ITransformer>.CreateEmpty() as EstimatorChain<TTrans>;
-            }
-
-            private ReaderPipe(IDataReaderEstimator<TIn> start, EstimatorChain<TTrans> estimatorChain)
-            {
-                _start = start;
-                _estimatorChain = estimatorChain;
-            }
-
-            public ReaderPipe<TIn, TNewTrans> Append<TNewTrans>(IEstimator<TNewTrans> estimator)
-                where TNewTrans : class, ITransformer
-            {
-                var newChain = _estimatorChain.Append(estimator);
-                return new ReaderPipe<TIn, TNewTrans>(_start, newChain);
-            }
-
-            public CompositeReader<TIn> Fit(TIn input)
-            {
-                var start = _start.Fit(input);
-                var idv = start.Read(input);
-
-                var xfChain = _estimatorChain.Fit(idv);
-                return new CompositeReader<TIn, TTrans>(start, xfChain);
-            }
-
-            public SchemaShape GetOutputSchema()
-            {
-                var shape = _start.GetOutputSchema();
-                return _estimatorChain.GetOutputSchema(shape);
-            }
-
-            public (IDataReaderEstimator<TIn>, EstimatorChain<TTrans>) GetParts()
-            {
-                return (_start, _estimatorChain);
-            }
-
-            IDataReader<TIn> IDataReaderEstimator<TIn>.Fit(TIn input)
-            {
-                return Fit(input);
             }
         }
 
@@ -636,7 +584,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         {
             var env = new TlcEnvironment();
             var sdca = new MySdca(env);
-            var pipeline = new ReaderPipe<IMultiStreamSource, ITransformer>(new MyTextLoader(env, MakeTextLoaderArgs()));
+            var pipeline = new CompositeReaderEstimator<IMultiStreamSource, ITransformer>(new MyTextLoader(env, MakeTextLoaderArgs()));
             pipeline.Append(new MyConcat(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
                     .Append(new MyNormalizer(env, "Features"))
                     .Append(sdca);
@@ -663,7 +611,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         public void TestOvaTraining()
         {
             var env = new TlcEnvironment();
-            var pipeline = new ReaderPipe<IMultiStreamSource, ITransformer>(new MyTextLoader(env, MakeTextLoaderArgs()));
+            var pipeline = new CompositeReaderEstimator<IMultiStreamSource, ITransformer>(new MyTextLoader(env, MakeTextLoaderArgs()));
             pipeline.Append(new MyConcat(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"))
                     .Append(new MyNormalizer(env, "Features"));
 
