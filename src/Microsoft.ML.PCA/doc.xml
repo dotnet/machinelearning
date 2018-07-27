@@ -11,7 +11,7 @@
       Its training is done using the technique described in the paper: <a href='https://arxiv.org/pdf/1310.6304v2.pdf'>Combining Structured and Unstructured Randomness in Large Scale PCA</a>,
       and the paper <a href='https://arxiv.org/pdf/0909.4061v2.pdf'>Finding Structure with Randomness: Probabilistic Algorithms for Constructing Approximate Matrix Decompositions</a>
         <para>For more information, see also:</para>
-        <list>
+        <list type='bullet'>
           <item><description>
             <a href='http://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf'>Randomized Methods for Computing the Singular Value Decomposition (SVD) of very large matrices</a>
           </description></item>

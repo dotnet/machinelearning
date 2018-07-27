@@ -28,7 +28,7 @@
       </summary>
       <remarks>
         The TextToKeyConverter transform builds up term vocabularies (dictionaries).
-        The TextToKey Converter and the <see cref="T:Microsoft.ML.Transforms.HashConverter"/> are the two one primary mechanisms by which raw input is transformed into keys.
+        The TextToKeyConverter and the <see cref="T:Microsoft.ML.Transforms.HashConverter"/> are the two one primary mechanisms by which raw input is transformed into keys.
         If multiple columns are used, each column builds/uses exactly one vocabulary.
         The output columns are KeyType-valued.
         The Key value is the one-based index of the item in the dictionary.
@@ -45,6 +45,52 @@
           pipeline.Add(new TextToKeyConverter((&quot;Column&quot;, &quot;OutColumn&quot;))
           { 
             Sort = TermTransformSortOrder.Occurrence 
+          });
+        </code>
+      </example>
+    </example>
+
+    <member name="NAHandle">
+      <summary>
+        Handle missing values by replacing them with either the default value or the indicated value.
+      </summary>
+      <remarks>
+        This transform handles missing values in the input columns. For each input column, it creates an output column
+        where the missing values are replaced by one of these specified values:
+        <list type='bullet'>
+          <item>
+            <description>The default value of the appropriate type.</description>
+          </item>
+          <item>
+            <description>The mean value of the appropriate type.</description>
+          </item>
+          <item>
+            <description>The max value of the appropriate type.</description>
+          </item>
+          <item>
+            <description>The min value of the appropriate type.</description>
+          </item>
+        </list>
+        <para>The last three work only for numeric/TimeSpan/DateTime kind columns.</para>
+        <para>
+          The output column can also optionally include an indicator vector for which slots were missing in the input column.
+          This can be done only when the indicator vector type can be converted to the input column type, i.e. only for numeric columns.
+        </para>
+        <para>
+          When computing the mean/max/min value, there is also an option to compute it over the whole column instead of per slot.
+          This option has a default value of true for variable length vectors, and false for known length vectors.
+          It can be changed to true for known length vectors, but it results in an error if changed to false for variable length vectors.
+        </para>
+      </remarks>
+      <seealso cref=" Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"/>
+      <seealso cref="T:Microsoft.ML.Data.DataKind"/>
+    </member>
+    <example name="NAHandle">
+      <example>
+        <code language="csharp">
+          pipeline.Add(new MissingValueHandler(&quot;FeatureCol&quot;, &quot;CleanFeatureCol&quot;)
+          {
+          ReplaceWith  = NAHandleTransformReplacementKind.Mean
           });
         </code>
       </example>
