@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         [TlcModule.EntryPoint(Desc = "One-vs-All macro (OVA)",
             Name = "Models.OneVersusAll",
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name=""OVA""]/*'/>" })]
-        public static CommonOutputs.MacroOutput<Output> OVA(
+        public static CommonOutputs.MacroOutput<Output> OneVersusAll(
             IHostEnvironment env,
             Arguments input,
             EntryPointNode node)

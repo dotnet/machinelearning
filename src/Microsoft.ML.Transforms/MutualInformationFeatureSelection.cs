@@ -21,7 +21,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' /> 
+    /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
     public static class MutualInformationFeatureSelectionTransform
     {
         public const string Summary =
