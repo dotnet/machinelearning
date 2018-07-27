@@ -170,11 +170,6 @@ namespace Microsoft.ML.Runtime
             }
         }
 
-        public void AddSerialize(string name, object input, object output)
-        {
-            _jsonNodes.Add(Serialize(name, input, output));
-        }
-
         private string GetEntryPointName(Type inputType)
         {
             if (inputType.FullName != null)
