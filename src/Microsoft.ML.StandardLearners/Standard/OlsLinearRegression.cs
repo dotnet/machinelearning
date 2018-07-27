@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="Ols"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
     public sealed class OlsLinearRegressionTrainer : TrainerBase<OlsLinearRegressionPredictor>
     {
         public sealed class Arguments : LearnerInputBaseWithWeight
@@ -466,7 +466,7 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = "Train an OLS regression model.",
             UserName = UserNameValue,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""Ols""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""OLS""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
