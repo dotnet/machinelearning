@@ -263,7 +263,7 @@ namespace Microsoft.ML.Runtime.Data
         private RoleMappedData CreateRoleMappedData(IHostEnvironment env, IChannel ch, IDataView data, ITrainer trainer)
         {
             foreach (var kvp in Args.Transform)
-                data = kvp.Value.CreateInstance(env, data);
+                data = kvp.Value.CreateComponent(env, data);
 
             var schema = data.Schema;
             string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Args.LabelColumn), Args.LabelColumn, DefaultColumnNames.Label);

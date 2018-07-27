@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -20,8 +22,8 @@ namespace Microsoft.ML.Runtime.Data
     {
         public abstract class ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "The data loader", ShortName = "loader", SortOrder = 1, NullName = "<Auto>")]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "The data loader", ShortName = "loader", SortOrder = 1, NullName = "<Auto>", SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The data file", ShortName = "data", SortOrder = 0)]
             public string DataFile;
@@ -51,8 +53,8 @@ namespace Microsoft.ML.Runtime.Data
                 HelpText = "Desired degree of parallelism in the data pipeline", ShortName = "n")]
             public int? Parallel;
 
-            [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Transform", ShortName = "xf")]
-            public KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] Transform;
+            [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
+            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transform;
         }
 
         public abstract class ImplBase<TArgs> : ICommand
@@ -123,6 +125,17 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (sub.IsGood())
                     pipe.Send(TelemetryMessage.CreateTrainer(sub.Kind, sub.SubComponentSettings));
+            }
+
+            protected void SendTelemetryComponent(IPipe<TelemetryMessage> pipe, IComponentFactory factory)
+            {
+                Host.AssertValue(pipe);
+                Host.AssertValueOrNull(factory);
+
+                if (factory is IComponentWithSettings factoryWithSettings)
+                    pipe.Send(TelemetryMessage.CreateTrainer(factoryWithSettings.Name, factoryWithSettings.GetSettingsString()));
+                else
+                    pipe.Send(TelemetryMessage.CreateTrainer("Unknown", "Non-IComponentWithSettings object"));
             }
 
             protected virtual void SendTelemetryCore(IPipe<TelemetryMessage> pipe)
@@ -212,9 +225,9 @@ namespace Microsoft.ML.Runtime.Data
                     LoaderUtils.SaveLoader(loader, file);
             }
 
-            protected IDataLoader CreateAndSaveLoader(string defaultLoader = "TextLoader")
+            protected IDataLoader CreateAndSaveLoader(Func<IHostEnvironment, IMultiStreamSource, IDataLoader> defaultLoaderFactory = null)
             {
-                var loader = CreateLoader(defaultLoader);
+                var loader = CreateLoader(defaultLoaderFactory);
                 if (!string.IsNullOrWhiteSpace(Args.OutputModelFile))
                 {
                     using (var file = Host.CreateOutputFile(Args.OutputModelFile))
@@ -268,12 +281,12 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     // Next create the loader.
-                    var sub = Args.Loader;
+                    var loaderFactory = Args.Loader;
                     IDataLoader trainPipe = null;
-                    if (sub.IsGood())
+                    if (loaderFactory != null)
                     {
                         // The loader is overridden from the command line.
-                        pipe = sub.CreateInstance(Host, new MultiFileSource(Args.DataFile));
+                        pipe = loaderFactory.CreateComponent(Host, new MultiFileSource(Args.DataFile));
                         if (Args.LoadTransforms == true)
                         {
                             Host.CheckUserArg(!string.IsNullOrWhiteSpace(Args.InputModelFile), nameof(Args.InputModelFile));
@@ -316,9 +329,9 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            protected IDataLoader CreateLoader(string defaultLoader = "TextLoader")
+            protected IDataLoader CreateLoader(Func<IHostEnvironment, IMultiStreamSource, IDataLoader> defaultLoaderFactory = null)
             {
-                var loader = CreateRawLoader(defaultLoader);
+                var loader = CreateRawLoader(defaultLoaderFactory);
                 loader = CreateTransformChain(loader);
                 return loader;
             }
@@ -328,13 +341,15 @@ namespace Microsoft.ML.Runtime.Data
                 return CompositeDataLoader.Create(Host, loader, Args.Transform);
             }
 
-            protected IDataLoader CreateRawLoader(string defaultLoader = "TextLoader", string dataFile = null)
+            protected IDataLoader CreateRawLoader(
+                Func<IHostEnvironment, IMultiStreamSource, IDataLoader> defaultLoaderFactory = null,
+                string dataFile = null)
             {
                 if (string.IsNullOrWhiteSpace(dataFile))
                     dataFile = Args.DataFile;
 
                 IDataLoader loader;
-                if (!string.IsNullOrWhiteSpace(Args.InputModelFile) && !Args.Loader.IsGood())
+                if (!string.IsNullOrWhiteSpace(Args.InputModelFile) && Args.Loader == null)
                 {
                     // Load the loader from the data model.
                     using (var file = Host.OpenInputFile(Args.InputModelFile))
@@ -345,8 +360,9 @@ namespace Microsoft.ML.Runtime.Data
                 else
                 {
                     // Either there is no input model file, or there is, but the loader is overridden.
-                    var sub = Args.Loader;
-                    if (!sub.IsGood())
+                    IMultiStreamSource fileSource = new MultiFileSource(dataFile);
+                    var loaderFactory = Args.Loader;
+                    if (loaderFactory == null)
                     {
                         var ext = Path.GetExtension(dataFile);
                         var isText =
@@ -354,12 +370,17 @@ namespace Microsoft.ML.Runtime.Data
                             string.Equals(ext, ".tlc", StringComparison.OrdinalIgnoreCase);
                         var isBinary = string.Equals(ext, ".idv", StringComparison.OrdinalIgnoreCase);
                         var isTranspose = string.Equals(ext, ".tdv", StringComparison.OrdinalIgnoreCase);
-                        sub =
-                            new SubComponent<IDataLoader, SignatureDataLoader>(
-                                isText ? "TextLoader" : isBinary ? "BinaryLoader" : isTranspose ? "TransposeLoader" : defaultLoader);
-                    }
 
-                    loader = sub.CreateInstance(Host, new MultiFileSource(dataFile));
+                        return isText ? new TextLoader(Host, new TextLoader.Arguments(), fileSource) :
+                               isBinary ? new BinaryLoader(Host, new BinaryLoader.Arguments(), fileSource) :
+                               isTranspose ? new TransposeLoader(Host, new TransposeLoader.Arguments(), fileSource) :
+                               defaultLoaderFactory != null ? defaultLoaderFactory(Host, fileSource) :
+                               new TextLoader(Host, new TextLoader.Arguments(), fileSource);
+                    }
+                    else
+                    {
+                        loader = loaderFactory.CreateComponent(Host, fileSource);
+                    }
 
                     if (Args.LoadTransforms == true)
                     {

@@ -249,6 +249,12 @@ namespace Microsoft.ML.Runtime.CommandLine
         Default = ShortNames | NoSlashes
     }
 
+    public interface IComponentWithSettings
+    {
+        string Name { get; }
+        string GetSettingsString();
+    }
+
     /// <summary>
     /// Parser for command line arguments.
     ///
@@ -797,7 +803,8 @@ namespace Microsoft.ML.Runtime.CommandLine
                     ModuleCatalog.ComponentInfo component;
                     if (IsCurlyGroup(value) && value.Length == 2)
                         arg.Field.SetValue(destination, null);
-                    else if (_catalog.Value.TryFindComponentCaseInsensitive(arg.Field.FieldType, value, out component))
+                    else if (!arg.IsCollection &&
+                        _catalog.Value.TryFindComponentCaseInsensitive(arg.Field.FieldType, value, out component))
                     {
                         var activator = Activator.CreateInstance(component.ArgumentType);
                         if (!IsCurlyGroup(value) && i + 1 < strs.Length && IsCurlyGroup(strs[i + 1]))
@@ -1673,17 +1680,17 @@ namespace Microsoft.ML.Runtime.CommandLine
                     BuildSubComponent(com);
                     Field.SetValue(destination, com);
                 }
-                else if (IsComponentFactory)
+                else if (IsSingleComponentFactory)
                 {
                     var com = new SubComponent();
                     BuildSubComponent(com);
 
                     Contracts.Check(_signatureType != null, "ComponentFactory Arguments need a SignatureType set.");
                     var factory = ComponentFactoryFactory.CreateComponentFactory(
-                        ItemType, 
-                        _signatureType, 
+                        ItemType,
+                        _signatureType,
                         com.Kind,
-                        CombineSettings(com.Settings));
+                        com.Settings);
                     Field.SetValue(destination, factory);
                 }
                 else if (IsMultiSubComponent)
@@ -1733,6 +1740,63 @@ namespace Microsoft.ML.Runtime.CommandLine
                         Field.SetValue(destination, arr);
                     }
                 }
+                else if (IsMultiComponentFactory)
+                {
+                    // REVIEW: the kind should not be separated from settings: everything related 
+                    // to one item should go into one value, not multiple values
+                    if (IsTaggedCollection)
+                    {
+                        // Tagged collection of IComponentFactory
+                        var comList = new List<KeyValuePair<string, IComponentFactory>>();
+
+                        for (int i = 0; i < Utils.Size(values);)
+                        {
+                            string tag = values[i].Key;
+                            string name = (string)values[i++].Value;
+                            string[] settings = null;
+                            if (i < values.Count && IsCurlyGroup((string)values[i].Value) && string.IsNullOrEmpty(values[i].Key))
+                                settings = new string[] { (string)values[i++].Value };
+                            var factory = ComponentFactoryFactory.CreateComponentFactory(
+                                ItemValueType,
+                                _signatureType,
+                                name,
+                                settings);
+                            comList.Add(new KeyValuePair<string, IComponentFactory>(tag, factory));
+                        }
+
+                        var arr = Array.CreateInstance(ItemType, comList.Count);
+                        for (int i = 0; i < arr.Length; i++)
+                        {
+                            var kvp = Activator.CreateInstance(ItemType, comList[i].Key, comList[i].Value);
+                            arr.SetValue(kvp, i);
+                        }
+
+                        Field.SetValue(destination, arr);
+                    }
+                    else
+                    {
+                        // Collection of IComponentFactory
+                        var comList = new List<IComponentFactory>();
+                        for (int i = 0; i < Utils.Size(values);)
+                        {
+                            string name = (string)values[i++].Value;
+                            string[] settings = null;
+                            if (i < values.Count && IsCurlyGroup((string)values[i].Value))
+                                settings = new string[] { (string)values[i++].Value };
+                            var factory = ComponentFactoryFactory.CreateComponentFactory(
+                                ItemValueType,
+                                _signatureType,
+                                name,
+                                settings);
+                            comList.Add(factory);
+                        }
+
+                        var arr = Array.CreateInstance(ItemValueType, comList.Count);
+                        for (int i = 0; i < arr.Length; i++)
+                            arr.SetValue(comList[i], i);
+                        Field.SetValue(destination, arr);
+                    }
+                }
                 else if (IsTaggedCollection)
                 {
                     var res = Array.CreateInstance(ItemType, Utils.Size(values));
@@ -1756,41 +1820,106 @@ namespace Microsoft.ML.Runtime.CommandLine
 
             private static class ComponentFactoryFactory
             {
-                public static IComponentFactory CreateComponentFactory(Type fieldType, Type signatureType, string name, string options)
+                public static IComponentFactory CreateComponentFactory(
+                    Type fieldType,
+                    Type signatureType,
+                    string name,
+                    string[] settings)
                 {
                     Contracts.Check(fieldType != null &&
                         typeof(IComponentFactory).IsAssignableFrom(fieldType) &&
-                        fieldType.IsGenericType &&
-                        fieldType.GenericTypeArguments.Length == 1);
+                        fieldType.IsGenericType);
+
+                    Type componentFactoryType;
+                    if (fieldType.GenericTypeArguments.Length == 1)
+                    {
+                        componentFactoryType = typeof(ComponentFactory<>);
+                    }
+                    else if (fieldType.GenericTypeArguments.Length == 2)
+                    {
+                        componentFactoryType = typeof(ComponentFactory<,>);
+                    }
+                    else
+                    {
+                        throw Contracts.ExceptNotImpl("ComponentFactoryFactory can only create components with 1 or 2 type args.");
+                    }
 
                     return (IComponentFactory)Activator.CreateInstance(
-                        typeof(ComponentFactory<>).MakeGenericType(fieldType.GenericTypeArguments),
+                        componentFactoryType.MakeGenericType(fieldType.GenericTypeArguments),
                         signatureType,
                         name,
-                        options);
+                        settings);
                 }
 
-                private class ComponentFactory<TComponent> : IComponentFactory<TComponent>
+                private abstract class ComponentFactory: IComponentWithSettings
+                {
+                    protected Type SignatureType { get; }
+                    public string Name { get; }
+                    protected string[] Settings { get; }
+
+                    protected ComponentFactory(Type signatureType, string name, string[] settings)
+                    {
+                        SignatureType = signatureType;
+                        Name = name;
+                        Settings = settings;
+                    }
+
+                    public string GetSettingsString()
+                    {
+                        return CombineSettings(Settings);
+                    }
+
+                    public override string ToString()
+                    {
+                        if (string.IsNullOrEmpty(Name) && Settings?.Length == 0)
+                            return "{}";
+
+                        if (Settings.Length == 0)
+                            return Name;
+
+                        string str = CombineSettings(Settings);
+                        StringBuilder sb = new StringBuilder();
+                        CmdQuoter.QuoteValue(str, sb, true);
+                        return Name + sb.ToString();
+                    }
+                }
+
+                private class ComponentFactory<TComponent> : ComponentFactory, IComponentFactory<TComponent>
                     where TComponent : class
                 {
-                    private readonly Type _signatureType;
-                    private readonly string _name;
-                    private readonly string _options;
-
-                    public ComponentFactory(Type signatureType, string name, string options)
+                    public ComponentFactory(Type signatureType, string name, string[] settings)
+                        : base(signatureType, name, settings)
                     {
-                        _signatureType = signatureType;
-                        _name = name;
-                        _options = options;
                     }
 
                     public TComponent CreateComponent(IHostEnvironment env)
                     {
                         env.Check(ComponentCatalog.TryCreateInstance(env,
-                            _signatureType,
+                            SignatureType,
                             out TComponent result,
-                            _name,
-                            _options));
+                            Name,
+                            CombineSettings(Settings)));
+
+                        return result;
+                    }
+                }
+
+                private class ComponentFactory<TArg1, TComponent> : ComponentFactory, IComponentFactory<TArg1, TComponent>
+                    where TComponent : class
+                {
+                    public ComponentFactory(Type signatureType, string name, string[] settings)
+                        : base(signatureType, name, settings)
+                    {
+                    }
+
+                    public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1)
+                    {
+                        env.Check(ComponentCatalog.TryCreateInstance(env,
+                           SignatureType,
+                           out TComponent result,
+                           Name,
+                           CombineSettings(Settings),
+                           argument1));
 
                         return result;
                     }
@@ -2251,19 +2380,28 @@ namespace Microsoft.ML.Runtime.CommandLine
                     string name;
                     var catalog = ModuleCatalog.CreateInstance(ectx);
                     var type = value.GetType();
-                    bool success = catalog.TryGetComponentShortName(type, out name);
-                    Contracts.Assert(success);
-
-                    var settings = GetSettings(ectx, value, Activator.CreateInstance(type));
-                    buffer.Clear();
-                    buffer.Append(name);
-                    if (!string.IsNullOrWhiteSpace(settings))
+                    bool isModuleComponent = catalog.TryGetComponentShortName(type, out name);
+                    if (isModuleComponent)
                     {
-                        StringBuilder sb = new StringBuilder();
-                        CmdQuoter.QuoteValue(settings, sb, true);
-                        buffer.Append(sb);
+                        var settings = GetSettings(ectx, value, Activator.CreateInstance(type));
+                        buffer.Clear();
+                        buffer.Append(name);
+                        if (!string.IsNullOrWhiteSpace(settings))
+                        {
+                            StringBuilder sb = new StringBuilder();
+                            CmdQuoter.QuoteValue(settings, sb, true);
+                            buffer.Append(sb);
+                        }
+                        return buffer.ToString();
                     }
-                    return buffer.ToString();
+                    else if (value is IComponentWithSettings valueWithSettings)
+                    {
+                        return value.ToString();
+                    }
+                    else
+                    {
+                        throw ectx.Except($"IComponentFactory instances either need to be EntryPointComponents or implement {nameof(IComponentWithSettings)}.");
+                    }
                 }
 
                 return value.ToString();
@@ -2407,6 +2545,16 @@ namespace Microsoft.ML.Runtime.CommandLine
 
             public bool IsMultiSubComponent {
                 get { return IsSubComponentItemType && Field.FieldType.IsArray; }
+            }
+
+            public bool IsSingleComponentFactory
+            {
+                get { return IsComponentFactory && !Field.FieldType.IsArray; }
+            }
+
+            public bool IsMultiComponentFactory
+            {
+                get { return IsComponentFactory && Field.FieldType.IsArray; }
             }
 
             public bool IsCustomItemType {

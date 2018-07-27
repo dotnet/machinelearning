@@ -117,8 +117,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the terms", ShortName = "data", SortOrder = 110, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string DataFile;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 111, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 111, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the terms", ShortName = "termCol", SortOrder = 112, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string TermsColumn;
@@ -309,12 +309,19 @@ namespace Microsoft.ML.Runtime.Data
             string file = args.DataFile;
             // First column using the file.
             string src = args.TermsColumn;
-            var sub = args.Loader;
+            IMultiStreamSource fileSource = new MultiFileSource(file);
+
+            var loaderFactory = args.Loader;
             // If the user manually specifies a loader, or this is already a pre-processed binary
             // file, then we assume the user knows what they're doing and do not attempt to convert
             // to the desired type ourselves.
             bool autoConvert = false;
-            if (!sub.IsGood())
+            IDataLoader loader;
+            if (loaderFactory != null)
+            {
+                loader = loaderFactory.CreateComponent(env, fileSource);
+            }
+            else
             {
                 // Determine the default loader from the extension.
                 var ext = Path.GetExtension(file);
@@ -326,11 +333,11 @@ namespace Microsoft.ML.Runtime.Data
                     ch.CheckUserArg(!string.IsNullOrWhiteSpace(src), nameof(args.TermsColumn),
                         "Must be specified");
                     if (isBinary)
-                        sub = new SubComponent<IDataLoader, SignatureDataLoader>("BinaryLoader");
+                        loader = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
                     else
                     {
                         ch.Assert(isTranspose);
-                        sub = new SubComponent<IDataLoader, SignatureDataLoader>("TransposeLoader");
+                        loader = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
                     }
                 }
                 else
@@ -341,7 +348,21 @@ namespace Microsoft.ML.Runtime.Data
                             "{0} should not be specified when default loader is TextLoader. Ignoring {0}={1}",
                             nameof(Arguments.TermsColumn), src);
                     }
-                    sub = new SubComponent<IDataLoader, SignatureDataLoader>("TextLoader", "sep=tab col=Term:TX:0");
+                    loader = new TextLoader(env,
+                        new TextLoader.Arguments()
+                        {
+                            Separator = "tab",
+                            Column = new[]
+                            {
+                                new TextLoader.Column()
+                                {
+                                    Name ="Term",
+                                    Type = DataKind.TX,
+                                    KeyRange = new KeyRange() { Min = 0 }
+                                }
+                            }
+                        },
+                        fileSource);
                     src = "Term";
                     autoConvert = true;
                 }
@@ -349,8 +370,6 @@ namespace Microsoft.ML.Runtime.Data
             ch.AssertNonEmpty(src);
 
             int colSrc;
-            var loader = sub.CreateInstance(env, new MultiFileSource(file));
-
             if (!loader.Schema.TryGetColumnIndex(src, out colSrc))
                 throw ch.ExceptUserArg(nameof(args.TermsColumn), "Unknown column '{0}'", src);
             var typeSrc = loader.Schema.GetColumnType(colSrc);
@@ -395,7 +414,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.AssertValue(trainingData);
 
             if ((args.Term != null || !string.IsNullOrEmpty(args.Terms)) &&
-                (!string.IsNullOrWhiteSpace(args.DataFile) || args.Loader.IsGood() ||
+                (!string.IsNullOrWhiteSpace(args.DataFile) || args.Loader != null ||
                     !string.IsNullOrWhiteSpace(args.TermsColumn)))
             {
                 ch.Warning("Explicit term list specified. Data file arguments will be ignored");
