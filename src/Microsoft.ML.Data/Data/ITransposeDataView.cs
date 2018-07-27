@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <see cref="IRowCursor"/>). This interface is intended to be implemented by classes that
     /// want to provide an option for an alternate way of accessing the data stored in a
     /// <see cref="IDataView"/>.
-    /// 
+    ///
     /// The interface only advertises that columns may be accessible in slot-wise fashion. A column
     /// is accessible in this fashion iff <see cref="TransposeSchema"/>'s
     /// <see cref="ITransposeSchema.GetSlotType"/> returns a non-null value.

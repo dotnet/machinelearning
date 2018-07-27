@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 macroNodes.AddRange(result.Item1);
             }
 
-            // Use OVA model combiner to combine these models into one. 
+            // Use OVA model combiner to combine these models into one.
             // Takes in array of models that are binary predictor models and
             // produces single multiclass predictor model.
             var macroExperiment = new Experiment(env);

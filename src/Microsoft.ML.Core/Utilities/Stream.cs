@@ -979,7 +979,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return returnArray;
         }
 
-        public unsafe static void ReadBytes(this BinaryReader reader, void* destination, long destinationSizeInBytes, long bytesToRead, ref byte[] work)
+        public static unsafe void ReadBytes(this BinaryReader reader, void* destination, long destinationSizeInBytes, long bytesToRead, ref byte[] work)
         {
             Contracts.AssertValue(reader);
             Contracts.Assert(bytesToRead >= 0);
@@ -1007,7 +1007,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
         }
 
-        public unsafe static void ReadBytes(this BinaryReader reader, void* destination, long destinationSizeInBytes, long bytesToRead)
+        public static unsafe void ReadBytes(this BinaryReader reader, void* destination, long destinationSizeInBytes, long bytesToRead)
         {
             byte[] work = null;
             ReadBytes(reader, destination, destinationSizeInBytes, bytesToRead, ref work);
@@ -1097,10 +1097,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         // REVIEW: need to plumb IExceptionContext into the method.
         /// <summary>
         /// Checks that the directory of the file name passed in already exists.
-        /// This is meant to be called before calling an API that creates the file, 
+        /// This is meant to be called before calling an API that creates the file,
         /// so the file need not exist.
         /// </summary>
-        /// <param name="file">An absolute or relative file path, or null to skip the check 
+        /// <param name="file">An absolute or relative file path, or null to skip the check
         /// (useful for optional user parameters)</param>
         /// <param name="userArgument">The user level parameter name, as exposed by the command line help</param>
         public static void CheckOptionalUserDirectory(string file, string userArgument)
@@ -1113,7 +1113,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 return;
 
             string dir;
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
             try
             {
                 // Relative paths are interpreted as local.
@@ -1134,6 +1134,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             if (!Directory.Exists(dir))
                 throw Contracts.ExceptUserArg(userArgument, "Cannot find directory '{0}'.", dir);
         }
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
     }
 }

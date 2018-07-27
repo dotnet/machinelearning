@@ -76,12 +76,12 @@ namespace Microsoft.ML.Runtime.Api
             }
 
             /// <summary>
-            /// Function that checks whether the InternalSchemaDefinition.Column is a valid one. 
+            /// Function that checks whether the InternalSchemaDefinition.Column is a valid one.
             /// To be valid, the Column must:
             ///     1. Have non-empty values for ColumnName and ColumnType
             ///     2. Have a non-empty value for FieldInfo iff it is a field column, else
             ///        ReturnParameterInfo and Generator iff it is a computed column
-            ///     3. Generator must have the method inputs (TRow rowObject, 
+            ///     3. Generator must have the method inputs (TRow rowObject,
             ///        long position, ref TValue outputValue) in that order.
             ///  </summary>
             [Conditional("DEBUG")]
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Given a field info on a type, returns whether this appears to be a vector type,
         /// and also the associated data kind for this type. If a data kind could not
-        /// be determined, this will throw. 
+        /// be determined, this will throw.
         /// </summary>
         /// <param name="fieldInfo">The field info to inspect.</param>
         /// <param name="isVector">Whether this appears to be a vector type.</param>
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Given a parameter info on a type, returns whether this appears to be a vector type,
         /// and also the associated data kind for this type. If a data kind could not
-        /// be determined, this will throw. 
+        /// be determined, this will throw.
         /// </summary>
         /// <param name="parameterInfo">The parameter info to inspect.</param>
         /// <param name="isVector">Whether this appears to be a vector type.</param>
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Given a type and name for a variable, returns whether this appears to be a vector type,
         /// and also the associated data kind for this type. If a data kind could not
-        /// be determined, this will throw. 
+        /// be determined, this will throw.
         /// </summary>
         /// <param name="rawType">The type of the variable to inspect.</param>
         /// <param name="name">The name of the variable to inspect.</param>
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Runtime.Api
                             col.MemberName,
                             userType.FullName);
 
-                    //Clause to handle the field that may be used to expose the cursor channel. 
+                    //Clause to handle the field that may be used to expose the cursor channel.
                     //This field does not need a column.
                     if (fieldInfo.FieldType == typeof(IChannel))
                         continue;
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.Api
                 }
                 else
                 {
-                    // Make sure that the types are compatible with the declared type, including 
+                    // Make sure that the types are compatible with the declared type, including
                     // whether it is a vector type.
                     if (isVector != col.ColumnType.IsVector)
                     {

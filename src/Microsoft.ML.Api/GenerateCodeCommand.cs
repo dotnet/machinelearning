@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.Api
 {
     /// <summary>
     /// Generates the sample prediction code for a given model file, with correct input and output classes.
-    /// 
+    ///
     /// REVIEW: Consider adding support for generating VBuffers instead of arrays, maybe for high dimensionality vectors.
     /// </summary>
     public sealed class GenerateCodeCommand : ICommand
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.Api
                 ShortName = "sparse", SortOrder = 102)]
             public bool SparseVectorDeclaration;
 
-            // REVIEW: currently, it's only used in unit testing to not generate the paths into the test output folder. 
+            // REVIEW: currently, it's only used in unit testing to not generate the paths into the test output folder.
             // However, it might be handy for automation scenarios, so I've added this as a hidden option.
             [Argument(ArgumentType.AtMostOnce, HelpText = "A location of the model file to put into generated file", Hide = true)]
             public string ModelNameOverride;

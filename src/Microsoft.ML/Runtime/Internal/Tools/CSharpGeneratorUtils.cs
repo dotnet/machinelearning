@@ -351,7 +351,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
         public static void GenerateSummary(IndentingTextWriter writer, string summary, string[] xmlInclude = null)
         {
-            // if the class has an XML <iclude> it should contain the summary and everything else 
+            // if the class has an XML <iclude> it should contain the summary and everything else
             if (xmlInclude != null)
             {
                 foreach (var line in xmlInclude)

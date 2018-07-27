@@ -62,22 +62,24 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             /// <summary>
             /// Get the name of the variable asssigned to the Data or Training Data input, based on what is the first node of the subgraph.
-            /// A better way to do this would be with a ICanBeSubGraphFirstNode common interface between ITransformInput and ITrainerInputs 
-            /// and a custom deserializer. 
+            /// A better way to do this would be with a ICanBeSubGraphFirstNode common interface between ITransformInput and ITrainerInputs
+            /// and a custom deserializer.
             /// </summary>
             public string GetSubgraphFirstNodeDataVarName(IExceptionContext ectx)
             {
                 var nodes = Graph.GetNodes();
 
-                ectx.CheckValue(nodes, nameof(nodes), "Empty Subgraph");
-                ectx.CheckValue(nodes[0], nameof(nodes), "Empty Subgraph");
-                ectx.CheckValue(nodes[0][FieldNames.Inputs], "Inputs", "Empty subgraph node inputs.");
+                ectx.Check(nodes != null || nodes.Count == 0, "Empty Subgraph");
+                ectx.Check(nodes[0] != null, "Subgraph's first note is empty");
+                ectx.Check(nodes[0][FieldNames.Inputs] != null, "Empty subgraph node inputs.");
 
                 string variableName;
                 if (!GetDataVariableName(ectx, "Data", nodes[0][FieldNames.Inputs], out variableName))
                     GetDataVariableName(ectx, "TrainingData", nodes[0][FieldNames.Inputs], out variableName);
 
-                ectx.CheckNonEmpty(variableName, nameof(variableName), "Subgraph needs to start with an ITransformInput, or an ITrainerInput. Check your subgraph, or account for variation of the name of the Data input here.");
+                ectx.CheckNonEmpty(variableName, nameof(variableName), "Subgraph needs to start with an" +
+                    nameof(CommonInputs.ITransformInput) + ", or an " + nameof(CommonInputs.ITrainerInput) +
+                    ". Check your subgraph, or account for variation of the name of the Data input here.");
                 return variableName;
             }
 
@@ -157,7 +159,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             public AutoMlMlState(IHostEnvironment env, Arguments args)
                 : this(env,
-                      PipelineSweeperSupportedMetrics.GetSupportedMetric(args.Metric), 
+                      PipelineSweeperSupportedMetrics.GetSupportedMetric(args.Metric),
                       args.Engine.CreateComponent(env),
                       args.TerminatorArgs.CreateComponent(env), args.TrainerKind, requestedLearners: args.RequestedLearners)
             {
@@ -462,7 +464,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// <summary>
         /// The InferPipelines methods are just public portals to the internal function that handle different
         /// types of data being passed in: training IDataView, path to training file, or train and test files.
-        /// </summary>        
+        /// </summary>
         public static AutoMlMlState InferPipelines(IHostEnvironment env, PipelineOptimizerBase autoMlEngine,
             IDataView trainData, IDataView testData, int numTransformLevels, int batchSize, SupportedMetric metric,
             out PipelinePattern bestPipeline, ITerminator terminator, MacroUtils.TrainerKinds trainerKind)
@@ -483,7 +485,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             Contracts.CheckValue(env, nameof(env));
 
-            // REVIEW: Should be able to infer schema by itself, without having to 
+            // REVIEW: Should be able to infer schema by itself, without having to
             // infer recipes. Look into this.
             // Set loader settings through inference
             RecipeInference.InferRecipesFromData(env, trainDataPath, schemaDefinitionFile,

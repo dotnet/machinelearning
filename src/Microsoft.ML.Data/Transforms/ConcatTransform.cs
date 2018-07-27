@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.Data
             public string Name;
 
             // The tag here (the key of the KeyValuePair) is the string that will be the prefix of the slot name
-            // in the output column. For non-vector columns, the slot name will be either the column name or the 
+            // in the output column. For non-vector columns, the slot name will be either the column name or the
             // tag if it is non empty. For vector columns, the slot names will be 'ColumnName.SlotName' if the
             // tag is empty, 'Tag.SlotName' if tag is non empty, and simply the slot name if tag is non empty
             // and equal to the column name.
@@ -723,7 +723,6 @@ namespace Microsoft.ML.Runtime.Data
                 var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),
                     new[] { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType));
 
-                node.AddAttribute("inputList", inputList.Select(x => x.Key));
                 node.AddAttribute("inputdimensions", inputList.Select(x => x.Value));
             }
         }

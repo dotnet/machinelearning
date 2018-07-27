@@ -290,7 +290,7 @@ namespace Microsoft.ML.Runtime.PCA
     // - For each new instance, it computes the norm difference between the raw feature vector and the projected feature on that subspace.
     // - - If the error is close to 0, the instance is considered normal (non-anomaly).
     // REVIEW: move the predictor to a different file and fold EigenUtils.cs to this file.
-    // REVIEW: Include the above detail in the XML documentation file. 
+    // REVIEW: Include the above detail in the XML documentation file.
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaPredictor : PredictorBase<Float>,
         IValueMapper,

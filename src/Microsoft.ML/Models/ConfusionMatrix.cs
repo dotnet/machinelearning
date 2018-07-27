@@ -48,7 +48,7 @@ namespace Microsoft.ML.Models
 
             if (!confusionMatrix.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.Count, out int countColumn))
             {
-                env.Except($"ConfusionMatrix data view did not contain a {nameof(MetricKinds.ColumnNames.Count)} column.");
+                throw env.Except($"ConfusionMatrix data view did not contain a {nameof(MetricKinds.ColumnNames.Count)} column.");
             }
 
             IRowCursor cursor = confusionMatrix.GetRowCursor(col => col == countColumn);
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Models
             ValueGetter<VBuffer<double>> countGetter = cursor.GetGetter<VBuffer<double>>(countColumn);
             VBuffer<double> countValues = default;
             List<ConfusionMatrix> confusionMatrices = new List<ConfusionMatrix>();
-            
+
             int valuesRowIndex = 0;
             double[,] elements = null;
             while (cursor.MoveNext())

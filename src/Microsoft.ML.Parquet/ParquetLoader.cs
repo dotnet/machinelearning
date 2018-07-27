@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.Data
     public sealed class ParquetLoader : IDataLoader, IDisposable
     {
         /// <summary>
-        /// A Column is a singular representation that consolidates all the related column chunks in the 
+        /// A Column is a singular representation that consolidates all the related column chunks in the
         /// Parquet file. Information stored within the Column includes its name, raw type read from Parquet,
         /// its corresponding ColumnType, and index.
         /// Complex columns in Parquet like structs, maps, and lists are flattened into multiple columns.

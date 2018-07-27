@@ -11,8 +11,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
 {
     public static class SelectFeatures
     {
-        [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByCount", 
-            Desc = CountFeatureSelectionTransform.Summary, 
+        [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByCount",
+            Desc = CountFeatureSelectionTransform.Summary,
             UserName = CountFeatureSelectionTransform.UserName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CountFeatureSelection""]/*'/>",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CountFeatureSelection""]/*'/>"})]
@@ -27,9 +27,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByMutualInformation", 
-            Desc = MutualInformationFeatureSelectionTransform.Summary, 
-            UserName = MutualInformationFeatureSelectionTransform.UserName, 
+        [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByMutualInformation",
+            Desc = MutualInformationFeatureSelectionTransform.Summary,
+            UserName = MutualInformationFeatureSelectionTransform.UserName,
             ShortName = MutualInformationFeatureSelectionTransform.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""MutualInformationFeatureSelection""]/*'/>",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""MutualInformationFeatureSelection""]/*'/>"})]

@@ -308,7 +308,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var trainAuc = bestPipeline.PerformanceSummary.TrainingMetricValue;
             var testAuc = bestPipeline.PerformanceSummary.MetricValue;
             Assert.True((0.94 < trainAuc) && (trainAuc < 0.95));
-            Assert.True((0.83 < testAuc) && (testAuc < 0.84));
+            Assert.True((0.815 < testAuc) && (testAuc < 0.825));
 
             var results = runner.GetOutput<IDataView>("ResultsOut");
             Assert.NotNull(results);

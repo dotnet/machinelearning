@@ -385,7 +385,7 @@ namespace Microsoft.ML.Runtime
             {
                 if (_assemblyQueue == null)
                 {
-                    // Create the loaded assembly queue and dictionary, set up the AssemblyLoad / AssemblyResolve 
+                    // Create the loaded assembly queue and dictionary, set up the AssemblyLoad / AssemblyResolve
                     // event handlers and populate the queue / dictionary with all assemblies that are currently loaded.
                     Contracts.Assert(_assemblyQueue == null);
                     Contracts.Assert(_loadedAssemblies == null);
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Runtime
                     // Load all assemblies in our directory.
                     var moduleName = typeof(ComponentCatalog).Module.FullyQualifiedName;
 
-                    // If were are loaded in the context of SQL CLR then the FullyQualifiedName and Name properties are set to 
+                    // If were are loaded in the context of SQL CLR then the FullyQualifiedName and Name properties are set to
                     // string "<Unknown>" and we skip scanning current directory.
                     if (moduleName != "<Unknown>")
                     {
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Runtime
 
 #if TRACE_ASSEMBLY_LOADING
                     // The "" no-op argument is necessary because WriteLine has multiple overloads, and with two strings
-                    // it will be the one that is message/category, rather than format string with 
+                    // it will be the one that is message/category, rather than format string with
                     System.Diagnostics.Debug.WriteLine("*** Caching classes in {0}", assembly.FullName, "");
 #endif
                     int added = 0;
