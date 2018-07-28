@@ -7,7 +7,6 @@ set(SOURCES
 if(WIN32)
     link_directories(${CMAKE_SOURCE_DIR}/../../packages/MlNetMklDeps/0.0.0.1/runtimes/win-x64/native)
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
     
     list(APPEND SOURCES ${VERSION_FILE_PATH})
     
