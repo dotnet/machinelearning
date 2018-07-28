@@ -875,24 +875,23 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// A test for ordinary least squares regression.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Regressor")]
         public void RegressorOlsTest()
         {
             var regressionPredictors = new[] { TestLearners.Ols, TestLearners.OlsNorm, TestLearners.OlsReg };
-            var regressionDatasets = GetDatasetsForRegressorTest();
-            RunAllTests(regressionPredictors, regressionDatasets);
+            RunAllTests(regressionPredictors, new[] { TestDatasets.winequality });
             Done();
         }
 
         /// <summary>
         /// A test for ordinary least squares regression.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
-            Run_TrainTest(TestLearners.Ols, TestDatasets.housing);
+            Run_TrainTest(TestLearners.Ols, TestDatasets.winequality);
             Done();
         }
 

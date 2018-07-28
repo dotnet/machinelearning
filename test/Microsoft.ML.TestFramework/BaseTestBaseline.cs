@@ -626,12 +626,20 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private static void MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, decimal precision)
         {
+            // Ignore fluctuations beyond the minThreeshold to minumze test failures across OS-es. 
+            decimal minThreeshold = 0.00001m;
+
             for (int i = 0; i < firstCollection.Count; i++)
             {
                 decimal f1 = decimal.Parse(firstCollection[i].ToString());
                 decimal f2 = decimal.Parse(secondCollection[i].ToString());
 
-                Assert.InRange(f1, f2 - (f2 / precision), f2 + (f2 / precision));
+                decimal range = f2 / precision;
+
+                if (range < minThreeshold)
+                    range = minThreeshold; 
+
+                Assert.InRange(f1, f2 - range, f2 + range);
             }
         }
 
