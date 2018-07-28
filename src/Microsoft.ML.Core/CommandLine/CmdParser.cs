@@ -249,8 +249,9 @@ namespace Microsoft.ML.Runtime.CommandLine
         Default = ShortNames | NoSlashes
     }
 
-    public interface IComponentWithSettings
+    public interface ICommandLineComponentFactory
     {
+        Type SignatureType { get; }
         string Name { get; }
         string GetSettingsString();
     }
@@ -1851,9 +1852,9 @@ namespace Microsoft.ML.Runtime.CommandLine
                         settings);
                 }
 
-                private abstract class ComponentFactory: IComponentWithSettings
+                private abstract class ComponentFactory : ICommandLineComponentFactory
                 {
-                    protected Type SignatureType { get; }
+                    public Type SignatureType { get; }
                     public string Name { get; }
                     protected string[] Settings { get; }
 
@@ -2394,13 +2395,13 @@ namespace Microsoft.ML.Runtime.CommandLine
                         }
                         return buffer.ToString();
                     }
-                    else if (value is IComponentWithSettings valueWithSettings)
+                    else if (value is ICommandLineComponentFactory)
                     {
                         return value.ToString();
                     }
                     else
                     {
-                        throw ectx.Except($"IComponentFactory instances either need to be EntryPointComponents or implement {nameof(IComponentWithSettings)}.");
+                        throw ectx.Except($"IComponentFactory instances either need to be EntryPointComponents or implement {nameof(ICommandLineComponentFactory)}.");
                     }
                 }
 

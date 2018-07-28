@@ -35,11 +35,11 @@ namespace Microsoft.ML.Runtime.Data
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader")]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader", SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Transform", ShortName = "xf")]
-            public KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] Transform;
+            [Argument(ArgumentType.Multiple, HelpText = "Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
+            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transform;
         }
 
         private struct TransformEx
@@ -99,10 +99,10 @@ namespace Microsoft.ML.Runtime.Data
             var h = env.Register(RegistrationName);
 
             h.CheckValue(args, nameof(args));
-            h.CheckUserArg(args.Loader.IsGood(), nameof(args.Loader));
+            h.CheckValue(args.Loader, nameof(args.Loader));
             h.CheckValue(files, nameof(files));
 
-            var loader = args.Loader.CreateInstance(h, files);
+            var loader = args.Loader.CreateComponent(h, files);
             return CreateCore(h, loader, args.Transform);
         }
 

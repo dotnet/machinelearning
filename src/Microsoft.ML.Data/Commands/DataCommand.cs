@@ -132,10 +132,10 @@ namespace Microsoft.ML.Runtime.Data
                 Host.AssertValue(pipe);
                 Host.AssertValueOrNull(factory);
 
-                if (factory is IComponentWithSettings factoryWithSettings)
-                    pipe.Send(TelemetryMessage.CreateTrainer(factoryWithSettings.Name, factoryWithSettings.GetSettingsString()));
+                if (factory is ICommandLineComponentFactory commandLineFactory)
+                    pipe.Send(TelemetryMessage.CreateTrainer(commandLineFactory.Name, commandLineFactory.GetSettingsString()));
                 else
-                    pipe.Send(TelemetryMessage.CreateTrainer("Unknown", "Non-IComponentWithSettings object"));
+                    pipe.Send(TelemetryMessage.CreateTrainer("Unknown", "Non-ICommandLineComponentFactory object"));
             }
 
             protected virtual void SendTelemetryCore(IPipe<TelemetryMessage> pipe)

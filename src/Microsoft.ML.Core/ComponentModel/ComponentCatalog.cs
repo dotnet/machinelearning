@@ -832,10 +832,15 @@ namespace Microsoft.ML.Runtime
 
         public static LoadableClassInfo GetLoadableClassInfo<TSig>(string loadName)
         {
-            Contracts.CheckParam(typeof(TSig).BaseType == typeof(MulticastDelegate), nameof(TSig), "TSig must be a delegate type");
+            return GetLoadableClassInfo(loadName, typeof(TSig));
+        }
+
+        public static LoadableClassInfo GetLoadableClassInfo(string loadName, Type signatureType)
+        {
+            Contracts.CheckParam(signatureType.BaseType == typeof(MulticastDelegate), nameof(signatureType), "signatureType must be a delegate type");
             Contracts.CheckValueOrNull(loadName);
             loadName = (loadName ?? "").ToLowerInvariant().Trim();
-            return FindClassCore(new LoadableClassInfo.Key(loadName, typeof(TSig)));
+            return FindClassCore(new LoadableClassInfo.Key(loadName, signatureType));
         }
 
         public static LoadableClassInfo GetLoadableClassInfo<TRes, TSig>(SubComponent<TRes, TSig> sub)
