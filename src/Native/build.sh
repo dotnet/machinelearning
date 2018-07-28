@@ -62,17 +62,17 @@ mkdir -p "$__BinDir"
 mkdir -p "$__IntermediatesDir"
 
 # Set up the environment to be used for building with clang.
-if command -v "clang-3.5" > /dev/null 2>&1; then
-    export CC="$(command -v clang-3.5)"
+if command -v "clang-omp-3.5" > /dev/null 2>&1; then
+    export CC="$(command -v clang-omp-3.5)"
     export CXX="$(command -v clang-omp++-3.5)"
-elif command -v "clang-3.6" > /dev/null 2>&1; then
-    export CC="$(command -v clang-3.6)"
+elif command -v "clang-omp-3.6" > /dev/null 2>&1; then
+    export CC="$(command -v clang-omp-3.6)"
     export CXX="$(command -v clang-omp++-3.6)"
-elif command -v "clang-3.9" > /dev/null 2>&1; then
-    export CC="$(command -v clang-3.9)"
+elif command -v "clang-omp-3.9" > /dev/null 2>&1; then
+    export CC="$(command -v clang-omp-3.9)"
     export CXX="$(command -v clang-omp++-3.9)"
-elif command -v clang > /dev/null 2>&1; then
-    export CC="$(command -v clang)"
+elif command -v clang-omp > /dev/null 2>&1; then
+    export CC="$(command -v clang-omp)"
     export CXX="$(command -v clang-omp++)"
 else
     echo "Unable to find Clang Compiler"
