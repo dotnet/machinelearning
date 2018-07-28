@@ -62,20 +62,12 @@ if(WIN32)
     list(APPEND RESOURCES ${CMAKE_SOURCE_DIR}/../../Tools/NativeVersion.rc)
 else()
     add_compile_options(-Wno-unused-local-typedef)
-    set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
-    set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
-    set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
-    set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
-    set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
     find_package(OpenMP)
     if (OPENMP_FOUND)
         set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
         set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
         set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
     endif()
-    
-
-    
     add_definitions(-Werror) # treat warnings as errors
 endif()
 

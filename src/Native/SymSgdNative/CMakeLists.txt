@@ -19,5 +19,6 @@ endif()
 
 add_library(SymSgdNative SHARED ${SOURCES} ${RESOURCES})
 target_link_libraries(SymSgdNative Microsoft.ML.MklImports)
-
+find_package(OpenMP REQUIRED)
+target_link_libraries(SymSgdNative PRIVATE OpenMP::OpenMP_CXX)
 install_library_and_symbols (SymSgdNative)
