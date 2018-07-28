@@ -89,7 +89,7 @@ if [ ! -f $__versionSourceFile ]; then
     echo $__versionSourceLine > $__versionSourceFile
 fi
 
-__cmake_defines="${__cmake_defines} -DBUILD_WITH_OpenMP=ON -DVERSION_FILE_PATH:STRING=${__versionSourceFile}"
+__cmake_defines="${__cmake_defines} -DVERSION_FILE_PATH:STRING=${__versionSourceFile}"
 
 cd "$__IntermediatesDir"
 
