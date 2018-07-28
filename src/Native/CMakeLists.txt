@@ -62,6 +62,7 @@ if(WIN32)
     list(APPEND RESOURCES ${CMAKE_SOURCE_DIR}/../../Tools/NativeVersion.rc)
 else()
     add_compile_options(-Wno-unused-local-typedef)
+    add_compile_options(-fopenmp)
     add_definitions(-Werror) # treat warnings as errors
 endif()
 
