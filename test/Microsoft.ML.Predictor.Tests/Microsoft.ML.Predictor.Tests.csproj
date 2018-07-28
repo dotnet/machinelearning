@@ -30,4 +30,8 @@
     <NativeAssemblyReference Include="SymSgdNative" />
   </ItemGroup>
   
+  <ItemGroup>
+    <PackageReference Include="MlNetMklDeps" Version="0.0.0.1" />
+  </ItemGroup>
+  
 </Project>

@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MlNetMklDeps" Version="0.0.0.1" />
     <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonPackageVersion)" />
   </ItemGroup>

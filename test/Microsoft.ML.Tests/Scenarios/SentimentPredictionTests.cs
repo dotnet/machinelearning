@@ -190,16 +190,16 @@ namespace Microsoft.ML.Scenarios
         private void ValidateBinaryMetricsSymSGD(BinaryClassificationMetrics metrics)
         {
 
-            Assert.Equal(.9444, metrics.Accuracy, 4);
+            Assert.Equal(.8889, metrics.Accuracy, 4);
             Assert.Equal(1, metrics.Auc, 1);
-            Assert.Equal(1, metrics.Auprc, 2);
+            Assert.Equal(0.96, metrics.Auprc, 2);
             Assert.Equal(1, metrics.Entropy, 3);
-            Assert.Equal(.9474, metrics.F1Score, 4);
-            Assert.Equal(.113, metrics.LogLoss, 3);
-            Assert.Equal(88.722, metrics.LogLossReduction, 3);
+            Assert.Equal(.9, metrics.F1Score, 4);
+            Assert.Equal(.97, metrics.LogLoss, 3);
+            Assert.Equal(3.030, metrics.LogLossReduction, 3);
             Assert.Equal(1, metrics.NegativePrecision, 3);
-            Assert.Equal(.889, metrics.NegativeRecall, 3);
-            Assert.Equal(.9, metrics.PositivePrecision, 3);
+            Assert.Equal(.778, metrics.NegativeRecall, 3);
+            Assert.Equal(.818, metrics.PositivePrecision, 3);
             Assert.Equal(1, metrics.PositiveRecall);
 
             var matrix = metrics.ConfusionMatrix;
@@ -213,10 +213,10 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0, matrix[0, 1]);
             Assert.Equal(0, matrix["positive", "negative"]);
 
-            Assert.Equal(1, matrix[1, 0]);
-            Assert.Equal(1, matrix["negative", "positive"]);
-            Assert.Equal(8, matrix[1, 1]);
-            Assert.Equal(8, matrix["negative", "negative"]);
+            Assert.Equal(2, matrix[1, 0]);
+            Assert.Equal(2, matrix["negative", "positive"]);
+            Assert.Equal(7, matrix[1, 1]);
+            Assert.Equal(7, matrix["negative", "negative"]);
 
         }
 
