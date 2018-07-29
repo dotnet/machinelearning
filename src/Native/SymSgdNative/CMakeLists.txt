@@ -5,15 +5,15 @@ set(SOURCES
 )
 
 if(WIN32)
-    link_directories(${CMAKE_SOURCE_DIR}/../../packages/MlNetMklDeps/0.0.0.1/runtimes/win-x64/native)
+    link_directories(${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/win-x64/native)
 else()
     
     list(APPEND SOURCES ${VERSION_FILE_PATH})
     
 if(APPLE)
-        link_directories(${CMAKE_SOURCE_DIR}/../../packages/MlNetMklDeps/0.0.0.1/runtimes/osx-x64/native)
+        link_directories(${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native)
     else()
-        link_directories(${CMAKE_SOURCE_DIR}/../../packages/MlNetMklDeps/0.0.0.1/runtimes/linux-x64/native)
+        link_directories(${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native)
     endif()
 endif()
 
