@@ -421,8 +421,9 @@ EXPORT_API(void) DeallocateSequentially(SymSGDState* state) {
         for (int i = 0; i < state->NumLearners; i++)
             delete learners[i];
     }
+    
     if (state->FreqFeatUnorderedMap)
-        delete state->FreqFeatUnorderedMap;
+        delete (std::unordered_map<int, int>*)state->FreqFeatUnorderedMap;
     if (state->FreqFeatDirectMap)
         delete[] state->FreqFeatDirectMap;
 }
