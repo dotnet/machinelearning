@@ -6,7 +6,9 @@
 
 #include <vector>
 #include <random>
-#include <omp.h>
+#include <cmath>
+//#include <omp.h>
+#include <thread>
 #include <unordered_map>
 #include "../Stdafx.h"
 #include "Macros.h"
@@ -225,16 +227,12 @@ void InitializeState(int totalNumInstances, int* instSizes, int** instIndices, f
         state->Learners = new SymSGD*[numThreads];
         SymSGD** learners = (SymSGD**)(state->Learners);
 
-        // Allocation of SymSGD learners happens in parallel to follow the first touch policy.
-        #pragma omp parallel num_threads(numThreads)
+        for(int index = 0; index < numThreads; index += 1)
         {
-            int threadId = omp_get_thread_num();
+            int threadId = index;
             learners[threadId] = new SymSGD(state->NumFrequentFeatures, threadId);
         }
     }
-    
-    // To make sure that MKL runs sequentially
-    omp_set_num_threads(1);
 }
 
 float Loss(int instSize, int* instIndices, float* instValues,
@@ -321,7 +319,7 @@ EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndic
         }
     } else {
         // In parallel case...
-        bool shouldRemap = !((std::unordered_map<int, int>*)state->FreqFeatUnorderedMap)->empty();
+        /*bool shouldRemap = !((std::unordered_map<int, int>*)state->FreqFeatUnorderedMap)->empty();
         SymSGD** learners = (SymSGD**)(state->Learners);
 
         float oldWeightScaling = 1.0f;
@@ -399,7 +397,7 @@ EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndic
                     curPermMultiplier = (((int64_t)curPermMultiplier * (int64_t)curPermMultiplier) % (int64_t)myRangeLength);
             }
         }
-        state->TotalInstancesProcessed += numPasses*totalNumInstances;
+        state->TotalInstancesProcessed += numPasses*totalNumInstances;*/
     }
 }
 
@@ -418,8 +416,6 @@ EXPORT_API(void) MapBackWeightVector(float* weightVector, SymSGDState* state) {
 
 // Deallocation method
 EXPORT_API(void) DeallocateSequentially(SymSGDState* state) {
-    // To make sure that for the rest of MKL calls use parallelism
-    omp_set_num_threads(omp_get_num_procs());
 
     SymSGD** learners = (SymSGD**)(state->Learners);
     if (learners) {
