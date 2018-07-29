@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     }
 
     // For the detail of the following rules, see the following paper.
-    // Lodwich, Aleksander, Yves Rangoni, and Thomas Breuel. "Evaluation of robustness and performance of early stopping rules with multi layer perceptrons." 
+    // Lodwich, Aleksander, Yves Rangoni, and Thomas Breuel. "Evaluation of robustness and performance of early stopping rules with multi layer perceptrons."
     // Neural Networks, 2009. IJCNN 2009. International Joint Conference on. IEEE, 2009.
 
     public abstract class MovingWindowEarlyStoppingCriterion : EarlyStoppingCriterion<MovingWindowEarlyStoppingCriterion.Arguments>
@@ -139,9 +139,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             public int WindowSize = 5;
         }
 
-        protected internal Queue<Float> PastScores;
+        protected Queue<Float> PastScores;
 
-        internal MovingWindowEarlyStoppingCriterion(Arguments args, bool lowerIsBetter)
+        private protected MovingWindowEarlyStoppingCriterion(Arguments args, bool lowerIsBetter)
             : base(args, lowerIsBetter)
         {
             Contracts.CheckUserArg(0 <= Args.Threshold && args.Threshold <= 1, nameof(args.Threshold), "Must be in range [0,1].");

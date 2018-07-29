@@ -77,8 +77,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         /// <summary>
         /// Zero out the items with the given indices.
-        /// The indices contain the logical indices to the vectorized representation of the matrix, 
-        /// which can be different depending on whether the matrix is row-major or column-major. 
+        /// The indices contain the logical indices to the vectorized representation of the matrix,
+        /// which can be different depending on whether the matrix is row-major or column-major.
         /// </summary>
         void ZeroItems(int[] indices);
     }

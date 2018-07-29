@@ -76,7 +76,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             [Argument(ArgumentType.Multiple, HelpText = "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1",
                 ShortName = "col", SortOrder = 1)]
-            public Microsoft.ML.Runtime.Data.PartitionedFileLoader.Column[] Columns;
+            public PartitionedFileLoader.Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Data type of each column.")]
             public DataKind Type = DataKind.Text;

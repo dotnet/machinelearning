@@ -64,12 +64,16 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         public const string LoaderSignature = "CharToken";
         public const string UserName = "Character Tokenizer Transform";
 
+        // Keep track of the model that was saved with ver:0x00010001
+        private readonly bool _isSeparatorStartEnd;
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "CHARTOKN",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002,  // Updated to use UnitSeparator <US> character instead of using <ETX><STX> for vector inputs.
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
         }
@@ -84,6 +88,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         private volatile string _keyValuesStr;
         private volatile int[] _keyValuesBoundaries;
 
+        private const ushort UnitSeparator = 0x1f;
         private const ushort TextStartMarker = 0x02;
         private const ushort TextEndMarker = 0x03;
         private const int TextMarkersCount = 2;
@@ -120,6 +125,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             // byte: _useMarkerChars value.
             _useMarkerChars = ctx.Reader.ReadBoolByte();
 
+            _isSeparatorStartEnd = ctx.Header.ModelVerReadable < 0x00010002 || ctx.Reader.ReadBoolByte();
+
             _type = GetOutputColumnType();
             SetMetadata();
         }
@@ -145,6 +152,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             // byte: _useMarkerChars value.
             SaveBase(ctx);
             ctx.Writer.WriteBoolByte(_useMarkerChars);
+            ctx.Writer.WriteBoolByte(_isSeparatorStartEnd);
         }
 
         protected override ColumnType GetColumnTypeCore(int iinfo)
@@ -399,8 +407,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             var getSrc = GetSrcGetter<VBuffer<DvText>>(input, iinfo);
             var src = default(VBuffer<DvText>);
-            return
-                (ref VBuffer<ushort> dst) =>
+
+            ValueGetter<VBuffer<ushort>> getterWithStartEndSep = (ref VBuffer<ushort> dst) =>
                 {
                     getSrc(ref src);
 
@@ -438,6 +446,67 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                     dst = new VBuffer<ushort>(len, values, dst.Indices);
                 };
+
+            ValueGetter < VBuffer<ushort> > getterWithUnitSep = (ref VBuffer<ushort> dst) =>
+                {
+                    getSrc(ref src);
+
+                    int len = 0;
+
+                    for (int i = 0; i < src.Count; i++)
+                    {
+                        if (src.Values[i].HasChars)
+                        {
+                            len += src.Values[i].Length;
+
+                            if (i > 0)
+                                len += 1;  // add UnitSeparator character to len that will be added
+                        }
+                    }
+
+                    if (_useMarkerChars)
+                        len += TextMarkersCount;
+
+                    var values = dst.Values;
+                    if (len > 0)
+                    {
+                        if (Utils.Size(values) < len)
+                            values = new ushort[len];
+
+                        int index = 0;
+
+                        // VBuffer<DvText> can be a result of either concatenating text columns together
+                        // or application of word tokenizer before char tokenizer in TextTransform.
+                        //
+                        // Considering VBuffer<DvText> as a single text stream.
+                        // Therefore, prepend and append start and end markers only once i.e. at the start and at end of vector.
+                        // Insert UnitSeparator after every piece of text in the vector.
+                        if (_useMarkerChars)
+                            values[index++] = TextStartMarker;
+
+                        for (int i = 0; i < src.Count; i++)
+                        {
+                            if (!src.Values[i].HasChars)
+                                continue;
+
+                            if (i > 0)
+                                values[index++] = UnitSeparator;
+
+                            for (int ich = 0; ich < src.Values[i].Length; ich++)
+                            {
+                                values[index++] = src.Values[i][ich];
+                            }
+                        }
+
+                        if (_useMarkerChars)
+                            values[index++] = TextEndMarker;
+
+                        Contracts.Assert(index == len);
+                    }
+
+                    dst = new VBuffer<ushort>(len, values, dst.Indices);
+                };
+            return _isSeparatorStartEnd ? getterWithStartEndSep : getterWithUnitSep;
         }
     }
 }

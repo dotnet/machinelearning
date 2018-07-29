@@ -23,20 +23,19 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    /// <summary>
-    /// This is an averaged perceptron classifier.
-    /// Configurable subcomponents:
-    ///     - Loss function. By default, hinge loss (aka max-margin avgd perceptron)
-    ///     - Feature normalization. By default, rescaling between min and max values for every feature
-    ///     - Prediction calibration to produce probabilities. Off by default, if on, uses exponential (aka Platt) calibration.
-    /// </summary>
+    // This is an averaged perceptron classifier.
+    // Configurable subcomponents:
+    //     - Loss function. By default, hinge loss (aka max-margin avgd perceptron)
+    //     - Feature normalization. By default, rescaling between min and max values for every feature
+    //     - Prediction calibration to produce probabilities. Off by default, if on, uses exponential (aka Platt) calibration.
+    /// <include file='doc.xml' path='doc/members/member[@name="AP"]/*' />
     public sealed class AveragedPerceptronTrainer :
         AveragedLinearTrainer<AveragedPerceptronTrainer.Arguments, LinearBinaryPredictor>
     {
         public const string LoadNameValue = "AveragedPerceptron";
         internal const string UserNameValue = "Averaged Perceptron";
         internal const string ShortName = "ap";
-        internal const string Summary = "Perceptron is a binary classification algorithm that makes its predictions based on a linear function.";
+        internal const string Summary = "Averaged Perceptron Binary Classifier.";
 
         public class Arguments : AveragedLinearArguments
         {
@@ -50,15 +49,12 @@ namespace Microsoft.ML.Runtime.Learners
             public int MaxCalibrationExamples = 1000000;
         }
 
+        protected override bool NeedCalibration => true;
+
         public AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, UserNameValue)
         {
             LossFunction = Args.LossFunction.CreateComponent(env);
-        }
-
-        public override bool NeedCalibration
-        {
-            get { return true; }
         }
 
         public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
@@ -69,7 +65,7 @@ namespace Microsoft.ML.Runtime.Learners
             data.CheckBinaryLabel();
         }
 
-        public override LinearBinaryPredictor CreatePredictor()
+        protected override LinearBinaryPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
 
@@ -91,7 +87,12 @@ namespace Microsoft.ML.Runtime.Learners
             return new LinearBinaryPredictor(Host, ref weights, bias);
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier", Desc = "Train a Average perceptron.", UserName = UserNameValue, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier",
+            Desc = Summary,
+            UserName = UserNameValue,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name=""AP""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name=""AP""]/*' />"})]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

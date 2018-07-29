@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
     public delegate void SignatureNgramExtractorFactory(TermLoaderArguments termLoaderArgs);
 
     /// <summary>
-    /// A many-to-one column common to both <see cref="NgramExtractorTransform"/> 
+    /// A many-to-one column common to both <see cref="NgramExtractorTransform"/>
     /// and <see cref="NgramHashExtractorTransform"/>.
     /// </summary>
     public sealed class ExtractorColumn : ManyToOneColumn
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckUserArg(args.Tokenizer.IsGood(), nameof(args.Tokenizer), "tokenizer must be specified");
 
             // Compose the WordBagTransform from a tokenize transform,
-            // followed by a NgramExtractionTransform. 
+            // followed by a NgramExtractionTransform.
             // Since WordBagTransform is a many-to-one column transform, for each
             // WordBagTransform.Column with multiple sources, we first apply a ConcatTransform.
 
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// A transform that turns a collection of tokenized text (vector of DvText), or vectors of keys into numerical 
+    /// A transform that turns a collection of tokenized text (vector of DvText), or vectors of keys into numerical
     /// feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys-
     /// of length 1-n).
     /// </summary>
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Runtime.Data
             public bool? AllLengths;
 
             // REVIEW: This argument is actually confusing. If you set only one value we will use this value for all ngrams respectfully e.g.
-            // if we specify 3 ngrams we will have maxNumTerms * 3. And it also pick first value from this array to run term transform, so if you specify 
+            // if we specify 3 ngrams we will have maxNumTerms * 3. And it also pick first value from this array to run term transform, so if you specify
             // something like 1,1,10000, term transform would be run with limitation of only one term.
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
             public int[] MaxNumTerms = null;
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="TermTransform.Arguments"/> and 
+        /// This class is a merger of <see cref="TermTransform.Arguments"/> and
         /// <see cref="NgramTransform.Arguments"/>, with the allLength option removed.
         /// </summary>
         public abstract class ArgumentsBase
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Runtime.Data
             // If the column types of args.column are text, apply term transform to convert them to keys.
             // Otherwise, skip term transform and apply ngram transform directly.
             // This logic allows NgramExtractorTransform to handle both text and key input columns.
-            // Note: ngram transform handles the validation of the types natively (in case the types 
+            // Note: ngram transform handles the validation of the types natively (in case the types
             // of args.column are not text nor keys).
             if (termCols.Count > 0)
             {
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Runtime.Data
     public interface INgramExtractorFactory
     {
         /// <summary>
-        /// Whether the extractor transform created by this factory uses the hashing trick 
+        /// Whether the extractor transform created by this factory uses the hashing trick
         /// (by using <see cref="HashTransform"/> or <see cref="NgramHashTransform"/>, for example).
         /// </summary>
         bool UseHashingTrick { get; }
@@ -569,7 +569,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Generates and returns unique names for columns source. Each element of the returned array is 
+        /// Generates and returns unique names for columns source. Each element of the returned array is
         /// an array of unique source names per specific column.
         /// </summary>
         public static string[][] GenerateUniqueSourceNames(IHostEnvironment env, ManyToOneColumn[] columns, ISchema schema)

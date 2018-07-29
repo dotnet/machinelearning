@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Api
         /// different data by calling <see cref="ITransformTemplate.ApplyToData"/>), and the transformed data (which can be
         /// enumerated upon by calling <c>GetRowCursor</c> or <c>AsCursorable{TRow}</c>). If <typeparamref name="TSrc"/> or
         /// <typeparamref name="TDst"/> implement the <see cref="IDisposable" /> interface, they will be disposed after use.
-        /// 
+        ///
         /// This is a 'stateless non-savable' version of the transform.
         /// </summary>
         /// <param name="env">The host environment to use.</param>
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.Api
         /// different data by calling <see cref="ITransformTemplate.ApplyToData"/>), and the transformed data (which can  be
         /// enumerated upon by calling <c>GetRowCursor</c> or <c>AsCursorable{TRow}</c>). If <typeparamref name="TSrc"/> or
         /// <typeparamref name="TDst"/> implement the <see cref="IDisposable" /> interface, they will be disposed after use.
-        /// 
+        ///
         /// This is a 'stateless savable' version of the transform: save and load routines must be provided.
         /// </summary>
         /// <param name="env">The host environment to use.</param>
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Api
 
         /// <summary>
         /// This is a 'stateful non-savable' version of the map transform: the mapping function is guaranteed to be invoked once per
-        /// every row of the data set, in sequence; one user-defined state object will be allocated per cursor and passed to the 
+        /// every row of the data set, in sequence; one user-defined state object will be allocated per cursor and passed to the
         /// map function every time. If <typeparamref name="TSrc"/>, <typeparamref name="TDst"/>, or
         /// <typeparamref name="TState"/> implement the <see cref="IDisposable" /> interface, they will be disposed after use.
         /// </summary>
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Runtime.Api
 
         /// <summary>
         /// This is a 'stateful savable' version of the map transform: the mapping function is guaranteed to be invoked once per
-        /// every row of the data set, in sequence (non-parallelizable); one user-defined state object will be allocated per cursor and passed to the 
+        /// every row of the data set, in sequence (non-parallelizable); one user-defined state object will be allocated per cursor and passed to the
         /// map function every time; save and load routines must be provided. If <typeparamref name="TSrc"/>, <typeparamref name="TDst"/>,
         /// or <typeparamref name="TState"/> implement the <see cref="IDisposable" /> interface, they will be disposed after use.
         /// </summary>
@@ -217,8 +217,8 @@ namespace Microsoft.ML.Runtime.Api
         /// This creates a filter transform that can 'accept' or 'decline' any row of the data based on the contents of the row
         /// or state of the cursor.
         /// This is a 'stateful non-savable' version of the filter: the filter function is guaranteed to be invoked once per
-        /// every row of the data set, in sequence (non-parallelizable); one user-defined state object will be allocated per cursor and passed to the 
-        /// filter function every time. 
+        /// every row of the data set, in sequence (non-parallelizable); one user-defined state object will be allocated per cursor and passed to the
+        /// filter function every time.
         /// If <typeparamref name="TSrc"/> or <typeparamref name="TState"/> implement the <see cref="IDisposable" /> interface, they will be disposed after use.
         /// </summary>
         /// <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.Api
         /// This creates a filter transform that can 'accept' or 'decline' any row of the data based on the contents of the row
         /// or state of the cursor.
         /// This is a 'stateful savable' version of the filter: the filter function is guaranteed to be invoked once per
-        /// every row of the data set, in sequence (non-parallelizable); one user-defined state object will be allocated per cursor and passed to the 
+        /// every row of the data set, in sequence (non-parallelizable); one user-defined state object will be allocated per cursor and passed to the
         /// filter function every time; save and load routines must be provided.
         /// If <typeparamref name="TSrc"/> or <typeparamref name="TState"/> implement the <see cref="IDisposable" /> interface, they will be disposed after use.
         /// </summary>
@@ -294,11 +294,11 @@ namespace Microsoft.ML.Runtime.Api
     }
 
     /// <summary>
-    /// Defines common ancestor for various flavors of lambda-based user-defined transforms that may or may not be 
+    /// Defines common ancestor for various flavors of lambda-based user-defined transforms that may or may not be
     /// serializable.
-    /// 
+    ///
     /// In order for the transform to be serializable, the user should specify a save and load delegate.
-    /// Specifically, for this the user has to provide the following things: 
+    /// Specifically, for this the user has to provide the following things:
     ///  * a custom save action that serializes the transform 'state' to the binary writer.
     ///  * a custom load action that de-serializes the transform from the binary reader. This must be a public static method of a public class.
     /// </summary>

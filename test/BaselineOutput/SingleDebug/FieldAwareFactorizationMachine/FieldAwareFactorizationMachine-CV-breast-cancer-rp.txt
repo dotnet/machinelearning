@@ -1,0 +1,4 @@
+FieldAwareFactorizationMachine
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/d	/norm	/shuf	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.976011	0.954605	0.973489	0.893319	0.946025	0.986445	0.26007	72.0178	0.931542	0.974115	5	-	-	FieldAwareFactorizationMachine	%Data%		%Output%	99	0	0	maml.exe CV tr=FieldAwareFactorizationMachine{d=5 shuf- norm-} col[Feature]=DupFeatures threads=- norm=No dout=%Output% data=%Data% seed=1 xf=Copy{col=DupFeatures:Features} xf=MinMax{col=Features col=DupFeatures}	/d:5;/norm:-;/shuf:-	
+

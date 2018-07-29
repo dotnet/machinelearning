@@ -47,7 +47,7 @@ namespace Microsoft.ML.Models
                 Output evaluteOutput = experiment.Add(this);
 
                 experiment.Compile();
-                
+
                 experiment.SetInput(datasetScorer.TransformModel, model.PredictorModel);
                 testData.SetInput(environment, experiment);
 
@@ -67,7 +67,8 @@ namespace Microsoft.ML.Models
 
                 var metric = BinaryClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
 
-                Contracts.Check(metric.Count == 1, $"Exactly one metric set was expected but found {metric.Count} metrics");
+                if (metric.Count != 1)
+                    throw environment.Except($"Exactly one metric set was expected but found {metric.Count} metrics");
 
                 return metric[0];
             }

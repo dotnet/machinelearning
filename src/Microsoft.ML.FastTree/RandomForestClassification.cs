@@ -67,13 +67,13 @@ namespace Microsoft.ML.Runtime.FastTree
                 loaderSignature: LoaderSignature);
         }
 
-        protected override uint VerNumFeaturesSerialized { get { return 0x00010003; } }
+        protected override uint VerNumFeaturesSerialized => 0x00010003;
 
-        protected override uint VerDefaultValueSerialized { get { return 0x00010005; } }
+        protected override uint VerDefaultValueSerialized => 0x00010005;
 
-        protected override uint VerCategoricalSplitSerialized { get { return 0x00010006; } }
+        protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         internal FastForestClassificationPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount,
             string innerArgs)
@@ -106,6 +106,7 @@ namespace Microsoft.ML.Runtime.FastTree
         }
     }
 
+    /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestClassification :
         RandomForestTrainerBase<FastForestClassification.Arguments, IPredictorWithFeatureWeights<Float>>
     {
@@ -128,20 +129,20 @@ namespace Microsoft.ML.Runtime.FastTree
 
         private bool[] _trainSetLabels;
 
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override bool NeedCalibration => true;
+
         public FastForestClassification(IHostEnvironment env, Arguments args)
             : base(env, args)
         {
         }
 
-        public override bool NeedCalibration
+        public override IPredictorWithFeatureWeights<Float> Train(TrainContext context)
         {
-            get { return true; }
-        }
+            Host.CheckValue(context, nameof(context));
+            var trainData = context.TrainingSet;
+            ValidData = context.ValidationSet;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
-
-        public override void Train(RoleMappedData trainData)
-        {
             using (var ch = Host.Start("Training"))
             {
                 ch.CheckValue(trainData, nameof(trainData));
@@ -153,16 +154,9 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainCore(ch);
                 ch.Done();
             }
-        }
-
-        public override IPredictorWithFeatureWeights<Float> CreatePredictor()
-        {
-            Host.Check(TrainedEnsemble != null,
-                "The predictor cannot be created before training is complete");
-
             // LogitBoost is naturally calibrated to
             // output probabilities when transformed using
-            // the logistic function, so if we have trained no 
+            // the logistic function, so if we have trained no
             // calibrator, transform the scores using that.
 
             // REVIEW: Need a way to signal the outside world that we prefer simple sigmoid?
@@ -208,7 +202,12 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public static partial class FastForest
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastForestBinaryClassifier", Desc = FastForestClassification.Summary, UserName = FastForestClassification.UserNameValue, ShortName = FastForestClassification.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FastForestBinaryClassifier",
+            Desc = FastForestClassification.Summary,
+            UserName = FastForestClassification.UserNameValue,
+            ShortName = FastForestClassification.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />",
+                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastForestBinaryClassifier""]/*' />"})]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastForestClassification.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

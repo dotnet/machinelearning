@@ -20,6 +20,7 @@ namespace Microsoft.ML.Runtime.FastTree
     {
     }
 
+    /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeBinaryClassificationTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
@@ -238,7 +239,7 @@ namespace Microsoft.ML.Runtime.FastTree
         public int MinDocumentsInLeafs = 10;
 
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of weak hypotheses in the ensemble", ShortName = "iter", SortOrder = 1)]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of decision trees to create in the ensemble", ShortName = "iter", SortOrder = 1)]
         [TGUI(Description = "Total number of trees constructed", SuggestedSweeps = "20,100,500")]
         [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
         public int NumTrees = 100;

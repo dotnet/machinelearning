@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.CheckParam(keyNames.Length == type.ItemType.KeyCount,
                     nameof(keyNames), "keyNames length must match type's key count");
                 // REVIEW: Assuming the caller takes some care, it seems
-                // like we can get away with 
+                // like we can get away with
                 _keyNames = keyNames;
                 _keyNamesType = new VectorType(TextType.Instance, keyNames.Length);
                 _getKeyNames = GetKeyNames;

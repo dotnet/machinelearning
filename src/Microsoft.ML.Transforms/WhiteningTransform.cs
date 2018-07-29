@@ -40,31 +40,40 @@ namespace Microsoft.ML.Runtime.Data
     /// 1. Decorrelation of the input data. Input data is assumed to have zero mean.
     /// 2. Rescale decorrelated features to have unit variance.
     /// That is, PCA whitening is essentially just a PCA + rescale.
-    /// ZCA whitening tries to make resulting data to look more like input data by rotating it back to the 
+    /// ZCA whitening tries to make resulting data to look more like input data by rotating it back to the
     /// original input space.
-    /// More information: <see href="http://ufldl.stanford.edu/wiki/index.php/Whitening"/>
+    /// More information: <a href="http://ufldl.stanford.edu/wiki/index.php/Whitening">http://ufldl.stanford.edu/wiki/index.php/Whitening</a>
     /// </summary>
     public sealed class WhiteningTransform : OneToOneTransformBase
     {
+        private static class Defaults
+        {
+            public const WhiteningKind Kind = WhiteningKind.Zca;
+            public const Float Eps = (Float)1e-5;
+            public const int MaxRows = 100 * 1000;
+            public const bool SaveInverse = false;
+            public const int PcaNum = 0;
+        }
+
         public sealed class Arguments
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whitening kind (PCA/ZCA)")]
-            public WhiteningKind Kind = WhiteningKind.Zca;
+            public WhiteningKind Kind = Defaults.Kind;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scaling regularizer")]
-            public Float Eps = (Float)1e-5;
+            public Float Eps = Defaults.Eps;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of rows", ShortName = "rows")]
-            public int MaxRows = 100 * 1000;
+            public int MaxRows = Defaults.MaxRows;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to save inverse (recovery) matrix", ShortName = "saveInv")]
-            public bool SaveInverse = false;
+            public bool SaveInverse = Defaults.SaveInverse;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "PCA components to retain")]
-            public int PcaNum = 0;
+            public int PcaNum = Defaults.PcaNum;
 
             // REVIEW: add the following options:
             // 1. Currently there is no way to apply an inverse transform AFTER the the transform is trained.
@@ -208,6 +217,23 @@ namespace Microsoft.ML.Runtime.Data
         private readonly ColInfoEx[] _exes;
 
         private const string RegistrationName = "Whitening";
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="kind">Whitening kind (PCA/ZCA).</param>
+        public WhiteningTransform(IHostEnvironment env,
+            IDataView input,
+            string name,
+            string source = null,
+            WhiteningKind kind = Defaults.Kind)
+                : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, Kind = kind }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.

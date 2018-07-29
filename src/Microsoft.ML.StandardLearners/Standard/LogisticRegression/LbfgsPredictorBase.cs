@@ -17,9 +17,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    public abstract class LbfgsTrainerBase<TOutput, TPredictor> :
-        TrainerBase<RoleMappedData, TPredictor>,
-        IIncrementalTrainer<RoleMappedData, TPredictor>
+    public abstract class LbfgsTrainerBase<TOutput, TPredictor> : TrainerBase<TPredictor>
         where TPredictor : class, IPredictorProducing<TOutput>
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithWeight
@@ -134,6 +132,11 @@ namespace Microsoft.ML.Runtime.Learners
         private VBuffer<Float>[] _localGradients;
         private Float[] _localLosses;
 
+        // REVIEW: It's pointless to request caching when we're going to load everything into
+        // memory, that is, when using multiple threads. So should caching not be requested?
+        private static readonly TrainerInfo _info = new TrainerInfo(caching: true, supportIncrementalTrain: true);
+        public override TrainerInfo Info => _info;
+
         internal LbfgsTrainerBase(ArgumentsBase args, IHostEnvironment env, string name, bool showTrainingStats = false)
             : base(env, name)
         {
@@ -172,16 +175,9 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public override bool NeedNormalization => true;
-
-        // REVIEW: It's pointless to request caching when we're going to load everything into
-        // memory, that is, when using multiple threads.
-        public override bool WantCaching => true;
-
         protected virtual int ClassCount => 1;
         protected int BiasCount => ClassCount;
         protected int WeightCount => ClassCount * NumFeatures;
-
         protected virtual Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
             out VBuffer<Float> init, out ITerminationCriterion terminationCriterion)
         {
@@ -289,28 +285,23 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected abstract VBuffer<Float> InitializeWeightsFromPredictor(TPredictor srcPredictor);
 
-        public void Train(RoleMappedData data, TPredictor predictor)
-        {
-            Contracts.CheckValue(data, nameof(data));
-            Contracts.CheckValue(predictor, nameof(predictor));
-
-            _srcPredictor = predictor;
-            Train(data);
-        }
-
         protected abstract void CheckLabel(RoleMappedData data);
 
         protected virtual void PreTrainingProcessInstance(Float label, ref VBuffer<Float> feat, Float weight)
         {
         }
 
+        protected abstract TPredictor CreatePredictor();
+
         /// <summary>
         /// The basic training calls the optimizer
         /// </summary>
-        public override void Train(RoleMappedData data)
+        public override TPredictor Train(TrainContext context)
         {
-            Contracts.CheckValue(data, nameof(data));
+            Contracts.CheckValue(context, nameof(context));
 
+            var data = context.TrainingSet;
+            _srcPredictor = context.TrainingSet as TPredictor;
             data.CheckFeatureFloatVector(out NumFeatures);
             CheckLabel(data);
             data.CheckOptFloatWeight();
@@ -318,13 +309,15 @@ namespace Microsoft.ML.Runtime.Learners
             if (NumFeatures >= Utils.ArrayMaxSize / ClassCount)
             {
                 throw Contracts.ExceptParam(nameof(data),
-                    String.Format("The number of model parameters which is equal to ('# of features' + 1) * '# of classes' should be less than or equal to {0}.", Utils.ArrayMaxSize));
+                    "The number of model parameters which is equal to ('# of features' + 1) * '# of classes' should be less than or equal to {0}.", Utils.ArrayMaxSize);
             }
 
             using (var ch = Host.Start("Training"))
             {
                 TrainCore(ch, data);
+                var pred = CreatePredictor();
                 ch.Done();
+                return pred;
             }
         }
 

@@ -44,62 +44,57 @@ namespace Microsoft.ML.Runtime.Learners
     using Stopwatch = System.Diagnostics.Stopwatch;
     using TScalarPredictor = IPredictorWithFeatureWeights<Float>;
 
-    public abstract class LinearTrainerBase<TPredictor> : TrainerBase<RoleMappedData, TPredictor>
+    public abstract class LinearTrainerBase<TPredictor> : TrainerBase<TPredictor>
         where TPredictor : IPredictor
     {
-        protected int NumFeatures;
-        protected VBuffer<Float>[] Weights;
-        protected Float[] Bias;
         protected bool NeedShuffle;
 
-        public override bool NeedNormalization => true;
-
-        public override bool WantCaching => true;
+        private static readonly TrainerInfo _info = new TrainerInfo();
+        public override TrainerInfo Info => _info;
 
         /// <summary>
         /// Whether data is to be shuffled every epoch.
         /// </summary>
         protected abstract bool ShuffleData { get; }
 
-        protected LinearTrainerBase(IHostEnvironment env, string name)
+        private protected LinearTrainerBase(IHostEnvironment env, string name)
             : base(env, name)
         {
         }
 
-        protected void TrainEx(RoleMappedData data, LinearPredictor predictor)
+        public override TPredictor Train(TrainContext context)
         {
+            Host.CheckValue(context, nameof(context));
+            TPredictor pred;
             using (var ch = Host.Start("Training"))
             {
-                ch.AssertValue(data, nameof(data));
-                ch.AssertValueOrNull(predictor);
-                var preparedData = PrepareDataFromTrainingExamples(ch, data);
-                TrainCore(ch, preparedData, predictor);
+                var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
+                var initPred = context.InitialPredictor;
+                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
+                linInitPred = linInitPred ?? initPred as LinearPredictor;
+                Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
+                    "Initial predictor was not a linear predictor.");
+                pred = TrainCore(ch, preparedData, linInitPred, weightSetCount);
                 ch.Done();
             }
+            return pred;
         }
 
-        public override void Train(RoleMappedData examples)
-        {
-            Host.CheckValue(examples, nameof(examples));
-            TrainEx(examples, null);
-        }
-
-        protected abstract void TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor);
-
-        /// <summary>
-        /// Gets the size of weights and bias array. For binary classification and regression, this is 1. 
-        /// For multi-class classification, this equals the number of classes.
-        /// </summary>
-        protected abstract int WeightArraySize { get; }
+        protected abstract TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount);
 
         /// <summary>
         /// This method ensures that the data meets the requirements of this trainer and its
         /// subclasses, injects necessary transforms, and throws if it couldn't meet them.
         /// </summary>
-        protected RoleMappedData PrepareDataFromTrainingExamples(IChannel ch, RoleMappedData examples)
+        /// <param name="ch">The channel</param>
+        /// <param name="examples">The training examples</param>
+        /// <param name="weightSetCount">Gets the length of weights and bias array. For binary classification and regression,
+        /// this is 1. For multi-class classification, this equals the number of classes on the label.</param>
+        /// <returns>A potentially modified version of <paramref name="examples"/></returns>
+        protected RoleMappedData PrepareDataFromTrainingExamples(IChannel ch, RoleMappedData examples, out int weightSetCount)
         {
             ch.AssertValue(examples);
-            CheckLabel(examples);
+            CheckLabel(examples, out weightSetCount);
             examples.CheckFeatureFloatVector();
             var idvToShuffle = examples.Data;
             IDataView idvToFeedTrain;
@@ -118,19 +113,19 @@ namespace Microsoft.ML.Runtime.Learners
             ch.Assert(idvToFeedTrain.CanShuffle);
 
             var roles = examples.Schema.GetColumnRoleNames();
-            var examplesToFeedTrain = RoleMappedData.Create(idvToFeedTrain, roles);
+            var examplesToFeedTrain = new RoleMappedData(idvToFeedTrain, roles);
 
-            ch.Assert(examplesToFeedTrain.Schema.Label != null);
-            ch.Assert(examplesToFeedTrain.Schema.Feature != null);
+            ch.AssertValue(examplesToFeedTrain.Schema.Label);
+            ch.AssertValue(examplesToFeedTrain.Schema.Feature);
             if (examples.Schema.Weight != null)
-                ch.Assert(examplesToFeedTrain.Schema.Weight != null);
+                ch.AssertValue(examplesToFeedTrain.Schema.Weight);
 
-            NumFeatures = examplesToFeedTrain.Schema.Feature.Type.VectorSize;
-            ch.Check(NumFeatures > 0, "Training set has 0 instances, aborting training.");
+            int numFeatures = examplesToFeedTrain.Schema.Feature.Type.VectorSize;
+            ch.Check(numFeatures > 0, "Training set has no features, aborting training.");
             return examplesToFeedTrain;
         }
 
-        protected abstract void CheckLabel(RoleMappedData examples);
+        protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
 
         protected Float WDot(ref VBuffer<Float> features, ref VBuffer<Float> weights, Float bias)
         {
@@ -165,13 +160,13 @@ namespace Microsoft.ML.Runtime.Learners
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
-            [TlcModule.SweepableDiscreteParamAttribute("L2Const", new object[] { "<Auto>", 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f })]
+            [TlcModule.SweepableDiscreteParam("L2Const", new object[] { "<Auto>", 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f })]
             public Float? L2Const;
 
             // REVIEW: make the default positive when we know how to consume a sparse model
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 soft threshold (L1/L2). Note that it is easier to control and sweep using the threshold parameter than the raw L1-regularizer constant. By default the l1 threshold is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l1", SortOrder = 2)]
             [TGUI(Label = "L1 Soft Threshold", SuggestedSweeps = "<Auto>,0,0.25,0.5,0.75,1")]
-            [TlcModule.SweepableDiscreteParamAttribute("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f })]
+            [TlcModule.SweepableDiscreteParam("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f })]
             public Float? L1Threshold;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", NullName = "<Auto>", ShortName = "nt,t,threads", SortOrder = 50)]
@@ -180,16 +175,16 @@ namespace Microsoft.ML.Runtime.Learners
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The tolerance for the ratio between duality gap and primal loss for convergence checking.", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "0.001, 0.01, 0.1, 0.2")]
-            [TlcModule.SweepableDiscreteParamAttribute("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f })]
+            [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f })]
             public Float ConvergenceTolerance = 0.1f;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "<Auto>,10,20,100")]
-            [TlcModule.SweepableDiscreteParamAttribute("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
+            [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
             public int? MaxIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", null, isBool:true)]
+            [TlcModule.SweepableDiscreteParam("Shuffle", null, isBool: true)]
             public bool Shuffle = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Set as negative or zero for not checking at all. If left blank, it defaults to check after every 'numThreads' iterations.", NullName = "<Auto>", ShortName = "checkFreq")]
@@ -197,7 +192,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The learning rate for adjusting bias from being regularized.", ShortName = "blr")]
             [TGUI(SuggestedSweeps = "0, 0.01, 0.1, 1")]
-            [TlcModule.SweepableDiscreteParamAttribute("BiasLearningRate", new object[] { 0.0f, 0.01f, 0.1f, 1f })]
+            [TlcModule.SweepableDiscreteParam("BiasLearningRate", new object[] { 0.0f, 0.01f, 0.1f, 1f })]
             public Float BiasLearningRate = 0;
 
             internal virtual void Check(IHostEnvironment env)
@@ -217,6 +212,7 @@ namespace Microsoft.ML.Runtime.Learners
                             "could drastically slow down the convergence. So using l2Const = {1} instead.", L2Const);
 
                         L2Const = L2LowerBound;
+                        ch.Done();
                     }
                 }
             }
@@ -235,20 +231,15 @@ namespace Microsoft.ML.Runtime.Learners
 
         // The maximum number of dual variables SDCA intends to support.
         // Actual bound of training dataset size may depend on hardware limit.
-        // Note that currently the maximum dimension linear learners can support is about 2 billion, 
-        // it is not clear if training a linear learner with more than 10^15 examples provides 
+        // Note that currently the maximum dimension linear learners can support is about 2 billion,
+        // it is not clear if training a linear learner with more than 10^15 examples provides
         // substantial additional benefits in terms of accuracy.
         private const long MaxDualTableSize = 1L << 50;
         private const Float L2LowerBound = 1e-09f;
         private readonly ArgumentsBase _args;
         protected ISupportSdcaLoss Loss;
 
-        public override bool NeedNormalization
-        {
-            get { return true; }
-        }
-
-        protected override bool ShuffleData { get { return _args.Shuffle; } }
+        protected override bool ShuffleData => _args.Shuffle;
 
         protected SdcaTrainerBase(ArgumentsBase args, IHostEnvironment env, string name)
             : base(env, name)
@@ -257,13 +248,13 @@ namespace Microsoft.ML.Runtime.Learners
             _args.Check(env);
         }
 
-        protected override void TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor)
+        protected sealed override TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
         {
             Contracts.Assert(predictor == null, "SDCA based trainers don't support continuous training.");
-            Contracts.Assert(NumFeatures > 0, "Number of features must be assigned prior to passing into TrainCore.");
-            int weightArraySize = WeightArraySize;
-            Contracts.Assert(weightArraySize >= 1);
-            long maxTrainingExamples = MaxDualTableSize / weightArraySize;
+            Contracts.Assert(weightSetCount >= 1);
+
+            int numFeatures = data.Schema.Feature.Type.VectorSize;
+            long maxTrainingExamples = MaxDualTableSize / weightSetCount;
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight | CursOpt.Id);
             int numThreads;
             if (_args.NumThreads.HasValue)
@@ -301,8 +292,7 @@ namespace Microsoft.ML.Runtime.Learners
             ch.Assert(checkFrequency > 0);
 
             var pOptions = new ParallelOptions { MaxDegreeOfParallelism = numThreads };
-            var converged = false;
-            var watch = new Stopwatch();
+            bool converged = false;
 
             // Getting the total count of rows in data. Ignore rows with bad label and feature values.
             long count = 0;
@@ -350,7 +340,7 @@ namespace Microsoft.ML.Runtime.Learners
                     // REVIEW: Is 1024 a good lower bound to enforce sparsity?
                     if (1024 < count && count < (long)idLoMax / 5)
                     {
-                        // The distribution of id.Lo is sparse in [0, idLoMax]. 
+                        // The distribution of id.Lo is sparse in [0, idLoMax].
                         // Building a lookup table is more memory efficient.
                         needLookup = true;
                     }
@@ -361,7 +351,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 // Note: At this point, 'count' may be less than the actual count of training examples.
                 // We initialize the hash table with this partial size to avoid unnecessary rehashing.
-                // However, it does not mean there are exactly 'count' many trainining examples. 
+                // However, it does not mean there are exactly 'count' many trainining examples.
                 // Necessary rehashing will still occur as the hash table grows.
                 idToIdx = new IdToIdxLookup(count);
                 // Resetting 'count' to zero.
@@ -398,24 +388,24 @@ namespace Microsoft.ML.Runtime.Learners
 
             Contracts.Assert(_args.L2Const.HasValue);
             if (_args.L1Threshold == null)
-                _args.L1Threshold = TuneDefaultL1(ch, NumFeatures);
+                _args.L1Threshold = TuneDefaultL1(ch, numFeatures);
 
             ch.Assert(_args.L1Threshold.HasValue);
             var l1Threshold = _args.L1Threshold.Value;
             var l1ThresholdZero = l1Threshold == 0;
-            VBuffer<Float>[] weights = new VBuffer<Float>[weightArraySize];
-            VBuffer<Float>[] bestWeights = new VBuffer<Float>[weightArraySize];
-            VBuffer<Float>[] l1IntermediateWeights = l1ThresholdZero ? null : new VBuffer<Float>[weightArraySize];
-            Float[] biasReg = new Float[weightArraySize];
-            Float[] bestBiasReg = new Float[weightArraySize];
-            Float[] biasUnreg = new Float[weightArraySize];
-            Float[] bestBiasUnreg = new Float[weightArraySize];
-            Float[] l1IntermediateBias = l1ThresholdZero ? null : new Float[weightArraySize];
+            var weights = new VBuffer<Float>[weightSetCount];
+            var bestWeights = new VBuffer<Float>[weightSetCount];
+            var l1IntermediateWeights = l1ThresholdZero ? null : new VBuffer<Float>[weightSetCount];
+            var biasReg = new Float[weightSetCount];
+            var bestBiasReg = new Float[weightSetCount];
+            var biasUnreg = new Float[weightSetCount];
+            var bestBiasUnreg = new Float[weightSetCount];
+            var l1IntermediateBias = l1ThresholdZero ? null : new Float[weightSetCount];
 
-            for (int i = 0; i < weightArraySize; i++)
+            for (int i = 0; i < weightSetCount; i++)
             {
-                weights[i] = VBufferUtils.CreateDense<Float>(NumFeatures);
-                bestWeights[i] = VBufferUtils.CreateDense<Float>(NumFeatures);
+                weights[i] = VBufferUtils.CreateDense<Float>(numFeatures);
+                bestWeights[i] = VBufferUtils.CreateDense<Float>(numFeatures);
                 biasReg[i] = 0;
                 bestBiasReg[i] = 0;
                 biasUnreg[i] = 0;
@@ -423,7 +413,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                 if (!l1ThresholdZero)
                 {
-                    l1IntermediateWeights[i] = VBufferUtils.CreateDense<Float>(NumFeatures);
+                    l1IntermediateWeights[i] = VBufferUtils.CreateDense<Float>(numFeatures);
                     l1IntermediateBias[i] = 0;
                 }
             }
@@ -441,7 +431,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (idToIdx == null)
             {
                 Contracts.Assert(!needLookup);
-                long dualsLength = ((long)idLoMax + 1) * WeightArraySize;
+                long dualsLength = ((long)idLoMax + 1) * weightSetCount;
                 if (dualsLength <= Utils.ArrayMaxSize)
                 {
                     // The dual variables fit into a standard float[].
@@ -454,8 +444,8 @@ namespace Microsoft.ML.Runtime.Learners
                 else
                 {
                     // The dual variables do not fit into standard float[].
-                    // Using BigArray<Float> instead. 
-                    // Storing the invariants gives rise to too large memory consumption, 
+                    // Using BigArray<Float> instead.
+                    // Storing the invariants gives rise to too large memory consumption,
                     // so we favor re-computing the invariants instead of storing them.
                     Contracts.Assert(dualsLength <= MaxDualTableSize);
                     duals = new BigArrayDualsTable(dualsLength);
@@ -465,7 +455,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 // Similar logic as above when using the id-to-index lookup.
                 Contracts.Assert(needLookup);
-                long dualsLength = count * WeightArraySize;
+                long dualsLength = count * weightSetCount;
                 if (dualsLength <= Utils.ArrayMaxSize)
                 {
                     duals = new StandardArrayDualsTable((int)dualsLength);
@@ -497,8 +487,6 @@ namespace Microsoft.ML.Runtime.Learners
             ch.Assert(_args.MaxIterations.HasValue);
             var maxIterations = _args.MaxIterations.Value;
 
-            watch.Start();
-
             var rands = new IRandom[maxIterations];
             for (int i = 0; i < maxIterations; i++)
                 rands[i] = RandomUtils.Create(Host.Rand.Next());
@@ -506,9 +494,9 @@ namespace Microsoft.ML.Runtime.Learners
             // If we favor storing the invariants, precompute the invariants now.
             if (invariants != null)
             {
-                Contracts.Assert((idToIdx == null & ((long)idLoMax + 1) * WeightArraySize <= Utils.ArrayMaxSize) | (idToIdx != null & count * WeightArraySize <= Utils.ArrayMaxSize));
-                Func<UInt128, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx);
-                int invariantCoeff = WeightArraySize == 1 ? 1 : 2;
+                Contracts.Assert((idToIdx == null & ((long)idLoMax + 1) * weightSetCount <= Utils.ArrayMaxSize) | (idToIdx != null & count * weightSetCount <= Utils.ArrayMaxSize));
+                Func<UInt128, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
+                int invariantCoeff = weightSetCount == 1 ? 1 : 2;
                 using (var cursor = cursorFactory.Create())
                 using (var pch = Host.StartProgressChannel("SDCA invariants initialization"))
                 {
@@ -543,7 +531,7 @@ namespace Microsoft.ML.Runtime.Learners
                 pch.SetHeader(new ProgressHeader(metricNames, new[] { "iterations" }), e => e.SetProgress(0, iter, maxIterations));
 
                 // Separate logic is needed for single-thread execution to ensure the result is deterministic.
-                // Note that P.Invoke does not ensure that the actions executes in order even if maximum number of threads is set to 1. 
+                // Note that P.Invoke does not ensure that the actions executes in order even if maximum number of threads is set to 1.
                 if (numThreads == 1)
                 {
                     // The synchorized SDCA procedure.
@@ -599,22 +587,24 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
 
-            Bias = new Float[weightArraySize];
+            var bias = new Float[weightSetCount];
             if (bestIter > 0)
             {
                 ch.Info("Using best model from iteration {0}.", bestIter);
-                Weights = bestWeights;
-                for (int i = 0; i < weightArraySize; i++)
-                    Bias[i] = bestBiasReg[i] + bestBiasUnreg[i];
+                weights = bestWeights;
+                for (int i = 0; i < weightSetCount; i++)
+                    bias[i] = bestBiasReg[i] + bestBiasUnreg[i];
             }
             else
             {
                 ch.Info("Using model from last iteration.");
-                Weights = weights;
-                for (int i = 0; i < weightArraySize; i++)
-                    Bias[i] = biasReg[i] + biasUnreg[i];
+                for (int i = 0; i < weightSetCount; i++)
+                    bias[i] = biasReg[i] + biasUnreg[i];
             }
+            return CreatePredictor(weights, bias);
         }
+
+        protected abstract TPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias);
 
         // Assign an upper bound for number of iterations based on data set size first.
         // This ensures SDCA will not run forever...
@@ -688,7 +678,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// It may be null. When it is null, the training examples are not shuffled and are cursored in its original order.
         /// </param>
         /// <param name="idToIdx">
-        /// The id to index mapping. May be null. If it is null, the index is given by the 
+        /// The id to index mapping. May be null. If it is null, the index is given by the
         /// corresponding lower bits of the id.
         /// </param>
         /// <param name="numThreads">The number of threads used in parallel training. It is used in computing the dual update.</param>
@@ -696,33 +686,33 @@ namespace Microsoft.ML.Runtime.Learners
         /// The dual variables. For binary classification and regression, there is one dual variable per row.
         /// For multiclass classification, there is one dual variable per class per row.
         /// </param>
-        /// <param name="biasReg">The array containing regularized bias terms. For binary classification or regression, 
+        /// <param name="biasReg">The array containing regularized bias terms. For binary classification or regression,
         /// it contains only a single value. For multiclass classification its size equals the number of classes.</param>
         /// <param name="invariants">
-        /// The dual updates invariants. It may be null. If not null, it holds an array of pre-computed numerical quantities 
+        /// The dual updates invariants. It may be null. If not null, it holds an array of pre-computed numerical quantities
         /// that depend on the training example label and features, not the value of dual variables.
         /// </param>
         /// <param name="lambdaNInv">The precomputed numerical quantity 1 / (l2Const * (count of training examples)).</param>
         /// <param name="weights">
-        /// The weights array. For binary classification or regression, it consists of only one VBuffer. 
+        /// The weights array. For binary classification or regression, it consists of only one VBuffer.
         /// For multiclass classification, its size equals the number of classes.
         /// </param>
         /// <param name="biasUnreg">
-        /// The array containing unregularized bias terms. For binary classification or regression, 
-        /// it contains only a single value. For multiclass classification its size equals the number of classes. 
+        /// The array containing unregularized bias terms. For binary classification or regression,
+        /// it contains only a single value. For multiclass classification its size equals the number of classes.
         /// </param>
         /// <param name="l1IntermediateWeights">
-        /// The array holding the intermediate weights prior to making L1 shrinkage adjustment. It is null iff l1Threshold is zero. 
-        /// Otherwise, for binary classification or regression, it consists of only one VBuffer; 
+        /// The array holding the intermediate weights prior to making L1 shrinkage adjustment. It is null iff l1Threshold is zero.
+        /// Otherwise, for binary classification or regression, it consists of only one VBuffer;
         /// for multiclass classification, its size equals the number of classes.
         /// </param>
         /// <param name="l1IntermediateBias">
-        /// The array holding the intermediate bias prior to making L1 shrinkage adjustment. It is null iff l1Threshold is zero. 
-        /// Otherwise, for binary classification or regression, it consists of only one value; 
+        /// The array holding the intermediate bias prior to making L1 shrinkage adjustment. It is null iff l1Threshold is zero.
+        /// Otherwise, for binary classification or regression, it consists of only one value;
         /// for multiclass classification, its size equals the number of classes.
         /// </param>
         /// <param name="featureNormSquared">
-        /// The array holding the pre-computed squared L2-norm of features for each training example. It may be null. It is always null for 
+        /// The array holding the pre-computed squared L2-norm of features for each training example. It may be null. It is always null for
         /// binary classification and regression because this quantity is not needed.
         /// </param>
         protected virtual void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, IRandom rand,
@@ -746,7 +736,7 @@ namespace Microsoft.ML.Runtime.Learners
                 if (pch != null)
                     pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, rowCount));
 
-                Func<UInt128, long> getIndexFromId = GetIndexFromIdGetter(idToIdx);
+                Func<UInt128, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
                 while (cursor.MoveNext())
                 {
                     long idx = getIndexFromId(cursor.Id);
@@ -772,7 +762,7 @@ namespace Microsoft.ML.Runtime.Learners
                         var dualUpdate = Loss.DualUpdate(output, label, dual, invariant, numThreads);
 
                         // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
-                        // Reference to details: http://stat.rutgers.edu/home/tzhang/papers/ml02_dual.pdf pp. 16-17. 
+                        // Reference to details: http://stat.rutgers.edu/home/tzhang/papers/ml02_dual.pdf pp. 16-17.
                         var adjustment = l1ThresholdZero ? lr * biasReg[0] : lr * l1IntermediateBias[0];
                         dualUpdate -= adjustment;
                         bool success = false;
@@ -822,7 +812,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary>
-        ///  Returns whether the algorithm converged, and also populates the <paramref name="metrics"/> 
+        ///  Returns whether the algorithm converged, and also populates the <paramref name="metrics"/>
         /// (which is expected to be parallel to the names returned by <see cref="InitializeConvergenceMetrics"/>).
         /// When called, the <paramref name="metrics"/> is expected to hold the previously reported values.
         /// </summary>
@@ -834,33 +824,33 @@ namespace Microsoft.ML.Runtime.Learners
         /// For multiclass classification, there is one dual variable per class per row.
         /// </param>
         /// <param name="idToIdx">
-        /// The id to index mapping. May be null. If it is null, the index is given by the 
+        /// The id to index mapping. May be null. If it is null, the index is given by the
         /// corresponding lower bits of the id.
         /// </param>
         /// <param name="weights">
-        /// The weights array. For binary classification or regression, it consists of only one VBuffer. 
+        /// The weights array. For binary classification or regression, it consists of only one VBuffer.
         /// For multiclass classification, its size equals the number of classes.
         /// </param>
         /// <param name="bestWeights">
-        /// The weights array that corresponds to the best model obtained from the training iterations thus far. 
+        /// The weights array that corresponds to the best model obtained from the training iterations thus far.
         /// </param>
         /// <param name="biasUnreg">
-        /// The array containing unregularized bias terms. For binary classification or regression, 
-        /// it contains only a single value. For multiclass classification its size equals the number of classes. 
+        /// The array containing unregularized bias terms. For binary classification or regression,
+        /// it contains only a single value. For multiclass classification its size equals the number of classes.
         /// </param>
         /// <param name="bestBiasUnreg">
-        /// The array containing unregularized bias terms corresponding to the best model obtained from the training iterations thus far. 
-        /// For binary classification or regression, it contains only a single value. 
-        /// For multiclass classification its size equals the number of classes. 
+        /// The array containing unregularized bias terms corresponding to the best model obtained from the training iterations thus far.
+        /// For binary classification or regression, it contains only a single value.
+        /// For multiclass classification its size equals the number of classes.
         /// </param>
         /// <param name="biasReg">
-        /// The array containing regularized bias terms. For binary classification or regression, 
-        /// it contains only a single value. For multiclass classification its size equals the number of classes. 
+        /// The array containing regularized bias terms. For binary classification or regression,
+        /// it contains only a single value. For multiclass classification its size equals the number of classes.
         /// </param>
         /// <param name="bestBiasReg">
-        /// The array containing regularized bias terms corresponding to the best model obtained from the training iterations thus far. 
-        /// For binary classification or regression, it contains only a single value. 
-        /// For multiclass classification its size equals the number of classes. 
+        /// The array containing regularized bias terms corresponding to the best model obtained from the training iterations thus far.
+        /// For binary classification or regression, it contains only a single value.
+        /// For multiclass classification its size equals the number of classes.
         /// </param>
         /// <param name="count">
         /// The count of (valid) training examples. Bad training examples are excluded from this count.
@@ -901,7 +891,7 @@ namespace Microsoft.ML.Runtime.Learners
             using (var cursor = cursorFactory.Create())
             {
                 long row = 0;
-                Func<UInt128, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx);
+                Func<UInt128, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 // Iterates through data to compute loss function.
                 while (cursor.MoveNext())
                 {
@@ -939,7 +929,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             if (metrics[(int)MetricKind.Loss] < bestPrimalLoss)
             {
-                // Maintain a copy of weights and bias with best primal loss thus far. 
+                // Maintain a copy of weights and bias with best primal loss thus far.
                 // This is some extra work and uses extra memory, but it seems worth doing it.
                 // REVIEW: Sparsify bestWeights?
                 weights[0].CopyTo(ref bestWeights[0]);
@@ -967,7 +957,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected delegate void Visitor(long index, ref Float value);
 
         /// <summary>
-        /// Encapsulates the common functionality of storing and 
+        /// Encapsulates the common functionality of storing and
         /// retrieving the dual variables.
         /// </summary>
         protected abstract class DualsTableBase
@@ -994,8 +984,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             public override Float this[long index]
             {
-                get { return _duals[(int)index]; }
-                set { _duals[(int)index] = value; }
+                get => _duals[(int)index];
+                set => _duals[(int)index] = value;
             }
 
             public override void ApplyAt(long index, Visitor manip)
@@ -1011,7 +1001,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             private BigArray<Float> _duals;
 
-            public override long Length { get { return _duals.Length; } }
+            public override long Length => _duals.Length;
 
             public BigArrayDualsTable(long length)
             {
@@ -1021,14 +1011,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             public override Float this[long index]
             {
-                get
-                {
-                    return _duals[index];
-                }
-                set
-                {
-                    _duals[index] = value;
-                }
+                get => _duals[index];
+                set => _duals[index] = value;
             }
 
             public override void ApplyAt(long index, Visitor manip)
@@ -1042,10 +1026,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// Returns a function delegate to retrieve index from id.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<UInt128, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx)
+        protected Func<UInt128, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
-            long maxTrainingExamples = MaxDualTableSize / WeightArraySize;
+            long maxTrainingExamples = MaxDualTableSize / biasLength;
             if (idToIdx == null)
             {
                 return (UInt128 id) =>
@@ -1073,10 +1057,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// Only works if the cursor is not shuffled.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<UInt128, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx)
+        protected Func<UInt128, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
-            long maxTrainingExamples = MaxDualTableSize / WeightArraySize;
+            long maxTrainingExamples = MaxDualTableSize / biasLength;
             if (idToIdx == null)
             {
                 return (UInt128 id, long row) =>
@@ -1102,20 +1086,20 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        // REVIEW: This data structure is an extension of HashArray. It may have general 
+        // REVIEW: This data structure is an extension of HashArray. It may have general
         // purpose of usage to store Id. Should consider lifting this class in the future.
-        // This class can also be made to accommodate generic type, as long as the type implements a 
+        // This class can also be made to accommodate generic type, as long as the type implements a
         // good 64-bit hash function.
         /// <summary>
         /// A hash table data structure to store Id of type <see cref="T:Microsoft.ML.Runtime.Data.UInt128"/>,
-        /// and accommodates size larger than 2 billion. This class is an extension based on BCL. 
-        /// Two operations are supported: adding and retrieving an id with asymptotically constant complexity. 
-        /// The bucket size are prime numbers, starting from 3 and grows to the next prime larger than 
-        /// double the current size until it reaches the maximum possible size. When a table growth is triggered, 
+        /// and accommodates size larger than 2 billion. This class is an extension based on BCL.
+        /// Two operations are supported: adding and retrieving an id with asymptotically constant complexity.
+        /// The bucket size are prime numbers, starting from 3 and grows to the next prime larger than
+        /// double the current size until it reaches the maximum possible size. When a table growth is triggered,
         /// the table growing operation initializes a new larger bucket and rehash the existing entries to
         /// the new bucket. Such operation has an expected complexity proportional to the size.
         /// </summary>
-        protected internal sealed class IdToIdxLookup
+        protected sealed class IdToIdxLookup
         {
             // Utilizing this struct gives better cache behavior than using parallel arrays.
             private struct Entry
@@ -1142,7 +1126,7 @@ namespace Microsoft.ML.Runtime.Learners
             /// <summary>
             /// Gets the count of id entries.
             /// </summary>
-            public long Count { get { return _count; } }
+            public long Count => _count;
 
             /// <summary>
             /// Initializes an instance of the <see cref="IdToIdxLookup"/> class with the specified size.
@@ -1304,7 +1288,7 @@ namespace Microsoft.ML.Runtime.Learners
                 public const long MaxPrime = 0x7FFFFFFFFFFFFFE7;
 
                 // Table of prime numbers to use as hash table sizes.
-                // Each subsequent prime, except the last in the list, ensures that the table will at least double in size 
+                // Each subsequent prime, except the last in the list, ensures that the table will at least double in size
                 // upon each growth in order to improve the efficiency of the hash table.
                 // See https://oeis.org/A065545 for the sequence with a[1] = 3, a[k] = next_prime(2 * a[k - 1]).
                 public static readonly long[] Primes =
@@ -1319,7 +1303,7 @@ namespace Microsoft.ML.Runtime.Learners
                     6173400291209582429, MaxPrime
                 };
 
-                // Returns size of hashtable to grow to. 
+                // Returns size of hashtable to grow to.
                 public static long ExpandPrime(long oldSize)
                 {
                     long newSize = 2 * oldSize;
@@ -1368,7 +1352,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed class LinearClassificationTrainer : SdcaTrainerBase<IPredictor>, ITrainer<RoleMappedData, TScalarPredictor>, ITrainerEx
+    public sealed class LinearClassificationTrainer : SdcaTrainerBase<TScalarPredictor>
     {
         public const string LoadNameValue = "SDCA";
         public const string UserNameValue = "Fast Linear (SA-SDCA)";
@@ -1402,39 +1386,32 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public override bool NeedCalibration => !(_loss is LogLoss);
-
-        protected override int WeightArraySize => 1;
+        public override TrainerInfo Info { get; }
 
         public LinearClassificationTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, LoadNameValue)
         {
             _loss = args.LossFunction.CreateComponent(env);
             base.Loss = _loss;
+            Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             NeedShuffle = args.Shuffle;
             _args = args;
             _positiveInstanceWeight = _args.PositiveInstanceWeight;
         }
 
-        public override IPredictor CreatePredictor()
+        protected override TScalarPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
         {
-            Contracts.Assert(WeightArraySize == 1);
-            Contracts.Assert(Utils.Size(Weights) == 1);
-            Contracts.Assert(Utils.Size(Bias) == 1);
-            Host.Check(Weights[0].Length > 0);
-            VBuffer<Float> maybeSparseWeights = VBufferUtils.CreateEmpty<Float>(Weights[0].Length);
-            VBufferUtils.CreateMaybeSparseCopy(ref Weights[0], ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
-            var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, Bias[0]);
+            Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
+            Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
+            Host.CheckParam(weights[0].Length > 0, nameof(weights));
+
+            VBuffer<Float> maybeSparseWeights = default;
+            VBufferUtils.CreateMaybeSparseCopy(ref weights[0], ref maybeSparseWeights,
+                Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
+            var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias[0]);
             if (!(_loss is LogLoss))
                 return predictor;
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
-        }
-
-        TScalarPredictor ITrainer<RoleMappedData, TScalarPredictor>.CreatePredictor()
-        {
-            var predictor = CreatePredictor() as TScalarPredictor;
-            Contracts.AssertValue(predictor);
-            return predictor;
         }
 
         protected override Float GetInstanceWeight(FloatLabelCursor cursor)
@@ -1442,17 +1419,15 @@ namespace Microsoft.ML.Runtime.Learners
             return cursor.Label > 0 ? cursor.Weight * _positiveInstanceWeight : cursor.Weight;
         }
 
-        protected override void CheckLabel(RoleMappedData examples)
+        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckBinaryLabel();
+            weightSetCount = 1;
         }
     }
 
     public sealed class StochasticGradientDescentClassificationTrainer :
-        LinearTrainerBase<IPredictor>,
-        IIncrementalTrainer<RoleMappedData, IPredictor>,
-        ITrainer<RoleMappedData, TScalarPredictor>,
-        ITrainerEx
+        LinearTrainerBase<TScalarPredictor>
     {
         public const string LoadNameValue = "BinarySGD";
         public const string UserNameValue = "Hogwild SGD (binary)";
@@ -1465,7 +1440,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant", ShortName = "l2", SortOrder = 50)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
-            [TlcModule.SweepableDiscreteParamAttribute("L2Const", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f })]
+            [TlcModule.SweepableDiscreteParam("L2Const", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f })]
             public Float L2Const = (Float)1e-6;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.", ShortName = "nt,t,threads", SortOrder = 50)]
@@ -1474,12 +1449,12 @@ namespace Microsoft.ML.Runtime.Learners
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Exponential moving averaged improvement tolerance for convergence", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "1e-2,1e-3,1e-4,1e-5")]
-            [TlcModule.SweepableDiscreteParamAttribute("ConvergenceTolerance", new object[] { 1e-2f, 1e-3f, 1e-4f, 1e-5f })]
+            [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 1e-2f, 1e-3f, 1e-4f, 1e-5f })]
             public Double ConvergenceTolerance = 1e-4;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning.", ShortName = "iter")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "1,5,10,20")]
-            [TlcModule.SweepableDiscreteParamAttribute("MaxIterations", new object[] { 1, 5, 10, 20 })]
+            [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { 1, 5, 10, 20 })]
             public int MaxIterations = 20;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", ShortName = "ilr,lr")]
@@ -1487,7 +1462,7 @@ namespace Microsoft.ML.Runtime.Learners
             public Double InitLearningRate = 0.01;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", null, isBool:true)]
+            [TlcModule.SweepableDiscreteParam("Shuffle", null, isBool: true)]
             public bool Shuffle = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
@@ -1502,15 +1477,23 @@ namespace Microsoft.ML.Runtime.Learners
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public int MaxCalibrationExamples = 1000000;
 
-            public void Check(ITrainerHost host)
+            internal void Check(IHostEnvironment env)
             {
-                Contracts.CheckUserArg(L2Const >= 0, nameof(L2Const), "L2 constant must be non-negative.");
-                Contracts.CheckUserArg(InitLearningRate > 0, nameof(InitLearningRate), "Initial learning rate must be positive.");
-                Contracts.CheckUserArg(MaxIterations > 0, nameof(MaxIterations), "Max number of iterations must be positive.");
-                Contracts.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Weight for positive instances must be positive");
+                Contracts.CheckValue(env, nameof(env));
+                env.CheckUserArg(L2Const >= 0, nameof(L2Const), "Must be non-negative.");
+                env.CheckUserArg(InitLearningRate > 0, nameof(InitLearningRate), "Must be positive.");
+                env.CheckUserArg(MaxIterations > 0, nameof(MaxIterations), "Must be positive.");
+                env.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Must be positive");
 
                 if (InitLearningRate * L2Const >= 1)
-                    host.StdOut.WriteLine("Learning rate {0} set too high; reducing to {1}", InitLearningRate, InitLearningRate = (Float)0.5 / L2Const);
+                {
+                    using (var ch = env.Start("Argument Adjustment"))
+                    {
+                        ch.Warning("{0} {1} set too high; reducing to {1}", nameof(InitLearningRate),
+                            InitLearningRate, InitLearningRate = (Float)0.5 / L2Const);
+                        ch.Done();
+                    }
+                }
 
                 if (ConvergenceTolerance <= 0)
                     ConvergenceTolerance = Float.Epsilon;
@@ -1520,63 +1503,34 @@ namespace Microsoft.ML.Runtime.Learners
         private readonly IClassificationLoss _loss;
         private readonly Arguments _args;
 
-        protected override bool ShuffleData { get { return _args.Shuffle; } }
+        protected override bool ShuffleData => _args.Shuffle;
 
-        protected override int WeightArraySize { get { return 1; } }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
-
-        public override bool NeedCalibration
-        {
-            get { return !(_loss is LogLoss); }
-        }
+        public override TrainerInfo Info { get; }
 
         public StochasticGradientDescentClassificationTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
+            args.Check(env);
             _loss = args.LossFunction.CreateComponent(env);
+            Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain: true);
             NeedShuffle = args.Shuffle;
             _args = args;
-        }
-
-        public override IPredictor CreatePredictor()
-        {
-            Contracts.Assert(WeightArraySize == 1);
-            Contracts.Assert(Utils.Size(Weights) == 1);
-            Contracts.Assert(Utils.Size(Bias) == 1);
-            Host.Check(Weights[0].Length > 0);
-            VBuffer<Float> maybeSparseWeights = VBufferUtils.CreateEmpty<Float>(Weights[0].Length);
-            VBufferUtils.CreateMaybeSparseCopy(ref Weights[0], ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
-            var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, Bias[0]);
-            if (!(_loss is LogLoss))
-                return predictor;
-            return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
-        }
-
-        TScalarPredictor ITrainer<RoleMappedData, TScalarPredictor>.CreatePredictor()
-        {
-            var predictor = CreatePredictor() as TScalarPredictor;
-            Contracts.AssertValue(predictor);
-            return predictor;
-        }
-
-        public void Train(RoleMappedData data, IPredictor predictor)
-        {
-            Host.CheckValue(data, nameof(data));
-            Host.CheckValue(predictor, nameof(predictor));
-            LinearPredictor pred = (predictor as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
-            pred = pred ?? predictor as LinearPredictor;
-            Host.CheckParam(pred != null, nameof(predictor), "Not a linear predictor.");
-            TrainEx(data, pred);
         }
 
         //For complexity analysis, we assume that
         // - The number of features is N
         // - Average number of non-zero per instance is k
-        protected override void TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor)
+        protected override TScalarPredictor TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
         {
-            ch.Assert(NumFeatures > 0, "Number of features must be assigned prior to passing into TrainCore.");
+            Contracts.AssertValue(data);
+            Contracts.Assert(weightSetCount == 1);
+            Contracts.AssertValueOrNull(predictor);
+
+            int numFeatures = data.Schema.Feature.Type.VectorSize;
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
+
             int numThreads;
             if (_args.NumThreads.HasValue)
             {
@@ -1603,7 +1557,7 @@ namespace Microsoft.ML.Runtime.Learners
                 bias = predictor.Bias;
             }
             else
-                weights = VBufferUtils.CreateDense<float>(NumFeatures);
+                weights = VBufferUtils.CreateDense<float>(numFeatures);
 
             var weightsSync = new object();
             double weightScaling = 1;
@@ -1612,7 +1566,7 @@ namespace Microsoft.ML.Runtime.Learners
             bool converged = false;
             var watch = new Stopwatch();
 
-            // REVIEW: Investigate using parallel row cursor set instead of getting cursor independently. The convergence of SDCA need to be verified. 
+            // REVIEW: Investigate using parallel row cursor set instead of getting cursor independently. The convergence of SDCA need to be verified.
             Action<int, IProgressChannel> checkConvergence = (e, pch) =>
             {
                 if (e % checkFrequency == 0 && e != _args.MaxIterations)
@@ -1648,7 +1602,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             watch.Start();
 
-            //Reference: Leon Bottou. Stochastic Gradient Descent Tricks. 
+            //Reference: Leon Bottou. Stochastic Gradient Descent Tricks.
             //http://research.microsoft.com/pubs/192769/tricks-2012.pdf
 
             var trainingTasks = new Action<IRandom, IProgressChannel>[_args.MaxIterations];
@@ -1669,8 +1623,8 @@ namespace Microsoft.ML.Runtime.Learners
                             Float label = cursor.Label;
                             Float derivative = cursor.Weight * lossFunc.Derivative(WScaledDot(ref features, weightScaling, ref weights, bias), label); // complexity: O(k)
 
-                            //Note that multiplying the gradient by a weight h is not equivalent to doing h updates 
-                            //on the same instance. A potentially better way to do weighted update is described in 
+                            //Note that multiplying the gradient by a weight h is not equivalent to doing h updates
+                            //on the same instance. A potentially better way to do weighted update is described in
                             //https://dslpitt.org/uai/papers/11/p392-karampatziakis.pdf
                             if (label > 0)
                                 derivative *= positiveInstanceWeight;
@@ -1710,7 +1664,7 @@ namespace Microsoft.ML.Runtime.Learners
             using (var pch = Host.StartProgressChannel("SGD Training"))
             {
                 // Separate logic is needed for single-thread execution to ensure the result is deterministic.
-                // Note that P.Invoke does not ensure that the actions executes in order even if maximum number of threads is set to 1. 
+                // Note that P.Invoke does not ensure that the actions executes in order even if maximum number of threads is set to 1.
                 if (numThreads == 1)
                 {
                     int iter = 0;
@@ -1742,15 +1696,18 @@ namespace Microsoft.ML.Runtime.Learners
 
             VectorUtils.ScaleBy(ref weights, (Float)weightScaling); // restore the true weights
 
-            Weights = new VBuffer<Float>[1];
-            Bias = new Float[1];
-            Weights[0] = weights;
-            Bias[0] = bias;
+            VBuffer<Float> maybeSparseWeights = default;
+            VBufferUtils.CreateMaybeSparseCopy(ref weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
+            var pred = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
+            if (!(_loss is LogLoss))
+                return pred;
+            return new ParameterMixingCalibratedPredictor(Host, pred, new PlattCalibrator(Host, -1, 0));
         }
 
-        protected override void CheckLabel(RoleMappedData examples)
+        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckBinaryLabel();
+            weightSetCount = 1;
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.StochasticGradientDescentBinaryClassifier", Desc = "Train an Hogwild SGD binary model.", UserName = UserNameValue, ShortName = ShortName)]
@@ -1775,7 +1732,12 @@ namespace Microsoft.ML.Runtime.Learners
     /// </summary>
     public static partial class Sdca
     {
-        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier", Desc = "Train an SDCA binary model.", UserName = LinearClassificationTrainer.UserNameValue, ShortName = LinearClassificationTrainer.LoadNameValue)]
+        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier",
+            Desc = "Train an SDCA binary model.",
+            UserName = LinearClassificationTrainer.UserNameValue,
+            ShortName = LinearClassificationTrainer.LoadNameValue,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name=""StochasticDualCoordinateAscentBinaryClassifier""]/*'/>" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LinearClassificationTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

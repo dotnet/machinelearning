@@ -9,8 +9,10 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -134,9 +136,9 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             var pipeline = new LearningPipeline();
             var data = new List<IrisData>() {
-                new IrisData { SepalLength = 1f, SepalWidth = 1f ,PetalLength=0.3f, PetalWidth=5.1f, Label=1},
-                new IrisData { SepalLength = 1f, SepalWidth = 1f ,PetalLength=0.3f, PetalWidth=5.1f, Label=1},
-                new IrisData { SepalLength = 1.2f, SepalWidth = 0.5f ,PetalLength=0.3f, PetalWidth=5.1f, Label=0}
+                new IrisData { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
+                new IrisData { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
+                new IrisData { SepalLength = 1.2f, SepalWidth = 0.5f, PetalLength=0.3f, PetalWidth=5.1f, Label=0}
             };
             var collection = CollectionDataSource.Create(data);
 
@@ -205,5 +207,407 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float[] PredictedLabels;
         }
 
+        public class ConversionSimpleClass
+        {
+            public int fInt;
+            public uint fuInt;
+            public short fShort;
+            public ushort fuShort;
+            public sbyte fsByte;
+            public byte fByte;
+            public long fLong;
+            public ulong fuLong;
+            public float fFloat;
+            public double fDouble;
+            public bool fBool;
+            public string fString;
+        }
+
+        public class ConversionNullalbeClass
+        {
+            public int? fInt;
+            public uint? fuInt;
+            public short? fShort;
+            public ushort? fuShort;
+            public sbyte? fsByte;
+            public byte? fByte;
+            public long? fLong;
+            public ulong? fuLong;
+            public float? fFloat;
+            public double? fDouble;
+            public bool? fBool;
+            public string fString;
+        }
+
+        public bool CompareObjectValues(object x, object y, Type type)
+        {
+            // By default behaviour for DvText is to be empty string, while for string is null.
+            // So if we do roundtrip string-> DvText -> string all null string become empty strings.
+            // Therefore replace all null values to empty string if field is string.
+            if (type == typeof(string) && x == null)
+                x = "";
+            if (type == typeof(string) && y == null)
+                y = "";
+            if (x == null && y == null)
+                return true;
+            if (x == null && y != null)
+                return false;
+            return x.Equals(y);
+        }
+
+        public bool CompareThroughReflection<T>(T x, T y)
+        {
+            foreach (var field in typeof(T).GetFields())
+            {
+                var xvalue = field.GetValue(x);
+                var yvalue = field.GetValue(y);
+                if (field.FieldType.IsArray)
+                {
+                    if (!CompareArrayValues(xvalue as Array, yvalue as Array))
+                        return false;
+                }
+                else
+                {
+                    if (!CompareObjectValues(xvalue, yvalue, field.FieldType))
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool CompareArrayValues(Array x, Array y)
+        {
+            if (x == null && y == null) return true;
+            if ((x == null && y != null) || (y == null && x != null))
+                return false;
+            if (x.Length != y.Length)
+                return false;
+            for (int i = 0; i < x.Length; i++)
+                if (!CompareObjectValues(x.GetValue(i), y.GetValue(i), x.GetType().GetElementType()))
+                    return false;
+            return true;
+        }
+
+        public class ClassWithConstField
+        {
+            public const string ConstString = "N";
+            public string fString;
+            public const int ConstInt = 100;
+            public int fInt;
+        }
+
+        [Fact]
+        public void RoundTripConversionWithBasicTypes()
+        {
+            var data = new List<ConversionSimpleClass>
+            {
+                new ConversionSimpleClass()
+                {
+                    fInt = int.MaxValue - 1,
+                    fuInt = uint.MaxValue - 1,
+                    fBool = true,
+                    fsByte = sbyte.MaxValue - 1,
+                    fByte = byte.MaxValue - 1,
+                    fDouble = double.MaxValue - 1,
+                    fFloat = float.MaxValue - 1,
+                    fLong = long.MaxValue - 1,
+                    fuLong = ulong.MaxValue - 1,
+                    fShort = short.MaxValue - 1,
+                    fuShort = ushort.MaxValue - 1,
+                    fString = null
+                },
+                new ConversionSimpleClass()
+                {
+                    fInt = int.MaxValue,
+                    fuInt = uint.MaxValue,
+                    fBool = true,
+                    fsByte = sbyte.MaxValue,
+                    fByte = byte.MaxValue,
+                    fDouble = double.MaxValue,
+                    fFloat = float.MaxValue,
+                    fLong = long.MaxValue,
+                    fuLong = ulong.MaxValue,
+                    fShort = short.MaxValue,
+                    fuShort = ushort.MaxValue,
+                    fString = "ooh"
+                },
+                new ConversionSimpleClass()
+                {
+                    fInt = int.MinValue + 1,
+                    fuInt = uint.MinValue + 1,
+                    fBool = false,
+                    fsByte = sbyte.MinValue + 1,
+                    fByte = byte.MinValue + 1,
+                    fDouble = double.MinValue + 1,
+                    fFloat = float.MinValue + 1,
+                    fLong = long.MinValue + 1,
+                    fuLong = ulong.MinValue + 1,
+                    fShort = short.MinValue + 1,
+                    fuShort = ushort.MinValue + 1,
+                    fString = ""
+                },
+                new ConversionSimpleClass()
+            };
+
+            var dataNullable = new List<ConversionNullalbeClass>
+            {
+                new ConversionNullalbeClass()
+                {
+                    fInt = int.MaxValue - 1,
+                    fuInt = uint.MaxValue - 1,
+                    fBool = true,
+                    fsByte = sbyte.MaxValue - 1,
+                    fByte = byte.MaxValue - 1,
+                    fDouble = double.MaxValue - 1,
+                    fFloat = float.MaxValue - 1,
+                    fLong = long.MaxValue - 1,
+                    fuLong = ulong.MaxValue - 1,
+                    fShort = short.MaxValue - 1,
+                    fuShort = ushort.MaxValue - 1,
+                    fString = "ha"
+                },
+                new ConversionNullalbeClass()
+                {
+                    fInt = int.MaxValue,
+                    fuInt = uint.MaxValue,
+                    fBool = true,
+                    fsByte = sbyte.MaxValue,
+                    fByte = byte.MaxValue,
+                    fDouble = double.MaxValue,
+                    fFloat = float.MaxValue,
+                    fLong = long.MaxValue,
+                    fuLong = ulong.MaxValue,
+                    fShort = short.MaxValue,
+                    fuShort = ushort.MaxValue,
+                    fString = "ooh"
+                },
+                new ConversionNullalbeClass()
+                {
+                    fInt = int.MinValue + 1,
+                    fuInt = uint.MinValue,
+                    fBool = false,
+                    fsByte = sbyte.MinValue + 1,
+                    fByte = byte.MinValue,
+                    fDouble = double.MinValue + 1,
+                    fFloat = float.MinValue + 1,
+                    fLong = long.MinValue + 1,
+                    fuLong = ulong.MinValue,
+                    fShort = short.MinValue + 1,
+                    fuShort = ushort.MinValue,
+                    fString = ""
+                },
+                new ConversionNullalbeClass()
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ConversionSimpleClass>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                }
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+
+                dataView = ComponentCreation.CreateDataView(env, dataNullable);
+                var enumeratorNullable = dataView.AsEnumerable<ConversionNullalbeClass>(env, false).GetEnumerator();
+                var originalNullableEnumerator = dataNullable.GetEnumerator();
+                while (enumeratorNullable.MoveNext() && originalNullableEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThroughReflection(enumeratorNullable.Current, originalNullableEnumerator.Current));
+                }
+                Assert.True(!enumeratorNullable.MoveNext() && !originalNullableEnumerator.MoveNext());
+            }
+        }
+
+        public class ConversionNotSupportedMinValueClass
+        {
+            public int fInt;
+            public long fLong;
+            public short fShort;
+            public sbyte fSByte;
+        }
+
+        [Fact]
+        public void ConversionExceptionsBehavior()
+        {
+            using (var env = new TlcEnvironment())
+            {
+                var data = new ConversionNotSupportedMinValueClass[1];
+                foreach (var field in typeof(ConversionNotSupportedMinValueClass).GetFields())
+                {
+                    data[0] = new ConversionNotSupportedMinValueClass();
+                    FieldInfo fi;
+                    if ((fi = field.FieldType.GetField("MinValue")) != null)
+                    {
+                        field.SetValue(data[0], fi.GetValue(null));
+                    }
+                    var dataView = ComponentCreation.CreateDataView(env, data);
+                    var enumerator = dataView.AsEnumerable<ConversionNotSupportedMinValueClass>(env, false).GetEnumerator();
+                    try
+                    {
+                        enumerator.MoveNext();
+                        Assert.True(false);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+
+        public class ConversionLossMinValueClass
+        {
+            public int? fInt;
+            public long? fLong;
+            public short? fShort;
+            public sbyte? fSByte;
+        }
+
+        [Fact]
+        public void ConversionMinValueToNullBehavior()
+        {
+            using (var env = new TlcEnvironment())
+            {
+
+                var data = new List<ConversionLossMinValueClass>
+                {
+                    new ConversionLossMinValueClass() { fSByte = null, fInt = null, fLong = null, fShort = null },
+                    new ConversionLossMinValueClass() { fSByte = sbyte.MinValue, fInt = int.MinValue, fLong = long.MinValue, fShort = short.MinValue }
+                };
+                foreach (var field in typeof(ConversionLossMinValueClass).GetFields())
+                {
+                    var dataView = ComponentCreation.CreateDataView(env, data);
+                    var enumerator = dataView.AsEnumerable<ConversionLossMinValueClass>(env, false).GetEnumerator();
+                    while (enumerator.MoveNext())
+                    {
+                        Assert.True(enumerator.Current.fInt == null && enumerator.Current.fLong == null &&
+                            enumerator.Current.fSByte == null && enumerator.Current.fShort == null);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void ClassWithConstFieldsConversion()
+        {
+            var data = new List<ClassWithConstField>()
+            {
+                new ClassWithConstField(){ fInt=1, fString ="lala" },
+                new ClassWithConstField(){ fInt=-1, fString ="" },
+                new ClassWithConstField(){ fInt=0, fString =null }
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithConstField>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+            }
+        }
+
+        public class ClassWithArrays
+        {
+            public string[] fString;
+            public int[] fInt;
+            public uint[] fuInt;
+            public short[] fShort;
+            public ushort[] fuShort;
+            public sbyte[] fsByte;
+            public byte[] fByte;
+            public long[] fLong;
+            public ulong[] fuLong;
+            public float[] fFloat;
+            public double[] fDouble;
+            public bool[] fBool;
+        }
+
+        public class ClassWithNullableArrays
+        {
+            public string[] fString;
+            public int?[] fInt;
+            public uint?[] fuInt;
+            public short?[] fShort;
+            public ushort?[] fuShort;
+            public sbyte?[] fsByte;
+            public byte?[] fByte;
+            public long?[] fLong;
+            public ulong?[] fuLong;
+            public float?[] fFloat;
+            public double?[] fDouble;
+            public bool?[] fBool;
+        }
+
+        [Fact]
+        public void RoundTripConversionWithArrays()
+        {
+
+            var data = new List<ClassWithArrays>
+            {
+                new ClassWithArrays()
+                {
+                    fInt = new int[3] { 0, 1, 2 },
+                    fFloat = new float[3] { -0.99f, 0f, 0.99f },
+                    fString = new string[2] { "hola", "lola" },
+                    fBool = new bool[2] { true, false },
+                    fByte = new byte[3] { 0, 124, 255 },
+                    fDouble = new double[3] { -1, 0, 1 },
+                    fLong = new long[] { 0, 1, 2 },
+                    fsByte = new sbyte[3] { -127, 127, 0 },
+                    fShort = new short[3] { 0, 1225, 32767 },
+                    fuInt = new uint[2] { 0, uint.MaxValue },
+                    fuLong = new ulong[2] { ulong.MaxValue, 0 },
+                    fuShort = new ushort[2] { 0, ushort.MaxValue }
+                },
+                new ClassWithArrays() { fInt = new int[3] { -2, 1, 0 }, fFloat = new float[3] { 0.99f, 0f, -0.99f }, fString = new string[2] { "", null } },
+                new ClassWithArrays()
+            };
+
+            var nullableData = new List<ClassWithNullableArrays>
+            {
+                new ClassWithNullableArrays()
+                {
+                    fInt = new int?[3] { null, -1, 1 },
+                    fFloat = new float?[3] { -0.99f, null, 0.99f },
+                    fString = new string[2] { null, "" },
+                    fBool = new bool?[3] { true, null, false },
+                    fByte = new byte?[4] { 0, 125, null, 255 },
+                    fDouble = new double?[3] { -1, null, 1 },
+                    fLong = new long?[] { null, -1, 1 },
+                    fsByte = new sbyte?[3] { -127, 127, null },
+                    fShort = new short?[3] { 0, null, 32767 },
+                    fuInt = new uint?[4] { null, 42, 0, uint.MaxValue },
+                    fuLong = new ulong?[3] { ulong.MaxValue, null, 0 },
+                    fuShort = new ushort?[3] { 0, null, ushort.MaxValue }
+                },
+                new ClassWithNullableArrays() { fInt = new int?[3] { -2, 1, 0 }, fFloat = new float?[3] { 0.99f, 0f, -0.99f }, fString = new string[2] { "lola", "hola" } },
+                new ClassWithNullableArrays()
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithArrays>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                }
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+
+                var nullableDataView = ComponentCreation.CreateDataView(env, nullableData);
+                var enumeratorNullable = nullableDataView.AsEnumerable<ClassWithNullableArrays>(env, false).GetEnumerator();
+                var originalNullalbleEnumerator = nullableData.GetEnumerator();
+                while (enumeratorNullable.MoveNext() && originalNullalbleEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThroughReflection(enumeratorNullable.Current, originalNullalbleEnumerator.Current));
+                }
+                Assert.True(!enumeratorNullable.MoveNext() && !originalNullalbleEnumerator.MoveNext());
+            }
+        }
     }
 }

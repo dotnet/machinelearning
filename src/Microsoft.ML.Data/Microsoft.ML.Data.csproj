@@ -15,7 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.UniversalModelFormat\Microsoft.ML.UniversalModelFormat.csproj" />
   </ItemGroup>
 
 </Project>

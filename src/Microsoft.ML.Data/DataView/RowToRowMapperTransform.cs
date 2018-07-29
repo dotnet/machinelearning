@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// This interface is used to create a <see cref="RowToRowMapperTransform"/>. 
+    /// This interface is used to create a <see cref="RowToRowMapperTransform"/>.
     /// Implementations should be given an <see cref="ISchema"/> in their constructor, and should have a
     /// ctor or Create method with <see cref="SignatureLoadRowMapper"/>, along with a corresponding
     /// <see cref="LoadableClassAttribute"/>.
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Returns the getters for the output columns given an active set of output columns. The length of the getters
-        /// array should be equal to the number of columns added by the IRowMapper. It should contain the getter for the 
+        /// array should be equal to the number of columns added by the IRowMapper. It should contain the getter for the
         /// i'th output column if activeOutput(i) is true, and null otherwise.
         /// </summary>
         Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer);

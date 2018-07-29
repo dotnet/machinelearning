@@ -18,7 +18,7 @@ Along with these ML capabilities this first release of ML.NET also brings the fi
 
 ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
 
-The current release is 0.2. Check out the [release notes](docs/release-notes/0.2/release-0.2.md).
+The current release is 0.3. Check out the [release notes](docs/release-notes/0.3/release-0.3.md).
 
 First ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64 bit process.
 
@@ -44,9 +44,9 @@ To build ML.NET from source please visit our [developers guide](docs/project-doc
 
 |    | x64 Debug | x64 Release |
 |:---|----------------:|------------------:|
-|**Linux**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_release/lastCompletedBuild)|
+|**Linux**|[![x64-debug](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
 |**macOS**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_release/lastCompletedBuild)|
-|**Windows**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_release/lastCompletedBuild)|
+|**Windows**|[![x64-debug](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
 
 ## Contributing
 
@@ -84,6 +84,9 @@ SentimentPrediction prediction = model.Predict(data);
 
 Console.WriteLine("prediction: " + prediction.Sentiment);
 ```
+## Samples
+
+We have a [repo of samples](https://github.com/dotnet/machinelearning-samples) that you can look at.
 
 ## License
 

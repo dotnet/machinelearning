@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Internal.Tools;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
@@ -67,13 +68,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                 {
                     var jField = new JObject();
                     jField[FieldNames.Name] = fieldInfo.Name;
-                    var type = fieldInfo.PropertyType;
-                    // Dive inside Optional.
-                    if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
-                        type = type.GetGenericArguments()[0];
-                    // Dive inside Nullable.
-                    if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                        type = type.GetGenericArguments()[0];
+                    var type = CSharpGeneratorUtils.ExtractOptionalOrNullableType(fieldInfo.PropertyType);
                     // Dive inside Var.
                     if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Var<>))
                         type = type.GetGenericArguments()[0];
@@ -308,14 +303,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                 jo[FieldNames.ItemType] = typeString;
                 return jo;
             }
-
-            // Dive inside Optional.
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
-                type = type.GetGenericArguments()[0];
-
-            // Dive inside Nullable.
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                type = type.GetGenericArguments()[0];
+            type = CSharpGeneratorUtils.ExtractOptionalOrNullableType(type);
 
             // Dive inside Var.
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Var<>))
@@ -356,7 +344,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                 case TlcModule.DataKind.Enum:
                     jo = new JObject();
                     jo[FieldNames.Kind] = typeEnum.ToString();
-                    var values = Enum.GetNames(type);
+                    var values = Enum.GetNames(type).Where(n => type.GetField(n).GetCustomAttribute<HideEnumValueAttribute>() == null);
                     jo[FieldNames.Values] = new JArray(values);
                     return jo;
                 case TlcModule.DataKind.Array:
@@ -445,7 +433,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// <summary>
         /// Build a token for component default value. This will look up the component in the catalog, and if it finds an entry, it will
         /// build a JSON structure that would be parsed into the default value.
-        /// 
+        ///
         /// This is an inherently fragile setup in case when the factory is not trivial, but it will work well for 'property bag' factories
         /// that we are currently using.
         /// </summary>
@@ -474,7 +462,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             }
             catch (MissingMemberException ex)
             {
-                // There was no default constructor found. 
+                // There was no default constructor found.
                 // This should never happen, since ModuleCatalog would error out if there is no default ctor.
                 ectx.Assert(false);
                 throw ectx.Except(ex, "Couldn't find default constructor");

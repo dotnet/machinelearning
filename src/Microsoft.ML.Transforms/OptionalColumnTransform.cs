@@ -26,6 +26,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.DataPipe
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="OptionalColumnTransform"]/*' />
     public class OptionalColumnTransform : RowToRowMapperTransformBase
     {
         public sealed class Arguments : TransformInputBase
@@ -231,6 +232,17 @@ namespace Microsoft.ML.Runtime.DataPipe
         private readonly Bindings _bindings;
 
         private const string RegistrationName = "OptionalColumn";
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="columns">Columns to transform.</param>
+        public OptionalColumnTransform(IHostEnvironment env, IDataView input, params string[] columns)
+            : this(env, new Arguments() { Column = columns }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
@@ -459,7 +471,13 @@ namespace Microsoft.ML.Runtime.DataPipe
             }
         }
 
-        [TlcModule.EntryPoint(Desc = Summary, Name = "Transforms.OptionalColumnCreator", UserName = UserName, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Desc = Summary,
+            Name = "Transforms.OptionalColumnCreator",
+            UserName = UserName,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""OptionalColumnTransform""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""OptionalColumnTransform""]/*' />"})]
+
         public static CommonOutputs.TransformOutput MakeOptional(IHostEnvironment env, Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "OptionalColumn", input);

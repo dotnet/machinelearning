@@ -1,4 +1,8 @@
-﻿using Microsoft.ML.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -183,7 +187,7 @@ namespace Microsoft.ML.Models
         public List<ClusterMetrics> ClusterMetrics;
         public PredictionModel<TInput, TOutput>[] PredictorModels;
 
-        //REVIEW: Add warnings and per instance results and implement 
+        //REVIEW: Add warnings and per instance results and implement
         //metrics for ranking, clustering and anomaly detection.
     }
 }
