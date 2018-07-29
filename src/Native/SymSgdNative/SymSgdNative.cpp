@@ -7,13 +7,12 @@
 #include <vector>
 #include <random>
 #include <cmath>
-//#include <omp.h>
 #include <thread>
 #include <unordered_map>
 #include "../Stdafx.h"
 #include "Macros.h"
 #include "SparseBLAS.h"
-#include "SymSGDNative.h"
+#include "SymSgdNative.h"
 
 
 // This method learns for a single instance
