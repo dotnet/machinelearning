@@ -17,6 +17,6 @@ else()
 endif()
 
 add_library(SymSgdNative SHARED ${SOURCES} ${RESOURCES})
-target_link_libraries(SymSgdNative Microsoft.ML.MklImports)
+target_link_libraries(SymSgdNative Microsoft.ML.MklImports.dll)
 
 install_library_and_symbols (SymSgdNative)
