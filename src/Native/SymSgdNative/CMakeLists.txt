@@ -16,11 +16,14 @@ else()
         message("Linking SymSgdNative with MKL on linux.")
         link_directories(${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native)
         find_library(MKL_LIBRARY libMicrosoft.ML.MklImports.so HINTS ${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native)
-        set_target_properties(SymSgdNative PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
     endif()
 endif()
 
 add_library(SymSgdNative SHARED ${SOURCES} ${RESOURCES})
 target_link_libraries(SymSgdNative PUBLIC ${MKL_LIBRARY})
 
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+    set_target_properties(SymSgdNative PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
+        
 install_library_and_symbols (SymSgdNative)
