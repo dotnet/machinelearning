@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.Learners
     using CR = RoleMappedSchema.ColumnRole;
 
     /// <summary>
-    /// In this strategy, a binary classification algorithm is trained on each pair of classes. 
+    /// In this strategy, a binary classification algorithm is trained on each pair of classes.
     /// The pairs are unordered but created with replacement: so, if there were three classes, 0, 1,
     /// 2, we would train classifiers for the pairs (0,0), (0,1), (0,2), (1,1), (1,2),
     /// and(2,2). For each binary classifier, an input data point is considered a
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Learners
     /// pair.
     ///
     /// These two can allow you to exploit trainers that do not naturally have a
-    /// multiclass option, e.g., using the Runtime.FastTree.FastTreeBinaryClassificationTrainer 
+    /// multiclass option, e.g., using the Runtime.FastTree.FastTreeBinaryClassificationTrainer
     /// to solve a multiclass problem.
     /// Alternately, it can allow ML.NET to solve a "simpler" problem even in the cases
     /// where the trainer has a multiclass option, but using it directly is not

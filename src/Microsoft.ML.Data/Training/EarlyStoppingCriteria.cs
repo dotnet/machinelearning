@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     }
 
     // For the detail of the following rules, see the following paper.
-    // Lodwich, Aleksander, Yves Rangoni, and Thomas Breuel. "Evaluation of robustness and performance of early stopping rules with multi layer perceptrons." 
+    // Lodwich, Aleksander, Yves Rangoni, and Thomas Breuel. "Evaluation of robustness and performance of early stopping rules with multi layer perceptrons."
     // Neural Networks, 2009. IJCNN 2009. International Joint Conference on. IEEE, 2009.
 
     public abstract class MovingWindowEarlyStoppingCriterion : EarlyStoppingCriterion<MovingWindowEarlyStoppingCriterion.Arguments>

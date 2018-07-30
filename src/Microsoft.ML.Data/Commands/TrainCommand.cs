@@ -222,9 +222,9 @@ namespace Microsoft.ML.Runtime.Data
                 return userName;
             if (userName == defaultName)
                 return null;
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
             throw ectx.ExceptUserArg(argName, $"Could not find column '{userName}'");
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
         }
 
         public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name,
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Save the model to the output path.
-        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor 
+        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor
         /// and command. It also uses featureColumn, if provided, to extract feature names.
         /// </summary>
         /// <param name="env">The host environment to use.</param>
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Save the model to the stream.
-        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor 
+        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor
         /// and command. It also uses featureColumn, if provided, to extract feature names.
         /// </summary>
         /// <param name="env">The host environment to use.</param>
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Traces back the .Source chain of the transformation pipe <paramref name="dataPipe"/> up to the moment it no longer can.
-        /// Returns all the transforms of <see cref="IDataView"/> and the first data view (a non-transform). 
+        /// Returns all the transforms of <see cref="IDataView"/> and the first data view (a non-transform).
         /// </summary>
         /// <param name="dataPipe">The transformation pipe to traverse.</param>
         /// <param name="pipeStart">The beginning data view of the transform chain</param>
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Runtime.Data
             while (dataPipe is IDataTransform xf)
             {
                 // REVIEW: a malicious user could construct a loop in the Source chain, that would
-                // cause this method to iterate forever (and throw something when the list overflows). There's 
+                // cause this method to iterate forever (and throw something when the list overflows). There's
                 // no way to insulate from ALL malicious behavior.
                 transforms.Add(xf);
                 dataPipe = xf.Source;

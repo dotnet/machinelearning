@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         // REVIEW: Reconcile implementations with TypeUtils, and clarify the distinction.
 
         // Singleton pattern.
-        private volatile static Conversions _instance;
+        private static volatile Conversions _instance;
         public static Conversions Instance
         {
             get

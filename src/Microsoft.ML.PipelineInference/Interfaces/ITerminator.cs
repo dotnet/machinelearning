@@ -7,9 +7,9 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Runtime.PipelineInference
 {
     /// <summary>
-    /// Interface defining various stopping criteria for pipeline sweeps. 
+    /// Interface defining various stopping criteria for pipeline sweeps.
     /// This could include number of total iterations, compute time,
-    /// budget expended, etc. 
+    /// budget expended, etc.
     /// </summary>
     public interface ITerminator
     {

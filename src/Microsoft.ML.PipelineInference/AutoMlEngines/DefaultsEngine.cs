@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 do
                 {   // Make sure transforms set is valid. Repeat until passes verifier.
-                    pipeline = new PipelinePattern(SampleTransforms(out var transformsBitMask), 
+                    pipeline = new PipelinePattern(SampleTransforms(out var transformsBitMask),
                         learner, "", Env);
                     valid = PipelineVerifier(pipeline, transformsBitMask);
                     count++;

@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             var proposedParamSet = sweeper.ProposeSweeps(1, AutoMlUtils.ConvertToRunResults(history, isMaximizingMetric)).First();
             Env.Assert(proposedParamSet != null && proposedParamSet.All(ps => hyperParams.Any(hp => hp.Name == ps.Name)));
 
-            // Associate proposed param set with learner, so that smart hyperparam 
+            // Associate proposed param set with learner, so that smart hyperparam
             // sweepers (like KDO) can map them back.
             learner.PipelineNode.HyperSweeperParamSet = proposedParamSet;
 

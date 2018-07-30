@@ -124,9 +124,9 @@ namespace Microsoft.ML.Runtime
             return 1 / Math.Max(1, (Float)0.25 + scaledFeaturesNormSquared);
         }
 
-        // REVIEW: this dual update uses a different log loss formulation, 
+        // REVIEW: this dual update uses a different log loss formulation,
         //although the two are equivalents if the labels are restricted to 0 and 1
-        //Need to update so that it can handle probability label and true to the 
+        //Need to update so that it can handle probability label and true to the
         //definition, which is a smooth loss function
         public Float DualUpdate(Float output, Float label, Float dual, Float invariant, int maxNumThreads)
         {

@@ -33,7 +33,6 @@ namespace Microsoft.ML.Runtime
         /// </summary>
         public IPredictor InitialPredictor { get; }
 
-
         /// <summary>
         /// Constructor, given a training set and optional other arguments.
         /// </summary>

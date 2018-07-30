@@ -243,7 +243,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             // Note: This HashHelpers class was adapted from the BCL code base.
 
-            // This is the maximum prime smaller than Array.MaxArrayLength 
+            // This is the maximum prime smaller than Array.MaxArrayLength
             public const int MaxPrimeArrayLength = 0x7FEFFFFD;
 
             // Table of prime numbers to use as hash table sizes.
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 return min + 1;
             }
 
-            // Returns size of hashtable to grow to. 
+            // Returns size of hashtable to grow to.
             public static int ExpandPrime(int oldSize)
             {
                 int newSize = 2 * oldSize;

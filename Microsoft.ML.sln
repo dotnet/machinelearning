@@ -5,6 +5,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Core", "src\Microsoft.ML.Core\Microsoft.ML.Core.csproj", "{A6CA6CC6-5D7C-4D7F-A0F5-35E14B383B0A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{09EADF06-BE25-4228-AB53-95AE3E15B530}"
+	ProjectSection(SolutionItems) = preProject
+		src\Source.ruleset = src\Source.ruleset
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{AED9C836-31E3-4F3F-8ABC-929555D3F3C4}"
 EndProject
@@ -88,12 +91,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.CpuMath", "Mic
 		pkg\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.symbols.nupkgproj = pkg\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.symbols.nupkgproj
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools-local", "tools-local", "{7F13E156-3EBA-4021-84A5-CD56BA72F99E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CodeAnalyzer", "tools-local\Microsoft.ML.CodeAnalyzer\Microsoft.ML.CodeAnalyzer.csproj", "{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CodeAnalyzer.Tests", "test\Microsoft.ML.CodeAnalyzer.Tests\Microsoft.ML.CodeAnalyzer.Tests.csproj", "{3E4ABF07-7970-4BE6-B45B-A13D3C397545}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CpuMath.PerformanceTests", "test\Microsoft.ML.CpuMath.PerformanceTests\Microsoft.ML.CpuMath.PerformanceTests.csproj", "{7333EDEF-4144-405C-A5EC-6F42201857D8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CpuMath.UnitTests.netstandard", "test\Microsoft.ML.CpuMath.UnitTests.netstandard\Microsoft.ML.CpuMath.UnitTests.netstandard.csproj", "{A0E562A9-0E6D-470D-B180-6EB44BA84D60}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CpuMath.UnitTests.netcoreapp", "test\Microsoft.ML.CpuMath.UnitTests.netcoreapp\Microsoft.ML.CpuMath.UnitTests.netcoreapp.csproj", "{5F81A2A4-73AD-494C-B387-07D605EC8826}"
 EndProject
+
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -310,6 +320,22 @@ Global
 		{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27}.Release-Intrinsics|Any CPU.ActiveCfg = Release|Any CPU
 		{DCF46B79-1FDB-4DBA-A263-D3D64E3AAA27}.Release-Intrinsics|Any CPU.Build.0 = Release|Any CPU
+		{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}.Debug-Intrinsics|Any CPU.Build.0 = Debug|Any CPU
+		{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}.Release-Intrinsics|Any CPU.ActiveCfg = Release|Any CPU
+		{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}.Release-Intrinsics|Any CPU.Build.0 = Release|Any CPU
+		{3E4ABF07-7970-4BE6-B45B-A13D3C397545}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E4ABF07-7970-4BE6-B45B-A13D3C397545}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E4ABF07-7970-4BE6-B45B-A13D3C397545}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E4ABF07-7970-4BE6-B45B-A13D3C397545}.Debug-Intrinsics|Any CPU.Build.0 = Debug|Any CPU
+		{3E4ABF07-7970-4BE6-B45B-A13D3C397545}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E4ABF07-7970-4BE6-B45B-A13D3C397545}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E4ABF07-7970-4BE6-B45B-A13D3C397545}.Release-Intrinsics|Any CPU.ActiveCfg = Release|Any CPU
+		{3E4ABF07-7970-4BE6-B45B-A13D3C397545}.Release-Intrinsics|Any CPU.Build.0 = Release|Any CPU
 		{7333EDEF-4144-405C-A5EC-6F42201857D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7333EDEF-4144-405C-A5EC-6F42201857D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7333EDEF-4144-405C-A5EC-6F42201857D8}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug|Any CPU
@@ -373,6 +399,8 @@ Global
 		{7333EDEF-4144-405C-A5EC-6F42201857D8} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{A0E562A9-0E6D-470D-B180-6EB44BA84D60} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 		{5F81A2A4-73AD-494C-B387-07D605EC8826} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
+		{B4E55B2D-2A92-46E7-B72F-E76D6FD83440} = {7F13E156-3EBA-4021-84A5-CD56BA72F99E}
+		{3E4ABF07-7970-4BE6-B45B-A13D3C397545} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
