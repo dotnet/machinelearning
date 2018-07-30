@@ -12,19 +12,19 @@
 
   <ItemGroup>
     <Compile Include="..\Microsoft.ML.Core\Utilities\Contracts.cs" />
+
+    <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
+    <None Include="**/*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
-    <Compile Remove="CpuMathUtils.DotNetStandard.cs" />
-    <None Include="CpuMathUtils.DotNetStandard.cs" />
+    <Compile Remove="CpuMathUtils.netstandard.cs" />
     <!-- This is only needed until https://github.com/dotnet/corefx/issues/31064 is addressed. -->
     <PackageReference Include="System.Runtime.Intrinsics.Experimental" Version="4.6.0-preview1-26708-04" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <Compile Remove="CpuMathUtils.DotNetCoreApp.cs" />
+    <Compile Remove="CpuMathUtils.netcoreapp.cs" />
     <Compile Remove="SseIntrinsics.cs" />
-    <None Include="CpuMathUtils.DotNetCoreApp.cs" />
-    <None Include="SseIntrinsics.cs" />
   </ItemGroup>
 </Project>

@@ -7,12 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML" Version="0.2.0" IncludeAssets="Native" />
-    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj " />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\Microsoft.ML.CpuMath.UnitTests.netstandard\UnitTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="CpuMathNative" />
+  </ItemGroup>
+  
 </Project>
