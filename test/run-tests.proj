@@ -3,6 +3,7 @@
 
   <ItemGroup>
     <Project Include="$(MSBuildThisFileDirectory)**\*.csproj" />
+    <Project Include="$(MSBuildThisFileDirectory)**\*.fsproj" />
   </ItemGroup>
 
   <Target Name="RunTests">
