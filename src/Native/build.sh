@@ -93,26 +93,13 @@ __cmake_defines="${__cmake_defines} -DVERSION_FILE_PATH:STRING=${__versionSource
 
 cd "$__IntermediatesDir"
 
+#codemzs: temporary fix until mkl nuget binaries are properly renamed so that they can be consumed by CMAKE.
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    if [ ! -f "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dll" ]; then
-        echo "MKL binary not found!"
-    fi
     echo "Renaming MKL binaries on OS X from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dll to $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib"
     mv "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib"
 else
-    if [ ! -f "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" ]; then
-        echo "MKL binary not found!"
-    fi
     echo "Renaming MKL binaries on Linux from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll to $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.so"
-    mv "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so"
-    
-    if [ ! -f "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so" ]; then
-        echo "New MKL binary not found!"
-    fi
-    
-    if [ ! -f "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" ]; then
-        echo "Old MKL binary not found!"
-    fi    
+    mv "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so" 
 fi
 
 echo "Building Machine Learning native components from $DIR to $(pwd)"
@@ -120,3 +107,18 @@ set -x # turn on trace
 cmake "$DIR" -G "Unix Makefiles" $__cmake_defines
 set +x # turn off trace
 make install
+
+#codemzs: Temporary fix until I figure out why mkl nuget binaries are not copied over to the bin folder.
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/Microsoft.ML.MklImports.dylib"
+    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/Microsoft.ML.MklImports.dylib"
+    
+    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/Microsoft.ML.MklImports.dylib"
+    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/Microsoft.ML.MklImports.dylib"
+else
+    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/libMicrosoft.ML.MklImports.so"
+    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/libMicrosoft.ML.MklImports.so"
+    
+    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/libMicrosoft.ML.MklImports.so"
+    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/libMicrosoft.ML.MklImports.so"
+fi
