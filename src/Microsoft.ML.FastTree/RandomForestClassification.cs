@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.FastTree
         }
     }
 
-    /// <include file='./doc.xml' path='docs/members/member[@name="FastForest"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestClassification :
         RandomForestTrainerBase<FastForestClassification.Arguments, IPredictorWithFeatureWeights<Float>>
     {
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.FastTree
             }
             // LogitBoost is naturally calibrated to
             // output probabilities when transformed using
-            // the logistic function, so if we have trained no 
+            // the logistic function, so if we have trained no
             // calibrator, transform the scores using that.
 
             // REVIEW: Need a way to signal the outside world that we prefer simple sigmoid?
@@ -206,7 +206,8 @@ namespace Microsoft.ML.Runtime.FastTree
             Desc = FastForestClassification.Summary,
             UserName = FastForestClassification.UserNameValue,
             ShortName = FastForestClassification.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='docs/members/member[@name=""FastForest""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />",
+                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastForestBinaryClassifier""]/*' />"})]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastForestClassification.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -18,11 +18,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// Selects the slots for which the count of non-default values is greater than a threshold.
-    /// Uses a set of aggregators to count the number of non-default values for each slot and
-    /// instantiates a DropSlots transform to actually drop the slots.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
     public static class CountFeatureSelectionTransform
     {
         public const string Summary = "Selects the slots for which the count of non-default values is greater than or equal to a threshold.";

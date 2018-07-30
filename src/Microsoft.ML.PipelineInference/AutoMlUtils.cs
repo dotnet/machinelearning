@@ -38,11 +38,15 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return outputValue;
         }
 
-        public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
+        public static PipelineSweeperRunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
         {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(result, nameof(result));
+            env.CheckNonEmpty(metricColumnName, nameof(metricColumnName));
+
             double testingMetricValue = ExtractValueFromIdv(env, result, metricColumnName);
             double trainingMetricValue = trainResult != null ? ExtractValueFromIdv(env, trainResult, metricColumnName)  : double.MinValue;
-            return new AutoInference.RunSummary(testingMetricValue, 0, 0, trainingMetricValue);
+            return new PipelineSweeperRunSummary(testingMetricValue, 0, 0, trainingMetricValue);
         }
 
         public static CommonInputs.IEvaluatorInput CloneEvaluatorInstance(CommonInputs.IEvaluatorInput evalInput) =>
@@ -63,8 +67,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         /// <summary>
         /// Using the dependencyMapping and included transforms, determines whether every
-        /// transform present only consumes columns produced by a lower- or same-level transform, 
-        /// or existed in the original dataset. Note, a column could be produced by a 
+        /// transform present only consumes columns produced by a lower- or same-level transform,
+        /// or existed in the original dataset. Note, a column could be produced by a
         /// transform on the same level, such as in multipart (atomic group) transforms.
         /// </summary>
         public static bool AreColumnsConsistent(TransformInference.SuggestedTransform[] includedTransforms,
@@ -169,8 +173,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             List<int> includedColumnIndices = new List<int>();
 
-            // For every column, see if either present in initial dataset, or 
-            // produced by a transform used in current pipeline.               
+            // For every column, see if either present in initial dataset, or
+            // produced by a transform used in current pipeline.
             for (int columnIndex = 0; columnIndex < dataSample.Schema.ColumnCount; columnIndex++)
             {
                 // Create ColumnInfo object for indexing dictionary
@@ -181,7 +185,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     IsHidden = dataSample.Schema.IsHidden(columnIndex)
                 };
 
-                // Exclude all hidden and non-numeric columns 
+                // Exclude all hidden and non-numeric columns
                 if (colInfo.IsHidden || !colInfo.ItemType.IsNumber)
                     continue;
 
@@ -425,7 +429,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         /// <summary>
         /// Updates properties of entryPointObj instance based on the values in sweepParams
-        /// </summary>        
+        /// </summary>
         public static bool UpdateProperties(object entryPointObj, TlcModule.SweepableParamAttribute[] sweepParams)
         {
             bool result = true;
@@ -480,7 +484,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         /// <summary>
         /// Updates properties of entryPointObj instance based on the values in sweepParams
-        /// </summary>        
+        /// </summary>
         public static void PopulateSweepableParams(RecipeInference.SuggestedRecipe.SuggestedLearner learner)
         {
             foreach (var param in learner.PipelineNode.SweepParams)
@@ -566,14 +570,15 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return learner.PipelineNode.HyperSweeperParamSet;
         }
 
-        public static IRunResult ConvertToRunResult(RecipeInference.SuggestedRecipe.SuggestedLearner learner,
-            AutoInference.RunSummary rs, bool isMetricMaximizing) =>
-                new RunResult(ConvertToParameterSet(learner.PipelineNode.SweepParams, learner), rs.MetricValue, isMetricMaximizing);
+        public static IRunResult ConvertToRunResult(RecipeInference.SuggestedRecipe.SuggestedLearner learner, PipelineSweeperRunSummary rs, bool isMetricMaximizing)
+        {
+            return new RunResult(ConvertToParameterSet(learner.PipelineNode.SweepParams, learner), rs.MetricValue, isMetricMaximizing);
+        }
 
-        public static IRunResult[] ConvertToRunResults(PipelinePattern[] history, bool isMetricMaximizing) =>
-            history.Select(h =>
-                ConvertToRunResult(h.Learner, h.PerformanceSummary, isMetricMaximizing)).ToArray();
-
+        public static IRunResult[] ConvertToRunResults(PipelinePattern[] history, bool isMetricMaximizing)
+        {
+            return history.Select(h => ConvertToRunResult(h.Learner, h.PerformanceSummary, isMetricMaximizing)).ToArray();
+        }
         /// <summary>
         /// Method to convert set of sweepable hyperparameters into strings of a format understood
         /// by the current smart hyperparameter sweepers.

@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Learners
     using TVectorPredictor = IPredictorProducing<VBuffer<Float>>;
 
     // SDCA linear multiclass trainer.
-    /// <include file='./doc.xml' path='docs/members/member[@name="SDCA"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
     public class SdcaMultiClassTrainer : SdcaTrainerBase<TVectorPredictor>
     {
         public const string LoadNameValue = "SDCAMC";
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Learners
                             continue;
 
                         // Loop trials for compare-and-swap updates of duals.
-                        // In general, concurrent update conflict to the same dual variable is rare 
+                        // In general, concurrent update conflict to the same dual variable is rare
                         // if data is shuffled.
                         for (int numTrials = 0; numTrials < maxUpdateTrials; numTrials++)
                         {
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Runtime.Learners
                             var dualUpdate = _loss.DualUpdate(output, 1, dual, invariant, numThreads);
 
                             // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
-                            // Reference to details: http://stat.rutgers.edu/home/tzhang/papers/ml02_dual.pdf, pp. 16-17. 
+                            // Reference to details: http://stat.rutgers.edu/home/tzhang/papers/ml02_dual.pdf, pp. 16-17.
                             var adjustment = l1ThresholdZero ? lr * biasReg[iClass] : lr * l1IntermediateBias[iClass];
                             dualUpdate -= adjustment;
                             bool success = false;
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 for (int iClass = 0; iClass < numClasses; iClass++)
                 {
-                    // Maintain a copy of weights and bias with best primal loss thus far. 
+                    // Maintain a copy of weights and bias with best primal loss thus far.
                     // This is some extra work and uses extra memory, but it seems worth doing it.
                     // REVIEW: Sparsify bestWeights?
                     weights[iClass].CopyTo(ref bestWeights[iClass]);
@@ -375,7 +375,8 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = SdcaMultiClassTrainer.Summary,
             UserName = SdcaMultiClassTrainer.UserNameValue,
             ShortName = SdcaMultiClassTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='docs/members/member[@name=""SDCA""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name=""StochasticDualCoordinateAscentClassifier""]/*' />" })]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, SdcaMultiClassTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

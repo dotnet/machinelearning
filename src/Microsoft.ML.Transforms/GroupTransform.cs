@@ -28,14 +28,14 @@ namespace Microsoft.ML.Runtime.Data
     /// SELECT GroupKey1, GroupKey2, ... GroupKeyK, LIST(Value1), LIST(Value2), ... LIST(ValueN)
     /// FROM Data
     /// GROUP BY GroupKey1, GroupKey2, ... GroupKeyK.
-    /// 
+    ///
     /// It assumes that the group keys are contiguous (if a new group key sequence is encountered, the group is over).
     /// The GroupKeyN and ValueN columns can be of any primitive types. The code requires that every raw type T of the group key column
     /// is an <see cref="IEquatable{T}"/>, which is currently true for all existing primitive types.
     /// The produced ValueN columns will be variable-length vectors of the original value column types.
-    /// 
+    ///
     /// The order of ValueN entries in the lists is preserved.
-    /// 
+    ///
     /// Example:
     /// User Item
     /// Pete Book
@@ -43,12 +43,12 @@ namespace Microsoft.ML.Runtime.Data
     /// Tom  Kitten
     /// Pete Chair
     /// Pete Cup
-    /// 
+    ///
     /// Result:
     /// User Item
     /// Pete [Book]
     /// Tom  [Table, Kitten]
-    /// Pete [Chair, Cup] 
+    /// Pete [Chair, Cup]
     /// </summary>
     public sealed class GroupTransform : TransformBase
     {
@@ -68,13 +68,13 @@ namespace Microsoft.ML.Runtime.Data
                 loaderSignature: LoaderSignature);
         }
 
-        // REVIEW: maybe we want to have an option to keep all non-group scalar columns, as opposed to 
+        // REVIEW: maybe we want to have an option to keep all non-group scalar columns, as opposed to
         // explicitly listing the ones to keep.
 
         // REVIEW: group keys and keep columns can possibly be vectors, not implemented now.
 
         // REVIEW: it might be feasible to have columns that are constant throughout a group, without having to list them
-        // as group keys. 
+        // as group keys.
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Columns to group by", ShortName = "g", SortOrder = 1,
@@ -175,10 +175,10 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// For group columns, the schema information is intact.
-        /// 
-        /// For keep columns, the type is Vector of original type and variable length. 
+        ///
+        /// For keep columns, the type is Vector of original type and variable length.
         /// The only metadata preserved is the KeyNames and IsNormalized.
-        /// 
+        ///
         /// All other columns are dropped.
         /// </summary>
         private sealed class GroupSchema : ISchema
@@ -407,11 +407,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// This cursor will create two cursors on the input data view: 
+        /// This cursor will create two cursors on the input data view:
         /// - The leading cursor will activate all the group columns, and will advance until it hits the end of the contiguous group.
-        /// - The trailing cursor will activate all the requested columns, and will go through the group 
-        ///     (as identified by the leading cursor), and aggregate the keep columns. 
-        /// 
+        /// - The trailing cursor will activate all the requested columns, and will go through the group
+        ///     (as identified by the leading cursor), and aggregate the keep columns.
+        ///
         /// The getters are as follows:
         /// - The group column getters are taken directly from the trailing cursor.
         /// - The keep column getters are provided by the aggregators.
@@ -455,7 +455,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // REVIEW: potentially, there could be other aggregators.
-            // REVIEW: Currently, it always produces dense buffers. The anticipated use cases don't include many 
+            // REVIEW: Currently, it always produces dense buffers. The anticipated use cases don't include many
             // default values at the moment.
             /// <summary>
             /// This class handles the aggregation of one 'keep' column into a vector. It wraps around an <see cref="IRow"/>'s
@@ -664,7 +664,11 @@ namespace Microsoft.ML.Runtime.Data
 
     public static partial class GroupingOperations
     {
-        [TlcModule.EntryPoint(Name = "Transforms.CombinerByContiguousGroupId", Desc = GroupTransform.Summary, UserName = GroupTransform.UserName, ShortName = GroupTransform.ShortName)]
+        [TlcModule.EntryPoint(Name = "Transforms.CombinerByContiguousGroupId",
+            Desc = GroupTransform.Summary,
+            UserName = GroupTransform.UserName,
+            ShortName = GroupTransform.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""Group""]/*' />" })]
         public static CommonOutputs.TransformOutput Group(IHostEnvironment env, GroupTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

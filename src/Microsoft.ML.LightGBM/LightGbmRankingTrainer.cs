@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         }
     }
 
-    /// <include file='./doc.xml' path='docs/members/member[@name="LightGBM"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<float, LightGbmRankingPredictor>
     {
         public const string UserName = "LightGBM Ranking";
@@ -127,11 +127,12 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// </summary>
     public static partial class LightGbm
     {
-        [TlcModule.EntryPoint(Name = "Trainers.LightGbmRanker", 
-            Desc = "Train a LightGBM ranking model.", 
-            UserName = LightGbmRankingTrainer.UserName, 
+        [TlcModule.EntryPoint(Name = "Trainers.LightGbmRanker",
+            Desc = "Train a LightGBM ranking model.",
+            UserName = LightGbmRankingTrainer.UserName,
             ShortName = LightGbmRankingTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='docs/members/member[@name=""LightGBM""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
+                                 @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmRanker""]/*' />"})]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));

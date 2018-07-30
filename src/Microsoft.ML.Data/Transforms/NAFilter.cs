@@ -26,6 +26,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="NAFilter"]'/>
     public sealed class NAFilter : FilterBase
     {
         private static class Defaults

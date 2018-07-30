@@ -21,10 +21,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// Selects the top k slots ordered by their mutual information with the label column.
-    /// Instantiates a DropSlots transform to actually drop the slots.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
     public static class MutualInformationFeatureSelectionTransform
     {
         public const string Summary =

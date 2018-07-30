@@ -14,9 +14,9 @@ using Microsoft.ML.Runtime.PipelineInference;
 namespace Microsoft.ML.Runtime.PipelineInference
 {
     /// <summary>
-    /// Example class of an autoML engine (a pipeline optimizer) that simply tries random enumeration.    
-    /// If we use a third-party solution for autoML, we can just implement a new wrapper for it as a 
-    /// PipelineOptimizerBase, and use our existing autoML body code to take advantage of it. This design 
+    /// Example class of an autoML engine (a pipeline optimizer) that simply tries random enumeration.
+    /// If we use a third-party solution for autoML, we can just implement a new wrapper for it as a
+    /// PipelineOptimizerBase, and use our existing autoML body code to take advantage of it. This design
     /// should allow for easy development of new autoML methods.
     /// </summary>
     public sealed class UniformRandomEngine : PipelineOptimizerBase

@@ -115,10 +115,10 @@ namespace Microsoft.ML.Runtime.Data
             ColumnInfo info;
             if (!string.IsNullOrWhiteSpace(name))
             {
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
                 if (!ColumnInfo.TryCreateFromName(schema, name, out info))
                     throw ectx.ExceptUserArg(argName, "Score column is missing");
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
                 return info;
             }
 
@@ -145,9 +145,9 @@ namespace Microsoft.ML.Runtime.Data
             if (!string.IsNullOrWhiteSpace(defName) && ColumnInfo.TryCreateFromName(schema, defName, out info))
                 return info;
 
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
             throw ectx.ExceptUserArg(argName, "Score column is missing");
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
         }
 
         /// <summary>
@@ -168,12 +168,12 @@ namespace Microsoft.ML.Runtime.Data
             if (!string.IsNullOrWhiteSpace(name))
             {
                 ColumnInfo info;
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
                 if (!ColumnInfo.TryCreateFromName(schema, name, out info))
                     throw ectx.ExceptUserArg(argName, "{0} column is missing", valueKind);
                 if (!testType(info.Type))
                     throw ectx.ExceptUserArg(argName, "{0} column has incompatible type", valueKind);
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
                 return info;
             }
 
@@ -332,15 +332,15 @@ namespace Microsoft.ML.Runtime.Data
                         if (getters[i] != null)
                         {
                             getters[i](ref metricVal);
-                            // For R8 valued columns the metric name is the column name. 
+                            // For R8 valued columns the metric name is the column name.
                             yield return new KeyValuePair<string, double>(schema.GetColumnName(i), metricVal);
                         }
                         else if (getVectorMetrics && vBufferGetters[i] != null)
                         {
                             vBufferGetters[i](ref metricVals);
 
-                            // For R8 vector valued columns the names of the metrics are the column name, 
-                            // followed by the slot name if it exists, or "Label_i" if it doesn't. 
+                            // For R8 vector valued columns the names of the metrics are the column name,
+                            // followed by the slot name if it exists, or "Label_i" if it doesn't.
                             VBuffer<DvText> names = default(VBuffer<DvText>);
                             var size = schema.GetColumnType(i).VectorSize;
                             var slotNamesType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, i);
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(input, nameof(input));
             env.CheckParam(curFold >= 0, nameof(curFold));
 
-            // We use the first column in the data view as an input column to the LambdaColumnMapper, 
+            // We use the first column in the data view as an input column to the LambdaColumnMapper,
             // because it must have an input.
             int inputCol = 0;
             while (inputCol < input.Schema.ColumnCount && input.Schema.IsHidden(inputCol))
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckParam(curFold >= 0, nameof(curFold));
             env.CheckParam(numFolds > 0, nameof(numFolds));
 
-            // We use the first column in the data view as an input column to the LambdaColumnMapper, 
+            // We use the first column in the data view as an input column to the LambdaColumnMapper,
             // because it must have an input.
             int inputCol = 0;
             while (inputCol < input.Schema.ColumnCount && input.Schema.IsHidden(inputCol))
@@ -444,7 +444,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// This method takes an array of data views and a specified input vector column, and adds a new output column to each of the data views.
-        /// First, we find the union set of the slot names in the different data views. Next we define a new vector column for each 
+        /// First, we find the union set of the slot names in the different data views. Next we define a new vector column for each
         /// data view, indexed by the union of the slot names. For each data view, every slot value is the value in the slot corresponding
         /// to its slot name in the original column. If a reconciled slot name does not exist in an input column, the value in the output
         /// column is def.
@@ -593,7 +593,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// This method takes an array of data views and a specified input key column, and adds a new output column to each of the data views.
-        /// First, we find the union set of the key values in the different data views. Next we define a new key column for each 
+        /// First, we find the union set of the key values in the different data views. Next we define a new key column for each
         /// data view, with the union of the key values as the new key values. For each data view, the value in the output column is the value
         /// corresponding to the key value in the original column.
         /// </summary>
@@ -634,7 +634,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// This method takes an array of data views and a specified input key column, and adds a new output column to each of the data views.
-        /// First, we find the union set of the key values in the different data views. Next we define a new key column for each 
+        /// First, we find the union set of the key values in the different data views. Next we define a new key column for each
         /// data view, with the union of the key values as the new key values. For each data view, the value in the output column is the value
         /// corresponding to the key value in the original column.
         /// </summary>
@@ -993,7 +993,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.Assert(Utils.Size(vBufferGetters) == schema.ColumnCount);
 
             // Get the names of the metrics. For R8 valued columns the metric name is the column name. For R8 vector valued columns
-            // the names of the metrics are the column name, followed by the slot name if it exists, or "Label_i" if it doesn't. 
+            // the names of the metrics are the column name, followed by the slot name if it exists, or "Label_i" if it doesn't.
             VBuffer<DvText> names = default(VBuffer<DvText>);
             int metricCount = 0;
             var metricNames = new List<string>();
@@ -1326,7 +1326,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Takes a data view containing one or more rows of metrics, and returns a data view containing additional 
+        /// Takes a data view containing one or more rows of metrics, and returns a data view containing additional
         /// rows with the average and the standard deviation of the metrics in the input data view.
         /// </summary>
         public static IDataView CombineFoldMetricsDataViews(IHostEnvironment env, IDataView data, int numFolds)
@@ -1509,8 +1509,8 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // This method returns a string representation of a set of metrics. If there are stratification columns, it looks for columns named
-        // StratCol and StratVal, and outputs the metrics in the rows with NA in the StratCol column. If weighted is true, it looks 
-        // for a DvBool column named "IsWeighted" and outputs the metrics in the rows with a value of true in that column. 
+        // StratCol and StratVal, and outputs the metrics in the rows with NA in the StratCol column. If weighted is true, it looks
+        // for a DvBool column named "IsWeighted" and outputs the metrics in the rows with a value of true in that column.
         // If nonAveragedCols is non-null, it computes the average and standard deviation over all the relevant rows and populates
         // nonAveragedCols with columns that are either hidden, or are not of a type that we can display (i.e., either a numeric column,
         // or a known length vector of doubles).
@@ -1749,7 +1749,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         /// <summary>
         /// This data view contains the confusion matrix for N-class classification. It has N rows, and each row has
-        /// the following columns: 
+        /// the following columns:
         /// * Count (vector indicating how many examples of this class were predicted as each one of the classes). This column
         /// should have metadata containing the class names.
         /// * (Optional) Weight (vector with the total weight of the examples of this class that were predicted as each one of the classes).

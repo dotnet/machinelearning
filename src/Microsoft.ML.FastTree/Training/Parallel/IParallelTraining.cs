@@ -33,20 +33,20 @@ namespace Microsoft.ML.Runtime.FastTree
     /// <summary>
     /// Interface used for parallel training.
     /// Mainly contains three parts:
-    /// 1. interactive with IO: <see href="GetLocalBinConstructionFeatures" />, <see href="SyncGlobalBoundary" />.
+    /// 1. interactive with IO: <see cref="GetLocalBinConstructionFeatures" />, <see cref="SyncGlobalBoundary" />.
     ///    Data will be partitioned by rows in Data parallel and Voting Parallel.
     ///    To speed up the find bin process, it let different workers to find bins for different features.
     ///    Then perform global sync up.
     ///    In Feature parallel, every machines holds all data, so this is unneeded.
-    /// 2. interactive with TreeLearner: <see href="InitIteration" />, <see href="CacheHistogram" />, <see href="IsNeedFindLocalBestSplit" />, 
-    ///        <see href="IsSkipNonSplittableHistogram" />, <see href="FindGlobalBestSplit" />, <see href="GetGlobalDataCountInLeaf" />, <see href="PerformGlobalSplit" />.
+    /// 2. interactive with TreeLearner: <see cref="InitIteration" />, <see cref="CacheHistogram" />, <see cref="IsNeedFindLocalBestSplit" />,
+    ///        <see cref="IsSkipNonSplittableHistogram" />, <see cref="FindGlobalBestSplit" />, <see cref="GetGlobalDataCountInLeaf" />, <see cref="PerformGlobalSplit" />.
     ///    A full process is:
-    ///        Use <see href="InitIteration" /> to alter local active features.
-    ///        Use <see href="GetGlobalDataCountInLeaf" /> to check smaller leaf and larger leaf.
-    ///        Use <see href="CacheHistogram" />, <see href="IsNeedFindLocalBestSplit" /> and <see href="IsSkipNonSplittableHistogram" /> to interactive with Feature histograms.
-    ///        Use <see href="FindGlobalBestSplit" /> to sync up global best split
-    ///        Use <see href="PerformGlobalSplit" /> to record global num_data in leaves.
-    /// 3. interactive with Application : <see href="GlobalMean" />.
+    ///        Use <see cref="InitIteration" /> to alter local active features.
+    ///        Use <see cref="GetGlobalDataCountInLeaf" /> to check smaller leaf and larger leaf.
+    ///        Use <see cref="CacheHistogram" />, <see cref="IsNeedFindLocalBestSplit" /> and <see cref="IsSkipNonSplittableHistogram" /> to interactive with Feature histograms.
+    ///        Use <see cref="FindGlobalBestSplit" /> to sync up global best split
+    ///        Use <see cref="PerformGlobalSplit" /> to record global num_data in leaves.
+    /// 3. interactive with Application : <see cref="GlobalMean" />.
     ///    Output of leaves is calculated by newton step ( - sum(first_order_gradients) / sum(second_order_gradients)).
     ///    If data is partitioned by row, it needs to a sync up for these sum result.
     ///    So It needs to call this to get the real output of leaves.
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         /// <summary>
         /// Initialize every time before training a tree.
-        /// will alter activeFeatures in Feature parallel. 
+        /// will alter activeFeatures in Feature parallel.
         /// Because it only need to find threshold for part of features in feature parallel.
         /// </summary>
         void InitIteration(ref bool[] activeFeatures);
@@ -98,10 +98,10 @@ namespace Microsoft.ML.Runtime.FastTree
         bool IsNeedFindLocalBestSplit();
 
         /// <summary>
-        /// True if need to skip non-splittable histogram. 
-        /// Only will return False in Voting parallel. 
+        /// True if need to skip non-splittable histogram.
+        /// Only will return False in Voting parallel.
         /// That is because local doesn't have global histograms in Voting parallel,
-        /// So the information about NonSplittable is not correct, and we cannot skip it. 
+        /// So the information about NonSplittable is not correct, and we cannot skip it.
         /// </summary>
         bool IsSkipNonSplittableHistogram();
 
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         /// <summary>
         /// Get indices of features that should be find bin in local.
-        /// After construct local boundary, should call <see href="SyncGlobalBoundary" /> 
+        /// After construct local boundary, should call <see href="SyncGlobalBoundary" />
         /// to get boundaries for all features.
         /// </summary>
         bool[] GetLocalBinConstructionFeatures(int numFeatures);
@@ -141,8 +141,8 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <summary>
         /// Sync Global feature bucket.
         /// used in Data parallel and Voting parallel.
-        /// Data are partitioned by row. To speed up the Global find bin process, 
-        /// we can let different workers construct Bin Boundary for different features, 
+        /// Data are partitioned by row. To speed up the Global find bin process,
+        /// we can let different workers construct Bin Boundary for different features,
         /// then perform a global sync up.
         /// </summary>
         void SyncGlobalBoundary(int numFeatures, int maxBin, Double[][] binUpperBounds);

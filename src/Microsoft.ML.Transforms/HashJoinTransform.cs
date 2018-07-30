@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class ColumnInfoEx
         {
-            // Either VBuffer<Key<U4>> or a single Key<U4>. 
+            // Either VBuffer<Key<U4>> or a single Key<U4>.
             // Note that if CustomSlotMap contains only one array, the output type of the transform will a single Key<U4>.
             // This corresponds to the join=+ case, although now it's possible to omit certain slots entirely.
             // If # of hash bits is less than 31, the key type will have a positive count.
@@ -193,6 +193,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
+        /// <include file='doc.xml' path='doc/members/member[@name="HashJoin"]/*' />
         public HashJoinTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input, TestColumnType)
         {
@@ -701,7 +702,12 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class HashJoin
     {
-        [TlcModule.EntryPoint(Name = "Transforms.HashConverter", Desc = HashJoinTransform.Summary, UserName = HashJoinTransform.UserName, ShortName = HashJoinTransform.RegistrationName)]
+        [TlcModule.EntryPoint(Name = "Transforms.HashConverter",
+            Desc = HashJoinTransform.Summary,
+            UserName = HashJoinTransform.UserName,
+            ShortName = HashJoinTransform.RegistrationName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""HashJoin""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""HashJoin""]/*' />"})]
         public static CommonOutputs.TransformOutput Apply(IHostEnvironment env, HashJoinTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

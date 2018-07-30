@@ -36,8 +36,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    /// <include file = './doc.xml' path='docs/members/member[@name="LBFGS"]/*' />
-    /// <include file = './doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
+    /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
+    /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
     public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<VBuffer<Float>, MulticlassLogisticRegressionPredictor>
     {
         public const string LoadNameValue = "MultiClassLogisticRegression";
@@ -56,11 +56,11 @@ namespace Microsoft.ML.Runtime.Learners
         // These label names are used for model saving in place of class number
         // to make the model summary more user friendly. These names are populated
         // in the CheckLabel() method.
-        // It could be null, if the label type is not a key type, or there is 
+        // It could be null, if the label type is not a key type, or there is
         // missing label name for some class.
         private string[] _labelNames;
 
-        // The prior distribution of data. 
+        // The prior distribution of data.
         // This array is of length equal to the number of classes.
         // After training, it stores the total weights of training examples in each class.
         private Double[] _prior;
@@ -101,10 +101,10 @@ namespace Microsoft.ML.Runtime.Learners
             VBuffer<DvText> labelNames = default(VBuffer<DvText>);
             schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelIdx, ref labelNames);
 
-            // If label names is not dense or contain NA or default value, then it follows that 
+            // If label names is not dense or contain NA or default value, then it follows that
             // at least one class does not have a valid name for its label. If the label names we
             // try to get from the metadata are not unique, we may also not use them in model summary.
-            // In both cases we set _labelNames to null and use the "Class_n", where n is the class number 
+            // In both cases we set _labelNames to null and use the "Class_n", where n is the class number
             // for model summary saving instead.
             if (!labelNames.IsDense)
             {
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             ch.Info("Residual Deviance: \t{0}", deviance);
 
-            // Compute null deviance, i.e., the deviance of null hypothesis. 
+            // Compute null deviance, i.e., the deviance of null hypothesis.
             // Cap the prior positive rate at 1e-15.
             Float nullDeviance = 0;
             for (int iLabel = 0; iLabel < _numClasses; iLabel++)
@@ -366,7 +366,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MulticlassLogisticRegressionPredictor"/> class. 
+        /// Initializes a new instance of the <see cref="MulticlassLogisticRegressionPredictor"/> class.
         /// This constructor is called by <see cref="SdcaMultiClassTrainer"/> to create the predictor.
         /// </summary>
         /// <param name="env">The host environment.</param>
@@ -484,7 +484,7 @@ namespace Microsoft.ML.Runtime.Learners
             InputType = new VectorType(NumberType.Float, _numFeatures);
             OutputType = new VectorType(NumberType.Float, _numClasses);
 
-            // REVIEW: Should not save the label names duplicately with the predictor again. 
+            // REVIEW: Should not save the label names duplicately with the predictor again.
             // Get it from the label column schema metadata instead.
             string[] labelNames = null;
             if (ctx.TryLoadBinaryStream(LabelNamesSubModelFilename, r => labelNames = LoadLabelNames(ctx, r)))
@@ -845,12 +845,12 @@ namespace Microsoft.ML.Runtime.Learners
 
             string opType = "LinearClassifier";
             var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
-            // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
-            node.AddAttribute("post_transform", 0);
+            // Selection of logit or probit output transform. enum {'NONE', 'SOFTMAX', 'LOGISTIC', 'SOFTMAX_ZERO', 'PROBIT}
+            node.AddAttribute("post_transform", "NONE");
             node.AddAttribute("multi_class", true);
             node.AddAttribute("coefficients", _weights.SelectMany(w => w.DenseValues()));
             node.AddAttribute("intercepts", _biases);
-            node.AddAttribute("classlabels_strings", _labelNames);
+            node.AddAttribute("classlabels_ints", Enumerable.Range(0, _numClasses).Select(x => (long)x));
             return true;
         }
 
@@ -964,8 +964,8 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = Summary,
             UserName = MulticlassLogisticRegression.UserNameValue,
             ShortName = MulticlassLogisticRegression.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/member[@name=""LBFGS""]/*' />",
-                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/example[@name=""LogisticRegressionClassifier""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name=""LBFGS""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name=""LogisticRegressionClassifier""]/*' />" })]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

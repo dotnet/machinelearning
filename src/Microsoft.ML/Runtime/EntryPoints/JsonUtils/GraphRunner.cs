@@ -13,7 +13,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
     /// The entry point graph is provided as a <see cref="JArray"/> of graph nodes. The inputs need to be provided separately:
     /// the graph runner will only compile a list of required inputs, and the calling code is expected to set them prior
     /// to running the graph.
-    /// 
+    ///
     /// REVIEW: currently, the graph is executed synchronously, one node at a time. This is an implementation choice, we
     /// probably need to consider parallel asynchronous execution, once we agree on an acceptable syntax for it.
     /// </summary>

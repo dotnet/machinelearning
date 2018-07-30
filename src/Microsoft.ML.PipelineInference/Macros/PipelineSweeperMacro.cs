@@ -211,7 +211,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
             var autoMlState = (AutoInference.AutoMlMlState)input.State;
 
-            // The indicators are just so the macro knows those pipelines need to 
+            // The indicators are just so the macro knows those pipelines need to
             // be run before performing next expansion. If we add them as inputs
             // to the next iteration, the next iteration cannot run until they have
             // their values set. Thus, indicators are needed.
@@ -239,8 +239,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 if (node.Context.TryGetVariable(ExperimentUtils.GenerateOverallMetricVarName(pipeline.UniqueId), out var v) &&
                     node.Context.TryGetVariable(AutoMlUtils.GenerateOverallTrainingMetricVarName(pipeline.UniqueId), out var v2))
                 {
-                    pipeline.PerformanceSummary =
-                        AutoMlUtils.ExtractRunSummary(env, (IDataView)v.Value, autoMlState.Metric.Name, (IDataView)v2.Value);
+                    pipeline.PerformanceSummary = AutoMlUtils.ExtractRunSummary(env, (IDataView)v.Value, autoMlState.Metric.Name, (IDataView)v2.Value);
                     autoMlState.AddEvaluated(pipeline);
                 }
             }

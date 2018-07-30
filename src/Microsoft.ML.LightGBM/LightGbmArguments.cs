@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
 
     /// <summary>
-    /// Parameters names comes from LightGBM library. 
+    /// Parameters names comes from LightGBM library.
     /// See https://github.com/Microsoft/LightGBM/blob/master/docs/Parameters.rst.
     /// </summary>
     public sealed class LightGbmArguments : LearnerInputBaseWithGroupId

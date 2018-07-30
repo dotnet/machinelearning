@@ -313,7 +313,7 @@ namespace Microsoft.ML.Runtime.Data
                 slotsMin[j] = range.Min;
                 // There are two reasons for setting the max to int.MaxValue - 1:
                 // 1. max is an index, so it has to be strictly less than int.MaxValue.
-                // 2. to prevent overflows when adding 1 to it.                
+                // 2. to prevent overflows when adding 1 to it.
                 slotsMax[j] = range.Max ?? int.MaxValue - 1;
             }
             Array.Sort(slotsMin, slotsMax);
@@ -473,7 +473,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Six possible ways a drop slot range interacts with categorical slots range.
             //
-            //                    +--------------Drop-------------+ 
+            //                    +--------------Drop-------------+
             //                    |                               |
             //
             //                +---Drop---+   +---Drop---+   +---Drop---+

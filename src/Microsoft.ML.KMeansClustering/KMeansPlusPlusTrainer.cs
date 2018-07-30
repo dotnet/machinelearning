@@ -28,7 +28,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 
 namespace Microsoft.ML.Runtime.KMeans
 {
-    /// <include file='./doc.xml' path='docs/members/member[@name="KMeans++"]/*' />
+    /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
     public class KMeansPlusPlusTrainer : TrainerBase<KMeansPredictor>
     {
         public const string LoadNameValue = "KMeansPlusPlus";
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.KMeans
             var cursorFactory = new FeatureFloatVectorCursor.Factory(data, CursOpt.Features | CursOpt.Id | CursOpt.Weight);
             // REVIEW: It would be nice to extract these out into subcomponents in the future. We should
             // revisit and even consider breaking these all into individual KMeans-flavored trainers, they
-            // all produce a valid set of output centroids with various trade-offs in runtime (with perhaps 
+            // all produce a valid set of output centroids with various trade-offs in runtime (with perhaps
             // random initialization creating a set that's not terribly useful.) They could also be extended to
             // pay attention to their incoming set of centroids and incrementally train.
             if (_initAlgorithm == InitAlgorithm.KMeansPlusPlus)
@@ -207,7 +207,8 @@ namespace Microsoft.ML.Runtime.KMeans
             Desc = Summary,
             UserName = UserNameValue,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='docs/members/member[@name=""KMeans++""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/member[@name=""KMeans++""]/*' />",
+                                 @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/example[@name=""KMeans++""]/*' />"})]
         public static CommonOutputs.ClusteringOutput TrainKMeans(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -345,13 +346,13 @@ namespace Microsoft.ML.Runtime.KMeans
 
     /// <summary>
     /// An instance of this class is used by SharedStates in YinYangTrainer
-    /// and KMeansBarBarInitialization. It effectively bounds MaxInstancesToAccelerate and 
+    /// and KMeansBarBarInitialization. It effectively bounds MaxInstancesToAccelerate and
     /// initializes RowIndexGetter.
     /// </summary>
     internal sealed class KMeansAcceleratedRowMap
     {
         // Retrieves the row's index for per-instance data. If the
-        // row is not assigned an index (it occurred after 'maxInstancesToAccelerate') 
+        // row is not assigned an index (it occurred after 'maxInstancesToAccelerate')
         // or we are not accelerating then this returns -1.
         public readonly KMeansUtils.RowIndexGetter RowIndexGetter;
 
@@ -433,14 +434,14 @@ namespace Microsoft.ML.Runtime.KMeans
         /// <summary>
         /// Data for optimizing KMeans|| initialization. Very similar to SharedState class
         /// For every instance, there is a space for the best weight and best cluster computed.
-        /// 
+        ///
         /// In this class, new clusters mean the clusters that were added to the cluster set
-        /// in the previous round of KMeans|| and old clusters are the rest of them (the ones 
+        /// in the previous round of KMeans|| and old clusters are the rest of them (the ones
         /// that were added in the rounds before the previous one).
-        /// 
+        ///
         /// In every round of KMeans||, numSamplesPerRound new clusters are added to the set of clusters.
-        /// There are 'numRounds' number of rounds. We compute and store the distance of each new 
-        /// cluster from every round to all of the previous clusters and use it 
+        /// There are 'numRounds' number of rounds. We compute and store the distance of each new
+        /// cluster from every round to all of the previous clusters and use it
         /// to avoid unnecessary computation by applying the triangle inequality.
         /// </summary>
         private sealed class SharedState
@@ -452,12 +453,12 @@ namespace Microsoft.ML.Runtime.KMeans
             // Note that this array is only allocated for MaxInstancesToAccelerate elements.
             private readonly int[] _bestCluster;
 
-            // _bestWeight holds the weight of instance x to _bestCluster[x] where weight(x) = dist(x, _bestCluster[x])^2 - norm(x)^2. 
+            // _bestWeight holds the weight of instance x to _bestCluster[x] where weight(x) = dist(x, _bestCluster[x])^2 - norm(x)^2.
             // Note that this array is only allocated for MaxInstancesToAccelerate elements.
             private readonly Float[] _bestWeight;
 
             // The distance of each newly added cluster from the previous round to every old cluster
-            // the first dimension of this array is the size of numSamplesPerRound 
+            // the first dimension of this array is the size of numSamplesPerRound
             // and the second dimension is the size of numRounds * numSamplesPerRound.
             // _clusterDistances[i][j] = dist(cluster[i+clusterPrevCount], cluster[j])
             // where clusterPrevCount-1 is the last index of the old clusters
@@ -509,8 +510,8 @@ namespace Microsoft.ML.Runtime.KMeans
             /// <summary>
             /// When assigning an accelerated row to a cluster, we store away the weight
             /// to its closest cluster, as well as the identity of the new
-            /// closest cluster. Note that bestWeight can be negative since it is 
-            /// corresponding to the weight of a distance which does not have 
+            /// closest cluster. Note that bestWeight can be negative since it is
+            /// corresponding to the weight of a distance which does not have
             /// the L2 norm of the point itself.
             /// </summary>
             public void SetInstanceCluster(int n, Float bestWeight, int bestCluster)
@@ -564,7 +565,7 @@ namespace Microsoft.ML.Runtime.KMeans
                     // Use triangle inequality to evaluate whether weight computation can be avoided
                     // dist(x,cNew) + dist(x,cOld) > dist(cOld,cNew) =>
                     // dist(x,cNew) > dist(cOld,cNew) - dist(x,cOld) =>
-                    // If dist(cOld,cNew) - dist(x,cOld) > dist(x,cOld), then dist(x,cNew) > dist(x,cOld). Therefore it is 
+                    // If dist(cOld,cNew) - dist(x,cOld) > dist(x,cOld), then dist(x,cNew) > dist(x,cOld). Therefore it is
                     // not necessary to compute dist(x,cNew).
                     if (distanceBetweenOldAndNewClusters - instanceDistanceToBestOldCluster > instanceDistanceToBestOldCluster)
                         return true;
@@ -576,7 +577,7 @@ namespace Microsoft.ML.Runtime.KMeans
         /// <summary>
         /// This function finds the best cluster and the best weight for an instance using
         /// smart triangle inequality to avoid unnecessary weight computations.
-        /// 
+        ///
         /// Note that <paramref name="needToStoreWeight"/> is used to avoid the storing the new cluster in
         /// final round. After the final round, best cluster information will be ignored.
         /// </summary>
@@ -648,7 +649,7 @@ namespace Microsoft.ML.Runtime.KMeans
         }
 
         /// <summary>
-        /// This method computes the memory requirement for _clusterDistances in SharedState (clusterBytes) and 
+        /// This method computes the memory requirement for _clusterDistances in SharedState (clusterBytes) and
         /// the maximum number of instances whose weight to the closest cluster can be memorized in order to avoid
         /// recomputation later.
         /// </summary>
@@ -677,7 +678,7 @@ namespace Microsoft.ML.Runtime.KMeans
         ///
         /// Uses memory in initializationState to cache distances and avoids unnecessary distance computations
         /// akin to YinYang-KMeans paper.
-        /// 
+        ///
         /// Everywhere in this function, weight of an instance x from a cluster c means weight(x,c) = dist(x,c)^2-norm(x)^2.
         /// We store weight in most cases to avoid unnecessary computation of norm(x).
         /// </summary>
@@ -1018,7 +1019,7 @@ namespace Microsoft.ML.Runtime.KMeans
                 {
                     // update the cachedSum as the instance moves from (previous) bestCluster[n] to cluster
                     VectorUtils.Add(ref features, ref CachedSum[cluster]);
-                    // There doesnt seem to be a Subtract function that does a -= b, so doing a += (-1 * b) 
+                    // There doesnt seem to be a Subtract function that does a -= b, so doing a += (-1 * b)
                     VectorUtils.AddMult(ref features, -1, ref CachedSum[previousCluster]);
                     NumChanged++;
                 }
@@ -1150,7 +1151,7 @@ namespace Microsoft.ML.Runtime.KMeans
             // max value of delta[i] for 0 <= i < _k
             public Float DeltaMax;
 
-            // Per instance structures 
+            // Per instance structures
 
             public int GetBestCluster(int idx)
             {
@@ -1179,7 +1180,7 @@ namespace Microsoft.ML.Runtime.KMeans
 
                 if (MaxInstancesToAccelerate > 0)
                 {
-                    // allocate data structures 
+                    // allocate data structures
                     Delta = new Float[k];
 
                     _bestCluster = new int[MaxInstancesToAccelerate];
@@ -1477,7 +1478,7 @@ namespace Microsoft.ML.Runtime.KMeans
         /// data set with a probability of numSamples/N * weight/(sum(weight)). Buffer
         /// is sized to the number of threads plus one and stores the minheaps needed to
         /// perform the per-thread reservior samples.
-        /// 
+        ///
         /// This method assumes that the numSamples is much smaller than the full dataset as
         /// it expects to be able to sample numSamples * numThreads.
         ///
@@ -1513,13 +1514,13 @@ namespace Microsoft.ML.Runtime.KMeans
                     // We use distance as a proxy for 'is the same point'. By excluding
                     // all points that lie within a very small distance of our current set of
                     // centroids we force the algorithm to explore more broadly and avoid creating a
-                    // set of centroids containing the same, or very close to the same, point 
+                    // set of centroids containing the same, or very close to the same, point
                     // more than once.
                     Float sameClusterEpsilon = (Float)1e-15;
 
                     Float weight = weightFn(ref point, pointRowIndex);
 
-                    // If numeric instability has forced it to zero, then we bound it to epsilon to 
+                    // If numeric instability has forced it to zero, then we bound it to epsilon to
                     // keep the key valid and avoid NaN, (although the math does tend to work out regardless:
                     // 1 / 0 => Inf, base ^ Inf => 0, when |base| < 1)
                     if (weight == 0)

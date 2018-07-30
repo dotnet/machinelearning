@@ -68,7 +68,8 @@ namespace Microsoft.ML.Models
 
                 var metric = ClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
 
-                Contracts.Check(metric.Count == 1, $"Exactly one metric set was expected but found {metric.Count} metrics");
+                if (metric.Count != 1)
+                    throw environment.Except($"Exactly one metric set was expected but found {metric.Count} metrics");
 
                 return metric[0];
             }

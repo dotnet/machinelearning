@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<docs>
+<doc>
   <members>
     
     <member name="SDCA">
@@ -7,7 +7,7 @@
         Train an SDCA linear model.
       </summary>
       <remarks>
-        This classifier is a trainer based on the Stochastic DualCoordinate Ascent(SDCA) method, a state-of-the-art optimization technique for convex objective functions.
+        This classifier is a trainer based on the Stochastic Dual Coordinate Ascent(SDCA) method, a state-of-the-art optimization technique for convex objective functions.
         The algorithm can be scaled for use on large out-of-memory data sets due to a semi-asynchronized implementation that supports multi-threading.
         <para>
           Convergence is underwritten by periodically enforcing synchronization between primal and dual updates in a separate thread.
@@ -21,10 +21,53 @@
           Elastic net regularization can be specified by the 'L2Const' and 'L1Threshold' parameters. Note that the 'L2Const' has an effect on the rate of convergence.
           In general, the larger the 'L2Const', the faster SDCA converges.
         </para>
-        <a href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</a>.
-        <a href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</a>.
-      </remarks>
+        <para>For more information, see also:</para>
+        <list type='bullet'>
+          <item><description>
+            <a href='https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf'>Scaling Up Stochastic Dual Coordinate Ascent</a>.
+          </description></item>
+          <item><description>
+            <a href='http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf'>Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization</a>.
+          </description></item>
+        </list>
+       </remarks>
     </member>
+    <example name="StochasticDualCoordinateAscentBinaryClassifier">
+      <example>
+        <code language="csharp">
+          new StochasticDualCoordinateAscentBinaryClassifier
+          {
+            MaxIterations = 100,
+            NumThreads = 7,
+            LossFunction = new SmoothedHingeLossSDCAClassificationLossFunction(),
+            Caching = Microsoft.ML.Models.CachingOptions.Disk
+          }
+        </code>
+      </example>
+    </example>
+    <example name="StochasticDualCoordinateAscentClassifier">
+      <example>
+        <code language="csharp">
+          new StochasticDualCoordinateAscentClassifier
+          {
+            MaxIterations = 100,
+            NumThreads = 7,
+            LossFunction = new SmoothedHingeLossSDCAClassificationLossFunction()
+          }
+        </code>
+      </example>
+    </example>
+    <example name="StochasticDualCoordinateAscentRegressor">
+      <example>
+        <code language="csharp">
+          new StochasticDualCoordinateAscentRegressor
+          {
+            MaxIterations = 100,
+            NumThreads = 5
+          }
+        </code>
+      </example>
+    </example>
  
   </members>
-</docs>
+</doc>

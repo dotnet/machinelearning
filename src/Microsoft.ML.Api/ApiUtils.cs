@@ -6,7 +6,6 @@ using System;
 using System.Reflection;
 using System.Reflection.Emit;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -19,11 +18,12 @@ namespace Microsoft.ML.Runtime.Api
         private static OpCode GetAssignmentOpCode(Type t)
         {
             // REVIEW: This should be a Dictionary<Type, OpCode> based solution.
-            // DvTexts, strings, arrays, and VBuffers.
+            // DvTypes, strings, arrays, all nullable types, VBuffers and UInt128.
             if (t == typeof(DvInt8) || t == typeof(DvInt4) || t == typeof(DvInt2) || t == typeof(DvInt1) ||
-                t == typeof(DvBool) || t==typeof(bool?) || t == typeof(DvText) || t == typeof(string) || t.IsArray ||
-                (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(VBuffer<>)) || t == typeof(DvDateTime) ||
-                t == typeof(DvDateTimeZone) || t == typeof(DvTimeSpan) || t == typeof(UInt128))
+                t == typeof(DvBool) || t == typeof(DvText) || t == typeof(string) || t.IsArray ||
+                (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(VBuffer<>)) ||
+                (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>)) ||
+                t == typeof(DvDateTime) || t == typeof(DvDateTimeZone) || t == typeof(DvTimeSpan) || t == typeof(UInt128))
             {
                 return OpCodes.Stobj;
             }
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Api
 
         /// <summary>
         /// Each of the specialized 'peek' methods copies the appropriate field value of an instance of T
-        /// into the provided buffer. So, the call is 'peek(userObject, ref destination)' and the logic is 
+        /// into the provided buffer. So, the call is 'peek(userObject, ref destination)' and the logic is
         /// indentical to 'destination = userObject.##FIELD##', where ##FIELD## is defined per peek method.
         /// </summary>
         internal static Delegate GeneratePeek<TOwn, TRow>(InternalSchemaDefinition.Column column)
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Runtime.Api
 
         /// <summary>
         /// Each of the specialized 'poke' methods sets the appropriate field value of an instance of T
-        /// to the provided value. So, the call is 'peek(userObject, providedValue)' and the logic is 
+        /// to the provided value. So, the call is 'peek(userObject, providedValue)' and the logic is
         /// indentical to 'userObject.##FIELD## = providedValue', where ##FIELD## is defined per poke method.
         /// </summary>
         internal static Delegate GeneratePoke<TOwn, TRow>(InternalSchemaDefinition.Column column)
