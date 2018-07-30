@@ -9,6 +9,7 @@
 #include <condition_variable>
 #include <thread>
 #include <mutex>
+#include <algorithm>
 #include <unordered_map>
 #include "../Stdafx.h"
 #include "Macros.h"
