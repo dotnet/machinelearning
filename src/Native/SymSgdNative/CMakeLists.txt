@@ -12,11 +12,15 @@ else()
     if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
         message("Linking SymSgdNative with MKL on macOS.")
         #link_directories(${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native)
-        find_library(MKL_LIBRARY Microsoft.ML.MklImports HINTS ${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native)
+        find_library(MKL_LIBRARY
+            NAMES Microsoft.ML.MklImports
+            HINTS "${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native")
     else()
         message("Linking SymSgdNative with MKL on linux.")
         #link_directories(${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native)
-        find_library(MKL_LIBRARY Microsoft.ML.MklImports HINTS ${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native)
+        find_library(MKL_LIBRARY
+            NAMES Microsoft.ML.MklImports
+            HINTS "${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native")
         message("${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native")
     endif()
 endif()
