@@ -98,3 +98,16 @@ set -x # turn on trace
 cmake "$DIR" -G "Unix Makefiles" $__cmake_defines
 set +x # turn off trace
 make install
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    if [ ! -f "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dll" ]; then
+        echo "MKL binary not found!"
+    fi
+    echo "Renaming MKL binaries on OS X from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dll to $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib"
+    mv "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib"
+else
+    if [ ! -f "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" ]; then
+        echo "MKL binary not found!"
+    fi
+    echo "Renaming MKL binaries on Linux from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll to $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.so"
+    mv "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.so"
+fi    
