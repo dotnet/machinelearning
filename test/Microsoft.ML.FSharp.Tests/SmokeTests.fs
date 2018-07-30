@@ -91,8 +91,12 @@ module SmokeTest1 =
                 Arguments = 
                     TextLoaderArguments(
                         HasHeader = true,
-                        Column = [| TextLoaderColumn(Name = "Label", Source = [| TextLoaderRange(0) |], Type = Nullable (Data.DataKind.Num))
-                                    TextLoaderColumn(Name = "SentimentText", Source = [| TextLoaderRange(1) |], Type = Nullable (Data.DataKind.Text)) |] 
+                        Column = [| TextLoaderColumn(Name = "Label", 
+                                                     Source = [| TextLoaderRange(0) |], 
+                                                     Type = Nullable (Data.DataKind.Num))
+                                    TextLoaderColumn(Name = "SentimentText", 
+                                                     Source = [| TextLoaderRange(1) |], 
+                                                     Type = Nullable (Data.DataKind.Text)) |] 
                     )))
 
         pipeline.Add(
@@ -122,6 +126,65 @@ module SmokeTest1 =
 
         let predictionResults = [ for p in predictions -> p.Sentiment ]
         Assert.Equal<bool list>(predictionResults, [ false; true; true ])
+
+module SmokeTest2 = 
+
+    type SentimentData =
+        { [<field: Column(ordinal = "0")>] SentimentText : string
+          [<field: Column(ordinal = "1", name = "Label")>] Sentiment : float }
+
+    [<CLIMutable>]
+    type SentimentPrediction =
+        { [<field: ColumnName "PredictedLabel">] Sentiment : bool }
+
+    [<Fact>]
+    let ``FSharp-Sentiment-Smoke-Test`` () =
+
+        let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
+
+        let pipeline = LearningPipeline()
+
+        pipeline.Add(
+            TextLoader(testDataPath).CreateFrom<SentimentData>(
+                Arguments = 
+                    TextLoaderArguments(
+                        HasHeader = true,
+                        Column = [| TextLoaderColumn(Name = "Label", 
+                                                     Source = [| TextLoaderRange(0) |], 
+                                                     Type = Nullable (Data.DataKind.Num))
+                                    TextLoaderColumn(Name = "SentimentText", 
+                                                     Source = [| TextLoaderRange(1) |], 
+                                                     Type = Nullable (Data.DataKind.Text)) |] 
+                    )))
+
+        pipeline.Add(
+            TextFeaturizer(
+                "Features", [| "SentimentText" |],
+                KeepDiacritics = false,
+                KeepPunctuations = false,
+                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
+                OutputTokens = true,
+                VectorNormalizer = TextTransformTextNormKind.L2
+            ))
+
+        pipeline.Add(
+            FastTreeBinaryClassifier(
+                NumLeaves = 5, 
+                NumTrees = 5, 
+                MinDocumentsInLeafs = 2
+            ))
+
+        let model = pipeline.Train<SentimentData, SentimentPrediction>()
+
+        let predictions =
+            [ SentimentData(SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition.")
+              SentimentData(SentimentText = "Sort of ok")
+              SentimentData(SentimentText = "Joe versus the Volcano Coffee Company is a great film.") ]
+            |> model.Predict
+
+        let predictionResults = [ for p in predictions -> p.Sentiment ]
+        Assert.Equal<bool list>(predictionResults, [ false; true; true ])
+
 
 #if NETCOREAPP2_0
 module Program =
