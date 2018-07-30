@@ -93,11 +93,6 @@ __cmake_defines="${__cmake_defines} -DVERSION_FILE_PATH:STRING=${__versionSource
 
 cd "$__IntermediatesDir"
 
-echo "Building Machine Learning native components from $DIR to $(pwd)"
-set -x # turn on trace
-cmake "$DIR" -G "Unix Makefiles" $__cmake_defines
-set +x # turn off trace
-
 if [[ "$OSTYPE" == "darwin"* ]]; then
     if [ ! -f "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dll" ]; then
         echo "MKL binary not found!"
@@ -112,4 +107,8 @@ else
     mv "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.so"
 fi
 
+echo "Building Machine Learning native components from $DIR to $(pwd)"
+set -x # turn on trace
+cmake "$DIR" -G "Unix Makefiles" $__cmake_defines
+set +x # turn off trace
 make install
