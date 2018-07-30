@@ -9712,7 +9712,7 @@ namespace Microsoft.ML
 
 
             /// <summary>
-            /// Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.
+            /// Degree of lock-free parallelism. Determinism not guaranteed. Multi-threading is not supported currently.
             /// </summary>
             public int? NumberOfThreads { get; set; }
 

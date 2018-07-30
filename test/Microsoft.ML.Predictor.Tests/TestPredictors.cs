@@ -231,7 +231,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip ="")]
+        [Fact]
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {

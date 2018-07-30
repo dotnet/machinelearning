@@ -1,6 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+﻿//------------------------------------------------------------------------------
+// <copyright company="Microsoft Corporation">
+//     Copyright (c) Microsoft Corporation. All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
 
 using Float = System.Single;
 
@@ -32,7 +34,9 @@ namespace Microsoft.ML.Runtime.SymSgd
 {
     using TPredictor = IPredictorWithFeatureWeights<Float>;
 
-    public sealed class SymSgdClassificationTrainer : LinearTrainerBase<TPredictor>
+    public sealed class SymSgdClassificationTrainer :
+        TrainerBase<TPredictor>,
+        ITrainer<TPredictor>
     {
         public const string LoadNameValue = "SymbolicSGD";
         public const string UserNameValue = "Symbolic SGD (binary)";
@@ -40,7 +44,8 @@ namespace Microsoft.ML.Runtime.SymSgd
 
         public sealed class Arguments : LearnerInputBaseWithLabel
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.", ShortName = "nt")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Determinism not guaranteed. " +
+                "Multi-threading is not supported currently.", ShortName = "nt")]
             public int? NumberOfThreads;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of passes over the data.", ShortName = "iter", SortOrder = 50)]
@@ -85,35 +90,90 @@ namespace Microsoft.ML.Runtime.SymSgd
             }
         }
 
+        public override TrainerInfo Info { get; }
         private readonly Arguments _args;
 
-        protected override bool ShuffleData => _args.Shuffle;
+        ///REVIEW: Copy-paste from LinearClassificationTrainer.
+        /// <summary>
+        /// This method ensures that the data meets the requirements of this trainer and its
+        /// subclasses, injects necessary transforms, and throws if it couldn't meet them.
+        /// </summary>
+        /// <param name="ch">The channel</param>
+        /// <param name="examples">The training examples</param>
+        /// <param name="weightSetCount">Gets the length of weights and bias array. For binary classification and regression,
+        /// this is 1. For multi-class classification, this equals the number of classes on the label.</param>
+        /// <returns>A potentially modified version of <paramref name="examples"/></returns>
+        private RoleMappedData PrepareDataFromTrainingExamples(IChannel ch, RoleMappedData examples, out int weightSetCount)
+        {
+            ch.AssertValue(examples);
+            CheckLabel(examples, out weightSetCount);
+            examples.CheckFeatureFloatVector();
+            var idvToShuffle = examples.Data;
+            IDataView idvToFeedTrain;
+            if (idvToShuffle.CanShuffle)
+                idvToFeedTrain = idvToShuffle;
+            else
+            {
+                var shuffleArgs = new ShuffleTransform.Arguments
+                {
+                    PoolOnly = false,
+                    ForceShuffle = _args.Shuffle
+                };
+                idvToFeedTrain = new ShuffleTransform(Host, shuffleArgs, idvToShuffle);
+            }
+
+            ch.Assert(idvToFeedTrain.CanShuffle);
+
+            var roles = examples.Schema.GetColumnRoleNames();
+            var examplesToFeedTrain = new RoleMappedData(idvToFeedTrain, roles);
+
+            ch.AssertValue(examplesToFeedTrain.Schema.Label);
+            ch.AssertValue(examplesToFeedTrain.Schema.Feature);
+            if (examples.Schema.Weight != null)
+                ch.AssertValue(examplesToFeedTrain.Schema.Weight);
+
+            int numFeatures = examplesToFeedTrain.Schema.Feature.Type.VectorSize;
+            ch.Check(numFeatures > 0, "Training set has no features, aborting training.");
+            return examplesToFeedTrain;
+        }
 
         public override TPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            return base.Train(context);
+            TPredictor pred;
+            using (var ch = Host.Start("Training"))
+            {
+                var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
+                var initPred = context.InitialPredictor;
+                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
+                linInitPred = linInitPred ?? initPred as LinearPredictor;
+                Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
+                    "Initial predictor was not a linear predictor.");
+                pred = TrainCore(ch, preparedData, linInitPred, weightSetCount);
+                ch.Done();
+            }
+            return pred;
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-
-        private static readonly TrainerInfo _info = new TrainerInfo();
-        public override TrainerInfo Info => _info;
 
         public SymSgdClassificationTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
             args.Check(Host);
-            NeedShuffle = args.Shuffle;
             _args = args;
+            Info = new TrainerInfo();
         }
 
-        public TPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        private TPredictor CreatePredictor(VBuffer<Float> weights, Float bias)
         {
-            Host.Check(weights.Length > 0);
-            VBuffer<float> maybeSparseWeights = VBufferUtils.CreateEmpty<float>(weights.Length);
-            VBufferUtils.CreateMaybeSparseCopy(ref weights[0], ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
-            return new ParameterMixingCalibratedPredictor(Host, new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias[0]), new PlattCalibrator(Host, -1, 0));
+            Host.CheckParam(weights.Length > 0, nameof(weights));
+
+            VBuffer<Float> maybeSparseWeights = default;
+            VBufferUtils.CreateMaybeSparseCopy(ref weights, ref maybeSparseWeights,
+                Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
+            var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
+            return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.SymSgdBinaryClassifier", Desc = "Train a symbolic SGD.", UserName = SymSgdClassificationTrainer.UserNameValue, ShortName = SymSgdClassificationTrainer.ShortName)]
@@ -223,8 +283,6 @@ namespace Microsoft.ML.Runtime.SymSgd
             }
 
             /// <summary>
-            /// This method checks the <see cref="UsedMemory"/> and checks if a very long array
-            /// of size <see cref="ArrayManager{T}._sizeofT"/> can be allocated in the _storage.
             /// </summary>
             /// <returns>Returns if the allocation was successful</returns>
             private bool CheckAndAllocate()
@@ -481,9 +539,6 @@ namespace Microsoft.ML.Runtime.SymSgd
                 }
             }
 
-            /// <summary>
-            /// This method must be called before trying to call GiveInstance/>.
-            /// </summary>
             public void PrepareCursoring()
             {
                 _instanceIndex = 0;
@@ -538,19 +593,17 @@ namespace Microsoft.ML.Runtime.SymSgd
             }
         }
 
-        protected override TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
+        private TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
         {
             int numFeatures = data.Schema.Feature.Type.VectorSize;
-            ch.Assert(numFeatures > 0, "Number of features must be assigned prior to passing into TrainCore.");
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
-            int numThreads;
-            numThreads = _args.NumberOfThreads ?? Environment.ProcessorCount;
+            int numThreads = 1;
             ch.CheckUserArg(numThreads > 0, nameof(_args.NumberOfThreads),
                 "The number of threads must be either null or a positive integer.");
 
             ch.Assert(numThreads > 0);
             var positiveInstanceWeight = _args.PositiveInstanceWeight;
-            VBuffer<float> weights = default(VBuffer<float>);
+            VBuffer<float> weights = default;
             float bias = 0.0f;
             if (predictor != null)
             {
@@ -573,7 +626,7 @@ namespace Microsoft.ML.Runtime.SymSgd
 
             // This is state of the learner that is shared with the native code.
             State state = new State();
-            GCHandle stateGCHandle = default(GCHandle);
+            GCHandle stateGCHandle = default;
             try
             {
                 stateGCHandle = GCHandle.Alloc(state, GCHandleType.Pinned);
@@ -596,7 +649,7 @@ namespace Microsoft.ML.Runtime.SymSgd
                                 entry => entry.SetProgress(0, state.PassIteration, _args.NumberOfIterations));
                             // If fully loaded, call the SymSGDNative and do not come back until learned for all iterations.
                             Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weights.Values, ref bias, numFeatures,
-                                _args.NumberOfIterations, numThreads, tuneNumLocIter, ref numLocIter, _args.Tol, NeedShuffle, shouldInitialize, stateGCHandle);
+                                _args.NumberOfIterations, numThreads, tuneNumLocIter, ref numLocIter, _args.Tol, _args.Shuffle, shouldInitialize, stateGCHandle);
                             shouldInitialize = false;
                         }
                         else
@@ -617,7 +670,7 @@ namespace Microsoft.ML.Runtime.SymSgd
                                 numPassesForThisBatch = Math.Max(1, numPassesForThisBatch);
                                 state.PassIteration = iter;
                                 Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weights.Values, ref bias, numFeatures,
-                                    numPassesForThisBatch, numThreads, tuneNumLocIter, ref numLocIter, _args.Tol, NeedShuffle, shouldInitialize, stateGCHandle);
+                                    numPassesForThisBatch, numThreads, tuneNumLocIter, ref numLocIter, _args.Tol, _args.Shuffle, shouldInitialize, stateGCHandle);
                                 shouldInitialize = false;
 
                                 // Check if we are done with going through the data
@@ -626,7 +679,7 @@ namespace Microsoft.ML.Runtime.SymSgd
                                     iter += numPassesForThisBatch;
                                     // Check if more passes are left
                                     if (iter < _args.NumberOfIterations)
-                                        inputDataManager.RestartLoading(NeedShuffle, Host);
+                                        inputDataManager.RestartLoading(_args.Shuffle, Host);
                                 }
 
                                 // If more passes are left, load as much as possible
@@ -647,11 +700,10 @@ namespace Microsoft.ML.Runtime.SymSgd
                 if (stateGCHandle.IsAllocated)
                     stateGCHandle.Free();
             }
-
-            return CreatePredictor(new VBuffer<Float>[] { weights }, new[] { bias });
+            return CreatePredictor(weights, bias);
         }
 
-        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
+        private void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckBinaryLabel();
             weightSetCount = 1;
@@ -662,7 +714,7 @@ namespace Microsoft.ML.Runtime.SymSgd
 
         private static unsafe class Native
         {
-            internal const string DllName = "SymSgdNative";
+            internal const string DllName = @"SymSgdNative";
 
             [DllImport(DllName), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
@@ -703,14 +755,9 @@ namespace Microsoft.ML.Runtime.SymSgd
                 // Sizes of each inst
                 int[] instSizes = new int[totalNumInstances];
 
-                InstanceProperties? prop;
-                GCHandle? indicesGcHandle;
-                int indicesStartIndex;
-                GCHandle? valuesGcHandle;
-                int valuesStartIndex;
                 int instanceIndex = 0;
                 // Going through the buffer to set the properties and the pointers
-                while (inputDataManager.GiveNextInstance(out prop, out indicesGcHandle, out indicesStartIndex, out valuesGcHandle, out valuesStartIndex))
+                while (inputDataManager.GiveNextInstance(out InstanceProperties? prop, out GCHandle? indicesGcHandle, out int indicesStartIndex, out GCHandle? valuesGcHandle, out int valuesStartIndex))
                 {
                     if (prop.Value.IsDense)
                     {
@@ -739,6 +786,7 @@ namespace Microsoft.ML.Runtime.SymSgd
                             pweightVector, ref bias, numFeatres, numPasses, numThreads, tuneNumLocIter, ref numLocIter, tolerance, needShuffle, shouldInitialize, (State*)stateGCHandle.AddrOfPinnedObject());
                 }
             }
+
             [DllImport(DllName), SuppressUnmanagedCodeSecurity]
             private static extern void MapBackWeightVector(float* weightVector, State* state);
 

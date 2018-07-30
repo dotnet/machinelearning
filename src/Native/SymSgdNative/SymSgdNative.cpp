@@ -6,7 +6,9 @@
 
 #include <vector>
 #include <random>
+#if defined(USE_OMP)  
 #include <omp.h>
+#endif
 #include <unordered_map>
 #include "../Stdafx.h"
 #include "Macros.h"
@@ -212,6 +214,7 @@ void InitializeState(int totalNumInstances, int* instSizes, int** instIndices, f
 		TuneNumLocIter(numLocIter, totalNumInstances, instSizes, numThreads);
 
 	state->WeightScaling = 1.0f;
+#if defined(USE_OMP)  
 	if (numThreads > 1) {
 		state->PassIteration = 0;
 		state->NumFrequentFeatures = 0;
@@ -234,6 +237,7 @@ void InitializeState(int totalNumInstances, int* instSizes, int** instIndices, f
 	
 	// To make sure that MKL runs sequentially
 	omp_set_num_threads(1);
+#endif
 }
 
 float Loss(int instSize, int* instIndices, float* instValues,
@@ -319,6 +323,7 @@ EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndic
 			state->PassIteration++;
 		}
 	} else {
+#if defined(USE_OMP) 
 		// In parallel case...
 		bool shouldRemap = !((std::unordered_map<int, int>*)state->FreqFeatUnorderedMap)->empty();
 		SymSGD** learners = (SymSGD**)(state->Learners);
@@ -399,6 +404,7 @@ EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndic
 			}
 		}
 		state->TotalInstancesProcessed += numPasses*totalNumInstances;
+#endif        
 	}
 }
 
@@ -417,8 +423,10 @@ EXPORT_API(void) MapBackWeightVector(float* weightVector, SymSGDState* state) {
 
 // Deallocation method
 EXPORT_API(void) DeallocateSequentially(SymSGDState* state) {
+#if defined(USE_OMP)     
 	// To make sure that for the rest of MKL calls use parallelism
 	omp_set_num_threads(omp_get_num_procs());
+#endif
 
 	SymSGD** learners = (SymSGD**)(state->Learners);
 	if (learners) {
@@ -426,7 +434,7 @@ EXPORT_API(void) DeallocateSequentially(SymSGDState* state) {
 			delete learners[i];
 	}
 	if (state->FreqFeatUnorderedMap)
-		delete state->FreqFeatUnorderedMap; //delete (std::unordered_map<int, int>*)state->FreqFeatUnorderedMap;
+		delete (std::unordered_map<int, int>*)state->FreqFeatUnorderedMap;
 	if (state->FreqFeatDirectMap)
 		delete[] state->FreqFeatDirectMap;
 }

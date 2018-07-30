@@ -15943,7 +15943,7 @@
         {
           "Name": "NumberOfThreads",
           "Type": "Int",
-          "Desc": "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.",
+          "Desc": "Degree of lock-free parallelism. Determinism not guaranteed. Multi-threading is not supported currently.",
           "Aliases": [
             "nt"
           ],

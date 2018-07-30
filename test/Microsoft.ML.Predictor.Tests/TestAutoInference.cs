@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
         }
 
-        [Fact(Skip ="")]
+        [Fact]
         [TestCategory("EntryPoints")]
         public void TestLearn()
         {

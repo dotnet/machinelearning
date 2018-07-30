@@ -155,7 +155,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact(Skip ="")]
+        [Fact]
         [TestCategory("EntryPoints")]
         public void PipelineSweeperSerialization()
         {
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(rows.All(r => r.MetricValue > 0.9));
         }
 
-        [Fact(Skip ="")]
+        [Fact]
         public void PipelineSweeperRocketEngine()
         {
             // Get datasets

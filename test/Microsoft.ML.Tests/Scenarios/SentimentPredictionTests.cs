@@ -32,7 +32,7 @@ namespace Microsoft.ML.Scenarios
             ValidateBinaryMetrics(metrics);
         }
 
-        [Fact(Skip ="")]
+        [Fact]
         public void TrainAndPredictSymSGDSentimentModelTest()
         {
             var pipeline = PreparePipelineSymSGD();
