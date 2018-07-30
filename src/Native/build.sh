@@ -104,9 +104,9 @@ else
         echo "MKL binary not found!"
     fi
     echo "Renaming MKL binaries on Linux from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll to $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.so"
-    mv "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.so"
+    mv "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so"
     
-    if [ ! -f "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.so" ]; then
+    if [ ! -f "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so" ]; then
         echo "New MKL binary not found!"
     fi
     

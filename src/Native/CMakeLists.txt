@@ -85,7 +85,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_compile_options(-fstack-protector-strong)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_compile_options(-fstack-protector)
-    add_definitions(-Wno-dev)
 endif()
 
 add_definitions(-D_NO_ASYNCRTIMP)
