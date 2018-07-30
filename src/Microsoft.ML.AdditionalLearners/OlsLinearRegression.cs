@@ -7,14 +7,15 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.AdditionalLearners;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
 using System.Runtime.InteropServices;
 
@@ -30,7 +31,7 @@ using System.Runtime.InteropServices;
 
 [assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Runtime.AdditionalLearners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
     public sealed class OlsLinearRegressionTrainer : TrainerBase<OlsLinearRegressionPredictor>
@@ -220,7 +221,7 @@ namespace Microsoft.ML.Runtime.Learners
             catch (DllNotFoundException)
             {
                 // REVIEW: Is there no better way?
-                throw ch.ExceptNotSupp("The MKL library (Microsoft.ML.MklImports.dll) or one of its dependencies is missing.");
+                throw ch.ExceptNotSupp("The MKL library (Microsoft.ML.MklImports) or one of its dependencies is missing.");
             }
             // Solve for beta in (LL')beta = X'y:
             Mkl.Pptrs(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, 1, xtx, xty, 1);
@@ -466,7 +467,7 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = "Train an OLS regression model.",
             UserName = UserNameValue,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""OLS""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.AdditionalLearners/Standard/doc.xml' path='doc/members/member[@name=""OLS""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
