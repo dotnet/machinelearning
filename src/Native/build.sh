@@ -109,7 +109,10 @@ set +x # turn off trace
 make install
 
 #codemzs: Temporary fix until I figure out why mkl nuget binaries are not copied over to the bin folder.
+mkdir "$__rootBinPath/AnyCPU.$__configuration"
+mkdir "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests"
 mkdir "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0"
+mkdir "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests"
 mkdir "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0"
 if [[ "$OSTYPE" == "darwin"* ]]; then
     echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/Microsoft.ML.MklImports.dylib"
