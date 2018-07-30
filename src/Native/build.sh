@@ -105,6 +105,14 @@ else
     fi
     echo "Renaming MKL binaries on Linux from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll to $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.so"
     mv "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.so"
+    
+    if [ ! -f "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.so" ]; then
+        echo "New MKL binary not found!"
+    fi
+    
+    if [ ! -f "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dll" ]; then
+        echo "Old MKL binary not found!"
+    fi    
 fi
 
 echo "Building Machine Learning native components from $DIR to $(pwd)"
