@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
+using static Microsoft.ML.Runtime.Data.MetricKinds;
 
 namespace Microsoft.ML.Models
 {
@@ -38,6 +39,7 @@ namespace Microsoft.ML.Models
                     AvgMinScore = metric.AvgMinScore,
                     Nmi = metric.Nmi,
                     Dbi = metric.Dbi,
+                    RowTag = metric.RowTag,
                 });
             }
 
@@ -74,6 +76,12 @@ namespace Microsoft.ML.Models
         public double AvgMinScore { get; private set; }
 
         /// <summary>
+        /// For cross-validation, this is equal to "Fold N" for per-fold metric rows, "Overall" for the average metrics and "STD" for standard deviation.
+        /// For non-CV scenarios, this is equal to null
+        /// </summary>
+        public string RowTag { get; private set; }
+
+        /// <summary>
         /// This class contains the public fields necessary to deserialize from IDataView.
         /// </summary>
         private sealed class SerializationClass
@@ -88,6 +96,8 @@ namespace Microsoft.ML.Models
             [ColumnName(Runtime.Data.ClusteringEvaluator.AvgMinScore)]
             public Double AvgMinScore;
 
+            [ColumnName(ColumnNames.FoldIndex)]
+            public string RowTag;
 #pragma warning restore 649 // never assigned
         }
     }

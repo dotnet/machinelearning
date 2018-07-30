@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             public string ImageFolder;
         }
 
-        internal const string Summary = "Load images from a files.";
+        internal const string Summary = "Load images from files.";
         internal const string UserName = "Image Loader Transform";
         public const string LoaderSignature = "ImageLoaderTransform";
 

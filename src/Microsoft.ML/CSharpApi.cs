@@ -754,6 +754,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Trainers.OnlineGradientDescentRegressor", input, output));
             }
 
+            public Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output Add(Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor input)
+            {
+                var output = new Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor input, Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainers.OrdinaryLeastSquaresRegressor", input, output));
+            }
+
             public Microsoft.ML.Trainers.PcaAnomalyDetector.Output Add(Microsoft.ML.Trainers.PcaAnomalyDetector input)
             {
                 var output = new Microsoft.ML.Trainers.PcaAnomalyDetector.Output();
@@ -3140,7 +3152,7 @@ namespace Microsoft.ML
 
         }
 
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name="OVA"]'/>
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name="OVA"]/*'/>
         public sealed partial class OneVersusAll : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8661,8 +8673,8 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name="MultiClassNaiveBayesTrainer"]'/>
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/example[@name="MultiClassNaiveBayesTrainer"]'/>
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name="MultiClassNaiveBayesTrainer"]/*'/>
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/example[@name="MultiClassNaiveBayesTrainer"]/*'/>
         public sealed partial class NaiveBayesClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -8875,6 +8887,93 @@ namespace Microsoft.ML
             private class OnlineGradientDescentRegressorPipelineStep : ILearningPipelinePredictorStep
             {
                 public OnlineGradientDescentRegressorPipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainers
+    {
+
+        /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name="OLS"]/*' />
+        public sealed partial class OrdinaryLeastSquaresRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// L2 regularization weight
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("L2Weight", new object[]{1E-06f, 0.1f, 1f})]
+            public float L2Weight { get; set; } = 1E-06f;
+
+            /// <summary>
+            /// Whether to calculate per parameter significance statistics
+            /// </summary>
+            public bool PerParameterSignificance { get; set; } = true;
+
+            /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(OrdinaryLeastSquaresRegressor)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    TrainingData = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new OrdinaryLeastSquaresRegressorPipelineStep(output);
+            }
+
+            private class OrdinaryLeastSquaresRegressorPipelineStep : ILearningPipelinePredictorStep
+            {
+                public OrdinaryLeastSquaresRegressorPipelineStep(Output output)
                 {
                     Model = output.PredictorModel;
                 }
@@ -11477,8 +11576,8 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="CountFeatureSelection"]'/>
-        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="CountFeatureSelection"]'/>
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="CountFeatureSelection"]/*'/>
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="CountFeatureSelection"]/*'/>
         public sealed partial class FeatureSelectorByCount : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -11546,8 +11645,8 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]'/>
-        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="MutualInformationFeatureSelection"]'/>
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*'/>
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="MutualInformationFeatureSelection"]/*'/>
         public sealed partial class FeatureSelectorByMutualInformation : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -16005,7 +16104,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="TreeEnsembleFeaturizerTransform"]'/>
+        /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="TreeEnsembleFeaturizerTransform"]/*'/>
         public sealed partial class TreeLeafFeaturizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IFeaturizerInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
