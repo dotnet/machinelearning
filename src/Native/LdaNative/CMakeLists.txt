@@ -14,6 +14,10 @@ set(SOURCES
     utils.cpp
 )
 
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    set(CMAKE_MACOSX_RPATH 1)
+endif()
+
 add_library(LdaNative SHARED ${SOURCES} ${RESOURCES})
 
 install_library_and_symbols (LdaNative)
