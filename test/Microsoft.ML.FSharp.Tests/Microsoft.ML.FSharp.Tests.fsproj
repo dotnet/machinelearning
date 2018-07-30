@@ -2,9 +2,10 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
-    <NoWarn>2003;$(NoWarn)</NoWarn>
     <TargetFrameworks Condition="'$(OS)' != 'Unix'">$(TargetFrameworks); net461</TargetFrameworks>
+    <NoWarn>2003;$(NoWarn)</NoWarn>
     <PublicSign>false</PublicSign>
+    <SourceLink></SourceLink>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,10 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
-    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
     <!-- Future updates to this test will check use with F# type providers, so -->
     <!-- leaving this here for now.  -->
     <!-- <PackageReference Include="FSharp.Data" Version="3.0.0-beta4" /> -->
