@@ -597,7 +597,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static class Mkl
         {
-            private const string DllName = "Microsoft.ML.MklImports";
+            private const string DllName = "Microsoft.ML.MklImports.dll";
 
             public enum Layout
             {

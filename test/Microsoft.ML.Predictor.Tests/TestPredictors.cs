@@ -888,7 +888,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// A test for ordinary least squares regression.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {

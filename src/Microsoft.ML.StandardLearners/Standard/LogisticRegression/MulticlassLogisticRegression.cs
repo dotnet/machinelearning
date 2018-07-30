@@ -42,7 +42,6 @@ namespace Microsoft.ML.Runtime.Learners
     {
         public const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
-        internal const string Summary = "Train a multi-class Logistic Regression";
         internal const string ShortName = "mlr";
 
         public sealed class Arguments : ArgumentsBase
@@ -962,7 +961,7 @@ namespace Microsoft.ML.Runtime.Learners
     public partial class LogisticRegression
     {
         [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionClassifier",
-            Desc = MulticlassLogisticRegression.Summary,
+            Desc = Summary,
             UserName = MulticlassLogisticRegression.UserNameValue,
             ShortName = MulticlassLogisticRegression.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name=""LBFGS""]/*' />",
