@@ -807,7 +807,7 @@ namespace Microsoft.ML.Runtime.Data
             Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary,
             UserName = TreeEnsembleFeaturizerTransform.UserName,
             ShortName = TreeEnsembleFeaturizerBindableMapper.LoadNameShort,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""TreeEnsembleFeaturizerTransform""]'/>" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""TreeEnsembleFeaturizerTransform""]/*'/>" })]
         public static CommonOutputs.TransformOutput Featurizer(IHostEnvironment env, TreeEnsembleFeaturizerTransform.ArgumentsForEntryPoint input)
         {
             Contracts.CheckValue(env, nameof(env));
