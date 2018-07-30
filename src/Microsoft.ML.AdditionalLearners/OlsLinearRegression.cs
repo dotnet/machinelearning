@@ -7,14 +7,15 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.AdditionalLearners;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
 using System.Runtime.InteropServices;
 
@@ -30,7 +31,7 @@ using System.Runtime.InteropServices;
 
 [assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Runtime.AdditionalLearners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
     public sealed class OlsLinearRegressionTrainer : TrainerBase<OlsLinearRegressionPredictor>
@@ -329,7 +330,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         internal static class Mkl
         {
-            private const string DllName = "Microsoft.ML.MklImports.dll";
+            private const string DllName = "Microsoft.ML.MklImports";
 
             public enum Layout
             {

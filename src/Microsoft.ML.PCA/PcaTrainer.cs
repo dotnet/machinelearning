@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.PCA
             var rng = new SysRandom(seed);
 
             // REVIEW: use a faster Gaussian random matrix generator
-            //MKL has a fast vectorized random number generation.
+            // MKL has a fast vectorized random number generation.
             for (var i = 0; i < k; ++i)
             {
                 for (var j = 0; j < d; ++j)
