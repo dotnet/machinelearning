@@ -106,6 +106,10 @@ if exist "%__IntermediatesDir%\INSTALL.vcxproj" goto BuildNativeProj
 goto :Failure
 
 :BuildNativeProj
+echo Copying MKL library in bin folder. This is a temporary fix.
+copy "%__rootDir%\packages\mlnetmkldeps\0.0.0.1\runtimes\win-x64\native\Microsoft.ML.MklImports.dll" "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Tests\netcoreapp2.0\Microsoft.ML.MklImports.dll"
+copy "%__rootDir%\packages\mlnetmkldeps\0.0.0.1\runtimes\win-x64\native\Microsoft.ML.MklImports.dll" "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Predictor.Tests\netcoreapp2.0\Microsoft.ML.MklImports.dll"
+
 :: Build the project created by Cmake
 set __msbuildArgs=/p:Platform=%__BuildArch% /p:PlatformToolset="%__PlatformToolset%"
 
@@ -117,11 +121,6 @@ IF ERRORLEVEL 1 (
     goto :Failure
 )
 echo Done building Native components
-
-echo Copying MKL library in bin folder. This is a temporary fix.
-copy "%__rootDir%\packages\mlnetmkldeps\0.0.0.1\runtimes\win-x64\native\Microsoft.ML.MklImports.dll" "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Tests\netcoreapp2.0\Microsoft.ML.MklImports.dll"
-copy "%__rootDir%\packages\mlnetmkldeps\0.0.0.1\runtimes\win-x64\native\Microsoft.ML.MklImports.dll" "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Predictor.Tests\netcoreapp2.0\Microsoft.ML.MklImports.dll"
-
 exit /B 0
 
 :Failure
