@@ -14,6 +14,7 @@ else()
     else()
         message("Linking SymSgdNative with MKL on linux.")
         link_directories(${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native)
+        message("${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native")
     endif()
 endif()
 
