@@ -207,10 +207,9 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     using (var ch = env.Start("SDCA arguments checking"))
                     {
-                        ch.Warning($"The specified {nameof(L2Const)} = {L2Const} is too small. SDCA optimizes the dual objective function. " +
-                            $"The dual formulation is only valid with a positive L2 regularization. Also, an {nameof(L2Const)} less than {L2LowerBound} " +
-                            $"could drastically slow down the convergence. So using {nameof(L2Const)} = {L2LowerBound} instead.");
-
+                        ch.Warning($"The L2 regularization constant must be at least {L2LowerBound}. In SDCA, the dual formulation " +
+                            $"is only valid with a positive constant, and values below {L2LowerBound} cause very slow convergence. " +
+                            $"The original {nameof(L2Const)} = {L2Const}, was replaced with {nameof(L2Const)} = {L2LowerBound}.");
                         L2Const = L2LowerBound;
                         ch.Done();
                     }
