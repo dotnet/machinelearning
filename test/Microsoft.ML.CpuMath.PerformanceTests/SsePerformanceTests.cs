@@ -102,7 +102,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float MyDotUPerf() => CpuMathUtils.DotProductDense(src, dst, LEN);
+        public float ManagedDotUPerf() => CpuMathUtils.DotProductDense(src, dst, LEN);
 
         [Benchmark]
         public unsafe float NativeDotSUPerf()
@@ -116,7 +116,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float MyDotSUPerf() => CpuMathUtils.DotProductSparse(src, dst, idx, IDXLEN);
+        public float ManagedDotSUPerf() => CpuMathUtils.DotProductSparse(src, dst, idx, IDXLEN);
 
         [Benchmark]
         public unsafe float NativeSumSqUPerf()
@@ -128,7 +128,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float MySumSqUPerf() => CpuMathUtils.SumSq(src, LEN);
+        public float ManagedSumSqUPerf() => CpuMathUtils.SumSq(src, LEN);
 
         [Benchmark]
         public unsafe void NativeAddUPerf()
@@ -141,7 +141,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void MyAddUPerf() => CpuMathUtils.Add(src, dst, LEN);
+        public void ManagedAddUPerf() => CpuMathUtils.Add(src, dst, LEN);
 
         [Benchmark]
         public unsafe void NativeAddSUPerf()
@@ -155,7 +155,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void MyAddSUPerf() => CpuMathUtils.Add(src, idx, dst, IDXLEN);
+        public void ManagedAddSUPerf() => CpuMathUtils.Add(src, idx, dst, IDXLEN);
 
         [Benchmark]
         public unsafe void NativeAddScaleUPerf()
@@ -168,7 +168,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void MyAddScaleUPerf() => CpuMathUtils.AddScale(DEFAULT_SCALE, src, dst, LEN);
+        public void ManagedAddScaleUPerf() => CpuMathUtils.AddScale(DEFAULT_SCALE, src, dst, LEN);
 
         [Benchmark]
         public unsafe void NativeAddScaleSUPerf()
@@ -182,7 +182,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void MyAddScaleSUPerf() => CpuMathUtils.AddScale(DEFAULT_SCALE, src, idx, dst, IDXLEN);
+        public void ManagedAddScaleSUPerf() => CpuMathUtils.AddScale(DEFAULT_SCALE, src, idx, dst, IDXLEN);
 
         [Benchmark]
         public unsafe void NativeScaleUPerf()
@@ -194,7 +194,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void MyScaleUPerf() => CpuMathUtils.Scale(DEFAULT_SCALE, dst, LEN);
+        public void ManagedScaleUPerf() => CpuMathUtils.Scale(DEFAULT_SCALE, dst, LEN);
 
         [Benchmark]
         public unsafe float NativeDist2Perf()
@@ -207,7 +207,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float MyDist2Perf() => CpuMathUtils.L2DistSquared(src, dst, LEN);
+        public float ManagedDist2Perf() => CpuMathUtils.L2DistSquared(src, dst, LEN);
 
         [Benchmark]
         public unsafe float NativeSumAbsUPerf()
@@ -219,7 +219,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float MySumAbsqUPerf() => CpuMathUtils.SumAbs(src, LEN);
+        public float ManagedSumAbsqUPerf() => CpuMathUtils.SumAbs(src, LEN);
 
         [Benchmark]
         public unsafe void NativeMulElementWiseUPerf()
@@ -233,6 +233,6 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void MyMulElementWiseUPerf() => CpuMathUtils.MulElementWise(src1, src2, dst, LEN);
+        public void ManagedMulElementWiseUPerf() => CpuMathUtils.MulElementWise(src1, src2, dst, LEN);
     }
 }

@@ -392,6 +392,5 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 return norm;
             }
         }
-
     }
 }
