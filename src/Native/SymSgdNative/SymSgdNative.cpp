@@ -6,14 +6,64 @@
 
 #include <vector>
 #include <random>
-#include <cmath>
+#include <condition_variable>
 #include <thread>
+#include <mutex>
 #include <unordered_map>
 #include "../Stdafx.h"
 #include "Macros.h"
 #include "SparseBLAS.h"
 #include "SymSgdNative.h"
 
+//Barrier implementation taken from Michael Sutton's answer at
+//https://stackoverflow.com/questions/24465533/implementing-boostbarrier-in-c11
+class Barrier
+{
+    private:
+        std::mutex m_mutex;
+        std::condition_variable m_cv;
+
+        size_t m_count;
+        const size_t m_initial;
+
+        enum State : unsigned char {
+            Up, Down
+        };
+        State m_state;
+
+    public:
+        explicit Barrier(std::size_t count) : m_count{ count }, m_initial{ count }, m_state{ State::Down } { }
+
+        /// Blocks until all N threads reach here
+        void Wait()
+        {
+            std::unique_lock<std::mutex> lock{ m_mutex };
+
+            if (m_state == State::Down)
+            {
+                // Counting down the number of syncing threads
+                if (--m_count == 0) {
+                    m_state = State::Up;
+                    m_cv.notify_all();
+                }
+                else {
+                    m_cv.wait(lock, [this] { return m_state == State::Up; });
+                }
+            }
+
+            else // (m_state == State::Up)
+            {
+                // Counting back up for Auto reset
+                if (++m_count == m_initial) {
+                    m_state = State::Down;
+                    m_cv.notify_all();
+                }
+                else {
+                    m_cv.wait(lock, [this] { return m_state == State::Down; });
+                }
+            }
+        }
+};  
 
 // This method learns for a single instance
 inline void LearnInstance(int instSize, int* instIndices, float* instValues,
@@ -318,85 +368,98 @@ EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndic
         }
     } else {
         // In parallel case...
-        /*bool shouldRemap = !((std::unordered_map<int, int>*)state->FreqFeatUnorderedMap)->empty();
+        
+        bool shouldRemap = !((std::unordered_map<int, int>*)state->FreqFeatUnorderedMap)->empty();
         SymSGD** learners = (SymSGD**)(state->Learners);
 
         float oldWeightScaling = 1.0f;
-        #pragma omp parallel num_threads(numThreads)
+        Barrier barrier(numThreads);
+        std::vector<std::thread> threads;
+        std::mutex lock;
+        for(int threadId = 0; threadId < numThreads; threadId += 1)
         {
-            int threadId = omp_get_thread_num();
-            // Compute the portion of instances associated with threadId
-            int myStart = (totalNumInstances * threadId) / numThreads;
-            int myEnd = (totalNumInstances * (threadId + 1)) / numThreads;
-            int myRangeLength = myEnd - myStart;
+            threads.push_back(std::thread([&](){
+                // Compute the portion of instances associated with threadId
+                int myStart = (totalNumInstances * threadId) / numThreads;
+                int myEnd = (totalNumInstances * (threadId + 1)) / numThreads;
+                int myRangeLength = myEnd - myStart;
 
-            if (shouldRemap)
-                RemapInstances(instSizes, instIndices, instValues, myStart, myEnd, state);
+                if (shouldRemap)
+                    RemapInstances(instSizes, instIndices, instValues, myStart, myEnd, state);
 
-            // This variable is used to keep track of how many instances are learned so far to do a reduction
-            int instancesLearnedSinceReduction = 0;
+                // This variable is used to keep track of how many instances are learned so far to do a reduction
+                int instancesLearnedSinceReduction = 0;
 
-            learners[threadId]->ResetModel(bias, weightVector, weightScaling);
-            int64_t curPermMultiplier = (VERYLARGEPRIME % myRangeLength);
+                learners[threadId]->ResetModel(bias, weightVector, weightScaling);
+                int64_t curPermMultiplier = (VERYLARGEPRIME % myRangeLength);
 
-            for (int i = 0; i < numPasses; i++) {
-                for (int j = 0; j < myRangeLength; j++) {
-                    int64_t index = myStart + j;
+                for (int i = 0; i < numPasses; i++) {
+                    for (int j = 0; j < myRangeLength; j++) {
+                        int64_t index = myStart + j;
+                        if (needShuffle)
+                            index = myStart + (((int64_t)j * (int64_t)curPermMultiplier) % (int64_t)myRangeLength);
+                        // alpha decays with the square root of number of instances processed.
+                        float thisAlpha = adjustedAlpha / (float)sqrt(1 + state->PassIteration*totalNumInstances + j*numThreads);
+                        learners[threadId]->LearnLocalModel(instSizes[index], instIndices[index], instValues[index], labels[index],
+                            thisAlpha, l2Const, piw, weightVector);
+                        instancesLearnedSinceReduction++;
+                        // If it reached numLocIter, do a reduction
+                        if (instancesLearnedSinceReduction == numLocIter) {
+                            learners[threadId]->Reduction(weightVector, bias, weightScaling);
+                            learners[threadId]->ResetModel(bias, weightVector, weightScaling);
+                            instancesLearnedSinceReduction = 0;
+                        }
+                    }
+
+                    // Check if we need to reweight the weight vector
+                    if (l2Const > 0.0f) {
+                        barrier.Wait();
+                        if (weightScaling < 1e-6) {
+
+                            for (int featIndex = (totalNumInstances * threadId) / numThreads; 
+                                 featIndex < ((totalNumInstances * (threadId + 1)) / numThreads) && featIndex < numFeat; 
+                                 featIndex++)
+                                weightVector[featIndex] *= weightScaling;
+                            if (threadId == 0)
+                                weightScaling = 1.0f;
+                        }
+                    }
+
+                    barrier.Wait();
+                    float localLoss = 0.0f;
+                    for (int j = myStart; j < myEnd && j < totalNumInstances; j++)
+                        localLoss += Loss(instSizes[j], instIndices[j], instValues[j], labels[j], piw, weightScaling, weightVector, bias);
+                    lock.lock();
+                    totalAverageLoss += localLoss;
+                    lock.unlock();
+                    
+                    barrier.Wait();
+                    if (threadId == 0) {
+                        totalAverageLoss = totalAverageLoss / (float)totalNumInstances;
+                        // If we the loss did not improve the learning rate was high, decay it.
+                        if (tuneAlpha && oldAverageLoss - totalAverageLoss < tolerance)
+                            adjustedAlpha = adjustedAlpha / 10.0f;
+                        state->PassIteration++;
+                        totalOverallAverageLoss = oldestAverageLoss - totalAverageLoss;
+                        oldestAverageLoss = olderAverageLoss;
+                        olderAverageLoss = oldAverageLoss;
+                        oldAverageLoss = totalAverageLoss;
+
+                        totalAverageLoss = 0.0f;
+                    }
+                    
+                    barrier.Wait();
+                    // Terminate if average loss difference between current model and the model from 3 passes ago is small
+                    if (totalOverallAverageLoss < tolerance)
+                        break;
+
                     if (needShuffle)
-                        index = myStart + (((int64_t)j * (int64_t)curPermMultiplier) % (int64_t)myRangeLength);
-                    // alpha decays with the square root of number of instances processed.
-                    float thisAlpha = adjustedAlpha / (float)sqrt(1 + state->PassIteration*totalNumInstances + j*numThreads);
-                    learners[threadId]->LearnLocalModel(instSizes[index], instIndices[index], instValues[index], labels[index],
-                        thisAlpha, l2Const, piw, weightVector);
-                    instancesLearnedSinceReduction++;
-                    // If it reached numLocIter, do a reduction
-                    if (instancesLearnedSinceReduction == numLocIter) {
-                        learners[threadId]->Reduction(weightVector, bias, weightScaling);
-                        learners[threadId]->ResetModel(bias, weightVector, weightScaling);
-                        instancesLearnedSinceReduction = 0;
-                    }
+                        curPermMultiplier = (((int64_t)curPermMultiplier * (int64_t)curPermMultiplier) % (int64_t)myRangeLength);
                 }
-
-                // Check if we need to reweight the weight vector
-                if (l2Const > 0.0f) {
-                    #pragma omp barrier
-                    if (weightScaling < 1e-6) {
-                        #pragma omp for
-                        for (int featIndex = 0; featIndex < numFeat; featIndex++)
-                            weightVector[featIndex] *= weightScaling;
-                        if (threadId == 0)
-                            weightScaling = 1.0f;
-                    }
-                }
-
-                #pragma omp barrier
-                #pragma omp for reduction(+:totalAverageLoss)
-                for (int j = 0; j < totalNumInstances; j++)
-                    totalAverageLoss += Loss(instSizes[j], instIndices[j], instValues[j], labels[j], piw, weightScaling, weightVector, bias);
-                #pragma omp barrier
-                if (threadId == 0) {
-                    totalAverageLoss = totalAverageLoss / (float)totalNumInstances;
-                    // If we the loss did not improve the learning rate was high, decay it.
-                    if (tuneAlpha && oldAverageLoss - totalAverageLoss < tolerance)
-                        adjustedAlpha = adjustedAlpha / 10.0f;
-                    state->PassIteration++;
-                    totalOverallAverageLoss = oldestAverageLoss - totalAverageLoss;
-                    oldestAverageLoss = olderAverageLoss;
-                    olderAverageLoss = oldAverageLoss;
-                    oldAverageLoss = totalAverageLoss;
-
-                    totalAverageLoss = 0.0f;
-                }
-                #pragma omp barrier
-                // Terminate if average loss difference between current model and the model from 3 passes ago is small
-                if (totalOverallAverageLoss < tolerance)
-                    break;
-
-                if (needShuffle)
-                    curPermMultiplier = (((int64_t)curPermMultiplier * (int64_t)curPermMultiplier) % (int64_t)myRangeLength);
-            }
+            }));
         }
-        state->TotalInstancesProcessed += numPasses*totalNumInstances;*/
+        std::for_each(threads.begin(), threads.end(), [](std::thread &t) { t.join();});
+        state->TotalInstancesProcessed += numPasses*totalNumInstances;
     }
 }
 
