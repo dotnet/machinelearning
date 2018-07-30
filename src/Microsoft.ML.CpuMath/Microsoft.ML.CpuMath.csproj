@@ -8,6 +8,8 @@
     <IncludeInPackage>Microsoft.ML.CpuMath</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);CORECLR;PRIVATE_CONTRACTS</DefineConstants>
+    <!-- The SDK we currently restore and use has 2.0 as the maximum supported version -->
+    <NETCoreAppMaximumVersion>3.0</NETCoreAppMaximumVersion>
   </PropertyGroup>
 
   <ItemGroup>
