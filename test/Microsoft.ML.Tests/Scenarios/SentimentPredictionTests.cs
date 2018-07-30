@@ -11,6 +11,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -35,6 +36,12 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TrainAndPredictSymSGDSentimentModelTest()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             var pipeline = PreparePipelineSymSGD();
             var model = pipeline.Train<SentimentData, SentimentPrediction>();
             var testData = PrepareTextLoaderTestData();

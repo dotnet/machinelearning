@@ -235,6 +235,12 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Binary")]
         public void BinaryClassifierSymSgdTest()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true);
             Done();
         }

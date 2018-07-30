@@ -405,6 +405,12 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void PipelineSweeperRocketEngine()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             // Get datasets
             var pathData = GetDataPath("adult.train");
             var pathDataTest = GetDataPath("adult.test");
