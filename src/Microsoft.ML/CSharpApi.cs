@@ -12168,7 +12168,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Load images from a files.
+        /// Load images from files.
         /// </summary>
         public sealed partial class ImageLoader : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
