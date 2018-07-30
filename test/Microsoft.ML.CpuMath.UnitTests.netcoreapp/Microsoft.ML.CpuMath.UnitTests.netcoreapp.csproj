@@ -13,9 +13,5 @@
   <ItemGroup>
     <Compile Include="..\Microsoft.ML.CpuMath.UnitTests.netstandard\UnitTests.cs" />
   </ItemGroup>
-
-  <ItemGroup>
-    <NativeAssemblyReference Include="CpuMathNative" />
-  </ItemGroup>
   
 </Project>
