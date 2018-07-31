@@ -9,7 +9,6 @@ if(WIN32)
 else()
     list(APPEND SOURCES ${VERSION_FILE_PATH})
     if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-        set(CMAKE_MACOSX_RPATH 1)
         message("Linking SymSgdNative with MKL on macOS.")
         find_library(MKL_LIBRARY Microsoft.ML.MklImports.dylib HINTS "${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native")
     else()
@@ -21,9 +20,5 @@ endif()
 
 add_library(SymSgdNative SHARED ${SOURCES} ${RESOURCES})
 target_link_libraries(SymSgdNative PUBLIC ${MKL_LIBRARY})
-
-if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-    set_target_properties(SymSgdNative PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
-endif()
         
 install_library_and_symbols (SymSgdNative)
