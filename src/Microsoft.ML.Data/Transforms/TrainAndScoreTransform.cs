@@ -172,6 +172,8 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
             env.CheckValue(trainer, nameof(trainer));
+            env.CheckValue(featureColumn, nameof(featureColumn));
+            env.CheckValue(labelColumn, nameof(labelColumn));
 
             var args = new Arguments()
             {
@@ -195,6 +197,11 @@ namespace Microsoft.ML.Runtime.Data
 
         private static IDataTransform Create(IHostEnvironment env, Arguments args, ITrainer trainer, IDataView input)
         {
+            Contracts.AssertValue(env, nameof(env));
+            env.AssertValue(args, nameof(args));
+            env.AssertValue(trainer, nameof(trainer));
+            env.AssertValue(input, nameof(input));
+
             var host = env.Register("TrainAndScoreTransform");
 
             using (var ch = host.Start("Train"))
