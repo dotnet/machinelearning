@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Api
             var mb = new DynamicMethod("Peek", null, args, typeof(TOwn), true);
             var il = mb.GetILGenerator();
             var minfo = propertyInfo.GetGetMethod();
-            var opcode = minfo.IsVirtual ? OpCodes.Callvirt : OpCodes.Call;
+            var opcode = (minfo.IsVirtual || minfo.IsAbstract) ? OpCodes.Callvirt : OpCodes.Call;
 
             il.Emit(OpCodes.Ldarg_3);               // push arg3
             il.Emit(OpCodes.Ldarg_1);               // push arg1
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Api
             var mb = new DynamicMethod("Poke", null, args, typeof(TOwn), true);
             var il = mb.GetILGenerator();
             var minfo = propertyInfo.GetSetMethod();
-            var opcode = minfo.IsVirtual ? OpCodes.Callvirt : OpCodes.Call;
+            var opcode = (minfo.IsVirtual || minfo.IsAbstract) ? OpCodes.Callvirt : OpCodes.Call;
 
             il.Emit(OpCodes.Ldarg_1);               // push arg1
             il.Emit(OpCodes.Ldarg_2);               // push arg2
