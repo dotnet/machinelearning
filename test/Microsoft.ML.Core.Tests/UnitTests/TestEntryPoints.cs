@@ -3710,5 +3710,52 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
             }
         }
+
+        [Fact]
+        public void EntryPointWordEmbeddings()
+        {
+            string dataFile = DeleteOutputPath("SavePipe", "SavePipeTextWordEmbeddings-SampleText.txt");
+            File.WriteAllLines(dataFile, new[] {
+                "The quick brown fox jumps over the lazy dog.",
+                "The five boxing wizards jump quickly."
+            });
+            var inputFile = new SimpleFileHandle(Env, dataFile, false, false);
+            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            {
+                Arguments =
+                {
+                    SeparatorChars = new []{' '},
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Text",
+                            Source = new [] { new TextLoader.Range() { Min = 0, VariableEnd=true, ForceVector=true} },
+                            Type = DataKind.Text
+                        }
+                    }
+                },
+                InputFile = inputFile,
+            }).Data;
+            var embedding = Transforms.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsTransform.Arguments()
+            {
+                Data = dataView,
+                Column = new[] { new WordEmbeddingsTransform.Column { Name = "Features", Source = "Text" } },
+                ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe
+            });
+            var result = embedding.OutputData;
+            using (var cursor = result.GetRowCursor((x => true)))
+            {
+                Assert.True(result.Schema.TryGetColumnIndex("Features", out int featColumn));
+                var featGetter = cursor.GetGetter<VBuffer<float>>(featColumn);
+                VBuffer<float> feat = default;
+                while (cursor.MoveNext())
+                {
+                    featGetter(ref feat);
+                    Assert.True(feat.Count == 150);
+                    Assert.True(feat.Values[0] != 0);
+                }
+            }
+        }
     }
 }
