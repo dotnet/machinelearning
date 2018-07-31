@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageDescription>ML.NET additional learners making use of hardware acceleration. They depend on like MlNetMklDeps. </PackageDescription>
+    <PackageDescription>ML.NET additional learners making use of hardware acceleration. They depend on the MlNetMklDeps NuGetpackage. </PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
