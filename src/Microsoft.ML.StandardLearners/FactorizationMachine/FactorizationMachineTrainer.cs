@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             _shuffle = args.Shuffle;
             _verbose = args.Verbose;
             _radius = args.Radius;
-            Info = new TrainerInfo();
+            Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
         }
 
         private void InitializeTrainingState(int fieldCount, int featureCount, FieldAwareFactorizationMachinePredictor predictor, out float[] linearWeights,

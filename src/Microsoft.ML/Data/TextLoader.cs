@@ -79,8 +79,7 @@ namespace Microsoft.ML.Data
             var propertyInfos =
                 userType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(x => x.CanRead && x.CanWrite && x.GetIndexParameters().Length == 0)
-                .ToArray();
+                .Where(x => x.CanRead && x.CanWrite && x.GetIndexParameters().Length == 0);
 
             var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
 
@@ -90,7 +89,7 @@ namespace Microsoft.ML.Data
                 var memberInfo = memberInfos[index];
                 var mappingAttr = memberInfo.GetCustomAttribute<ColumnAttribute>();
                 if (mappingAttr == null)
-                    throw Contracts.Except($"field or property {memberInfo.Name} is missing ColumnAttribute");
+                    throw Contracts.Except($"Field or property {memberInfo.Name} is missing ColumnAttribute");
 
                 if (Regex.Match(mappingAttr.Ordinal, @"[^(0-9,\*\-~)]+").Success)
                     throw Contracts.Except($"{mappingAttr.Ordinal} contains invalid characters. " +
@@ -122,7 +121,7 @@ namespace Microsoft.ML.Data
                         break;
 
                     default:
-                        throw Contracts.ExceptNotSupp("expected a FieldInfo or a PropInfo");
+                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
                 }
 
                 tlc.Type = dk;

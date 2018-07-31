@@ -152,7 +152,7 @@ namespace Microsoft.ML.Runtime.Api
                     break;
 
                 default:
-                    throw Contracts.ExceptNotSupp("expected a FieldInfo or a PropInfo");
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
             }
         }
 
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Runtime.Api
                         memberInfo = userType.GetProperty(col.MemberName);
 
                     if (memberInfo == null)
-                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), "No field with name '{0}' found in type '{1}'",
+                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), "No field or property with name '{0}' found in type '{1}'",
                             col.MemberName,
                             userType.FullName);
 

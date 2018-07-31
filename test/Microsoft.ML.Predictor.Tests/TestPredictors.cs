@@ -892,7 +892,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
-            Run_TrainTest(TestLearners.Ols, TestDatasets.housing);
+            Run_TrainTest(TestLearners.Ols, TestDatasets.winequality);
             Done();
         }
 
@@ -905,8 +905,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void RegressorSdcaTest()
         {
             var regressionPredictors = new[] { TestLearners.Sdcar, TestLearners.SdcarNorm, TestLearners.SdcarReg };
-            var regressionDatasets = GetDatasetsForRegressorTest();
-            RunAllTests(regressionPredictors, regressionDatasets);
+            RunAllTests(regressionPredictors, new[] { TestDatasets.winequality });
             Done();
         }
 

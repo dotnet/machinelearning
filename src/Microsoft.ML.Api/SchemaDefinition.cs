@@ -161,8 +161,7 @@ namespace Microsoft.ML.Runtime.Api
             var cursorChannelAttrProperties = typeof(T)
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(x => x.CanRead && x.CanWrite && x.GetIndexParameters().Length == 0)
-                .Where(x => x.GetCustomAttributes(typeof(CursorChannelAttribute), false).Any())
-                .ToArray();
+                .Where(x => x.GetCustomAttributes(typeof(CursorChannelAttribute), false).Any());
 
             var cursorChannelAttrMembers = (cursorChannelAttrFields as IEnumerable<MemberInfo>).Concat(cursorChannelAttrProperties).ToArray();
 
@@ -190,7 +189,7 @@ namespace Microsoft.ML.Runtime.Api
                     break;
 
                 default:
-                    throw Contracts.ExceptNotSupp("expected a FieldInfo or a PropInfo");
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
             }
             return true;
         }
@@ -345,8 +344,7 @@ namespace Microsoft.ML.Runtime.Api
             var propertyInfos =
                 userType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(x => x.CanRead && x.CanWrite && x.GetIndexParameters().Length == 0)
-                .ToArray();
+                .Where(x => x.CanRead && x.CanWrite && x.GetIndexParameters().Length == 0);
 
             var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
 
@@ -374,7 +372,7 @@ namespace Microsoft.ML.Runtime.Api
                         break;
 
                     default:
-                        throw Contracts.ExceptNotSupp("expected a FieldInfo or a PropInfo");
+                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
                 }
 
                 if (memberInfo.GetCustomAttribute<NoColumnAttribute>() != null)

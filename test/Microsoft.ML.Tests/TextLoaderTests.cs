@@ -228,7 +228,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void ThrowsExceptionWithPropertyName()
         {
             Exception ex = Assert.Throws<InvalidOperationException>( () => new Data.TextLoader("fakefile.txt").CreateFrom<ModelWithoutColumnAttribute>() );
-            Assert.StartsWith("field or property String1 is missing ColumnAttribute", ex.Message);
+            Assert.StartsWith("Field or property String1 is missing ColumnAttribute", ex.Message);
         }
 
         public class QuoteInput

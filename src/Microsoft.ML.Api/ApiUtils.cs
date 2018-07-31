@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Api
                     return (Delegate)methInfoProp.Invoke(null, new object[] { propertyInfo, assignmentOpCodeProp });
 
                 default:
-                    throw Contracts.ExceptNotSupp("expected a FieldInfo or a PropInfo");
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
 
             }
         }
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.Api
                     return (Delegate)methInfoProp.Invoke(null, new object[] { propertyInfo });
 
                 default:
-                    throw Contracts.ExceptNotSupp("expected a FieldInfo or a PropInfo");
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
             }
         }
 

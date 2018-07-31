@@ -198,6 +198,7 @@ namespace Microsoft.ML.Runtime.Api
                         Ch.Assert(outputType.GetGenericTypeDefinition() == typeof(VBuffer<>));
                         Ch.Assert(outputType.GetGenericArguments()[0] == colType.ItemType.RawType);
                         del = CreateDirectVBufferGetterDelegate<int>;
+                        genericType = colType.ItemType.RawType;
                     }
                     else if (colType.IsPrimitive)
                     {
