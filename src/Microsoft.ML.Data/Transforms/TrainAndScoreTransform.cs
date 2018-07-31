@@ -46,6 +46,27 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string Summary = "Runs a previously trained predictor on the data.";
 
+        /// <summary>
+        /// Convenience method for creating <see cref="ScoreTransform"/>.
+        /// The <see cref="ScoreTransform"/> allows for model stacking (i.e. to combine information from multiple predictive models to generate a new model)
+        /// in the pipeline by using the scores from an already trained model.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
+        /// <param name="inputModelFile">The model file.</param>
+        /// <param name="featureColumn">Role name for the features.</param>
+        /// <returns></returns>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string inputModelFile, string featureColumn = DefaultColumnNames.Features)
+        {
+            var args = new Arguments()
+            {
+                FeatureColumn = featureColumn,
+                InputModelFile = inputModelFile
+            };
+
+            return Create(env, args, input);
+        }
+
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -131,7 +152,36 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string Summary = "Trains a predictor, or loads it from a file, and runs it on the data.";
 
+        /// <summary>
+        /// Convenience method for creating <see cref="TrainAndScoreTransform"/>.
+        /// The <see cref="TrainAndScoreTransform"/> allows for model stacking (i.e. to combine information from multiple predictive models to generate a new model)
+        /// in the pipeline by training a model first and then using the scores from the trained model.
+        ///
+        /// Unlike <see cref="ScoreTransform"/>, the <see cref="TrainAndScoreTransform"/> trains the model on the fly as name indicates.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
+        /// <param name="trainer">The <see cref="ITrainer"/> object i.e. the learning algorithm that will be used for training the model.</param>
+        /// <param name="featureColumn">Role name for features.</param>
+        /// <param name="labelColumn">Role name for label.</param>
+        /// <returns></returns>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, ITrainer trainer, string featureColumn = DefaultColumnNames.Features, string labelColumn = DefaultColumnNames.Label)
+        {
+            var args = new Arguments()
+            {
+                FeatureColumn = featureColumn,
+                LabelColumn = labelColumn
+            };
+
+            return Create(env, args, trainer, input);
+        }
+
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            return Create(env, args, args.Trainer.CreateInstance(env), input);
+        }
+
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, ITrainer trainer, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -144,7 +194,6 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = host.Start("Train"))
             {
                 ch.Trace("Constructing trainer");
-                ITrainer trainer = args.Trainer.CreateInstance(host);
                 var customCols = TrainUtils.CheckAndGenerateCustomColumns(env, args.CustomColumn);
                 string feat;
                 string group;
