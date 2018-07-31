@@ -36,12 +36,6 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TrainAndPredictSymSGDSentimentModelTest()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
-                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
-
             var pipeline = PreparePipelineSymSGD();
             var model = pipeline.Train<SentimentData, SentimentPrediction>();
             var testData = PrepareTextLoaderTestData();

@@ -26,11 +26,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("EntryPoints")]
         public void TestLearn()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
-                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return;
-            }
             using (var env = new TlcEnvironment())
             {
                 string pathData = GetDataPath("adult.train");
