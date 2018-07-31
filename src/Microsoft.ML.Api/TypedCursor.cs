@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     throw _host.Except(
                         "Can't bind the IDataView column '{0}' of type '{1}' to field or property '{2}' of type '{3}'.",
-                        col.ColumnName, realColType, col.MemberInfo.Name, col.OutputType.FullName);
+                        col.ColumnName, realColType, col.MemberInfo.Name, col.FieldOrPropertyType.FullName);
                 }
 
                 acceptedCols.Add(col);

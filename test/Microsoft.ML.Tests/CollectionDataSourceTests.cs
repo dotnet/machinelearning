@@ -275,6 +275,26 @@ namespace Microsoft.ML.EntryPoints.Tests
             return true;
         }
 
+        public bool CompareThroughReflectionProperties<T>(T x, T y)
+        {
+            foreach (var property in typeof(T).GetProperties())
+            {
+                var xvalue = property.GetValue(x);
+                var yvalue = property.GetValue(y);
+                if (property.PropertyType.IsArray)
+                {
+                    if (!CompareArrayValues(xvalue as Array, yvalue as Array))
+                        return false;
+                }
+                else
+                {
+                    if (!CompareObjectValues(xvalue, yvalue, property.PropertyType))
+                        return false;
+                }
+            }
+            return true;
+        }
+
         public bool CompareArrayValues(Array x, Array y)
         {
             if (x == null && y == null) return true;
@@ -605,6 +625,130 @@ namespace Microsoft.ML.EntryPoints.Tests
                 while (enumeratorNullable.MoveNext() && originalNullalbleEnumerator.MoveNext())
                 {
                     Assert.True(CompareThroughReflection(enumeratorNullable.Current, originalNullalbleEnumerator.Current));
+                }
+                Assert.True(!enumeratorNullable.MoveNext() && !originalNullalbleEnumerator.MoveNext());
+            }
+        }
+        public class ClassWithArrayProperties
+        {
+            private string[] _fString;
+            private int[] _fInt;
+            private uint[] _fuInt;
+            private short[] _fShort;
+            private ushort[] _fuShort;
+            private sbyte[] _fsByte;
+            private byte[] _fByte;
+            private long[] _fLong;
+            private ulong[] _fuLong;
+            private float[] _fFloat;
+            private double[] _fDouble;
+            private bool[] _fBool;
+            public string[] fString { get { return _fString; } set { _fString = value; } }
+            public int[] fInt { get { return _fInt; } set { _fInt = value; } }
+            public uint[] fuInt { get { return _fuInt; } set { _fuInt = value; } }
+            public short[] fShort { get { return _fShort; } set { _fShort = value; } }
+            public ushort[] fuShort { get { return _fuShort; } set { _fuShort = value; } }
+            public sbyte[] fsByte { get { return _fsByte; } set { _fsByte = value; } }
+            public byte[] fByte { get { return _fByte; } set { _fByte = value; } }
+            public long[] fLong { get { return _fLong; } set { _fLong = value; } }
+            public ulong[] fuLong { get { return _fuLong; } set { _fuLong = value; } }
+            public float[] fFloat { get { return _fFloat; } set { _fFloat = value; } }
+            public double[] fDouble { get { return _fDouble; } set { _fDouble = value; } }
+            public bool[] fBool { get { return _fBool; } set { _fBool = value; } }
+        }
+
+        public class ClassWithNullableArrayProperties
+        {
+            private string[] _fString;
+            private int?[] _fInt;
+            private uint?[] _fuInt;
+            private short?[] _fShort;
+            private ushort?[] _fuShort;
+            private sbyte?[] _fsByte;
+            private byte?[] _fByte;
+            private long?[] _fLong;
+            private ulong?[] _fuLong;
+            private float?[] _fFloat;
+            private double?[] _fDouble;
+            private bool?[] _fBool;
+
+            public string[] fString { get { return _fString; } set { _fString = value; } }
+            public int?[] fInt { get { return _fInt; } set { _fInt = value; } }
+            public uint?[] fuInt { get { return _fuInt; } set { _fuInt = value; } }
+            public short?[] fShort { get { return _fShort; } set { _fShort = value; } }
+            public ushort?[] fuShort { get { return _fuShort; } set { _fuShort = value; } }
+            public sbyte?[] fsByte { get { return _fsByte; } set { _fsByte = value; } }
+            public byte?[] fByte { get { return _fByte; } set { _fByte = value; } }
+            public long?[] fLong { get { return _fLong; } set { _fLong = value; } }
+            public ulong?[] fuLong { get { return _fuLong; } set { _fuLong = value; } }
+            public float?[] fFloat { get { return _fFloat; } set { _fFloat = value; } }
+            public double?[] fDouble { get { return _fDouble; } set { _fDouble = value; } }
+            public bool?[] fBool { get { return _fBool; } set { _fBool = value; } }
+        }
+
+        [Fact]
+        public void RoundTripConversionWithArrayPropertiess()
+        {
+
+            var data = new List<ClassWithArrayProperties>
+            {
+                new ClassWithArrayProperties()
+                {
+                    fInt = new int[3] { 0, 1, 2 },
+                    fFloat = new float[3] { -0.99f, 0f, 0.99f },
+                    fString = new string[2] { "hola", "lola" },
+                    fBool = new bool[2] { true, false },
+                    fByte = new byte[3] { 0, 124, 255 },
+                    fDouble = new double[3] { -1, 0, 1 },
+                    fLong = new long[] { 0, 1, 2 },
+                    fsByte = new sbyte[3] { -127, 127, 0 },
+                    fShort = new short[3] { 0, 1225, 32767 },
+                    fuInt = new uint[2] { 0, uint.MaxValue },
+                    fuLong = new ulong[2] { ulong.MaxValue, 0 },
+                    fuShort = new ushort[2] { 0, ushort.MaxValue }
+                },
+                new ClassWithArrayProperties() { fInt = new int[3] { -2, 1, 0 }, fFloat = new float[3] { 0.99f, 0f, -0.99f }, fString = new string[2] { "", null } },
+                new ClassWithArrayProperties()
+            };
+
+            var nullableData = new List<ClassWithNullableArrayProperties>
+            {
+                new ClassWithNullableArrayProperties()
+                {
+                    fInt = new int?[3] { null, -1, 1 },
+                    fFloat = new float?[3] { -0.99f, null, 0.99f },
+                    fString = new string[2] { null, "" },
+                    fBool = new bool?[3] { true, null, false },
+                    fByte = new byte?[4] { 0, 125, null, 255 },
+                    fDouble = new double?[3] { -1, null, 1 },
+                    fLong = new long?[] { null, -1, 1 },
+                    fsByte = new sbyte?[3] { -127, 127, null },
+                    fShort = new short?[3] { 0, null, 32767 },
+                    fuInt = new uint?[4] { null, 42, 0, uint.MaxValue },
+                    fuLong = new ulong?[3] { ulong.MaxValue, null, 0 },
+                    fuShort = new ushort?[3] { 0, null, ushort.MaxValue }
+                },
+                new ClassWithNullableArrayProperties() { fInt = new int?[3] { -2, 1, 0 }, fFloat = new float?[3] { 0.99f, 0f, -0.99f }, fString = new string[2] { "lola", "hola" } },
+                new ClassWithNullableArrayProperties()
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithArrayProperties>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThroughReflectionProperties(enumeratorSimple.Current, originalEnumerator.Current));
+                }
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+
+                var nullableDataView = ComponentCreation.CreateDataView(env, nullableData);
+                var enumeratorNullable = nullableDataView.AsEnumerable<ClassWithNullableArrayProperties>(env, false).GetEnumerator();
+                var originalNullalbleEnumerator = nullableData.GetEnumerator();
+                while (enumeratorNullable.MoveNext() && originalNullalbleEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThroughReflectionProperties(enumeratorNullable.Current, originalNullalbleEnumerator.Current));
                 }
                 Assert.True(!enumeratorNullable.MoveNext() && !originalNullalbleEnumerator.MoveNext());
             }

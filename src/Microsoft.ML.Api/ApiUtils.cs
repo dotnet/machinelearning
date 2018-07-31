@@ -103,10 +103,12 @@ namespace Microsoft.ML.Runtime.Api
             Type[] args = { typeof(TOwn), typeof(TRow), typeof(long), typeof(TValue).MakeByRefType() };
             var mb = new DynamicMethod("Peek", null, args, typeof(TOwn), true);
             var il = mb.GetILGenerator();
+            var minfo = propertyInfo.GetGetMethod();
+            var opcode = minfo.IsVirtual ? OpCodes.Callvirt : OpCodes.Call;
 
             il.Emit(OpCodes.Ldarg_3);               // push arg3
             il.Emit(OpCodes.Ldarg_1);               // push arg1
-            il.Emit(OpCodes.Call, propertyInfo.GetGetMethod());      // push [stack top].[propertyInfo]
+            il.Emit(opcode, minfo);                 // push [stack top].[propertyInfo]
             // Stobj needs to coupled with a type.
             if (assignmentOpCode == OpCodes.Stobj)  // [stack top-1] = [stack top]
                 il.Emit(assignmentOpCode, propertyInfo.PropertyType);
@@ -172,10 +174,12 @@ namespace Microsoft.ML.Runtime.Api
             Type[] args = { typeof(TOwn), typeof(TRow), typeof(TValue) };
             var mb = new DynamicMethod("Poke", null, args, typeof(TOwn), true);
             var il = mb.GetILGenerator();
+            var minfo = propertyInfo.GetSetMethod();
+            var opcode = minfo.IsVirtual ? OpCodes.Callvirt : OpCodes.Call;
 
             il.Emit(OpCodes.Ldarg_1);               // push arg1
             il.Emit(OpCodes.Ldarg_2);               // push arg2
-            il.Emit(OpCodes.Call, propertyInfo.GetSetMethod());      // [stack top-1].[propertyInfo] <- [stack top]
+            il.Emit(opcode, minfo);                 // [stack top-1].[propertyInfo] <- [stack top]
             il.Emit(OpCodes.Ret);                   // ret
             return mb.CreateDelegate(typeof(Poke<TRow, TValue>), null);
         }

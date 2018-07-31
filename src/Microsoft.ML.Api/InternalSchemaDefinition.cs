@@ -31,7 +31,8 @@ namespace Microsoft.ML.Runtime.Api
             private readonly Dictionary<string, MetadataInfo> _metadata;
             public Dictionary<string, MetadataInfo> Metadata { get { return _metadata; } }
             public Type ComputedReturnType {get { return ReturnParameterInfo.ParameterType.GetElementType(); }}
-            public Type OutputType => IsComputed ? ComputedReturnType : (MemberInfo is FieldInfo) ? (MemberInfo as FieldInfo).FieldType : (MemberInfo as PropertyInfo).PropertyType;
+            public Type FieldOrPropertyType => (MemberInfo is FieldInfo) ? (MemberInfo as FieldInfo).FieldType : (MemberInfo as PropertyInfo).PropertyType;
+            public Type OutputType => IsComputed ? ComputedReturnType : FieldOrPropertyType;
 
             public Column(string columnName, ColumnType columnType, MemberInfo memberInfo) :
                 this(columnName, columnType, memberInfo, null, null) { }
