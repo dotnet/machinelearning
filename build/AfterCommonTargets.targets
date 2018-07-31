@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup> 
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects> 
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <VSTestTargets Condition="'$(UseIntrinsics)' != 'true' and '$(TargetFramework)' == 'netcoreapp3.0'">ignore.targets</VSTestTargets>
   </PropertyGroup> 
 
   <!-- 
@@ -9,5 +10,5 @@
   we need to skip the project. 
   --> 
   <Import Condition="'$(UseIntrinsics)' != 'true' and '$(TargetFramework)' == 'netcoreapp3.0'" 
-          Project="$(RepoRoot)build\Empty.targets" /> 
+          Project="$(RepoRoot)build\Empty.targets" />
 </Project>
