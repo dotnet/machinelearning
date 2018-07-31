@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             Args = args;
             // REVIEW: Caching could be false for one iteration, if we got around the whole shuffling issue.
-            Info = new TrainerInfo(calibration: NeedCalibration);
+            Info = new TrainerInfo(calibration: NeedCalibration, supportIncrementalTrain: true);
         }
 
         /// <summary>
