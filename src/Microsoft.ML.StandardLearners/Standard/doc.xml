@@ -68,6 +68,27 @@
         </code>
       </example>
     </example>
+    
+    <member name="OLS">
+      <summary>
+        Train an OLS regression model.
+      </summary>
+      <remarks>
+        <a href='https://en.wikipedia.org/wiki/Ordinary_least_squares'>Ordinary least squares (OLS)</a> is a parameterized regression method. 
+        It assumes that the conditional mean of the dependent variable follows a linear function of the dependent variables.
+        The parameters of the regressor can be estimated by minimizing the squares of the difference between observed values and the predictions.
+      </remarks>
+       <example>
+        <code language="csharp">
+          new OrdinaryLeastSquaresRegressor
+          {
+            L2Weight = 0.1,
+            PerParameterSignificance = false,
+            NormalizeFeatures  = Microsoft.ML.Models.NormalizeOption.Yes
+          }
+        </code>
+      </example>
+    </member>
  
   </members>
 </doc>
