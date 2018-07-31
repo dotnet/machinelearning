@@ -329,7 +329,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         internal static class Mkl
         {
-            private const string DllName = "libMklImports";
+            private const string DllName = "MklImports";
 
             public enum Layout
             {
