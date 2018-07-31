@@ -165,8 +165,13 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="featureColumn">Role name for features.</param>
         /// <param name="labelColumn">Role name for label.</param>
         /// <returns></returns>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, ITrainer trainer, string featureColumn = DefaultColumnNames.Features, string labelColumn = DefaultColumnNames.Label)
+        public static IDataTransform Create(IHostEnvironment env,
+            IDataView input,
+            ITrainer trainer,
+            string featureColumn = DefaultColumnNames.Features,
+            string labelColumn = DefaultColumnNames.Label)
         {
+            Contracts.CheckValue(env, nameof(env));
             var args = new Arguments()
             {
                 FeatureColumn = featureColumn,
@@ -178,16 +183,17 @@ namespace Microsoft.ML.Runtime.Data
 
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckUserArg(args.Trainer.IsGood(), nameof(args.Trainer),
+                "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
+
             return Create(env, args, args.Trainer.CreateInstance(env), input);
         }
 
         private static IDataTransform Create(IHostEnvironment env, Arguments args, ITrainer trainer, IDataView input)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckUserArg(args.Trainer.IsGood(), nameof(args.Trainer),
-                "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
 
             var host = env.Register("TrainAndScoreTransform");
 
