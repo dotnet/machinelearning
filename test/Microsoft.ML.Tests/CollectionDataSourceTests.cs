@@ -174,6 +174,49 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         }
 
+        [Fact]
+        public void CanTrainProperties()
+        {
+            var pipeline = new LearningPipeline();
+            var data = new List<IrisDataProperties>() {
+                new IrisDataProperties { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
+                new IrisDataProperties { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
+                new IrisDataProperties { SepalLength = 1.2f, SepalWidth = 0.5f, PetalLength=0.3f, PetalWidth=5.1f, Label=0}
+            };
+            var collection = CollectionDataSource.Create(data);
+
+            pipeline.Add(collection);
+            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
+                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
+            pipeline.Add(new StochasticDualCoordinateAscentClassifier());
+            PredictionModel<IrisDataProperties, IrisPredictionProperties> model = pipeline.Train<IrisDataProperties, IrisPredictionProperties>();
+
+            IrisPredictionProperties prediction = model.Predict(new IrisDataProperties()
+            {
+                SepalLength = 3.3f,
+                SepalWidth = 1.6f,
+                PetalLength = 0.2f,
+                PetalWidth = 5.1f,
+            });
+
+            pipeline = new LearningPipeline();
+            collection = CollectionDataSource.Create(data.AsEnumerable());
+            pipeline.Add(collection);
+            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
+                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
+            pipeline.Add(new StochasticDualCoordinateAscentClassifier());
+            model = pipeline.Train<IrisDataProperties, IrisPredictionProperties>();
+
+            prediction = model.Predict(new IrisDataProperties()
+            {
+                SepalLength = 3.3f,
+                SepalWidth = 1.6f,
+                PetalLength = 0.2f,
+                PetalWidth = 5.1f,
+            });
+
+        }
+
         public class Input
         {
             [Column("0")]
@@ -205,6 +248,37 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             [ColumnName("Score")]
             public float[] PredictedLabels;
+        }
+
+        public class IrisDataProperties
+        {
+            private float _Label;
+            private float _SepalLength;
+            private float _SepalWidth;
+            private float _PetalLength;
+            private float _PetalWidth;
+
+            [Column("0")]
+            public float Label { get { return _Label; } set { _Label = value; } }
+
+            [Column("1")]
+            public float SepalLength { get { return _SepalLength; } set { _SepalLength = value; } }
+
+            [Column("2")]
+            public float SepalWidth { get { return _SepalWidth; } set { _SepalWidth = value; } }
+
+            [Column("3")]
+            public float PetalLength { get { return _PetalLength; } set { _PetalLength = value; } }
+
+            [Column("4")]
+            public float PetalWidth { get { return _PetalWidth; } set { _PetalWidth = value; } }
+        }
+
+        public class IrisPredictionProperties
+        {
+            private float[] _PredictedLabels;
+            [ColumnName("Score")]
+            public float[] PredictedLabels { get { return _PredictedLabels; } set { _PredictedLabels = value; } }
         }
 
         public class ConversionSimpleClass
@@ -272,11 +346,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                         return false;
                 }
             }
-            return true;
-        }
-
-        public bool CompareThroughReflectionProperties<T>(T x, T y)
-        {
             foreach (var property in typeof(T).GetProperties())
             {
                 var xvalue = property.GetValue(x);
@@ -306,14 +375,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                 if (!CompareObjectValues(x.GetValue(i), y.GetValue(i), x.GetType().GetElementType()))
                     return false;
             return true;
-        }
-
-        public class ClassWithConstField
-        {
-            public const string ConstString = "N";
-            public string fString;
-            public const int ConstInt = 100;
-            public int fInt;
         }
 
         [Fact]
@@ -509,6 +570,50 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
+        public class ConversionLossMinValueClassProperties
+        {
+            private int? _fInt;
+            private long? _fLong;
+            private short? _fShort;
+            private sbyte? _fsByte;
+            public int? fInt { get { return _fInt; } set { _fInt = value; } }
+            public short? fShort { get { return _fShort; } set { _fShort = value; } }
+            public sbyte? fsByte { get { return _fsByte; } set { _fsByte = value; } }
+            public long? fLong { get { return _fLong; } set { _fLong = value; } }
+        }
+
+        [Fact]
+        public void ConversionMinValueToNullBehaviorProperties()
+        {
+            using (var env = new TlcEnvironment())
+            {
+
+                var data = new List<ConversionLossMinValueClassProperties>
+                {
+                    new ConversionLossMinValueClassProperties() { fsByte = null, fInt = null, fLong = null, fShort = null },
+                    new ConversionLossMinValueClassProperties() { fsByte = sbyte.MinValue, fInt = int.MinValue, fLong = long.MinValue, fShort = short.MinValue }
+                };
+                foreach (var field in typeof(ConversionLossMinValueClassProperties).GetFields())
+                {
+                    var dataView = ComponentCreation.CreateDataView(env, data);
+                    var enumerator = dataView.AsEnumerable<ConversionLossMinValueClassProperties>(env, false).GetEnumerator();
+                    while (enumerator.MoveNext())
+                    {
+                        Assert.True(enumerator.Current.fInt == null && enumerator.Current.fLong == null &&
+                            enumerator.Current.fsByte == null && enumerator.Current.fShort == null);
+                    }
+                }
+            }
+        }
+
+        public class ClassWithConstField
+        {
+            public const string ConstString = "N";
+            public string fString;
+            public const int ConstInt = 100;
+            public int fInt;
+        }
+
         [Fact]
         public void ClassWithConstFieldsConversion()
         {
@@ -523,6 +628,72 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithConstField>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+            }
+        }
+
+
+        public class ClassWithMixOfFieldsAndProperties
+        {
+            public string fString;
+            private int _fInt;
+            public int fInt { get { return _fInt; } set { _fInt = value; } }
+        }
+
+        [Fact]
+        public void ClassWithMixOfFieldsAndPropertiesConversion()
+        {
+            var data = new List<ClassWithMixOfFieldsAndProperties>()
+            {
+                new ClassWithMixOfFieldsAndProperties(){ fInt=1, fString ="lala" },
+                new ClassWithMixOfFieldsAndProperties(){ fInt=-1, fString ="" },
+                new ClassWithMixOfFieldsAndProperties(){ fInt=0, fString =null }
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithMixOfFieldsAndProperties>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+            }
+        }
+
+        public abstract class BaseClassWithInheritedProperties
+        {
+            private string _fString;
+            public string fString { get { return _fString; } set { _fString = value; } }
+            public abstract long fLong { get; set; }
+        }
+
+
+        public class ClassWithInheritedProperties : BaseClassWithInheritedProperties
+        {
+            private int _fInt;
+            private long _fLong;
+            public int fInt { get { return _fInt; } set { _fInt = value; } }
+            public override long fLong { get { return _fLong; } set { _fLong = value; } }
+        }
+
+        [Fact]
+        public void ClassWithInheritedPropertiesConversion()
+        {
+            var data = new List<ClassWithInheritedProperties>()
+            {
+                new ClassWithInheritedProperties(){ fInt=1, fString ="lala", fLong=17 },
+                new ClassWithInheritedProperties(){ fInt=-1, fString ="", fLong=2 },
+                new ClassWithInheritedProperties(){ fInt=0, fString =null, fLong=18 }
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithInheritedProperties>(env, false).GetEnumerator();
                 var originalEnumerator = data.GetEnumerator();
                 while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
                     Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
@@ -739,7 +910,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 var originalEnumerator = data.GetEnumerator();
                 while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
                 {
-                    Assert.True(CompareThroughReflectionProperties(enumeratorSimple.Current, originalEnumerator.Current));
+                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
                 }
                 Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
 
@@ -748,7 +919,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 var originalNullalbleEnumerator = nullableData.GetEnumerator();
                 while (enumeratorNullable.MoveNext() && originalNullalbleEnumerator.MoveNext())
                 {
-                    Assert.True(CompareThroughReflectionProperties(enumeratorNullable.Current, originalNullalbleEnumerator.Current));
+                    Assert.True(CompareThroughReflection(enumeratorNullable.Current, originalNullalbleEnumerator.Current));
                 }
                 Assert.True(!enumeratorNullable.MoveNext() && !originalNullalbleEnumerator.MoveNext());
             }
