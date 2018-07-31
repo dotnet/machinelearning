@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeInPackage>Microsoft.ML.AdditionalLearners</IncludeInPackage>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IncludeInPackage>Microsoft.ML.HalLearners</IncludeInPackage>
   </PropertyGroup>
   
   <ItemGroup>
