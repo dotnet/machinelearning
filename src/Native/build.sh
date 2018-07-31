@@ -96,10 +96,10 @@ cd "$__IntermediatesDir"
 #codemzs: temporary fix until mkl nuget binaries are properly renamed so that they can be consumed by CMAKE.
 if [[ "$OSTYPE" == "darwin"* ]]; then
     echo "Renaming MKL binaries on OS X from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dll to $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib"
-    mv "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib"
+    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib"
 else
     echo "Renaming MKL binaries on Linux from $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll to $RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.so"
-    mv "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so" 
+    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/Microsoft.ML.MklImports.dll" "$RootRepo/packages/mlnetmkldeps/0.0.0.1/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so" 
 fi
 
 echo "Building Machine Learning native components from $DIR to $(pwd)"
