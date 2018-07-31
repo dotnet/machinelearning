@@ -14051,6 +14051,149 @@
       ]
     },
     {
+      "Name": "Trainers.OrdinaryLeastSquaresRegressor",
+      "Desc": "Train an OLS regression model.",
+      "FriendlyName": "Ordinary Least Squares (Regression)",
+      "ShortName": "ols",
+      "Inputs": [
+        {
+          "Name": "TrainingData",
+          "Type": "DataView",
+          "Desc": "The data to be used for training",
+          "Aliases": [
+            "data"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String",
+          "Desc": "Column to use for features",
+          "Aliases": [
+            "feat"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Column to use for labels",
+          "Aliases": [
+            "lab"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
+          "Name": "NormalizeFeatures",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "No",
+              "Warn",
+              "Auto",
+              "Yes"
+            ]
+          },
+          "Desc": "Normalize option for the feature column",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "Caching",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Auto",
+              "Memory",
+              "Disk",
+              "None"
+            ]
+          },
+          "Desc": "Whether learner should cache input training data",
+          "Aliases": [
+            "cache"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": "Auto"
+        },
+        {
+          "Name": "L2Weight",
+          "Type": "Float",
+          "Desc": "L2 regularization weight",
+          "Aliases": [
+            "l2"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 1E-06,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              1E-06,
+              0.1,
+              1.0
+            ]
+          }
+        },
+        {
+          "Name": "PerParameterSignificance",
+          "Type": "Bool",
+          "Desc": "Whether to calculate per parameter significance statistics",
+          "Aliases": [
+            "sig"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The trained model"
+        }
+      ],
+      "InputKind": [
+        "ITrainerInputWithWeight",
+        "ITrainerInputWithLabel",
+        "ITrainerInput"
+      ],
+      "OutputKind": [
+        "IRegressionOutput",
+        "ITrainerOutput"
+      ]
+    },
+    {
       "Name": "Trainers.PcaAnomalyDetector",
       "Desc": "Train an PCA Anomaly model.",
       "FriendlyName": "PCA Anomaly Detector",
@@ -17841,6 +17984,628 @@
       ]
     },
     {
+      "Name": "Transforms.ImageGrayscale",
+      "Desc": "Convert image into grayscale.",
+      "FriendlyName": "Image Greyscale Transform",
+      "ShortName": "ImageGrayscaleTransform",
+      "Inputs": [
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "Transforms.ImageLoader",
+      "Desc": "Load images from files.",
+      "FriendlyName": "Image Loader Transform",
+      "ShortName": "ImageLoaderTransform",
+      "Inputs": [
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "ImageFolder",
+          "Type": "String",
+          "Desc": "Folder where to search for images",
+          "Aliases": [
+            "folder"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "Transforms.ImagePixelExtractor",
+      "Desc": "Extract color plane(s) from an image. Options include scaling, offset and conversion to floating point.",
+      "FriendlyName": "Image Pixel Extractor Transform",
+      "ShortName": "ImagePixelExtractor",
+      "Inputs": [
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "UseAlpha",
+                  "Type": "Bool",
+                  "Desc": "Whether to use alpha channel",
+                  "Aliases": [
+                    "alpha"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "UseRed",
+                  "Type": "Bool",
+                  "Desc": "Whether to use red channel",
+                  "Aliases": [
+                    "red"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "UseGreen",
+                  "Type": "Bool",
+                  "Desc": "Whether to use green channel",
+                  "Aliases": [
+                    "green"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "UseBlue",
+                  "Type": "Bool",
+                  "Desc": "Whether to use blue channel",
+                  "Aliases": [
+                    "blue"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "InterleaveArgb",
+                  "Type": "Bool",
+                  "Desc": "Whether to separate each channel or interleave in ARGB order",
+                  "Aliases": [
+                    "interleave"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Convert",
+                  "Type": "Bool",
+                  "Desc": "Whether to convert to floating point",
+                  "Aliases": [
+                    "conv"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Offset",
+                  "Type": "Float",
+                  "Desc": "Offset (pre-scale)",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Scale",
+                  "Type": "Float",
+                  "Desc": "Scale factor",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "UseAlpha",
+          "Type": "Bool",
+          "Desc": "Whether to use alpha channel",
+          "Aliases": [
+            "alpha"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "UseRed",
+          "Type": "Bool",
+          "Desc": "Whether to use red channel",
+          "Aliases": [
+            "red"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "UseGreen",
+          "Type": "Bool",
+          "Desc": "Whether to use green channel",
+          "Aliases": [
+            "green"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "UseBlue",
+          "Type": "Bool",
+          "Desc": "Whether to use blue channel",
+          "Aliases": [
+            "blue"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "InterleaveArgb",
+          "Type": "Bool",
+          "Desc": "Whether to separate each channel or interleave in ARGB order",
+          "Aliases": [
+            "interleave"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "Convert",
+          "Type": "Bool",
+          "Desc": "Whether to convert to floating point",
+          "Aliases": [
+            "conv"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "Offset",
+          "Type": "Float",
+          "Desc": "Offset (pre-scale)",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "Scale",
+          "Type": "Float",
+          "Desc": "Scale factor",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "Transforms.ImageResizer",
+      "Desc": "Scales an image to specified dimensions using one of the three scale types: isotropic with padding, isotropic with cropping or anisotropic. In case of isotropic padding, transparent color is used to pad resulting image.",
+      "FriendlyName": "Image Resizer Transform",
+      "ShortName": "ImageScalerTransform",
+      "Inputs": [
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "ImageWidth",
+                  "Type": "Int",
+                  "Desc": "Width of the resized image",
+                  "Aliases": [
+                    "width"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "ImageHeight",
+                  "Type": "Int",
+                  "Desc": "Height of the resized image",
+                  "Aliases": [
+                    "height"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Resizing",
+                  "Type": {
+                    "Kind": "Enum",
+                    "Values": [
+                      "IsoPad",
+                      "IsoCrop"
+                    ]
+                  },
+                  "Desc": "Resizing method",
+                  "Aliases": [
+                    "scale"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "CropAnchor",
+                  "Type": {
+                    "Kind": "Enum",
+                    "Values": [
+                      "Right",
+                      "Left",
+                      "Top",
+                      "Bottom",
+                      "Center"
+                    ]
+                  },
+                  "Desc": "Anchor for cropping",
+                  "Aliases": [
+                    "anchor"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "ImageWidth",
+          "Type": "Int",
+          "Desc": "Resized width of the image",
+          "Aliases": [
+            "width"
+          ],
+          "Required": true,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "ImageHeight",
+          "Type": "Int",
+          "Desc": "Resized height of the image",
+          "Aliases": [
+            "height"
+          ],
+          "Required": true,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "Resizing",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "IsoPad",
+              "IsoCrop"
+            ]
+          },
+          "Desc": "Resizing method",
+          "Aliases": [
+            "scale"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "IsoCrop"
+        },
+        {
+          "Name": "CropAnchor",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Right",
+              "Left",
+              "Top",
+              "Bottom",
+              "Center"
+            ]
+          },
+          "Desc": "Anchor for cropping",
+          "Aliases": [
+            "anchor"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "Center"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Transforms.KeyToTextConverter",
       "Desc": "KeyToValueTransform utilizes KeyValues metadata to map key indices to the corresponding values in the KeyValues metadata.",
       "FriendlyName": "Key To Value Transform",
@@ -21448,6 +22213,400 @@
           "Type": "PredictorModel",
           "Desc": "Predictor model"
         }
+      ]
+    },
+    {
+      "Name": "Transforms.VectorToImage",
+      "Desc": "Converts vector array into image type.",
+      "FriendlyName": "Vector To Image Transform",
+      "ShortName": "VectorToImageConverter",
+      "Inputs": [
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "ContainsAlpha",
+                  "Type": "Bool",
+                  "Desc": "Whether to use alpha channel",
+                  "Aliases": [
+                    "alpha"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "ContainsRed",
+                  "Type": "Bool",
+                  "Desc": "Whether to use red channel",
+                  "Aliases": [
+                    "red"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "ContainsGreen",
+                  "Type": "Bool",
+                  "Desc": "Whether to use green channel",
+                  "Aliases": [
+                    "green"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "ContainsBlue",
+                  "Type": "Bool",
+                  "Desc": "Whether to use blue channel",
+                  "Aliases": [
+                    "blue"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "InterleaveArgb",
+                  "Type": "Bool",
+                  "Desc": "Whether to separate each channel or interleave in ARGB order",
+                  "Aliases": [
+                    "interleave"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "ImageWidth",
+                  "Type": "Int",
+                  "Desc": "Width of the image",
+                  "Aliases": [
+                    "width"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "ImageHeight",
+                  "Type": "Int",
+                  "Desc": "Height of the image",
+                  "Aliases": [
+                    "height"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Offset",
+                  "Type": "Float",
+                  "Desc": "Offset (pre-scale)",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Scale",
+                  "Type": "Float",
+                  "Desc": "Scale factor",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "ContainsAlpha",
+          "Type": "Bool",
+          "Desc": "Whether to use alpha channel",
+          "Aliases": [
+            "alpha"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "ContainsRed",
+          "Type": "Bool",
+          "Desc": "Whether to use red channel",
+          "Aliases": [
+            "red"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "ContainsGreen",
+          "Type": "Bool",
+          "Desc": "Whether to use green channel",
+          "Aliases": [
+            "green"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "ContainsBlue",
+          "Type": "Bool",
+          "Desc": "Whether to use blue channel",
+          "Aliases": [
+            "blue"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "InterleaveArgb",
+          "Type": "Bool",
+          "Desc": "Whether to separate each channel or interleave in ARGB order",
+          "Aliases": [
+            "interleave"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "ImageWidth",
+          "Type": "Int",
+          "Desc": "Width of the image",
+          "Aliases": [
+            "width"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "ImageHeight",
+          "Type": "Int",
+          "Desc": "Height of the image",
+          "Aliases": [
+            "height"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "Offset",
+          "Type": "Float",
+          "Desc": "Offset (pre-scale)",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
+          "Name": "Scale",
+          "Type": "Float",
+          "Desc": "Scale factor",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "Transforms.WordEmbeddings",
+      "Desc": "Word Embeddings transform is a text featurizer which converts vectors of text tokens into sentence vectors using a pre-trained model",
+      "FriendlyName": "Word Embeddings Transform",
+      "ShortName": "WordEmbeddings",
+      "Inputs": [
+        {
+          "Name": "Column",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Name",
+                  "Type": "String",
+                  "Desc": "Name of the new column",
+                  "Aliases": [
+                    "name"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                },
+                {
+                  "Name": "Source",
+                  "Type": "String",
+                  "Desc": "Name of the source column",
+                  "Aliases": [
+                    "src"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": null
+                }
+              ]
+            }
+          },
+          "Desc": "New column definition(s) (optional form: name:src)",
+          "Aliases": [
+            "col"
+          ],
+          "Required": true,
+          "SortOrder": 0.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "ModelKind",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "GloVe50D",
+              "GloVe100D",
+              "GloVe200D",
+              "GloVe300D",
+              "GloVeTwitter25D",
+              "GloVeTwitter50D",
+              "GloVeTwitter100D",
+              "GloVeTwitter200D",
+              "FastTextWikipedia300D",
+              "Sswe"
+            ]
+          },
+          "Desc": "Pre-trained model used to create the vocabulary",
+          "Aliases": [
+            "model"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": true,
+          "Default": "Sswe"
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "CustomLookupTable",
+          "Type": "String",
+          "Desc": "Filename for custom word embedding model",
+          "Aliases": [
+            "dataFile"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": null
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
       ]
     },
     {

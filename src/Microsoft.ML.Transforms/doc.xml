@@ -7,8 +7,7 @@
         Encodes the categorical variable with hash-based encoding. 
       </summary>
       <remarks>
-        CategoricalHashOneHotVectorizer converts a categorical value into an indicator array by hashing the
-        value and using the hash as an index in the bag.
+        CategoricalHashOneHotVectorizer converts a categorical value into an indicator array by hashing the value and using the hash as an index in the bag.
         If the input column is a vector, a single indicator bag is returned for it.
       </remarks>
     </member>
@@ -33,16 +32,16 @@
         <para>The CategoricalOneHotVectorizer transform passes through a data set, operating on text columns, to
         build a dictionary of categories.
         For each row, the entire text string appearing in the input column is defined as a category.
-        The output of this transform is an indicator vector.
+        The output of this transform is an indicator vector.</para>
         Each slot in this vector corresponds to a category in the dictionary, so its length is the size of the built dictionary.
-        The CategoricalOneHotVectorizer can be applied to one or more columns, in which case it builds and uses a separate dictionary
+        <para>The CategoricalOneHotVectorizer can be applied to one or more columns, in which case it builds and uses a separate dictionary
         for each column that it is applied to.</para>
         
-        <para>The <see cref="Microsoft.ML.Runtime.Data.CategoricalTransform.OutputKind"/> produces integer values and <see cref="KeyType"/> columns.
+        <para>The <see cref="T:Microsoft.ML.Transforms.CategoricalTransformOutputKind"/> produces integer values and KeyType columns.
         The Key value is the one-based index of the slot set in the Ind/Bag options.
         If the Key option is not found, it is assigned the value zero.
-        In the <see cref="CategoricalTransform.OutputKind.Ind"/>, <see cref="CategoricalTransform.OutputKind.Bag"/> options are not found, they result in an all zero bit vector.
-        <see cref="CategoricalTransform.OutputKind.Ind"/> and <see cref="CategoricalTransform.OutputKind.Bag"/> differ simply in how the bit-vectors generated from individual slots are aggregated:
+        In the <see cref="F:Microsoft.ML.Transforms.CategoricalTransformOutputKind.Ind"/>, <see cref="F:Microsoft.ML.Transforms.CategoricalTransformOutputKind.Bag"/> options are not found, they result in an all zero bit vector.
+        <see cref="F:Microsoft.ML.Transforms.CategoricalTransformOutputKind.Ind"/> and <see cref="F:Microsoft.ML.Transforms.CategoricalTransformOutputKind.Bag"/> differ simply in how the bit-vectors generated from individual slots are aggregated:
         for Ind they are concatenated and for Bag they are added.
         When the source column is a singleton, the Ind and Bag options are identical.</para>
       </remarks>
@@ -117,8 +116,7 @@
         Creates a new column with the specified type and default values.
       </summary>
       <remarks>
-        If the user wish to create additional columns with a particular type and default values,
-        or replicated the values from one column to another, changing their type, they can do so using this transform.
+        If the user wish to create additional columns with a particular type and default values, or replicated the values from one column to another, changing their type, they can do so using this transform.
         This transform can be used as a workaround to create a Label column after deserializing a model, for prediction.
         Some transforms in the serialized model operate on the Label column, and would throw errors during prediction if such a column is not found.
       </remarks>
@@ -206,53 +204,7 @@
         </code>
       </example>
     </example>
-
-    <member name="NAHandle">
-      <summary>
-        Handle missing values by replacing them with either the default value or the indicated value.
-      </summary>
-      <remarks>
-        This transform handles missing values in the input columns. For each input column, it creates an output column
-        where the missing values are replaced by one of these specified values:
-        <list type="bullet">
-          <item>
-            <description>The default value of the appropriate type.</description>
-          </item>
-          <item>
-            <description>The mean value of the appropriate type.</description>
-          </item>
-          <item>
-            <description>The max value of the appropriate type.</description>
-          </item>
-          <item>
-            <description>The min value of the appropriate type.</description>
-          </item>
-        </list>
-        <para>The last three work only for numeric/TimeSpan/DateTime kind columns.</para>
-        <para>
-          The output column can also optionally include an indicator vector for which slots were missing in the input column.
-          This can be done only when the indicator vector type can be converted to the input column type, i.e. only for numeric columns.
-        </para>
-        <para>
-          When computing the mean/max/min value, there is also an option to compute it over the whole column instead of per slot.
-          This option has a default value of true for variable length vectors, and false for known length vectors.
-          It can be changed to true for known length vectors, but it results in an error if changed to false for variable length vectors.
-        </para>
-      </remarks>
-      <seealso cref=" Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"/>
-      <seealso cref="T:Microsoft.ML.Data.DataKind"/>
-    </member>
-    <example name="NAHandle">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new MissingValueHandler(&quot;FeatureCol&quot;, &quot;CleanFeatureCol&quot;) 
-          { 
-              ReplaceWith  = NAHandleTransformReplacementKind.Mean 
-          });
-        </code>
-      </example>
-    </example>
-    
+  
     <member name="LpNormalize">
       <summary>
          The LpNormalizer transforms, normalizes vectors (rows) individually by rescaling them to unit norm (L2, L1 or LInf). 
@@ -325,8 +277,8 @@
               be ignored, and the missing slots will be 'padded' with default values.
             </description></item>
         </list>
-        <para>All metadata is preserved for the retained columns. For 'unrolled' columns, all known metadata
-        except slot names is preserved.
+        <para>All metadata are preserved for the retained columns. For 'unrolled' columns, all known metadata
+        except slot names are preserved.
         </para>
       </remarks>
     </member>
