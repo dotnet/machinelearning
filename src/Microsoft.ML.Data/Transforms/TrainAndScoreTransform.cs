@@ -82,9 +82,9 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             string feat = TrainUtils.MatchNameOrDefaultOrNull(env, input.Schema,
-                    "featureColumn", args.FeatureColumn, DefaultColumnNames.Features);
+                    nameof(args.FeatureColumn), args.FeatureColumn, DefaultColumnNames.Features);
             string group = TrainUtils.MatchNameOrDefaultOrNull(env, input.Schema,
-                "groupColumn", args.GroupColumn, DefaultColumnNames.GroupId);
+                nameof(args.GroupColumn), args.GroupColumn, DefaultColumnNames.GroupId);
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(env, args.CustomColumn);
 
             return ScoreUtils.GetScorer(args.Scorer, predictor, input, feat, group, customCols, env, trainSchema);
@@ -170,6 +170,9 @@ namespace Microsoft.ML.Runtime.Data
             string labelColumn = DefaultColumnNames.Label)
         {
             Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(input, nameof(input));
+            env.CheckValue(trainer, nameof(trainer));
+
             var args = new Arguments()
             {
                 FeatureColumn = featureColumn,
@@ -185,14 +188,13 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(args, nameof(args));
             env.CheckUserArg(args.Trainer.IsGood(), nameof(args.Trainer),
                 "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
+            env.CheckValue(input, nameof(input));
 
             return Create(env, args, args.Trainer.CreateInstance(env), input);
         }
 
         private static IDataTransform Create(IHostEnvironment env, Arguments args, ITrainer trainer, IDataView input)
         {
-            env.CheckValue(input, nameof(input));
-
             var host = env.Register("TrainAndScoreTransform");
 
             using (var ch = host.Start("Train"))
