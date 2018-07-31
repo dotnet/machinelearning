@@ -55,7 +55,6 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="input">Input <see cref="IDataView"/>.</param>
         /// <param name="inputModelFile">The model file.</param>
         /// <param name="featureColumn">Role name for the features.</param>
-        /// <returns></returns>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string inputModelFile, string featureColumn = DefaultColumnNames.Features)
         {
             var args = new Arguments()
@@ -164,7 +163,6 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="trainer">The <see cref="ITrainer"/> object i.e. the learning algorithm that will be used for training the model.</param>
         /// <param name="featureColumn">Role name for features.</param>
         /// <param name="labelColumn">Role name for label.</param>
-        /// <returns></returns>
         public static IDataTransform Create(IHostEnvironment env,
             IDataView input,
             ITrainer trainer,
