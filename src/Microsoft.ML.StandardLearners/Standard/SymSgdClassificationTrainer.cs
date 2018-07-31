@@ -712,8 +712,8 @@ namespace Microsoft.ML.Runtime.SymSgd
 
         private static unsafe class Native
         {
-            internal const string DllName = @"SymSgdNative";
-            internal const string MklDllName = @"MklImports";
+            internal const string DllName = "SymSgdNative";
+            internal const string MklDllName = "libMklImports";
 
             static Native()
             {

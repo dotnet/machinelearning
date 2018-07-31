@@ -11,7 +11,7 @@
     <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
-    <PackageReference Include="MlNetMklDeps" Version="0.0.0.5" />
+    <PackageReference Include="MlNetMklDeps" Version="0.0.0.4" />
   </ItemGroup>
 
 </Project>
