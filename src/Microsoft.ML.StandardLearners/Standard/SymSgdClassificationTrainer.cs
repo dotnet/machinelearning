@@ -713,6 +713,16 @@ namespace Microsoft.ML.Runtime.SymSgd
         private static unsafe class Native
         {
             internal const string DllName = @"SymSgdNative";
+            internal const string MklDllName = @"libMklImports";
+
+            static Native()
+            {
+                //Work around to get libMKLImport loaded before SymSGDNative
+                cblas_sdot(0, null, 0, null, 0);
+            }
+
+            [DllImport(MklDllName), SuppressUnmanagedCodeSecurity]
+            private static extern void cblas_sdot(int vecSize, float* denseVecX, int incX, float* denseVecY, int incY);
 
             [DllImport(DllName), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
