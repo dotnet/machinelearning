@@ -111,13 +111,13 @@ namespace Microsoft.ML.Data
                 {
                     case FieldInfo field:
                         if (!TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
-                            throw Contracts.Except($"field {name} is of unsupported type.");
+                            throw Contracts.Except($"Field {name} is of unsupported type.");
 
                         break;
 
                     case PropertyInfo property:
                         if (!TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
-                            throw Contracts.Except($"property {name} is of unsupported type.");
+                            throw Contracts.Except($"Property {name} is of unsupported type.");
                         break;
 
                     default:
