@@ -158,19 +158,40 @@ namespace Microsoft.ML.Runtime.Api
                 .Where(x => x.GetCustomAttributes(typeof(CursorChannelAttribute), false).Any())
                 .ToArray();
 
+            var cursorChannelAttrProperties = typeof(T)
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.CanRead && x.CanWrite && x.GetIndexParameters().Length == 0)
+                .Where(x => x.GetCustomAttributes(typeof(CursorChannelAttribute), false).Any())
+                .ToArray();
+
+            var cursorChannelAttrMembers = (cursorChannelAttrFields as IEnumerable<MemberInfo>).Concat(cursorChannelAttrProperties).ToArray();
+
             //Check that there is at most one such field.
-            if (cursorChannelAttrFields.Length == 0)
+            if (cursorChannelAttrMembers.Length == 0)
                 return false;
 
-            ectx.Check(cursorChannelAttrFields.Length == 1,
-                "Only one field with CursorChannel attribute is allowed.");
+            ectx.Check(cursorChannelAttrMembers.Length == 1,
+                "Only one public field or property with CursorChannel attribute is allowed.");
 
             //Check that the marked field has type IChannel.
-            var cursorChannelFieldInfo = cursorChannelAttrFields[0];
-            ectx.Check(cursorChannelFieldInfo.FieldType == typeof(IChannel),
-                "Field marked as CursorChannel must have type IChannel.");
+            var cursorChannelAttrMemberInfo = cursorChannelAttrMembers[0];
+            switch (cursorChannelAttrMemberInfo)
+            {
+                case FieldInfo cursorChannelAttrFieldInfo:
+                    ectx.Check(cursorChannelAttrFieldInfo.FieldType == typeof(IChannel),
+                        "Field marked as CursorChannel must have type IChannel.");
+                    cursorChannelAttrFieldInfo.SetValue(obj, channel);
+                    break;
 
-            cursorChannelFieldInfo.SetValue(obj, channel);
+                case PropertyInfo cursorChannelAttrPropertyInfo:
+                    ectx.Check(cursorChannelAttrPropertyInfo.PropertyType == typeof(IChannel),
+                        "Property marked as CursorChannel must have type IChannel.");
+                    cursorChannelAttrPropertyInfo.SetValue(obj, channel);
+                    break;
+
+                default:
+                    throw Contracts.ExceptNotSupp("expected a FieldInfo or a PropInfo");
+            }
             return true;
         }
     }
@@ -319,37 +340,63 @@ namespace Microsoft.ML.Runtime.Api
 
             SchemaDefinition cols = new SchemaDefinition();
             HashSet<string> colNames = new HashSet<string>();
-            foreach (var fieldInfo in userType.GetFields())
+
+            var fieldInfos = userType.GetFields();
+            var propertyInfos =
+                userType
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.CanRead && x.CanWrite && x.GetIndexParameters().Length == 0)
+                .ToArray();
+
+            var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
+
+            foreach (var memberInfo in memberInfos)
             {
                 // Clause to handle the field that may be used to expose the cursor channel.
                 // This field does not need a column.
                 // REVIEW: maybe validate the channel attribute now, instead
                 // of later at cursor creation.
-                if (fieldInfo.FieldType == typeof(IChannel))
-                    continue;
-                // Const fields do not need to be mapped.
-                if (fieldInfo.IsLiteral)
+                switch (memberInfo)
+                {
+                    case FieldInfo fieldInfo:
+                        if (fieldInfo.FieldType == typeof(IChannel))
+                            continue;
+
+                        // Const fields do not need to be mapped.
+                        if (fieldInfo.IsLiteral)
+                            continue;
+
+                        break;
+
+                    case PropertyInfo propertyInfo:
+                        if (propertyInfo.PropertyType == typeof(IChannel))
+                            continue;
+                        break;
+
+                    default:
+                        throw Contracts.ExceptNotSupp("expected a FieldInfo or a PropInfo");
+                }
+
+                if (memberInfo.GetCustomAttribute<NoColumnAttribute>() != null)
                     continue;
 
-                if (fieldInfo.GetCustomAttribute<NoColumnAttribute>() != null)
-                    continue;
-                var mappingAttr = fieldInfo.GetCustomAttribute<ColumnAttribute>();
-                var mappingNameAttr = fieldInfo.GetCustomAttribute<ColumnNameAttribute>();
-                string name = mappingAttr?.Name ?? mappingNameAttr?.Name ?? fieldInfo.Name;
+                var mappingAttr = memberInfo.GetCustomAttribute<ColumnAttribute>();
+                var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
+                string name = mappingAttr?.Name ?? mappingNameAttr?.Name ?? memberInfo.Name;
                 // Disallow duplicate names, because the field enumeration order is not actually
                 // well defined, so we are not gauranteed to have consistent "hiding" from run to
                 // run, across different .NET versions.
                 if (!colNames.Add(name))
                     throw Contracts.ExceptParam(nameof(userType), "Duplicate column name '{0}' detected, this is disallowed", name);
 
-                InternalSchemaDefinition.GetVectorAndKind(fieldInfo, out bool isVector, out DataKind kind);
+                InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
 
                 PrimitiveType itemType;
-                var keyAttr = fieldInfo.GetCustomAttribute<KeyTypeAttribute>();
+                var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
                 if (keyAttr != null)
                 {
                     if (!KeyType.IsValidDataKind(kind))
-                        throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", fieldInfo.Name);
+                        throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
                     itemType = new KeyType(kind, keyAttr.Min, keyAttr.Count, keyAttr.Contiguous);
                 }
                 else
@@ -357,9 +404,9 @@ namespace Microsoft.ML.Runtime.Api
 
                 // Get the column type.
                 ColumnType columnType;
-                var vectorAttr = fieldInfo.GetCustomAttribute<VectorTypeAttribute>();
+                var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
                 if (vectorAttr != null && !isVector)
-                    throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with VectorType attribute, but does not appear to be a vector type", fieldInfo.Name);
+                    throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with VectorType attribute, but does not appear to be a vector type", memberInfo.Name);
                 if (isVector)
                 {
                     int[] dims = vectorAttr?.Dims;
@@ -373,7 +420,7 @@ namespace Microsoft.ML.Runtime.Api
                 else
                     columnType = itemType;
 
-                cols.Add(new Column() { MemberName = fieldInfo.Name, ColumnName = name, ColumnType = columnType });
+                cols.Add(new Column() { MemberName = memberInfo.Name, ColumnName = name, ColumnType = columnType });
             }
             return cols;
         }

@@ -76,7 +76,7 @@ module SmokeTest1 =
         val mutable Sentiment : float32
 
     type SentimentPrediction() =
-        [<ColumnName "PredictedLabel"; DefaultValue>]
+        [<ColumnName("PredictedLabel"); DefaultValue>]
         val mutable Sentiment : bool
 
     [<Fact>]
@@ -129,13 +129,14 @@ module SmokeTest1 =
 
 module SmokeTest2 = 
 
+    [<CLIMutable>]
     type SentimentData =
-        { [<field: Column(ordinal = "0")>] SentimentText : string
-          [<field: Column(ordinal = "1", name = "Label")>] Sentiment : float }
+        { [<Column(ordinal = "0")>] SentimentText : string
+          [<Column(ordinal = "1", name = "Label")>] Sentiment : float32 }
 
     [<CLIMutable>]
     type SentimentPrediction =
-        { [<field: ColumnName "PredictedLabel">] Sentiment : bool }
+        { [<ColumnName("PredictedLabel")>] Sentiment : bool }
 
     [<Fact>]
     let ``FSharp-Sentiment-Smoke-Test`` () =
@@ -177,9 +178,9 @@ module SmokeTest2 =
         let model = pipeline.Train<SentimentData, SentimentPrediction>()
 
         let predictions =
-            [ SentimentData(SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition.")
-              SentimentData(SentimentText = "Sort of ok")
-              SentimentData(SentimentText = "Joe versus the Volcano Coffee Company is a great film.") ]
+            [ { SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition."; Sentiment = 0.0f }
+              { SentimentText = "Sort of ok"; Sentiment = 0.0f }
+              { SentimentText = "Joe versus the Volcano Coffee Company is a great film."; Sentiment = 0.0f } ]
             |> model.Predict
 
         let predictionResults = [ for p in predictions -> p.Sentiment ]

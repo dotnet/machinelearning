@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.Api
                     var colType = DataView.Schema.GetColumnType(index);
 
                     var column = DataView._schema.SchemaDefn.Columns[index];
-                    var outputType = column.IsComputed ? column.ReturnType : column.FieldInfo.FieldType;
+                    var outputType = column.OutputType;
                     var genericType = outputType;
                     Func<int, Delegate> del;
 
