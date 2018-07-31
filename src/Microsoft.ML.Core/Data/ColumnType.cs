@@ -242,15 +242,10 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         internal virtual int ValueCountCore { get { return 1; } }
 
-        /// <summary>
-        /// Part of IEquatable<T> interface.
-        /// IEquatable<T> interface recommends also to override base class implementations of
-        /// Object.Equals(Object) and GetHashCode. In classes below where Equals(ColumnType other)
-        /// is effectively a referencial comparison, there is no need to override base class implementations
-        /// of Object.Equals(Object) (and GetHashCode) since its also a referencial comparison.
-        /// </summary>
-        /// <param name="other">An object to compare with this object.</param>
-        /// <returns>true if the current object is equal to the other parameter; otherwise, false.</returns>
+        // IEquatable<T> interface recommends also to override base class implementations of
+        // Object.Equals(Object) and GetHashCode. In classes below where Equals(ColumnType other)
+        // is effectively a referencial comparison, there is no need to override base class implementations
+        // of Object.Equals(Object) (and GetHashCode) since its also a referencial comparison.
         public abstract bool Equals(ColumnType other);
 
         /// <summary>
