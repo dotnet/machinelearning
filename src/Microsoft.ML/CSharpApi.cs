@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Newtonsoft.Json;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.ML.Runtime.CommandLine;
 
@@ -1705,6 +1706,7 @@ namespace Microsoft.ML
             U16 = 16
         }
 
+        [DebuggerDisplay("{Source}")]
         public sealed partial class TextLoaderRange
         {
             /// <summary>
@@ -1739,6 +1741,7 @@ namespace Microsoft.ML
 
         }
 
+        [DebuggerDisplay("{KeyRange}")]
         public sealed partial class KeyRange
         {
             /// <summary>
@@ -1758,6 +1761,7 @@ namespace Microsoft.ML
 
         }
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class TextLoaderColumn
         {
             /// <summary>
@@ -1782,6 +1786,7 @@ namespace Microsoft.ML
 
         }
 
+        [DebuggerDisplay("{Arguments}")]
         public sealed partial class TextLoaderArguments
         {
             /// <summary>
@@ -2150,6 +2155,7 @@ namespace Microsoft.ML
     namespace Models
     {
 
+        [DebuggerDisplay("{Inputs}")]
         public sealed partial class CrossValidationBinaryMacroSubGraphInput
         {
             /// <summary>
@@ -2159,6 +2165,7 @@ namespace Microsoft.ML
 
         }
 
+        [DebuggerDisplay("{Outputs}")]
         public sealed partial class CrossValidationBinaryMacroSubGraphOutput
         {
             /// <summary>
@@ -2573,6 +2580,7 @@ namespace Microsoft.ML
     namespace Models
     {
 
+        [DebuggerDisplay("{Inputs}")]
         public sealed partial class CrossValidationMacroSubGraphInput
         {
             /// <summary>
@@ -2582,6 +2590,7 @@ namespace Microsoft.ML
 
         }
 
+        [DebuggerDisplay("{Outputs}")]
         public sealed partial class CrossValidationMacroSubGraphOutput
         {
             /// <summary>
@@ -3095,6 +3104,7 @@ namespace Microsoft.ML
         }
 
 
+        [DebuggerDisplay("{OutputForSubGraph}")]
         public sealed partial class OneVersusAllMacroSubGraphOutput
         {
             /// <summary>
@@ -3917,6 +3927,7 @@ namespace Microsoft.ML
     namespace Models
     {
 
+        [DebuggerDisplay("{Inputs}")]
         public sealed partial class TrainTestBinaryMacroSubGraphInput
         {
             /// <summary>
@@ -3926,6 +3937,7 @@ namespace Microsoft.ML
 
         }
 
+        [DebuggerDisplay("{Outputs}")]
         public sealed partial class TrainTestBinaryMacroSubGraphOutput
         {
             /// <summary>
@@ -4002,6 +4014,7 @@ namespace Microsoft.ML
     namespace Models
     {
 
+        [DebuggerDisplay("{Inputs}")]
         public sealed partial class TrainTestMacroSubGraphInput
         {
             /// <summary>
@@ -4011,6 +4024,7 @@ namespace Microsoft.ML
 
         }
 
+        [DebuggerDisplay("{Outputs}")]
         public sealed partial class TrainTestMacroSubGraphOutput
         {
             /// <summary>
@@ -9849,6 +9863,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class NormalizeTransformBinColumn : OneToOneColumn<NormalizeTransformBinColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -10006,6 +10021,7 @@ namespace Microsoft.ML
         }
 
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class CategoricalHashTransformColumn : OneToOneColumn<CategoricalHashTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -10180,6 +10196,7 @@ namespace Microsoft.ML
         }
 
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class CategoricalTransformColumn : OneToOneColumn<CategoricalTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -10348,6 +10365,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class CharTokenizeTransformColumn : OneToOneColumn<CharTokenizeTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -10470,6 +10488,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class ConcatTransformColumn : ManyToOneColumn<ConcatTransformColumn>, IManyToOneColumn
         {
             /// <summary>
@@ -10565,6 +10584,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class CopyColumnsTransformColumn : OneToOneColumn<CopyColumnsTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -10814,6 +10834,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class ConvertTransformColumn : OneToOneColumn<ConvertTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -11021,6 +11042,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class NormalizeTransformAffineColumn : OneToOneColumn<NormalizeTransformAffineColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -11304,6 +11326,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class TermTransformColumn : OneToOneColumn<TermTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -11676,6 +11699,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class LpNormNormalizerTransformGcnColumn : OneToOneColumn<LpNormNormalizerTransformGcnColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -11823,6 +11847,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class HashJoinTransformColumn : OneToOneColumn<HashJoinTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -11986,6 +12011,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class KeyToValueTransformColumn : OneToOneColumn<KeyToValueTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -12173,6 +12199,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class LabelIndicatorTransformColumn : OneToOneColumn<LabelIndicatorTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -12367,6 +12394,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class LdaTransformColumn : OneToOneColumn<LdaTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -12606,6 +12634,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class NormalizeTransformLogNormalColumn : OneToOneColumn<NormalizeTransformLogNormalColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -12748,6 +12777,7 @@ namespace Microsoft.ML
         }
 
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class LpNormNormalizerTransformColumn : OneToOneColumn<LpNormNormalizerTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -13160,6 +13190,7 @@ namespace Microsoft.ML
         }
 
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class NAHandleTransformColumn : OneToOneColumn<NAHandleTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -13308,6 +13339,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class NAIndicatorTransformColumn : OneToOneColumn<NAIndicatorTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -13426,6 +13458,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class NADropTransformColumn : OneToOneColumn<NADropTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -13622,6 +13655,7 @@ namespace Microsoft.ML
         }
 
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class NAReplaceTransformColumn : OneToOneColumn<NAReplaceTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -13799,6 +13833,7 @@ namespace Microsoft.ML
         }
 
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class NgramTransformColumn : OneToOneColumn<NgramTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -14090,6 +14125,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class PcaTransformColumn : OneToOneColumn<PcaTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -14323,6 +14359,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class GenerateNumberTransformColumn
         {
             /// <summary>
@@ -15105,6 +15142,7 @@ namespace Microsoft.ML
         }
 
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class TextTransformColumn : ManyToOneColumn<TextTransformColumn>, IManyToOneColumn
         {
             /// <summary>
@@ -15119,6 +15157,7 @@ namespace Microsoft.ML
 
         }
 
+        [DebuggerDisplay("{Dictionary}")]
         public sealed partial class TermLoaderArguments
         {
             /// <summary>
@@ -15687,6 +15726,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
+        [DebuggerDisplay("{Column}")]
         public sealed partial class DelimitedTokenizeTransformColumn : OneToOneColumn<DelimitedTokenizeTransformColumn>, IOneToOneColumn
         {
             /// <summary>
@@ -18382,6 +18422,7 @@ namespace Microsoft.ML
         }
 
 
+        [DebuggerDisplay("{Columns}")]
         public sealed partial class PartitionedFileLoaderColumn
         {
             /// <summary>

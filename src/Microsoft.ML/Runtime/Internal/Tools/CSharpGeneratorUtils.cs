@@ -385,6 +385,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("using Microsoft.ML.Runtime.EntryPoints;");
             writer.WriteLine("using Newtonsoft.Json;");
             writer.WriteLine("using System;");
+            writer.WriteLine("using System.Diagnostics;");
             writer.WriteLine("using System.Linq;");
             writer.WriteLine("using Microsoft.ML.Runtime.CommandLine;");
             writer.WriteLine();

@@ -214,6 +214,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     classBase = $" : OneToOneColumn<{apiName}>, IOneToOneColumn";
                 else if (type.IsSubclassOf(typeof(ManyToOneColumn)))
                     classBase = $" : ManyToOneColumn<{apiName}>, IManyToOneColumn";
+
+                if(inputAttr.SortOrder > 0)
+                {
+                    writer.WriteLine($@"[DebuggerDisplay(""{{{CSharpGeneratorUtils.Capitalize(inputAttr.Name ?? fieldInfo.Name)}}}"")]");
+                }
+
                 writer.WriteLine($"public sealed partial class {apiName}{classBase}");
                 writer.WriteLine("{");
                 writer.Indent();
