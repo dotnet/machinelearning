@@ -265,6 +265,53 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
+        [Fact(Skip = "Execute this test if you want to regenerate ep-list and _manifest.json")]
+        public void RegenerateEntryPointCatalog()
+        {
+            var buildPrefix = GetBuildPrefix();
+            var epListFile = buildPrefix + "_ep-list.tsv";
+            var manifestFile = buildPrefix + "_manifest.json";
+
+            var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
+            var catalog = ModuleCatalog.CreateInstance(Env);
+            var epListPath = GetBaselinePath(entryPointsSubDir, epListFile);
+            DeleteOutputPath(epListPath);
+
+            var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
+            File.WriteAllLines(epListPath, catalog.AllEntryPoints()
+                .Select(x => string.Join("\t",
+                x.Name,
+                regex.Replace(x.Description, ""),
+                x.Method.DeclaringType,
+                x.Method.Name,
+                x.InputType,
+                x.OutputType)
+                .Replace(Environment.NewLine, ""))
+                .OrderBy(x => x));
+
+
+            var jObj = JsonManifestUtils.BuildAllManifests(Env, catalog);
+
+            //clean up the description from the new line characters
+            if (jObj[FieldNames.TopEntryPoints] != null && jObj[FieldNames.TopEntryPoints] is JArray)
+            {
+                foreach (JToken entry in jObj[FieldNames.TopEntryPoints].Children())
+                    if (entry[FieldNames.Desc] != null)
+                        entry[FieldNames.Desc] = regex.Replace(entry[FieldNames.Desc].ToString(), "");
+            }
+            var manifestPath = GetBaselinePath(entryPointsSubDir, manifestFile);
+            DeleteOutputPath(manifestPath);
+
+            using (var file = File.OpenWrite(manifestPath))
+            using (var writer = new StreamWriter(file))
+            using (var jw = new JsonTextWriter(writer))
+            {
+                jw.Formatting = Formatting.Indented;
+                jObj.WriteTo(jw);
+            }
+        }
+
+
         [Fact]
         public void EntryPointCatalog()
         {
