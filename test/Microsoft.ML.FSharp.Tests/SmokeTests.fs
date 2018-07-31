@@ -79,6 +79,12 @@ module SmokeTest1 =
         [<ColumnName "PredictedLabel"; DefaultValue>]
         val mutable Sentiment : bool
 
+    let _load  =
+        // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET assemblies
+        // This is needed even for compiled code 
+        [ typeof<Microsoft.ML.Runtime.Transforms.TextAnalytics>; 
+          typeof<Microsoft.ML.Runtime.FastTree.FastTree> ]
+
     [<Fact>]
     let ``FSharp-Sentiment-Smoke-Test`` () =
 
