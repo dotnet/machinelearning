@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -17,6 +18,7 @@ using Microsoft.ML.Runtime.LightGBM;
 namespace Microsoft.ML.Runtime.LightGBM
 {
 
+    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<VBuffer<float>, OvaPredictor>
     {
         public const string Summary = "LightGBM Multi Class Classifier";
@@ -27,9 +29,10 @@ namespace Microsoft.ML.Runtime.LightGBM
         private const double _maxNumClass = 1e6;
         private int _numClass;
         private int _tlcNumClass;
+        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         public LightGbmMulticlassTrainer(IHostEnvironment env, LightGbmArguments args)
-            : base(env, args, PredictionKind.MultiClassClassification, "LightGBMMulticlass")
+            : base(env, args, LoadNameValue)
         {
             _numClass = -1;
         }
@@ -51,7 +54,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return new LightGbmBinaryPredictor(Host, GetBinaryEnsemble(classID), FeatureCount, innerArgs);
         }
 
-        public override OvaPredictor CreatePredictor()
+        private protected override OvaPredictor CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete.");
 
@@ -130,9 +133,9 @@ namespace Microsoft.ML.Runtime.LightGBM
         protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg=false)
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
-            int numLeaves = int.Parse(Options["num_leaves"]);
+            int numLeaves = (int)Options["num_leaves"];
             int minDataPerLeaf = Args.MinDataPerLeaf ?? DefaultMinDataPerLeaf(numRow, numLeaves, _numClass);
-            Options["min_data_per_leaf"] = minDataPerLeaf.ToString();
+            Options["min_data_per_leaf"] = minDataPerLeaf;
             if (!hiddenMsg)
             {
                 if (!Args.LearningRate.HasValue)
@@ -149,7 +152,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             Host.AssertValue(ch);
             ch.Assert(PredictionKind == PredictionKind.MultiClassClassification);
             ch.Assert(_numClass > 1);
-            Options["num_class"] = _numClass.ToString();
+            Options["num_class"] = _numClass;
             bool useSoftmax = false;
 
             if (Args.UseSoftmax.HasValue)
@@ -174,15 +177,17 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
 
     /// <summary>
-    /// A component to train an LightGBM model.
+    /// A component to train a LightGBM model.
     /// </summary>
     public static partial class LightGbm
     {
         [TlcModule.EntryPoint(
-            Name = "Trainers.LightGbmClassifier", 
-            Desc = "Train an LightGBM multi class model", 
-            UserName = LightGbmMulticlassTrainer.Summary, 
-            ShortName = LightGbmMulticlassTrainer.ShortName)]
+            Name = "Trainers.LightGbmClassifier",
+            Desc = "Train a LightGBM multi class model.",
+            UserName = LightGbmMulticlassTrainer.Summary,
+            ShortName = LightGbmMulticlassTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
+                                 @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmClassifier""]/*' />"})]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [Argument(ArgumentType.Multiple, HelpText = "Features", SortOrder = 2)]
             public string[] Features;
 
-            public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetRoles()
+            internal IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetRoles()
             {
                 if (Utils.Size(Features) > 0)
                 {
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             using (var ch = host.Start(featureCombiner))
             {
                 var viewTrain = input.Data;
-                var rms = RoleMappedSchema.Create(viewTrain.Schema, input.GetRoles());
+                var rms = new RoleMappedSchema(viewTrain.Schema, input.GetRoles());
                 var feats = rms.GetColumns(RoleMappedSchema.ColumnRole.Feature);
                 if (Utils.Size(feats) == 0)
                     throw ch.Except("No feature columns specified");

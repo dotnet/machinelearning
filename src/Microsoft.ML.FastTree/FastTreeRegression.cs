@@ -31,6 +31,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeRegressionTrainer : BoostingFastTreeTrainerBase<FastTreeRegressionTrainer.Arguments, FastTreeRegressionPredictor>
     {
         public const string LoadNameValue = "FastTreeRegression";
@@ -42,23 +43,21 @@ namespace Microsoft.ML.Runtime.FastTree
         private Test _trainRegressionTest;
         private Test _testRegressionTest;
 
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
+
         public FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(env, args)
         {
         }
 
-        public override bool NeedCalibration
+        public override FastTreeRegressionPredictor Train(TrainContext context)
         {
-            get { return false; }
-        }
+            Host.CheckValue(context, nameof(context));
+            var trainData = context.TrainingSet;
+            ValidData = context.ValidationSet;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
-
-        public override void Train(RoleMappedData trainData)
-        {
             using (var ch = Host.Start("Training"))
             {
-                ch.CheckValue(trainData, nameof(trainData));
                 trainData.CheckRegressionLabel();
                 trainData.CheckFeatureFloatVector();
                 trainData.CheckOptFloatWeight();
@@ -67,12 +66,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainCore(ch);
                 ch.Done();
             }
-        }
-
-        public override FastTreeRegressionPredictor CreatePredictor()
-        {
-            Host.Check(TrainedEnsemble != null,
-                "The predictor cannot be created before training is complete");
             return new FastTreeRegressionPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 
@@ -413,11 +406,11 @@ namespace Microsoft.ML.Runtime.FastTree
                 loaderSignature: LoaderSignature);
         }
 
-        protected override uint VerNumFeaturesSerialized { get { return 0x00010002; } }
+        protected override uint VerNumFeaturesSerialized => 0x00010002;
 
-        protected override uint VerDefaultValueSerialized { get { return 0x00010004; } }
+        protected override uint VerDefaultValueSerialized => 0x00010004;
 
-        protected override uint VerCategoricalSplitSerialized { get { return 0x00010005; } }
+        protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
         internal FastTreeRegressionPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -443,12 +436,17 @@ namespace Microsoft.ML.Runtime.FastTree
             return new FastTreeRegressionPredictor(env, ctx);
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
     }
 
     public static partial class FastTree
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastTreeRegressor", Desc = FastTreeRegressionTrainer.Summary, UserName = FastTreeRegressionTrainer.UserNameValue, ShortName = FastTreeRegressionTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FastTreeRegressor",
+            Desc = FastTreeRegressionTrainer.Summary,
+            UserName = FastTreeRegressionTrainer.UserNameValue,
+            ShortName = FastTreeRegressionTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTree""]/*' />",
+                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastTreeRegressor""]/*' />"})]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastTreeRegressionTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

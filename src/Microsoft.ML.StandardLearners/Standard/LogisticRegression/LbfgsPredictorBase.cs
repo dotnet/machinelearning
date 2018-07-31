@@ -17,9 +17,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    public abstract class LbfgsTrainerBase<TOutput, TPredictor> :
-        TrainerBase<RoleMappedData, TPredictor>,
-        IIncrementalTrainer<RoleMappedData, TPredictor>
+    public abstract class LbfgsTrainerBase<TOutput, TPredictor> : TrainerBase<TPredictor>
         where TPredictor : class, IPredictorProducing<TOutput>
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithWeight
@@ -94,28 +92,6 @@ namespace Microsoft.ML.Runtime.Learners
             public bool EnforceNonNegativity = false;
         }
 
-        internal const string DetailedSummary = @"Logistic Regression is a classification method used to predict the value of a categorical dependent variable from its relationship to one or more independent variables assumed to have a logistic distribution. 
-If the dependent variable has only two possible values (success/failure), then the logistic regression is binary. 
-If the dependent variable has more than two possible values (blood type given diagnostic test results), then the logistic regression is multinomial.
-The optimization technique used for LogisticRegressionBinaryClassifier is the limited memory Broyden-Fletcher-Goldfarb-Shanno (L-BFGS). 
-Both the L-BFGS and regular BFGS algorithms use quasi-Newtonian methods to estimate the computationally intensive Hessian matrix in the equation used by Newton's method to calculate steps. 
-But the L-BFGS approximation uses only a limited amount of memory to compute the next step direction, so that it is especially suited for problems with a large number of variables. 
-The memory_size parameter specifies the number of past positions and gradients to store for use in the computation of the next step.
-This learner can use elastic net regularization: a linear combination of L1 (lasso) and L2 (ridge) regularizations. 
-Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information to supplement the data and that prevents overfitting by penalizing models with extreme coefficient values. 
-This can improve the generalization of the model learned by selecting the optimal complexity in the bias-variance tradeoff. Regularization works by adding the penalty that is associated with coefficient values to the error of the hypothesis. 
-An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less. L1 and L2 regularization have different effects and uses that are complementary in certain respects.
-l1_weight: can be applied to sparse models, when working with high-dimensional data. It pulls small weights associated features that are relatively unimportant towards 0. 
-l2_weight: is preferable for data that is not sparse. It pulls large weights towards zero. 
-Adding the ridge penalty to the regularization overcomes some of lasso's limitations. It can improve its predictive accuracy, for example, when the number of predictors is greater than the sample size. If x = l1_weight and y = l2_weight, ax + by = c defines the linear span of the regularization terms. 
-The default values of x and y are both 1. 
-An agressive regularization can harm predictive capacity by excluding important variables out of the model. So choosing the optimal values for the regularization parameters is important for the performance of the logistic regression model.
-<see href='http://en.wikipedia.org/wiki/L-BFGS'>Wikipedia: L-BFGS</see>.
-<see href='http://en.wikipedia.org/wiki/Logistic_regression'>Wikipedia: Logistic regression</see>.
-<see href='http://research.microsoft.com/apps/pubs/default.aspx?id=78900'>Scalable Training of L1-Regularized Log-Linear Models</see>.
-<see href='https://msdn.microsoft.com/en-us/magazine/dn904675.aspx'>Test Run - L1 and L2 Regularization for Machine Learning</see>.
-";
-
         protected int NumFeatures;
         protected VBuffer<Float> CurrentWeights;
         protected long NumGoodRows;
@@ -156,6 +132,11 @@ An agressive regularization can harm predictive capacity by excluding important 
         private VBuffer<Float>[] _localGradients;
         private Float[] _localLosses;
 
+        // REVIEW: It's pointless to request caching when we're going to load everything into
+        // memory, that is, when using multiple threads. So should caching not be requested?
+        private static readonly TrainerInfo _info = new TrainerInfo(caching: true, supportIncrementalTrain: true);
+        public override TrainerInfo Info => _info;
+
         internal LbfgsTrainerBase(ArgumentsBase args, IHostEnvironment env, string name, bool showTrainingStats = false)
             : base(env, name)
         {
@@ -194,16 +175,9 @@ An agressive regularization can harm predictive capacity by excluding important 
             }
         }
 
-        public override bool NeedNormalization => true;
-
-        // REVIEW: It's pointless to request caching when we're going to load everything into
-        // memory, that is, when using multiple threads.
-        public override bool WantCaching => true;
-
         protected virtual int ClassCount => 1;
         protected int BiasCount => ClassCount;
         protected int WeightCount => ClassCount * NumFeatures;
-
         protected virtual Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
             out VBuffer<Float> init, out ITerminationCriterion terminationCriterion)
         {
@@ -311,28 +285,23 @@ An agressive regularization can harm predictive capacity by excluding important 
 
         protected abstract VBuffer<Float> InitializeWeightsFromPredictor(TPredictor srcPredictor);
 
-        public void Train(RoleMappedData data, TPredictor predictor)
-        {
-            Contracts.CheckValue(data, nameof(data));
-            Contracts.CheckValue(predictor, nameof(predictor));
-
-            _srcPredictor = predictor;
-            Train(data);
-        }
-
         protected abstract void CheckLabel(RoleMappedData data);
 
         protected virtual void PreTrainingProcessInstance(Float label, ref VBuffer<Float> feat, Float weight)
         {
         }
 
+        protected abstract TPredictor CreatePredictor();
+
         /// <summary>
         /// The basic training calls the optimizer
         /// </summary>
-        public override void Train(RoleMappedData data)
+        public override TPredictor Train(TrainContext context)
         {
-            Contracts.CheckValue(data, nameof(data));
+            Contracts.CheckValue(context, nameof(context));
 
+            var data = context.TrainingSet;
+            _srcPredictor = context.TrainingSet as TPredictor;
             data.CheckFeatureFloatVector(out NumFeatures);
             CheckLabel(data);
             data.CheckOptFloatWeight();
@@ -340,13 +309,15 @@ An agressive regularization can harm predictive capacity by excluding important 
             if (NumFeatures >= Utils.ArrayMaxSize / ClassCount)
             {
                 throw Contracts.ExceptParam(nameof(data),
-                    String.Format("The number of model parameters which is equal to ('# of features' + 1) * '# of classes' should be less than or equal to {0}.", Utils.ArrayMaxSize));
+                    "The number of model parameters which is equal to ('# of features' + 1) * '# of classes' should be less than or equal to {0}.", Utils.ArrayMaxSize);
             }
 
             using (var ch = Host.Start("Training"))
             {
                 TrainCore(ch, data);
+                var pred = CreatePredictor();
                 ch.Done();
+                return pred;
             }
         }
 

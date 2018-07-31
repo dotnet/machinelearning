@@ -265,6 +265,53 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
+        [Fact(Skip = "Execute this test if you want to regenerate ep-list and _manifest.json")]
+        public void RegenerateEntryPointCatalog()
+        {
+            var buildPrefix = GetBuildPrefix();
+            var epListFile = buildPrefix + "_ep-list.tsv";
+            var manifestFile = buildPrefix + "_manifest.json";
+
+            var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
+            var catalog = ModuleCatalog.CreateInstance(Env);
+            var epListPath = GetBaselinePath(entryPointsSubDir, epListFile);
+            DeleteOutputPath(epListPath);
+
+            var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
+            File.WriteAllLines(epListPath, catalog.AllEntryPoints()
+                .Select(x => string.Join("\t",
+                x.Name,
+                regex.Replace(x.Description, ""),
+                x.Method.DeclaringType,
+                x.Method.Name,
+                x.InputType,
+                x.OutputType)
+                .Replace(Environment.NewLine, ""))
+                .OrderBy(x => x));
+
+
+            var jObj = JsonManifestUtils.BuildAllManifests(Env, catalog);
+
+            //clean up the description from the new line characters
+            if (jObj[FieldNames.TopEntryPoints] != null && jObj[FieldNames.TopEntryPoints] is JArray)
+            {
+                foreach (JToken entry in jObj[FieldNames.TopEntryPoints].Children())
+                    if (entry[FieldNames.Desc] != null)
+                        entry[FieldNames.Desc] = regex.Replace(entry[FieldNames.Desc].ToString(), "");
+            }
+            var manifestPath = GetBaselinePath(entryPointsSubDir, manifestFile);
+            DeleteOutputPath(manifestPath);
+
+            using (var file = File.OpenWrite(manifestPath))
+            using (var writer = new StreamWriter(file))
+            using (var jw = new JsonTextWriter(writer))
+            {
+                jw.Formatting = Formatting.Indented;
+                jObj.WriteTo(jw);
+            }
+        }
+
+
         [Fact]
         public void EntryPointCatalog()
         {
@@ -329,12 +376,12 @@ namespace Microsoft.ML.Runtime.RunTests
 
             ib1.TrySetValue("WeightColumn", "OtherWeight");
             Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.True(string.Compare(instance.WeightColumn.Value, "OtherWeight") == 0);
+            Assert.Equal("OtherWeight", instance.WeightColumn.Value);
 
             var tok = (JToken)JValue.CreateString("AnotherWeight");
             ib1.TrySetValueJson("WeightColumn", tok);
             Assert.True(instance.WeightColumn.IsExplicit);
-            Assert.True(string.Compare(instance.WeightColumn.Value, "AnotherWeight") == 0);
+            Assert.Equal("AnotherWeight", instance.WeightColumn.Value);
         }
 
         [Fact]
@@ -684,11 +731,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // This tests that the SchemaBindableCalibratedPredictor doesn't get confused if its sub-predictor is already calibrated.
             var fastForest = new FastForestClassification(Env, new FastForestClassification.Arguments());
-            var rmd = RoleMappedData.Create(splitOutput.TrainData[0],
-                RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"),
-                RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, "Label"));
-            fastForest.Train(rmd);
-            var ffModel = new PredictorModel(Env, rmd, splitOutput.TrainData[0], fastForest.CreatePredictor());
+            var rmd = new RoleMappedData(splitOutput.TrainData[0], "Label", "Features");
+            var ffModel = new PredictorModel(Env, rmd, splitOutput.TrainData[0], fastForest.Train(rmd));
             var calibratedFfModel = Calibrate.Platt(Env,
                 new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[0], UncalibratedPredictorModel = ffModel }).PredictorModel;
             var twiceCalibratedFfModel = Calibrate.Platt(Env,
@@ -793,7 +837,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Data = splitOutput.TestData[nModels],
                     PredictorModel = regressionEnsembleModel
                 }).ScoredData;
-            
+
             var anomalyEnsembleModel = EntryPoints.EnsembleCreator.CreateAnomalyPipelineEnsemble(Env,
                 new EntryPoints.EnsembleCreator.PipelineAnomalyInput()
                 {
@@ -1220,12 +1264,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 }, data);
 
                 var mlr = new MulticlassLogisticRegression(Env, new MulticlassLogisticRegression.Arguments());
-                RoleMappedData rmd = RoleMappedData.Create(data,
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"),
-                    RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, "Label"));
-                mlr.Train(rmd);
+                var rmd = new RoleMappedData(data, "Label", "Features");
 
-                predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.CreatePredictor());
+                predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.Train(rmd));
                 var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
@@ -1801,6 +1842,18 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(loader.Schema.TryGetColumnIndex("GroupId", out var groupCol));
                 Assert.True(loader.Schema.TryGetColumnIndex("Label", out var labelCol));
             }
+        }
+
+        [Fact]
+        public void EntryPointLightGbmBinary()
+        {
+            TestEntryPointRoutine("breast-cancer.txt", "Trainers.LightGbmBinaryClassifier");
+        }
+
+        [Fact]
+        public void EntryPointLightGbmMultiClass()
+        {
+            TestEntryPointRoutine(GetDataPath(@"iris.txt"), "Trainers.LightGbmClassifier");
         }
 
         [Fact]
@@ -3413,8 +3466,6 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
 
-            /*var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input
-            { InputFile = inputFile, CustomSchema =  "header+ col=Label:0 col=Features:Num:1-9"*/
             var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
             {
                 Arguments =
@@ -3703,6 +3754,53 @@ namespace Microsoft.ML.Runtime.RunTests
                     Assert.Equal(20, leafIndicators.Length);
                     Assert.Equal(5, leafIndicators.Count);
                     Assert.Equal(15, pathIndicators.Length);
+                }
+            }
+        }
+
+        [Fact]
+        public void EntryPointWordEmbeddings()
+        {
+            string dataFile = DeleteOutputPath("SavePipe", "SavePipeTextWordEmbeddings-SampleText.txt");
+            File.WriteAllLines(dataFile, new[] {
+                "The quick brown fox jumps over the lazy dog.",
+                "The five boxing wizards jump quickly."
+            });
+            var inputFile = new SimpleFileHandle(Env, dataFile, false, false);
+            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            {
+                Arguments =
+                {
+                    SeparatorChars = new []{' '},
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Text",
+                            Source = new [] { new TextLoader.Range() { Min = 0, VariableEnd=true, ForceVector=true} },
+                            Type = DataKind.Text
+                        }
+                    }
+                },
+                InputFile = inputFile,
+            }).Data;
+            var embedding = Transforms.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsTransform.Arguments()
+            {
+                Data = dataView,
+                Column = new[] { new WordEmbeddingsTransform.Column { Name = "Features", Source = "Text" } },
+                ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe
+            });
+            var result = embedding.OutputData;
+            using (var cursor = result.GetRowCursor((x => true)))
+            {
+                Assert.True(result.Schema.TryGetColumnIndex("Features", out int featColumn));
+                var featGetter = cursor.GetGetter<VBuffer<float>>(featColumn);
+                VBuffer<float> feat = default;
+                while (cursor.MoveNext())
+                {
+                    featGetter(ref feat);
+                    Assert.True(feat.Count == 150);
+                    Assert.True(feat.Values[0] != 0);
                 }
             }
         }

@@ -49,8 +49,8 @@ namespace Microsoft.ML.Runtime.Api
             {
                 var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, modelStream);
                 pipe = roles != null
-                    ? env.CreateDefaultScorer(RoleMappedData.CreateOpt(pipe, roles), predictor)
-                    : env.CreateDefaultScorer(env.CreateExamples(pipe, "Features"), predictor);
+                    ? env.CreateDefaultScorer(new RoleMappedData(pipe, roles, opt: true), predictor)
+                    : env.CreateDefaultScorer(new RoleMappedData(pipe, label: null, "Features"), predictor);
             }
 
             _pipeEngine = new PipeEngine<TDst>(env, pipe, ignoreMissingColumns, outputSchemaDefinition);
@@ -72,12 +72,12 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// Run the prediction pipe. This will enumerate the <paramref name="examples"/> exactly once, 
-        /// cache all the examples (by reference) into its internal representation and then run 
+        /// Run the prediction pipe. This will enumerate the <paramref name="examples"/> exactly once,
+        /// cache all the examples (by reference) into its internal representation and then run
         /// the transformation pipe.
         /// </summary>
         /// <param name="examples">The examples to run the prediction on.</param>
-        /// <param name="reuseRowObjects">If <c>true</c>, the engine will not allocate memory per output, and 
+        /// <param name="reuseRowObjects">If <c>true</c>, the engine will not allocate memory per output, and
         /// the returned <typeparamref name="TDst"/> objects will actually always be the same object. The user is
         /// expected to clone the values himself if needed.</param>
         /// <returns>The <see cref="IEnumerable{TDst}"/> that contains all the pipeline results.</returns>
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime.Api
     /// in-memory data, one example at a time.
     /// This can also be used with trained pipelines that do not end with a predictor: in this case, the
     /// 'prediction' will be just the outcome of all the transformations.
-    /// This is essentially a wrapper for <see cref="BatchPredictionEngine{TSrc,TDst}"/> that throws if 
+    /// This is essentially a wrapper for <see cref="BatchPredictionEngine{TSrc,TDst}"/> that throws if
     /// more than one result is returned per call to <see cref="Predict"/>.
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Runtime.Api
 
     /// <summary>
     /// This class encapsulates the 'classic' prediction problem, where the input is denoted by the float array of features,
-    /// and the output is a float score. For binary classification predictors that can output probability, there are output 
+    /// and the output is a float score. For binary classification predictors that can output probability, there are output
     /// fields that report the predicted label and probability.
     /// </summary>
     public sealed class SimplePredictionEngine

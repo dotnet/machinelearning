@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
     /// </summary>
     public interface ICalibrator
     {
-        /// <summary> Given a classifier output, produce the probability </summary>		
+        /// <summary> Given a classifier output, produce the probability </summary>
         Float PredictProbability(Float output);
 
         /// <summary> Get the summary of current calibrator settings </summary>
@@ -687,8 +687,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         private static bool NeedCalibration(IHostEnvironment env, IChannel ch, ICalibratorTrainer calibrator,
             ITrainer trainer, IPredictor predictor, RoleMappedSchema schema)
         {
-            var trainerEx = trainer as ITrainerEx;
-            if (trainerEx == null || !trainerEx.NeedCalibration)
+            if (!trainer.Info.NeedCalibration)
             {
                 ch.Info("Not training a calibrator because it is not needed.");
                 return false;
@@ -746,7 +745,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         /// <param name="trainer">The trainer used to train the predictor.</param>
         /// <param name="predictor">The predictor that needs calibration.</param>
         /// <param name="data">The examples to used for calibrator training.</param>
-        /// <returns>The original predictor, if no calibration is needed, 
+        /// <returns>The original predictor, if no calibration is needed,
         /// or a metapredictor that wraps the original predictor and the newly trained calibrator.</returns>
         public static IPredictor TrainCalibratorIfNeeded(IHostEnvironment env, IChannel ch, ICalibratorTrainer calibrator,
             int maxRows, ITrainer trainer, IPredictor predictor, RoleMappedData data)
@@ -772,7 +771,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         /// <param name="maxRows">The maximum rows to use for calibrator training.</param>
         /// <param name="predictor">The predictor that needs calibration.</param>
         /// <param name="data">The examples to used for calibrator training.</param>
-        /// <returns>The original predictor, if no calibration is needed, 
+        /// <returns>The original predictor, if no calibration is needed,
         /// or a metapredictor that wraps the original predictor and the newly trained calibrator.</returns>
         public static IPredictor TrainCalibrator(IHostEnvironment env, IChannel ch, ICalibratorTrainer caliTrainer,
             int maxRows, IPredictor predictor, RoleMappedData data)
@@ -1437,19 +1436,14 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
             string opType = "Affine";
             string linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
-            var node = OnnxUtils.MakeNode(opType, new List<string> { scoreProbablityColumnNames[0] },
-                new List<string> { linearOutput }, ctx.GetNodeName(opType), "ai.onnx");
-
-            OnnxUtils.NodeAddAttributes(node, "alpha", ParamA * -1);
-            OnnxUtils.NodeAddAttributes(node, "beta", -0.0000001);
-
-            ctx.AddNode(node);
+            var node = ctx.CreateNode(opType, new[] { scoreProbablityColumnNames[0] },
+                new[] { linearOutput }, ctx.GetNodeName(opType), "");
+            node.AddAttribute("alpha", ParamA * -1);
+            node.AddAttribute("beta", -0.0000001);
 
             opType = "Sigmoid";
-            node = OnnxUtils.MakeNode(opType, new List<string> { linearOutput },
-                new List<string> { scoreProbablityColumnNames[1] }, ctx.GetNodeName(opType), "ai.onnx");
-
-            ctx.AddNode(node);
+            node = ctx.CreateNode(opType, new[] { linearOutput },
+                new[] { scoreProbablityColumnNames[1] }, ctx.GetNodeName(opType), "");
 
             return true;
         }

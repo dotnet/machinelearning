@@ -26,6 +26,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="PoissonRegression"]/*' />
     public sealed class PoissonRegression : LbfgsTrainerBase<Float, PoissonRegressionPredictor>
     {
         internal const string LoadNameValue = "PoissonRegression";
@@ -44,9 +45,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
         }
 
-        public override bool NeedCalibration { get { return false; } }
-
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         protected override void CheckLabel(RoleMappedData data)
         {
@@ -105,7 +104,7 @@ namespace Microsoft.ML.Runtime.Learners
             return -(y * dot - lambda) * weight;
         }
 
-        public override PoissonRegressionPredictor CreatePredictor()
+        protected override PoissonRegressionPredictor CreatePredictor()
         {
             VBuffer<Float> weights = default(VBuffer<Float>);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
@@ -124,7 +123,12 @@ namespace Microsoft.ML.Runtime.Learners
             // No-op by design.
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.PoissonRegressor", Desc = "Train an Poisson regression model.", UserName = UserNameValue, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.PoissonRegressor",
+            Desc = "Train an Poisson regression model.",
+            UserName = UserNameValue,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='doc/members/member[@name=""PoissonRegression""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='doc/members/example[@name=""PoissonRegression""]/*' />"})]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

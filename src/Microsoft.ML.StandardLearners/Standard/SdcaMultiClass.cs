@@ -28,10 +28,9 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Float>>;
 
-    /// <summary>
-    /// SDCA linear multiclass trainer.
-    /// </summary>
-    public class SdcaMultiClassTrainer : SdcaTrainerBase<TVectorPredictor>, ITrainerEx
+    // SDCA linear multiclass trainer.
+    /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
+    public class SdcaMultiClassTrainer : SdcaTrainerBase<TVectorPredictor>
     {
         public const string LoadNameValue = "SDCAMC";
         public const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
@@ -46,21 +45,8 @@ namespace Microsoft.ML.Runtime.Learners
 
         private readonly ISupportSdcaClassificationLoss _loss;
         private readonly Arguments _args;
-        private int _numClasses;
 
-        public override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.MultiClassClassification; }
-        }
-
-        protected override int WeightArraySize
-        {
-            get
-            {
-                Contracts.Assert(_numClasses > 0, "_numClasses should already have been initialized when this property is called.");
-                return _numClasses;
-            }
-        }
+        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         public SdcaMultiClassTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, LoadNameValue)
@@ -70,8 +56,6 @@ namespace Microsoft.ML.Runtime.Learners
             NeedShuffle = args.Shuffle;
             _args = args;
         }
-
-        public override bool NeedCalibration { get { return false; } }
 
         /// <inheritdoc/>
         protected override void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, IRandom rand,
@@ -83,11 +67,9 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.AssertValueOrNull(idToIdx);
             Contracts.AssertValueOrNull(invariants);
             Contracts.AssertValueOrNull(featureNormSquared);
-            int weightArraySize = WeightArraySize;
-            Contracts.Assert(weightArraySize == _numClasses);
-            Contracts.Assert(Utils.Size(weights) == weightArraySize);
-            Contracts.Assert(Utils.Size(biasReg) == weightArraySize);
-            Contracts.Assert(Utils.Size(biasUnreg) == weightArraySize);
+            int numClasses = Utils.Size(weights);
+            Contracts.Assert(Utils.Size(biasReg) == numClasses);
+            Contracts.Assert(Utils.Size(biasUnreg) == numClasses);
 
             int maxUpdateTrials = 2 * numThreads;
             var l1Threshold = _args.L1Threshold.Value;
@@ -102,11 +84,11 @@ namespace Microsoft.ML.Runtime.Learners
                 if (pch != null)
                     pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, rowCount));
 
-                Func<UInt128, long> getIndexFromId = GetIndexFromIdGetter(idToIdx);
+                Func<UInt128, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
                 while (cursor.MoveNext())
                 {
                     long idx = getIndexFromId(cursor.Id);
-                    long dualIndexInitPos = idx * weightArraySize;
+                    long dualIndexInitPos = idx * numClasses;
                     var features = cursor.Features;
                     var label = (int)cursor.Label;
                     Float invariant;
@@ -140,14 +122,14 @@ namespace Microsoft.ML.Runtime.Learners
                     Float labelAdjustment = 0;
 
                     // Iterates through all classes.
-                    for (int iClass = 0; iClass < _numClasses; iClass++)
+                    for (int iClass = 0; iClass < numClasses; iClass++)
                     {
                         // Skip the dual/weights/bias update for label class. Will be taken care of at the end.
                         if (iClass == label)
                             continue;
 
                         // Loop trials for compare-and-swap updates of duals.
-                        // In general, concurrent update conflict to the same dual variable is rare 
+                        // In general, concurrent update conflict to the same dual variable is rare
                         // if data is shuffled.
                         for (int numTrials = 0; numTrials < maxUpdateTrials; numTrials++)
                         {
@@ -157,14 +139,12 @@ namespace Microsoft.ML.Runtime.Learners
                             var dualUpdate = _loss.DualUpdate(output, 1, dual, invariant, numThreads);
 
                             // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
-                            // Reference to details: http://stat.rutgers.edu/home/tzhang/papers/ml02_dual.pdf, pp. 16-17. 
+                            // Reference to details: http://stat.rutgers.edu/home/tzhang/papers/ml02_dual.pdf, pp. 16-17.
                             var adjustment = l1ThresholdZero ? lr * biasReg[iClass] : lr * l1IntermediateBias[iClass];
                             dualUpdate -= adjustment;
                             bool success = false;
                             duals.ApplyAt(dualIndex, (long index, ref Float value) =>
-                            {
-                                success = Interlocked.CompareExchange(ref value, dual + dualUpdate, dual) == dual;
-                            });
+                                success = Interlocked.CompareExchange(ref value, dual + dualUpdate, dual) == dual);
 
                             if (success)
                             {
@@ -252,24 +232,23 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Contracts.AssertValue(weights);
             Contracts.AssertValue(duals);
-            Contracts.Assert(weights.Length == _numClasses);
-            Contracts.Assert(duals.Length >= _numClasses * count);
+            int numClasses = weights.Length;
+            Contracts.Assert(duals.Length >= numClasses * count);
             Contracts.AssertValueOrNull(idToIdx);
-            int weightArraySize = WeightArraySize;
-            Contracts.Assert(weightArraySize == _numClasses);
-            Contracts.Assert(Utils.Size(weights) == weightArraySize);
-            Contracts.Assert(Utils.Size(biasReg) == weightArraySize);
-            Contracts.Assert(Utils.Size(biasUnreg) == weightArraySize);
+            Contracts.Assert(Utils.Size(weights) == numClasses);
+            Contracts.Assert(Utils.Size(biasReg) == numClasses);
+            Contracts.Assert(Utils.Size(biasUnreg) == numClasses);
             Contracts.Assert(Utils.Size(metrics) == 6);
             var reportedValues = new Double?[metrics.Length + 1];
             reportedValues[metrics.Length] = iter;
             var lossSum = new CompensatedSum();
             var dualLossSum = new CompensatedSum();
+            int numFeatures = weights[0].Length;
 
             using (var cursor = cursorFactory.Create())
             {
                 long row = 0;
-                Func<UInt128, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx);
+                Func<UInt128, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 // Iterates through data to compute loss function.
                 while (cursor.MoveNext())
                 {
@@ -280,8 +259,8 @@ namespace Microsoft.ML.Runtime.Learners
                     Double subLoss = 0;
                     Double subDualLoss = 0;
                     long idx = getIndexFromIdAndRow(cursor.Id, row);
-                    long dualIndex = idx * _numClasses;
-                    for (int iClass = 0; iClass < _numClasses; iClass++)
+                    long dualIndex = idx * numClasses;
+                    for (int iClass = 0; iClass < numClasses; iClass++)
                     {
                         if (iClass == label)
                         {
@@ -291,7 +270,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                         var currentClassOutput = WDot(ref features, ref weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
                         subLoss += _loss.Loss(labelOutput - currentClassOutput, 1);
-                        Contracts.Assert(dualIndex == iClass + idx * _numClasses);
+                        Contracts.Assert(dualIndex == iClass + idx * numClasses);
                         var dual = duals[dualIndex++];
                         subDualLoss += _loss.DualLoss(1, dual);
                     }
@@ -301,7 +280,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                     row++;
                 }
-                Host.Assert(idToIdx == null || row * WeightArraySize == duals.Length);
+                Host.Assert(idToIdx == null || row * numClasses == duals.Length);
             }
 
             Contracts.Assert(_args.L2Const.HasValue);
@@ -312,7 +291,7 @@ namespace Microsoft.ML.Runtime.Learners
             Double weightsL1Norm = 0;
             Double weightsL2NormSquared = 0;
             Double biasRegularizationAdjustment = 0;
-            for (int iClass = 0; iClass < _numClasses; iClass++)
+            for (int iClass = 0; iClass < numClasses; iClass++)
             {
                 weightsL1Norm += VectorUtils.L1Norm(ref weights[iClass]) + Math.Abs(biasReg[iClass]);
                 weightsL2NormSquared += VectorUtils.NormSquared(weights[iClass]) + biasReg[iClass] * biasReg[iClass];
@@ -331,15 +310,16 @@ namespace Microsoft.ML.Runtime.Learners
             metrics[(int)MetricKind.DualityGap] = dualityGap;
             metrics[(int)MetricKind.BiasUnreg] = biasUnreg[0];
             metrics[(int)MetricKind.BiasReg] = biasReg[0];
-            metrics[(int)MetricKind.L1Sparsity] = _args.L1Threshold == 0 ? 1 : (Double)weights.Sum(weight => weight.Values.Count(w => w != 0)) / (_numClasses * NumFeatures);
+            metrics[(int)MetricKind.L1Sparsity] = _args.L1Threshold == 0 ? 1 : weights.Sum(
+                weight => weight.Values.Count(w => w != 0)) / (numClasses * numFeatures);
 
             bool converged = dualityGap / newLoss < _args.ConvergenceTolerance;
 
             if (metrics[(int)MetricKind.Loss] < bestPrimalLoss)
             {
-                for (int iClass = 0; iClass < _numClasses; iClass++)
+                for (int iClass = 0; iClass < numClasses; iClass++)
                 {
-                    // Maintain a copy of weights and bias with best primal loss thus far. 
+                    // Maintain a copy of weights and bias with best primal loss thus far.
                     // This is some extra work and uses extra memory, but it seems worth doing it.
                     // REVIEW: Sparsify bestWeights?
                     weights[iClass].CopyTo(ref bestWeights[iClass]);
@@ -359,14 +339,19 @@ namespace Microsoft.ML.Runtime.Learners
             return converged;
         }
 
-        public override TVectorPredictor CreatePredictor()
+        protected override TVectorPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
         {
-            return new MulticlassLogisticRegressionPredictor(Host, Weights, Bias, _numClasses, NumFeatures, null, stats: null);
+            Host.CheckValue(weights, nameof(weights));
+            Host.CheckValue(bias, nameof(bias));
+            Host.CheckParam(weights.Length > 0, nameof(weights));
+            Host.CheckParam(weights.Length == bias.Length, nameof(weights));
+
+            return new MulticlassLogisticRegressionPredictor(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
         }
 
-        protected override void CheckLabel(RoleMappedData examples)
+        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
-            examples.CheckMultiClassLabel(out _numClasses);
+            examples.CheckMultiClassLabel(out weightSetCount);
         }
 
         protected override Float[] InitializeFeatureNormSquared(int length)
@@ -382,11 +367,16 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     /// <summary>
-    /// A component to train an SDCA model.
+    /// The Entry Point for SDCA multiclass.
     /// </summary>
     public static partial class Sdca
     {
-        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentClassifier", Desc = SdcaMultiClassTrainer.SDCADetailedSummary, UserName = SdcaMultiClassTrainer.UserNameValue, ShortName = SdcaMultiClassTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentClassifier",
+            Desc = SdcaMultiClassTrainer.Summary,
+            UserName = SdcaMultiClassTrainer.UserNameValue,
+            ShortName = SdcaMultiClassTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name=""StochasticDualCoordinateAscentClassifier""]/*' />" })]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, SdcaMultiClassTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

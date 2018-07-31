@@ -44,10 +44,10 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     /// </summary>
     public class DescendingStablePessimisticPermutationComparer : DescendingStablePermutationComparer
     {
-#pragma warning disable TLC_GeneralName // The naming is the least of this class's problems. A setter with no getter??
+#pragma warning disable MSML_GeneralName // The naming is the least of this class's problems. A setter with no getter??
         protected short[] _labels;
         protected int _labelsOffset;
-#pragma warning restore TLC_GeneralName
+#pragma warning restore MSML_GeneralName
 
         public override short[] Labels {
             set { _labels = value; }
@@ -76,10 +76,10 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     /// </summary>
     public class DescendingStablePermutationComparer : DcgPermutationComparer
     {
-#pragma warning disable TLC_GeneralName // The naming is the least of this class's problems. A setter with no getter??
+#pragma warning disable MSML_GeneralName // The naming is the least of this class's problems. A setter with no getter??
         protected double[] _scores;
         protected int _scoresOffset;
-#pragma warning restore TLC_GeneralName
+#pragma warning restore MSML_GeneralName
 
         public override double[] Scores { set { _scores = value; } }
 

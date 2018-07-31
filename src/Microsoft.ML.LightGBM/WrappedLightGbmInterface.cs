@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.LightGBM
 {
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             IntPtr ret,
             int type);
 
-        #endregion 
+        #endregion
 
         #region API ERROR
 
@@ -148,7 +149,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public static extern int BoosterAddValidData(IntPtr handle, IntPtr validset);
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterSaveModelToString", CallingConvention = CallingConvention.StdCall)]
-        public unsafe static extern int BoosterSaveModelToString(IntPtr handle,
+        public static extern unsafe int BoosterSaveModelToString(IntPtr handle,
             int numIteration,
             int bufferLen,
             ref int outLen,
@@ -165,7 +166,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public static extern int BoosterGetEvalCounts(IntPtr handle, ref int outLen);
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterGetEval", CallingConvention = CallingConvention.StdCall)]
-        public unsafe static extern int BoosterGetEval(IntPtr handle, int dataIdx,
+        public static extern unsafe int BoosterGetEval(IntPtr handle, int dataIdx,
                                  ref int outLen, double* outResult);
 
         #endregion
@@ -199,13 +200,13 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <summary>
         /// Join the parameters to key=value format.
         /// </summary>
-        public static string JoinParameters(Dictionary<string, string> parameters)
+        public static string JoinParameters(Dictionary<string, object> parameters)
         {
             if (parameters == null)
                 return "";
             List<string> res = new List<string>();
             foreach (var keyVal in parameters)
-                res.Add(keyVal.Key + "=" + keyVal.Value);
+                res.Add(keyVal.Key + "=" + string.Format(CultureInfo.InvariantCulture, "{0}", keyVal.Value));
             return string.Join(" ", res);
         }
 

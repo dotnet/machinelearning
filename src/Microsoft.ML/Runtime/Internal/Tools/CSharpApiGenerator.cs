@@ -382,7 +382,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             GenerateEnums(writer, entryPointInfo.InputType, _defaultNamespace + entryPointMetadata.Namespace);
             writer.WriteLine();
             GenerateClasses(writer, entryPointInfo.InputType, catalog, _defaultNamespace + entryPointMetadata.Namespace);
-            CSharpGeneratorUtils.GenerateSummary(writer, entryPointInfo.Description);
+            CSharpGeneratorUtils.GenerateSummary(writer, entryPointInfo.Description, entryPointInfo.XmlInclude);
 
             if (entryPointInfo.ObsoleteAttribute != null)
                 writer.WriteLine($"[Obsolete(\"{entryPointInfo.ObsoleteAttribute.Message}\")]");

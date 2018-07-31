@@ -14,6 +14,7 @@
   <PropertyGroup>
     <RestoreSources>
       https://api.nuget.org/v3/index.json;
+      https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
     </RestoreSources>
   </PropertyGroup>
 
@@ -21,6 +22,7 @@
   <PropertyGroup>
     <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
     <SourceDir>$(RepoRoot)src/</SourceDir>
+    <PkgDir>$(RepoRoot)pkg/</PkgDir>
 
     <!-- Output directories -->
     <BinDir Condition="'$(BinDir)'==''">$(RepoRoot)bin/</BinDir>

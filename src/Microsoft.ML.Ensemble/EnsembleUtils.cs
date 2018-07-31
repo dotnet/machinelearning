@@ -33,12 +33,12 @@ namespace Microsoft.ML.Runtime.Ensemble
                 host, "FeatureSelector", data.Data, name, name, type, type,
                 (ref VBuffer<Single> src, ref VBuffer<Single> dst) => SelectFeatures(ref src, features, card, ref dst));
 
-            var res = RoleMappedData.Create(view, data.Schema.GetColumnRoleNames());
+            var res = new RoleMappedData(view, data.Schema.GetColumnRoleNames());
             return res;
         }
 
         /// <summary>
-        /// Fill dst with values selected from src if the indices of the src values are set in includedIndices, 
+        /// Fill dst with values selected from src if the indices of the src values are set in includedIndices,
         /// otherwise assign default(T). The length of dst will be equal to src.Length.
         /// </summary>
         public static void SelectFeatures<T>(ref VBuffer<T> src, BitArray includedIndices, int cardinality, ref VBuffer<T> dst)

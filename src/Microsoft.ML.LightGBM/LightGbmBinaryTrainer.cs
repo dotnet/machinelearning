@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(LightGbmArguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
-    "LightGBM Binary Classification", LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
+    LightGbmBinaryTrainer.UserName, LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 [assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(LightGbmBinaryPredictor), null, typeof(SignatureLoadModel),
     "LightGBM Binary Executor",
@@ -27,6 +27,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     {
         public const string LoaderSignature = "LightGBMBinaryExec";
         public const string RegistrationName = "LightGBMBinaryPredictor";
+
         private static VersionInfo GetVersionInfo()
         {
             // REVIEW: can we decouple the version from FastTree predictor version ?
@@ -42,11 +43,10 @@ namespace Microsoft.ML.Runtime.LightGBM
                 loaderSignature: LoaderSignature);
         }
 
-        protected override uint VerNumFeaturesSerialized { get { return 0x00010002; } }
-
-        protected override uint VerDefaultValueSerialized { get { return 0x00010004; } }
-
-        protected override uint VerCategoricalSplitSerialized { get { return 0x00010005; } }
+        protected override uint VerNumFeaturesSerialized => 0x00010002;
+        protected override uint VerDefaultValueSerialized => 0x00010004;
+        protected override uint VerCategoricalSplitSerialized => 0x00010005;
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         internal LightGbmBinaryPredictor(IHostEnvironment env, FastTree.Internal.Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -76,22 +76,24 @@ namespace Microsoft.ML.Runtime.LightGBM
                 return predictor;
             return new CalibratedPredictor(env, predictor, calibrator);
         }
-
-        public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
     }
 
+    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float, IPredictorWithFeatureWeights<float>>
     {
-        public const string Summary = "LightGBM Binary Classifier";
-        public const string LoadNameValue = "LightGBMBinary";
-        public const string ShortName = "LightGBM";
+        internal const string UserName = "LightGBM Binary Classifier";
+        internal const string LoadNameValue = "LightGBMBinary";
+        internal const string ShortName = "LightGBM";
+        internal const string Summary = "Train a LightGBM binary classification model.";
+
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         public LightGbmBinaryTrainer(IHostEnvironment env, LightGbmArguments args)
-            : base(env, args, PredictionKind.BinaryClassification, "LGBBINCL")
+            : base(env, args, LoadNameValue)
         {
         }
 
-        public override IPredictorWithFeatureWeights<float> CreatePredictor()
+        private protected override IPredictorWithFeatureWeights<float> CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
@@ -122,15 +124,17 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
 
     /// <summary>
-    /// A component to train an LightGBM model.
+    /// A component to train a LightGBM model.
     /// </summary>
     public static partial class LightGbm
     {
         [TlcModule.EntryPoint(
-            Name = "Trainers.LightGbmBinaryClassifier", 
-            Desc = "Train an LightGBM binary class model", 
-            UserName = LightGbmBinaryTrainer.Summary, 
-            ShortName = LightGbmBinaryTrainer.ShortName)]
+            Name = "Trainers.LightGbmBinaryClassifier",
+            Desc = LightGbmBinaryTrainer.Summary,
+            UserName = LightGbmBinaryTrainer.UserName,
+            ShortName = LightGbmBinaryTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
+                                 @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmBinaryClassifier""]/*' />"})]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmArguments input)
         {
             Contracts.CheckValue(env, nameof(env));

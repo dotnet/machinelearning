@@ -14,12 +14,12 @@ namespace Microsoft.ML.Runtime.PipelineInference
 {
     /// <summary>
     /// Auto-generate set of transforms for the data view, given the purposes of specified columns.
-    /// 
-    /// The design is the same as for <see cref="ColumnTypeInference"/>: there's a sequence of 'experts' 
+    ///
+    /// The design is the same as for <see cref="ColumnTypeInference"/>: there's a sequence of 'experts'
     /// that each look at all the columns. Every expert may or may not suggest additional transforms.
-    /// If the expert needs some information about the column (for example, the column values), 
-    /// this information is lazily calculated by the column object, not the expert itself, to allow the reuse 
-    /// of the same information by another expert. 
+    /// If the expert needs some information about the column (for example, the column values),
+    /// this information is lazily calculated by the column object, not the expert itself, to allow the reuse
+    /// of the same information by another expert.
     /// </summary>
     public static class TransformInference
     {
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             public TransformPipelineNode PipelineNode;
             // Used for grouping transforms that must occur together
             public int AtomicGroupId { get; set; }
-            // Stores which columns are consumed by this transform, 
+            // Stores which columns are consumed by this transform,
             // and which are produced, at which level.
             public ColumnRoutingStructure RoutingStructure { get; set; }
             public bool AlwaysInclude { get; set; }
@@ -417,7 +417,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             {
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns, Arguments inferenceArgs, IChannel ch)
                 {
-                    var firstGroupColId = Array.FindIndex(columns, x => x.Purpose == ColumnPurpose.GroupId);
+                    var firstGroupColId = Array.FindIndex(columns, x => x.Purpose == ColumnPurpose.Group);
                     if (firstGroupColId < 0)
                         yield break;
 
@@ -667,9 +667,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     int total;
                     int unique;
                     int singletons;
-                    // REVIEW: replace with proper Good-Turing estimation. 
-                    // REVIEW: This looks correct; cf. equation (8) of Katz S. "Estimation of Probabilities from 
-                    // Sparse Data for the Language Model Component of a Speech Recognizer" (1987), taking into account that 
+                    // REVIEW: replace with proper Good-Turing estimation.
+                    // REVIEW: This looks correct; cf. equation (8) of Katz S. "Estimation of Probabilities from
+                    // Sparse Data for the Language Model Component of a Speech Recognizer" (1987), taking into account that
                     // the singleton count was estimated from a fraction of the data (and assuming the estimate is
                     // roughly the same for the entire sample).
                     column.GetUniqueValueCounts<DvText>(out unique, out singletons, out total);
@@ -792,7 +792,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 }
 
                 public static SuggestedTransform ConcatColumnsIntoOne(List<string> columnNames, string concatColumnName,
-                    Type tranformType, bool isNumeric)
+                    Type transformType, bool isNumeric)
                 {
                     StringBuilder columnArgument = new StringBuilder();
                     StringBuilder columnNameQuoted = new StringBuilder();
@@ -843,10 +843,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         new SuggestedTransform(
                             $"Concatenate {columnsToConcat} columns into column {concatColumnName}",
                             new SubComponent<IDataTransform, SignatureDataTransform>("Concat",
-                                new[] { arguments }), tranformType, new TransformPipelineNode(epInput), -1, routingStructure);
+                                new[] { arguments }), transformType, new TransformPipelineNode(epInput), -1, routingStructure);
                 }
 
-                public static SuggestedTransform TextTransformUnigramTriChar(string srcColumn, string dstColumn, string arg, Type tranformType)
+                public static SuggestedTransform TextTransformUnigramTriChar(string srcColumn, string dstColumn, string arg, Type transformType)
                 {
                     StringBuilder columnArgument = InferenceHelpers.GetTextTransformUnigramTriCharArgument(srcColumn, dstColumn);
 
@@ -862,10 +862,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     };
 
                     return TextTransform(srcColumn, dstColumn, columnArgument.ToString(), "Unigram plus Trichar",
-                        tranformType, new TransformPipelineNode(nodeInput));
+                        transformType, new TransformPipelineNode(nodeInput));
                 }
 
-                public static SuggestedTransform TextTransformBigramTriChar(string srcColumn, string dstColumn, string arg, Type tranformType)
+                public static SuggestedTransform TextTransformBigramTriChar(string srcColumn, string dstColumn, string arg, Type transformType)
                 {
                     StringBuilder columnArgument = InferenceHelpers.GetTextTransformBigramTriCharArgument(srcColumn, dstColumn);
 
@@ -880,11 +880,11 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     };
 
                     return TextTransform(srcColumn, dstColumn, columnArgument.ToString(), "Bigram plus Trichar",
-                        tranformType, new TransformPipelineNode(nodeInput));
+                        transformType, new TransformPipelineNode(nodeInput));
                 }
 
                 public static SuggestedTransform TextTransform(string srcColumn, string dstColumn, string arg,
-                    string outputMsg, Type tranformType, TransformPipelineNode pipelineNode)
+                    string outputMsg, Type transformType, TransformPipelineNode pipelineNode)
                 {
                     ColumnRoutingStructure.AnnotatedName[] columnsSource =
                         { new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = srcColumn } };
@@ -898,7 +898,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                                 ") for column '{0}' and output to column '{1}'",
                                 srcColumn, dstColumn),
                             new SubComponent<IDataTransform, SignatureDataTransform>("Text", arg),
-                            tranformType, pipelineNode, -1, routingStructure);
+                            transformType, pipelineNode, -1, routingStructure);
                 }
             }
 
@@ -1141,7 +1141,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                             $"Apply text featurizer transform on text features for column '{column.ColumnName}'", args, typeof(Text), new TransformPipelineNode(epInput), -1, routingStructure);
                     }
 
-                    // Concat text featurized columns into existing feature column, if transformed at least one column. 
+                    // Concat text featurized columns into existing feature column, if transformed at least one column.
                     if (!inferenceArgs.ExcludeFeaturesConcatTransforms && featureCols.Count > 0)
                     {
                         yield return InferenceHelpers.GetRemainingFeatures(featureCols, columns, GetType(), IncludeFeaturesOverride);
@@ -1559,7 +1559,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        public static SuggestedTransform[] InferTransforms(IHostEnvironment env, IDataView data, Arguments args)
+        public static SuggestedTransform[] InferTransforms(IHostEnvironment env, IDataView data, Arguments args, RoleMappedData dataRoles)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("InferTransforms");
@@ -1576,7 +1576,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // Infer column purposes from data sample.
             var piArgs = new PurposeInference.Arguments { MaxRowsToRead = MaxRowsToRead };
             var columnIndices = Enumerable.Range(0, dataSample.Schema.ColumnCount);
-            var piResult = PurposeInference.InferPurposes(env, dataSample, columnIndices, piArgs);
+            var piResult = PurposeInference.InferPurposes(env, dataSample, columnIndices, piArgs, dataRoles);
             var purposes = piResult.Columns;
 
             // Infer transforms
@@ -1595,7 +1595,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 .Contains(t.AtomicGroupId)).ToArray();
         }
 
-        public static SuggestedTransform[] InferConcatNumericFeatures(IHostEnvironment env, IDataView data, Arguments args)
+        public static SuggestedTransform[] InferConcatNumericFeatures(IHostEnvironment env, IDataView data, Arguments args, RoleMappedData dataRoles)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("InferConcatNumericFeatures");
@@ -1608,7 +1608,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // Infer column purposes from data sample.
             var piArgs = new PurposeInference.Arguments { MaxRowsToRead = MaxRowsToRead };
             var columnIndices = Enumerable.Range(0, data.Schema.ColumnCount);
-            var piResult = PurposeInference.InferPurposes(env, data, columnIndices, piArgs);
+            var piResult = PurposeInference.InferPurposes(env, data, columnIndices, piArgs, dataRoles);
             var purposes = piResult.Columns;
 
             var cols = purposes.Where(x => !data.Schema.IsHidden(x.ColumnIndex)

@@ -231,7 +231,7 @@ namespace Microsoft.ML.Runtime.Model
         /// <summary>
         /// When building paths to our local file system, we want to force both forward and backward slashes
         /// to the system directory separator character. We do this for cases where we either used Windows-specific
-        /// path building logic, or concatenated filesystem paths with zip archive entries on Linux. 
+        /// path building logic, or concatenated filesystem paths with zip archive entries on Linux.
         /// </summary>
         private static string NormalizeForFileSystem(string path) =>
             path?.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);

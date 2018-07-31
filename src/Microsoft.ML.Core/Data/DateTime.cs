@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.Data
         /// are within the valid range, and returns a DvDateTime representing the UTC time (dateTime-offset).
         /// </summary>
         /// <param name="dateTime">The clock time</param>
-        /// <param name="offset">The offset. This value is assumed to be validated as a legal offset: 
+        /// <param name="offset">The offset. This value is assumed to be validated as a legal offset:
         /// a value in whole minutes, between -14 and 14 hours.</param>
         /// <returns>The UTC DvDateTime representing the input clock time minus the offset</returns>
         private static DvDateTime ValidateDate(DvDateTime dateTime, ref DvInt2 offset)
