@@ -45,11 +45,6 @@
 // Later tests will add data import using F# type providers:
 //#r @"../../packages/fsharp.data/3.0.0-beta4/lib/netstandard2.0/FSharp.Data.dll" // this must be referenced from its package location
 
-let _load  =
-    // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET assemblies
-    [ typeof<Microsoft.ML.Runtime.Transforms.TextAnalytics>; 
-      typeof<Microsoft.ML.Runtime.FastTree.FastTree> ]
-
 #endif
 
 //================================================================================
@@ -79,14 +74,14 @@ module SmokeTest1 =
         [<ColumnName "PredictedLabel"; DefaultValue>]
         val mutable Sentiment : bool
 
-    let _load  =
-        // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET assemblies
-        // This is needed even for compiled code 
-        [ typeof<Microsoft.ML.Runtime.Transforms.TextAnalytics>; 
-          typeof<Microsoft.ML.Runtime.FastTree.FastTree> ]
-
     [<Fact>]
     let ``FSharp-Sentiment-Smoke-Test`` () =
+
+        // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
+
+        let _load  =
+            [ typeof<Microsoft.ML.Runtime.Transforms.TextAnalytics>; 
+              typeof<Microsoft.ML.Runtime.FastTree.FastTree> ]
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
@@ -128,11 +123,4 @@ module SmokeTest1 =
 
         let predictionResults = [ for p in predictions -> p.Sentiment ]
         Assert.Equal<bool list>(predictionResults, [ false; true; true ])
-
-#if NETCOREAPP2_0
-module Program =
-
-    [<EntryPoint>] 
-    let main _ = 0
-#endif
 
