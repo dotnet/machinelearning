@@ -112,8 +112,6 @@ mkdir "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Tests"
 mkdir "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Tests\netcoreapp2.0"
 mkdir "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Predictor.Tests"
 mkdir "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Predictor.Tests\netcoreapp2.0"
-copy "%__rootDir%\packages\mlnetmkldeps\0.0.0.1\runtimes\win-x64\native\Microsoft.ML.MklImports.dll" "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Tests\netcoreapp2.0\Microsoft.ML.MklImports.dll"
-copy "%__rootDir%\packages\mlnetmkldeps\0.0.0.1\runtimes\win-x64\native\Microsoft.ML.MklImports.dll" "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Predictor.Tests\netcoreapp2.0\Microsoft.ML.MklImports.dll"
 
 :: Build the project created by Cmake
 set __msbuildArgs=/p:Platform=%__BuildArch% /p:PlatformToolset="%__PlatformToolset%"
