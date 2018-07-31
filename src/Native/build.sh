@@ -106,15 +106,15 @@ mkdir "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0"
 mkdir "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests"
 mkdir "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0"
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/Microsoft.ML.MklImports.dylib"
-    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/osx-x64/native/libMicrosoft.ML.MklImports.dylib" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/libMicrosoft.ML.MklImports.dylib"
+    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/osx-x64/native/libMklImports.dylib $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/libMklImports.dylib"
+    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/osx-x64/native/libMklImports.dylib" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/libMklImports.dylib"
     
-    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/osx-x64/native/Microsoft.ML.MklImports.dylib $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/Microsoft.ML.MklImports.dylib"
-    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/osx-x64/native/libMicrosoft.ML.MklImports.dylib" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/libMicrosoft.ML.MklImports.dylib"
+    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/osx-x64/native/libMklImports.dylib $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/libMklImports.dylib"
+    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/osx-x64/native/libMklImports.dylib" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/libMklImports.dylib"
 else
-    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/libMicrosoft.ML.MklImports.so"
-    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/libMicrosoft.ML.MklImports.so"
+    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/linux-x64/native/libMklImports.so $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/libMklImports.so"
+    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/linux-x64/native/libMklImports.so" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Tests/netcoreapp2.0/libMklImports.so"
     
-    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/libMicrosoft.ML.MklImports.so"
-    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/linux-x64/native/libMicrosoft.ML.MklImports.so" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/libMicrosoft.ML.MklImports.so"
+    echo "Copying MKL binaries from $RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/linux-x64/native/libMklImports.so $__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/libMklImports.so"
+    cp "$RootRepo/packages/mlnetmkldeps/0.0.0.4/runtimes/linux-x64/native/libMklImports.so" "$__rootBinPath/AnyCPU.$__configuration/Microsoft.ML.Predictor.Tests/netcoreapp2.0/libMklImports.so"
 fi
