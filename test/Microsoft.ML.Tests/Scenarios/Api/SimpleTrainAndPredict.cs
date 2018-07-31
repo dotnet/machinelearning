@@ -78,12 +78,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Train.
                 var model = pipeline.Fit(new MultiFileSource(dataPath));
 
-                (var reader, var pipe) = model.GetParts();
                 // Create prediction engine and test predictions.
-                var engine = new MyPredictionEngine<SentimentData, SentimentPrediction>(env, reader.GetOutputSchema(), pipe);
+                var engine = new MyPredictionEngine<SentimentData, SentimentPrediction>(env, model.Reader.GetOutputSchema(), model.Transformer);
 
                 // Take a couple examples out of the test data and run predictions on top.
-                var testData = reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))
+                var testData = model.Reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))
                     .AsEnumerable<SentimentData>(env, false);
                 foreach (var input in testData.Take(5))
                 {

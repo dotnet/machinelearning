@@ -2,18 +2,24 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using System;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Tests.Scenarios.Api;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
+
+[assembly: LoadableClass(typeof(ITransformer), typeof(TransformerChain), null, typeof(SignatureLoadModel),
+    "Transformer chain", TransformerChain.LoaderSignature)]
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
-    public sealed class TransformerChain<TLastTransformer> : ITransformer
+    public sealed class TransformerChain<TLastTransformer> : ITransformer, ICanSaveModel
         where TLastTransformer : class, ITransformer
     {
         private readonly ITransformer[] _transformers;
         public readonly TLastTransformer LastTransformer;
+
+        private const string TransformDirTemplate = "Transform_{0:000}";
 
         public TransformerChain(params ITransformer[] transformers)
         {
@@ -63,45 +69,116 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Contracts.CheckValue(transformer, nameof(transformer));
             return new TransformerChain<TNewLast>(_transformers.Append(transformer).ToArray());
         }
+
+        public void Save(ModelSaveContext ctx)
+        {
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            ctx.Writer.Write(_transformers.Length);
+
+            for (int i = 0; i < _transformers.Length; i++)
+            {
+                var dirName = string.Format(TransformDirTemplate, i);
+                ctx.SaveModel(_transformers[i], dirName);
+            }
+        }
+
+        internal TransformerChain(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            int len = ctx.Reader.ReadInt32();
+            _transformers = new ITransformer[len];
+            for (int i = 0; i < len; i++)
+            {
+                var dirName = string.Format(TransformDirTemplate, i);
+                ctx.LoadModel<ITransformer, SignatureLoadModel>(env, out _transformers[i], dirName);
+            }
+            if (len > 0)
+                LastTransformer = _transformers[len - 1] as TLastTransformer;
+            else
+                LastTransformer = null;
+        }
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "XF  PIPE",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: TransformerChain.LoaderSignature);
+        }
+
+    }
+
+    public static class TransformerChain
+    {
+        public const string LoaderSignature = "TransformerChain";
+
+        public static ITransformer Create(IHostEnvironment env, ModelLoadContext ctx) => new TransformerChain<ITransformer>(env, ctx);
     }
 
     public sealed class CompositeReader<TSource, TLastTransformer> : IDataReader<TSource>
         where TLastTransformer : class, ITransformer
     {
-        private readonly IDataReader<TSource> _reader;
-        private readonly TransformerChain<TLastTransformer> _transformerChain;
+        public readonly IDataReader<TSource> Reader;
+        public readonly TransformerChain<TLastTransformer> Transformer;
 
         public CompositeReader(IDataReader<TSource> reader, TransformerChain<TLastTransformer> transformerChain = null)
         {
             Contracts.CheckValue(reader, nameof(reader));
             Contracts.CheckValueOrNull(transformerChain);
-            _reader = reader;
-            _transformerChain = transformerChain ?? new TransformerChain<TLastTransformer>();
+            Reader = reader;
+            Transformer = transformerChain ?? new TransformerChain<TLastTransformer>();
         }
 
         public IDataView Read(TSource input)
         {
-            var idv = _reader.Read(input);
-            idv = _transformerChain.Transform(idv);
+            var idv = Reader.Read(input);
+            idv = Transformer.Transform(idv);
             return idv;
-        }
-
-        public (IDataReader<TSource> reader, TransformerChain<TLastTransformer> transformerChain) GetParts()
-        {
-            return (reader: _reader, transformerChain: _transformerChain);
         }
 
         public ISchema GetOutputSchema()
         {
-            var s = _reader.GetOutputSchema();
-            s = _transformerChain.GetOutputSchema(s);
+            var s = Reader.GetOutputSchema();
+            s = Transformer.GetOutputSchema(s);
             return s;
         }
 
         public CompositeReader<TSource, TNewLastTransformer> Append<TNewLastTransformer>(TNewLastTransformer transformer)
             where TNewLastTransformer : class, ITransformer
         {
-            return new CompositeReader<TSource, TNewLastTransformer>(_reader, _transformerChain.Append(transformer));
+            return new CompositeReader<TSource, TNewLastTransformer>(Reader, Transformer.Append(transformer));
+        }
+
+        public void Save(IHostEnvironment env, Stream outputStream)
+        {
+            using (var ch = env.Start("Saving model"))
+            {
+                using (var rep = RepositoryWriter.CreateNew(outputStream, ch))
+                {
+                    ch.Trace("Saving data reader");
+                    ModelSaveContext.SaveModel(rep, Reader, "Reader");
+
+                    ch.Trace("Saving transformer chain");
+                    ModelSaveContext.SaveModel(rep, Transformer, "TransformerChain");
+                    rep.Commit();
+                }
+            }
+        }
+    }
+
+    public static class CompositeReader
+    {
+        public static CompositeReader<IMultiStreamSource, ITransformer> LoadModel(IHostEnvironment env, Stream stream)
+        {
+            using (var rep = RepositoryReader.Open(stream, env))
+            {
+                ModelLoadContext.LoadModel<IDataReader<IMultiStreamSource>, SignatureLoadModel>(env, out var reader, rep, "Reader");
+                ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, "TransformerChain");
+                return new CompositeReader<IMultiStreamSource, ITransformer>(reader, transformerChain);
+            }
         }
     }
 
@@ -212,7 +289,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public static CompositeReaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
             this IDataReaderEstimator<TSource, IDataReader<TSource>> start, IEstimator<TTrans> estimator)
-            where TTrans: class, ITransformer
+            where TTrans : class, ITransformer
         {
             return new CompositeReaderEstimator<TSource, ITransformer>(start).Append(estimator);
         }
