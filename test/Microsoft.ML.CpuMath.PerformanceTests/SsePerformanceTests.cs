@@ -35,13 +35,13 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         {
             int seed = DEFAULT_SEED;
 
-            if (Environment.GetEnvironmentVariable("CORECLR_SEED") != null)
+            if (Environment.GetEnvironmentVariable("CPUMATH_SEED") != null)
             {
-                string CORECLR_SEED = Environment.GetEnvironmentVariable("CORECLR_SEED");
+                string CPUMATH_SEED = Environment.GetEnvironmentVariable("CPUMATH_SEED");
 
-                if (!int.TryParse(CORECLR_SEED, out seed))
+                if (!int.TryParse(CPUMATH_SEED, out seed))
                 {
-                    if(string.Equals(CORECLR_SEED, "random", StringComparison.OrdinalIgnoreCase))
+                    if(string.Equals(CPUMATH_SEED, "random", StringComparison.OrdinalIgnoreCase))
                     {
                         seed = new Random().Next();
                     }
@@ -52,7 +52,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 }
             }
 
-            Console.WriteLine("Random seed: " + seed + "; set environment variable CORECLR_SEED to this value to reproduce results");
+            Console.WriteLine("Random seed: " + seed + "; set environment variable CPUMATH_SEED to this value to reproduce results");
 
             return seed;
         }

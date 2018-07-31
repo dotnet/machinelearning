@@ -18,9 +18,9 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         public CpuMathUtilsUnitTests()
         {
-            // padded array whose length is a multiple of 4
+            // Padded array whose length is a multiple of 4
             float[] testArray1 = new float[8] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f };
-            // unpadded array whose length is not a multiple of 4.
+            // Unpadded array whose length is not a multiple of 4.
             float[] testArray2 = new float[7] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f };
             testArrays = new float[][] { testArray1, testArray2 };
             testIndexArray = new int[4] { 0, 2, 5, 6 };
@@ -28,9 +28,9 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public unsafe void DotUTest(int test)
+        [InlineData(0, 13306.0376f)]
+        [InlineData(1, 13291.9235f)]
+        public void DotUTest(int test, float expected)
         {
             float[] src = (float[]) testArrays[test].Clone();
             float[] dst = (float[]) src.Clone();
@@ -40,142 +40,127 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 dst[i] += 1;
             }
 
-            var managedOutput = CpuMathUtils.DotProductDense(src, dst, dst.Length);
-
-            if (test == 0)
-            {
-                Assert.Equal(13306.0376f, managedOutput, 4);
-            }
-            else
-            {
-                Assert.Equal(13291.9235f, managedOutput, 2);
-            }
+            var actual = CpuMathUtils.DotProductDense(src, dst, dst.Length);
+            Assert.Equal(expected, actual, 2);
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public unsafe void DotSUTest(int test)
+        [InlineData(0, 736.7352f)]
+        [InlineData(1, 736.7352f)]
+        public void DotSUTest(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
             float[] dst = (float[])src.Clone();
             int[] idx = testIndexArray;
 
+            // Ensures src and dst are different arrays
             for (int i = 0; i < dst.Length; i++)
             {
                 dst[i] += 1;
             }
 
-            var managedOutput = CpuMathUtils.DotProductSparse(src, dst, idx, idx.Length);
-            Assert.Equal(736.7352f, managedOutput, 4);
+            var actual = CpuMathUtils.DotProductSparse(src, dst, idx, idx.Length);
+            Assert.Equal(expected, actual, 4);
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public unsafe void SumSqUTest(int test)
+        [InlineData(0, 13399.9376f)]
+        [InlineData(1, 13389.1135f)]
+        public void SumSqUTest(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
-
-            var managedOutput = CpuMathUtils.SumSq(src, src.Length);
-
-            if (test == 0)
-            {
-                Assert.Equal(13399.9376f, managedOutput, 2);
-            }
-            else
-            {
-                Assert.Equal(13389.1135f, managedOutput, 2);
-            }
+            var actual = CpuMathUtils.SumSq(src, src.Length);
+            Assert.Equal(expected, actual, 2);
         }
 
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
-        public unsafe void AddUTest(int test)
+        public void AddUTest(int test)
         {
             float[] src = (float[])testArrays[test].Clone();
             float[] dst = (float[])src.Clone();
-            float[] expectedOutput = (float[])src.Clone();
+            float[] expected = (float[])src.Clone();
 
+            // Ensures src and dst are different arrays
             for (int i = 0; i < dst.Length; i++)
             {
                 dst[i] += 1;
             }
 
-            for (int i = 0; i < expectedOutput.Length; i++)
+            for (int i = 0; i < expected.Length; i++)
             {
-                expectedOutput[i] = 2 * expectedOutput[i] + 1;
+                expected[i] = 2 * expected[i] + 1;
             }
 
             CpuMathUtils.Add(src, dst, dst.Length);
-            var managedOutput = dst;
-            Assert.Equal(expectedOutput, managedOutput, comparer);
+            var actual = dst;
+            Assert.Equal(expected, actual, comparer);
         }
 
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
-        public unsafe void AddSUTest(int test)
+        public void AddSUTest(int test)
         {
             float[] src = (float[])testArrays[test].Clone();
             float[] dst = (float[])src.Clone();
             int[] idx = testIndexArray;
-            float[] expectedOutput = (float[])dst.Clone();
+            float[] expected = (float[])dst.Clone();
 
-            expectedOutput[0] = 3.92f;
-            expectedOutput[2] = -12.14f;
-            expectedOutput[5] = -36.69f;
-            expectedOutput[6] = 46.29f;
+            expected[0] = 3.92f;
+            expected[2] = -12.14f;
+            expected[5] = -36.69f;
+            expected[6] = 46.29f;
 
             CpuMathUtils.Add(src, idx, dst, idx.Length);
-            var managedOutput = dst;
-            Assert.Equal(expectedOutput, managedOutput, comparer);
+            var actual = dst;
+            Assert.Equal(expected, actual, comparer);
         }
 
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
-        public unsafe void AddScaleUTest(int test)
+        public void AddScaleUTest(int test)
         {
             float[] src = (float[])testArrays[test].Clone();
             float[] dst = (float[])src.Clone();
-            float[] expectedOutput = (float[])dst.Clone();
+            float[] expected = (float[])dst.Clone();
 
-            for (int i = 0; i < expectedOutput.Length; i++)
+            for (int i = 0; i < expected.Length; i++)
             {
-                expectedOutput[i] *= (1 + DEFAULT_SCALE);
+                expected[i] *= (1 + DEFAULT_SCALE);
             }
 
             CpuMathUtils.AddScale(DEFAULT_SCALE, src, dst, dst.Length);
-            var managedOutput = dst;
-            Assert.Equal(expectedOutput, managedOutput, comparer);
+            var actual = dst;
+            Assert.Equal(expected, actual, comparer);
         }
 
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
-        public unsafe void AddScaleSUTest(int test)
+        public void AddScaleSUTest(int test)
         {
             float[] src = (float[])testArrays[test].Clone();
             float[] dst = (float[])src.Clone();
             int[] idx = testIndexArray;
-            float[] expectedOutput = (float[])dst.Clone();
+            float[] expected = (float[])dst.Clone();
 
-            expectedOutput[0] = 5.292f;
-            expectedOutput[2] = -13.806f;
-            expectedOutput[5] = -43.522f;
-            expectedOutput[6] = 55.978f;
+            expected[0] = 5.292f;
+            expected[2] = -13.806f;
+            expected[5] = -43.522f;
+            expected[6] = 55.978f;
 
             CpuMathUtils.AddScale(DEFAULT_SCALE, src, idx, dst, idx.Length);
-            var managedOutput = dst;
-            Assert.Equal(expectedOutput, managedOutput, comparer);
+            var actual = dst;
+            Assert.Equal(expected, actual, comparer);
         }
 
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
-        public unsafe void ScaleUTest(int test)
+        public void ScaleUTest(int test)
         {
             float[] dst = (float[])testArrays[test].Clone();
             float[] expectedOutput = (float[])dst.Clone();
@@ -191,73 +176,58 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public unsafe void Dist2Test(int test)
+        [InlineData(0, 8.0f)]
+        [InlineData(1, 7.0f)]
+        public void Dist2Test(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
             float[] dst = (float[])src.Clone();
 
+            // Ensures src and dst are different arrays
             for (int i = 0; i < dst.Length; i++)
             {
                 dst[i] += 1;
             }
 
-            var managedOutput = CpuMathUtils.L2DistSquared(src, dst, dst.Length);
-
-            if (test == 0)
-            {
-                Assert.Equal(8.0f, managedOutput, 0);
-            }
-            else
-            {
-                Assert.Equal(7.0f, managedOutput, 0);
-            }
+            var actual = CpuMathUtils.L2DistSquared(src, dst, dst.Length);
+            Assert.Equal(expected, actual, 0);
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public unsafe void SumAbsUTest(int test)
+        [InlineData(0, 196.98f)]
+        [InlineData(1, 193.69f)]
+        public void SumAbsUTest(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
-
-            var managedOutput = CpuMathUtils.SumAbs(src, src.Length);
-
-            if (test == 0)
-            {
-                Assert.Equal(196.98f, managedOutput, 2);
-            }
-            else
-            {
-                Assert.Equal(193.69f, managedOutput, 2);
-            }
+            var actual = CpuMathUtils.SumAbs(src, src.Length);
+            Assert.Equal(expected, actual, 2);
         }
 
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
-        public unsafe void MulElementWiseUTest(int test)
+        public void MulElementWiseUTest(int test)
         {
             float[] src1 = (float[])testArrays[test].Clone();
             float[] src2 = (float[])src1.Clone();
             float[] dst = (float[])src1.Clone();
 
+            // Ensures src1 and src2 are different arrays
             for (int i = 0; i < src2.Length; i++)
             {
                 src2[i] += 1;
             }
 
-            float[] expectedOutput = (float[])src1.Clone();
+            float[] expected = (float[])src1.Clone();
 
-            for (int i = 0; i < expectedOutput.Length; i++)
+            for (int i = 0; i < expected.Length; i++)
             {
-                expectedOutput[i] *= (1 + expectedOutput[i]);
+                expected[i] *= (1 + expected[i]);
             }
 
             CpuMathUtils.MulElementWise(src1, src2, dst, dst.Length);
-            var managedOutput = dst;
-            Assert.Equal(expectedOutput, managedOutput, comparer);
+            var actual = dst;
+            Assert.Equal(expected, actual, comparer);
         }
     }
 
