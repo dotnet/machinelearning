@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup> 
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects> 
+  </PropertyGroup> 
+
+  <!-- 
+  We use netcoreapp3.0 for C# intrinsics, but 3.0 isn't supported in CI or in normal development 
+  environments yet. So when we are targeting netcoreapp3.0, but aren't building for intrinsics, 
+  we need to skip the project. 
+  --> 
+  <Import Condition="'$(UseIntrinsics)' != 'true' and '$(TargetFramework)' == 'netcoreapp3.0'" 
+          Project="$(RepoRoot)build\Empty.targets" /> 
+</Project>

@@ -1,0 +1,20 @@
+<Project> 
+  <PropertyGroup> 
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects> 
+  </PropertyGroup> 
+
+  <!-- 
+    Copied from https://github.com/dotnet/arcade/blob/master/src/Microsoft.DotNet.Arcade.Sdk/tools/Empty.targets 
+
+    Import this file to suppress all targets while allowing the project to participate in the build. 
+    Workaround for https://github.com/dotnet/sdk/issues/2071. 
+
+    The targets defined here are not sufficient for the project to be open in Visual Studio without issues though.     
+  --> 
+
+  <Target Name="_IsProjectRestoreSupported"/> 
+  <Target Name="Restore"/> 
+  <Target Name="Build"/> 
+  <Target Name="Test"/> 
+  <Target Name="Pack"/> 
+</Project>
