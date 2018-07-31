@@ -159,6 +159,12 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("EntryPoints")]
         public void PipelineSweeperSerialization()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return;
+            }
+
             // Get datasets
             var pathData = GetDataPath("adult.train");
             var pathDataTest = GetDataPath("adult.test");
