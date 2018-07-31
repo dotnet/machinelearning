@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Api
     /// <summary>
     /// Attach to a member of a class to indicate that the item type should be of class key.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class KeyTypeAttribute : Attribute
     {
         // REVIEW: Property based, but should I just have a constructor?
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Api
     /// Allows a member to be marked as a vector valued field, primarily allowing one to set
     /// the dimensionality of the resulting array.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class VectorTypeAttribute : Attribute
     {
         private readonly int[] _dims;
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.Api
     /// Describes column information such as name and the source columns indicies that this
     /// column encapsulates.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ColumnAttribute : Attribute
     {
         public ColumnAttribute(string ordinal, string name = null)
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Runtime.Api
     /// Allows a member to specify its column name directly, as opposed to the default
     /// behavior of using the member name as the column name.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ColumnNameAttribute : Attribute
     {
         private readonly string _name;
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.Api
     /// <summary>
     /// Mark this member as not being exposed as a column in the schema.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class NoColumnAttribute : Attribute
     {
     }
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime.Api
     /// Mark a member that implements exactly IChannel as being permitted to receive
     /// channel information from an external channel.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class CursorChannelAttribute : Attribute
     {
         /// <summary>

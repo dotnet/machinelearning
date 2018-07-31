@@ -131,12 +131,16 @@ module SmokeTest2 =
 
     [<CLIMutable>]
     type SentimentData =
-        { [<Column(ordinal = "0")>] SentimentText : string
-          [<Column(ordinal = "1", name = "Label")>] Sentiment : float32 }
+        { [<Column(ordinal = "0")>] 
+          SentimentText : string
+
+          [<Column(ordinal = "1", name = "Label")>] 
+          Sentiment : float32 }
 
     [<CLIMutable>]
     type SentimentPrediction =
-        { [<ColumnName("PredictedLabel")>] Sentiment : bool }
+        { [<ColumnName("PredictedLabel")>] 
+           Sentiment : bool }
 
     [<Fact>]
     let ``FSharp-Sentiment-Smoke-Test`` () =
