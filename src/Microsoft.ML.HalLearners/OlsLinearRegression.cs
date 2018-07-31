@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.AdditionalLearners;
+using Microsoft.ML.Runtime.HalLearners;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.CommandLine;
@@ -31,7 +31,7 @@ using System.Runtime.InteropServices;
 
 [assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.AdditionalLearners
+namespace Microsoft.ML.Runtime.HalLearners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
     public sealed class OlsLinearRegressionTrainer : TrainerBase<OlsLinearRegressionPredictor>
@@ -467,7 +467,7 @@ namespace Microsoft.ML.Runtime.AdditionalLearners
             Desc = "Train an OLS regression model.",
             UserName = UserNameValue,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.AdditionalLearners/Standard/doc.xml' path='doc/members/member[@name=""OLS""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""OLS""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
