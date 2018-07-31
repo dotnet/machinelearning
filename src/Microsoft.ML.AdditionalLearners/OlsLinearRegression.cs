@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.AdditionalLearners
             catch (DllNotFoundException)
             {
                 // REVIEW: Is there no better way?
-                throw ch.ExceptNotSupp("The MKL library (Microsoft.ML.MklImports) or one of its dependencies is missing.");
+                throw ch.ExceptNotSupp("The MKL library (libMklImports) or one of its dependencies is missing.");
             }
             // Solve for beta in (LL')beta = X'y:
             Mkl.Pptrs(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, 1, xtx, xty, 1);
