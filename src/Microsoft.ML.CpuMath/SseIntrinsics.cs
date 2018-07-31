@@ -429,7 +429,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         internal static unsafe float Dist2(Span<float> src, Span<float> dst)
         {
-            Vector128<float> SqDistanceVector = Sse.SetZeroVector128();
+            Vector128<float> sqDistanceVector = Sse.SetZeroVector128();
 
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
@@ -440,18 +440,18 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 while (pSrcCurrent + 4 <= pEnd)
                 {
-                    Vector128<float> distanceVector = Sse.Subtract(Sse.LoadVector128(pSrcCurrent), 
+                    Vector128<float> distanceVector = Sse.Subtract(Sse.LoadVector128(pSrcCurrent),
                                                                     Sse.LoadVector128(pDstCurrent));
-                    SqDistanceVector = Sse.Add(SqDistanceVector, 
+                    sqDistanceVector = Sse.Add(sqDistanceVector,
                                                 Sse.Multiply(distanceVector, distanceVector));
 
                     pSrcCurrent += 4;
                     pDstCurrent += 4;
                 }
 
-                SqDistanceVector = VectorSum(SqDistanceVector);
+                sqDistanceVector = VectorSum(sqDistanceVector);
 
-                float norm = Sse.ConvertToSingle(SqDistanceVector);
+                float norm = Sse.ConvertToSingle(sqDistanceVector);
                 while (pSrcCurrent < pEnd)
                 {
                     float distance = (*pSrcCurrent) - (*pDstCurrent);

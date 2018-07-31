@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(0 <= dstOffset && dstOffset < dst.Length);
             Contracts.Assert(count < dst.Length - dstOffset);
 
-            AddScale(a, new Span<float>(src), new Span<int>(indices, 0, count), 
+            AddScale(a, new Span<float>(src), new Span<int>(indices, 0, count),
                     new Span<float>(dst, dstOffset, dst.Length - dstOffset));
         }
 
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(0 <= dstOffset && dstOffset < dst.Length);
             Contracts.Assert(count <= dst.Length - dstOffset);
 
-            Add(new Span<float>(src), new Span<int>(indices, 0, count), 
+            Add(new Span<float>(src), new Span<int>(indices, 0, count),
                 new Span<float>(dst, dstOffset, dst.Length - dstOffset));
         }
 
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(0 < count && count <= src2.Length);
             Contracts.AssertNonEmpty(dst);
 
-            MulElementWise(new Span<float>(src1, 0, count), new Span<float>(src2, 0, count), 
+            MulElementWise(new Span<float>(src1, 0, count), new Span<float>(src2, 0, count),
                             new Span<float>(dst, 0, count));
         }
 
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count <= b.Length);
             Contracts.Assert(count <= indices.Length);
 
-            return DotProductSparse(new Span<float>(a), new Span<float>(b), 
+            return DotProductSparse(new Span<float>(a), new Span<float>(b),
                                     new Span<int>(indices, 0, count));
         }
 
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count <= b.Length);
             Contracts.Assert(count <= indices.Length);
 
-            return DotProductSparse(new Span<float>(a, offset, a.Length - offset), 
+            return DotProductSparse(new Span<float>(a, offset, a.Length - offset),
                                     new Span<float>(b), new Span<int>(indices, 0, count));
         }
 
