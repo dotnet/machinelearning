@@ -13,7 +13,7 @@ phases:
       ${{ if ne(parameters.dockerImage, '') }}:
         _PREVIEW_VSTS_DOCKER_IMAGE: ${{ parameters.dockerImage }}
     queue:
-      parallel: 4
+      parallel: 99
       matrix:
         Build_Debug:
           _configuration: Debug
