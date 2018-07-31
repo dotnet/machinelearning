@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Drawing;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
@@ -34,6 +36,19 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             if (Height != tmp.Height)
                 return false;
             return Width != tmp.Width;
+        }
+
+        public override bool Equals(Object other)
+        {
+            var tmp = other as ColumnType;
+            if (tmp == null)
+                return false;
+            return Equals(tmp);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hashing.CombineHash(Height, Width);
         }
 
         public override string ToString()
