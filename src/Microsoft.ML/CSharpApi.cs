@@ -8911,7 +8911,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name="OLS"]/*' />
+        /// <include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name="OLS"]/*' />
         public sealed partial class OrdinaryLeastSquaresRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
