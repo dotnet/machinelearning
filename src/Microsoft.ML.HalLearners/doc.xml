@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <doc>
   <members>
     
@@ -22,7 +22,6 @@
         </code>
       </example>
     </member>
-
     <member name="SymSGD">
       <summary>
         Parallel Stochastic Gradient Descent trainer.
@@ -42,6 +41,5 @@
         </code>
       </example>
     </member>
-    
   </members>
 </doc>
