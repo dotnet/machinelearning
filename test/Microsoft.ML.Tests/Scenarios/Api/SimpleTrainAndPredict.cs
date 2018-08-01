@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// (e.g., the prediction does not happen over a file as it did during training).
         /// </summary>
         [Fact]
-        public void SimpleTrainAnPredict()
+        public void SimpleTrainAndPredict()
         {
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
