@@ -32,7 +32,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="MlNetMklDeps" Version="0.0.0.5" />
+    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
   </ItemGroup>
   
 </Project>
