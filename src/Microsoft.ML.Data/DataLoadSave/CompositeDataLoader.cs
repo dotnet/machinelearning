@@ -112,56 +112,6 @@ namespace Microsoft.ML.Runtime.Data
         /// If there are no transforms, the <paramref name="srcLoader"/> is returned.
         /// </summary>
         public static IDataLoader Create(IHostEnvironment env, IDataLoader srcLoader,
-            params KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] transformArgs)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-
-            h.CheckValue(srcLoader, nameof(srcLoader));
-            h.CheckValueOrNull(transformArgs);
-            return CreateCore(h, srcLoader, transformArgs);
-        }
-
-        private static IDataLoader CreateCore(IHost host, IDataLoader srcLoader,
-            KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] transformArgs)
-        {
-            Contracts.AssertValue(host, "host");
-            host.AssertValue(srcLoader, "srcLoader");
-            host.AssertValueOrNull(transformArgs);
-
-            if (Utils.Size(transformArgs) == 0)
-                return srcLoader;
-
-            var tagData = transformArgs
-                .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString()))
-                .ToArray();
-
-            // Warn if tags coincide with ones already present in the loader.
-            var composite = srcLoader as CompositeDataLoader;
-            if (composite != null)
-            {
-                using (var ch = host.Start("TagValidation"))
-                {
-                    foreach (var pair in tagData)
-                    {
-                        if (!string.IsNullOrEmpty(pair.Key) && composite._transforms.Any(x => x.Tag == pair.Key))
-                            ch.Warning("The transform with tag '{0}' already exists in the chain", pair.Key);
-                    }
-
-                    ch.Done();
-                }
-            }
-
-            return ApplyTransformsCore(host, srcLoader, tagData,
-                (prov, index, data) => transformArgs[index].Value.CreateInstance(prov, data));
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CompositeDataLoader"/> that starts with the <paramref name="srcLoader"/>,
-        /// and follows with transforms created from the <paramref name="transformArgs"/> array.
-        /// If there are no transforms, the <paramref name="srcLoader"/> is returned.
-        /// </summary>
-        public static IDataLoader Create(IHostEnvironment env, IDataLoader srcLoader,
             params KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] transformArgs)
         {
             Contracts.CheckValue(env, nameof(env));

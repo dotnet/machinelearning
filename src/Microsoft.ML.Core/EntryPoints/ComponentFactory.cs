@@ -52,6 +52,21 @@ namespace Microsoft.ML.Runtime.EntryPoints
         TComponent CreateComponent(IHostEnvironment env, TArg1 argument1);
     }
 
+    public class SimpleComponentFactory<TArg1, TComponent> : IComponentFactory<TArg1, TComponent>
+    {
+        private Func<IHostEnvironment, TArg1, TComponent> _factory;
+
+        public SimpleComponentFactory(Func<IHostEnvironment, TArg1, TComponent> factory)
+        {
+            _factory = factory;
+        }
+
+        public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1)
+        {
+            return _factory(env, argument1);
+        }
+    }
+
     /// <summary>
     /// An interface for creating a component when we take two extra parameters (and an <see cref="IHostEnvironment"/>).
     /// </summary>

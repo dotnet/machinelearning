@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -69,8 +70,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
             public bool? CacheData;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Transforms to apply prior to splitting the data into folds", ShortName = "prexf")]
-            public KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] PreTransform;
+            [Argument(ArgumentType.Multiple, HelpText = "Transforms to apply prior to splitting the data into folds", ShortName = "prexf", SignatureType = typeof(SignatureDataTransform))]
+            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] PreTransform;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The validation data file", ShortName = "valid")]
             public string ValidationFile;
@@ -159,16 +160,18 @@ namespace Microsoft.ML.Runtime.Data
                 string name = TrainUtils.MatchNameOrDefaultOrNull(ch, loader.Schema, nameof(Args.NameColumn), Args.NameColumn, DefaultColumnNames.Name);
                 if (name == null)
                 {
-                    var args = new GenerateNumberTransform.Arguments();
-                    args.Column = new[] { new GenerateNumberTransform.Column() { Name = DefaultColumnNames.Name }, };
-                    args.UseCounter = true;
-                    var options = CmdParser.GetSettings(ch, args, new GenerateNumberTransform.Arguments());
                     preXf = preXf.Concat(
                         new[]
                         {
-                                new KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>(
-                                    "", new SubComponent<IDataTransform, SignatureDataTransform>(
-                                        GenerateNumberTransform.LoadName, options))
+                            new KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>(
+                                "", new SimpleComponentFactory<IDataView, IDataTransform>(
+                                    (env, input) =>
+                                    {
+                                        var args = new GenerateNumberTransform.Arguments();
+                                        args.Column = new[] { new GenerateNumberTransform.Column() { Name = DefaultColumnNames.Name }, };
+                                        args.UseCounter = true;
+                                        return new GenerateNumberTransform(env, args, input);
+                                    }))
                         }).ToArray();
                 }
             }
