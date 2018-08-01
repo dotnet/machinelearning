@@ -55,11 +55,17 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="input">Input <see cref="IDataView"/>.</param>
         /// <param name="inputModelFile">The model file.</param>
         /// <param name="featureColumn">Role name for the features.</param>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string inputModelFile, string featureColumn = DefaultColumnNames.Features)
+        /// <param name="groupColumn">Role name for the group column.</param>
+        public static IDataTransform Create(IHostEnvironment env,
+            IDataView input,
+            string inputModelFile,
+            string featureColumn = DefaultColumnNames.Features,
+            string groupColumn = DefaultColumnNames.GroupId)
         {
             var args = new Arguments()
             {
                 FeatureColumn = featureColumn,
+                GroupColumn = groupColumn,
                 InputModelFile = inputModelFile
             };
 
@@ -163,22 +169,26 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="trainer">The <see cref="ITrainer"/> object i.e. the learning algorithm that will be used for training the model.</param>
         /// <param name="featureColumn">Role name for features.</param>
         /// <param name="labelColumn">Role name for label.</param>
+        /// <param name="groupColumn">Role name for the group column.</param>
         public static IDataTransform Create(IHostEnvironment env,
             IDataView input,
             ITrainer trainer,
             string featureColumn = DefaultColumnNames.Features,
-            string labelColumn = DefaultColumnNames.Label)
+            string labelColumn = DefaultColumnNames.Label,
+            string groupColumn = DefaultColumnNames.GroupId)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
             env.CheckValue(trainer, nameof(trainer));
             env.CheckValue(featureColumn, nameof(featureColumn));
             env.CheckValue(labelColumn, nameof(labelColumn));
+            env.CheckValue(groupColumn, nameof(groupColumn));
 
             var args = new Arguments()
             {
                 FeatureColumn = featureColumn,
-                LabelColumn = labelColumn
+                LabelColumn = labelColumn,
+                GroupColumn = groupColumn
             };
 
             return Create(env, args, trainer, input);
