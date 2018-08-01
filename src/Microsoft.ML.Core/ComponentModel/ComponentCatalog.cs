@@ -892,6 +892,18 @@ namespace Microsoft.ML.Runtime
         }
 
         /// <summary>
+        /// Create an instance of the indicated component with the given extra parameters.
+        /// </summary>
+        public static TRes CreateInstance<TRes>(IHostEnvironment env, Type signatureType, string name, string options, params object[] extra)
+            where TRes : class
+        {
+            TRes result;
+            if (TryCreateInstance(env, signatureType, out result, name, options, extra))
+                return result;
+            throw Contracts.Except("Unknown loadable class: {0}", name).MarkSensitive(MessageSensitivity.None);
+        }
+
+        /// <summary>
         /// Try to create an instance of the indicated component with the given extra parameters. If there is no
         /// such component in the catalog, returns false. Any other error results in an exception.
         /// </summary>
@@ -922,7 +934,7 @@ namespace Microsoft.ML.Runtime
             return TryCreateInstance<TRes>(env, typeof(TSig), out result, name, options, extra);
         }
 
-        public static bool TryCreateInstance<TRes>(IHostEnvironment env, Type signatureType, out TRes result, string name, string options, params object[] extra)
+        private static bool TryCreateInstance<TRes>(IHostEnvironment env, Type signatureType, out TRes result, string name, string options, params object[] extra)
             where TRes : class
         {
             Contracts.CheckValue(env, nameof(env));

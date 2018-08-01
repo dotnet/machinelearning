@@ -249,7 +249,12 @@ namespace Microsoft.ML.Runtime.CommandLine
         Default = ShortNames | NoSlashes
     }
 
-    public interface ICommandLineComponentFactory
+    /// <summary>
+    /// An IComponentFactory that is used in the command line.
+    ///
+    /// This allows components to be created by name, signature type, and a settings string.
+    /// </summary>
+    public interface ICommandLineComponentFactory : IComponentFactory
     {
         Type SignatureType { get; }
         string Name { get; }
@@ -1649,10 +1654,10 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                 var values = val.Values;
                 bool error = false;
-
-                void BuildSubComponent(SubComponent com)
+                if (IsSingleSubComponent)
                 {
                     bool haveKind = false;
+                    var com = SubComponent.Create(ItemType);
                     for (int i = 0; i < Utils.Size(values);)
                     {
                         string str = (string)values[i].Value;
@@ -1673,25 +1678,41 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                     if (Utils.Size(values) > 0)
                         com.Settings = values.Select(x => (string)x.Value).ToArray();
-                }
 
-                if (IsSingleSubComponent)
-                {
-                    var com = SubComponent.Create(ItemType);
-                    BuildSubComponent(com);
                     Field.SetValue(destination, com);
                 }
                 else if (IsSingleComponentFactory)
                 {
-                    var com = new SubComponent();
-                    BuildSubComponent(com);
+                    bool haveName = false;
+                    string name = null;
+                    string[] settings = null;
+                    for (int i = 0; i < Utils.Size(values);)
+                    {
+                        string str = (string)values[i].Value;
+                        if (str.StartsWith("{"))
+                        {
+                            i++;
+                            continue;
+                        }
+                        if (haveName)
+                        {
+                            owner.Report("Duplicate component kind for argument {0}", LongName);
+                            error = true;
+                        }
+                        name = str;
+                        haveName = true;
+                        values.RemoveAt(i);
+                    }
+
+                    if (Utils.Size(values) > 0)
+                        settings = values.Select(x => (string)x.Value).ToArray();
 
                     Contracts.Check(_signatureType != null, "ComponentFactory Arguments need a SignatureType set.");
                     var factory = ComponentFactoryFactory.CreateComponentFactory(
                         ItemType,
                         _signatureType,
-                        com.Kind,
-                        com.Settings);
+                        name,
+                        settings);
                     Field.SetValue(destination, factory);
                 }
                 else if (IsMultiSubComponent)
@@ -1743,7 +1764,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 }
                 else if (IsMultiComponentFactory)
                 {
-                    // REVIEW: the kind should not be separated from settings: everything related 
+                    // REVIEW: the kind should not be separated from settings: everything related
                     // to one item should go into one value, not multiple values
                     if (IsTaggedCollection)
                     {
@@ -1819,24 +1840,27 @@ namespace Microsoft.ML.Runtime.CommandLine
                 return error;
             }
 
+            /// <summary>
+            /// A factory class for creating IComponentFactory instances.
+            /// </summary>
             private static class ComponentFactoryFactory
             {
                 public static IComponentFactory CreateComponentFactory(
-                    Type fieldType,
+                    Type factoryType,
                     Type signatureType,
                     string name,
                     string[] settings)
                 {
-                    Contracts.Check(fieldType != null &&
-                        typeof(IComponentFactory).IsAssignableFrom(fieldType) &&
-                        fieldType.IsGenericType);
+                    Contracts.Check(factoryType != null &&
+                        typeof(IComponentFactory).IsAssignableFrom(factoryType) &&
+                        factoryType.IsGenericType);
 
                     Type componentFactoryType;
-                    if (fieldType.GenericTypeArguments.Length == 1)
+                    if (factoryType.GenericTypeArguments.Length == 1)
                     {
                         componentFactoryType = typeof(ComponentFactory<>);
                     }
-                    else if (fieldType.GenericTypeArguments.Length == 2)
+                    else if (factoryType.GenericTypeArguments.Length == 2)
                     {
                         componentFactoryType = typeof(ComponentFactory<,>);
                     }
@@ -1846,7 +1870,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                     }
 
                     return (IComponentFactory)Activator.CreateInstance(
-                        componentFactoryType.MakeGenericType(fieldType.GenericTypeArguments),
+                        componentFactoryType.MakeGenericType(factoryType.GenericTypeArguments),
                         signatureType,
                         name,
                         settings);
@@ -1856,7 +1880,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 {
                     public Type SignatureType { get; }
                     public string Name { get; }
-                    protected string[] Settings { get; }
+                    private string[] Settings { get; }
 
                     protected ComponentFactory(Type signatureType, string name, string[] settings)
                     {
@@ -1895,13 +1919,11 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                     public TComponent CreateComponent(IHostEnvironment env)
                     {
-                        env.Check(ComponentCatalog.TryCreateInstance(env,
+                        return ComponentCatalog.CreateInstance<TComponent>(
+                            env,
                             SignatureType,
-                            out TComponent result,
                             Name,
-                            CombineSettings(Settings)));
-
-                        return result;
+                            GetSettingsString());
                     }
                 }
 
@@ -1915,14 +1937,12 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                     public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1)
                     {
-                        env.Check(ComponentCatalog.TryCreateInstance(env,
-                           SignatureType,
-                           out TComponent result,
-                           Name,
-                           CombineSettings(Settings),
-                           argument1));
-
-                        return result;
+                        return ComponentCatalog.CreateInstance<TComponent>(
+                            env,
+                            SignatureType,
+                            Name,
+                            GetSettingsString(),
+                            argument1);
                     }
                 }
             }
