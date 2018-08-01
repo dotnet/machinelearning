@@ -74,12 +74,12 @@ namespace Microsoft.ML.Data
         {
             var userType = typeof(TInput);
 
-            var fieldInfos = userType.GetFields();
+            var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
             var propertyInfos =
                 userType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(x => x.CanRead && x.CanWrite && x.GetIndexParameters().Length == 0);
+                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0);
 
             var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
 
@@ -121,6 +121,7 @@ namespace Microsoft.ML.Data
                         break;
 
                     default:
+                        Contracts.Assert(false);
                         throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
                 }
 

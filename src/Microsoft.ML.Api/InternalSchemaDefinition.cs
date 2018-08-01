@@ -152,6 +152,7 @@ namespace Microsoft.ML.Runtime.Api
                     break;
 
                 default:
+                    Contracts.Assert(false);
                     throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
             }
         }

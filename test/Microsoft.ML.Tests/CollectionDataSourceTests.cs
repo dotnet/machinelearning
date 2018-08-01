@@ -331,7 +331,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public bool CompareThroughReflection<T>(T x, T y)
         {
-            foreach (var field in typeof(T).GetFields())
+            foreach (var field in typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
                 var xvalue = field.GetValue(x);
                 var yvalue = field.GetValue(y);
@@ -346,8 +346,12 @@ namespace Microsoft.ML.EntryPoints.Tests
                         return false;
                 }
             }
-            foreach (var property in typeof(T).GetProperties())
+            foreach (var property in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
+                // Don't compare properties with private getters and setters
+                if (!property.CanRead || !property.CanWrite || property.GetGetMethod() == null || property.GetSetMethod() == null)
+                    continue;
+
                 var xvalue = property.GetValue(x);
                 var yvalue = property.GetValue(y);
                 if (property.PropertyType.IsArray)
@@ -576,10 +580,10 @@ namespace Microsoft.ML.EntryPoints.Tests
             private long? _fLong;
             private short? _fShort;
             private sbyte? _fsByte;
-            public int? fInt { get { return _fInt; } set { _fInt = value; } }
-            public short? fShort { get { return _fShort; } set { _fShort = value; } }
-            public sbyte? fsByte { get { return _fsByte; } set { _fsByte = value; } }
-            public long? fLong { get { return _fLong; } set { _fLong = value; } }
+            public int? IntProp { get { return _fInt; } set { _fInt = value; } }
+            public short? ShortProp { get { return _fShort; } set { _fShort = value; } }
+            public sbyte? SByteProp { get { return _fsByte; } set { _fsByte = value; } }
+            public long? LongProp { get { return _fLong; } set { _fLong = value; } }
         }
 
         [Fact]
@@ -590,8 +594,8 @@ namespace Microsoft.ML.EntryPoints.Tests
 
                 var data = new List<ConversionLossMinValueClassProperties>
                 {
-                    new ConversionLossMinValueClassProperties() { fsByte = null, fInt = null, fLong = null, fShort = null },
-                    new ConversionLossMinValueClassProperties() { fsByte = sbyte.MinValue, fInt = int.MinValue, fLong = long.MinValue, fShort = short.MinValue }
+                    new ConversionLossMinValueClassProperties() { SByteProp = null, IntProp = null, LongProp = null, ShortProp = null },
+                    new ConversionLossMinValueClassProperties() { SByteProp = sbyte.MinValue, IntProp = int.MinValue, LongProp = long.MinValue, ShortProp = short.MinValue }
                 };
                 foreach (var field in typeof(ConversionLossMinValueClassProperties).GetFields())
                 {
@@ -599,8 +603,8 @@ namespace Microsoft.ML.EntryPoints.Tests
                     var enumerator = dataView.AsEnumerable<ConversionLossMinValueClassProperties>(env, false).GetEnumerator();
                     while (enumerator.MoveNext())
                     {
-                        Assert.True(enumerator.Current.fInt == null && enumerator.Current.fLong == null &&
-                            enumerator.Current.fsByte == null && enumerator.Current.fShort == null);
+                        Assert.True(enumerator.Current.IntProp == null && enumerator.Current.LongProp == null &&
+                            enumerator.Current.SByteProp == null && enumerator.Current.ShortProp == null);
                     }
                 }
             }
@@ -640,7 +644,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             public string fString;
             private int _fInt;
-            public int fInt { get { return _fInt; } set { _fInt = value; } }
+            public int IntProp { get { return _fInt; } set { _fInt = value; } }
         }
 
         [Fact]
@@ -648,9 +652,9 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             var data = new List<ClassWithMixOfFieldsAndProperties>()
             {
-                new ClassWithMixOfFieldsAndProperties(){ fInt=1, fString ="lala" },
-                new ClassWithMixOfFieldsAndProperties(){ fInt=-1, fString ="" },
-                new ClassWithMixOfFieldsAndProperties(){ fInt=0, fString =null }
+                new ClassWithMixOfFieldsAndProperties(){ IntProp=1, fString ="lala" },
+                new ClassWithMixOfFieldsAndProperties(){ IntProp=-1, fString ="" },
+                new ClassWithMixOfFieldsAndProperties(){ IntProp=0, fString =null }
             };
 
             using (var env = new TlcEnvironment())
@@ -667,17 +671,67 @@ namespace Microsoft.ML.EntryPoints.Tests
         public abstract class BaseClassWithInheritedProperties
         {
             private string _fString;
-            public string fString { get { return _fString; } set { _fString = value; } }
-            public abstract long fLong { get; set; }
+            private byte _fByte;
+            public string StringProp { get { return _fString; } set { _fString = value; } }
+            public abstract long LongProp { get; set; }
+            public virtual byte ByteProp { get { return _fByte; } set { _fByte = value; } }
         }
 
+
+        public class ClassWithPrivateFieldsAndProperties 
+        {
+            public ClassWithPrivateFieldsAndProperties() { seq++; _unusedStaticField++; _unusedPrivateField1 = 100;  }
+            static public int seq;
+            static public int _unusedStaticField;
+            private int _unusedPrivateField1;
+            private string _fString;
+
+            // This property is ignored because it has no setter
+            private int UnusedReadOnlyProperty { get { return _unusedPrivateField1; } }
+
+            // This property is ignored because it is private 
+            private int UnusedPrivateProperty { get { return _unusedPrivateField1; } set { _unusedPrivateField1 = value; } }
+            
+            // This property is ignored because it has a private setter
+            public int UnusedPropertyWithPrivateSetter { get { return _unusedPrivateField1; } private set { _unusedPrivateField1 = value; } }
+            
+            // This property is ignored because it has a private getter
+            public int UnusedPropertyWithPrivateGetter { private get { return _unusedPrivateField1; } set { _unusedPrivateField1 = value; } }
+
+            public string StringProp { get { return _fString; } set { _fString = value; } }
+        }
+
+        [Fact]
+        public void ClassWithPrivateFieldsAndPropertiesConversion()
+        {
+            var data = new List<ClassWithPrivateFieldsAndProperties>()
+            {
+                new ClassWithPrivateFieldsAndProperties(){ StringProp ="lala" },
+                new ClassWithPrivateFieldsAndProperties(){ StringProp ="baba" }
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithPrivateFieldsAndProperties>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                    Assert.True(enumeratorSimple.Current.UnusedPropertyWithPrivateSetter == 100);
+                }
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+            }
+        }
 
         public class ClassWithInheritedProperties : BaseClassWithInheritedProperties
         {
             private int _fInt;
             private long _fLong;
-            public int fInt { get { return _fInt; } set { _fInt = value; } }
-            public override long fLong { get { return _fLong; } set { _fLong = value; } }
+            private byte _fByte2;
+            public int IntProp { get { return _fInt; } set { _fInt = value; } }
+            public override long LongProp { get { return _fLong; } set { _fLong = value; } }
+            public override byte ByteProp { get { return _fByte2; } set { _fByte2 = value; } }
         }
 
         [Fact]
@@ -685,9 +739,9 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             var data = new List<ClassWithInheritedProperties>()
             {
-                new ClassWithInheritedProperties(){ fInt=1, fString ="lala", fLong=17 },
-                new ClassWithInheritedProperties(){ fInt=-1, fString ="", fLong=2 },
-                new ClassWithInheritedProperties(){ fInt=0, fString =null, fLong=18 }
+                new ClassWithInheritedProperties(){ IntProp=1, StringProp ="lala", LongProp=17, ByteProp=3 },
+                new ClassWithInheritedProperties(){ IntProp=-1, StringProp ="", LongProp=2, ByteProp=4 },
+                new ClassWithInheritedProperties(){ IntProp=0, StringProp =null, LongProp=18, ByteProp=5 }
             };
 
             using (var env = new TlcEnvironment())
@@ -814,18 +868,18 @@ namespace Microsoft.ML.EntryPoints.Tests
             private float[] _fFloat;
             private double[] _fDouble;
             private bool[] _fBool;
-            public string[] fString { get { return _fString; } set { _fString = value; } }
-            public int[] fInt { get { return _fInt; } set { _fInt = value; } }
-            public uint[] fuInt { get { return _fuInt; } set { _fuInt = value; } }
-            public short[] fShort { get { return _fShort; } set { _fShort = value; } }
-            public ushort[] fuShort { get { return _fuShort; } set { _fuShort = value; } }
-            public sbyte[] fsByte { get { return _fsByte; } set { _fsByte = value; } }
-            public byte[] fByte { get { return _fByte; } set { _fByte = value; } }
-            public long[] fLong { get { return _fLong; } set { _fLong = value; } }
-            public ulong[] fuLong { get { return _fuLong; } set { _fuLong = value; } }
-            public float[] fFloat { get { return _fFloat; } set { _fFloat = value; } }
-            public double[] fDouble { get { return _fDouble; } set { _fDouble = value; } }
-            public bool[] fBool { get { return _fBool; } set { _fBool = value; } }
+            public string[] StringProp { get { return _fString; } set { _fString = value; } }
+            public int[] IntProp { get { return _fInt; } set { _fInt = value; } }
+            public uint[] UIntProp { get { return _fuInt; } set { _fuInt = value; } }
+            public short[] ShortProp { get { return _fShort; } set { _fShort = value; } }
+            public ushort[] UShortProp { get { return _fuShort; } set { _fuShort = value; } }
+            public sbyte[] SByteProp { get { return _fsByte; } set { _fsByte = value; } }
+            public byte[] ByteProp { get { return _fByte; } set { _fByte = value; } }
+            public long[] LongProp { get { return _fLong; } set { _fLong = value; } }
+            public ulong[] ULongProp { get { return _fuLong; } set { _fuLong = value; } }
+            public float[] FloatProp { get { return _fFloat; } set { _fFloat = value; } }
+            public double[] DobuleProp { get { return _fDouble; } set { _fDouble = value; } }
+            public bool[] BoolProp { get { return _fBool; } set { _fBool = value; } }
         }
 
         public class ClassWithNullableArrayProperties
@@ -843,18 +897,18 @@ namespace Microsoft.ML.EntryPoints.Tests
             private double?[] _fDouble;
             private bool?[] _fBool;
 
-            public string[] fString { get { return _fString; } set { _fString = value; } }
-            public int?[] fInt { get { return _fInt; } set { _fInt = value; } }
-            public uint?[] fuInt { get { return _fuInt; } set { _fuInt = value; } }
-            public short?[] fShort { get { return _fShort; } set { _fShort = value; } }
-            public ushort?[] fuShort { get { return _fuShort; } set { _fuShort = value; } }
-            public sbyte?[] fsByte { get { return _fsByte; } set { _fsByte = value; } }
-            public byte?[] fByte { get { return _fByte; } set { _fByte = value; } }
-            public long?[] fLong { get { return _fLong; } set { _fLong = value; } }
-            public ulong?[] fuLong { get { return _fuLong; } set { _fuLong = value; } }
-            public float?[] fFloat { get { return _fFloat; } set { _fFloat = value; } }
-            public double?[] fDouble { get { return _fDouble; } set { _fDouble = value; } }
-            public bool?[] fBool { get { return _fBool; } set { _fBool = value; } }
+            public string[] StringProp { get { return _fString; } set { _fString = value; } }
+            public int?[] IntProp { get { return _fInt; } set { _fInt = value; } }
+            public uint?[] UIntProp { get { return _fuInt; } set { _fuInt = value; } }
+            public short?[] ShortProp { get { return _fShort; } set { _fShort = value; } }
+            public ushort?[] UShortProp { get { return _fuShort; } set { _fuShort = value; } }
+            public sbyte?[] SByteProp { get { return _fsByte; } set { _fsByte = value; } }
+            public byte?[] ByteProp { get { return _fByte; } set { _fByte = value; } }
+            public long?[] LongProp { get { return _fLong; } set { _fLong = value; } }
+            public ulong?[] ULongProp { get { return _fuLong; } set { _fuLong = value; } }
+            public float?[] SingleProp { get { return _fFloat; } set { _fFloat = value; } }
+            public double?[] DoubleProp { get { return _fDouble; } set { _fDouble = value; } }
+            public bool?[] BoolProp { get { return _fBool; } set { _fBool = value; } }
         }
 
         [Fact]
@@ -865,20 +919,20 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 new ClassWithArrayProperties()
                 {
-                    fInt = new int[3] { 0, 1, 2 },
-                    fFloat = new float[3] { -0.99f, 0f, 0.99f },
-                    fString = new string[2] { "hola", "lola" },
-                    fBool = new bool[2] { true, false },
-                    fByte = new byte[3] { 0, 124, 255 },
-                    fDouble = new double[3] { -1, 0, 1 },
-                    fLong = new long[] { 0, 1, 2 },
-                    fsByte = new sbyte[3] { -127, 127, 0 },
-                    fShort = new short[3] { 0, 1225, 32767 },
-                    fuInt = new uint[2] { 0, uint.MaxValue },
-                    fuLong = new ulong[2] { ulong.MaxValue, 0 },
-                    fuShort = new ushort[2] { 0, ushort.MaxValue }
+                    IntProp = new int[3] { 0, 1, 2 },
+                    FloatProp = new float[3] { -0.99f, 0f, 0.99f },
+                    StringProp = new string[2] { "hola", "lola" },
+                    BoolProp = new bool[2] { true, false },
+                    ByteProp = new byte[3] { 0, 124, 255 },
+                    DobuleProp = new double[3] { -1, 0, 1 },
+                    LongProp = new long[] { 0, 1, 2 },
+                    SByteProp = new sbyte[3] { -127, 127, 0 },
+                    ShortProp = new short[3] { 0, 1225, 32767 },
+                    UIntProp = new uint[2] { 0, uint.MaxValue },
+                    ULongProp = new ulong[2] { ulong.MaxValue, 0 },
+                    UShortProp = new ushort[2] { 0, ushort.MaxValue }
                 },
-                new ClassWithArrayProperties() { fInt = new int[3] { -2, 1, 0 }, fFloat = new float[3] { 0.99f, 0f, -0.99f }, fString = new string[2] { "", null } },
+                new ClassWithArrayProperties() { IntProp = new int[3] { -2, 1, 0 }, FloatProp = new float[3] { 0.99f, 0f, -0.99f }, StringProp = new string[2] { "", null } },
                 new ClassWithArrayProperties()
             };
 
@@ -886,20 +940,20 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 new ClassWithNullableArrayProperties()
                 {
-                    fInt = new int?[3] { null, -1, 1 },
-                    fFloat = new float?[3] { -0.99f, null, 0.99f },
-                    fString = new string[2] { null, "" },
-                    fBool = new bool?[3] { true, null, false },
-                    fByte = new byte?[4] { 0, 125, null, 255 },
-                    fDouble = new double?[3] { -1, null, 1 },
-                    fLong = new long?[] { null, -1, 1 },
-                    fsByte = new sbyte?[3] { -127, 127, null },
-                    fShort = new short?[3] { 0, null, 32767 },
-                    fuInt = new uint?[4] { null, 42, 0, uint.MaxValue },
-                    fuLong = new ulong?[3] { ulong.MaxValue, null, 0 },
-                    fuShort = new ushort?[3] { 0, null, ushort.MaxValue }
+                    IntProp = new int?[3] { null, -1, 1 },
+                    SingleProp = new float?[3] { -0.99f, null, 0.99f },
+                    StringProp = new string[2] { null, "" },
+                    BoolProp = new bool?[3] { true, null, false },
+                    ByteProp = new byte?[4] { 0, 125, null, 255 },
+                    DoubleProp = new double?[3] { -1, null, 1 },
+                    LongProp = new long?[] { null, -1, 1 },
+                    SByteProp = new sbyte?[3] { -127, 127, null },
+                    ShortProp = new short?[3] { 0, null, 32767 },
+                    UIntProp = new uint?[4] { null, 42, 0, uint.MaxValue },
+                    ULongProp = new ulong?[3] { ulong.MaxValue, null, 0 },
+                    UShortProp = new ushort?[3] { 0, null, ushort.MaxValue }
                 },
-                new ClassWithNullableArrayProperties() { fInt = new int?[3] { -2, 1, 0 }, fFloat = new float?[3] { 0.99f, 0f, -0.99f }, fString = new string[2] { "lola", "hola" } },
+                new ClassWithNullableArrayProperties() { IntProp = new int?[3] { -2, 1, 0 }, SingleProp = new float?[3] { 0.99f, 0f, -0.99f }, StringProp = new string[2] { "lola", "hola" } },
                 new ClassWithNullableArrayProperties()
             };
 

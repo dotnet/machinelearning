@@ -72,6 +72,7 @@ namespace Microsoft.ML.Runtime.Api
                     return (Delegate)methInfoProp.Invoke(null, new object[] { propertyInfo, assignmentOpCodeProp });
 
                 default:
+                    Contracts.Assert(false);
                     throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
 
             }
@@ -147,6 +148,7 @@ namespace Microsoft.ML.Runtime.Api
                     return (Delegate)methInfoProp.Invoke(null, new object[] { propertyInfo });
 
                 default:
+                    Contracts.Assert(false);
                     throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
             }
         }

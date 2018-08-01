@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Api
 
             var cursorChannelAttrProperties = typeof(T)
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(x => x.CanRead && x.CanWrite && x.GetIndexParameters().Length == 0)
+                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0)
                 .Where(x => x.GetCustomAttributes(typeof(CursorChannelAttribute), false).Any());
 
             var cursorChannelAttrMembers = (cursorChannelAttrFields as IEnumerable<MemberInfo>).Concat(cursorChannelAttrProperties).ToArray();
@@ -189,6 +189,7 @@ namespace Microsoft.ML.Runtime.Api
                     break;
 
                 default:
+                    Contracts.Assert(false);
                     throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
             }
             return true;
@@ -340,11 +341,11 @@ namespace Microsoft.ML.Runtime.Api
             SchemaDefinition cols = new SchemaDefinition();
             HashSet<string> colNames = new HashSet<string>();
 
-            var fieldInfos = userType.GetFields();
+            var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
             var propertyInfos =
                 userType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(x => x.CanRead && x.CanWrite && x.GetIndexParameters().Length == 0);
+                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0);
 
             var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
 
@@ -372,6 +373,7 @@ namespace Microsoft.ML.Runtime.Api
                         break;
 
                     default:
+                        Contracts.Assert(false);
                         throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
                 }
 
