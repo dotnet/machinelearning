@@ -46,6 +46,32 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string Summary = "Runs a previously trained predictor on the data.";
 
+        /// <summary>
+        /// Convenience method for creating <see cref="ScoreTransform"/>.
+        /// The <see cref="ScoreTransform"/> allows for model stacking (i.e. to combine information from multiple predictive models to generate a new model)
+        /// in the pipeline by using the scores from an already trained model.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
+        /// <param name="inputModelFile">The model file.</param>
+        /// <param name="featureColumn">Role name for the features.</param>
+        /// <param name="groupColumn">Role name for the group column.</param>
+        public static IDataTransform Create(IHostEnvironment env,
+            IDataView input,
+            string inputModelFile,
+            string featureColumn = DefaultColumnNames.Features,
+            string groupColumn = DefaultColumnNames.GroupId)
+        {
+            var args = new Arguments()
+            {
+                FeatureColumn = featureColumn,
+                GroupColumn = groupColumn,
+                InputModelFile = inputModelFile
+            };
+
+            return Create(env, args, input);
+        }
+
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -62,9 +88,9 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             string feat = TrainUtils.MatchNameOrDefaultOrNull(env, input.Schema,
-                    "featureColumn", args.FeatureColumn, DefaultColumnNames.Features);
+                    nameof(args.FeatureColumn), args.FeatureColumn, DefaultColumnNames.Features);
             string group = TrainUtils.MatchNameOrDefaultOrNull(env, input.Schema,
-                "groupColumn", args.GroupColumn, DefaultColumnNames.GroupId);
+                nameof(args.GroupColumn), args.GroupColumn, DefaultColumnNames.GroupId);
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(env, args.CustomColumn);
 
             return ScoreUtils.GetScorer(args.Scorer, predictor, input, feat, group, customCols, env, trainSchema);
@@ -131,20 +157,66 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string Summary = "Trains a predictor, or loads it from a file, and runs it on the data.";
 
+        /// <summary>
+        /// Convenience method for creating <see cref="TrainAndScoreTransform"/>.
+        /// The <see cref="TrainAndScoreTransform"/> allows for model stacking (i.e. to combine information from multiple predictive models to generate a new model)
+        /// in the pipeline by training a model first and then using the scores from the trained model.
+        ///
+        /// Unlike <see cref="ScoreTransform"/>, the <see cref="TrainAndScoreTransform"/> trains the model on the fly as name indicates.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
+        /// <param name="trainer">The <see cref="ITrainer"/> object i.e. the learning algorithm that will be used for training the model.</param>
+        /// <param name="featureColumn">Role name for features.</param>
+        /// <param name="labelColumn">Role name for label.</param>
+        /// <param name="groupColumn">Role name for the group column.</param>
+        public static IDataTransform Create(IHostEnvironment env,
+            IDataView input,
+            ITrainer trainer,
+            string featureColumn = DefaultColumnNames.Features,
+            string labelColumn = DefaultColumnNames.Label,
+            string groupColumn = DefaultColumnNames.GroupId)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(input, nameof(input));
+            env.CheckValue(trainer, nameof(trainer));
+            env.CheckValue(featureColumn, nameof(featureColumn));
+            env.CheckValue(labelColumn, nameof(labelColumn));
+            env.CheckValue(groupColumn, nameof(groupColumn));
+
+            var args = new Arguments()
+            {
+                FeatureColumn = featureColumn,
+                LabelColumn = labelColumn,
+                GroupColumn = groupColumn
+            };
+
+            return Create(env, args, trainer, input);
+        }
+
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
-            env.CheckValue(input, nameof(input));
             env.CheckUserArg(args.Trainer.IsGood(), nameof(args.Trainer),
                 "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
+            env.CheckValue(input, nameof(input));
+
+            return Create(env, args, args.Trainer.CreateInstance(env), input);
+        }
+
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, ITrainer trainer, IDataView input)
+        {
+            Contracts.AssertValue(env, nameof(env));
+            env.AssertValue(args, nameof(args));
+            env.AssertValue(trainer, nameof(trainer));
+            env.AssertValue(input, nameof(input));
 
             var host = env.Register("TrainAndScoreTransform");
 
             using (var ch = host.Start("Train"))
             {
                 ch.Trace("Constructing trainer");
-                ITrainer trainer = args.Trainer.CreateInstance(host);
                 var customCols = TrainUtils.CheckAndGenerateCustomColumns(env, args.CustomColumn);
                 string feat;
                 string group;
@@ -181,7 +253,7 @@ namespace Microsoft.ML.Runtime.Data
             var name = TrainUtils.MatchNameOrDefaultOrNull(ectx, schema, nameof(args.NameColumn), args.NameColumn,
                 DefaultColumnNames.Name);
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(ectx, args.CustomColumn);
-            return TrainUtils.CreateExamples(input, label, feat, group, weight, name, customCols);
+            return new RoleMappedData(input, label, feat, group, weight, name, customCols);
         }
     }
 }

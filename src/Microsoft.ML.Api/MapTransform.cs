@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Api
     /// It doesn't change the number of rows, and can be seen as a result of application of the user's function
     /// to every row of the input data.
     /// Similarly to the existing <see cref="IDataTransform"/>'s, this object can be treated as both the 'transformation' algorithm
-    /// (which can be then applied to different data by calling <see cref="ApplyToData"/>), and the transformed data (which can 
+    /// (which can be then applied to different data by calling <see cref="ApplyToData"/>), and the transformed data (which can
     /// be enumerated upon by calling <c>GetRowCursor</c> or <c>AsCursorable{TRow}</c>).
     /// </summary>
     /// <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the input <see cref="IDataView"/>.</typeparam>
@@ -36,8 +36,8 @@ namespace Microsoft.ML.Runtime.Api
         private static string RegistrationName { get { return string.Format(RegistrationNameTemplate, typeof(TSrc).FullName, typeof(TDst).FullName); } }
 
         /// <summary>
-        /// Create a a map transform that is savable iff <paramref name="saveAction"/> and <paramref name="loadFunc"/> are 
-        /// not null. 
+        /// Create a a map transform that is savable iff <paramref name="saveAction"/> and <paramref name="loadFunc"/> are
+        /// not null.
         /// </summary>
         /// <param name="env">The host environment</param>
         /// <param name="source">The dataview upon which we construct the transform</param>
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="loadFunc">A function that given the serialization stream and a data view, returns
         /// an <see cref="ITransformTemplate"/>. The intent is, this returned object should itself be a
         /// <see cref="MapTransform{TSrc,TDst}"/>, but this is not strictly necessary. This delegate should be
-        /// a static non-lambda method that this assembly can legally call. May be null simultaneously with 
+        /// a static non-lambda method that this assembly can legally call. May be null simultaneously with
         /// <paramref name="saveAction"/>.</param>
         /// <param name="inputSchemaDefinition">The schema definition overrides for <typeparamref name="TSrc"/></param>
         /// <param name="outputSchemaDefinition">The schema definition overrides for <typeparamref name="TDst"/></param>

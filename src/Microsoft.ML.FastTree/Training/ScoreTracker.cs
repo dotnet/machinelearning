@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         }
 
         //InitScores -initScores can be null in such case the scores are reinitialized to Zero
-        private void InitializeScores(double[] initScores /* = null */)
+        private void InitializeScores(double[] initScores)
         {
             if (initScores == null)
             {

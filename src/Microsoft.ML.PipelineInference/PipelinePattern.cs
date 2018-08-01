@@ -55,18 +55,18 @@ namespace Microsoft.ML.Runtime.PipelineInference
         private readonly IHostEnvironment _env;
         public readonly TransformInference.SuggestedTransform[] Transforms;
         public readonly RecipeInference.SuggestedRecipe.SuggestedLearner Learner;
-        public AutoInference.RunSummary PerformanceSummary { get; set; }
+        public PipelineSweeperRunSummary PerformanceSummary { get; set; }
         public string LoaderSettings { get; set; }
         public Guid UniqueId { get; }
 
         public PipelinePattern(TransformInference.SuggestedTransform[] transforms,
             RecipeInference.SuggestedRecipe.SuggestedLearner learner,
-            string loaderSettings, IHostEnvironment env, AutoInference.RunSummary summary = null)
+            string loaderSettings, IHostEnvironment env, PipelineSweeperRunSummary summary = null)
         {
             // Make sure internal pipeline nodes and sweep params are cloned, not shared.
             // Cloning the transforms and learner rather than assigning outright
-            // ensures that this will be the case. Doing this here allows us to not 
-            // worry about changing hyperparameter values in candidate pipelines 
+            // ensures that this will be the case. Doing this here allows us to not
+            // worry about changing hyperparameter values in candidate pipelines
             // possibly overwritting other pipelines.
             Transforms = transforms.Select(t => t.Clone()).ToArray();
             Learner = learner.Clone();
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         /// <summary>
         /// This method will return some indentifying string for the pipeline,
-        /// based on transforms, learner, and (eventually) hyperparameters. 
+        /// based on transforms, learner, and (eventually) hyperparameters.
         /// </summary>
         public override string ToString() => $"{Learner}+{string.Join("+", Transforms.Select(t => t.ToString()))}";
 
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             Var<IDataView> firstInput = new Var<IDataView> { VarName = graphDef.GetSubgraphFirstNodeDataVarName(_env) };
             var finalOutput = graphDef.ModelOutput;
 
-            // TrainTestMacro 
+            // TrainTestMacro
             var trainTestInput = new Models.TrainTestEvaluator
             {
                 TransformModel = null,
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             var firstInput = new Var<IDataView> { VarName = graphDef.GetSubgraphFirstNodeDataVarName(_env) };
             var finalOutput = graphDef.ModelOutput;
 
-            // TrainTestMacro 
+            // TrainTestMacro
             var trainTestInput = new Models.TrainTestEvaluator
             {
                 Nodes = subGraph,
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// Runs a train-test experiment on the current pipeline, through entrypoints.
         /// </summary>
         public void RunTrainTestExperiment(IDataView trainData, IDataView testData,
-            AutoInference.SupportedMetric metric, MacroUtils.TrainerKinds trainerKind, out double testMetricValue,
+            SupportedMetric metric, MacroUtils.TrainerKinds trainerKind, out double testMetricValue,
             out double trainMetricValue)
         {
             var experiment = CreateTrainTestExperiment(trainData, testData, trainerKind, true, out var trainTestOutput);
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             var graphDef = ToEntryPointGraph();
 
-            return new PipelineResultRow($"{{'Nodes' : [{graphDef.Graph.ToJsonString()}]}}",
+            return new PipelineResultRow($"{{\"Nodes\" : [{graphDef.Graph.ToJsonString()}]}}",
                 PerformanceSummary?.MetricValue ?? -1d, UniqueId.ToString("N"),
                 PerformanceSummary?.TrainingMetricValue ?? -1d,
                 graphDef.GetSubgraphFirstNodeDataVarName(_env),

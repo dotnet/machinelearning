@@ -33,8 +33,8 @@ namespace Microsoft.ML.Runtime.Data
             public int? NumSlotsToKeep;
 
             [Argument(ArgumentType.Multiple, HelpText = "Filter", ShortName = "f", SortOrder = 1)]
-            public SubComponent<ITrainer<RoleMappedData, IPredictorWithFeatureWeights<Single>>, SignatureFeatureScorerTrainer> Filter =
-                new SubComponent<ITrainer<RoleMappedData, IPredictorWithFeatureWeights<Single>>, SignatureFeatureScorerTrainer>("SDCA");
+            public SubComponent<ITrainer<IPredictorWithFeatureWeights<Single>>, SignatureFeatureScorerTrainer> Filter =
+                new SubComponent<ITrainer<IPredictorWithFeatureWeights<Single>>, SignatureFeatureScorerTrainer>("SDCA");
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for features", ShortName = "feat,col", SortOrder = 3, Purpose = SpecialPurpose.ColumnName)]
             public string FeatureColumn = DefaultColumnNames.Features;
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Runtime.Data
                 ch.Trace("Binding columns");
 
                 var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, args.CustomColumn);
-                var data = TrainUtils.CreateExamples(view, label, feature, group, weight, name, customCols);
+                var data = new RoleMappedData(view, label, feature, group, weight, name, customCols);
 
                 var predictor = TrainUtils.Train(host, ch, data, trainer, args.Filter.Kind, null,
                     null, 0, args.CacheData);

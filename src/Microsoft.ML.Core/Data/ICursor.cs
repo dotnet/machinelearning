@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.Data
         /// This is incremented for ICursor when the underlying contents changes, giving clients a way to detect change.
         /// Generally it's -1 when the object is in an invalid state. In particular, for an <see cref="ICursor"/>, this is -1
         /// when the <see cref="ICursor.State"/> is <see cref="CursorState.NotStarted"/> or <see cref="CursorState.Done"/>.
-        /// 
+        ///
         /// Note that this position is not position within the underlying data, but position of this cursor only.
         /// If one, for example, opened a set of parallel streaming cursors, or a shuffled cursor, each such cursor's
         /// first valid entry would always have position 0.
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
         /// batch numbers should be non-decreasing. Furthermore, any given batch number should only appear in one
         /// of the streams. Order is determined by batch number. The reconciler ensures that each stream (that is
         /// still active) has at least one item available, then takes the item with the smallest batch number.
-        /// 
+        ///
         /// Note that there is no suggestion that the batches for a particular entry will be consistent from
         /// cursoring to cursoring, except for the consistency in resulting in the same overall ordering. The same
         /// entry could have different batch numbers from one cursoring to another. There is also no requirement
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.Data
         /// will produce the same data as a serial cursor or any other shuffled cursor, only shuffled. The ID
         /// exists for applications that need to reconcile which entry is actually which. Ideally this ID should
         /// be unique, but for practical reasons, it suffices if collisions are simply extremely improbable.
-        /// 
+        ///
         /// Note that this ID, while it must be consistent for multiple streams according to the semantics
         /// above, is not considered part of the data per se. So, to take the example of a data view specifically,
         /// a single data view must render consistent IDs across all cursorings, but there is no suggestion at
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Returns the state of the cursor. Before the first call to <see cref="MoveNext"/> or
         /// <see cref="MoveMany(long)"/> this should be <see cref="CursorState.NotStarted"/>. After
         /// any call those move functions that returns <c>true</c>, this should return
-        /// <see cref="CursorState.Good"/>, 
+        /// <see cref="CursorState.Good"/>,
         /// </summary>
         CursorState State { get; }
 

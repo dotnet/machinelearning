@@ -14,7 +14,7 @@ using System.IO;
 
 namespace Microsoft.ML
 {
-    class ScorerPipelineStep : ILearningPipelineDataStep
+    public sealed class ScorerPipelineStep : ILearningPipelineDataStep
     {
         public ScorerPipelineStep(Var<IDataView> data, Var<ITransformModel> model)
         {
@@ -26,12 +26,11 @@ namespace Microsoft.ML
         public Var<ITransformModel> Model { get; }
     }
 
-
     /// <summary>
     /// The <see cref="LearningPipeline"/> class is used to define the steps needed to perform a desired machine learning task.<para/>
-    /// The steps are defined by adding a data loader (e.g. <see cref="TextLoader"/>) followed by zero or more transforms (e.g. <see cref="Microsoft.ML.Transforms.TextFeaturizer"/>) 
+    /// The steps are defined by adding a data loader (e.g. <see cref="TextLoader"/>) followed by zero or more transforms (e.g. <see cref="Microsoft.ML.Transforms.TextFeaturizer"/>)
     /// and at most one trainer/learner (e.g. <see cref="Microsoft.ML.Trainers.FastTreeBinaryClassifier"/>) in the pipeline.
-    /// 
+    ///
     /// </summary>
     /// <example>
     /// <para/>
@@ -41,14 +40,14 @@ namespace Microsoft.ML
     /// pipeline.Add(new TextLoader &lt;SentimentData&gt; (dataPath, separator: ","));
     /// pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
     /// pipeline.Add(new FastTreeBinaryClassifier());
-    /// 
+    ///
     /// var model = pipeline.Train&lt;SentimentData, SentimentPrediction&gt;();
     /// </code>
     /// </example>
     [DebuggerTypeProxy(typeof(LearningPipelineDebugProxy))]
     public class LearningPipeline : ICollection<ILearningPipelineItem>
     {
-        private List<ILearningPipelineItem> Items { get; } = new List<ILearningPipelineItem>();
+        private List<ILearningPipelineItem> Items { get; }
         private readonly int? _seed;
         private readonly int _conc;
 
@@ -56,9 +55,8 @@ namespace Microsoft.ML
         /// Construct an empty <see cref="LearningPipeline"/> object.
         /// </summary>
         public LearningPipeline()
+            : this(conc: 0)
         {
-            _seed = null;
-            _conc = 0;
         }
 
         /// <summary>
@@ -68,6 +66,7 @@ namespace Microsoft.ML
         /// <param name="conc">Specify concurrency factor (default value - autoselection)</param>
         internal LearningPipeline(int? seed = null, int conc = 0)
         {
+            Items = new List<ILearningPipelineItem>();
             _seed = seed;
             _conc = conc;
         }
@@ -79,7 +78,7 @@ namespace Microsoft.ML
         public bool IsReadOnly => false;
 
         /// <summary>
-        /// Add a data loader, transform or trainer into the pipeline. 
+        /// Add a data loader, transform or trainer into the pipeline.
         /// Possible data loader(s), transforms and trainers options are
         /// <para>
         /// Data Loader:

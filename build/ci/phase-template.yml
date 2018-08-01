@@ -1,0 +1,37 @@
+parameters:
+  name: ''
+  buildScript: ''
+  dockerImage: ''
+  queue: {}
+
+phases:
+  - phase: ${{ parameters.name }}
+    variables:
+      _buildScript: ${{ parameters.buildScript }}
+      _phaseName: ${{ parameters.name }}
+      # if dockerImage is not equal to '' then run under docker container
+      ${{ if ne(parameters.dockerImage, '') }}:
+        _PREVIEW_VSTS_DOCKER_IMAGE: ${{ parameters.dockerImage }}
+    queue:
+      parallel: 2
+      matrix:
+        Build_Debug:
+          _configuration: Debug
+        Build_Release:
+          _configuration: Release 
+      ${{ insert }}: ${{ parameters.queue }}
+    steps:
+    - script: $(_buildScript) -$(_configuration) -runtests
+      displayName: Build and Test
+    - task: PublishTestResults@2
+      displayName: Publish Test Results
+      condition: succeededOrFailed()
+      inputs:
+        testRunner: 'vSTest'
+        searchFolder: '$(System.DefaultWorkingDirectory)/bin'
+        testResultsFiles: '**/*.trx'
+        testRunTitle: Machinelearning_Tests_$(_phaseName)_$(_configuration)_$(Build.BuildNumber)
+        configuration: $(_configuration)
+        mergeTestResults: true
+    - script: $(_buildScript) -buildPackages
+      displayName: Build Packages

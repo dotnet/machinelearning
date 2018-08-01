@@ -157,13 +157,13 @@ namespace Microsoft.ML.Runtime.Data
             ch.Trace("Binding columns");
 
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
-            var data = TrainUtils.CreateExamples(view, label, feature, group, weight, name, customCols);
+            var data = new RoleMappedData(view, label, feature, group, weight, name, customCols);
 
             // REVIEW: Unify the code that creates validation examples in Train, TrainTest and CV commands.
             RoleMappedData validData = null;
             if (!string.IsNullOrWhiteSpace(Args.ValidationFile))
             {
-                if (!TrainUtils.CanUseValidationData(trainer))
+                if (!trainer.Info.SupportsValidation)
                 {
                     ch.Warning("Ignoring validationFile: Trainer does not accept validation dataset.");
                 }
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Runtime.Data
                     ch.Trace("Constructing the validation pipeline");
                     IDataView validPipe = CreateRawLoader(dataFile: Args.ValidationFile);
                     validPipe = ApplyTransformUtils.ApplyAllTransformsToData(Host, view, validPipe);
-                    validData = RoleMappedData.Create(validPipe, data.Schema.GetColumnRoleNames());
+                    validData = new RoleMappedData(validPipe, data.Schema.GetColumnRoleNames());
                 }
             }
 
@@ -222,9 +222,9 @@ namespace Microsoft.ML.Runtime.Data
                 return userName;
             if (userName == defaultName)
                 return null;
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
             throw ectx.ExceptUserArg(argName, $"Could not find column '{userName}'");
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
         }
 
         public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name,
@@ -235,14 +235,14 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name, RoleMappedData validData,
-            SubComponent<ICalibratorTrainer, SignatureCalibrator> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inpPredictor = null)
+            SubComponent<ICalibratorTrainer, SignatureCalibrator> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null)
         {
             ICalibratorTrainer caliTrainer = !calibrator.IsGood() ? null : calibrator.CreateInstance(env);
-            return TrainCore(env, ch, data, trainer, name, validData, caliTrainer, maxCalibrationExamples, cacheData, inpPredictor);
+            return TrainCore(env, ch, data, trainer, name, validData, caliTrainer, maxCalibrationExamples, cacheData, inputPredictor);
         }
 
         private static IPredictor TrainCore(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name, RoleMappedData validData,
-            ICalibratorTrainer calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inpPredictor = null)
+            ICalibratorTrainer calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
@@ -250,79 +250,22 @@ namespace Microsoft.ML.Runtime.Data
             ch.CheckValue(trainer, nameof(trainer));
             ch.CheckNonEmpty(name, nameof(name));
             ch.CheckValueOrNull(validData);
-            ch.CheckValueOrNull(inpPredictor);
+            ch.CheckValueOrNull(inputPredictor);
 
-            var trainerRmd = trainer as ITrainer<RoleMappedData>;
-            if (trainerRmd == null)
-                throw ch.ExceptUserArg(nameof(TrainCommand.Arguments.Trainer), "Trainer '{0}' does not accept known training data type", name);
-
-            Action<IChannel, ITrainer, Action<object>, object, object, object> trainCoreAction = TrainCore;
-            IPredictor predictor;
             AddCacheIfWanted(env, ch, trainer, ref data, cacheData);
             ch.Trace("Training");
             if (validData != null)
                 AddCacheIfWanted(env, ch, trainer, ref validData, cacheData);
 
-            var genericExam = trainCoreAction.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(
-                typeof(RoleMappedData),
-                inpPredictor != null ? inpPredictor.GetType() : typeof(IPredictor));
-            Action<RoleMappedData> trainExam = trainerRmd.Train;
-            genericExam.Invoke(null, new object[] { ch, trainerRmd, trainExam, data, validData, inpPredictor });
-
-            ch.Trace("Constructing predictor");
-            predictor = trainerRmd.CreatePredictor();
+            if (inputPredictor != null && !trainer.Info.SupportsIncrementalTraining)
+            {
+                ch.Warning("Ignoring " + nameof(TrainCommand.Arguments.InputModelFile) +
+                    ": Trainer does not support incremental training.");
+                inputPredictor = null;
+            }
+            ch.Assert(validData == null || trainer.Info.SupportsValidation);
+            var predictor = trainer.Train(new TrainContext(data, validData, inputPredictor));
             return CalibratorUtils.TrainCalibratorIfNeeded(env, ch, calibrator, maxCalibrationExamples, trainer, predictor, data);
-        }
-
-        public static bool CanUseValidationData(ITrainer trainer)
-        {
-            Contracts.CheckValue(trainer, nameof(trainer));
-
-            if (trainer is ITrainer<RoleMappedData>)
-                return trainer is IValidatingTrainer<RoleMappedData>;
-
-            return false;
-        }
-
-        private static void TrainCore<TDataSet, TPredictor>(IChannel ch, ITrainer trainer, Action<TDataSet> train, TDataSet data, TDataSet validData = null, TPredictor predictor = null)
-            where TDataSet : class
-            where TPredictor : class
-        {
-            const string inputModelArg = nameof(TrainCommand.Arguments.InputModelFile);
-            if (validData != null)
-            {
-                if (predictor != null)
-                {
-                    var incValidTrainer = trainer as IIncrementalValidatingTrainer<TDataSet, TPredictor>;
-                    if (incValidTrainer != null)
-                    {
-                        incValidTrainer.Train(data, validData, predictor);
-                        return;
-                    }
-
-                    ch.Warning("Ignoring " + inputModelArg + ": Trainer is not an incremental trainer.");
-                }
-
-                var validTrainer = trainer as IValidatingTrainer<TDataSet>;
-                ch.AssertValue(validTrainer);
-                validTrainer.Train(data, validData);
-            }
-            else
-            {
-                if (predictor != null)
-                {
-                    var incTrainer = trainer as IIncrementalTrainer<TDataSet, TPredictor>;
-                    if (incTrainer != null)
-                    {
-                        incTrainer.Train(data, predictor);
-                        return;
-                    }
-
-                    ch.Warning("Ignoring " + inputModelArg + ": Trainer is not an incremental trainer.");
-                }
-
-                train(data);
-            }
         }
 
         public static bool TryLoadPredictor(IChannel ch, IHostEnvironment env, string inputModelFile, out IPredictor inputPredictor)
@@ -348,7 +291,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Save the model to the output path.
-        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor 
+        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor
         /// and command. It also uses featureColumn, if provided, to extract feature names.
         /// </summary>
         /// <param name="env">The host environment to use.</param>
@@ -373,7 +316,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Save the model to the stream.
-        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor 
+        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor
         /// and command. It also uses featureColumn, if provided, to extract feature names.
         /// </summary>
         /// <param name="env">The host environment to use.</param>
@@ -438,9 +381,8 @@ namespace Microsoft.ML.Runtime.Data
             IDataView pipeStart;
             var xfs = BacktrackPipe(dataPipe, out pipeStart);
 
-            IDataLoader loader;
             Action<ModelSaveContext> saveAction;
-            if (!blankLoader && (loader = pipeStart as IDataLoader) != null)
+            if (!blankLoader && pipeStart is IDataLoader loader)
                 saveAction = loader.Save;
             else
             {
@@ -458,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Traces back the .Source chain of the transformation pipe <paramref name="dataPipe"/> up to the moment it no longer can.
-        /// Returns all the transforms of <see cref="IDataView"/> and the first data view (a non-transform). 
+        /// Returns all the transforms of <see cref="IDataView"/> and the first data view (a non-transform).
         /// </summary>
         /// <param name="dataPipe">The transformation pipe to traverse.</param>
         /// <param name="pipeStart">The beginning data view of the transform chain</param>
@@ -468,16 +410,11 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(dataPipe);
 
             var transforms = new List<IDataTransform>();
-            while (true)
+            while (dataPipe is IDataTransform xf)
             {
                 // REVIEW: a malicious user could construct a loop in the Source chain, that would
-                // cause this method to iterate forever (and throw something when the list overflows). There's 
+                // cause this method to iterate forever (and throw something when the list overflows). There's
                 // no way to insulate from ALL malicious behavior.
-
-                var xf = dataPipe as IDataTransform;
-                if (xf == null)
-                    break;
-
                 transforms.Add(xf);
                 dataPipe = xf.Source;
                 Contracts.AssertValue(dataPipe);
@@ -514,11 +451,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (autoNorm != NormalizeOption.Yes)
                 {
-                    var nn = trainer as ITrainerEx;
                     DvBool isNormalized = DvBool.False;
-                    if (nn == null || !nn.NeedNormalization ||
-                        (schema.TryGetMetadata(BoolType.Instance, MetadataUtils.Kinds.IsNormalized, featCol, ref isNormalized) &&
-                        isNormalized.IsTrue))
+                    if (!trainer.Info.NeedNormalization || schema.IsNormalized(featCol))
                     {
                         ch.Info("Not adding a normalizer.");
                         return false;
@@ -530,20 +464,13 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
                 ch.Info("Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.");
-                // Quote the feature column name
-                string quotedFeatureColumnName = featureColumn;
-                StringBuilder sb = new StringBuilder();
-                if (CmdQuoter.QuoteValue(quotedFeatureColumnName, sb))
-                    quotedFeatureColumnName = sb.ToString();
-                var component = new SubComponent<IDataTransform, SignatureDataTransform>("MinMax", string.Format("col={{ name={0} source={0} }}", quotedFeatureColumnName));
-                var loader = view as IDataLoader;
-                if (loader != null)
-                {
-                    view = CompositeDataLoader.Create(env, loader,
-                        new KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>(null, component));
-                }
+                IDataView ApplyNormalizer(IHostEnvironment innerEnv, IDataView input)
+                    => NormalizeTransform.CreateMinMaxNormalizer(innerEnv, input, featureColumn);
+
+                if (view is IDataLoader loader)
+                    view = CompositeDataLoader.ApplyTransform(env, loader, tag: null, creationArgs: null, ApplyNormalizer);
                 else
-                    view = component.CreateInstance(env, view);
+                    view = ApplyNormalizer(env, view);
                 return true;
             }
             return false;
@@ -556,8 +483,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.AssertValue(trainer, nameof(trainer));
             ch.AssertValue(data, nameof(data));
 
-            ITrainerEx trainerEx = trainer as ITrainerEx;
-            bool shouldCache = cacheData ?? (!(data.Data is BinaryLoader) && (trainerEx == null || trainerEx.WantCaching));
+            bool shouldCache = cacheData ?? !(data.Data is BinaryLoader) && trainer.Info.WantCaching;
 
             if (shouldCache)
             {
@@ -565,7 +491,7 @@ namespace Microsoft.ML.Runtime.Data
                 var prefetch = data.Schema.GetColumnRoles().Select(kc => kc.Value.Index).ToArray();
                 var cacheView = new CacheDataView(env, data.Data, prefetch);
                 // Because the prefetching worked, we know that these are valid columns.
-                data = RoleMappedData.Create(cacheView, data.Schema.GetColumnRoleNames());
+                data = new RoleMappedData(cacheView, data.Schema.GetColumnRoleNames());
             }
             else
                 ch.Trace("Not caching");
@@ -585,98 +511,6 @@ namespace Microsoft.ML.Runtime.Data
                     throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.CustomColumn), "Custom column with name '{0}' needs a kind. Use col[<Kind>]={0}", kindName.Value);
             }
             return customColumnArg.Select(kindName => new ColumnRole(kindName.Key).Bind(kindName.Value));
-        }
-
-        /// <summary>
-        /// Given a schema and a bunch of column names, create the BoundSchema object. Any or all of the column
-        /// names may be null or whitespace, in which case they are ignored. Any columns that are specified but not
-        /// valid columns of the schema are also ignored.
-        /// </summary>
-        public static RoleMappedSchema CreateRoleMappedSchemaOpt(ISchema schema, string feature, string group, IEnumerable<KeyValuePair<ColumnRole, string>> custom = null)
-        {
-            Contracts.CheckValueOrNull(feature);
-            Contracts.CheckValueOrNull(custom);
-
-            var list = new List<KeyValuePair<ColumnRole, string>>();
-            if (!string.IsNullOrWhiteSpace(feature))
-                list.Add(ColumnRole.Feature.Bind(feature));
-            if (!string.IsNullOrWhiteSpace(group))
-                list.Add(ColumnRole.Group.Bind(group));
-            if (custom != null)
-                list.AddRange(custom);
-
-            return RoleMappedSchema.CreateOpt(schema, list);
-        }
-
-        /// <summary>
-        /// Given a view and a bunch of column names, create the RoleMappedData object. Any or all of the column
-        /// names may be null or whitespace, in which case they are ignored. Any columns that are specified must
-        /// be valid columns of the schema.
-        /// </summary>
-        public static RoleMappedData CreateExamples(IDataView view, string label, string feature,
-            string group = null, string weight = null, string name = null,
-            IEnumerable<KeyValuePair<ColumnRole, string>> custom = null)
-        {
-            Contracts.CheckValueOrNull(label);
-            Contracts.CheckValueOrNull(feature);
-            Contracts.CheckValueOrNull(group);
-            Contracts.CheckValueOrNull(weight);
-            Contracts.CheckValueOrNull(name);
-            Contracts.CheckValueOrNull(custom);
-
-            var list = new List<KeyValuePair<ColumnRole, string>>();
-            if (!string.IsNullOrWhiteSpace(label))
-                list.Add(ColumnRole.Label.Bind(label));
-            if (!string.IsNullOrWhiteSpace(feature))
-                list.Add(ColumnRole.Feature.Bind(feature));
-            if (!string.IsNullOrWhiteSpace(group))
-                list.Add(ColumnRole.Group.Bind(group));
-            if (!string.IsNullOrWhiteSpace(weight))
-                list.Add(ColumnRole.Weight.Bind(weight));
-            if (!string.IsNullOrWhiteSpace(name))
-                list.Add(ColumnRole.Name.Bind(name));
-            if (custom != null)
-                list.AddRange(custom);
-
-            return RoleMappedData.Create(view, list);
-        }
-
-        /// <summary>
-        /// Given a view and a bunch of column names, create the RoleMappedData object. Any or all of the column
-        /// names may be null or whitespace, in which case they are ignored. Any columns that are specified but not
-        /// valid columns of the schema are also ignored.
-        /// </summary>
-        public static RoleMappedData CreateExamplesOpt(IDataView view, string label, string feature,
-            string group = null, string weight = null, string name = null,
-            IEnumerable<KeyValuePair<ColumnRole, string>> custom = null)
-        {
-            Contracts.CheckValueOrNull(label);
-            Contracts.CheckValueOrNull(feature);
-            Contracts.CheckValueOrNull(group);
-            Contracts.CheckValueOrNull(weight);
-            Contracts.CheckValueOrNull(name);
-            Contracts.CheckValueOrNull(custom);
-
-            var list = new List<KeyValuePair<ColumnRole, string>>();
-            if (!string.IsNullOrWhiteSpace(label))
-                list.Add(ColumnRole.Label.Bind(label));
-            if (!string.IsNullOrWhiteSpace(feature))
-                list.Add(ColumnRole.Feature.Bind(feature));
-            if (!string.IsNullOrWhiteSpace(group))
-                list.Add(ColumnRole.Group.Bind(group));
-            if (!string.IsNullOrWhiteSpace(weight))
-                list.Add(ColumnRole.Weight.Bind(weight));
-            if (!string.IsNullOrWhiteSpace(name))
-                list.Add(ColumnRole.Name.Bind(name));
-            if (custom != null)
-                list.AddRange(custom);
-
-            return RoleMappedData.CreateOpt(view, list);
-        }
-
-        private static KeyValuePair<ColumnRole, T> Pair<T>(ColumnRole kind, T value)
-        {
-            return new KeyValuePair<ColumnRole, T>(kind, value);
         }
     }
 }

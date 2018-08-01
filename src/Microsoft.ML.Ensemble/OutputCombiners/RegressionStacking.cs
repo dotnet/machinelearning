@@ -39,7 +39,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         {
             public Arguments()
             {
-                BasePredictorType = new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureRegressorTrainer>("FastTreeRegression");
+                BasePredictorType = new SubComponent<ITrainer<TScalarPredictor>, SignatureRegressorTrainer>("FastTreeRegression");
             }
 
             public IRegressionOutputCombiner CreateComponent(IHostEnvironment env) => new RegressionStacking(env, this);
