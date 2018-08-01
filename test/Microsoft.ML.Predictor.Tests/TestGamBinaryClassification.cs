@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var dataset = LoadDataset(env);
 
-                var binaryTrainer = new BinaryClassificationGamTrainer(env, new BinaryClassificationGamTrainer.Arguments());
+                var binaryTrainer = new BinaryClassificationGamTrainer(env, new BinaryClassificationGamTrainer.Arguments() { LearningRates = 0.1 });
                 binaryTrainer.Train(dataset);
                 var binaryPredictor = binaryTrainer.CreatePredictor();
 
