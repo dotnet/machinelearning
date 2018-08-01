@@ -25,6 +25,11 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="LdaNative" />
+	<NativeAssemblyReference Include="SymSgdNative" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
   </ItemGroup>
   
   <ItemGroup>
