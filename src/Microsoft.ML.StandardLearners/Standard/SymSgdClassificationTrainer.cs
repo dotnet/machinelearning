@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -717,8 +717,11 @@ namespace Microsoft.ML.Runtime.SymSgd
 
             static Native()
             {
-                //Work around to get libMKLImport loaded before SymSGDNative
-                cblas_sdot(0, null, 0, null, 0);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    //Work around to get libMKLImport loaded before SymSGDNative
+                    cblas_sdot(0, null, 0, null, 0);
+                }
             }
 
             [DllImport(MklDllName), SuppressUnmanagedCodeSecurity]
