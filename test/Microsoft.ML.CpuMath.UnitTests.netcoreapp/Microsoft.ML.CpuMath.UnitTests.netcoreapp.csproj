@@ -3,8 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <!-- The SDK we currently restore and use has 2.0 as the maximum supported version -->
-    <NETCoreAppMaximumVersion>3.0</NETCoreAppMaximumVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -13,6 +13,7 @@
   --> 
 
   <Target Name="_IsProjectRestoreSupported"/>
+  <Target Name="_CheckForInvalidConfigurationAndPlatform"/>
   <Target Name="Restore"/>
   <Target Name="Build"/>
   <Target Name="Test"/>
