@@ -19,11 +19,13 @@ endif()
 
 add_library(SymSgdNative SHARED ${SOURCES} ${RESOURCES})
 target_link_libraries(SymSgdNative PUBLIC ${MKL_LIBRARY})
-
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
     set_target_properties(SymSgdNative PROPERTIES INSTALL_RPATH "${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.4/runtimes/osx-x64/native")
 else()
     set_target_properties(SymSgdNative PROPERTIES INSTALL_RPATH "${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.4/runtimes/linux-x64/native;${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.4/runtimes/win-x64/native")
 endif()        
 
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 install_library_and_symbols (SymSgdNative)
