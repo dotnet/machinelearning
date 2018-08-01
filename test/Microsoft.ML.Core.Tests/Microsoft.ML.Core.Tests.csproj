@@ -5,6 +5,7 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Api\Microsoft.ML.Api.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
