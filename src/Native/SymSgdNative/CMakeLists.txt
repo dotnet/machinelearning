@@ -14,25 +14,19 @@ else()
     else()
         message("Linking SymSgdNative with MKL on linux.")
         find_library(MKL_LIBRARY libMklImports.so HINTS ${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.5/runtimes/linux-x64/native)
+        SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+        SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+        SET(CMAKE_INSTALL_RPATH "${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.5/runtimes")
+        SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+        SET(CMAKE_INSTALL_RPATH "${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.5/runtimes")
     endif()
-    
-    # use, i.e. don't skip the full RPATH for the build tree
-    SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-    # when building, don't use the install RPATH already
-    # (but later on when installing)
-    SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-
-    SET(CMAKE_INSTALL_RPATH "${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.5/runtimes")
-
-    # add the automatically determined parts of the RPATH
-    # which point to directories outside the build tree to the install RPATH
-    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-    SET(CMAKE_INSTALL_RPATH "${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.5/runtimes")
-        
 endif()
 
 add_library(SymSgdNative SHARED ${SOURCES} ${RESOURCES})
 target_link_libraries(SymSgdNative PUBLIC ${MKL_LIBRARY})
+
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    set_target_properties(SymSgdNative PROPERTIES INSTALL_RPATH "${CMAKE_SOURCE_DIR}/../../packages/mlnetmkldeps/0.0.0.5/runtimes/osx-x64/native")
+endif()
 
 install_library_and_symbols (SymSgdNative)
