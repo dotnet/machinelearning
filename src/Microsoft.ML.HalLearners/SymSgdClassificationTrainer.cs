@@ -91,7 +91,6 @@ namespace Microsoft.ML.Runtime.SymSgd
         public override TrainerInfo Info { get; }
         private readonly Arguments _args;
 
-        ///REVIEW: Copy-paste from LinearClassificationTrainer.
         /// <summary>
         /// This method ensures that the data meets the requirements of this trainer and its
         /// subclasses, injects necessary transforms, and throws if it couldn't meet them.
