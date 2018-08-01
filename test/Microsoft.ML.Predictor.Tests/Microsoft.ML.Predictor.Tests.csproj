@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
     <ProjectReference Include="..\Microsoft.ML.InferenceTesting\Microsoft.ML.InferenceTesting.csproj" />
+    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
   </ItemGroup>
   
   <ItemGroup>
@@ -29,10 +30,6 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
   </ItemGroup>
   
 </Project>
