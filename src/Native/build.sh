@@ -99,4 +99,6 @@ cmake "$DIR" -G "Unix Makefiles" $__cmake_defines
 set +x # turn off trace
 make install
 echo "Changing libMklImports.dylib's executable path within libSymSgdNative.dylib so that loader can find it."
-install_name_tool "-change" @loader_path/libMklImports.dylib @rpath/libMklImports.dylib "$RootRepo"/bin/x64.Debug/Native/libSymSgdNative.dylib
+if [[ "$OSTYPE" == "linux"* ]]
+    install_name_tool "-change" @loader_path/libMklImports.dylib @rpath/libMklImports.dylib "$RootRepo"/bin/x64.Debug/Native/libSymSgdNative.dylib
+fi
