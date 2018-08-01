@@ -28,6 +28,11 @@
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FactorizationMachineNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
   </ItemGroup>
   
 </Project>

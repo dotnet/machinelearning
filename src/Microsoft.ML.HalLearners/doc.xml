@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <doc>
   <members>
     
@@ -22,6 +22,24 @@
         </code>
       </example>
     </member>
- 
+    <member name="SymSGD">
+      <summary>
+        Parallel Stochastic Gradient Descent trainer.
+      </summary>
+      <remarks>
+        <a href='https://en.wikipedia.org/wiki/Stochastic_gradient_descent'>Stochastic gradient descent (SGD)</a> is an interative algorithm
+        that optimizes a differentiable objective function. <a href='https://arxiv.org/abs/1705.08030'>SYMSGD</a> parallelizes SGD using Sound Combiners.
+      </remarks>
+      <example>
+        <code language="csharp">
+          new SymSgdBinaryClassifier()
+          {
+            NumberOfIterations = 50,
+            L2Regularization = 0,
+            Shuffle = true
+          }
+        </code>
+      </example>
+    </member>
   </members>
 </doc>

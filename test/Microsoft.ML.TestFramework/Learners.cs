@@ -164,6 +164,14 @@ namespace Microsoft.ML.Runtime.RunTests
         };
 
         // New.
+        public static PredictorAndArgs symSGD = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("SymSGD", "nt=1"),
+            MamlArgs = new[] { "norm=no" },
+            BaselineProgress = true
+        };
+
+        // New.
         public static PredictorAndArgs logisticRegressionNonNegative = new PredictorAndArgs
         {
             Trainer = new SubComponent("LogisticRegression", "l1=1.0 l2=0.1 ot=1e-4 nt=1 nn=+"),

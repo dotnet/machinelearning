@@ -1,0 +1,45 @@
+maml.exe TrainTest test=%Data% tr=SymSGD{nt=1} norm=No dout=%Output% data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Data fully loaded into memory.
+Not training a calibrator because it is not needed.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      152 |       87 | 0.6360
+ negative ||        2 |      442 | 0.9955
+          ||======================
+Precision ||   0.9870 |   0.8355 |
+OVERALL 0/1 ACCURACY: 0.869693
+LOG LOSS/instance:  Infinity
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): -Infinity
+AUC:                0.984941
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.984941 (0.0000)
+Accuracy:           0.869693 (0.0000)
+Positive precision: 0.987013 (0.0000)
+Positive recall:    0.635983 (0.0000)
+Negative precision: 0.835539 (0.0000)
+Negative recall:    0.995495 (0.0000)
+Log-loss:           Infinity (0.0000)
+Log-loss reduction: -Infinity (0.0000)
+F1 Score:           0.773537 (0.0000)
+AUPRC:              0.977633 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Preprocessing' started.
+[1] 'Preprocessing' finished in %Time%.
+[2] 'Training' started.
+[2] 'Training' finished in %Time%.
+[3] 'Saving model' started.
+[3] 'Saving model' finished in %Time%.

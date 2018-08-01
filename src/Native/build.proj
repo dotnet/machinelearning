@@ -90,6 +90,8 @@
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FactorizationMachineNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
     </ItemGroup>
 
     <ItemGroup>
