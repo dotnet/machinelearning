@@ -25,13 +25,21 @@ namespace Microsoft.ML.Runtime.Data
 
     /// <summary>
     /// This transform can hash either single valued columns or vector columns. For vector columns,
-    /// it hashes each slot separately. 
+    /// it hashes each slot separately.
     /// It can hash either text values or key values.
     /// </summary>
     public sealed class HashTransform : OneToOneTransformBase, ITransformTemplate
     {
         public const int NumBitsMin = 1;
         public const int NumBitsLim = 32;
+
+        private static class Defaults
+        {
+            public const int HashBits = NumBitsLim - 1;
+            public const uint Seed = 314489979;
+            public const bool Ordered = false;
+            public const int InvertHash = 0;
+        }
 
         public sealed class Arguments
         {
@@ -41,18 +49,18 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = NumBitsLim - 1;
+            public int HashBits = Defaults.HashBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
-            public uint Seed = 314489979;
+            public uint Seed = Defaults.Seed;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the position of each term should be included in the hash",
                 ShortName = "ord")]
-            public bool Ordered;
+            public bool Ordered = Defaults.Ordered;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int InvertHash;
+            public int InvertHash = Defaults.InvertHash;
         }
 
         public sealed class Column : OneToOneColumn
@@ -232,6 +240,27 @@ namespace Microsoft.ML.Runtime.Data
                 _exes[iinfo].Save(ctx);
 
             TextModelHelper.SaveAll(Host, ctx, Infos.Length, _keyValues);
+        }
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+        public HashTransform(IHostEnvironment env,
+            IDataView input,
+            string name,
+            string source = null,
+            int hashBits = Defaults.HashBits,
+            int invertHash = Defaults.InvertHash)
+            : this(env, new Arguments() {
+                Column = new[] { new Column() { Source = source ?? name, Name = name } },
+                HashBits = hashBits, InvertHash = invertHash }, input)
+        {
         }
 
         public HashTransform(IHostEnvironment env, Arguments args, IDataView input)

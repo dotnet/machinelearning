@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
     /// </summary>
     public interface IPipelineOptimizer
     {
-        PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates);
+        PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates, RoleMappedData dataRoles);
 
         void SetSpace(TransformInference.SuggestedTransform[] availableTransforms,
             RecipeInference.SuggestedRecipe.SuggestedLearner[] availableLearners,
@@ -44,6 +44,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         protected IDataView OriginalData;
         protected IDataView FullyTransformedData;
         protected AutoInference.DependencyMap DependencyMapping;
+        protected RoleMappedData DataRoles;
         protected readonly IHostEnvironment Env;
         protected readonly IHost Host;
         protected readonly Dictionary<long, bool> TransformsMaskValidity;
@@ -60,7 +61,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             ProbUtils = new SweeperProbabilityUtils(host);
         }
 
-        public abstract PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates);
+        public abstract PipelinePattern[] GetNextCandidates(IEnumerable<PipelinePattern> history, int numberOfCandidates, RoleMappedData dataRoles);
 
         public virtual void SetSpace(TransformInference.SuggestedTransform[] availableTransforms,
             RecipeInference.SuggestedRecipe.SuggestedLearner[] availableLearners,
@@ -142,7 +143,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             var proposedParamSet = sweeper.ProposeSweeps(1, AutoMlUtils.ConvertToRunResults(history, isMaximizingMetric)).First();
             Env.Assert(proposedParamSet != null && proposedParamSet.All(ps => hyperParams.Any(hp => hp.Name == ps.Name)));
 
-            // Associate proposed param set with learner, so that smart hyperparam 
+            // Associate proposed param set with learner, so that smart hyperparam
             // sweepers (like KDO) can map them back.
             learner.PipelineNode.HyperSweeperParamSet = proposedParamSet;
 

@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Api
     }
 
     /// <summary>
-    /// Describes column information such as name and the source columns indicies that this 
+    /// Describes column information such as name and the source columns indicies that this
     /// column encapsulates.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
@@ -81,12 +81,12 @@ namespace Microsoft.ML.Runtime.Api
         public string Name { get; }
 
         /// <summary>
-        /// Contains positions of indices of source columns in the form 
-        /// of ranges. Examples of range: if we want to include just column 
-        /// with index 1 we can write the range as 1, if we want to include 
+        /// Contains positions of indices of source columns in the form
+        /// of ranges. Examples of range: if we want to include just column
+        /// with index 1 we can write the range as 1, if we want to include
         /// columns 1 to 10 then we can write the range as 1-10 and we want to include all the
         /// columns from column with index 1 until end then we can write 1-*.
-        /// 
+        ///
         /// This takes sequence of ranges that are comma seperated, example:
         /// 1,2-5,10-*
         /// </summary>
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Runtime.Api
     }
 
     /// <summary>
-    /// Mark a member that implements exactly IChannel as being permitted to receive 
+    /// Mark a member that implements exactly IChannel as being permitted to receive
     /// channel information from an external channel.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
@@ -133,11 +133,11 @@ namespace Microsoft.ML.Runtime.Api
     {
         /// <summary>
         /// When passed some object, and a channel, it attempts to pass the channel to the object. It
-        /// passes the channel to the object iff the object has exactly one field marked with the 
-        /// CursorChannelAttribute, and that field implements only the IChannel interface. 
-        /// 
-        /// The function returns the modified object, as well as a boolean indicator of whether it was 
-        /// able to pass the channel to the object. 
+        /// passes the channel to the object iff the object has exactly one field marked with the
+        /// CursorChannelAttribute, and that field implements only the IChannel interface.
+        ///
+        /// The function returns the modified object, as well as a boolean indicator of whether it was
+        /// able to pass the channel to the object.
         /// </summary>
         /// <param name="obj">The object that attempts to acquire the channel.</param>
         /// <param name="channel">The channel to pass to the object.</param>
@@ -206,13 +206,13 @@ namespace Microsoft.ML.Runtime.Api
             public ColumnType ColumnType { get; set; }
 
             /// <summary>
-            /// Whether the column is a computed type. 
+            /// Whether the column is a computed type.
             /// </summary>
             public bool IsComputed { get { return Generator != null; } }
 
             /// <summary>
-            /// The generator function. if the column is computed. 
-            /// </summary> 
+            /// The generator function. if the column is computed.
+            /// </summary>
             public Delegate Generator { get; set; }
 
             public Type ReturnType => Generator?.GetMethodInfo().GetParameters().LastOrDefault().ParameterType.GetElementType();
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// Get or set the column definition by column name. 
+        /// Get or set the column definition by column name.
         /// If there's no such column:
         /// - get returns null,
         /// - set adds a new column.
@@ -287,9 +287,7 @@ namespace Microsoft.ML.Runtime.Api
         /// </summary>
         public Column this[string columnName]
         {
-#pragma warning disable TLC_NoThis // Do not use 'this' keyword for member access
             get => this.FirstOrDefault(x => x.ColumnName == columnName);
-#pragma warning restore TLC_NoThis // Do not use 'this' keyword for member access
             set
             {
                 Contracts.CheckValue(value, nameof(value));
@@ -323,11 +321,14 @@ namespace Microsoft.ML.Runtime.Api
             HashSet<string> colNames = new HashSet<string>();
             foreach (var fieldInfo in userType.GetFields())
             {
-                // Clause to handle the field that may be used to expose the cursor channel. 
+                // Clause to handle the field that may be used to expose the cursor channel.
                 // This field does not need a column.
-                // REVIEW: maybe validate the channel attribute now, instead 
+                // REVIEW: maybe validate the channel attribute now, instead
                 // of later at cursor creation.
                 if (fieldInfo.FieldType == typeof(IChannel))
+                    continue;
+                // Const fields do not need to be mapped.
+                if (fieldInfo.IsLiteral)
                     continue;
 
                 if (fieldInfo.GetCustomAttribute<NoColumnAttribute>() != null)

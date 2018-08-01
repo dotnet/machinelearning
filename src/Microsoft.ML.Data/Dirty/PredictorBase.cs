@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     {
         public const string NormalizerWarningFormat =
             "Ignoring integrated normalizer while loading a predictor of type {0}.{1}" +
-            "   Please contact tlcsupp for assistance with converting legacy models.";
+            "   Please refer to https://aka.ms/MLNetIssue for assistance with converting legacy models.";
 
         protected readonly IHost Host;
 
@@ -41,9 +41,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
             // Verify that the Float type matches.
             int cbFloat = ctx.Reader.ReadInt32();
-#pragma warning disable TLC_NoMessagesForLoadContext // This one is actually useful.
+#pragma warning disable MSML_NoMessagesForLoadContext // This one is actually useful.
             Host.CheckDecode(cbFloat == sizeof(Float), "This file was saved by an incompatible version");
-#pragma warning restore TLC_NoMessagesForLoadContext
+#pragma warning restore MSML_NoMessagesForLoadContext
         }
 
         public virtual void Save(ModelSaveContext ctx)

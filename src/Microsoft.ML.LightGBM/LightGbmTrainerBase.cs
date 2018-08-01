@@ -24,9 +24,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// <summary>
     /// Base class for all training with LightGBM.
     /// </summary>
-    public abstract class LightGbmTrainerBase<TOutput, TPredictor> :
-        ITrainer<RoleMappedData, TPredictor>,
-        IValidatingTrainer<RoleMappedData>
+    public abstract class LightGbmTrainerBase<TOutput, TPredictor> : TrainerBase<TPredictor>
         where TPredictor : IPredictorProducing<TOutput>
     {
         private sealed class CategoricalMetaData
@@ -39,89 +37,67 @@ namespace Microsoft.ML.Runtime.LightGBM
             public bool[] IsCategoricalFeature;
         }
 
-        #region members
-        private readonly IHostEnvironment _env;
-        private readonly PredictionKind _predictionKind;
-
-        protected readonly IHost Host;
-        protected readonly LightGbmArguments Args;
+        private protected readonly LightGbmArguments Args;
 
         /// <summary>
-        /// Stores argumments as objects to convert them to invariant string type in the end so that 
-        /// the code is culture agnostic. When retrieving key value from this dictionary as string 
-        /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]). 
+        /// Stores argumments as objects to convert them to invariant string type in the end so that
+        /// the code is culture agnostic. When retrieving key value from this dictionary as string
+        /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]).
         /// </summary>
-        protected readonly Dictionary<string, object> Options;
-        protected readonly IParallel ParallelTraining;
+        private protected readonly Dictionary<string, object> Options;
+        private protected readonly IParallel ParallelTraining;
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
-        protected int FeatureCount;
-        protected FastTree.Internal.Ensemble TrainedEnsemble;
+        private protected int FeatureCount;
+        private protected FastTree.Internal.Ensemble TrainedEnsemble;
 
-        internal const string Remarks = @"<remarks>Light GBM is an open source implementation of boosted trees.
-<a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a></remarks>";
+        private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false, supportValid: true);
+        public override TrainerInfo Info => _info;
 
-        #endregion
-
-        protected LightGbmTrainerBase(IHostEnvironment env, LightGbmArguments args, PredictionKind predictionKind, string name)
+        private protected LightGbmTrainerBase(IHostEnvironment env, LightGbmArguments args, string name)
+            : base(env, name)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckNonWhiteSpace(name, nameof(name));
-
-            Host = env.Register(name);
             Host.CheckValue(args, nameof(args));
 
             Args = args;
             Options = Args.ToDictionary(Host);
-            _predictionKind = predictionKind;
-            _env = env;
             ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
             InitParallelTraining();
         }
 
-        public void Train(RoleMappedData data)
+        public override TPredictor Train(TrainContext context)
         {
-            Dataset dtrain;
-            CategoricalMetaData catMetaData;
-            using (var ch = Host.Start("Loading data for LightGBM"))
-            {
-                using (var pch = Host.StartProgressChannel("Loading data for LightGBM"))
-                    dtrain = LoadTrainingData(ch, data, out catMetaData);
-                ch.Done();
-            }
-            using (var ch = Host.Start("Training with LightGBM"))
-            {
-                using (var pch = Host.StartProgressChannel("Training with LightGBM"))
-                    TrainCore(ch, pch, dtrain, catMetaData);
-                ch.Done();
-            }
-            dtrain.Dispose();
-            DisposeParallelTraining();
-        }
+            Host.CheckValue(context, nameof(context));
 
-        public void Train(RoleMappedData data, RoleMappedData validData)
-        {
-            Dataset dtrain;
-            Dataset dvalid;
+            Dataset dtrain = null;
+            Dataset dvalid = null;
             CategoricalMetaData catMetaData;
-            using (var ch = Host.Start("Loading data for LightGBM"))
+            try
             {
-                using (var pch = Host.StartProgressChannel("Loading data for LightGBM"))
+                using (var ch = Host.Start("Loading data for LightGBM"))
                 {
-                    dtrain = LoadTrainingData(ch, data, out catMetaData);
-                    dvalid = LoadValidationData(ch, dtrain, validData, catMetaData);
+                    using (var pch = Host.StartProgressChannel("Loading data for LightGBM"))
+                    {
+                        dtrain = LoadTrainingData(ch, context.TrainingSet, out catMetaData);
+                        if (context.ValidationSet != null)
+                            dvalid = LoadValidationData(ch, dtrain, context.ValidationSet, catMetaData);
+                    }
+                    ch.Done();
                 }
-                ch.Done();
+                using (var ch = Host.Start("Training with LightGBM"))
+                {
+                    using (var pch = Host.StartProgressChannel("Training with LightGBM"))
+                        TrainCore(ch, pch, dtrain, catMetaData, dvalid);
+                    ch.Done();
+                }
             }
-            using (var ch = Host.Start("Training with LightGBM"))
+            finally
             {
-                using (var pch = Host.StartProgressChannel("Training with LightGBM"))
-                    TrainCore(ch, pch, dtrain, catMetaData, dvalid);
-                ch.Done();
+                dtrain?.Dispose();
+                dvalid?.Dispose();
+                DisposeParallelTraining();
             }
-            dtrain.Dispose();
-            dvalid.Dispose();
-            DisposeParallelTraining();
+            return CreatePredictor();
         }
 
         private void InitParallelTraining()
@@ -181,7 +157,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         private FloatLabelCursor.Factory CreateCursorFactory(RoleMappedData data)
         {
             var loadFlags = CursOpt.AllLabels | CursOpt.AllWeights | CursOpt.Features;
-            if (_predictionKind == PredictionKind.Ranking)
+            if (PredictionKind == PredictionKind.Ranking)
                 loadFlags |= CursOpt.Group;
 
             var factory = new FloatLabelCursor.Factory(data, loadFlags);
@@ -395,7 +371,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             List<float> labelList = new List<float>();
             bool hasWeights = factory.Data.Schema.Weight != null;
             bool hasGroup = false;
-            if (_predictionKind == PredictionKind.Ranking)
+            if (PredictionKind == PredictionKind.Ranking)
             {
                 ch.Check(factory.Data.Schema != null, "The data for ranking task should have group field.");
                 hasGroup = true;
@@ -491,7 +467,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                                     hotIdx = j;
                             }
                         }
-                        // All-Zero is category 0. 
+                        // All-Zero is category 0.
                         fv = hotIdx - catMetaData.CategoricalBoudaries[i] + 1;
                     }
                     featureValues[i] = fv;
@@ -503,8 +479,8 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        private void GetFeatureValueSparse(IChannel ch, FloatLabelCursor cursor, 
-            CategoricalMetaData catMetaData, IRandom rand, out int[] indices, 
+        private void GetFeatureValueSparse(IChannel ch, FloatLabelCursor cursor,
+            CategoricalMetaData catMetaData, IRandom rand, out int[] indices,
             out float[] featureValues, out int cnt)
         {
             if (catMetaData.CategoricalBoudaries != null)
@@ -704,7 +680,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                         // Need push rows to LightGBM.
                         if (numElem + cursor.Features.Count > features.Length)
                         {
-                            // Mini batch size is greater than size of one row. 
+                            // Mini batch size is greater than size of one row.
                             // So, at least we have the data of one row.
                             ch.Assert(curRowCount > 0);
                             Utils.EnsureSize(ref indptr, curRowCount + 1);
@@ -873,14 +849,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return ret;
         }
 
-        public PredictionKind PredictionKind => _predictionKind;
-
-        IPredictor ITrainer.CreatePredictor()
-        {
-            return CreatePredictor();
-        }
-
-        public abstract TPredictor CreatePredictor();
+        private protected abstract TPredictor CreatePredictor();
 
         /// <summary>
         /// This function will be called before training. It will check the label/group and add parameters for specific applications.

@@ -265,7 +265,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public void Add(int dstSlot, ValueGetter<T> getter, ref T key)
         {
-            // REVIEW: I only call the getter if I determine I have to, but 
+            // REVIEW: I only call the getter if I determine I have to, but
             // at the cost of passing along this getter and ref argument (as opposed
             // to just the argument). Is this really appropriate or helpful?
             Contracts.Assert(0 <= dstSlot && dstSlot < _slots);

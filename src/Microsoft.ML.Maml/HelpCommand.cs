@@ -344,7 +344,7 @@ namespace Microsoft.ML.Runtime.Tools
             // REVIEW: should we replace consecutive spaces with a single space as a preprocessing step?
             int screenWidth = (columns ?? CmdParser.GetConsoleWindowWidth()) - 1;
 
-            // GetConsoleWindowWidth returns 0 if command redirection operator is used 
+            // GetConsoleWindowWidth returns 0 if command redirection operator is used
             if (screenWidth <= 0)
                 screenWidth = 80;
 

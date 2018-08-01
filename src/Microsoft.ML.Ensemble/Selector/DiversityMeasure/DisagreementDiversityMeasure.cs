@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure
 {
-    public class DisagreementDiversityMeasure : BaseDisagreementDiversityMeasure<Single>
+    public class DisagreementDiversityMeasure : BaseDisagreementDiversityMeasure<Single>, IBinaryDiversityMeasure
     {
         public const string UserName = "Disagreement Diversity Measure";
         public const string LoadName = "DisagreementDiversityMeasure";
