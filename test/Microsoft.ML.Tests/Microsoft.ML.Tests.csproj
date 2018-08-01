@@ -2,6 +2,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Scenarios\Api\AspirationalExamples.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
@@ -27,5 +30,9 @@
   
   <ItemGroup>
     <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="Scenarios\Api\AspirationalExamples.cs" />
   </ItemGroup>
 </Project>
