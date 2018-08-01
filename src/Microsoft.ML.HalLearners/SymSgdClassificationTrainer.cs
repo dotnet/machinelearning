@@ -52,7 +52,7 @@ namespace Microsoft.ML.Runtime.SymSgd
             public int NumberOfIterations = 50;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance for difference in average loss in consecutive passes.", ShortName = "tol")]
-            public float Tol = 1e-4f;
+            public float Tolerance = 1e-4f;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", NullName = "<Auto>", SortOrder = 51)]
             [TGUI(SuggestedSweeps = "<Auto>,1e1,1e0,1e-1,1e-2,1e-3")]
@@ -598,7 +598,6 @@ namespace Microsoft.ML.Runtime.SymSgd
             ch.CheckUserArg(numThreads > 0, nameof(_args.NumberOfThreads),
                 "The number of threads must be either null or a positive integer.");
 
-            ch.Assert(numThreads > 0);
             var positiveInstanceWeight = _args.PositiveInstanceWeight;
             VBuffer<float> weights = default;
             float bias = 0.0f;
@@ -646,7 +645,7 @@ namespace Microsoft.ML.Runtime.SymSgd
                                 entry => entry.SetProgress(0, state.PassIteration, _args.NumberOfIterations));
                             // If fully loaded, call the SymSGDNative and do not come back until learned for all iterations.
                             Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weights.Values, ref bias, numFeatures,
-                                _args.NumberOfIterations, numThreads, tuneNumLocIter, ref numLocIter, _args.Tol, _args.Shuffle, shouldInitialize, stateGCHandle);
+                                _args.NumberOfIterations, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize, stateGCHandle);
                             shouldInitialize = false;
                         }
                         else
@@ -667,7 +666,7 @@ namespace Microsoft.ML.Runtime.SymSgd
                                 numPassesForThisBatch = Math.Max(1, numPassesForThisBatch);
                                 state.PassIteration = iter;
                                 Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weights.Values, ref bias, numFeatures,
-                                    numPassesForThisBatch, numThreads, tuneNumLocIter, ref numLocIter, _args.Tol, _args.Shuffle, shouldInitialize, stateGCHandle);
+                                    numPassesForThisBatch, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize, stateGCHandle);
                                 shouldInitialize = false;
 
                                 // Check if we are done with going through the data
@@ -716,11 +715,12 @@ namespace Microsoft.ML.Runtime.SymSgd
 
             static Native()
             {
+                //Work around to get MKLImport.dll loaded because SymSGDNative.dll
+                //depends on it. On linux this can be loaded by deifining relative paths
+                //and on macOS the full name of the libMKLImport.dylib is defined in
+                //SymSGDNative.dll.
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    //Work around to get libMKLImport loaded before SymSGDNative
                     cblas_sdot(0, null, 0, null, 0);
-                }
             }
 
             [DllImport(MklDllName), SuppressUnmanagedCodeSecurity]
@@ -824,7 +824,7 @@ namespace Microsoft.ML.Runtime.SymSgd
         /// This is the state of a SymSGD learner that is shared between the managed and native code.
         /// </summary>
         [StructLayout(LayoutKind.Explicit)]
-        public unsafe struct State
+        internal unsafe struct State
         {
 #pragma warning disable 649 // never assigned
             [FieldOffset(0x00)]

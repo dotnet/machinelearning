@@ -10,7 +10,8 @@ using namespace std;
 // In almost every sparse dataset, there is a great imbalance in frequency of features
 // This class learns a local model for frequent features and modifies the global model for non-frequent features
 // and only applies the frequent features it learned locally to the global model after certain number of iterations
-class SymSGD {
+class SymSGD 
+{
 private:
     int _numFreqFeat;
     // Local models that is learned
@@ -24,9 +25,11 @@ private:
     // Local weightScaling for L2 regularization
     float _weightScaling, _startWeightScaling;
 public:
-    SymSGD(int numFreqFeat, int seed) {
+    SymSGD(int numFreqFeat, int seed) 
+    {
         _numFreqFeat = numFreqFeat;
-        if (numFreqFeat > 0) {
+        if (numFreqFeat > 0) 
+        {
             _localModel = new float[numFreqFeat];
             _startModel = new float[numFreqFeat];
         } else
@@ -36,7 +39,8 @@ public:
         }
     }
 
-    ~SymSGD() {
+    ~SymSGD() 
+    {
         if (_numFreqFeat > 0) {
             delete[] _localModel;
             delete[] _startModel;
@@ -45,13 +49,17 @@ public:
 
     // Learns for the local model on frequent features and global model for non-frequent features
     void LearnLocalModel(int instSize, int * instIndices,
-        float * instValues, float instLabel, float alpha, float l2Const, float piw, float* globModel) {
+        float * instValues, float instLabel, float alpha, float l2Const, float piw, float* globModel) 
+{
         float dotProduct = 0.0f;
         // Check if it is a sparse instance
-        if (instIndices) {
-            for (int i = 0; i < instSize; i++) {
+        if (instIndices) 
+        {
+            for (int i = 0; i < instSize; i++) 
+            {
                 int curIndex = instIndices[i];
-                if (curIndex < _numFreqFeat) {
+                if (curIndex < _numFreqFeat) 
+                {
                     // dotProduct on freqeunt features are computed with local model
                     dotProduct += _localModel[curIndex] * instValues[i];
                 } else
@@ -77,10 +85,13 @@ public:
             derivative *= piw;
         float derivativeCoef = -2 * alpha * derivative;
         float derivativeWeightScaledCoef = derivativeCoef / _weightScaling;
-        if (instIndices) {
-            for (int i = 0; i < instSize; i++) {
+        if (instIndices) 
+        {
+            for (int i = 0; i < instSize; i++) 
+            {
                 int curIndex = instIndices[i];
-                if (curIndex < _numFreqFeat) { // Apply the gradient to the local model for frequent features
+                if (curIndex < _numFreqFeat) 
+                { // Apply the gradient to the local model for frequent features
                     _localModel[curIndex] += derivativeWeightScaledCoef * instValues[i];
                 } else // Apply the gradient to the global model for non-frequent features
                 {
@@ -97,7 +108,8 @@ public:
     }
 
     // This method copies the global models to _localModel and _startModel
-    void ResetModel(float bias, float* globModel, float weightScaling) {
+    void ResetModel(float bias, float* globModel, float weightScaling) 
+    {
         memcpy(&_localModel[0], globModel, _numFreqFeat * sizeof(float));
         memcpy(&_startModel[0], &_localModel[0], _numFreqFeat * sizeof(float));
 
@@ -108,8 +120,10 @@ public:
     }
 
     // Adds the delta of the _localModel and _startModel to the global model for frequent features
-    void Reduction(float* globModel, float& bias, float& weightScaling) {
-        for (int i = 0; i < _numFreqFeat; i++) {
+    void Reduction(float* globModel, float& bias, float& weightScaling)
+    {
+        for (int i = 0; i < _numFreqFeat; i++) 
+        {
             globModel[i] += _localModel[i] - _startModel[i];
         }
         bias += _bias - _startBias;

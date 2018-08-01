@@ -9797,7 +9797,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Tolerance for difference in average loss in consecutive passes.
             /// </summary>
-            public float Tol { get; set; } = 0.0001f;
+            public float Tolerance { get; set; } = 0.0001f;
 
             /// <summary>
             /// Learning rate

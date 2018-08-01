@@ -15953,7 +15953,7 @@
           "Default": null
         },
         {
-          "Name": "Tol",
+          "Name": "Tolerance",
           "Type": "Float",
           "Desc": "Tolerance for difference in average loss in consecutive passes.",
           "Aliases": [
