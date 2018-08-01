@@ -106,6 +106,13 @@ if exist "%__IntermediatesDir%\INSTALL.vcxproj" goto BuildNativeProj
 goto :Failure
 
 :BuildNativeProj
+echo Copying MKL library in bin folder. This is a temporary fix.
+mkdir "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%"
+mkdir "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Tests"
+mkdir "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Tests\netcoreapp2.0"
+mkdir "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Predictor.Tests"
+mkdir "%__binDir%\AnyCPU.%CMAKE_BUILD_TYPE%\Microsoft.ML.Predictor.Tests\netcoreapp2.0"
+
 :: Build the project created by Cmake
 set __msbuildArgs=/p:Platform=%__BuildArch% /p:PlatformToolset="%__PlatformToolset%"
 
