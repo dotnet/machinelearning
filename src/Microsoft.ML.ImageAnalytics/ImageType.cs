@@ -40,10 +40,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         public override bool Equals(object other)
         {
-            var tmp = other as ColumnType;
-            if (tmp == null)
-                return false;
-            return Equals(tmp);
+            return other is ColumnType tmp && Equals(tmp);
         }
 
         public override int GetHashCode()
