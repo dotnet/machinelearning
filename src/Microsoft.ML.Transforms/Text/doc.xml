@@ -222,7 +222,14 @@
     <example name="WordEmbeddings">
       <example>
         <code language="csharp">
-          pipeline.Add(new WordEmbeddings((&quot;InVectorTextCol&quot; , &quot;OutTextCol&quot;)));
+          pipeline.Add(new TextFeaturizer(&quot;Words&quot;, &quot;InputTextCol&quot;)
+          {
+              TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
+              OutputTokens = true,
+              CharFeatureExtractor=null,
+              WordFeatureExtractor = null
+          });
+          pipeline.Add(new WordEmbeddings((&quot;Words_TransformedText&quot;, &quot;OutTextCol&quot;)));
         </code>
       </example>
     </example>
