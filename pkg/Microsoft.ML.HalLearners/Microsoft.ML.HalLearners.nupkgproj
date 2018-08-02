@@ -9,4 +9,8 @@
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
   </ItemGroup>
 
+  <ItemGroup> 
+    <Content Include="$(PackagesDir)\mlnetmkldeps\$(MlNetMklDepsPackageVersion)\LICENSE.txt" Pack="true" PackagePath=".\NOTICE.txt" /> 
+  </ItemGroup> 
+  
 </Project>
