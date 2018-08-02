@@ -433,12 +433,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 if (FloatUtils.GetBits(x) != 0 || FloatUtils.GetBits(value) != TopBit || !neg)
                 {
                     System.Diagnostics.Debug.WriteLine("*** FloatParser disagrees with Double.TryParse on: {0} ({1} vs {2})", str, FloatUtils.GetBits(x), FloatUtils.GetBits(value));
-                    //if (!_failed)
-                    //{
-                    //    // REVIEW: Double.Parse gets several things wrong, like mapping 148e-325 to 0x2 instead of 0x3.
-                    //    _failed = true;
-                    //    Contracts.Assert(false, string.Format("FloatParser disagrees with Double.TryParse on: {0} ({1} vs {2})", str, FloatUtils.GetBits(x), FloatUtils.GetBits(value)));
-                    //}
                 }
             }
 #endif

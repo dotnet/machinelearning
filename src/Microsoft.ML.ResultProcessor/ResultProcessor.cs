@@ -360,10 +360,10 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
         private const string FoldSeparatorString =
             "----------------------------------------------------------------------------------------";
 
-        private readonly static Regex _rxNameValue = new Regex(@"(?<name>.+)\s*:\s*(?<value>\S+)", RegexOptions.Compiled);
-        private readonly static Regex _rxNameValueDeviation = new Regex(@"(?<name>.+)\s*:\s*(?<value>\S+)\s*\((?<deviation>\S+)\)", RegexOptions.Compiled);
-        private readonly static Regex _rxTimeElapsed = new Regex(@"(?<executionDate>.*)\t Time elapsed\(s\): (?<timeElapsed>[\d\.]*)", RegexOptions.Compiled);
-        private readonly static Regex _rxMemoryUsage = new Regex(@"(?<memoryType>[\w]+) memory usage\(MB\): (?<memoryUsage>[\d]*)", RegexOptions.Compiled);
+        private static readonly Regex _rxNameValue = new Regex(@"(?<name>.+)\s*:\s*(?<value>\S+)", RegexOptions.Compiled);
+        private static readonly Regex _rxNameValueDeviation = new Regex(@"(?<name>.+)\s*:\s*(?<value>\S+)\s*\((?<deviation>\S+)\)", RegexOptions.Compiled);
+        private static readonly Regex _rxTimeElapsed = new Regex(@"(?<executionDate>.*)\t Time elapsed\(s\): (?<timeElapsed>[\d\.]*)", RegexOptions.Compiled);
+        private static readonly Regex _rxMemoryUsage = new Regex(@"(?<memoryType>[\w]+) memory usage\(MB\): (?<memoryUsage>[\d]*)", RegexOptions.Compiled);
 
         public static bool CheckEndOfFileReached(string[] lines)
         {
@@ -1134,7 +1134,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
         /// <summary>
         /// Deserialize a predictor, returning as an object
-        /// </summary>		
+        /// </summary>
         private static object Load(Stream stream)
         {
             BinaryFormatter bf = new BinaryFormatter();

@@ -13,20 +13,20 @@ namespace Microsoft.ML.Runtime.Data.IO.Zlib
         public const string DllPath = "zlib.dll";
 
         [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern Constants.RetCode deflateInit2_(ZStream* strm, int level, int method, int windowBits,
+        private static extern unsafe Constants.RetCode deflateInit2_(ZStream* strm, int level, int method, int windowBits,
             int memLevel, Constants.Strategy strategy, byte* version, int streamSize);
 
         [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern Constants.RetCode inflateInit2_(ZStream* strm, int windowBits, byte* version, int streamSize);
+        private static extern unsafe Constants.RetCode inflateInit2_(ZStream* strm, int windowBits, byte* version, int streamSize);
 
         [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
-        private static unsafe extern byte* zlibVersion();
+        private static extern unsafe byte* zlibVersion();
 
         [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
-        public static unsafe extern Constants.RetCode deflateEnd(ZStream* strm);
+        public static extern unsafe Constants.RetCode deflateEnd(ZStream* strm);
 
         [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
-        public static unsafe extern Constants.RetCode deflate(ZStream* strm, Constants.Flush flush);
+        public static extern unsafe Constants.RetCode deflate(ZStream* strm, Constants.Flush flush);
 
         public static unsafe Constants.RetCode DeflateInit2(ZStream* strm, int level, int method, int windowBits,
             int memLevel, Constants.Strategy strategy)
@@ -40,10 +40,10 @@ namespace Microsoft.ML.Runtime.Data.IO.Zlib
         }
 
         [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
-        public static unsafe extern Constants.RetCode inflate(ZStream* strm, Constants.Flush flush);
+        public static extern unsafe Constants.RetCode inflate(ZStream* strm, Constants.Flush flush);
 
         [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
-        public static unsafe extern Constants.RetCode inflateEnd(ZStream* strm);
+        public static extern unsafe Constants.RetCode inflateEnd(ZStream* strm);
     }
 
     [StructLayout(LayoutKind.Sequential)]

@@ -26,11 +26,34 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    using TScalarTrainer = ITrainer<RoleMappedData, IPredictorProducing<Float>>;
+    using TScalarTrainer = ITrainer<IPredictorProducing<Float>>;
     using TScalarPredictor = IPredictorProducing<Float>;
     using TDistPredictor = IDistPredictorProducing<Float, Float>;
     using CR = RoleMappedSchema.ColumnRole;
 
+    /// <summary>
+    /// In this strategy, a binary classification algorithm is trained on each pair of classes.
+    /// The pairs are unordered but created with replacement: so, if there were three classes, 0, 1,
+    /// 2, we would train classifiers for the pairs (0,0), (0,1), (0,2), (1,1), (1,2),
+    /// and(2,2). For each binary classifier, an input data point is considered a
+    /// positive example if it is in either of the two classes in the pair, and a
+    /// negative example otherwise. At prediction time, the probabilities for each
+    /// pair of classes is considered as the probability of being in either class of
+    /// the pair given the data, and the final predictive probabilities out of that
+    /// per class are calculated given the probability that an example is in any given
+    /// pair.
+    ///
+    /// These two can allow you to exploit trainers that do not naturally have a
+    /// multiclass option, e.g., using the Runtime.FastTree.FastTreeBinaryClassificationTrainer
+    /// to solve a multiclass problem.
+    /// Alternately, it can allow ML.NET to solve a "simpler" problem even in the cases
+    /// where the trainer has a multiclass option, but using it directly is not
+    /// practical due to, usually, memory constraints.For example, while a multiclass
+    /// logistic regression is a more principled way to solve a multiclass problem, it
+    /// requires that the learner store a lot more intermediate state in the form of
+    /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
+    /// as would be needed for OVA.
+    /// </summary>
     public sealed class Pkpd : MetaMulticlassTrainer<PkpdPredictor, Pkpd.Arguments>
     {
         internal const string LoadNameValue = "PKPD";
@@ -76,16 +99,15 @@ namespace Microsoft.ML.Runtime.Learners
             var roles = data.Schema.GetColumnRoleNames()
                 .Where(kvp => kvp.Key.Value != CR.Label.Value)
                 .Prepend(CR.Label.Bind(dstName));
-            var td = RoleMappedData.Create(view, roles);
+            var td = new RoleMappedData(view, roles);
 
-            trainer.Train(td);
+            var predictor = trainer.Train(td);
 
             ICalibratorTrainer calibrator;
             if (!Args.Calibrator.IsGood())
                 calibrator = null;
             else
                 calibrator = Args.Calibrator.CreateInstance(Host);
-            TScalarPredictor predictor = trainer.CreatePredictor();
             var res = CalibratorUtils.TrainCalibratorIfNeeded(Host, ch, calibrator, Args.MaxCalibrationExamples,
                 trainer, predictor, td);
             var dist = res as TDistPredictor;

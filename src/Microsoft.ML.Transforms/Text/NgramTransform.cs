@@ -376,7 +376,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var unigramNames = new VBuffer<DvText>();
 
-            // Get the key values of the unigrams. 
+            // Get the key values of the unigrams.
             Source.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, Infos[iinfo].Source, ref unigramNames);
             Host.Check(unigramNames.Length == keyCount);
 

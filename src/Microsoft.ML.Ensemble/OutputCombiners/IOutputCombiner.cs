@@ -46,7 +46,6 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
     {
     }
 
-
     [TlcModule.ComponentKind("EnsembleMulticlassOutputCombiner")]
     public interface ISupportMulticlassOutputCombinerFactory : IComponentFactory<IMultiClassOutputCombiner>
     {
@@ -63,7 +62,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
     {
 
     }
-    
+
     public interface IWeightedAverager
     {
         string WeightageMetricName { get; }

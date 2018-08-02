@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public Arguments()
             {
-                BasePredictors = new[] { new SubComponent<ITrainer<RoleMappedData, TScalarPredictor>, SignatureRegressorTrainer>("OnlineGradientDescent") };
+                BasePredictors = new[] { new SubComponent<ITrainer<TScalarPredictor>, SignatureRegressorTrainer>("OnlineGradientDescent") };
             }
         }
 
@@ -55,14 +55,11 @@ namespace Microsoft.ML.Runtime.Ensemble
             Combiner = args.OutputCombiner.CreateComponent(Host);
         }
 
-        public override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.Regression; }
-        }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public override TScalarPredictor CreatePredictor()
+        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
         {
-            return new EnsemblePredictor(Host, PredictionKind, CreateModels<TScalarPredictor>(), Combiner);
+            return new EnsemblePredictor(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
         }
 
         public TScalarPredictor CombineModels(IEnumerable<TScalarPredictor> models)

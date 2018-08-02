@@ -217,7 +217,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// This is a helper class for evaluators deriving from EvaluatorBase, used for computing aggregate metrics.
         /// Aggregators should keep track of the number of passes done. The <see cref="InitializeNextPass"/> method should get
-        /// the input getters of the given IRow that are needed for the current pass, assuming that all the needed column 
+        /// the input getters of the given IRow that are needed for the current pass, assuming that all the needed column
         /// information is stored in the given <see cref="RoleMappedSchema"/>.
         /// In <see cref="ProcessRow"/> the aggregator should call the getters once, and process the input as needed.
         /// <see cref="FinishPass"/> increments the pass count after each pass.
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.Data
                 return IsActive();
             }
 
-            /// <summary> 
+            /// <summary>
             /// This method should get the getters of the new IRow that are needed for the next pass.
             /// </summary>
             public abstract void InitializeNextPass(IRow row, RoleMappedSchema schema);
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             /// <summary>
-            /// This method calls the getter of the stratification column, and returns the aggregator corresponding to 
+            /// This method calls the getter of the stratification column, and returns the aggregator corresponding to
             /// the stratification value.
             /// </summary>
             /// <returns></returns>

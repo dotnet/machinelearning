@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             int j = 0;
             while (data.Schema.TryGetColumnIndex(stratCol, out col))
                 stratCol = string.Format("{0}_{1:000}", stratColName, j++);
-            // Construct the stratification column. If user-provided stratification column exists, use HashJoin 
+            // Construct the stratification column. If user-provided stratification column exists, use HashJoin
             // of it to construct the strat column, otherwise generate a random number and use it.
             if (stratificationColumn == null)
             {

@@ -74,9 +74,9 @@ namespace Microsoft.ML.Runtime.Data
 
             /// <summary>
             /// Metadata kind that indicates the ranges within a column that are categorical features.
-            /// The value is a vector type of ints with dimension of two. The first dimension 
+            /// The value is a vector type of ints with dimension of two. The first dimension
             /// represents the number of categorical features and second dimension represents the range
-            /// and is of size two. The range has start and end index(both inclusive) of categorical 
+            /// and is of size two. The range has start and end index(both inclusive) of categorical
             /// slots within that column.
             /// </summary>
             public const string CategoricalSlotRanges = "CategoricalSlotRanges";
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Returns a vector type with item type int and the given size. 
+        /// Returns a vector type with item type int and the given size.
         /// The range count must be a positive integer.
         /// This is a standard type for metadata consisting of multiple int values that represent
         /// categorical slot ranges with in a column.
@@ -312,7 +312,6 @@ namespace Microsoft.ML.Runtime.Data
         public static void GetSlotNames(RoleMappedSchema schema, RoleMappedSchema.ColumnRole role, int vectorSize, ref VBuffer<DvText> slotNames)
         {
             Contracts.CheckValueOrNull(schema);
-            Contracts.CheckValue(role.Value, nameof(role));
             Contracts.CheckParam(vectorSize >= 0, nameof(vectorSize));
 
             IReadOnlyList<ColumnInfo> list;
@@ -336,6 +335,22 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Returns whether a column has the <see cref="Kinds.IsNormalized"/> metadata set to true.
+        /// That metadata should be set when the data has undergone transforms that would render it
+        /// "normalized."
+        /// </summary>
+        /// <param name="schema">The schema to query</param>
+        /// <param name="col">Which column in the schema to query</param>
+        /// <returns>True if and only if the column has the <see cref="Kinds.IsNormalized"/> metadata
+        /// set to the scalar value <see cref="DvBool.True"/></returns>
+        public static bool IsNormalized(this ISchema schema, int col)
+        {
+            Contracts.CheckValue(schema, nameof(schema));
+            var value = default(DvBool);
+            return schema.TryGetMetadata(BoolType.Instance, Kinds.IsNormalized, col, ref value) && value.IsTrue;
+        }
+
+        /// <summary>
         /// Tries to get the metadata kind of the specified type for a column.
         /// </summary>
         /// <typeparam name="T">The raw type of the metadata, should match the PrimitiveType type</typeparam>
@@ -347,6 +362,9 @@ namespace Microsoft.ML.Runtime.Data
         /// <returns>True if the metadata of the right type exists, false otherwise</returns>
         public static bool TryGetMetadata<T>(this ISchema schema, PrimitiveType type, string kind, int col, ref T value)
         {
+            Contracts.CheckValue(schema, nameof(schema));
+            Contracts.CheckValue(type, nameof(type));
+
             var metadataType = schema.GetMetadataTypeOrNull(kind, col);
             if (!type.Equals(metadataType))
                 return false;
@@ -363,17 +381,17 @@ namespace Microsoft.ML.Runtime.Data
             string name = schema.GetColumnName(col);
             int top;
             bool tmp = schema.TryGetColumnIndex(name, out top);
-            Contracts.Assert(tmp, "Why did TryGetColumnIndex return false?");
+            Contracts.Assert(tmp); // This would only be false if the implementation of schema were buggy.
             return !tmp || top != col;
         }
 
         /// <summary>
-        /// The categoricalFeatures is a vector of the indices of categorical features slots. 
+        /// The categoricalFeatures is a vector of the indices of categorical features slots.
         /// This vector should always have an even number of elements, and the elements should be parsed in groups of two consecutive numbers.
         /// So if its value is the range of numbers: 0,2,3,4,8,9
         /// look at it as [0,2],[3,4],[8,9].
         /// The way to interpret that is: feature with indices 0, 1, and 2 are one categorical
-        /// Features with indices 3 and 4 are another categorical. Features 5 and 6 don't appear there, so they are not categoricals. 
+        /// Features with indices 3 and 4 are another categorical. Features 5 and 6 don't appear there, so they are not categoricals.
         /// </summary>
         public static bool TryGetCategoricalFeatureIndices(ISchema schema, int colIndex, out int[] categoricalFeatures)
         {

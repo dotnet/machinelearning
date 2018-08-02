@@ -111,6 +111,23 @@ namespace Microsoft.ML.Runtime.Data
             return $"Label column type is not supported for binary remapping: {type}. Supported types: key, float, double.";
         }
 
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="classIndex">Label of the positive class.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the input column.  If this is null '<paramref name="name"/>' will be used.</param>
+        public LabelIndicatorTransform(IHostEnvironment env,
+            IDataView input,
+            int classIndex,
+            string name,
+            string source = null)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, ClassIndex = classIndex }, input)
+        {
+        }
+
         public LabelIndicatorTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, LoadName, Contracts.CheckRef(args, nameof(args)).Column,
                 input, TestIsMulticlassLabel)

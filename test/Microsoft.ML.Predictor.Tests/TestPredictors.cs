@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Binary")]
         public void BinaryClassifierPerceptronTest()
         {
-            var binaryPredictors = new[] { TestLearners.perceptron, /*TestLearners.perceptron_reg*/ };
+            var binaryPredictors = new[] { TestLearners.perceptron };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets);
             Done();
@@ -228,6 +228,18 @@ namespace Microsoft.ML.Runtime.RunTests
             var binaryPredictors = new[] { TestLearners.logisticRegression };
             RunOneAllTests(TestLearners.logisticRegression, TestDatasets.breastCancer, summary: true);
             // RunOneAllTests(TestLearners.logisticRegression, TestDatasets.msm);
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Binary")]
+        public void BinaryClassifierSymSgdTest()
+        {
+            //Results sometimes go out of error tolerance on OS X.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) 
+                return;
+
+            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true);
             Done();
         }
 
@@ -599,7 +611,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var fastTree = combiner.CombineModels(fastTrees.Select(pm => pm.Predictor as IPredictorProducing<float>));
 
-            var data = RoleMappedData.Create(idv, RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"));
+            var data = new RoleMappedData(idv, label: null, feature: "Features");
             var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModel(Env, data, idv, fastTree) }).ScoredData;
             Assert.True(scored.Schema.TryGetColumnIndex("Score", out int scoreCol));
             Assert.True(scored.Schema.TryGetColumnIndex("Probability", out int probCol));
@@ -888,11 +900,11 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// A test for ordinary least squares regression.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
-            Run_TrainTest(TestLearners.Ols, TestDatasets.housing);
+            Run_TrainTest(TestLearners.Ols, TestDatasets.winequality);
             Done();
         }
 
@@ -905,8 +917,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void RegressorSdcaTest()
         {
             var regressionPredictors = new[] { TestLearners.Sdcar, TestLearners.SdcarNorm, TestLearners.SdcarReg };
-            var regressionDatasets = GetDatasetsForRegressorTest();
-            RunAllTests(regressionPredictors, regressionDatasets);
+            RunAllTests(regressionPredictors, new[] { TestDatasets.winequality });
             Done();
         }
 
@@ -1537,10 +1548,10 @@ output Out [3] from H all;
                             Column = new[] { new NormalizeTransform.AffineColumn() { Name = "Features", Source = "Features" } }
                         },
                      trainView);
-                var trainData = TrainUtils.CreateExamples(trainView, "Label", "Features");
+                var trainData = new RoleMappedData(trainView, "Label", "Features");
                 IDataView testView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
                 ApplyTransformUtils.ApplyAllTransformsToData(env, trainView, testView);
-                var testData = TrainUtils.CreateExamples(testView, "Label", "Features");
+                var testData = new RoleMappedData(testView, "Label", "Features");
 
                 CompareSvmToLibSvmCore("linear kernel", "LinearKernel", env, trainData, testData);
                 CompareSvmToLibSvmCore("polynomial kernel", "PolynomialKernel{d=2}", env, trainData, testData);

@@ -238,6 +238,17 @@ namespace Microsoft.ML.Runtime.Data
         private const string KeepRegistrationName = "KeepColumns";
 
         /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="columnsToDrop">Name of the columns to be dropped.</param>
+        public DropColumnsTransform(IHostEnvironment env, IDataView input, params string[] columnsToDrop)
+         :this(env, new Arguments() { Column = columnsToDrop }, input)
+        {
+        }
+
+        /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
         public DropColumnsTransform(IHostEnvironment env, Arguments args, IDataView input)
@@ -382,5 +393,18 @@ namespace Microsoft.ML.Runtime.Data
                 return Input.GetGetter<TValue>(_bindings.ColMap[col]);
             }
         }
+    }
+
+    public class KeepColumnsTransform
+    {
+        /// <summary>
+        /// A helper method to create <see cref="KeepColumnsTransform"/> for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="columnsToKeep">Name of the columns to be kept. All other columns will be removed.</param>
+        /// <returns></returns>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, params string[] columnsToKeep)
+            => new DropColumnsTransform(env, new DropColumnsTransform.KeepArguments() { Column = columnsToKeep }, input);
     }
 }

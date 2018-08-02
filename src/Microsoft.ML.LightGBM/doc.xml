@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <members>
+    
+    <member name="LightGBM">
+      <summary>
+        Trains a Light GBM Model.
+      </summary>
+      <remarks>
+        Light GBM is an open source implementation of boosted trees.
+        <a href='https://github.com/Microsoft/LightGBM/wiki'>GitHub: LightGBM</a>
+      </remarks>
+    </member>
+    <example name='LightGbmBinaryClassifier'>
+      <example>
+        <code language="csharp">
+          new LightGbmBinaryClassifier
+          {
+            NumBoostRound = 200,
+            LearningRate = 0.5f,
+            NumLeaves = 32,
+            MinDataPerLeaf = 20
+          }
+        </code>
+      </example>
+    </example>
+    <example name='LightGbmClassifier'>
+      <example>
+        <code language="csharp">
+          new LightGbmClassifier
+          {
+            NumBoostRound = 200,
+            LearningRate = 0.5f,
+            NumLeaves = 32,
+            MinDataPerLeaf = 20
+          }
+        </code>
+      </example>
+    </example>
+    <example name='LightGbmRegressor'>
+      <example>
+        <code language="csharp">
+          new LightGbmRegressor
+          {
+            NumBoostRound = 100,
+            LearningRate = 0.5f,
+            NumLeaves = 32,
+            MinDataPerLeaf = 20,
+            Booster = new DartBoosterParameterFunction
+            {
+              XgboostDartMode = true,
+              UniformDrop = true
+            }
+          }
+        </code>
+      </example>
+    </example>
+    <example name='LightGbmRanker'>
+      <example>
+        <code language="csharp">
+          new LightGbmRanker
+          {
+            NumBoostRound = 100,
+            LearningRate = 0.5f,
+            NumLeaves = 32,
+            MinDataPerLeaf = 20,
+            Booster = new GbdtBoosterParameterFunction
+            {
+              MinSplitGain = 3,
+              MaxDepth = 200,
+              Subsample = 0.5
+            }
+          }
+        </code>
+      </example>
+    </example>
+
+  </members>
+</doc>

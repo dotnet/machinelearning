@@ -31,7 +31,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Returns labels that correspond to indices of the score array in the case of 
+        /// Returns labels that correspond to indices of the score array in the case of
         /// multi-class classification problem.
         /// </summary>
         /// <param name="names">Label to score mapping</param>

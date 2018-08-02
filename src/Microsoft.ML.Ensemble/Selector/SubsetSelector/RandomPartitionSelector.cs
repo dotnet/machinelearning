@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
             for (int i = 0; i < Size; i++)
             {
                 var viewTrain = new RangeFilter(Host, new RangeFilter.Arguments() { Column = name, Min = (Double)i / Size, Max = (Double)(i + 1) / Size }, view);
-                var dataTrain = RoleMappedData.Create(viewTrain, Data.Schema.GetColumnRoleNames());
+                var dataTrain = new RoleMappedData(viewTrain, Data.Schema.GetColumnRoleNames());
                 yield return FeatureSelector.SelectFeatures(dataTrain, rand);
             }
         }

@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     if (PrintDot())
                     {
-                        // We need to print an extended status line. At this point, every event should be 
+                        // We need to print an extended status line. At this point, every event should be
                         // a non-checkpoint progress event.
                         bool needPrepend = entries.Count > 1;
                         foreach (var ev in entries)
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Runtime.Data
                     return;
 
                 // If _err and _out is the same writer, we need to print new line as well.
-                // If _out and _err writes to Console.Out and Console.Error respectively, 
+                // If _out and _err writes to Console.Out and Console.Error respectively,
                 // in the general user scenario they ends up with writing to the same underlying stream,.
                 // so write a new line to the stream anyways.
                 if (isError && _err != _out && (_out != Console.Out || _err != Console.Error))

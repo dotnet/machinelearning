@@ -39,7 +39,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public int Count => _pool.Count;
         public int NumCreated { get { return _numCreated; } }
 
-        protected internal ObjectPoolBase()
+        private protected ObjectPoolBase()
         {
             _pool = new ConcurrentBag<T>();
         }
