@@ -16,8 +16,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         public ImageType(int height, int width)
            : base(typeof(Bitmap))
         {
-            Contracts.CheckParam(height > 0, nameof(height));
-            Contracts.CheckParam(width > 0, nameof(width));
+            Contracts.CheckParam(height > 0, nameof(height), nameof(height) + " should be a positive number");
+            Contracts.CheckParam(width > 0, nameof(width), nameof(width) + " should be a positive number");
             Contracts.CheckParam((long)height * width <= int.MaxValue / 4, nameof(height), nameof(height) + " * " + nameof(width) + " is too large");
             Height = height;
             Width = width;
