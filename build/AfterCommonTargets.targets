@@ -1,7 +1,6 @@
 <Project>
   <PropertyGroup> 
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-    <VSTestTargets Condition="'$(UseIntrinsics)' != 'true' and '$(TargetFramework)' == 'netcoreapp3.0'">ignore.targets</VSTestTargets>
   </PropertyGroup> 
 
   <!-- 
