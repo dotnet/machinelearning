@@ -898,7 +898,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// but whose code depends on some sort of generic type parameter. This utility method exists to make
         /// this common pattern more convenient, and also safer so that the arguments, if any, can be type
         /// checked at compile time instead of at runtime.
-        /// 
+        ///
         /// Because it is strongly typed, this can only be applied to methods whose return type
         /// is known at compile time, that is, that do not depend on the type parameter of the method itself.
         /// </summary>

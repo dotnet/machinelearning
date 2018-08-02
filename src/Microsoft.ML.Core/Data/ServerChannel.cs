@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime
         private readonly string _identifier;
 
         // This holds the running collection of named delegates, if any. The dictionary itself
-        // is lazily initialized only when a listener 
+        // is lazily initialized only when a listener
         private Dictionary<string, Delegate> _toPublish;
         private Action<Bundle> _onPublish;
         private Bundle _published;

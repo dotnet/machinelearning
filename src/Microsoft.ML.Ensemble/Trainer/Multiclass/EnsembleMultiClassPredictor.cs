@@ -4,17 +4,22 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Model;
+
+[assembly: LoadableClass(typeof(EnsembleMultiClassPredictor), null, typeof(SignatureLoadModel),
+    EnsembleMultiClassPredictor.UserName, EnsembleMultiClassPredictor.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
-    public sealed class EnsembleMultiClassPredictor :
-        EnsemblePredictorBase<TVectorPredictor, VBuffer<Single>>,
-        IValueMapper
+
+    public sealed class EnsembleMultiClassPredictor : EnsemblePredictorBase<TVectorPredictor, VBuffer<Single>>, IValueMapper
     {
+        public const string UserName = "Ensemble Multiclass Executor";
         public const string LoaderSignature = "EnsemMcExec";
         public const string RegistrationName = "EnsembleMultiClassPredictor";
 

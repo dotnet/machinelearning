@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 TrainUtils.AddNormalizerIfNeeded(host, ch, trainer, ref view, feature, input.NormalizeFeatures);
 
                 ch.Trace("Binding columns");
-                var roleMappedData = TrainUtils.CreateExamples(view, label, feature, group, weight, name, custom);
+                var roleMappedData = new RoleMappedData(view, label, feature, group, weight, name, custom);
 
                 RoleMappedData cachedRoleMappedData = roleMappedData;
                 Cache.CachingType? cachingType = null;
@@ -164,9 +164,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         }
                     case CachingOptions.Auto:
                         {
-                            ITrainerEx trainerEx = trainer as ITrainerEx;
                             // REVIEW: we should switch to hybrid caching in future.
-                            if (!(input.TrainingData is BinaryLoader) && (trainerEx == null || trainerEx.WantCaching))
+                            if (!(input.TrainingData is BinaryLoader) && trainer.Info.WantCaching)
                                 // default to Memory so mml is on par with maml
                                 cachingType = Cache.CachingType.Memory;
                             break;
@@ -184,7 +183,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         Data = roleMappedData.Data,
                         Caching = cachingType.Value
                     }).OutputData;
-                    cachedRoleMappedData = RoleMappedData.Create(cacheView, roleMappedData.Schema.GetColumnRoleNames());
+                    cachedRoleMappedData = new RoleMappedData(cacheView, roleMappedData.Schema.GetColumnRoleNames());
                 }
 
                 var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, "Train", calibrator, maxCalibrationExamples);

@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Since test folder doesn't have libraries from AutoLoad folder and Win libraries, 
         /// we copy them for each test (only newest one).
-        //  This allow execute tests locally.
+        /// This allow execute tests locally.
         /// </summary>
         public static void Execute()
         {

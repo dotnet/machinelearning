@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Data
         ///
         /// Vector column of <seealso cref="DataKind"/> I4 that contains values from columns 1, 3 to 10
         ///     col=ColumnName:I4:1,3-10
-        ///     
+        ///
         /// Key range column of KeyType with underlying storage type U4 that contains values from columns 1, 3 to 10, that can go from 1 to 100 (0 reserved for out of range)
         ///     col=ColumnName:U4[1-100]:1,3-10
         /// </example>
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Runtime.Data
                         {
                             var range = col.Source[i];
 
-                            // Check for remaining range, raise flag. 
+                            // Check for remaining range, raise flag.
                             if (range.AllOther)
                             {
                                 ch.CheckUserArg(iinfoOther < 0, nameof(Range.AllOther), "At most one all other range can be specified");
@@ -605,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
                         NameToInfoIndex[name] = iinfo;
                     }
 
-                    // Note that segsOther[isegOther] is not a real segment to be included. 
+                    // Note that segsOther[isegOther] is not a real segment to be included.
                     // It only persists segment information such as Min, Max, autoEnd, variableEnd for later processing.
                     // Process all other range.
                     if (iinfoOther >= 0)
@@ -641,7 +641,7 @@ namespace Microsoft.ML.Runtime.Data
 
                             foreach (var seg in segsAll)
                             {
-                                // At this step, all indices less than min is contained in some segment, either in 
+                                // At this step, all indices less than min is contained in some segment, either in
                                 // segsAll or segsNew.
                                 ch.Assert(min < lim);
                                 if (min < seg.Min)
@@ -1014,7 +1014,7 @@ namespace Microsoft.ML.Runtime.Data
             _host.CheckNonEmpty(args.Separator, nameof(args.Separator), "Must specify a separator");
 
             //Default arg.Separator is tab and default args.SeparatorChars is also a '\t'.
-            //At a time only one default can be different and whichever is different that will 
+            //At a time only one default can be different and whichever is different that will
             //be used.
             if (args.SeparatorChars.Length > 1 || args.SeparatorChars[0] != '\t')
             {
@@ -1110,7 +1110,7 @@ namespace Microsoft.ML.Runtime.Data
             // Get settings just for core arguments, not everything.
             string tmp = CmdParser.GetSettings(host, args, new ArgumentsCore());
 
-            // Try to get the schema information from the file. 
+            // Try to get the schema information from the file.
             string str = Cursor.GetEmbeddedArgs(files);
             if (string.IsNullOrWhiteSpace(str))
                 return false;

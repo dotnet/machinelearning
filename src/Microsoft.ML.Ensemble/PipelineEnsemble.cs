@@ -318,7 +318,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
                 if (caliTrainer.NeedsTraining)
                 {
-                    var bound = new Bound(this, RoleMappedSchema.Create(data.Schema));
+                    var bound = new Bound(this, new RoleMappedSchema(data.Schema));
                     using (var curs = data.GetRowCursor(col => true))
                     {
                         var scoreGetter = (ValueGetter<Single>)bound.CreateScoreGetter(curs, col => true, out Action disposer);
@@ -600,7 +600,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, labelType.AsKey, schema, labelInfo.Index, mdType);
         }
 
-        // When the label column is not a key, we check that the number of classes is the same for all the predictors, by checking the 
+        // When the label column is not a key, we check that the number of classes is the same for all the predictors, by checking the
         // OutputType property of the IValueMapper.
         // If any of the predictors do not implement IValueMapper we throw an exception. Returns the class count.
         private static int CheckNonKeyLabelColumnCore(IHostEnvironment env, IPredictor pred, IPredictorModel[] models, bool isBinary, ColumnType labelType)
@@ -672,13 +672,13 @@ namespace Microsoft.ML.Runtime.Ensemble
         }
 
         /// <summary>
-        /// This method outputs a Key-Value Pair (kvp) per model in the ensemble. 
+        /// This method outputs a Key-Value Pair (kvp) per model in the ensemble.
         ///   * The key is the model number such as "Partition model 0 summary". If the model implements <see cref="ICanSaveSummary"/>
         ///     then this string is followed by the first line of the model summary (the first line contains a description specific to the
         ///     model kind, such as "Feature gains" for FastTree or "Feature weights" for linear).
         ///   * The value:
         ///       - If the model implements <see cref="ICanGetSummaryInKeyValuePairs"/> then the value is the list of Key-Value pairs
-        ///         containing the detailed summary for that model (for example, linear models have a list containing kvps where the keys 
+        ///         containing the detailed summary for that model (for example, linear models have a list containing kvps where the keys
         ///         are the feature names and the values are the weights. FastTree has a similar list with the feature gains as values).
         ///       - If the model does not implement <see cref="ICanGetSummaryInKeyValuePairs"/> but does implement <see cref="ICanSaveSummary"/>,
         ///         the value is a string containing the summary of that model.

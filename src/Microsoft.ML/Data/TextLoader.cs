@@ -20,7 +20,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Convenience constructor for the scalar case, when a given column 
+        /// Convenience constructor for the scalar case, when a given column
         /// in the schema spans only a single column in the dataset.
         /// <see cref="Min"/> and <see cref="Max"/> are set to the single value <paramref name="ordinal"/>.
         /// </summary>
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Convenience constructor for the vector case, when a given column 
+        /// Convenience constructor for the vector case, when a given column
         /// in the schema spans contiguous columns in the dataset.
         /// </summary>
         /// <param name="min">Starting column index in the dataset.</param>
@@ -58,13 +58,13 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="useHeader">Does the file contains header?</param>
         /// <param name="separator">Column separator character. Default is '\t'</param>
-        /// <param name="allowQuotedStrings">Whether the input may include quoted values, 
+        /// <param name="allowQuotedStrings">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
-        /// and distinguish empty values from missing values. When true, consecutive separators 
-        /// denote a missing value and an empty value is denoted by \"\". 
+        /// and distinguish empty values from missing values. When true, consecutive separators
+        /// denote a missing value and an empty value is denoted by \"\".
         /// When false, consecutive separators denote an empty value.</param>
-        /// <param name="supportSparse">Whether the input may include sparse representations e.g. 
-        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero 
+        /// <param name="supportSparse">Whether the input may include sparse representations e.g.
+        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
         /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         public TextLoader CreateFrom<TInput>(bool useHeader = false,

@@ -349,7 +349,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="dst">The vector to modify</param>
         /// <param name="slot">The slot of the vector to modify</param>
         /// <param name="manip">The manipulation function</param>
-        /// <param name="pred">A predicate that returns true if we should skip insertion of a value into 
+        /// <param name="pred">A predicate that returns true if we should skip insertion of a value into
         /// sparse vector if it was default. If the predicate is null, we insert any non-default.</param>
         public static void ApplyAt<T>(ref VBuffer<T> dst, int slot, SlotValueManipulator<T> manip, ValuePredicate<T> pred = null)
         {
@@ -489,7 +489,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Creates a maybe sparse copy of a VBuffer. 
+        /// Creates a maybe sparse copy of a VBuffer.
         /// Whether the created copy is sparse or not is determined by the proportion of non-default entries compared to the sparsity parameter.
         /// </summary>
         public static void CreateMaybeSparseCopy<T>(ref VBuffer<T> src, ref VBuffer<T> dst, RefPredicate<T> isDefaultPredicate, float sparsityThreshold = SparsityThreshold)
@@ -580,9 +580,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         /// <summary>
         /// Applies the <see cref="PairManipulator{TSrc,TDst}"/> to each pair of elements
-        /// where <paramref name="src"/> is defined, in order of index. It stores the result 
-        /// in another vector. If there is some value at an index in <paramref name="dst"/> 
-        /// that is not defined in <paramref name="src"/>, that slot value is copied to the 
+        /// where <paramref name="src"/> is defined, in order of index. It stores the result
+        /// in another vector. If there is some value at an index in <paramref name="dst"/>
+        /// that is not defined in <paramref name="src"/>, that slot value is copied to the
         /// corresponding slot in the result vector without any further modification.
         /// If either of the vectors are dense, the resulting <paramref name="res"/>
         /// will be dense. Otherwise, if both are sparse, the output will be sparse iff
@@ -616,7 +616,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Applies the <see cref="PairManipulator{TSrc,TDst}"/> to each pair of elements
         /// where either <paramref name="src"/> or <paramref name="dst"/>, has an element
-        /// defined at that index. It stores the result in another vector <paramref name="res"/>. 
+        /// defined at that index. It stores the result in another vector <paramref name="res"/>.
         /// If either of the vectors are dense, the resulting <paramref name="res"/>
         /// will be dense. Otherwise, if both are sparse, the output will be sparse iff
         /// there is any slot that is not explicitly represented in either vector.
@@ -1147,11 +1147,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// storing the result in <paramref name="dst"/>, overwriting any of its existing contents.
         /// The contents of <paramref name="dst"/> do not affect calculation. If you instead wish
         /// to calculate a function that reads and writes <paramref name="dst"/>, see
-        /// <see cref="ApplyWith"/> and <see cref="ApplyWithEitherDefined"/>. Post-operation,
+        /// <see cref="ApplyWith{TSrc,TDst}"/> and <see cref="ApplyWithEitherDefined{TSrc,TDst}"/>. Post-operation,
         /// <paramref name="dst"/> will be dense iff <paramref name="src"/> is dense.
         /// </summary>
-        /// <seealso cref="ApplyWith"/>
-        /// <seealso cref="ApplyWithEitherDefined"/>
+        /// <seealso cref="ApplyWith{TSrc,TDst}"/>
+        /// <seealso cref="ApplyWithEitherDefined{TSrc,TDst}"/>
         public static void ApplyIntoEitherDefined<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, Func<int, TSrc, TDst> func)
         {
             Contracts.CheckValue(func, nameof(func));

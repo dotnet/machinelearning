@@ -6,7 +6,7 @@ namespace Microsoft.ML.Runtime
 {
     // This is basically a no-op interface put in primarily
     // for backward binary compat support for AFx.
-    // REVIEW: This interface was removed in TLC 3.0 as part of the 
+    // REVIEW: This interface was removed in TLC 3.0 as part of the
     // deprecation of the *Factory interfaces, but added back as a temporary
     // hack. Remove it asap.
     public interface ITrainerArguments

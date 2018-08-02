@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Returns an array of input predicated for sources, corresponding to the input predicate.
-        /// The returned array size is equal to the number of sources, but if a given source is not needed at all, 
+        /// The returned array size is equal to the number of sources, but if a given source is not needed at all,
         /// the corresponding predicate will be null.
         /// </summary>
         public Func<int, bool>[] GetInputPredicates(Func<int, bool> predicate)

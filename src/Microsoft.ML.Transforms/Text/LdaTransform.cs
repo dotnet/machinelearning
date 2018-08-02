@@ -26,23 +26,22 @@ using Microsoft.ML.Runtime.TextAnalytics;
 
 namespace Microsoft.ML.Runtime.TextAnalytics
 {
-    /// <summary>
-    /// LightLDA transform: Big Topic Models on Modest Compute Clusters.
-    /// <see href="http://arxiv.org/abs/1412.1576">LightLDA</see> is an implementation of Latent Dirichlet Allocation (LDA).
-    /// Previous implementations of LDA such as SparseLDA or AliasLDA allow to achieve massive data and model scales,
-    /// for example models with tens of billions of parameters to be inferred from billions of documents.
-    /// However this requires using a cluster of thousands of machines with all ensuing costs to setup and maintain.
-    /// LightLDA solves this problem in a more cost-effective manner by providing an implementation 
-    /// that is efﬁcient enough for modest clusters with at most tens of machines... 
-    /// For more details please see original LightLDA paper: 
-    /// http://arxiv.org/abs/1412.1576
-    /// http://www.www2015.it/documents/proceedings/proceedings/p1351.pdf
-    /// and open source implementation: 
-    /// https://github.com/Microsoft/LightLDA
-    /// 
-    /// See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
-    /// for an example on how to use LdaTransform.
-    /// </summary>
+    // LightLDA transform: Big Topic Models on Modest Compute Clusters.
+    // <a href="http://arxiv.org/abs/1412.1576">LightLDA</a> is an implementation of Latent Dirichlet Allocation (LDA).
+    // Previous implementations of LDA such as SparseLDA or AliasLDA allow to achieve massive data and model scales,
+    // for example models with tens of billions of parameters to be inferred from billions of documents.
+    // However this requires using a cluster of thousands of machines with all ensuing costs to setup and maintain.
+    // LightLDA solves this problem in a more cost-effective manner by providing an implementation
+    // that is efﬁcient enough for modest clusters with at most tens of machines...
+    // For more details please see original LightLDA paper:
+    // http://arxiv.org/abs/1412.1576
+    // http://www.www2015.it/documents/proceedings/proceedings/p1351.pdf
+    // and open source implementation:
+    // https://github.com/Microsoft/LightLDA
+    //
+    // See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
+    // for an example on how to use LdaTransform.
+    /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
     public sealed class LdaTransform : OneToOneTransformBase
     {
         public sealed class Arguments : TransformInputBase
@@ -447,7 +446,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
         private static string TestType(ColumnType t)
         {
-            // LDA consumes term frequency vectors, so I am assuming VBuffer<Float> is an appropriate input type. 
+            // LDA consumes term frequency vectors, so I am assuming VBuffer<Float> is an appropriate input type.
             // It must also be of known size for the sake of the LDA trainer initialization.
             if (t.IsKnownSizeVector && t.ItemType is NumberType)
                 return null;
@@ -478,7 +477,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 numVocabs[i] = 0;
             }
 
-            //the current lda needs the memory allocation before feedin data, so needs two sweeping of the data, 
+            //the current lda needs the memory allocation before feedin data, so needs two sweeping of the data,
             //one for the pre-calc memory, one for feedin data really
             //another solution can be prepare these two value externally and put them in the beginning of the input file.
             long[] corpusSize = new long[Infos.Length];

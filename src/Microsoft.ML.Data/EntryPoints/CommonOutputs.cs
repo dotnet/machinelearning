@@ -191,7 +191,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         /// <summary>
-        /// Macro output class base. 
+        /// Macro output class base.
         /// </summary>
         public abstract class MacroOutput
         {

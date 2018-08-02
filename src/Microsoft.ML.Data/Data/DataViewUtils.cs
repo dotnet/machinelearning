@@ -286,9 +286,9 @@ namespace Microsoft.ML.Runtime.Data
             private enum ExtraIndex
             {
                 Id,
-#pragma warning disable TLC_GeneralName // Allow for this private enum.
+#pragma warning disable MSML_GeneralName // Allow for this private enum.
                 _Lim
-#pragma warning restore TLC_GeneralName
+#pragma warning restore MSML_GeneralName
             }
 
             private Splitter(ISchema schema)

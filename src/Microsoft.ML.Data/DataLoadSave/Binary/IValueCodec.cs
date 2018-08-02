@@ -13,7 +13,7 @@ namespace Microsoft.ML.Runtime.Data.IO
     /// on the appropriate <c>ColumnType</c>, then opens multiple writers to write blocks of data
     /// to some stream. The idea is that each writer or reader is called on some "managable chunk"
     /// of data.
-    /// 
+    ///
     /// Codecs should be thread safe, though the readers and writers they spawn do not need to
     /// be thread safe.
     /// </summary>
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <param name="stream">Stream on which we open reader.</param>
         /// <param name="items">The number of items expected to be encoded in the block
         /// starting from the current position of the stream. Implementors should, if
-        /// possible, throw if it seems if the block contains a different number of 
+        /// possible, throw if it seems if the block contains a different number of
         /// elements.</param>
         IValueReader<T> OpenReader(Stream stream, int items);
     }
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.Data.IO
     /// be spawned from an <seealso cref="IValueCodec"/>, its write methods called some
     /// number of times to write to the stream, and then <c>Commit</c> will be called when
     /// all values have been written, the stream now being at the end of the written block.
-    /// 
+    ///
     /// The intended usage of the value writers is that blocks are composed of some small
     /// number of values (perhaps a few thousand), the idea being that a block is something
     /// that should easily fit in main memory, both for reading and writing. Some writers

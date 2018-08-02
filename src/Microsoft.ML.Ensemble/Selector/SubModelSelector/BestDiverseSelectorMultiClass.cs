@@ -7,11 +7,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 
 [assembly: LoadableClass(typeof(BestDiverseSelectorMultiClass), typeof(BestDiverseSelectorMultiClass.Arguments),
     typeof(SignatureEnsembleSubModelSelector), BestDiverseSelectorMultiClass.UserName, BestDiverseSelectorMultiClass.LoadName)]
@@ -24,16 +26,18 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
     {
         public const string UserName = "Best Diverse Selector";
         public const string LoadName = "BestDiverseSelectorMultiClass";
-        protected override ISupportDiversityMeasureFactory<VBuffer<Single>> DefaultDiversityMetricType => new MultiDisagreementDiversityFactory();
 
-        [TlcModule.Component(Name = BestDiverseSelectorMultiClass.LoadName, FriendlyName = UserName)]
+        [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
         public sealed class Arguments : DiverseSelectorArguments, ISupportMulticlassSubModelSelectorFactory
         {
+            [Argument(ArgumentType.Multiple, HelpText = "The metric type to be used to find the diversity among base learners", ShortName = "dm", SortOrder = 50)]
+            [TGUI(Label = "Diversity Measure Type")]
+            public ISupportMulticlassDiversityMeasureFactory DiversityMetricType = new MultiDisagreementDiversityFactory();
             public IMulticlassSubModelSelector CreateComponent(IHostEnvironment env) => new BestDiverseSelectorMultiClass(env, this);
         }
 
         public BestDiverseSelectorMultiClass(IHostEnvironment env, Arguments args)
-            : base(env, args, LoadName)
+            : base(env, args, LoadName, args.DiversityMetricType)
         {
         }
 

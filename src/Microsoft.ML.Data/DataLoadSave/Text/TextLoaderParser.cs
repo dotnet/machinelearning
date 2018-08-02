@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private sealed class ValueCreatorCache
         {
-            private volatile static ValueCreatorCache _instance;
+            private static volatile ValueCreatorCache _instance;
             public static ValueCreatorCache Instance
             {
                 get
@@ -137,9 +137,9 @@ namespace Microsoft.ML.Runtime.Data
             private volatile int _cref;
 
             // Total number of rows, number of unparsable values, number of format errors.
-            private /*volatile*/ long _rowCount;
-            private /*volatile*/ long _badCount;
-            private /*volatile*/ long _fmtCount;
+            private long _rowCount;
+            private long _badCount;
+            private long _fmtCount;
 
             public ParseStats(IChannelProvider provider, int cref, long maxShow = MaxShow)
             {

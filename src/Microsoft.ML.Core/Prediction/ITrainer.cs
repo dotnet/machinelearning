@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.IO;
+using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime
 {
@@ -27,151 +26,81 @@ namespace Microsoft.ML.Runtime
     public delegate void SignatureSequenceTrainer();
     public delegate void SignatureMatrixRecommendingTrainer();
 
-    /// <summary>
-    /// Interface to provide extra information about a trainer.
-    /// </summary>
-    public interface ITrainerEx : ITrainer
-    {
-        // REVIEW: Ideally trainers should be able to communicate
-        // something about the type of data they are capable of being trained
-        // on, e.g., what ColumnKinds they want, how many of each, of what type,
-        // etc. This interface seems like the most natural conduit for that sort
-        // of extra information.
-
-        // REVIEW: Can we please have consistent naming here?
-        // 'Need' vs. 'Want' looks arbitrary to me, and it's grammatically more correct to
-        // be 'Needs' / 'Wants' anyway.
-
-        /// <summary>
-        /// Whether the trainer needs to see data in normalized form.
-        /// </summary>
-        bool NeedNormalization { get; }
-
-        /// <summary>
-        /// Whether the trainer needs calibration to produce probabilities.
-        /// </summary>
-        bool NeedCalibration { get; }
-
-        /// <summary>
-        /// Whether this trainer could benefit from a cached view of the data.
-        /// </summary>
-        bool WantCaching { get; }
-    }
-
-    public interface ITrainerHost
-    {
-        Random Rand { get; }
-        int Verbosity { get; }
-
-        TextWriter StdOut { get; }
-        TextWriter StdErr { get; }
-    }
-
-    // The Trainer (of Factory) can optionally implement this.
-    public interface IModelCombiner<TModel, TPredictor>
-        where TPredictor : IPredictor
-    {
-        TPredictor CombineModels(IEnumerable<TModel> models);
-    }
+    public delegate void SignatureModelCombiner(PredictionKind kind);
 
     public delegate void SignatureModelCombiner(PredictionKind kind);
 
     /// <summary>
-    /// Weakly typed interface for a trainer "session" that produces a predictor.
+    /// The base interface for a trainers. Implementors should not implement this interface directly,
+    /// but rather implement the more specific <see cref="ITrainer{TPredictor}"/>.
     /// </summary>
     public interface ITrainer
     {
+        /// <summary>
+        /// Auxiliary information about the trainer in terms of its capabilities
+        /// and requirements.
+        /// </summary>
+        TrainerInfo Info { get; }
+
         /// <summary>
         /// Return the type of prediction task for the produced predictor.
         /// </summary>
         PredictionKind PredictionKind { get; }
 
         /// <summary>
-        ///  Returns the trained predictor.
-        ///  REVIEW: Consider removing this.
+        ///  Trains a predictor.
         /// </summary>
-        IPredictor CreatePredictor();
+        /// <param name="context">A context containing at least the training data</param>
+        /// <returns>The trained predictor</returns>
+        /// <seealso cref="ITrainer{TPredictor}.Train(TrainContext)"/>
+        IPredictor Train(TrainContext context);
     }
 
     /// <summary>
-    /// Interface implemented by the MetalinearLearners base class.
-    /// Used to distinguish the MetaLinear Learners from the other learners
+    /// Strongly typed generic interface for a trainer. A trainer object takes training data
+    /// and produces a predictor.
     /// </summary>
-    public interface IMetaLinearTrainer
-    {
-
-    }
-
-    public interface ITrainer<in TDataSet> : ITrainer
-    {
-        /// <summary>
-        /// Trains a predictor using the specified dataset.
-        /// </summary>
-        /// <param name="data"> Training dataset </param>
-        void Train(TDataSet data);
-    }
-
-    /// <summary>
-    /// Strongly typed generic interface for a trainer. A trainer object takes
-    /// supervision data and produces a predictor.
-    /// </summary>
-    /// <typeparam name="TDataSet"> Type of the training dataset</typeparam>
     /// <typeparam name="TPredictor"> Type of predictor produced</typeparam>
-    public interface ITrainer<in TDataSet, out TPredictor> : ITrainer<TDataSet>
+    public interface ITrainer<out TPredictor> : ITrainer
         where TPredictor : IPredictor
     {
         /// <summary>
-        ///  Returns the trained predictor.
+        ///  Trains a predictor.
         /// </summary>
-        /// <returns>Trained predictor ready to make predictions</returns>
-        new TPredictor CreatePredictor();
+        /// <param name="context">A context containing at least the training data</param>
+        /// <returns>The trained predictor</returns>
+        new TPredictor Train(TrainContext context);
     }
 
-    /// <summary>
-    /// Trainers that want data to do their own validation implement this interface.
-    /// </summary>
-    public interface IValidatingTrainer<in TDataSet> : ITrainer<TDataSet>
+    public static class TrainerExtensions
     {
         /// <summary>
-        /// Trains a predictor using the specified dataset.
+        /// Convenience train extension for the case where one has only a training set with no auxiliary information.
+        /// Equivalent to calling <see cref="ITrainer.Train(TrainContext)"/>
+        /// on a <see cref="TrainContext"/> constructed with <paramref name="trainData"/>.
         /// </summary>
-        /// <param name="data">Training dataset</param>
-        /// <param name="validData">Validation dataset</param>
-        void Train(TDataSet data, TDataSet validData);
-    }
+        /// <param name="trainer">The trainer</param>
+        /// <param name="trainData">The training data.</param>
+        /// <returns>The trained predictor</returns>
+        public static IPredictor Train(this ITrainer trainer, RoleMappedData trainData)
+            => trainer.Train(new TrainContext(trainData));
 
-    public interface IIncrementalTrainer<in TDataSet, in TPredictor> : ITrainer<TDataSet>
-    {
         /// <summary>
-        /// Trains a predictor using the specified dataset and a trained predictor.
+        /// Convenience train extension for the case where one has only a training set with no auxiliary information.
+        /// Equivalent to calling <see cref="ITrainer{TPredictor}.Train(TrainContext)"/>
+        /// on a <see cref="TrainContext"/> constructed with <paramref name="trainData"/>.
         /// </summary>
-        /// <param name="data">Training dataset</param>
-        /// <param name="predictor">A trained predictor</param>
-        void Train(TDataSet data, TPredictor predictor);
+        /// <param name="trainer">The trainer</param>
+        /// <param name="trainData">The training data.</param>
+        /// <returns>The trained predictor</returns>
+        public static TPredictor Train<TPredictor>(this ITrainer<TPredictor> trainer, RoleMappedData trainData) where TPredictor : IPredictor
+            => trainer.Train(new TrainContext(trainData));
     }
 
-    public interface IIncrementalValidatingTrainer<in TDataSet, in TPredictor> : ITrainer<TDataSet>
+    // A trainer can optionally implement this to indicate it can combine multiple models into a single predictor.
+    public interface IModelCombiner<TModel, TPredictor>
+        where TPredictor : IPredictor
     {
-        /// <summary>
-        /// Trains a predictor using the specified dataset and a trained predictor.
-        /// </summary>
-        /// <param name="data">Training dataset</param>
-        /// <param name="validData">Validation dataset</param>
-        /// <param name="predictor">A trained predictor</param>
-        void Train(TDataSet data, TDataSet validData, TPredictor predictor);
+        TPredictor CombineModels(IEnumerable<TModel> models);
     }
-
-#if FUTURE
-    public interface IMultiTrainer<in TDataSet, in TFeatures, out TResult> :
-        IMultiTrainer<TDataSet, TDataSet, TFeatures, TResult>
-    {
-    }
-
-    public interface IMultiTrainer<in TDataSet, in TDataBatch, in TFeatures, out TResult> :
-        ITrainer<TDataSet, TFeatures, TResult>
-    {
-        void UpdatePredictor(TDataBatch trainInstance);
-        IPredictor<TFeatures, TResult> GetCurrentPredictor();
-    }
-#endif
 }

@@ -21,10 +21,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// This transform can transform either scalars or vectors (both fixed and variable size),
-    /// creating output columns that indicate corresponding NA values.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="NAIndicator"]'/>
     public sealed class NAIndicatorTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
@@ -84,6 +81,18 @@ namespace Microsoft.ML.Runtime.Data
 
         // The output column types, parallel to Infos.
         private readonly ColumnType[] _types;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        public NAIndicatorTransform(IHostEnvironment env, IDataView input, string name, string source = null)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } } }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.

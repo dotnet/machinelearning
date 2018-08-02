@@ -225,7 +225,12 @@ namespace Microsoft.ML
     {
         public string Name { get; set; }
         public string Type { get; set; }
-        public string SlotNames { get; set; } = string.Empty;
+        public string SlotNames { get; set; }
+
+        public PipelineItemDebugColumn()
+        {
+            SlotNames = string.Empty;
+        }
     }
 
     [DebuggerDisplay("{Values}")]

@@ -15,7 +15,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.EntryPoints
 {
     /// <summary>
-    /// This class defines attributes to annotate module inputs, outputs, entry points etc. when defining 
+    /// This class defines attributes to annotate module inputs, outputs, entry points etc. when defining
     /// the module interface.
     /// </summary>
     public static class TlcModule
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public string Desc { get; set; }
 
             /// <summary>
-            /// The rank order of the output. Because .NET reflection returns members in an unspecfied order, this 
+            /// The rank order of the output. Because .NET reflection returns members in an unspecfied order, this
             /// is the only way to ensure consistency.
             /// </summary>
             public Double SortOrder { get; set; }
@@ -529,9 +529,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public string ShortName { get; set; }
 
             /// <summary>
-            /// Remarks on the Entry Point, for more extensive XML documentation on the C#API
+            /// The path to the XML documentation on the CSharpAPI component
             /// </summary>
-            public string Remarks { get; set; }
+            public string[] XmlInclude { get; set; }
         }
 
         /// <summary>
@@ -544,11 +544,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// </summary>
             Unknown = 0,
             /// <summary>
-            /// Integer, including long. 
+            /// Integer, including long.
             /// </summary>
             Int,
             /// <summary>
-            /// Unsigned integer, including ulong. 
+            /// Unsigned integer, including ulong.
             /// </summary>
             UInt,
             /// <summary>
@@ -588,11 +588,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// </summary>
             Enum,
             /// <summary>
-            /// An array (0 or more values of the same type, accessible by index). 
+            /// An array (0 or more values of the same type, accessible by index).
             /// </summary>
             Array,
             /// <summary>
-            /// A dictionary (0 or more values of the same type, identified by a unique string key). 
+            /// A dictionary (0 or more values of the same type, identified by a unique string key).
             /// The underlying C# representation is <see cref="System.Collections.Generic.Dictionary{TKey, TValue}"/>
             /// </summary>
             Dictionary,
@@ -603,7 +603,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// </summary>
             Component,
             /// <summary>
-            /// An C# object that represents state, such as <see cref="IMlState"/>. 
+            /// An C# object that represents state, such as <see cref="IMlState"/>.
             /// </summary>
             State
         }
@@ -682,8 +682,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
     /// This is a 'maybe' class that is able to differentiate the cases when the value is set 'explicitly', or 'implicitly'.
     /// The idea is that if the default value is specified by the user, in some cases it needs to be treated differently
     /// than if it's auto-filled.
-    /// 
-    /// An example is the weight column: the default behavior is to use 'Weight' column if it's present. But if the user explicitly sets 
+    ///
+    /// An example is the weight column: the default behavior is to use 'Weight' column if it's present. But if the user explicitly sets
     /// the weight column to be 'Weight', we need to actually enforce the presence of the column.
     /// </summary>
     /// <typeparam name="T">The type of the value</typeparam>
@@ -719,7 +719,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         /// <summary>
-        /// The implicit conversion from <typeparamref name="T"/>. 
+        /// The implicit conversion from <typeparamref name="T"/>.
         /// This will assume that the parameter is set 'explicitly'.
         /// </summary>
         public static implicit operator Optional<T>(T value)

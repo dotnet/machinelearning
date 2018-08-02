@@ -27,10 +27,10 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
                 Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             [TGUI(Label = "Base predictor")]
-            public SubComponent<ITrainer<RoleMappedData, IPredictorProducing<TOutput>>, TSigBase> BasePredictorType;
+            public SubComponent<ITrainer<IPredictorProducing<TOutput>>, TSigBase> BasePredictorType;
         }
 
-        protected readonly SubComponent<ITrainer<RoleMappedData, IPredictorProducing<TOutput>>, TSigBase> BasePredictorType;
+        protected readonly SubComponent<ITrainer<IPredictorProducing<TOutput>>, TSigBase> BasePredictorType;
         protected readonly IHost Host;
         protected IPredictorProducing<TOutput> Meta;
 
@@ -181,17 +181,16 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 var bldr = new ArrayDataViewBuilder(host);
                 Array.Resize(ref labels, count);
                 Array.Resize(ref features, count);
-                bldr.AddColumn("Label", NumberType.Float, labels);
-                bldr.AddColumn("Features", NumberType.Float, features);
+                bldr.AddColumn(DefaultColumnNames.Label, NumberType.Float, labels);
+                bldr.AddColumn(DefaultColumnNames.Features, NumberType.Float, features);
 
                 var view = bldr.GetDataView();
-                var rmd = RoleMappedData.Create(view, ColumnRole.Label.Bind("Label"), ColumnRole.Feature.Bind("Features"));
+                var rmd = new RoleMappedData(view, DefaultColumnNames.Label, DefaultColumnNames.Features);
 
                 var trainer = BasePredictorType.CreateInstance(host);
-                if (trainer is ITrainerEx ex && ex.NeedNormalization)
+                if (trainer.Info.NeedNormalization)
                     ch.Warning("The trainer specified for stacking wants normalization, but we do not currently allow this.");
-                trainer.Train(rmd);
-                Meta = trainer.CreatePredictor();
+                Meta = trainer.Train(rmd);
                 CheckMeta();
 
                 ch.Done();

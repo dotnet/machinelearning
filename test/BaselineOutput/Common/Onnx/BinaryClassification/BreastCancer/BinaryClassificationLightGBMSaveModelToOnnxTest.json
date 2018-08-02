@@ -1,0 +1,285 @@
+{
+  "irVersion": "3",
+  "producerName": "ML.NET",
+  "producerVersion": "##VERSION##",
+  "domain": "Onnx",
+  "graph": {
+    "node": [
+      {
+        "input": [
+          "Features"
+        ],
+        "output": [
+          "Score"
+        ],
+        "name": "TreeEnsembleRegressor",
+        "opType": "TreeEnsembleRegressor",
+        "attribute": [
+          {
+            "name": "post_transform",
+            "s": "Tk9ORQ==",
+            "type": "STRING"
+          },
+          {
+            "name": "n_targets",
+            "i": "1",
+            "type": "INT"
+          },
+          {
+            "name": "base_values",
+            "floats": [
+              0
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "aggregate_function",
+            "s": "U1VN",
+            "type": "STRING"
+          },
+          {
+            "name": "nodes_treeids",
+            "ints": [
+              "0",
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "nodes_nodeids",
+            "ints": [
+              "0",
+              "1",
+              "2"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "nodes_featureids",
+            "ints": [
+              "1",
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "nodes_modes",
+            "strings": [
+              "QlJBTkNIX0xFUQ==",
+              "TEVBRg==",
+              "TEVBRg=="
+            ],
+            "type": "STRINGS"
+          },
+          {
+            "name": "nodes_values",
+            "floats": [
+              2.5,
+              0,
+              0
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "nodes_truenodeids",
+            "ints": [
+              "1",
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "nodes_falsenodeids",
+            "ints": [
+              "2",
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "nodes_missing_value_tracks_true",
+            "ints": [
+              "0",
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "target_treeids",
+            "ints": [
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "target_nodeids",
+            "ints": [
+              "1",
+              "2"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "target_ids",
+            "ints": [
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "target_weights",
+            "floats": [
+              -1.799208,
+              -0.34535858
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Score"
+        ],
+        "output": [
+          "linearOutput"
+        ],
+        "name": "Affine",
+        "opType": "Affine",
+        "attribute": [
+          {
+            "name": "alpha",
+            "f": 0.5,
+            "type": "FLOAT"
+          },
+          {
+            "name": "beta",
+            "f": -1E-07,
+            "type": "FLOAT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "linearOutput"
+        ],
+        "output": [
+          "Probability"
+        ],
+        "name": "Sigmoid",
+        "opType": "Sigmoid"
+      },
+      {
+        "input": [
+          "Probability"
+        ],
+        "output": [
+          "PredictedLabel"
+        ],
+        "name": "Binarizer",
+        "opType": "Binarizer",
+        "attribute": [
+          {
+            "name": "threshold",
+            "f": 0.5,
+            "type": "FLOAT"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      }
+    ],
+    "name": "BinaryClassificationLightGBMSaveModelToOnnxTest",
+    "input": [
+      {
+        "name": "Features",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "output": [
+      {
+        "name": "PredictedLabel",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Probability",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "opsetImport": [
+    {
+      "domain": "ai.onnx.ml",
+      "version": "1"
+    },
+    {
+      "version": "7"
+    }
+  ]
+}
