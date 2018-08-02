@@ -793,7 +793,7 @@ namespace Microsoft.ML.Runtime.Data
             return true;
         }
 
-        public override bool Equals(Object other)
+        public override bool Equals(object other)
         {
             var tmp = other as ColumnType;
             if (tmp == null)
@@ -957,7 +957,7 @@ namespace Microsoft.ML.Runtime.Data
             return true;
         }
 
-        public override bool Equals(Object other)
+        public override bool Equals(object other)
         {
             var tmp = other as ColumnType;
             if (tmp == null)

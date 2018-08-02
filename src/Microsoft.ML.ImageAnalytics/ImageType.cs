@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             Width = width;
         }
 
-        public ImageType() : base(typeof(Image))
+        public ImageType() : base(typeof(Bitmap))
         {
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return Width != tmp.Width;
         }
 
-        public override bool Equals(Object other)
+        public override bool Equals(object other)
         {
             var tmp = other as ColumnType;
             if (tmp == null)
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         public override int GetHashCode()
         {
-            return Hashing.CombineHash(Height, Width);
+            return Hashing.CombineHash(Height.GetHashCode(), Width.GetHashCode());
         }
 
         public override string ToString()
