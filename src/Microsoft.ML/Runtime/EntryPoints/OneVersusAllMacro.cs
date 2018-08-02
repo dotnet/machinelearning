@@ -136,8 +136,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         [TlcModule.EntryPoint(Desc = "One-vs-All macro (OVA)",
             Name = "Models.OneVersusAll",
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name=""OVA""]'/>" })]
-        public static CommonOutputs.MacroOutput<Output> OVA(
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name=""OVA""]/*'/>" })]
+        public static CommonOutputs.MacroOutput<Output> OneVersusAll(
             IHostEnvironment env,
             Arguments input,
             EntryPointNode node)
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 macroNodes.AddRange(result.Item1);
             }
 
-            // Use OVA model combiner to combine these models into one. 
+            // Use OVA model combiner to combine these models into one.
             // Takes in array of models that are binary predictor models and
             // produces single multiclass predictor model.
             var macroExperiment = new Experiment(env);

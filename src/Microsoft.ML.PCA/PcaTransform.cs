@@ -337,7 +337,7 @@ namespace Microsoft.ML.Runtime.Data
 
             for (int iinfo = 0; iinfo < transformInfos.Length; iinfo++)
             {
-                //Orthonormalize Y in-place using stabilized Gram Schmidt algorithm 
+                //Orthonormalize Y in-place using stabilized Gram Schmidt algorithm
                 //Ref: http://en.wikipedia.org/wiki/Gram-Schmidt#Algorithm
                 for (var i = 0; i < oversampledRank[iinfo]; ++i)
                 {
@@ -537,10 +537,10 @@ namespace Microsoft.ML.Runtime.Data
             dst = new VBuffer<Float>(transformInfo.Rank, values, dst.Indices);
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator", 
+        [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator",
             Desc = Summary,
-            UserName = UserName, 
-            ShortName = ShortName, 
+            UserName = UserName,
+            ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name=""PCA""]/*' />",
                                  @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name=""PcaCalculator""]/*' />"})]
         public static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Arguments input)

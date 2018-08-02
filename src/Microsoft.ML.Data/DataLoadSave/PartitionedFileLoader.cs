@@ -682,12 +682,11 @@ namespace Microsoft.ML.Runtime.Data
                     Ch.Warning($"Path {path} did not have {dirCount} directories necessary for parsing.");
                     return false;
                 }
-                
+
                 // Rejoin segments to create a valid path.
                 truncPath = String.Join(Path.DirectorySeparatorChar.ToString(), segments);
                 return true;
             }
-
 
             /// <summary>
             /// Parse all column values from the directory path.

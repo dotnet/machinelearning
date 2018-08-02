@@ -19,7 +19,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    // REVIEW: For simplicity (since this is currently the case), 
+    // REVIEW: For simplicity (since this is currently the case),
     // we assume that all metrics are either numeric, or numeric vectors.
     /// <summary>
     /// This class contains information about an overall metric, namely its name and whether it is a vector
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Runtime.Data
     public interface IEvaluator
     {
         /// <summary>
-        /// Compute the aggregate metrics. Return a dictionary from the metric kind 
+        /// Compute the aggregate metrics. Return a dictionary from the metric kind
         /// (overal/per-fold/confusion matrix/PR-curves etc.), to a data view containing the metric.
         /// </summary>
         Dictionary<string, IDataView> Evaluate(RoleMappedData data);

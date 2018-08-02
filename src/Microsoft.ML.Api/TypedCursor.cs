@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.Api
 
     /// <summary>
     /// Implementation of the strongly typed Cursorable.
-    /// Similarly to the 'DataView{T}, this class uses IL generation to create the 'poke' methods that 
+    /// Similarly to the 'DataView{T}, this class uses IL generation to create the 'poke' methods that
     /// write directly into the fields of the user-defined type.
     /// </summary>
     internal sealed class TypedCursorable<TRow> : ICursorable<TRow>
@@ -103,11 +103,11 @@ namespace Microsoft.ML.Runtime.Api
                     throw _host.Except("Column '{0}' not found in the data view", col.ColumnName);
                 }
                 var realColType = _data.Schema.GetColumnType(colIndex);
-                if (!IsCompatibleType(realColType, col.FieldInfo))
+                if (!IsCompatibleType(realColType, col.MemberInfo))
                 {
                     throw _host.Except(
-                        "Can't bind the IDataView column '{0}' of type '{1}' to field '{2}' of type '{3}'.",
-                        col.ColumnName, realColType, col.FieldInfo.Name, col.FieldInfo.FieldType.FullName);
+                        "Can't bind the IDataView column '{0}' of type '{1}' to field or property '{2}' of type '{3}'.",
+                        col.ColumnName, realColType, col.MemberInfo.Name, col.FieldOrPropertyType.FullName);
                 }
 
                 acceptedCols.Add(col);
@@ -130,14 +130,12 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// Returns whether the column type <paramref name="colType"/> can be bound to field <paramref name="fieldInfo"/>.
+        /// Returns whether the column type <paramref name="colType"/> can be bound to field <paramref name="memberInfo"/>.
         /// They must both be vectors or scalars, and the raw data kind should match.
         /// </summary>
-        private static bool IsCompatibleType(ColumnType colType, FieldInfo fieldInfo)
+        private static bool IsCompatibleType(ColumnType colType, MemberInfo memberInfo)
         {
-            bool isVector;
-            DataKind kind;
-            InternalSchemaDefinition.GetVectorAndKind(fieldInfo, out isVector, out kind);
+            InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
             if (isVector)
                 return colType.IsVector && colType.ItemType.RawKind == kind;
             else
@@ -269,9 +267,8 @@ namespace Microsoft.ML.Runtime.Api
             private Action<TRow> GenerateSetter(IRow input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
             {
                 var colType = input.Schema.GetColumnType(index);
-                var fieldInfo = column.FieldInfo;
-                var fieldType = fieldInfo.FieldType;
-
+                var fieldType = column.OutputType;
+                var genericType = fieldType;
                 Func<IRow, int, Delegate, Delegate, Action<TRow>> del;
                 if (fieldType.IsArray)
                 {
@@ -280,11 +277,66 @@ namespace Microsoft.ML.Runtime.Api
                     if (fieldType.GetElementType() == typeof(string))
                     {
                         Ch.Assert(colType.ItemType.IsText);
-                        return CreateVBufferToStringArraySetter(input, index, poke, peek);
+                        return CreateConvertingVBufferSetter<DvText, string>(input, index, poke, peek, x => x.ToString());
                     }
+                    else if (fieldType.GetElementType() == typeof(bool))
+                    {
+                        Ch.Assert(colType.ItemType.IsBool);
+                        return CreateConvertingVBufferSetter<DvBool, bool>(input, index, poke, peek, x => (bool)x);
+                    }
+                    else if (fieldType.GetElementType() == typeof(bool?))
+                    {
+                        Ch.Assert(colType.ItemType.IsBool);
+                        return CreateConvertingVBufferSetter<DvBool, bool?>(input, index, poke, peek, x => (bool?)x);
+                    }
+                    else if (fieldType.GetElementType() == typeof(int))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I4);
+                        return CreateConvertingVBufferSetter<DvInt4, int>(input, index, poke, peek, x => (int)x);
+                    }
+                    else if (fieldType.GetElementType() == typeof(int?))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I4);
+                        return CreateConvertingVBufferSetter<DvInt4, int?>(input, index, poke, peek, x => (int?)x);
+                    }
+                    else if (fieldType.GetElementType() == typeof(short))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I2);
+                        return CreateConvertingVBufferSetter<DvInt2, short>(input, index, poke, peek, x => (short)x);
+                    }
+                    else if (fieldType.GetElementType() == typeof(short?))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I2);
+                        return CreateConvertingVBufferSetter<DvInt2, short?>(input, index, poke, peek, x => (short?)x);
+                    }
+                    else if (fieldType.GetElementType() == typeof(long))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I8);
+                        return CreateConvertingVBufferSetter<DvInt8, long>(input, index, poke, peek, x => (long)x);
+                    }
+                    else if (fieldType.GetElementType() == typeof(long?))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I8);
+                        return CreateConvertingVBufferSetter<DvInt8, long?>(input, index, poke, peek, x => (long?)x);
+                    }
+                    else if (fieldType.GetElementType() == typeof(sbyte))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I1);
+                        return CreateConvertingVBufferSetter<DvInt1, sbyte>(input, index, poke, peek, x => (sbyte)x);
+                    }
+                    else if (fieldType.GetElementType() == typeof(sbyte?))
+                    {
+                        Ch.Assert(colType.ItemType == NumberType.I1);
+                        return CreateConvertingVBufferSetter<DvInt1, sbyte?>(input, index, poke, peek, x => (sbyte?)x);
+                    }
+
                     // VBuffer<T> -> T[]
-                    Ch.Assert(fieldType.GetElementType() == colType.ItemType.RawType);
-                    del = CreateVBufferToArraySetter<int>;
+                    if (fieldType.GetElementType().IsGenericType && fieldType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
+                        Ch.Assert(colType.ItemType.RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
+                    else
+                        Ch.Assert(colType.ItemType.RawType == fieldType.GetElementType());
+                    del = CreateDirectVBufferSetter<int>;
+                    genericType = fieldType.GetElementType();
                 }
                 else if (colType.IsVector)
                 {
@@ -294,6 +346,7 @@ namespace Microsoft.ML.Runtime.Api
                     Ch.Assert(fieldType.GetGenericTypeDefinition() == typeof(VBuffer<>));
                     Ch.Assert(fieldType.GetGenericArguments()[0] == colType.ItemType.RawType);
                     del = CreateVBufferToVBufferSetter<int>;
+                    genericType = colType.ItemType.RawType;
                 }
                 else if (colType.IsPrimitive)
                 {
@@ -302,53 +355,111 @@ namespace Microsoft.ML.Runtime.Api
                         // DvText -> String
                         Ch.Assert(colType.IsText);
                         Ch.Assert(peek == null);
-                        return CreateTextToStringSetter(input, index, poke);
+                        return CreateConvertingActionSetter<DvText, string>(input, index, poke, x => x.ToString());
                     }
                     else if (fieldType == typeof(bool))
                     {
                         Ch.Assert(colType.IsBool);
                         Ch.Assert(peek == null);
-                        return CreateDvBoolToBoolSetter(input, index, poke);
+                        return CreateConvertingActionSetter<DvBool, bool>(input, index, poke, x => (bool)x);
                     }
-                    else
+                    else if (fieldType == typeof(bool?))
                     {
-                        // T -> T
-                        Ch.Assert(colType.RawType == fieldType);
-                        del = CreateDirectSetter<int>;
+                        Ch.Assert(colType.IsBool);
+                        Ch.Assert(peek == null);
+                        return CreateConvertingActionSetter<DvBool, bool?>(input, index, poke, x => (bool?)x);
                     }
+                    else if (fieldType == typeof(int))
+                    {
+                        Ch.Assert(colType == NumberType.I4);
+                        Ch.Assert(peek == null);
+                        return CreateConvertingActionSetter<DvInt4, int>(input, index, poke, x => (int)x);
+                    }
+                    else if (fieldType == typeof(int?))
+                    {
+                        Ch.Assert(colType == NumberType.I4);
+                        Ch.Assert(peek == null);
+                        return CreateConvertingActionSetter<DvInt4, int?>(input, index, poke, x => (int?)x);
+                    }
+                    else if (fieldType == typeof(short))
+                    {
+                        Ch.Assert(colType == NumberType.I2);
+                        Ch.Assert(peek == null);
+                        return CreateConvertingActionSetter<DvInt2, short>(input, index, poke, x => (short)x);
+                    }
+                    else if (fieldType == typeof(short?))
+                    {
+                        Ch.Assert(colType == NumberType.I2);
+                        Ch.Assert(peek == null);
+                        return CreateConvertingActionSetter<DvInt2, short?>(input, index, poke, x => (short?)x);
+                    }
+                    else if (fieldType == typeof(long))
+                    {
+                        Ch.Assert(colType == NumberType.I8);
+                        Ch.Assert(peek == null);
+                        return CreateConvertingActionSetter<DvInt8, long>(input, index, poke, x => (long)x);
+                    }
+                    else if (fieldType == typeof(long?))
+                    {
+                        Ch.Assert(colType == NumberType.I8);
+                        Ch.Assert(peek == null);
+                        return CreateConvertingActionSetter<DvInt8, long?>(input, index, poke, x => (long?)x);
+                    }
+                    else if (fieldType == typeof(sbyte))
+                    {
+                        Ch.Assert(colType == NumberType.I1);
+                        Ch.Assert(peek == null);
+                        return CreateConvertingActionSetter<DvInt1, sbyte>(input, index, poke, x => (sbyte)x);
+                    }
+                    else if (fieldType == typeof(sbyte?))
+                    {
+                        Ch.Assert(colType == NumberType.I1);
+                        Ch.Assert(peek == null);
+                        return CreateConvertingActionSetter<DvInt1, sbyte?>(input, index, poke, x => (sbyte?)x);
+                    }
+                    // T -> T
+                    if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        Ch.Assert(colType.RawType == Nullable.GetUnderlyingType(fieldType));
+                    else
+                        Ch.Assert(colType.RawType == fieldType);
+
+                    del = CreateDirectSetter<int>;
                 }
                 else
                 {
                     // REVIEW: Is this even possible?
-                    throw Ch.ExceptNotImpl("Type '{0}' is not yet supported.", fieldInfo.FieldType.FullName);
+                    throw Ch.ExceptNotImpl("Type '{0}' is not yet supported.", column.OutputType.FullName);
                 }
-                MethodInfo meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.ItemType.RawType);
+                MethodInfo meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(genericType);
                 return (Action<TRow>)meth.Invoke(this, new object[] { input, index, poke, peek });
             }
 
-            private Action<TRow> CreateVBufferToStringArraySetter(IRow input, int col, Delegate poke, Delegate peek)
+            // REVIEW: The converting getter invokes a type conversion delegate on every call, so it's inherently slower
+            // than the 'direct' getter. We don't have good indication of this to the user, and the selection
+            // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
+            private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(IRow input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
             {
-                var getter = input.GetGetter<VBuffer<DvText>>(col);
-                var typedPoke = poke as Poke<TRow, string[]>;
-                var typedPeek = peek as Peek<TRow, string[]>;
+                var getter = input.GetGetter<VBuffer<TSrc>>(col);
+                var typedPoke = poke as Poke<TRow, TDst[]>;
+                var typedPeek = peek as Peek<TRow, TDst[]>;
                 Contracts.AssertValue(typedPoke);
                 Contracts.AssertValue(typedPeek);
-                VBuffer<DvText> value = default(VBuffer<DvText>);
-                string[] buf = null;
+                VBuffer<TSrc> value = default;
+                TDst[] buf = null;
                 return row =>
                 {
                     getter(ref value);
                     typedPeek(row, Position, ref buf);
                     if (Utils.Size(buf) != value.Length)
-                        buf = new string[value.Length];
+                        buf = new TDst[value.Length];
                     foreach (var pair in value.Items(true))
-                        buf[pair.Key] = pair.Value.ToString();
+                        buf[pair.Key] = convert(pair.Value);
 
                     typedPoke(row, buf);
                 };
             }
 
-            private Action<TRow> CreateVBufferToArraySetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
+            private Action<TRow> CreateDirectVBufferSetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
             {
                 var getter = input.GetGetter<VBuffer<TDst>>(col);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
@@ -386,29 +497,17 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
-            private static Action<TRow> CreateTextToStringSetter(IRow input, int col, Delegate poke)
+            private static Action<TRow> CreateConvertingActionSetter<TSrc, TDst>(IRow input, int col, Delegate poke, Func<TSrc, TDst> convert)
             {
-                var getter = input.GetGetter<DvText>(col);
-                var typedPoke = poke as Poke<TRow, string>;
+                var getter = input.GetGetter<TSrc>(col);
+                var typedPoke = poke as Poke<TRow, TDst>;
                 Contracts.AssertValue(typedPoke);
-                DvText value = default(DvText);
+                TSrc value = default;
                 return row =>
                 {
                     getter(ref value);
-                    typedPoke(row, value.ToString());
-                };
-            }
-
-            private static Action<TRow> CreateDvBoolToBoolSetter(IRow input, int col, Delegate poke)
-            {
-                var getter = input.GetGetter<DvBool>(col);
-                var typedPoke = poke as Poke<TRow, bool>;
-                Contracts.AssertValue(typedPoke);
-                DvBool value = default(DvBool);
-                return row =>
-                {
-                    getter(ref value);
-                    typedPoke(row, Convert.ToBoolean(value.RawValue));
+                    var toPoke = convert(value);
+                    typedPoke(row, toPoke);
                 };
             }
 

@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Binary classification evaluator outputs a data view with this name, which contains the p/r data.
-        /// It contains the columns listed below, and in case data also contains a weight column, it contains 
+        /// It contains the columns listed below, and in case data also contains a weight column, it contains
         /// also columns for the weighted values.
         /// and false positive rate.
         /// </summary>
@@ -1211,7 +1211,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // This method saves the p/r plots, and returns the p/r metrics data view.
-        // In case there are results from multiple folds, they are averaged using 
+        // In case there are results from multiple folds, they are averaged using
         // vertical averaging for the p/r plot, and appended using AppendRowsDataView for
         // the p/r data view.
         private bool TryGetPrMetrics(Dictionary<string, IDataView>[] metrics, out IDataView pr)

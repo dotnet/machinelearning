@@ -238,10 +238,10 @@ namespace Microsoft.ML.Runtime.Learners
             string opType = "LinearRegressor";
             var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
             // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
-            node.AddAttribute("post_transform", 0);
+            node.AddAttribute("post_transform", "NONE");
             node.AddAttribute("targets", 1);
             node.AddAttribute("coefficients", Weight.DenseValues());
-            node.AddAttribute("intercepts", Bias);
+            node.AddAttribute("intercepts", new float[] { Bias });
             return true;
         }
 
@@ -553,7 +553,7 @@ namespace Microsoft.ML.Runtime.Learners
 
     public abstract class RegressionPredictor : LinearPredictor
     {
-        internal RegressionPredictor(IHostEnvironment env, string name, ref VBuffer<Float> weights, Float bias)
+        protected RegressionPredictor(IHostEnvironment env, string name, ref VBuffer<Float> weights, Float bias)
             : base(env, name, ref weights, bias)
         {
         }

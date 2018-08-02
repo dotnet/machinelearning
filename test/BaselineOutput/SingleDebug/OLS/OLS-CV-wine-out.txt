@@ -1,0 +1,33 @@
+maml.exe CV tr=OLS threads=- norm=No dout=%Output% loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+} data=%Data% seed=1
+Not adding a normalizer.
+Trainer solving for 12 parameters across 2409 examples
+Coefficient of determination R2 = 0.291173667189042, or 0.287920813763543 (adjusted)
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Trainer solving for 12 parameters across 2489 examples
+Coefficient of determination R2 = 0.280280855195625, or 0.277084686203761 (adjusted)
+Not training a calibrator because it is not needed.
+L1(avg):            0.586798
+L2(avg):            0.573048
+RMS(avg):           0.756999
+Loss-fn(avg):       0.573048
+R Squared:          0.263841
+L1(avg):            0.587999
+L2(avg):            0.571859
+RMS(avg):           0.756214
+Loss-fn(avg):       0.571859
+R Squared:          0.276072
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):            0.587398 (0.0006)
+L2(avg):            0.572454 (0.0006)
+RMS(avg):           0.756606 (0.0004)
+Loss-fn(avg):       0.572454 (0.0006)
+R Squared:          0.269956 (0.0061)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

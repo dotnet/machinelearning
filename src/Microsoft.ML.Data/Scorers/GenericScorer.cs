@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// This class is a scorer that passes through all the ISchemaBound columns without adding any "derived columns".
-    /// It also passes through all metadata (except for possibly changing the score column kind), and adds the 
+    /// It also passes through all metadata (except for possibly changing the score column kind), and adds the
     /// score set id metadata.
     /// </summary>
 

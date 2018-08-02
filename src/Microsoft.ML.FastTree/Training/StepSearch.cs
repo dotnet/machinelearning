@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             _historicStepSize = Math.Max(1.0, _minStepSize);
         }
 
-        private readonly static double _phi = (1.0 + Math.Sqrt(5)) / 2;
+        private static readonly double _phi = (1.0 + Math.Sqrt(5)) / 2;
 
         private static void Swap<T>(ref T a, ref T b)
         {

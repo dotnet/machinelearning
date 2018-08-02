@@ -207,10 +207,9 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     using (var ch = env.Start("SDCA arguments checking"))
                     {
-                        ch.Warning("The specified l2Const = {0} is too small. SDCA optimizes the dual objective function. " +
-                            "The dual formulation is only valid with a positive L2 regularization. Also, an l2Const less than {1} " +
-                            "could drastically slow down the convergence. So using l2Const = {1} instead.", L2Const);
-
+                        ch.Warning($"The L2 regularization constant must be at least {L2LowerBound}. In SDCA, the dual formulation " +
+                            $"is only valid with a positive constant, and values below {L2LowerBound} cause very slow convergence. " +
+                            $"The original {nameof(L2Const)} = {L2Const}, was replaced with {nameof(L2Const)} = {L2LowerBound}.");
                         L2Const = L2LowerBound;
                         ch.Done();
                     }
@@ -231,8 +230,8 @@ namespace Microsoft.ML.Runtime.Learners
 
         // The maximum number of dual variables SDCA intends to support.
         // Actual bound of training dataset size may depend on hardware limit.
-        // Note that currently the maximum dimension linear learners can support is about 2 billion, 
-        // it is not clear if training a linear learner with more than 10^15 examples provides 
+        // Note that currently the maximum dimension linear learners can support is about 2 billion,
+        // it is not clear if training a linear learner with more than 10^15 examples provides
         // substantial additional benefits in terms of accuracy.
         private const long MaxDualTableSize = 1L << 50;
         private const Float L2LowerBound = 1e-09f;
@@ -340,7 +339,7 @@ namespace Microsoft.ML.Runtime.Learners
                     // REVIEW: Is 1024 a good lower bound to enforce sparsity?
                     if (1024 < count && count < (long)idLoMax / 5)
                     {
-                        // The distribution of id.Lo is sparse in [0, idLoMax]. 
+                        // The distribution of id.Lo is sparse in [0, idLoMax].
                         // Building a lookup table is more memory efficient.
                         needLookup = true;
                     }
@@ -351,7 +350,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 // Note: At this point, 'count' may be less than the actual count of training examples.
                 // We initialize the hash table with this partial size to avoid unnecessary rehashing.
-                // However, it does not mean there are exactly 'count' many trainining examples. 
+                // However, it does not mean there are exactly 'count' many trainining examples.
                 // Necessary rehashing will still occur as the hash table grows.
                 idToIdx = new IdToIdxLookup(count);
                 // Resetting 'count' to zero.
@@ -444,8 +443,8 @@ namespace Microsoft.ML.Runtime.Learners
                 else
                 {
                     // The dual variables do not fit into standard float[].
-                    // Using BigArray<Float> instead. 
-                    // Storing the invariants gives rise to too large memory consumption, 
+                    // Using BigArray<Float> instead.
+                    // Storing the invariants gives rise to too large memory consumption,
                     // so we favor re-computing the invariants instead of storing them.
                     Contracts.Assert(dualsLength <= MaxDualTableSize);
                     duals = new BigArrayDualsTable(dualsLength);
@@ -531,7 +530,7 @@ namespace Microsoft.ML.Runtime.Learners
                 pch.SetHeader(new ProgressHeader(metricNames, new[] { "iterations" }), e => e.SetProgress(0, iter, maxIterations));
 
                 // Separate logic is needed for single-thread execution to ensure the result is deterministic.
-                // Note that P.Invoke does not ensure that the actions executes in order even if maximum number of threads is set to 1. 
+                // Note that P.Invoke does not ensure that the actions executes in order even if maximum number of threads is set to 1.
                 if (numThreads == 1)
                 {
                     // The synchorized SDCA procedure.
@@ -678,7 +677,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// It may be null. When it is null, the training examples are not shuffled and are cursored in its original order.
         /// </param>
         /// <param name="idToIdx">
-        /// The id to index mapping. May be null. If it is null, the index is given by the 
+        /// The id to index mapping. May be null. If it is null, the index is given by the
         /// corresponding lower bits of the id.
         /// </param>
         /// <param name="numThreads">The number of threads used in parallel training. It is used in computing the dual update.</param>
@@ -686,33 +685,33 @@ namespace Microsoft.ML.Runtime.Learners
         /// The dual variables. For binary classification and regression, there is one dual variable per row.
         /// For multiclass classification, there is one dual variable per class per row.
         /// </param>
-        /// <param name="biasReg">The array containing regularized bias terms. For binary classification or regression, 
+        /// <param name="biasReg">The array containing regularized bias terms. For binary classification or regression,
         /// it contains only a single value. For multiclass classification its size equals the number of classes.</param>
         /// <param name="invariants">
-        /// The dual updates invariants. It may be null. If not null, it holds an array of pre-computed numerical quantities 
+        /// The dual updates invariants. It may be null. If not null, it holds an array of pre-computed numerical quantities
         /// that depend on the training example label and features, not the value of dual variables.
         /// </param>
         /// <param name="lambdaNInv">The precomputed numerical quantity 1 / (l2Const * (count of training examples)).</param>
         /// <param name="weights">
-        /// The weights array. For binary classification or regression, it consists of only one VBuffer. 
+        /// The weights array. For binary classification or regression, it consists of only one VBuffer.
         /// For multiclass classification, its size equals the number of classes.
         /// </param>
         /// <param name="biasUnreg">
-        /// The array containing unregularized bias terms. For binary classification or regression, 
-        /// it contains only a single value. For multiclass classification its size equals the number of classes. 
+        /// The array containing unregularized bias terms. For binary classification or regression,
+        /// it contains only a single value. For multiclass classification its size equals the number of classes.
         /// </param>
         /// <param name="l1IntermediateWeights">
-        /// The array holding the intermediate weights prior to making L1 shrinkage adjustment. It is null iff l1Threshold is zero. 
-        /// Otherwise, for binary classification or regression, it consists of only one VBuffer; 
+        /// The array holding the intermediate weights prior to making L1 shrinkage adjustment. It is null iff l1Threshold is zero.
+        /// Otherwise, for binary classification or regression, it consists of only one VBuffer;
         /// for multiclass classification, its size equals the number of classes.
         /// </param>
         /// <param name="l1IntermediateBias">
-        /// The array holding the intermediate bias prior to making L1 shrinkage adjustment. It is null iff l1Threshold is zero. 
-        /// Otherwise, for binary classification or regression, it consists of only one value; 
+        /// The array holding the intermediate bias prior to making L1 shrinkage adjustment. It is null iff l1Threshold is zero.
+        /// Otherwise, for binary classification or regression, it consists of only one value;
         /// for multiclass classification, its size equals the number of classes.
         /// </param>
         /// <param name="featureNormSquared">
-        /// The array holding the pre-computed squared L2-norm of features for each training example. It may be null. It is always null for 
+        /// The array holding the pre-computed squared L2-norm of features for each training example. It may be null. It is always null for
         /// binary classification and regression because this quantity is not needed.
         /// </param>
         protected virtual void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, IRandom rand,
@@ -762,7 +761,7 @@ namespace Microsoft.ML.Runtime.Learners
                         var dualUpdate = Loss.DualUpdate(output, label, dual, invariant, numThreads);
 
                         // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
-                        // Reference to details: http://stat.rutgers.edu/home/tzhang/papers/ml02_dual.pdf pp. 16-17. 
+                        // Reference to details: http://stat.rutgers.edu/home/tzhang/papers/ml02_dual.pdf pp. 16-17.
                         var adjustment = l1ThresholdZero ? lr * biasReg[0] : lr * l1IntermediateBias[0];
                         dualUpdate -= adjustment;
                         bool success = false;
@@ -812,7 +811,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary>
-        ///  Returns whether the algorithm converged, and also populates the <paramref name="metrics"/> 
+        ///  Returns whether the algorithm converged, and also populates the <paramref name="metrics"/>
         /// (which is expected to be parallel to the names returned by <see cref="InitializeConvergenceMetrics"/>).
         /// When called, the <paramref name="metrics"/> is expected to hold the previously reported values.
         /// </summary>
@@ -824,33 +823,33 @@ namespace Microsoft.ML.Runtime.Learners
         /// For multiclass classification, there is one dual variable per class per row.
         /// </param>
         /// <param name="idToIdx">
-        /// The id to index mapping. May be null. If it is null, the index is given by the 
+        /// The id to index mapping. May be null. If it is null, the index is given by the
         /// corresponding lower bits of the id.
         /// </param>
         /// <param name="weights">
-        /// The weights array. For binary classification or regression, it consists of only one VBuffer. 
+        /// The weights array. For binary classification or regression, it consists of only one VBuffer.
         /// For multiclass classification, its size equals the number of classes.
         /// </param>
         /// <param name="bestWeights">
-        /// The weights array that corresponds to the best model obtained from the training iterations thus far. 
+        /// The weights array that corresponds to the best model obtained from the training iterations thus far.
         /// </param>
         /// <param name="biasUnreg">
-        /// The array containing unregularized bias terms. For binary classification or regression, 
-        /// it contains only a single value. For multiclass classification its size equals the number of classes. 
+        /// The array containing unregularized bias terms. For binary classification or regression,
+        /// it contains only a single value. For multiclass classification its size equals the number of classes.
         /// </param>
         /// <param name="bestBiasUnreg">
-        /// The array containing unregularized bias terms corresponding to the best model obtained from the training iterations thus far. 
-        /// For binary classification or regression, it contains only a single value. 
-        /// For multiclass classification its size equals the number of classes. 
+        /// The array containing unregularized bias terms corresponding to the best model obtained from the training iterations thus far.
+        /// For binary classification or regression, it contains only a single value.
+        /// For multiclass classification its size equals the number of classes.
         /// </param>
         /// <param name="biasReg">
-        /// The array containing regularized bias terms. For binary classification or regression, 
-        /// it contains only a single value. For multiclass classification its size equals the number of classes. 
+        /// The array containing regularized bias terms. For binary classification or regression,
+        /// it contains only a single value. For multiclass classification its size equals the number of classes.
         /// </param>
         /// <param name="bestBiasReg">
-        /// The array containing regularized bias terms corresponding to the best model obtained from the training iterations thus far. 
-        /// For binary classification or regression, it contains only a single value. 
-        /// For multiclass classification its size equals the number of classes. 
+        /// The array containing regularized bias terms corresponding to the best model obtained from the training iterations thus far.
+        /// For binary classification or regression, it contains only a single value.
+        /// For multiclass classification its size equals the number of classes.
         /// </param>
         /// <param name="count">
         /// The count of (valid) training examples. Bad training examples are excluded from this count.
@@ -929,7 +928,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             if (metrics[(int)MetricKind.Loss] < bestPrimalLoss)
             {
-                // Maintain a copy of weights and bias with best primal loss thus far. 
+                // Maintain a copy of weights and bias with best primal loss thus far.
                 // This is some extra work and uses extra memory, but it seems worth doing it.
                 // REVIEW: Sparsify bestWeights?
                 weights[0].CopyTo(ref bestWeights[0]);
@@ -957,7 +956,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected delegate void Visitor(long index, ref Float value);
 
         /// <summary>
-        /// Encapsulates the common functionality of storing and 
+        /// Encapsulates the common functionality of storing and
         /// retrieving the dual variables.
         /// </summary>
         protected abstract class DualsTableBase
@@ -1086,16 +1085,16 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        // REVIEW: This data structure is an extension of HashArray. It may have general 
+        // REVIEW: This data structure is an extension of HashArray. It may have general
         // purpose of usage to store Id. Should consider lifting this class in the future.
-        // This class can also be made to accommodate generic type, as long as the type implements a 
+        // This class can also be made to accommodate generic type, as long as the type implements a
         // good 64-bit hash function.
         /// <summary>
         /// A hash table data structure to store Id of type <see cref="T:Microsoft.ML.Runtime.Data.UInt128"/>,
-        /// and accommodates size larger than 2 billion. This class is an extension based on BCL. 
-        /// Two operations are supported: adding and retrieving an id with asymptotically constant complexity. 
-        /// The bucket size are prime numbers, starting from 3 and grows to the next prime larger than 
-        /// double the current size until it reaches the maximum possible size. When a table growth is triggered, 
+        /// and accommodates size larger than 2 billion. This class is an extension based on BCL.
+        /// Two operations are supported: adding and retrieving an id with asymptotically constant complexity.
+        /// The bucket size are prime numbers, starting from 3 and grows to the next prime larger than
+        /// double the current size until it reaches the maximum possible size. When a table growth is triggered,
         /// the table growing operation initializes a new larger bucket and rehash the existing entries to
         /// the new bucket. Such operation has an expected complexity proportional to the size.
         /// </summary>
@@ -1288,7 +1287,7 @@ namespace Microsoft.ML.Runtime.Learners
                 public const long MaxPrime = 0x7FFFFFFFFFFFFFE7;
 
                 // Table of prime numbers to use as hash table sizes.
-                // Each subsequent prime, except the last in the list, ensures that the table will at least double in size 
+                // Each subsequent prime, except the last in the list, ensures that the table will at least double in size
                 // upon each growth in order to improve the efficiency of the hash table.
                 // See https://oeis.org/A065545 for the sequence with a[1] = 3, a[k] = next_prime(2 * a[k - 1]).
                 public static readonly long[] Primes =
@@ -1303,7 +1302,7 @@ namespace Microsoft.ML.Runtime.Learners
                     6173400291209582429, MaxPrime
                 };
 
-                // Returns size of hashtable to grow to. 
+                // Returns size of hashtable to grow to.
                 public static long ExpandPrime(long oldSize)
                 {
                     long newSize = 2 * oldSize;
@@ -1566,7 +1565,7 @@ namespace Microsoft.ML.Runtime.Learners
             bool converged = false;
             var watch = new Stopwatch();
 
-            // REVIEW: Investigate using parallel row cursor set instead of getting cursor independently. The convergence of SDCA need to be verified. 
+            // REVIEW: Investigate using parallel row cursor set instead of getting cursor independently. The convergence of SDCA need to be verified.
             Action<int, IProgressChannel> checkConvergence = (e, pch) =>
             {
                 if (e % checkFrequency == 0 && e != _args.MaxIterations)
@@ -1602,7 +1601,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             watch.Start();
 
-            //Reference: Leon Bottou. Stochastic Gradient Descent Tricks. 
+            //Reference: Leon Bottou. Stochastic Gradient Descent Tricks.
             //http://research.microsoft.com/pubs/192769/tricks-2012.pdf
 
             var trainingTasks = new Action<IRandom, IProgressChannel>[_args.MaxIterations];
@@ -1623,8 +1622,8 @@ namespace Microsoft.ML.Runtime.Learners
                             Float label = cursor.Label;
                             Float derivative = cursor.Weight * lossFunc.Derivative(WScaledDot(ref features, weightScaling, ref weights, bias), label); // complexity: O(k)
 
-                            //Note that multiplying the gradient by a weight h is not equivalent to doing h updates 
-                            //on the same instance. A potentially better way to do weighted update is described in 
+                            //Note that multiplying the gradient by a weight h is not equivalent to doing h updates
+                            //on the same instance. A potentially better way to do weighted update is described in
                             //https://dslpitt.org/uai/papers/11/p392-karampatziakis.pdf
                             if (label > 0)
                                 derivative *= positiveInstanceWeight;
@@ -1664,7 +1663,7 @@ namespace Microsoft.ML.Runtime.Learners
             using (var pch = Host.StartProgressChannel("SGD Training"))
             {
                 // Separate logic is needed for single-thread execution to ensure the result is deterministic.
-                // Note that P.Invoke does not ensure that the actions executes in order even if maximum number of threads is set to 1. 
+                // Note that P.Invoke does not ensure that the actions executes in order even if maximum number of threads is set to 1.
                 if (numThreads == 1)
                 {
                     int iter = 0;
@@ -1736,7 +1735,7 @@ namespace Microsoft.ML.Runtime.Learners
             Desc = "Train an SDCA binary model.",
             UserName = LinearClassificationTrainer.UserNameValue,
             ShortName = LinearClassificationTrainer.LoadNameValue,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />", 
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name=""StochasticDualCoordinateAscentBinaryClassifier""]/*'/>" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LinearClassificationTrainer.Arguments input)
         {

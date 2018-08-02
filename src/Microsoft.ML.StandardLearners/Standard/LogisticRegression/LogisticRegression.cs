@@ -28,7 +28,6 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    using Mkl = Microsoft.ML.Runtime.Learners.OlsLinearRegressionTrainer.Mkl;
 
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
@@ -127,7 +126,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             ch.Info("Residual Deviance: \t{0} (on {1} degrees of freedom)", deviance, Math.Max(NumGoodRows - numParams, 0));
 
-            // Compute null deviance, i.e., the deviance of null hypothesis. 
+            // Compute null deviance, i.e., the deviance of null hypothesis.
             // Cap the prior positive rate at 1e-15.
             Double priorPosRate = _posWeight / WeightSum;
             Contracts.Assert(0 <= priorPosRate && priorPosRate <= 1);
@@ -197,7 +196,7 @@ namespace Microsoft.ML.Runtime.Learners
             var hessian = new Double[hessianDimension];
 
             // Initialize diagonal elements with L2 regularizers except for the first entry (index 0)
-            // Since bias is not regularized. 
+            // Since bias is not regularized.
             if (L2Weight > 0)
             {
                 // i is the array index of the diagonal entry at iRow-th row and iRow-th column.
@@ -282,64 +281,7 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
 
-            // Apply Cholesky Decomposition to find the inverse of the Hessian.
-            Double[] invHessian = null;
-            try
-            {
-                // First, find the Cholesky decomposition LL' of the Hessian.
-                Mkl.Pptrf(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, numParams, hessian);
-                // Note that hessian is already modified at this point. It is no longer the original Hessian,
-                // but instead represents the Cholesky decomposition L.
-                // Also note that the following routine is supposed to consume the Cholesky decomposition L instead
-                // of the original information matrix.
-                Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, numParams, hessian);
-                // At this point, hessian should contain the inverse of the original Hessian matrix.
-                // Swap hessian with invHessian to avoid confusion in the following context.
-                Utils.Swap(ref hessian, ref invHessian);
-                Contracts.Assert(hessian == null);
-            }
-            catch (DllNotFoundException)
-            {
-                throw ch.ExceptNotSupp("The MKL library (Microsoft.ML.MklImports.dll) or one of its dependencies is missing.");
-            }
-
-            Float[] stdErrorValues = new Float[numParams];
-            stdErrorValues[0] = (Float)Math.Sqrt(invHessian[0]);
-
-            for (int i = 1; i < numParams; i++)
-            {
-                // Initialize with inverse Hessian.
-                stdErrorValues[i] = (Single)invHessian[i * (i + 1) / 2 + i];
-            }
-
-            if (L2Weight > 0)
-            {
-                // Iterate through all entries of inverse Hessian to make adjustment to variance.
-                // A discussion on ridge regularized LR coefficient covariance matrix can be found here:
-                // http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3228544/
-                // http://www.inf.unibz.it/dis/teaching/DWDM/project2010/LogisticRegression.pdf
-                int ioffset = 1;
-                for (int iRow = 1; iRow < numParams; iRow++)
-                {
-                    for (int iCol = 0; iCol <= iRow; iCol++)
-                    {
-                        var entry = (Single)invHessian[ioffset];
-                        var adjustment = -L2Weight * entry * entry;
-                        stdErrorValues[iRow] -= adjustment;
-                        if (0 < iCol && iCol < iRow)
-                            stdErrorValues[iCol] -= adjustment;
-                        ioffset++;
-                    }
-                }
-
-                Contracts.Assert(ioffset == invHessian.Length);
-            }
-
-            for (int i = 1; i < numParams; i++)
-                stdErrorValues[i] = (Float)Math.Sqrt(stdErrorValues[i]);
-
-            VBuffer<Float> stdErrors = new VBuffer<Float>(CurrentWeights.Length, numParams, stdErrorValues, weightIndices);
-            _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, ref stdErrors);
+            _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
         }
 
         protected override void ProcessPriorDistribution(Float label, Float weight)
@@ -382,7 +324,7 @@ namespace Microsoft.ML.Runtime.Learners
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             return new ParameterMixingCalibratedPredictor(Host,
-                new LinearBinaryPredictor(Host, ref weights, bias, _stats),
+                new LinearBinaryPredictor(Host, ref weights, bias),
                 new PlattCalibrator(Host, -1, 0));
         }
 
@@ -392,7 +334,7 @@ namespace Microsoft.ML.Runtime.Learners
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name=""LBFGS""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name=""LogisticRegressionBinaryClassifier""]/*' />"})]
-                            
+
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

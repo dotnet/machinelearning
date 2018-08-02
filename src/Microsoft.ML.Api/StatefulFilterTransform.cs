@@ -9,10 +9,10 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Api
 {
-    // REVIEW: the current interface to 'state' object may be inadequate: instead of insisting on 
+    // REVIEW: the current interface to 'state' object may be inadequate: instead of insisting on
     // parameterless constructor, we could take a delegate that would create the state per cursor.
     /// <summary>
-    /// This transform is similar to <see cref="MapTransform{TSrc,TDst}"/>, but it allows per-cursor state, 
+    /// This transform is similar to <see cref="MapTransform{TSrc,TDst}"/>, but it allows per-cursor state,
     /// as well as the ability to 'accept' or 'filter out' some rows of the supplied <see cref="IDataView"/>.
     /// The downside is that the provided lambda is eagerly called on every row (not lazily when needed), and
     /// parallel cursors are not allowed.
@@ -38,8 +38,8 @@ namespace Microsoft.ML.Runtime.Api
         private static string RegistrationName { get { return string.Format(RegistrationNameTemplate, typeof(TSrc).FullName, typeof(TDst).FullName); } }
 
         /// <summary>
-        /// Create a filter transform that is savable iff <paramref name="saveAction"/> and <paramref name="loadFunc"/> are 
-        /// not null. 
+        /// Create a filter transform that is savable iff <paramref name="saveAction"/> and <paramref name="loadFunc"/> are
+        /// not null.
         /// </summary>
         /// <param name="env">The host environment</param>
         /// <param name="source">The dataview upon which we construct the transform</param>
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="loadFunc">A function that given the serialization stream and a data view, returns
         /// an <see cref="ITransformTemplate"/>. The intent is, this returned object should itself be a
         /// <see cref="MapTransform{TSrc,TDst}"/>, but this is not strictly necessary. This delegate should be
-        /// a static non-lambda method that this assembly can legally call. May be null simultaneously with 
+        /// a static non-lambda method that this assembly can legally call. May be null simultaneously with
         /// <paramref name="saveAction"/>.</param>
         /// <param name="inputSchemaDefinition">The schema definition overrides for <typeparamref name="TSrc"/></param>
         /// <param name="outputSchemaDefinition">The schema definition overrides for <typeparamref name="TDst"/></param>

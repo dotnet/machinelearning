@@ -5,6 +5,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
@@ -21,5 +22,10 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="LdaNative" />
+	<NativeAssemblyReference Include="SymSgdNative" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
   </ItemGroup>
 </Project>

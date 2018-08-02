@@ -182,9 +182,9 @@ namespace Microsoft.ML.Runtime.LightGBM
     public static partial class LightGbm
     {
         [TlcModule.EntryPoint(
-            Name = "Trainers.LightGbmClassifier", 
-            Desc = "Train a LightGBM multi class model.", 
-            UserName = LightGbmMulticlassTrainer.Summary, 
+            Name = "Trainers.LightGbmClassifier",
+            Desc = "Train a LightGBM multi class model.",
+            UserName = LightGbmMulticlassTrainer.Summary,
             ShortName = LightGbmMulticlassTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
                                  @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmClassifier""]/*' />"})]

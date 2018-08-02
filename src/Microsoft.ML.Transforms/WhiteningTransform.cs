@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.Data
     /// 1. Decorrelation of the input data. Input data is assumed to have zero mean.
     /// 2. Rescale decorrelated features to have unit variance.
     /// That is, PCA whitening is essentially just a PCA + rescale.
-    /// ZCA whitening tries to make resulting data to look more like input data by rotating it back to the 
+    /// ZCA whitening tries to make resulting data to look more like input data by rotating it back to the
     /// original input space.
     /// More information: <a href="http://ufldl.stanford.edu/wiki/index.php/Whitening">http://ufldl.stanford.edu/wiki/index.php/Whitening</a>
     /// </summary>
@@ -597,7 +597,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static class Mkl
         {
-            private const string DllName = "Microsoft.ML.MklImports.dll";
+            private const string DllName = "MklImports";
 
             public enum Layout
             {
