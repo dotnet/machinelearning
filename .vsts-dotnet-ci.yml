@@ -11,5 +11,3 @@ phases:
     buildScript: build.cmd
     queue:
       name: Hosted VS2017
-      demands:
-        - agent.os -equals Windows_NT
