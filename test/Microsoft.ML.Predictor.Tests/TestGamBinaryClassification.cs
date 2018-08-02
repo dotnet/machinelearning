@@ -31,12 +31,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 var dataset = LoadDataset(env);
 
                 var binaryTrainer = new BinaryClassificationGamTrainer(env, new BinaryClassificationGamTrainer.Arguments() { LearningRates = 0.1 });
-                binaryTrainer.Train(dataset);
-                var binaryPredictor = binaryTrainer.CreatePredictor();
+                var binaryPredictor = binaryTrainer.Train(dataset);
 
                 var regressionTrainer = new RegressionGamTrainer(env, new RegressionGamTrainer.Arguments());
-                regressionTrainer.Train(dataset);
-                var regressionPredictor = regressionTrainer.CreatePredictor();
+                var regressionPredictor = regressionTrainer.Train(dataset);
 
                 //// Compare the predictors
                 //ComparePredictors(env, firstPredictor, secondPredictor, dataset);
