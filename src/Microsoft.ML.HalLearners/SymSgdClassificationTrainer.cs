@@ -711,20 +711,6 @@ namespace Microsoft.ML.Runtime.SymSgd
         private static unsafe class Native
         {
             internal const string DllName = "SymSgdNative";
-            internal const string MklDllName = "MklImports";
-
-            static Native()
-            {
-                //Work around to get MKLImport.dll loaded because SymSGDNative.dll
-                //depends on it. On linux this can be loaded by deifining relative paths
-                //and on macOS the full name of the libMKLImport.dylib is defined in
-                //SymSGDNative.dll.
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    cblas_sdot(0, null, 0, null, 0);
-            }
-
-            [DllImport(MklDllName), SuppressUnmanagedCodeSecurity]
-            private static extern void cblas_sdot(int vecSize, float* denseVecX, int incX, float* denseVecY, int incY);
 
             [DllImport(DllName), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
