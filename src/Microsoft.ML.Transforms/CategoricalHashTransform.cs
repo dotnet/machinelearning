@@ -131,10 +131,11 @@ namespace Microsoft.ML.Runtime.Data
         public const string UserName = "Categorical Hash Transform";
 
         /// <summary>
-        /// A helper method to create <see cref="CategoricalHashTransform"/> for public facing API.
+        /// Convenience method for creating <see cref="CategoricalHashTransform"/>.
+        /// <include file='doc.xml' path='doc/members/member[@name="CategoricalHashOneHotVectorizer"]/summary' />
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>

@@ -228,10 +228,12 @@ namespace Microsoft.ML.Runtime.Data
         public const string SupervisedBinNormalizerShortName = "SupBin";
 
         /// <summary>
-        /// A helper method to create MinMaxNormalizer transform for public facing API.
+        /// Convenience method for instantiating <see cref="NormalizeTransform"/> for Min-Max normalization.
+        /// Min-Max normalization is a normalization strategy which linearly transforms values in a column X to y = (x - min) / (max - min),
+        /// where min and max are the minimum and maximum values in X.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         public static NormalizeTransform CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, string name, string source = null)
@@ -264,7 +266,10 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// A helper method to create MeanVarNormalizer transform for public facing API.
+        /// Convenience method for instantiating <see cref="NormalizeTransform"/> for Mean-Variance normalization.
+        /// Mean-Variance normalization normalizes values in a column (X) such that resulting column values have zero mean and unit variance
+        /// i.e. it converts x to y = (x - m) / v,
+        /// where m is the mean of X and v is the variance.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -306,10 +311,14 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// A helper method to create LogMeanVarNormalizer transform for public facing API.
+        /// Convenience method for instantiating <see cref="NormalizeTransform"/> for Log-Mean-Variance normalization.
+        /// Log-Mean-Variance normalization is similar to Mean-Variance normalization
+        /// <see cref="NormalizeTransform.CreateMeanVarNormalizer(IHostEnvironment, IDataView, string, string, bool)"/>
+        /// except that it apply log on the resulting value i.e. it converts x to y = log((x - m) / v),
+        /// where m is the mean of X and v is the variance.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// /// <param name="useCdf">Whether to use CDF as the output.</param>
@@ -347,6 +356,16 @@ namespace Microsoft.ML.Runtime.Data
             return func;
         }
 
+        /// <summary>
+        /// Convenience method for instantiating <see cref="NormalizeTransform"/> for Binning normalization.
+        /// BinNormalizer assigs column values into equidensity bins and a value is mapped to its bin_number/number_of_bins.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="numBins">Max number of bins, power of 2 recommended</param>
+        /// <returns></returns>
         public static NormalizeTransform CreateBinningNormalizer(IHostEnvironment env,
             IDataView input,
             string name,
@@ -381,6 +400,19 @@ namespace Microsoft.ML.Runtime.Data
             return func;
         }
 
+        /// <summary>
+        /// Convenience method for instantiating <see cref="NormalizeTransform"/> for Supervised Binning normalization.
+        /// It is similar to BinNormalizer <see cref="NormalizeTransform.CreateBinningNormalizer(IHostEnvironment, IDataView, string, string, int)"/>,
+        /// but calculates bins based on correlation with the label column, not equi-density. The value is mapped to bin_number / number_of_bins.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
+        /// <param name="labelColumn">Label column for supervised binning</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="numBins">Max number of bins, power of 2 recommended</param>
+        /// <param name="minBinSize">Minimum number of examples per bin</param>
+        /// <returns></returns>
         public static NormalizeTransform CreateSupervisedBinningNormalizer(IHostEnvironment env,
             IDataView input,
             string labelColumn,
