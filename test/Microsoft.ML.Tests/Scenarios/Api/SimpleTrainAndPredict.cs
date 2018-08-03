@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             }
         }
 
-        private static TextTransform.Arguments MakeSentimentTextTransformArgs()
+        private static TextTransform.Arguments MakeSentimentTextTransformArgs(bool normalize = true)
         {
             return new TextTransform.Arguments()
             {
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                 OutputTokens = true,
                 StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                VectorNormalizer = TextTransform.TextNormKind.L2,
+                VectorNormalizer = normalize ? TextTransform.TextNormKind.L2 : TextTransform.TextNormKind.None,
                 CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
             };
