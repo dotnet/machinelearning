@@ -8,6 +8,7 @@
 // * S suffix means sparse (unaligned) vector.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
@@ -48,19 +49,20 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Sse.StoreScalar(dst + idx[3], x);
         }
 
-        private static unsafe Vector128<float> VectorSum(Vector128<float> vector)
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
+        private static void ToVectorSum(ref Vector128<float> vector)
         {
             if (Sse3.IsSupported)
             {
-                Vector128<float> tmp = Sse3.HorizontalAdd(vector, vector);
-                return Sse3.HorizontalAdd(tmp, tmp);
+                vector = Sse3.HorizontalAdd(vector, vector);
+                vector = Sse3.HorizontalAdd(vector, vector);
             }
             else
             {
                 // SSE3 is not supported.
-                Vector128<float> tmp = Sse.Add(vector, Sse.MoveHighToLow(vector, vector));
+                vector = Sse.Add(vector, Sse.MoveHighToLow(vector, vector));
                 // The control byte shuffles the four 32-bit floats of tmp: ABCD -> BADC.
-                return Sse.Add(tmp, Sse.Shuffle(tmp, tmp, 0xb1));
+                vector = Sse.Add(vector, Sse.Shuffle(vector, vector, 0xb1));
             }
         }
 
@@ -292,7 +294,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent += 4;
                 }
 
-                result = VectorSum(result);
+                ToVectorSum(ref result);
 
                 while (pSrcCurrent < pEnd)
                 {
@@ -333,7 +335,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent += 4;
                 }
 
-                result = VectorSum(result);
+                ToVectorSum(ref result);
 
                 while (pSrcCurrent < pEnd)
                 {
@@ -369,7 +371,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                result = VectorSum(result);
+                ToVectorSum(ref result);
 
                 while (pSrcCurrent < pEnd)
                 {
@@ -410,7 +412,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                result = VectorSum(result);
+                ToVectorSum(ref result);
 
                 while (pIdxCurrent < pEnd)
                 {
@@ -449,7 +451,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                sqDistanceVector = VectorSum(sqDistanceVector);
+                ToVectorSum(ref sqDistanceVector);
 
                 float norm = Sse.ConvertToSingle(sqDistanceVector);
                 while (pSrcCurrent < pEnd)
