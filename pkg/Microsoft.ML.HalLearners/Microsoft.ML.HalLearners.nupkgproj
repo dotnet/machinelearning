@@ -2,12 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageDescription>ML.NET additional learners making use of hardware acceleration. They depend on the MlNetMklDeps NuGet package.</PackageDescription>
+    <PackageDescription>ML.NET additional learners making use of hardware acceleration. They use Intel Mkl.</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
-    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
   </ItemGroup>
 
+  <ItemGroup> 
+    <Content Include="$(PackagesDir)\mlnetmkldeps\$(MlNetMklDepsPackageVersion)\LICENSE.txt" Pack="true" PackagePath=".\NOTICE.txt" /> 
+  </ItemGroup> 
+  
 </Project>
