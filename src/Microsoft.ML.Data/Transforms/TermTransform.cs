@@ -358,7 +358,7 @@ namespace Microsoft.ML.Runtime.Data
                                 {
                                     Name ="Term",
                                     Type = DataKind.TX,
-                                    Source = new TextLoader.Range() { Min = 0 }
+                                    Source = new[] { new TextLoader.Range() { Min = 0 } }
                                 }
                             }
                         },

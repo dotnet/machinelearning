@@ -132,8 +132,15 @@ namespace Microsoft.ML.Runtime.Data
             if (Utils.Size(transformArgs) == 0)
                 return srcLoader;
 
+            string GetTagData(IComponentFactory<IDataView, IDataTransform> factory)
+            {
+                // When coming from the command line, preserve the string arguments.
+                // For other factories, we aren't able to get the string.
+                return (factory as ICommandLineComponentFactory)?.ToString();
+            }
+
             var tagData = transformArgs
-                .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString()))
+                .Select(x => new KeyValuePair<string, string>(x.Key, GetTagData(x.Value)))
                 .ToArray();
 
             // Warn if tags coincide with ones already present in the loader.
