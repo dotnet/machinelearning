@@ -8,8 +8,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);CORECLR;PRIVATE_CONTRACTS</DefineConstants>
     <LangVersion>7.3</LangVersion>
-    <!-- The SDK we currently restore and use has 2.0 as the maximum supported version -->
-    <NETCoreAppMaximumVersion>3.0</NETCoreAppMaximumVersion>
   </PropertyGroup>
 
   <ItemGroup>

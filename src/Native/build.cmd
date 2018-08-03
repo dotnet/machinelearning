@@ -88,6 +88,7 @@ if %__IntermediatesDir% == "" (
 set "__CMakeBinDir=%__CMakeBinDir:\=/%"
 set "__IntermediatesDir=%__IntermediatesDir:\=/%"
 
+:: Strip the "-Intrinsics" suffix from the build type
 if [%CMAKE_BUILD_TYPE:~-11%] == [-Intrinsics] (
 	set CMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE:~0,-11%
 )
