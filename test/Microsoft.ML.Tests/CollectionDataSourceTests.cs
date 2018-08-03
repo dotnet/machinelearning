@@ -678,9 +678,9 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
 
-        public class ClassWithPrivateFieldsAndProperties 
+        public class ClassWithPrivateFieldsAndProperties
         {
-            public ClassWithPrivateFieldsAndProperties() { seq++; _unusedStaticField++; _unusedPrivateField1 = 100;  }
+            public ClassWithPrivateFieldsAndProperties() { seq++; _unusedStaticField++; _unusedPrivateField1 = 100; }
             static public int seq;
             static public int _unusedStaticField;
             private int _unusedPrivateField1;
@@ -691,10 +691,10 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             // This property is ignored because it is private 
             private int UnusedPrivateProperty { get { return _unusedPrivateField1; } set { _unusedPrivateField1 = value; } }
-            
+
             // This property is ignored because it has a private setter
             public int UnusedPropertyWithPrivateSetter { get { return _unusedPrivateField1; } private set { _unusedPrivateField1 = value; } }
-            
+
             // This property is ignored because it has a private getter
             public int UnusedPropertyWithPrivateGetter { private get { return _unusedPrivateField1; } set { _unusedPrivateField1 = value; } }
 
@@ -977,6 +977,46 @@ namespace Microsoft.ML.EntryPoints.Tests
                 }
                 Assert.True(!enumeratorNullable.MoveNext() && !originalNullalbleEnumerator.MoveNext());
             }
+        }
+
+
+        class ClassWithPrivateGetter
+        {
+            private DateTime _dateTime = DateTime.Now;
+            public float Day { get { return _dateTime.Day; } }
+            public int Hour { get { return _dateTime.Hour; } }
+        }
+
+        class ClassWithSetter
+        {
+            public float Day { private get; set; }
+            public int Hour { private get; set; }
+
+            [NoColumn]
+            public float GetDay => Day;
+            [NoColumn]
+            public int GetHour => Hour;
+        }
+
+
+        [Fact]
+        public void PrivateGetSetProperties()
+        {
+            var data = new List<ClassWithPrivateGetter>()
+            {new ClassWithPrivateGetter(), new ClassWithPrivateGetter(), new ClassWithPrivateGetter()};
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithSetter>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                {
+                    Assert.True(enumeratorSimple.Current.GetDay ==  originalEnumerator.Current.Day&&
+                        enumeratorSimple.Current.GetHour == originalEnumerator.Current.Hour
+                        );
+                }
+            }
+
         }
     }
 }

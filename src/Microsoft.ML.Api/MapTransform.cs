@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.Api
         private static string RegistrationName { get { return string.Format(RegistrationNameTemplate, typeof(TSrc).FullName, typeof(TDst).FullName); } }
 
         /// <summary>
-        /// Create a a map transform that is savable iff <paramref name="saveAction"/> and <paramref name="loadFunc"/> are
+        /// Create a a map transform that is savable if <paramref name="saveAction"/> and <paramref name="loadFunc"/> are
         /// not null.
         /// </summary>
         /// <param name="env">The host environment</param>
@@ -65,8 +65,10 @@ namespace Microsoft.ML.Runtime.Api
             _mapAction = mapAction;
             _inputSchemaDefinition = inputSchemaDefinition;
             _typedSource = TypedCursorable<TSrc>.Create(Host, Source, false, inputSchemaDefinition);
+            var outSchema = outputSchemaDefinition == null
+               ? InternalSchemaDefinition.Create(typeof(TDst), SchemaDefinition.Direction.Write)
+               : InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
 
-            var outSchema = InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
             _schema = MergedSchema.Create(_source.Schema, outSchema);
         }
 
