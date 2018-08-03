@@ -686,16 +686,19 @@ namespace Microsoft.ML.EntryPoints.Tests
             private int _unusedPrivateField1;
             private string _fString;
 
-            // This property is ignored because it has no setter
+            [NoColumn]
+            // This property can be used as source for DataView, but not casting from dataview to collection
             private int UnusedReadOnlyProperty { get { return _unusedPrivateField1; } }
 
             // This property is ignored because it is private 
             private int UnusedPrivateProperty { get { return _unusedPrivateField1; } set { _unusedPrivateField1 = value; } }
 
-            // This property is ignored because it has a private setter
+            [NoColumn]
+            // This property can be used as source for DataView, but not casting from dataview to collection
             public int UnusedPropertyWithPrivateSetter { get { return _unusedPrivateField1; } private set { _unusedPrivateField1 = value; } }
 
-            // This property is ignored because it has a private getter
+            [NoColumn]
+            // This property can be used as recipticle for dataview, but not as source for dataview.
             public int UnusedPropertyWithPrivateGetter { private get { return _unusedPrivateField1; } set { _unusedPrivateField1 = value; } }
 
             public string StringProp { get { return _fString; } set { _fString = value; } }
@@ -1003,7 +1006,11 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void PrivateGetSetProperties()
         {
             var data = new List<ClassWithPrivateGetter>()
-            {new ClassWithPrivateGetter(), new ClassWithPrivateGetter(), new ClassWithPrivateGetter()};
+            {
+                new ClassWithPrivateGetter(),
+                new ClassWithPrivateGetter(),
+                new ClassWithPrivateGetter()
+            };
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
@@ -1011,9 +1018,8 @@ namespace Microsoft.ML.EntryPoints.Tests
                 var originalEnumerator = data.GetEnumerator();
                 while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
                 {
-                    Assert.True(enumeratorSimple.Current.GetDay ==  originalEnumerator.Current.Day&&
-                        enumeratorSimple.Current.GetHour == originalEnumerator.Current.Hour
-                        );
+                    Assert.True(enumeratorSimple.Current.GetDay == originalEnumerator.Current.Day &&
+                        enumeratorSimple.Current.GetHour == originalEnumerator.Current.Hour);
                 }
             }
 
