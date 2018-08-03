@@ -11,8 +11,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 {
     public partial class ApiScenariosTests
     {
+        /// <summary>
+        /// Evaluation: Similar to the simple train scenario, except instead of having some 
+        /// predictive structure, be able to score another "test" data file, run the result 
+        /// through an evaluator and get metrics like AUC, accuracy, PR curves, and whatnot. 
+        /// Getting metrics out of this shoudl be as straightforward and unannoying as possible.
+        /// </summary>
         [Fact]
-        public void Evaluate()
+        public void Evaluation()
         {
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
@@ -39,9 +45,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var dataEval = new RoleMappedData(scorer, label: "Label", feature: "Features", opt: true);
 
                 var evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments() { });
-                var metricsDic = evaluator.Evaluate(dataEval);
+                var metricsDict = evaluator.Evaluate(dataEval);
 
-                var metrics = BinaryClassificationMetrics.FromMetrics(env, metricsDic["OverallMetrics"], metricsDic["ConfusionMatrix"])[0];
+                var metrics = BinaryClassificationMetrics.FromMetrics(env, metricsDict["OverallMetrics"], metricsDict["ConfusionMatrix"])[0];
             }
         }
     }
