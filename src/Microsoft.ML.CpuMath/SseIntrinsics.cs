@@ -16,28 +16,33 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     internal static class SseIntrinsics
     {
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static unsafe Vector128<float> Load1(float* src, int* idx)
         {
             return Sse.SetScalarVector128(src[idx[0]]);
         }
 
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static unsafe Vector128<float> Load4(float* src, int* idx)
         {
             return Sse.SetVector128(src[idx[3]], src[idx[2]], src[idx[1]], src[idx[0]]);
         }
 
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static Vector128<float> Rotate(Vector128<float> x)
         {
             // The control byte shuffles the four 32-bit floats of x: ABCD -> BCDA.
             return Sse.Shuffle(x, x, 0x39);
         }
 
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static Vector128<float> RotateReverse(Vector128<float> x)
         {
             // The control byte shuffles the four 32-bit floats of x: ABCD -> DABC.
             return Sse.Shuffle(x, x, 0x93);
         }
 
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static unsafe void Store4(Vector128<float> x, float* dst, int* idx)
         {
             Sse.StoreScalar(dst + idx[0], x);
