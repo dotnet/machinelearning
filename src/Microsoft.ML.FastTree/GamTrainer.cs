@@ -606,12 +606,13 @@ namespace Microsoft.ML.Runtime.FastTree
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
+        private readonly double _intercept;
         private readonly int _numFeatures;
         private readonly ColumnType _inputType;
         // These would be the bins for a totally sparse input.
-        private readonly int[] _baseBins;
-        // The base output would be the output from a totally sparse input.
-        private readonly double _baseOutput;
+        private readonly int[] _binsAtAllZero;
+        // The output value for all zeros
+        private readonly double _valueAtAllZero;
 
         private readonly int[] _featureMap;
         private readonly int _inputLength;
@@ -655,7 +656,7 @@ namespace Microsoft.ML.Runtime.FastTree
             _binEffects = new double[_numFeatures][];
             var newBinEffects = new List<double>();
             var newBinBoundaries = new List<double>();
-            _baseBins = new int[_numFeatures];
+            _binsAtAllZero = new int[_numFeatures];
 
             for (int i = 0; i < _numFeatures; i++)
             {
@@ -664,10 +665,12 @@ namespace Microsoft.ML.Runtime.FastTree
                 double[] binEffect = binEffects[i];
                 Host.CheckValue(binEffect, nameof(binEffects), "Array contained null entries");
                 Host.CheckParam(binUpperBound.Length == binEffect.Length, nameof(binEffects), "Array contained wrong number of effects");
+                double meanEffect = 0.0;
                 double value = binEffect[0];
                 for (int j = 0; j < binEffect.Length; j++)
                 {
                     double element = binEffect[j];
+                    meanEffect += element;
                     if (element != value)
                     {
                         newBinEffects.Add(value);
@@ -675,11 +678,16 @@ namespace Microsoft.ML.Runtime.FastTree
                         value = element;
                     }
                 }
+                meanEffect /= binEffect.Length;
+
                 newBinBoundaries.Add(binUpperBound[binEffect.Length - 1]);
                 newBinEffects.Add(binEffect[binEffect.Length - 1]);
                 _binUpperBounds[i] = newBinBoundaries.ToArray();
-                _binEffects[i] = newBinEffects.ToArray();
-                _baseOutput += GetBinEffect(i, 0, out _baseBins[i]);
+
+                // Center the effect around 0, and move the mean into the intercept
+                _binEffects[i] = newBinEffects.Select(x => x - meanEffect).ToArray();
+                _intercept += meanEffect;
+                _valueAtAllZero += _binEffects[i][0];
                 newBinEffects.Clear();
                 newBinBoundaries.Clear();
             }
@@ -696,11 +704,11 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckDecode(_numFeatures >= 0);
             _inputLength = reader.ReadInt32();
             Host.CheckDecode(_inputLength >= 0);
-            _baseOutput = reader.ReadDouble();
+            _intercept = reader.ReadDouble();
 
             _binEffects = new double[_numFeatures][];
             _binUpperBounds = new double[_numFeatures][];
-            _baseBins = new int[_numFeatures];
+            _binsAtAllZero = new int[_numFeatures];
             for (int i = 0; i < _numFeatures; i++)
             {
                 _binEffects[i] = reader.ReadDoubleArray();
@@ -713,7 +721,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 // but due to differences in JIT over time and other considerations,
                 // it's possible that the sum may change even in the absence of
                 // model corruption.
-                GetBinEffect(i, 0, out _baseBins[i]);
+                _valueAtAllZero += GetBinEffect(i, 0, out _binsAtAllZero[i]);
             }
             int len = reader.ReadInt32();
             Host.CheckDecode(len >= 0);
@@ -743,7 +751,7 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.Assert(_numFeatures >= 0);
             ctx.Writer.Write(_inputLength);
             Host.Assert(_inputLength >= 0);
-            ctx.Writer.Write(_baseOutput);
+            ctx.Writer.Write(_intercept);
             for (int i = 0; i < _numFeatures; i++)
                 ctx.Writer.WriteDoubleArray(_binEffects[i]);
             int diff = _binEffects.Sum(e => e.Take(e.Length - 1).Select((ef, i) => ef != e[i + 1] ? 1 : 0).Sum());
@@ -771,31 +779,35 @@ namespace Microsoft.ML.Runtime.FastTree
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<Float> src, ref Float dst)
+        private void Map(ref VBuffer<Float> features, ref Float response)
         {
-            Host.CheckParam(src.Length == _inputLength, nameof(src), "Bad length of input");
-            double output;
-            if (src.IsDense)
+            Host.CheckParam(features.Length == _inputLength, nameof(features), "Bad length of input");
+
+            double value = _intercept;
+            if (features.IsDense)
             {
-                output = 0;
-                for (int i = 0; i < src.Count; ++i)
+                for (int i = 0; i < features.Count; ++i)
                 {
-                    int j;
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out j))
-                        output += GetBinEffect(j, src.Values[i]);
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
+                        value += GetBinEffect(j, features.Values[i]);
                 }
             }
             else
             {
-                output = _baseOutput;
-                for (int i = 0; i < src.Count; ++i)
+                // Add in the precomputed results for all features
+                value += _valueAtAllZero;
+                for (int i = 0; i < features.Count; ++i)
                 {
-                    int j;
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(src.Indices[i], out j))
-                        output += GetBinEffect(j, src.Values[i]) - GetBinEffect(j, 0);
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out int j))
+                        // Add the value and subtract the value at zero that was previously accounted for
+                        value += GetBinEffect(j, features.Values[i]) - GetBinEffect(j, 0);
                 }
             }
-            dst = (Float)output;
+
+            response = (Float)value;
+
+            //int[] bins = new int[_numFeatures];
+            //repsonse = (Float) GetFeatureBinsAndScore(ref features, bins);
         }
 
         /// <summary>
@@ -807,10 +819,43 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             if (builder == null)
                 builder = new BufferBuilder<float>(R4Adder.Instance);
-            builder.Reset(features.Length, false);
 
-            for (int h = 0; h < _binEffects.Length; h++)
-                builder.AddFeature(h, (float)GetBinEffect(h, features.Values[h]));
+            // The model is Intercept + Features
+            builder.Reset(features.Length + 1, false);
+            builder.AddFeature(0, (Float)_intercept);
+
+            if (features.IsDense)
+            {
+                for (int i = 0; i < features.Count; ++i)
+                {
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
+                        builder.AddFeature(i+1, (Float) GetBinEffect(j, features.Values[i]));
+                }
+            }
+            else
+            {
+                int k = -1;
+                int index = features.Indices[++k];
+                for (int i = 0; i < _numFeatures; ++i)
+                {
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
+                    {
+                        double value;
+                        if (i == index)
+                        {
+                            // Get the computed value
+                            value = GetBinEffect(j, features.Values[index]);
+                            // Increment index to the next feature
+                            if (k < features.Indices.Length - 1)
+                                index = features.Indices[++k];
+                        }
+                        else
+                            // For features not defined, the impact is the impact at 0
+                            value = GetBinEffect(i, 0);
+                        builder.AddFeature(i + 1, (Float)value);
+                    }
+                }
+            }
 
             return;
         }
@@ -820,39 +865,30 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckParam(features.Length == _inputLength, nameof(features));
             Host.CheckParam(Utils.Size(bins) == _numFeatures, nameof(bins));
 
-            double output;
+            double value = _intercept;
             if (features.IsDense)
             {
-                output = 0;
                 for (int i = 0; i < features.Count; ++i)
                 {
-                    int j;
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out j))
-                    {
-                        int binIndex;
-                        output += GetBinEffect(j, features.Values[i], out binIndex);
-                        bins[j] = binIndex;
-                    }
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
+                        value += GetBinEffect(j, features.Values[i], out bins[j]);
                 }
             }
             else
             {
-                output = _baseOutput;
-                Array.Copy(_baseBins, bins, _numFeatures);
+                // Add in the precomputed results for all features
+                value += _valueAtAllZero;
+                Array.Copy(_binsAtAllZero, bins, _numFeatures);
 
+                // Update the results for features we have
                 for (int i = 0; i < features.Count; ++i)
                 {
-                    int j;
-                    // Where we have a sparse output,
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out j))
-                    {
-                        int index = Algorithms.FindFirstGE(_binUpperBounds[j], features.Values[i]);
-                        output += _binEffects[j][index];
-                        bins[j] = index;
-                    }
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out int j))
+                        // Add the value and subtract the value at zero that was previously accounted for
+                        value += GetBinEffect(j, features.Values[i], out bins[j]) - GetBinEffect(j, 0);
                 }
             }
-            return output;
+            return value;
         }
 
         private double GetBinEffect(int featureIndex, double featureValue)
@@ -875,13 +911,16 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckValueOrNull(schema);
 
             writer.WriteLine("\xfeffFeature index table"); // add BOM to tell excel this is UTF-8
-            writer.WriteLine($"Number of features:\t{_numFeatures:D}");
+            writer.WriteLine($"Number of features:\t{_numFeatures+1:D}");
             writer.WriteLine("Feature Index\tFeature Name");
 
             // REVIEW: We really need some unit tests around text exporting (for this, and other learners).
             // A useful test in this case would be a model trained with:
             // maml.exe train data=Samples\breast-cancer-withheader.txt loader=text{header+ col=Label:0 col=F1:1-4 col=F2:4 col=F3:5-*}
             //    xf =expr{col=F2 expr=x:0.0} xf=concat{col=Features:F1,F2,F3} tr=gam out=bubba2.zip
+
+            // Write out the intercept
+            writer.WriteLine("-1\tIntercept");
 
             var names = default(VBuffer<DvText>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _inputLength, ref names);
@@ -896,6 +935,7 @@ namespace Microsoft.ML.Runtime.FastTree
             writer.WriteLine();
             writer.WriteLine("Per feature binned effects:");
             writer.WriteLine("Feature Index\tFeature Value Bin Upper Bound\tOutput (effect on label)");
+            writer.WriteLine($"{-1:D}\t{Float.MaxValue:R}\t{_intercept:R}");
             for (int internalIndex = 0; internalIndex < _numFeatures; internalIndex++)
             {
                 int featureIndex = _featureMap[internalIndex];
