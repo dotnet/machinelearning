@@ -50,19 +50,19 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static void ToVectorSum(ref Vector128<float> vector)
+        private static Vector128<float> VectorSum(in Vector128<float> vector)
         {
             if (Sse3.IsSupported)
             {
-                vector = Sse3.HorizontalAdd(vector, vector);
-                vector = Sse3.HorizontalAdd(vector, vector);
+                Vector128<float> tmp = Sse3.HorizontalAdd(vector, vector);
+                return Sse3.HorizontalAdd(tmp, tmp);
             }
             else
             {
                 // SSE3 is not supported.
-                vector = Sse.Add(vector, Sse.MoveHighToLow(vector, vector));
+                Vector128<float> tmp = Sse.Add(vector, Sse.MoveHighToLow(vector, vector));
                 // The control byte shuffles the four 32-bit floats of tmp: ABCD -> BADC.
-                vector = Sse.Add(vector, Sse.Shuffle(vector, vector, 0xb1));
+                return Sse.Add(tmp, Sse.Shuffle(tmp, tmp, 0xb1));
             }
         }
 
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent += 4;
                 }
 
-                ToVectorSum(ref result);
+                result = VectorSum(in result);
 
                 while (pSrcCurrent < pEnd)
                 {
@@ -335,7 +335,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent += 4;
                 }
 
-                ToVectorSum(ref result);
+                result = VectorSum(in result);
 
                 while (pSrcCurrent < pEnd)
                 {
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                ToVectorSum(ref result);
+                result = VectorSum(in result);
 
                 while (pSrcCurrent < pEnd)
                 {
@@ -412,7 +412,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                ToVectorSum(ref result);
+                result = VectorSum(in result);
 
                 while (pIdxCurrent < pEnd)
                 {
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                ToVectorSum(ref sqDistanceVector);
+                sqDistanceVector = VectorSum(in sqDistanceVector);
 
                 float norm = Sse.ConvertToSingle(sqDistanceVector);
                 while (pSrcCurrent < pEnd)
