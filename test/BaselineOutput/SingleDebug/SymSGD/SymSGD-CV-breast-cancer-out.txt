@@ -1,0 +1,65 @@
+maml.exe CV tr=SymSGD{nt=1} threads=- norm=No dout=%Output% data=%Data% seed=1
+Not adding a normalizer.
+Data fully loaded into memory.
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Data fully loaded into memory.
+Not training a calibrator because it is not needed.
+Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3785 (134.0/(134.0+220.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      132 |        2 | 0.9851
+ negative ||        8 |      212 | 0.9636
+          ||======================
+Precision ||   0.9429 |   0.9907 |
+OVERALL 0/1 ACCURACY: 0.971751
+LOG LOSS/instance:  Infinity
+Test-set entropy (prior Log-Loss/instance): 0.956998
+LOG-LOSS REDUCTION (RIG): -Infinity
+AUC:                0.991045
+Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3191 (105.0/(105.0+224.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       96 |        9 | 0.9143
+ negative ||       11 |      213 | 0.9509
+          ||======================
+Precision ||   0.8972 |   0.9595 |
+OVERALL 0/1 ACCURACY: 0.939210
+LOG LOSS/instance:  Infinity
+Test-set entropy (prior Log-Loss/instance): 0.903454
+LOG-LOSS REDUCTION (RIG): -Infinity
+AUC:                0.963435
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.977240 (0.0138)
+Accuracy:           0.955481 (0.0163)
+Positive precision: 0.920027 (0.0228)
+Positive recall:    0.949680 (0.0354)
+Negative precision: 0.975057 (0.0156)
+Negative recall:    0.957265 (0.0064)
+Log-loss:           Infinity (NaN)
+Log-loss reduction: -Infinity (NaN)
+F1 Score:           0.934582 (0.0289)
+AUPRC:              0.964431 (0.0168)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Preprocessing' started.
+[1] 'Preprocessing' finished in %Time%.
+[2] 'Training' started.
+[2] 'Training' finished in %Time%.
+[3] 'Preprocessing #2' started.
+[3] 'Preprocessing #2' finished in %Time%.
+[4] 'Training #2' started.
+[4] 'Training #2' finished in %Time%.

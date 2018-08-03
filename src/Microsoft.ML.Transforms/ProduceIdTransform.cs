@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// Produces a column with the cursor's ID as a column. This can be useful for diagnostic purposes.
-    /// 
+    ///
     /// This class will obviously generate different data given different IDs. So, if you save data to
     /// some other file, then apply this transform to that dataview, it may of course have a different
     /// result. This is distinct from most transforms that produce results based on data alone.

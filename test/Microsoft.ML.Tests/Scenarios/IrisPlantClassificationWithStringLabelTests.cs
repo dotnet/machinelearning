@@ -41,10 +41,10 @@ namespace Microsoft.ML.Scenarios
 
             IrisPrediction prediction = model.Predict(new IrisDataWithStringLabel()
             {
-                SepalLength = 3.3f,
-                SepalWidth = 1.6f,
-                PetalLength = 0.2f,
-                PetalWidth = 5.1f,
+                SepalLength = 5.1f,
+                SepalWidth = 3.3f,
+                PetalLength = 1.6f,
+                PetalWidth = 0.2f,
             });
 
             Assert.Equal(1, prediction.PredictedLabels[0], 2);
@@ -53,10 +53,10 @@ namespace Microsoft.ML.Scenarios
 
             prediction = model.Predict(new IrisDataWithStringLabel()
             {
-                SepalLength = 3.1f,
-                SepalWidth = 5.5f,
-                PetalLength = 2.2f,
-                PetalWidth = 6.4f,
+                SepalLength = 6.4f,
+                SepalWidth = 3.1f,
+                PetalLength = 5.5f,
+                PetalWidth = 2.2f,
             });
 
             Assert.Equal(0, prediction.PredictedLabels[0], 2);
@@ -65,10 +65,10 @@ namespace Microsoft.ML.Scenarios
 
             prediction = model.Predict(new IrisDataWithStringLabel()
             {
-                SepalLength = 3.1f,
-                SepalWidth = 2.5f,
-                PetalLength = 1.2f,
-                PetalWidth = 4.4f,
+                SepalLength = 4.4f,
+                SepalWidth = 3.1f,
+                PetalLength = 2.5f,
+                PetalWidth = 1.2f,
             });
 
             Assert.Equal(.2, prediction.PredictedLabels[0], 1);
@@ -127,16 +127,16 @@ namespace Microsoft.ML.Scenarios
         public class IrisDataWithStringLabel
         {
             [Column("0")]
-            public float PetalWidth;
-
-            [Column("1")]
             public float SepalLength;
 
-            [Column("2")]
+            [Column("1")]
             public float SepalWidth;
 
-            [Column("3")]
+            [Column("2")]
             public float PetalLength;
+
+            [Column("3")]
+            public float PetalWidth;
 
             [Column("4", name: "Label")]
             public string IrisPlantType;

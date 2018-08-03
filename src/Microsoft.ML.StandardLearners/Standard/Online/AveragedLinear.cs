@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization Weight", ShortName = "reg", SortOrder = 50)]
         [TGUI(Label = "L2 Regularization Weight")]
-        [TlcModule.SweepableFloatParam("L2RegularizerWeight", 0.0f, 0.5f)]
+        [TlcModule.SweepableFloatParam("L2RegularizerWeight", 0.0f, 0.4f)]
         public Float L2RegularizerWeight = 0;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Extra weight given to more recent updates", ShortName = "rg")]

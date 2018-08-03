@@ -44,14 +44,16 @@
              Targets="Restore" />
   </Target>
 
-  <Target Name="BuildNative" Condition="'$(SkipNativeBuild)' != 'true'">
+  <Target Name="BuildNative"
+          Condition="'$(SkipNativeBuild)' != 'true'"
+          DependsOnTargets="RestoreProjects">
     <Message Importance="High" Text="Building native components..." />
     <MSBuild Projects="src/Native/build.proj"
              Targets="Build" />
   </Target>
 
   <Target Name="BuildPackages"
-          DependsOnTargets="CreateOrUpdateCurrentVersionFile">
+          DependsOnTargets="CreateOrUpdateCurrentVersionFile;RestoreProjects">
     <Message Importance="High" Text="Building packages ..." />
 
     <ItemGroup>

@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Api
         /// that method that should be enough to "recover" it, assuming it is a "recoverable" method (recoverable
         /// here is a loose definition, meaning that <see cref="DeserializeStaticDelegateOrNull"/> is capable
         /// of creating it, which includes among other things that it's static, non-lambda, accessible to
-        /// this assembly, etc.). 
+        /// this assembly, etc.).
         /// </summary>
         /// <param name="func">The method that should be "recoverable"</param>
         /// <returns>A string array describing the input method</returns>

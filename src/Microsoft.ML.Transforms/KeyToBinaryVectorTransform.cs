@@ -46,13 +46,25 @@ namespace Microsoft.ML.Runtime.Data
 
         // These arrays are parallel to Infos.
         // * _concat is whether, given the current input, there are multiple output instance vectors
-        //   to concatenate. 
+        //   to concatenate.
         // * _types contains the output column types.
         private readonly bool[] _concat;
 
         private readonly int[] _bitsPerKey;
 
         private readonly VectorType[] _types;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        public KeyToBinaryVectorTransform(IHostEnvironment env, IDataView input, string name, string source = null)
+            : this(env, new Arguments() { Column = new[] { new KeyToVectorTransform.Column() { Source = source ?? name, Name = name } } }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.

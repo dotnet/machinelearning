@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -20,7 +21,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Convenience constructor for the scalar case, when a given column 
+        /// Convenience constructor for the scalar case, when a given column
         /// in the schema spans only a single column in the dataset.
         /// <see cref="Min"/> and <see cref="Max"/> are set to the single value <paramref name="ordinal"/>.
         /// </summary>
@@ -35,7 +36,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Convenience constructor for the vector case, when a given column 
+        /// Convenience constructor for the vector case, when a given column
         /// in the schema spans contiguous columns in the dataset.
         /// </summary>
         /// <param name="min">Starting column index in the dataset.</param>
@@ -58,33 +59,43 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="useHeader">Does the file contains header?</param>
         /// <param name="separator">Column separator character. Default is '\t'</param>
-        /// <param name="allowQuotedStrings">Whether the input may include quoted values, 
+        /// <param name="allowQuotedStrings">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
-        /// and distinguish empty values from missing values. When true, consecutive separators 
-        /// denote a missing value and an empty value is denoted by \"\". 
+        /// and distinguish empty values from missing values. When true, consecutive separators
+        /// denote a missing value and an empty value is denoted by \"\".
         /// When false, consecutive separators denote an empty value.</param>
-        /// <param name="supportSparse">Whether the input may include sparse representations e.g. 
-        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero 
+        /// <param name="supportSparse">Whether the input may include sparse representations e.g.
+        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
         /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         public TextLoader CreateFrom<TInput>(bool useHeader = false,
             char separator = '\t', bool allowQuotedStrings = true,
             bool supportSparse = true, bool trimWhitespace = false)
         {
-            var fields = typeof(TInput).GetFields();
-            Arguments.Column = new TextLoaderColumn[fields.Length];
-            for (int index = 0; index < fields.Length; index++)
+            var userType = typeof(TInput);
+
+            var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+            var propertyInfos =
+                userType
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0);
+
+            var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
+
+            Arguments.Column = new TextLoaderColumn[memberInfos.Length];
+            for (int index = 0; index < memberInfos.Length; index++)
             {
-                var field = fields[index];
-                var mappingAttr = field.GetCustomAttribute<ColumnAttribute>();
+                var memberInfo = memberInfos[index];
+                var mappingAttr = memberInfo.GetCustomAttribute<ColumnAttribute>();
                 if (mappingAttr == null)
-                    throw Contracts.Except($"{field.Name} is missing ColumnAttribute");
+                    throw Contracts.Except($"Field or property {memberInfo.Name} is missing ColumnAttribute");
 
                 if (Regex.Match(mappingAttr.Ordinal, @"[^(0-9,\*\-~)]+").Success)
                     throw Contracts.Except($"{mappingAttr.Ordinal} contains invalid characters. " +
                         $"Valid characters are 0-9, *, - and ~");
 
-                var name = mappingAttr.Name ?? field.Name;
+                var name = mappingAttr.Name ?? memberInfo.Name;
 
                 Runtime.Data.TextLoader.Range[] sources;
                 if (!Runtime.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Ordinal, out sources))
@@ -96,8 +107,23 @@ namespace Microsoft.ML.Data
                 tlc.Name = name;
                 tlc.Source = new TextLoaderRange[sources.Length];
                 DataKind dk;
-                if (!TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
-                    throw Contracts.Except($"{name} is of unsupported type.");
+                switch (memberInfo)
+                {
+                    case FieldInfo field:
+                        if (!TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                            throw Contracts.Except($"Field {name} is of unsupported type.");
+
+                        break;
+
+                    case PropertyInfo property:
+                        if (!TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
+                            throw Contracts.Except($"Property {name} is of unsupported type.");
+                        break;
+
+                    default:
+                        Contracts.Assert(false);
+                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                }
 
                 tlc.Type = dk;
 

@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public readonly string Description;
             public readonly string ShortName;
             public readonly string FriendlyName;
-            public readonly string Remarks;
+            public readonly string[] XmlInclude;
             public readonly MethodInfo Method;
             public readonly Type InputType;
             public readonly Type OutputType;
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 Method = method;
                 ShortName = attribute.ShortName;
                 FriendlyName = attribute.UserName;
-                Remarks = attribute.Remarks;
+                XmlInclude = attribute.XmlInclude;
                 ObsoleteAttribute = obsoleteAttribute;
 
                 // There are supposed to be 2 parameters, env and input for non-macro nodes.
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         /// <summary>
-        /// The valid names for the components and entry points must consist of letters, digits, underscores and dots, 
+        /// The valid names for the components and entry points must consist of letters, digits, underscores and dots,
         /// and begin with a letter or digit.
         /// </summary>
         private static readonly Regex _nameRegex = new Regex(@"^\w[_\.\w]*$", RegexOptions.Compiled);

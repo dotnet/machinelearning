@@ -35,16 +35,13 @@ namespace Microsoft.ML.Runtime.RunTests
         }
     }
 
-    public /*static*/ class TestLearnersBase
+    public class TestLearnersBase
     {
         // This ensures that the needed assemblies are loaded!
         static TestLearnersBase()
         {
             bool ok = true;
-            //ok &= typeof(BinaryNeuralNetwork) != null;
             ok &= typeof(FastTreeBinaryClassificationTrainer) != null;
-            //ok &= typeof(OneClassSvmTrainer) != null;
-            //ok &= typeof(LDSvmTrainer) != null;
             Contracts.Check(ok, "Missing assemblies!");
         }
 
@@ -162,6 +159,14 @@ namespace Microsoft.ML.Runtime.RunTests
         public static PredictorAndArgs logisticRegression = new PredictorAndArgs
         {
             Trainer = new SubComponent("LogisticRegression", "l1=1.0 l2=0.1 ot=1e-3 nt=1"),
+            MamlArgs = new[] { "norm=no" },
+            BaselineProgress = true
+        };
+
+        // New.
+        public static PredictorAndArgs symSGD = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("SymSGD", "nt=1"),
             MamlArgs = new[] { "norm=no" },
             BaselineProgress = true
         };

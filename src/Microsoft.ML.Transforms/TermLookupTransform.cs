@@ -283,7 +283,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // This is the byte array containing the binary .idv file contents for the lookup data.
-        // This is persisted; the _termMap and _valueMap are constructed from it. 
+        // This is persisted; the _termMap and _valueMap are constructed from it.
         private readonly byte[] _bytes;
 
         // The BinaryLoader over the byte array above. We keep this

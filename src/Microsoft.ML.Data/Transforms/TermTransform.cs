@@ -29,14 +29,14 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// TermTransform builds up term vocabularies (dictionaries).
-    /// Notes:
-    /// * Each column builds/uses exactly one "vocabulary" (dictionary).
-    /// * Output columns are KeyType-valued.
-    /// * The Key value is the one-based index of the item in the dictionary.
-    /// * Not found is assigned the value zero.
-    /// </summary>
+
+    // TermTransform builds up term vocabularies (dictionaries).
+    // Notes:
+    // * Each column builds/uses exactly one "vocabulary" (dictionary).
+    // * Output columns are KeyType-valued.
+    // * The Key value is the one-based index of the item in the dictionary.
+    // * Not found is assigned the value zero.
+    /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
     public sealed partial class TermTransform : OneToOneTransformBase, ITransformTemplate
     {
         public abstract class ColumnBase : OneToOneColumn
@@ -97,10 +97,16 @@ namespace Microsoft.ML.Runtime.Data
             // other things, like case insensitive (where appropriate), culturally aware, etc.?
         }
 
+        private static class Defaults
+        {
+            public const int MaxNumTerms = 1000000;
+            public const SortOrder Sort = SortOrder.Occurrence;
+        }
+
         public abstract class ArgumentsBase : TransformInputBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
-            public int MaxNumTerms = 1000000;
+            public int MaxNumTerms = Defaults.MaxNumTerms;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string Terms;
@@ -124,7 +130,7 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').", SortOrder = 113)]
-            public SortOrder Sort = SortOrder.Occurrence;
+            public SortOrder Sort = Defaults.Sort;
 
             // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
             // assume key-values will be string? Once we correct these things perhaps we can see about removing it.
@@ -195,6 +201,26 @@ namespace Microsoft.ML.Runtime.Data
 
         public override bool CanSavePfa => true;
         public override bool CanSaveOnnx => true;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
+        /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
+        /// If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').</param>
+        public TermTransform(IHostEnvironment env,
+            IDataView input,
+            string name,
+            string source = null,
+            int maxNumTerms = Defaults.MaxNumTerms,
+            SortOrder sort = Defaults.Sort)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, MaxNumTerms = maxNumTerms, Sort = sort }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
@@ -586,10 +612,10 @@ namespace Microsoft.ML.Runtime.Data
                             termMap[i] = TermMap.TextImpl.Create(c, host);
                     }
                 });
-#pragma warning disable TLC_NoMessagesForLoadContext // Vaguely useful.
+#pragma warning disable MSML_NoMessagesForLoadContext // Vaguely useful.
             if (!b)
                 throw Host.ExceptDecode("Missing {0} model", dir);
-#pragma warning restore TLC_NoMessagesForLoadContext
+#pragma warning restore MSML_NoMessagesForLoadContext
             _termMap = new BoundTermMap[cinfo];
             for (int i = 0; i < cinfo; ++i)
                 _termMap[i] = termMap[i].Bind(this, i);
@@ -690,11 +716,13 @@ namespace Microsoft.ML.Runtime.Data
             TermMap<DvText> map = (TermMap<DvText>)_termMap[iinfo].Map;
             map.GetTerms(ref terms);
             string opType = "LabelEncoder";
-            var node = OnnxUtils.MakeNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            OnnxUtils.NodeAddAttributes(node, "classes_strings", terms.DenseValues());
-            OnnxUtils.NodeAddAttributes(node, "default_int64", -1);
-            OnnxUtils.NodeAddAttributes(node, "default_string", DvText.Empty);
-            ctx.AddNode(node);
+            var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+            node.AddAttribute("classes_strings", terms.DenseValues());
+            node.AddAttribute("default_int64", -1);
+            //default_string needs to be an empty string but there is a BUG in Lotus that
+            //throws a validation error when default_string is empty. As a work around, set
+            //default_string to a space.
+            node.AddAttribute("default_string", " ");
             return true;
         }
 

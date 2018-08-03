@@ -11,9 +11,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer), typeof(FieldAwareFactorizationMachineTrainer.Arguments),
@@ -24,30 +22,20 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.FactorizationMachine
 {
-    /// <summary>
-    /// Train a field-aware factorization machine using ADAGRAD (an advanced stochastic gradient method). See references below
-    /// for details. This trainer is essentially faster the one introduced in [2] because of some implemtation tricks[3].
-    /// [1] http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
-    /// [2] http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
-    /// [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
-    /// </summary>
-    public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<RoleMappedData, FieldAwareFactorizationMachinePredictor>,
-        IIncrementalTrainer<RoleMappedData, FieldAwareFactorizationMachinePredictor>, IValidatingTrainer<RoleMappedData>,
-        IIncrementalValidatingTrainer<RoleMappedData, FieldAwareFactorizationMachinePredictor>
+    /*
+     Train a field-aware factorization machine using ADAGRAD (an advanced stochastic gradient method). See references below
+     for details. This trainer is essentially faster the one introduced in [2] because of some implemtation tricks[3].
+     [1] http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
+     [2] http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
+     [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+    */
+    /// <include file='doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
+    public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<FieldAwareFactorizationMachinePredictor>
     {
         public const string Summary = "Train a field-aware factorization machine for binary classification";
         public const string UserName = "Field-aware Factorization Machine";
         public const string LoadName = "FieldAwareFactorizationMachine";
         public const string ShortName = "ffm";
-        internal const string Remarks = @"<remarks>
-Field Aware Factorization Machines use, in addition to the input variables, factorized parameters to model the interaction between pairs of variables.
-The algorithm is particularly useful for high dimensional datasets which can be very sparse (e.g. click-prediction for advertising systems).
-An advantage of FFM over SVMs is that the training data does not need to be stored in memory, and the coefficients can be optimized directly.
-<a href='https://www.csie.ntu.edu.tw/~r01922136/slides/ffm.pdf'>Field Aware Factorization Machines</a>
-<a href='http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf'>Field-aware Factorization Machines for CTR Prediction</a>
-<a href='http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf'>Adaptive Subgradient Methods for Online Learning and Stochastic Optimization</a>
-<a href='https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf'>An Improved Stochastic Gradient Method for Training Large-scale Field-aware Factorization Machine.</a>
-</remarks>";
 
         public sealed class Arguments : LearnerInputBaseWithLabel
         {
@@ -86,9 +74,7 @@ An advantage of FFM over SVMs is that the training data does not need to be stor
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        public override bool NeedNormalization => true;
-        public override bool NeedCalibration => false;
-        public override bool WantCaching => true;
+        public override TrainerInfo Info { get; }
         private readonly int _latentDim;
         private readonly int _latentDimAligned;
         private readonly float _lambdaLinear;
@@ -99,7 +85,6 @@ An advantage of FFM over SVMs is that the training data does not need to be stor
         private readonly bool _shuffle;
         private readonly bool _verbose;
         private readonly float _radius;
-        private FieldAwareFactorizationMachinePredictor _pred;
 
         public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Arguments args) : base(env, LoadName)
         {
@@ -118,6 +103,7 @@ An advantage of FFM over SVMs is that the training data does not need to be stor
             _shuffle = args.Shuffle;
             _verbose = args.Verbose;
             _radius = args.Radius;
+            Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
         }
 
         private void InitializeTrainingState(int fieldCount, int featureCount, FieldAwareFactorizationMachinePredictor predictor, out float[] linearWeights,
@@ -226,7 +212,7 @@ An advantage of FFM over SVMs is that the training data does not need to be stor
             return loss / exampleCount;
         }
 
-        private void TrainCore(IChannel ch, IProgressChannel pch, RoleMappedData data, RoleMappedData validData, FieldAwareFactorizationMachinePredictor predictor)
+        private FieldAwareFactorizationMachinePredictor TrainCore(IChannel ch, IProgressChannel pch, RoleMappedData data, RoleMappedData validData, FieldAwareFactorizationMachinePredictor predictor)
         {
             Host.AssertValue(ch);
             Host.AssertValue(pch);
@@ -356,68 +342,31 @@ An advantage of FFM over SVMs is that the training data does not need to be stor
                 ch.Warning($"Skipped {badExampleCount} examples with bad label/weight/features in training set");
             if (validBadExampleCount != 0)
                 ch.Warning($"Skipped {validBadExampleCount} examples with bad label/weight/features in validation set");
-            _pred = new FieldAwareFactorizationMachinePredictor(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
+            return new FieldAwareFactorizationMachinePredictor(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
         }
 
-        public override void Train(RoleMappedData data)
+        public override FieldAwareFactorizationMachinePredictor Train(TrainContext context)
         {
-            Host.CheckValue(data, nameof(data));
+            Host.CheckValue(context, nameof(context));
+            var initPredictor = context.InitialPredictor as FieldAwareFactorizationMachinePredictor;
+            Host.CheckParam(context.InitialPredictor == null || initPredictor != null, nameof(context),
+                "Initial predictor should have been " + nameof(FieldAwareFactorizationMachinePredictor));
+
             using (var ch = Host.Start("Training"))
             using (var pch = Host.StartProgressChannel("Training"))
             {
-                TrainCore(ch, pch, data, null, null);
+                var pred = TrainCore(ch, pch, context.TrainingSet, context.ValidationSet, initPredictor);
                 ch.Done();
+                return pred;
             }
         }
 
-        public void Train(RoleMappedData data, RoleMappedData validData)
-        {
-            Host.CheckValue(data, nameof(data));
-            Host.CheckValue(validData, nameof(validData));
-            using (var ch = Host.Start("Training"))
-            using (var pch = Host.StartProgressChannel("Training"))
-            {
-                TrainCore(ch, pch, data, validData, null);
-                ch.Done();
-            }
-        }
-
-        public void Train(RoleMappedData data, FieldAwareFactorizationMachinePredictor predictor)
-        {
-            Host.CheckValue(data, nameof(data));
-            Host.CheckValue(predictor, nameof(predictor));
-            using (var ch = Host.Start("Training"))
-            using (var pch = Host.StartProgressChannel("Training"))
-            {
-                TrainCore(ch, pch, data, null, predictor);
-                ch.Done();
-            }
-        }
-
-        public void Train(RoleMappedData data, RoleMappedData validData, FieldAwareFactorizationMachinePredictor predictor)
-        {
-            Host.CheckValue(data, nameof(data));
-            Host.CheckValue(data, nameof(validData));
-            Host.CheckValue(predictor, nameof(predictor));
-            using (var ch = Host.Start("Training"))
-            using (var pch = Host.StartProgressChannel("Training"))
-            {
-                TrainCore(ch, pch, data, validData, predictor);
-                ch.Done();
-            }
-        }
-
-        public override FieldAwareFactorizationMachinePredictor CreatePredictor()
-        {
-            Host.Check(_pred != null, nameof(Train) + " has not yet been called");
-            return _pred;
-        }
-
-        [TlcModule.EntryPoint(Name = "Trainers.FieldAwareFactorizationMachineBinaryClassifier", 
-            Desc = Summary, 
-            Remarks = Remarks,
-            UserName = UserName, 
-            ShortName = ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FieldAwareFactorizationMachineBinaryClassifier",
+            Desc = Summary,
+            UserName = UserName,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/member[@name=""FieldAwareFactorizationMachineBinaryClassifier""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/example[@name=""FieldAwareFactorizationMachineBinaryClassifier""]/*' />" })]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

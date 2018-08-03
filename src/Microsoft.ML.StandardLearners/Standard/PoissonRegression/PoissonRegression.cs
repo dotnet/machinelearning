@@ -26,17 +26,13 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="PoissonRegression"]/*' />
     public sealed class PoissonRegression : LbfgsTrainerBase<Float, PoissonRegressionPredictor>
     {
         internal const string LoadNameValue = "PoissonRegression";
         internal const string UserNameValue = "Poisson Regression";
         internal const string ShortName = "PR";
         internal const string Summary = "Poisson Regression assumes the unknown function, denoted Y has a Poisson distribution.";
-        new internal const string Remarks = @"<remarks>
-<a href='https://en.wikipedia.org/wiki/Poisson_regression'>Poisson regression</a> is a parameterized regression method. 
-It assumes that the log of the conditional mean of the dependent variable follows a linear function of the dependent variables. 
-Assuming that the dependent variable follows a Poisson distribution, the parameters of the regressor can be estimated by maximizing the likelihood of the obtained observations.
-</remarks>";
 
         public sealed class Arguments : ArgumentsBase
         {
@@ -49,9 +45,7 @@ Assuming that the dependent variable follows a Poisson distribution, the paramet
         {
         }
 
-        public override bool NeedCalibration { get { return false; } }
-
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         protected override void CheckLabel(RoleMappedData data)
         {
@@ -110,7 +104,7 @@ Assuming that the dependent variable follows a Poisson distribution, the paramet
             return -(y * dot - lambda) * weight;
         }
 
-        public override PoissonRegressionPredictor CreatePredictor()
+        protected override PoissonRegressionPredictor CreatePredictor()
         {
             VBuffer<Float> weights = default(VBuffer<Float>);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
@@ -129,7 +123,12 @@ Assuming that the dependent variable follows a Poisson distribution, the paramet
             // No-op by design.
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.PoissonRegressor", Desc = "Train an Poisson regression model.", UserName = UserNameValue, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.PoissonRegressor",
+            Desc = "Train an Poisson regression model.",
+            UserName = UserNameValue,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='doc/members/member[@name=""PoissonRegression""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='doc/members/example[@name=""PoissonRegression""]/*' />"})]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

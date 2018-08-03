@@ -36,6 +36,30 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output datasets from previous iteration of sweep.", SortOrder = 7, Hide = true)]
             public IDataView[] CandidateOutputs;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Label'", SortOrder = 8)]
+            public string[] LabelColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Group'", SortOrder = 9)]
+            public string[] GroupColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Weight'", SortOrder = 10)]
+            public string[] WeightColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Name'", SortOrder = 11)]
+            public string[] NameColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'NumericFeature'", SortOrder = 12)]
+            public string[] NumericFeatureColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'CategoricalFeature'", SortOrder = 13)]
+            public string[] CategoricalFeatureColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'TextFeature'", SortOrder = 14)]
+            public string[] TextFeatureColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'ImagePath'", SortOrder = 15)]
+            public string[] ImagePathColumns;
         }
 
         public sealed class Output
@@ -88,6 +112,77 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new Output { Results = outputView, State = autoMlState };
         }
 
+        private static RoleMappedData GetDataRoles(IHostEnvironment env, Arguments input)
+        {
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+
+            if (input.LabelColumns != null)
+            {
+                env.Check(input.LabelColumns.Length == 1, "LabelColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Label.Bind(input.LabelColumns[0]));
+            }
+
+            if (input.GroupColumns != null)
+            {
+                env.Check(input.GroupColumns.Length == 1, "GroupColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Group.Bind(input.GroupColumns[0]));
+            }
+
+            if (input.WeightColumns != null)
+            {
+                env.Check(input.WeightColumns.Length == 1, "WeightColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Weight.Bind(input.WeightColumns[0]));
+            }
+
+            if (input.NameColumns != null)
+            {
+                env.Check(input.NameColumns.Length == 1, "NameColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Name.Bind(input.NameColumns[0]));
+            }
+
+            if (input.NumericFeatureColumns != null)
+            {
+                var numericFeature = new RoleMappedSchema.ColumnRole(ColumnPurpose.NumericFeature.ToString());
+                foreach (var colName in input.NumericFeatureColumns)
+                {
+                    var item = numericFeature.Bind(colName);
+                    roles.Add(item);
+                }
+            }
+
+            if (input.CategoricalFeatureColumns != null)
+            {
+                var categoricalFeature = new RoleMappedSchema.ColumnRole(ColumnPurpose.CategoricalFeature.ToString());
+                foreach (var colName in input.CategoricalFeatureColumns)
+                {
+                    var item = categoricalFeature.Bind(colName);
+                    roles.Add(item);
+                }
+            }
+
+            if (input.TextFeatureColumns != null)
+            {
+                var textFeature = new RoleMappedSchema.ColumnRole(ColumnPurpose.TextFeature.ToString());
+                foreach (var colName in input.TextFeatureColumns)
+                {
+                    var item = textFeature.Bind(colName);
+                    roles.Add(item);
+                }
+            }
+
+            if (input.ImagePathColumns != null)
+            {
+                var imagePath = new RoleMappedSchema.ColumnRole(ColumnPurpose.ImagePath.ToString());
+                foreach (var colName in input.ImagePathColumns)
+                {
+                    var item = imagePath.Bind(colName);
+                    roles.Add(item);
+                }
+            }
+
+            return new RoleMappedData(input.TrainingData, roles);
+        }
+
         [TlcModule.EntryPoint(Desc = "AutoML pipeline sweeping optimzation macro.", Name = "Models.PipelineSweeper")]
         public static CommonOutputs.MacroOutput<Output> PipelineSweep(
             IHostEnvironment env,
@@ -97,6 +192,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.Check(input.StateArguments != null || input.State is AutoInference.AutoMlMlState,
                 "Must have a valid AutoML State, or pass arguments to create one.");
             env.Check(input.BatchSize > 0, "Batch size must be > 0.");
+
+            // Get the user-defined column roles (if any)
+            var dataRoles = GetDataRoles(env, input);
 
             // If no current state, create object and set data.
             if (input.State == null)
@@ -113,7 +211,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
             var autoMlState = (AutoInference.AutoMlMlState)input.State;
 
-            // The indicators are just so the macro knows those pipelines need to 
+            // The indicators are just so the macro knows those pipelines need to
             // be run before performing next expansion. If we add them as inputs
             // to the next iteration, the next iteration cannot run until they have
             // their values set. Thus, indicators are needed.
@@ -133,7 +231,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Make sure search space is defined. If not, infer,
             // with default number of transform levels.
             if (!autoMlState.IsSearchSpaceDefined())
-                autoMlState.InferSearchSpace(numTransformLevels: 1);
+                autoMlState.InferSearchSpace(numTransformLevels: 1, dataRoles);
 
             // Extract performance summaries and assign to previous candidate pipelines.
             foreach (var pipeline in autoMlState.BatchCandidates)
@@ -141,8 +239,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 if (node.Context.TryGetVariable(ExperimentUtils.GenerateOverallMetricVarName(pipeline.UniqueId), out var v) &&
                     node.Context.TryGetVariable(AutoMlUtils.GenerateOverallTrainingMetricVarName(pipeline.UniqueId), out var v2))
                 {
-                    pipeline.PerformanceSummary =
-                        AutoMlUtils.ExtractRunSummary(env, (IDataView)v.Value, autoMlState.Metric.Name, (IDataView)v2.Value);
+                    pipeline.PerformanceSummary = AutoMlUtils.ExtractRunSummary(env, (IDataView)v.Value, autoMlState.Metric.Name, (IDataView)v2.Value);
                     autoMlState.AddEvaluated(pipeline);
                 }
             }
