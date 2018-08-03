@@ -53,7 +53,7 @@
   </Target>
 
   <Target Name="BuildPackages"
-          DependsOnTargets="CreateOrUpdateCurrentVersionFile">
+          DependsOnTargets="CreateOrUpdateCurrentVersionFile;RestoreProjects">
     <Message Importance="High" Text="Building packages ..." />
 
     <ItemGroup>
