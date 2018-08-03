@@ -338,7 +338,8 @@ namespace Microsoft.ML.Transforms.Properties {
         ///nyt
         ///nær
         ///næste
-        ///næsten        /// [rest of string was truncated]&quot;;.
+        ///næsten
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Danish {
             get {
@@ -581,7 +582,8 @@ namespace Microsoft.ML.Transforms.Properties {
         ///aussi
         ///donc
         ///ces
-        ///toute        /// [rest of string was truncated]&quot;;.
+        ///toute
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string French {
             get {

@@ -10,10 +10,10 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// This interface is used by Maml components (the <see cref="EvaluateCommand"/>, the <see cref="CrossValidationCommand"/> 
+    /// This interface is used by Maml components (the <see cref="EvaluateCommand"/>, the <see cref="CrossValidationCommand"/>
     /// and the <see cref="EvaluateTransform"/> to evaluate, print and save the results.
-    /// The input <see cref="RoleMappedData"/> to the <see cref="IEvaluator.Evaluate"/> and the <see cref="IEvaluator.GetPerInstanceMetrics"/> methods 
-    /// should be assumed to contain only the following column roles: label, group, weight and name. Any other columns needed for 
+    /// The input <see cref="RoleMappedData"/> to the <see cref="IEvaluator.Evaluate"/> and the <see cref="IEvaluator.GetPerInstanceMetrics"/> methods
+    /// should be assumed to contain only the following column roles: label, group, weight and name. Any other columns needed for
     /// evaluation should be searched for by name in the <see cref="ISchema"/>.
     /// </summary>
     public interface IMamlEvaluator : IEvaluator
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public Dictionary<string, IDataView> Evaluate(RoleMappedData data)
         {
-            data = RoleMappedData.Create(data.Data, GetInputColumnRoles(data.Schema, needStrat: true));
+            data = new RoleMappedData(data.Data, GetInputColumnRoles(data.Schema, needStrat: true));
             return Evaluator.Evaluate(data);
         }
 
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Runtime.Data
                 : StratCols.Select(col => RoleMappedSchema.CreatePair(Strat, col));
 
             if (needName && schema.Name != null)
-                roles = roles.Prepend(RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Name, schema.Name.Name));
+                roles = roles.Prepend(RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Name));
 
             return roles.Concat(GetInputColumnRolesCore(schema));
         }
@@ -126,12 +126,12 @@ namespace Microsoft.ML.Runtime.Data
             yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreInfo.Name);
 
             // Get the label column information.
-            string lab = EvaluateUtils.GetColName(LabelCol, schema.Label, DefaultColumnNames.Label);
-            yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, lab);
+            string label = EvaluateUtils.GetColName(LabelCol, schema.Label, DefaultColumnNames.Label);
+            yield return RoleMappedSchema.ColumnRole.Label.Bind(label);
 
-            var weight = EvaluateUtils.GetColName(WeightCol, schema.Weight, null);
+            string weight = EvaluateUtils.GetColName(WeightCol, schema.Weight, null);
             if (!string.IsNullOrEmpty(weight))
-                yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Weight, weight);
+                yield return RoleMappedSchema.ColumnRole.Weight.Bind(weight);
         }
 
         public virtual IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(scoredData);
 
             var schema = scoredData.Schema;
-            var dataEval = RoleMappedData.Create(scoredData.Data, GetInputColumnRoles(schema));
+            var dataEval = new RoleMappedData(scoredData.Data, GetInputColumnRoles(schema));
             return Evaluator.GetPerInstanceMetrics(dataEval);
         }
 
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Runtime.Data
         public IDataView GetPerInstanceDataViewToSave(RoleMappedData perInstance)
         {
             Host.CheckValue(perInstance, nameof(perInstance));
-            var data = RoleMappedData.Create(perInstance.Data, GetInputColumnRoles(perInstance.Schema, needName: true));
+            var data = new RoleMappedData(perInstance.Data, GetInputColumnRoles(perInstance.Schema, needName: true));
             return WrapPerInstance(data);
         }
 

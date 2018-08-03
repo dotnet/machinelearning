@@ -55,13 +55,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 ClassIndex = k,
                 Column = new[]
                 {
-                            new ML.Transforms.LabelIndicatorTransformColumn
-                            {
-                                ClassIndex = k,
-                                Name = label,
-                                Source = label
-                            }
-                        },
+                    new ML.Transforms.LabelIndicatorTransformColumn
+                    {
+                        ClassIndex = k,
+                        Name = label,
+                        Source = label
+                    }
+                },
                 Data = { VarName = node.GetInputVariable(nameof(input.TrainingData)).ToJson() }
             };
             var exp = new Experiment(env);
@@ -128,14 +128,16 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     input.WeightColumn, DefaultColumnNames.Weight);
 
                 // Get number of classes
-                var data = TrainUtils.CreateExamples(input.TrainingData, label, feature, null, weight);
+                var data = new RoleMappedData(input.TrainingData, label, feature, null, weight);
                 data.CheckMultiClassLabel(out var numClasses);
                 return numClasses;
             }
         }
 
-        [TlcModule.EntryPoint(Desc = "One-vs-All macro (OVA)", Name = "Models.OneVersusAll")]
-        public static CommonOutputs.MacroOutput<Output> OVA(
+        [TlcModule.EntryPoint(Desc = "One-vs-All macro (OVA)",
+            Name = "Models.OneVersusAll",
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name=""OVA""]/*'/>" })]
+        public static CommonOutputs.MacroOutput<Output> OneVersusAll(
             IHostEnvironment env,
             Arguments input,
             EntryPointNode node)
@@ -158,7 +160,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 macroNodes.AddRange(result.Item1);
             }
 
-            // Use OVA model combiner to combine these models into one. 
+            // Use OVA model combiner to combine these models into one.
             // Takes in array of models that are binary predictor models and
             // produces single multiclass predictor model.
             var macroExperiment = new Experiment(env);

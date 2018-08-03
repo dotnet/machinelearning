@@ -11,14 +11,14 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Api
 {
     /// <summary>
-    /// This class defines extension methods for an <see cref="IHostEnvironment"/> to facilitate creating 
+    /// This class defines extension methods for an <see cref="IHostEnvironment"/> to facilitate creating
     /// components (loaders, transforms, trainers, scorers, evaluators, savers).
     /// </summary>
     public static class ComponentCreation
     {
         /// <summary>
         /// Create a new data view which is obtained by appending all columns of all the source data views.
-        /// If the data views are of different length, the resulting data view will have the length equal to the 
+        /// If the data views are of different length, the resulting data view will have the length equal to the
         /// length of the shortest source.
         /// </summary>
         /// <param name="env">The host environment to use.</param>
@@ -52,18 +52,18 @@ namespace Microsoft.ML.Runtime.Api
             env.CheckValueOrNull(weight);
             env.CheckValueOrNull(custom);
 
-            return TrainUtils.CreateExamples(data, label, features, group, weight, name: null, custom: custom);
+            return new RoleMappedData(data, label, features, group, weight, name: null, custom: custom);
         }
 
         /// <summary>
         /// Create a new <see cref="IDataView"/> over an in-memory collection of the items of user-defined type.
         /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
         /// never alter the contents of the <paramref name="data"/>.
-        /// Since <see cref="IDataView"/> is assumed to be immutable, the user is expected to not 
+        /// Since <see cref="IDataView"/> is assumed to be immutable, the user is expected to not
         /// modify the contents of <paramref name="data"/> while the data view is being actively cursored.
-        /// 
+        ///
         /// One typical usage for in-memory data view could be: create the data view, train a predictor.
-        /// Once the predictor is fully trained, modify the contents of the underlying collection and 
+        /// Once the predictor is fully trained, modify the contents of the underlying collection and
         /// train another predictor.
         /// </summary>
         /// <typeparam name="TRow">The user-defined item type.</typeparam>
@@ -88,9 +88,9 @@ namespace Microsoft.ML.Runtime.Api
         /// Since <see cref="IDataView"/> is assumed to be immutable, the user is expected to support
         /// multiple enumeration of the <paramref name="data"/> that would return the same results, unless
         /// the user knows that the data will only be cursored once.
-        /// 
+        ///
         /// One typical usage for streaming data view could be: create the data view that lazily loads data
-        /// as needed, then apply pre-trained transformations to it and cursor through it for transformation 
+        /// as needed, then apply pre-trained transformations to it and cursor through it for transformation
         /// results. This is how <see cref="BatchPredictionEngine{TSrc,TDst}"/> is implemented.
         /// </summary>
         /// <typeparam name="TRow">The user-defined item type.</typeparam>
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Create a prediction engine.
         /// This encapsulates the 'classic' prediction problem, where the input is denoted by the float array of features,
-        /// and the output is a float score. For binary classification predictors that can output probability, there are output 
+        /// and the output is a float score. For binary classification predictors that can output probability, there are output
         /// fields that report the predicted label and probability.
         /// </summary>
         /// <param name="env">The host environment to use.</param>
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Runtime.Api
 
         /// <summary>
         /// Load the transforms (but not loader) from the model steram and apply them to the specified data.
-        /// It is acceptable to have no transforms in the model stream: in this case the original 
+        /// It is acceptable to have no transforms in the model stream: in this case the original
         /// <paramref name="data"/> will be returned.
         /// </summary>
         /// <param name="env">The host environment to use.</param>

@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
         Num = R4,
 
         TX = 11,
-#pragma warning disable TLC_GeneralName // The data kind enum has its own logic, independnet of C# naming conventions.
+#pragma warning disable MSML_GeneralName // The data kind enum has its own logic, independnet of C# naming conventions.
         TXT = TX,
         Text = TX,
 
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
 
         UG = 16, // Unsigned 16-byte integer.
         U16 = UG,
-#pragma warning restore TLC_GeneralName
+#pragma warning restore MSML_GeneralName
     }
 
     /// <summary>
@@ -83,22 +83,22 @@ namespace Microsoft.ML.Runtime.Data
         {
             switch (kind)
             {
-            case DataKind.I1:
-                return (ulong)sbyte.MaxValue;
-            case DataKind.U1:
-                return byte.MaxValue;
-            case DataKind.I2:
-                return (ulong)short.MaxValue;
-            case DataKind.U2:
-                return ushort.MaxValue;
-            case DataKind.I4:
-                return int.MaxValue;
-            case DataKind.U4:
-                return uint.MaxValue;
-            case DataKind.I8:
-                return long.MaxValue;
-            case DataKind.U8:
-                return ulong.MaxValue;
+                case DataKind.I1:
+                    return (ulong)sbyte.MaxValue;
+                case DataKind.U1:
+                    return byte.MaxValue;
+                case DataKind.I2:
+                    return (ulong)short.MaxValue;
+                case DataKind.U2:
+                    return ushort.MaxValue;
+                case DataKind.I4:
+                    return int.MaxValue;
+                case DataKind.U4:
+                    return uint.MaxValue;
+                case DataKind.I8:
+                    return long.MaxValue;
+                case DataKind.U8:
+                    return ulong.MaxValue;
             }
 
             return 0;
@@ -112,22 +112,22 @@ namespace Microsoft.ML.Runtime.Data
         {
             switch (kind)
             {
-            case DataKind.I1:
-                return sbyte.MinValue;
-            case DataKind.U1:
-                return byte.MinValue;
-            case DataKind.I2:
-                return short.MinValue;
-            case DataKind.U2:
-                return ushort.MinValue;
-            case DataKind.I4:
-                return int.MinValue;
-            case DataKind.U4:
-                return uint.MinValue;
-            case DataKind.I8:
-                return long.MinValue;
-            case DataKind.U8:
-                return 0;
+                case DataKind.I1:
+                    return sbyte.MinValue;
+                case DataKind.U1:
+                    return byte.MinValue;
+                case DataKind.I2:
+                    return short.MinValue;
+                case DataKind.U2:
+                    return ushort.MinValue;
+                case DataKind.I4:
+                    return int.MinValue;
+                case DataKind.U4:
+                    return uint.MinValue;
+                case DataKind.I8:
+                    return long.MinValue;
+                case DataKind.U8:
+                    return 0;
             }
 
             return 1;
@@ -140,38 +140,38 @@ namespace Microsoft.ML.Runtime.Data
         {
             switch (kind)
             {
-            case DataKind.I1:
-                return typeof(DvInt1);
-            case DataKind.U1:
-                return typeof(byte);
-            case DataKind.I2:
-                return typeof(DvInt2);
-            case DataKind.U2:
-                return typeof(ushort);
-            case DataKind.I4:
-                return typeof(DvInt4);
-            case DataKind.U4:
-                return typeof(uint);
-            case DataKind.I8:
-                return typeof(DvInt8);
-            case DataKind.U8:
-                return typeof(ulong);
-            case DataKind.R4:
-                return typeof(Single);
-            case DataKind.R8:
-                return typeof(Double);
-            case DataKind.TX:
-                return typeof(DvText);
-            case DataKind.BL:
-                return typeof(DvBool);
-            case DataKind.TS:
-                return typeof(DvTimeSpan);
-            case DataKind.DT:
-                return typeof(DvDateTime);
-            case DataKind.DZ:
-                return typeof(DvDateTimeZone);
-            case DataKind.UG:
-                return typeof(UInt128);
+                case DataKind.I1:
+                    return typeof(DvInt1);
+                case DataKind.U1:
+                    return typeof(byte);
+                case DataKind.I2:
+                    return typeof(DvInt2);
+                case DataKind.U2:
+                    return typeof(ushort);
+                case DataKind.I4:
+                    return typeof(DvInt4);
+                case DataKind.U4:
+                    return typeof(uint);
+                case DataKind.I8:
+                    return typeof(DvInt8);
+                case DataKind.U8:
+                    return typeof(ulong);
+                case DataKind.R4:
+                    return typeof(Single);
+                case DataKind.R8:
+                    return typeof(Double);
+                case DataKind.TX:
+                    return typeof(DvText);
+                case DataKind.BL:
+                    return typeof(DvBool);
+                case DataKind.TS:
+                    return typeof(DvTimeSpan);
+                case DataKind.DT:
+                    return typeof(DvDateTime);
+                case DataKind.DZ:
+                    return typeof(DvDateTimeZone);
+                case DataKind.UG:
+                    return typeof(UInt128);
             }
 
             return null;
@@ -185,29 +185,29 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValueOrNull(type);
 
             // REVIEW: Make this more efficient. Should we have a global dictionary?
-            if (type == typeof(DvInt1))
+            if (type == typeof(DvInt1) || type == typeof(sbyte) || type == typeof(sbyte?))
                 kind = DataKind.I1;
-            else if (type == typeof(byte))
+            else if (type == typeof(byte) || type == typeof(byte?))
                 kind = DataKind.U1;
-            else if (type == typeof(DvInt2))
+            else if (type == typeof(DvInt2)|| type== typeof(short) || type == typeof(short?))
                 kind = DataKind.I2;
-            else if (type == typeof(ushort))
+            else if (type == typeof(ushort)|| type == typeof(ushort?))
                 kind = DataKind.U2;
-            else if (type == typeof(DvInt4))
+            else if (type == typeof(DvInt4) || type == typeof(int)|| type == typeof(int?))
                 kind = DataKind.I4;
-            else if (type == typeof(uint))
+            else if (type == typeof(uint)|| type == typeof(uint?))
                 kind = DataKind.U4;
-            else if (type == typeof(DvInt8))
+            else if (type == typeof(DvInt8) || type==typeof(long)|| type == typeof(long?))
                 kind = DataKind.I8;
-            else if (type == typeof(ulong))
+            else if (type == typeof(ulong)|| type == typeof(ulong?))
                 kind = DataKind.U8;
-            else if (type == typeof(Single))
+            else if (type == typeof(Single)|| type == typeof(Single?))
                 kind = DataKind.R4;
-            else if (type == typeof(Double))
+            else if (type == typeof(Double)|| type == typeof(Double?))
                 kind = DataKind.R8;
             else if (type == typeof(DvText))
                 kind = DataKind.TX;
-            else if (type == typeof(DvBool) || type == typeof(bool) ||type ==typeof(bool?))
+            else if (type == typeof(DvBool) || type == typeof(bool) || type == typeof(bool?))
                 kind = DataKind.BL;
             else if (type == typeof(DvTimeSpan))
                 kind = DataKind.TS;
@@ -234,38 +234,38 @@ namespace Microsoft.ML.Runtime.Data
         {
             switch (kind)
             {
-            case DataKind.I1:
-                return "I1";
-            case DataKind.I2:
-                return "I2";
-            case DataKind.I4:
-                return "I4";
-            case DataKind.I8:
-                return "I8";
-            case DataKind.U1:
-                return "U1";
-            case DataKind.U2:
-                return "U2";
-            case DataKind.U4:
-                return "U4";
-            case DataKind.U8:
-                return "U8";
-            case DataKind.R4:
-                return "R4";
-            case DataKind.R8:
-                return "R8";
-            case DataKind.BL:
-                return "BL";
-            case DataKind.TX:
-                return "TX";
-            case DataKind.TS:
-                return "TS";
-            case DataKind.DT:
-                return "DT";
-            case DataKind.DZ:
-                return "DZ";
-            case DataKind.UG:
-                return "UG";
+                case DataKind.I1:
+                    return "I1";
+                case DataKind.I2:
+                    return "I2";
+                case DataKind.I4:
+                    return "I4";
+                case DataKind.I8:
+                    return "I8";
+                case DataKind.U1:
+                    return "U1";
+                case DataKind.U2:
+                    return "U2";
+                case DataKind.U4:
+                    return "U4";
+                case DataKind.U8:
+                    return "U8";
+                case DataKind.R4:
+                    return "R4";
+                case DataKind.R8:
+                    return "R8";
+                case DataKind.BL:
+                    return "BL";
+                case DataKind.TX:
+                    return "TX";
+                case DataKind.TS:
+                    return "TS";
+                case DataKind.DT:
+                    return "DT";
+                case DataKind.DZ:
+                    return "DZ";
+                case DataKind.UG:
+                    return "UG";
             }
             return "";
         }

@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
+using static Microsoft.ML.Runtime.Data.MetricKinds;
 
 namespace Microsoft.ML.Models
 {
@@ -38,6 +39,7 @@ namespace Microsoft.ML.Models
                     AvgMinScore = metric.AvgMinScore,
                     Nmi = metric.Nmi,
                     Dbi = metric.Dbi,
+                    RowTag = metric.RowTag,
                 });
             }
 
@@ -57,7 +59,7 @@ namespace Microsoft.ML.Models
         /// </summary>
         /// <remarks>
         /// NMI is a measure of the mutual dependence between the true and predicted cluster labels for instances in the dataset.
-        /// NMI ranges between 0 and 1 where "0" indicates clustering is random and "1" indicates clustering is perfect w.r.t true labels. 
+        /// NMI ranges between 0 and 1 where "0" indicates clustering is random and "1" indicates clustering is perfect w.r.t true labels.
         /// </remarks>
         public double Nmi { get; private set; }
 
@@ -66,12 +68,18 @@ namespace Microsoft.ML.Models
         /// </summary>
         /// <remarks>
         /// AvgMinScore is the average squared-distance of examples from the respective cluster centroids.
-        /// It is defined as 
+        /// It is defined as
         /// AvgMinScore  = (1/m) * sum ((xi - c(xi))^2)
         /// where m is the number of instances in the dataset.
         /// xi is the i'th instance and c(xi) is the centriod of the predicted cluster for xi.
         /// </remarks>
         public double AvgMinScore { get; private set; }
+
+        /// <summary>
+        /// For cross-validation, this is equal to "Fold N" for per-fold metric rows, "Overall" for the average metrics and "STD" for standard deviation.
+        /// For non-CV scenarios, this is equal to null
+        /// </summary>
+        public string RowTag { get; private set; }
 
         /// <summary>
         /// This class contains the public fields necessary to deserialize from IDataView.
@@ -88,6 +96,8 @@ namespace Microsoft.ML.Models
             [ColumnName(Runtime.Data.ClusteringEvaluator.AvgMinScore)]
             public Double AvgMinScore;
 
+            [ColumnName(ColumnNames.FoldIndex)]
+            public string RowTag;
 #pragma warning restore 649 // never assigned
         }
     }

@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         // The standard errors of coefficients, including the bias.
         // The standard error of bias is placed at index zero.
-        // It could be null when there are too many non-zero weights so that 
+        // It could be null when there are too many non-zero weights so that
         // the memory is insufficient to hold the Hessian matrix necessary for the computation
         // of the variance-covariance matrix.
         private readonly VBuffer<Single>? _coeffStdError;

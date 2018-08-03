@@ -10,7 +10,7 @@ using System.Security;
 
 namespace Microsoft.ML.Runtime.FactorizationMachine
 {
-    internal unsafe static class FieldAwareFactorizationMachineInterface
+    internal static unsafe class FieldAwareFactorizationMachineInterface
     {
         internal const string NativePath = "FactorizationMachineNative";
         public const int CbAlign = 16;
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return a.CbAlign == CbAlign;
         }
 
-        private unsafe static float* Ptr(AlignedArray a, float* p)
+        private static unsafe float* Ptr(AlignedArray a, float* p)
         {
             Contracts.AssertValue(a);
             float* q = p + a.GetBase((long)p);

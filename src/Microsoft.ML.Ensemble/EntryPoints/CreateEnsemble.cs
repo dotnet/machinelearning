@@ -267,7 +267,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     combiner = new MultiAverage(host, new MultiAverage.Arguments() { Normalize = true });
                     break;
                 case ClassifierCombiner.Vote:
-                    combiner = new MultiVoting(host, new MultiVoting.Arguments());
+                    combiner = new MultiVoting(host);
                     break;
                 default:
                     throw host.Except("Unknown combiner kind");
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var dv = new EmptyDataView(env, inputSchema);
 
             // The role mappings are specific to the individual predictors.
-            var rmd = RoleMappedData.Create(dv);
+            var rmd = new RoleMappedData(dv);
             var predictorModel = new PredictorModel(env, rmd, dv, ensemble);
 
             var output = new TOut { PredictorModel = predictorModel };
@@ -316,10 +316,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         /// <summary>
         /// This method takes a <see cref="RoleMappedData"/> as input, saves it as an in-memory <see cref="ZipArchive"/>
-        /// and returns two arrays indexed by the entries in the zip: 
+        /// and returns two arrays indexed by the entries in the zip:
         /// 1. An array of byte arrays, containing the byte sequences of each entry.
         /// 2. An array of strings, containing the name of each entry.
-        /// 
+        ///
         /// This method is used for comparing pipelines. Its outputs can be passed to <see cref="CheckSamePipeline"/>
         /// to check if this pipeline is identical to another pipeline.
         /// </summary>

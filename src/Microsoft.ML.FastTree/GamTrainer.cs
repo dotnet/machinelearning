@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.FastTree
             data.CheckRegressionLabel();
         }
 
-        public override RegressionGamPredictor CreatePredictor()
+        private protected override RegressionGamPredictor CreatePredictor()
         {
             return new RegressionGamPredictor(Host, InputLength, TrainSet, BinEffects, FeatureMap);
         }
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.FastTree
         internal const string ShortName = "gam";
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        public override bool NeedCalibration => true;
+        private protected override bool NeedCalibration => true;
 
         public BinaryClassificationGamTrainer(IHostEnvironment env, Arguments args)
             : base(env, args) { }
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return boolArray;
         }
 
-        public override BinaryClassGamPredictor CreatePredictor()
+        private protected override BinaryClassGamPredictor CreatePredictor()
         {
             return new BinaryClassGamPredictor(Host, InputLength, TrainSet, BinEffects, FeatureMap);
         }
@@ -152,9 +152,7 @@ namespace Microsoft.ML.Runtime.FastTree
     /// <summary>
     /// Generalized Additive Model Learner.
     /// </summary>
-    public abstract partial class GamTrainerBase<TArgs, TPredictor> :
-        TrainerBase<RoleMappedData, TPredictor>,
-        ITrainer
+    public abstract partial class GamTrainerBase<TArgs, TPredictor> : TrainerBase<TPredictor>
         where TArgs : GamTrainerBase<TArgs, TPredictor>.ArgumentsBase, new()
         where TPredictor : GamPredictorBase
     {
@@ -227,13 +225,10 @@ namespace Microsoft.ML.Runtime.FastTree
         protected double[][] BinEffects;
         protected int[] FeatureMap;
 
-        public override bool NeedCalibration => false;
+        public override TrainerInfo Info { get; }
+        private protected virtual bool NeedCalibration => false;
 
-        public override bool NeedNormalization => false;
-
-        public override bool WantCaching => false;
-
-        public GamTrainerBase(IHostEnvironment env, TArgs args)
+        private protected GamTrainerBase(IHostEnvironment env, TArgs args)
             : base(env, RegisterName)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -247,6 +242,7 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckParam(0 < args.NumIterations, nameof(args.NumIterations), "Must be positive.");
 
             Args = args;
+            Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false);
             _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
             _entropyCoefficient = Args.EntropyCoefficient * 1e-6;
             int numThreads = args.NumThreads ?? Environment.ProcessorCount;
@@ -264,17 +260,21 @@ namespace Microsoft.ML.Runtime.FastTree
             InitializeThreads(numThreads);
         }
 
-        public override void Train(RoleMappedData trainData)
+        public sealed override TPredictor Train(TrainContext context)
         {
             using (var ch = Host.Start("Training"))
             {
-                ch.CheckValue(trainData, nameof(trainData));
-                ConvertData(trainData);
-                InputLength = trainData.Schema.Feature.Type.ValueCount;
+                ch.CheckValue(context, nameof(context));
+                ConvertData(context.TrainingSet);
+                InputLength = context.TrainingSet.Schema.Feature.Type.ValueCount;
                 TrainCore(ch);
+                var pred = CreatePredictor();
                 ch.Done();
+                return pred;
             }
         }
+
+        private protected abstract TPredictor CreatePredictor();
 
         internal abstract void CheckLabel(RoleMappedData data);
 
@@ -569,7 +569,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public ColumnType OutputType => NumberType.Float;
 
-        protected internal GamPredictorBase(IHostEnvironment env, string name, int inputLength, Dataset trainSet, double[][] binEffects, int[] featureMap)
+        private protected GamPredictorBase(IHostEnvironment env, string name, int inputLength, Dataset trainSet, double[][] binEffects, int[] featureMap)
             : base(env, name)
         {
             Host.CheckValue(trainSet, nameof(trainSet));
@@ -748,7 +748,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         /// <summary>
         /// Returns a vector of feature contributions for a given example.
-        /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees. 
+        /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees.
         /// If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
         /// </summary>
         internal void GetFeatureContributions(ref VBuffer<Float> features, ref VBuffer<Float> contribs, ref BufferBuilder<Float> builder)
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 for (int i = 0; i < features.Count; ++i)
                 {
                     int j;
-                    // Where we have a sparse output, 
+                    // Where we have a sparse output,
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out j))
                     {
                         int index = Algorithms.FindFirstGE(_binUpperBounds[j], features.Values[i]);
@@ -990,10 +990,11 @@ namespace Microsoft.ML.Runtime.FastTree
                     {
                         _eval = eval;
                         var builder = new ArrayDataViewBuilder(pred.Host);
-                        builder.AddColumn("Label", NumberType.Float, _labels);
-                        builder.AddColumn("Score", NumberType.Float, _scores);
-                        _dataForEvaluator = RoleMappedData.Create(builder.GetDataView(), RoleMappedSchema.ColumnRole.Label.Bind("Label"),
-                            RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, "Score"));
+                        builder.AddColumn(DefaultColumnNames.Label, NumberType.Float, _labels);
+                        builder.AddColumn(DefaultColumnNames.Score, NumberType.Float, _scores);
+                        _dataForEvaluator = new RoleMappedData(builder.GetDataView(), opt: false,
+                            RoleMappedSchema.ColumnRole.Label.Bind(DefaultColumnNames.Label),
+                            new RoleMappedSchema.ColumnRole(MetadataUtils.Const.ScoreValueKind.Score).Bind(DefaultColumnNames.Score));
                     }
 
                     _data.Schema.Schema.TryGetColumnIndex(DefaultColumnNames.Features, out int featureIndex);
@@ -1115,7 +1116,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     public long Version { get; }
 
                     /// <summary>
-                    /// For features belonging to the same categorical, this value will be the same, 
+                    /// For features belonging to the same categorical, this value will be the same,
                     /// Set to -1 for non-categoricals.
                     /// </summary>
                     public int CategoricalFeatureIndex { get; }
@@ -1196,7 +1197,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 }
                 var pred = rawPred as GamPredictorBase;
                 ch.CheckUserArg(pred != null, nameof(Args.InputModelFile), "Predictor was not a " + nameof(GamPredictorBase));
-                var data = RoleMappedData.CreateOpt(loader, schema.GetColumnRoleNames());
+                var data = new RoleMappedData(loader, schema.GetColumnRoleNames(), opt: true);
                 if (hadCalibrator && !string.IsNullOrWhiteSpace(Args.OutputModelFile))
                     ch.Warning("If you save the GAM model, only the GAM model, not the wrapping calibrator, will be saved.");
 

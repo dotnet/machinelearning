@@ -10,7 +10,7 @@ phases:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     DOTNET_MULTILEVEL_LOOKUP: 0
   queue:
-    name: DotNetCore-Test
+    name: DotNet-Build
     demands:
     - agent.os -equals linux
   steps:

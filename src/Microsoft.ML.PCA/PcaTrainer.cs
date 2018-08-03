@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.PCA
     /// <remarks>
     /// This PCA can be made into Kernel PCA by using Random Fourier Features transform
     /// </remarks>
-    public sealed class RandomizedPcaTrainer : TrainerBase<RoleMappedData, PcaPredictor>
+    public sealed class RandomizedPcaTrainer : TrainerBase<PcaPredictor>
     {
         public const string LoadNameValue = "pcaAnomaly";
         internal const string UserNameValue = "PCA Anomaly Detector";
@@ -69,13 +69,16 @@ namespace Microsoft.ML.Runtime.PCA
             public int? Seed;
         }
 
-        private int _dimension;
         private readonly int _rank;
         private readonly int _oversampling;
         private readonly bool _center;
         private readonly int _seed;
-        private VBuffer<Float>[] _eigenvectors; // top eigenvectors of the covariance matrix
-        private VBuffer<Float> _mean;
+
+        public override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
+
+        // The training performs two passes, only. Probably not worth caching.
+        private static readonly TrainerInfo _info = new TrainerInfo(caching: false);
+        public override TrainerInfo Info => _info;
 
         public RandomizedPcaTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
@@ -90,65 +93,43 @@ namespace Microsoft.ML.Runtime.PCA
             _seed = args.Seed ?? Host.Rand.Next();
         }
 
-        public override bool NeedNormalization
-        {
-            get { return true; }
-        }
-
-        public override bool NeedCalibration
-        {
-            get { return false; }
-        }
-
-        public override bool WantCaching
-        {
-            // Two passes, only. Probably not worth caching.
-            get { return false; }
-        }
-
-        public override PcaPredictor CreatePredictor()
-        {
-            return new PcaPredictor(Host, _rank, _eigenvectors, ref _mean);
-        }
-
-        public override PredictionKind PredictionKind { get { return PredictionKind.AnomalyDetection; } }
-
         //Note: the notations used here are the same as in http://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
-        public override void Train(RoleMappedData data)
+        public override PcaPredictor Train(TrainContext context)
         {
-            Host.CheckValue(data, nameof(data));
+            Host.CheckValue(context, nameof(context));
 
-            data.CheckFeatureFloatVector(out _dimension);
+            context.TrainingSet.CheckFeatureFloatVector(out int dimension);
 
             using (var ch = Host.Start("Training"))
             {
-                TrainCore(ch, data);
+                var pred = TrainCore(ch, context.TrainingSet, dimension);
                 ch.Done();
+                return pred;
             }
         }
 
-        private void TrainCore(IChannel ch, RoleMappedData data)
+        private PcaPredictor TrainCore(IChannel ch, RoleMappedData data, int dimension)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
 
-            if (_rank > _dimension)
-                throw ch.Except("Rank ({0}) cannot be larger than the original dimension ({1})", _rank, _dimension);
-            int oversampledRank = Math.Min(_rank + _oversampling, _dimension);
+            if (_rank > dimension)
+                throw ch.Except("Rank ({0}) cannot be larger than the original dimension ({1})", _rank, dimension);
+            int oversampledRank = Math.Min(_rank + _oversampling, dimension);
 
             //exact: (size of the 2 big matrices + other minor allocations) / (2^30)
-            Double memoryUsageEstimate = 2.0 * _dimension * oversampledRank * sizeof(Float) / 1e9;
+            Double memoryUsageEstimate = 2.0 * dimension * oversampledRank * sizeof(Float) / 1e9;
             if (memoryUsageEstimate > 2)
                 ch.Info("Estimate memory usage: {0:G2} GB. If running out of memory, reduce rank and oversampling factor.", memoryUsageEstimate);
 
-            var y = Zeros(oversampledRank, _dimension);
-            _mean = _center ? VBufferUtils.CreateDense<Float>(_dimension) : VBufferUtils.CreateEmpty<Float>(_dimension);
+            var y = Zeros(oversampledRank, dimension);
+            var mean = _center ? VBufferUtils.CreateDense<Float>(dimension) : VBufferUtils.CreateEmpty<Float>(dimension);
 
-            var omega = GaussianMatrix(oversampledRank, _dimension, _seed);
+            var omega = GaussianMatrix(oversampledRank, dimension, _seed);
 
             var cursorFactory = new FeatureFloatVectorCursor.Factory(data, CursOpt.Features | CursOpt.Weight);
             long numBad;
-            Project(Host, cursorFactory, ref _mean, omega, y, out numBad);
+            Project(Host, cursorFactory, ref mean, omega, y, out numBad);
             if (numBad > 0)
                 ch.Warning("Skipped {0} instances with missing features/weights during training", numBad);
 
@@ -166,7 +147,7 @@ namespace Microsoft.ML.Runtime.PCA
             var q = y; // q in QR decomposition.
 
             var b = omega; // reuse the memory allocated by Omega.
-            Project(Host, cursorFactory, ref _mean, q, b, out numBad);
+            Project(Host, cursorFactory, ref mean, q, b, out numBad);
 
             //Compute B2 = B' * B
             var b2 = new Float[oversampledRank * oversampledRank];
@@ -179,8 +160,9 @@ namespace Microsoft.ML.Runtime.PCA
             Float[] smallEigenvalues;// eigenvectors and eigenvalues of the small matrix B2.
             Float[] smallEigenvectors;
             EigenUtils.EigenDecomposition(b2, out smallEigenvalues, out smallEigenvectors);
-            PostProcess(b, smallEigenvalues, smallEigenvectors, _dimension, oversampledRank);
-            _eigenvectors = b;
+            PostProcess(b, smallEigenvalues, smallEigenvectors, dimension, oversampledRank);
+
+            return new PcaPredictor(Host, _rank, b, ref mean);
         }
 
         private static VBuffer<Float>[] Zeros(int k, int d)
@@ -284,11 +266,12 @@ namespace Microsoft.ML.Runtime.PCA
             }
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector", 
+        [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector",
             Desc = "Train an PCA Anomaly model.",
-            Remarks = PcaPredictor.Remarks,
-            UserName = UserNameValue, 
-            ShortName = ShortName)]
+            UserName = UserNameValue,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name=""PCA""]/*' />",
+                                 @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name=""PcaAnomalyDetector""]/*' />" })]
         public static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -302,13 +285,13 @@ namespace Microsoft.ML.Runtime.PCA
         }
     }
 
-    /// <summary>
-    /// An anomaly detector using PCA.
-    /// - The algorithm uses the top eigenvectors to approximate the subspace containing the normal class
-    /// - For each new instance, it computes the norm difference between the raw feature vector and the projected feature on that subspace.
-    /// - - If the error is close to 0, the instance is considered normal (non-anomaly).
-    /// </summary>
+    // An anomaly detector using PCA.
+    // - The algorithm uses the top eigenvectors to approximate the subspace containing the normal class
+    // - For each new instance, it computes the norm difference between the raw feature vector and the projected feature on that subspace.
+    // - - If the error is close to 0, the instance is considered normal (non-anomaly).
     // REVIEW: move the predictor to a different file and fold EigenUtils.cs to this file.
+    // REVIEW: Include the above detail in the XML documentation file.
+    /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaPredictor : PredictorBase<Float>,
         IValueMapper,
         ICanGetSummaryAsIDataView,
@@ -316,14 +299,6 @@ namespace Microsoft.ML.Runtime.PCA
     {
         public const string LoaderSignature = "pcaAnomExec";
         public const string RegistrationName = "PCAPredictor";
-        internal const string Remarks = @"<remarks>
-<a href='https://en.wikipedia.org/wiki/Principal_component_analysis'>Principle Component Analysis (PCA)</a> is a dimensionality-reduction transform which computes the projection of the feature vector to onto a low-rank subspace.
-Its training is done using the technique described in the paper: <a href='https://arxiv.org/pdf/1310.6304v2.pdf'>Combining Structured and Unstructured Randomness in Large Scale PCA</a>, 
-and the paper <see href='https://arxiv.org/pdf/0909.4061v2.pdf'>Finding Structure with Randomness: Probabilistic Algorithms for Constructing Approximate Matrix Decompositions</see>
-<a href='http://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf'>Randomized Methods for Computing the Singular Value Decomposition (SVD) of very large matrices</a>
-<a href='https://arxiv.org/abs/0809.2274'>A randomized algorithm for principal component analysis</a>
-<a href='http://users.cms.caltech.edu/~jtropp/papers/HMT11-Finding-Structure-SIREV.pdf'>Finding Structure with Randomness: Probabilistic Algorithms for Constructing Approximate Matrix Decompositions</a>
-</remarks>";
 
         private static VersionInfo GetVersionInfo()
         {

@@ -34,8 +34,9 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using CR = RoleMappedSchema.ColumnRole;
     using TScalarPredictor = IPredictorProducing<Float>;
-    using TScalarTrainer = ITrainer<RoleMappedData, IPredictorProducing<Float>>;
+    using TScalarTrainer = ITrainer<IPredictorProducing<Float>>;
 
+    /// <include file='doc.xml' path='doc/members/member[@name="OVA"]' />
     public sealed class Ova : MetaMulticlassTrainer<OvaPredictor, Ova.Arguments>
     {
         internal const string LoadNameValue = "OVA";
@@ -79,11 +80,12 @@ namespace Microsoft.ML.Runtime.Learners
             var roles = data.Schema.GetColumnRoleNames()
                 .Where(kvp => kvp.Key.Value != CR.Label.Value)
                 .Prepend(CR.Label.Bind(dstName));
-            var td = RoleMappedData.Create(view, roles);
+            var td = new RoleMappedData(view, roles);
 
-            trainer.Train(td);
+            // REVIEW: In principle we could support validation sets and the like via the train context, but
+            // this is currently unsupported.
+            var predictor = trainer.Train(td);
 
-            var predictor = trainer.CreatePredictor();
             if (Args.UseProbabilities)
             {
                 ICalibratorTrainer calibrator;
@@ -200,8 +202,8 @@ namespace Microsoft.ML.Runtime.Learners
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
             host.CheckNonEmpty(input.ModelArray, nameof(input.ModelArray));
-            // Something tells me we should put normalization as part of macro expansion, but since i get 
-            // subgraph instead of learner it's a bit tricky to get learner and decide should we add 
+            // Something tells me we should put normalization as part of macro expansion, but since i get
+            // subgraph instead of learner it's a bit tricky to get learner and decide should we add
             // normalization node or not, plus everywhere in code we leave that reposnsibility to TransformModel.
             var normalizedView = input.ModelArray[0].TransformModel.Apply(host, input.TrainingData);
             using (var ch = host.Start("CombineOvaModels"))
@@ -214,7 +216,7 @@ namespace Microsoft.ML.Runtime.Learners
                     input.FeatureColumn, DefaultColumnNames.Features);
                 var weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.WeightColumn),
                     input.WeightColumn, DefaultColumnNames.Weight);
-                var data = TrainUtils.CreateExamples(normalizedView, label, feature, null, weight);
+                var data = new RoleMappedData(normalizedView, label, feature, null, weight);
 
                 return new ModelOperations.PredictorModelOutput
                 {

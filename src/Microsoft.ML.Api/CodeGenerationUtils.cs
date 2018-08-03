@@ -97,12 +97,12 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// Gets the C# strings representing the type name for a variable corresponding to 
-        /// the <see cref="IDataView"/> column type. 
-        /// 
-        /// If the type is a vector, then <paramref name="useVBuffer"/> controls whether the array field is 
+        /// Gets the C# strings representing the type name for a variable corresponding to
+        /// the <see cref="IDataView"/> column type.
+        ///
+        /// If the type is a vector, then <paramref name="useVBuffer"/> controls whether the array field is
         /// generated or <see cref="VBuffer{T}"/>.
-        /// 
+        ///
         /// If additional attributes are required, they are appended to the <paramref name="attributes"/> list.
         /// </summary>
         private static string GetBackingTypeName(ColumnType colType, bool useVBuffer, List<string> attributes)

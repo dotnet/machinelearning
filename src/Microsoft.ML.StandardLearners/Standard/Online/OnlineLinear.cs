@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.Learners
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter", SortOrder = 50)]
         [TGUI(Label = "Number of Iterations", Description = "Number of training iterations through data", SuggestedSweeps = "1,10,100")]
-        [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize:10, isLogScale:true)]
+        [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
         public int NumIterations = 1;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Initial Weights and bias, comma-separated", ShortName = "initweights")]
@@ -34,16 +34,14 @@ namespace Microsoft.ML.Runtime.Learners
         public Float InitWtsDiameter = 0;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to shuffle for each training iteration", ShortName = "shuf")]
-        [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] {false, true})]
+        [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
         public bool Shuffle = true;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Size of cache when trained in Scope", ShortName = "cache")]
         public int StreamingCacheSize = 1000000;
     }
 
-    public abstract class OnlineLinearTrainer<TArguments, TPredictor> :
-        TrainerBase<RoleMappedData, TPredictor>,
-        IIncrementalTrainer<RoleMappedData, IPredictor>
+    public abstract class OnlineLinearTrainer<TArguments, TPredictor> : TrainerBase<TPredictor>
         where TArguments : OnlineLinearArguments
         where TPredictor : IPredictorProducing<Float>
     {
@@ -72,6 +70,10 @@ namespace Microsoft.ML.Runtime.Learners
         protected const string UserErrorPositive = "must be positive";
         protected const string UserErrorNonNegative = "must be non-negative";
 
+        public override TrainerInfo Info { get; }
+
+        protected virtual bool NeedCalibration => false;
+
         protected OnlineLinearTrainer(TArguments args, IHostEnvironment env, string name)
             : base(env, name)
         {
@@ -81,22 +83,12 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.CheckUserArg(args.StreamingCacheSize > 0, nameof(args.StreamingCacheSize), UserErrorPositive);
 
             Args = args;
-        }
-
-        public override bool NeedNormalization
-        {
-            get { return true; }
-        }
-
-        public override bool WantCaching
-        {
-            // REVIEW: This could return true if there are more than 0 iterations,
-            // if we got around the whole shuffling issue.
-            get { return true; }
+            // REVIEW: Caching could be false for one iteration, if we got around the whole shuffling issue.
+            Info = new TrainerInfo(calibration: NeedCalibration, supportIncrementalTrain: true);
         }
 
         /// <summary>
-        /// Propagates the <c>_weightsScale </c> to the weights vector.
+        /// Propagates the <see cref="WeightsScale"/> to the <see cref="Weights"/> vector.
         /// </summary>
         protected void ScaleWeights()
         {
@@ -108,9 +100,9 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary>
-        /// Conditionally propagates the <c>_weightsScale</c> to the weights vector when
-        /// it reaches a scale where additions to weights would start dropping too much
-        /// precision. ("Too much" is mostly empirically defined.)
+        /// Conditionally propagates the <see cref="WeightsScale"/> to the <see cref="Weights"/> vector
+        /// when it reaches a scale where additions to weights would start dropping too much precision.
+        /// ("Too much" is mostly empirically defined.)
         /// </summary>
         protected void ScaleWeightsIfNeeded()
         {
@@ -119,18 +111,20 @@ namespace Microsoft.ML.Runtime.Learners
                 ScaleWeights();
         }
 
-        private void TrainEx(RoleMappedData data, LinearPredictor predictor)
+        public override TPredictor Train(TrainContext context)
         {
-            Contracts.AssertValue(data, nameof(data));
-            Contracts.AssertValueOrNull(predictor);
+            Host.CheckValue(context, nameof(context));
+            var initPredictor = context.InitialPredictor;
+            var initLinearPred = initPredictor as LinearPredictor ?? (initPredictor as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
+            Host.CheckParam(initPredictor == null || initLinearPred != null, nameof(context), "Not a linear predictor.");
+            var data = context.TrainingSet;
 
-            int numFeatures;
-            data.CheckFeatureFloatVector(out numFeatures);
+            data.CheckFeatureFloatVector(out int numFeatures);
             CheckLabel(data);
 
             using (var ch = Host.Start("Training"))
             {
-                InitCore(ch, numFeatures, predictor);
+                InitCore(ch, numFeatures, initLinearPred);
                 // InitCore should set the number of features field.
                 Contracts.Assert(NumFeatures > 0);
 
@@ -150,23 +144,11 @@ namespace Microsoft.ML.Runtime.Learners
 
                 ch.Done();
             }
+
+            return CreatePredictor();
         }
 
-        public override void Train(RoleMappedData data)
-        {
-            Host.CheckValue(data, nameof(data));
-            TrainEx(data, null);
-        }
-
-        public void Train(RoleMappedData data, IPredictor predictor)
-        {
-            Host.CheckValue(data, nameof(data));
-            Host.CheckValue(predictor, nameof(predictor));
-            LinearPredictor pred = (predictor as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
-            pred = pred ?? predictor as LinearPredictor;
-            Host.CheckParam(pred != null, nameof(predictor), "Not a linear predictor.");
-            TrainEx(data, pred);
-        }
+        protected abstract TPredictor CreatePredictor();
 
         protected abstract void CheckLabel(RoleMappedData data);
 

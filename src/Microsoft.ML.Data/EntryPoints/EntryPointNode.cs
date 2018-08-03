@@ -475,7 +475,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         private EntryPointNode(IHostEnvironment env, IChannel ch, ModuleCatalog moduleCatalog, RunContext context,
             string id, string entryPointName, JObject inputs, JObject outputs, bool checkpoint = false,
-            string stageId = "", float cost = float.NaN, string label = null, string group = null, string weight = null)
+            string stageId = "", float cost = float.NaN, string label = null, string group = null, string weight = null, string name = null)
         {
             Contracts.AssertValue(env);
             env.AssertNonEmpty(id);
@@ -510,49 +510,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 throw _host.Except($"The following required inputs were not provided: {String.Join(", ", missing)}");
 
             var inputInstance = _inputBuilder.GetInstance();
-            var warning = "Different {0} column specified in trainer and in macro: '{1}', '{2}'." +
-                        " Using column '{2}'. To column use '{1}' instead, please specify this name in" +
-                        "the trainer node arguments.";
-            if (!string.IsNullOrEmpty(label) && Utils.Size(_entryPoint.InputKinds) > 0 &&
-                _entryPoint.InputKinds.Contains(typeof(CommonInputs.ITrainerInputWithLabel)))
-            {
-                var labelColField = _inputBuilder.GetFieldNameOrNull("LabelColumn");
-                ch.AssertNonEmpty(labelColField);
-                var labelColFieldType = _inputBuilder.GetFieldTypeOrNull(labelColField);
-                ch.Assert(labelColFieldType == typeof(string));
-                var inputLabel = inputInstance.GetType().GetField(labelColField).GetValue(inputInstance);
-                if (label != (string)inputLabel)
-                    ch.Warning(warning, "label", label, inputLabel);
-                else
-                    _inputBuilder.TrySetValue(labelColField, label);
-            }
-            if (!string.IsNullOrEmpty(group) && Utils.Size(_entryPoint.InputKinds) > 0 &&
-                _entryPoint.InputKinds.Contains(typeof(CommonInputs.ITrainerInputWithGroupId)))
-            {
-                var groupColField = _inputBuilder.GetFieldNameOrNull("GroupIdColumn");
-                ch.AssertNonEmpty(groupColField);
-                var groupColFieldType = _inputBuilder.GetFieldTypeOrNull(groupColField);
-                ch.Assert(groupColFieldType == typeof(string));
-                var inputGroup = inputInstance.GetType().GetField(groupColField).GetValue(inputInstance);
-                if (group != (Optional<string>)inputGroup)
-                    ch.Warning(warning, "group Id", label, inputGroup);
-                else
-                    _inputBuilder.TrySetValue(groupColField, label);
-            }
-            if (!string.IsNullOrEmpty(weight) && Utils.Size(_entryPoint.InputKinds) > 0 &&
-                (_entryPoint.InputKinds.Contains(typeof(CommonInputs.ITrainerInputWithWeight)) ||
-                _entryPoint.InputKinds.Contains(typeof(CommonInputs.IUnsupervisedTrainerWithWeight))))
-            {
-                var weightColField = _inputBuilder.GetFieldNameOrNull("WeightColumn");
-                ch.AssertNonEmpty(weightColField);
-                var weightColFieldType = _inputBuilder.GetFieldTypeOrNull(weightColField);
-                ch.Assert(weightColFieldType == typeof(string));
-                var inputWeight = inputInstance.GetType().GetField(weightColField).GetValue(inputInstance);
-                if (weight != (Optional<string>)inputWeight)
-                    ch.Warning(warning, "weight", label, inputWeight);
-                else
-                    _inputBuilder.TrySetValue(weightColField, label);
-            }
+            SetColumnArgument(ch, inputInstance, "LabelColumn", label, "label", typeof(CommonInputs.ITrainerInputWithLabel));
+            SetColumnArgument(ch, inputInstance, "GroupIdColumn", group, "group Id", typeof(CommonInputs.ITrainerInputWithGroupId));
+            SetColumnArgument(ch, inputInstance, "WeightColumn", weight, "weight", typeof(CommonInputs.ITrainerInputWithWeight), typeof(CommonInputs.IUnsupervisedTrainerWithWeight));
+            SetColumnArgument(ch, inputInstance, "NameColumn", name, "name");
 
             // Validate outputs.
             _outputHelper = new OutputHelper(_host, _entryPoint.OutputType);
@@ -566,6 +527,38 @@ namespace Microsoft.ML.Runtime.EntryPoints
             Checkpoint = checkpoint;
             StageId = stageId;
             Cost = cost;
+        }
+
+        private void SetColumnArgument(IChannel ch, object inputInstance, string argName, string colName, string columnRole, params Type[] inputKinds)
+        {
+            Contracts.AssertValue(ch);
+            ch.AssertValue(inputInstance);
+            ch.AssertNonEmpty(argName);
+            ch.AssertValueOrNull(colName);
+            ch.AssertNonEmpty(columnRole);
+            ch.AssertValueOrNull(inputKinds);
+
+            var colField = _inputBuilder.GetFieldNameOrNull(argName);
+            if (string.IsNullOrEmpty(colField))
+                return;
+
+            const string warning = "Different {0} column specified in trainer and in macro: '{1}', '{2}'." +
+                " Using column '{2}'. To column use '{1}' instead, please specify this name in" +
+                "the trainer node arguments.";
+            if (!string.IsNullOrEmpty(colName) && Utils.Size(_entryPoint.InputKinds) > 0 &&
+                (Utils.Size(inputKinds) == 0 || _entryPoint.InputKinds.Intersect(inputKinds).Any()))
+            {
+                ch.AssertNonEmpty(colField);
+                var colFieldType = _inputBuilder.GetFieldTypeOrNull(colField);
+                ch.Assert(colFieldType == typeof(string));
+                var inputColName = inputInstance.GetType().GetField(colField).GetValue(inputInstance);
+                ch.Assert(inputColName is string || inputColName is Optional<string>);
+                var str = inputColName is string ? (string)inputColName : ((Optional<string>)inputColName).Value;
+                if (colName != str)
+                    ch.Warning(warning, columnRole, colName, inputColName);
+                else
+                    _inputBuilder.TrySetValue(colField, colName);
+            }
         }
 
         public static EntryPointNode Create(
@@ -639,7 +632,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// <summary>
         /// Checks the given JSON object key-value pair is a valid EntryPoint input and
         /// extracts out any variables that need to be populated. These variables will be
-        /// added to the EntryPoint context. Input parameters that are not set to variables 
+        /// added to the EntryPoint context. Input parameters that are not set to variables
         /// will be immediately set using the input builder instance.
         /// </summary>
         private void CheckAndSetInputValue(KeyValuePair<string, JToken> pair)
@@ -699,7 +692,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         /// <summary>
         /// Checks the given JSON object key-value pair is a valid EntryPoint output.
-        /// Extracts out any variables that need to be populated and adds them to the 
+        /// Extracts out any variables that need to be populated and adds them to the
         /// EntryPoint context.
         /// </summary>
         private void CheckAndMarkOutputValue(KeyValuePair<string, JToken> pair)
@@ -902,7 +895,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         public static List<EntryPointNode> ValidateNodes(IHostEnvironment env, RunContext context, JArray nodes,
-            ModuleCatalog moduleCatalog, string label = null, string group = null, string weight = null)
+            ModuleCatalog moduleCatalog, string label = null, string group = null, string weight = null, string name = null)
         {
             Contracts.AssertValue(env);
             env.AssertValue(context);
@@ -918,7 +911,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     if (node == null)
                         throw env.Except("Unexpected node token: '{0}'", nodes[i]);
 
-                    string name = node[FieldNames.Name].Value<string>();
+                    string nodeName = node[FieldNames.Name].Value<string>();
                     var inputs = node[FieldNames.Inputs] as JObject;
                     if (inputs == null && node[FieldNames.Inputs] != null)
                         throw env.Except("Unexpected {0} token: '{1}'", FieldNames.Inputs, node[FieldNames.Inputs]);
@@ -927,7 +920,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     if (outputs == null && node[FieldNames.Outputs] != null)
                         throw env.Except("Unexpected {0} token: '{1}'", FieldNames.Outputs, node[FieldNames.Outputs]);
 
-                    var id = context.GenerateId(name);
+                    var id = context.GenerateId(nodeName);
                     var unexpectedFields = node.Properties().Where(
                         x => x.Name != FieldNames.Name && x.Name != FieldNames.Inputs && x.Name != FieldNames.Outputs
                         && x.Name != FieldNames.StageId && x.Name != FieldNames.Checkpoint && x.Name != FieldNames.Cost);
@@ -942,7 +935,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         ch.Warning("Node '{0}' has unexpected fields that are ignored: {1}", id, string.Join(", ", unexpectedFields.Select(x => x.Name)));
                     }
 
-                    result.Add(new EntryPointNode(env, ch, moduleCatalog, context, id, name, inputs, outputs, checkpoint, stageId, cost, label, group, weight));
+                    result.Add(new EntryPointNode(env, ch, moduleCatalog, context, id, nodeName, inputs, outputs, checkpoint, stageId, cost, label, group, weight, name));
                 }
 
                 ch.Done();
@@ -1080,8 +1073,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             VariableName = varName;
         }
 
-        // A regex to validate an EntryPoint variable value accessor string. Valid EntryPoint variable names 
-        // can be any sequence of alphanumeric characters and underscores. They must start with a letter or underscore. 
+        // A regex to validate an EntryPoint variable value accessor string. Valid EntryPoint variable names
+        // can be any sequence of alphanumeric characters and underscores. They must start with a letter or underscore.
         // An EntryPoint variable can be followed with an array or dictionary specifier, which begins
         // with '[', contains either an integer or alphanumeric string, optionally wrapped in single-quotes,
         // followed with ']'.

@@ -19,7 +19,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    // REVIEW: For simplicity (since this is currently the case), 
+    // REVIEW: For simplicity (since this is currently the case),
     // we assume that all metrics are either numeric, or numeric vectors.
     /// <summary>
     /// This class contains information about an overall metric, namely its name and whether it is a vector
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Runtime.Data
     public interface IEvaluator
     {
         /// <summary>
-        /// Compute the aggregate metrics. Return a dictionary from the metric kind 
+        /// Compute the aggregate metrics. Return a dictionary from the metric kind
         /// (overal/per-fold/confusion matrix/PR-curves etc.), to a data view containing the metric.
         /// </summary>
         Dictionary<string, IDataView> Evaluate(RoleMappedData data);
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Data
                     evalComp = EvaluateUtils.GetEvaluatorType(ch, input.Schema);
 
                 var eval = evalComp.CreateInstance(env);
-                var data = TrainUtils.CreateExamples(input, label, null, group, weight, null, customCols);
+                var data = new RoleMappedData(input, label, null, group, weight, null, customCols);
                 return eval.GetPerInstanceMetrics(data);
             }
         }
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!evalComp.IsGood())
                 evalComp = EvaluateUtils.GetEvaluatorType(ch, view.Schema);
             var evaluator = evalComp.CreateInstance(Host);
-            var data = TrainUtils.CreateExamples(view, label, null, group, weight, name, customCols);
+            var data = new RoleMappedData(view, label, null, group, weight, name, customCols);
             var metrics = evaluator.Evaluate(data);
             MetricWriter.PrintWarnings(ch, metrics);
             evaluator.PrintFoldResults(ch, metrics);
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!string.IsNullOrWhiteSpace(Args.OutputDataFile))
             {
                 var perInst = evaluator.GetPerInstanceMetrics(data);
-                var perInstData = TrainUtils.CreateExamples(perInst, label, null, group, weight, name, customCols);
+                var perInstData = new RoleMappedData(perInst, label, null, group, weight, name, customCols);
                 var idv = evaluator.GetPerInstanceDataViewToSave(perInstData);
                 MetricWriter.SavePerInstance(Host, ch, Args.OutputDataFile, idv);
             }

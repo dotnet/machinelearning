@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderSignature: LoaderSignature);
         }
 
-        [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
+        [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
         public sealed class Arguments: ISupportBinaryOutputCombinerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The metric type to be used to find the weights for each model", ShortName = "wn", SortOrder = 50)]

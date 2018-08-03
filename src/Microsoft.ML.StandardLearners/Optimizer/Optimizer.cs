@@ -119,14 +119,14 @@ namespace Microsoft.ML.Runtime.Numeric
         /// </summary>
         public abstract class OptimizerState
         {
-#pragma warning disable TLC_GeneralName // Too annoying in this case. Consider fixing later.
+#pragma warning disable MSML_GeneralName // Too annoying in this case. Consider fixing later.
             protected internal VBuffer<Float> _x;
             protected internal VBuffer<Float> _grad;
             protected internal VBuffer<Float> _newX;
             protected internal VBuffer<Float> _newGrad;
             protected internal VBuffer<Float> _dir;
             protected internal VBuffer<Float> _steepestDescDir;
-#pragma warning restore TLC_GeneralName
+#pragma warning restore MSML_GeneralName
 
             /// <summary>
             /// The dimensionality of the function
@@ -492,8 +492,6 @@ namespace Microsoft.ML.Runtime.Numeric
                                 newXval = 0;
                         });
                     }
-
-                    //if (_newX.AlmostEquals(_x)) throw new PrematureConvergenceException(this, "Step size interval numerically zero.");
 
                     Value = Eval(ref _newX, ref _newGrad);
                     GradientCalculations++;

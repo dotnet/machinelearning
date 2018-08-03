@@ -62,7 +62,7 @@ namespace Microsoft.ML.Runtime
         /// Note that IFileHandle derives from IDisposable. Clients may dispose the IFileHandle when it is
         /// no longer needed, but they are not required to. The host environment should track all temp file
         /// handles and ensure that they are disposed properly when the environment is "shut down".
-        /// 
+        ///
         /// The suffix and prefix are optional. A common use for suffix is to specify an extension, eg, ".txt".
         /// The use of suffix and prefix, including whether they have any affect, is up to the host enviroment.
         /// </summary>

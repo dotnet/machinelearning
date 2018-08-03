@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Data
                             // can be loaded with no data at all, to get their schemas.
                             if (trainPipe == null)
                                 trainPipe = ModelFileUtils.LoadLoader(Host, rep, new MultiFileSource(null), loadTransforms: true);
-                            trainSchema = RoleMappedSchema.Create(trainPipe.Schema, trainRoleMappings);
+                            trainSchema = new RoleMappedSchema(trainPipe.Schema, trainRoleMappings);
                         }
                         // If the role mappings are null, an alternative would be to fail. However the idea
                         // is that the scorer should always still succeed, although perhaps with reduced
