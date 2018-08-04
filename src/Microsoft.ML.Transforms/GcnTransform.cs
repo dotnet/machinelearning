@@ -308,12 +308,12 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Convenience method for creating <see cref="LpNormNormalizerTransform"/> for Lp-Norm normalization.
-        /// The Lp-Norm normalizer normalizes rows individually by rescaling them to unit norm (L2, L1 or LInf).
+        /// The Lp-Norm normalizes rows individually by rescaling them to unit norm (L2, L1 or LInf).
         /// It performs the following operation on a vector X:
         ///         Y = (X - M) / D, where M is mean and D is either L2 norm, L1 norm or LInf norm.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         ///         /// <param name="normKind">The norm to use to normalize each sample.</param>

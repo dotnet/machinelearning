@@ -231,6 +231,8 @@ namespace Microsoft.ML.Runtime.Data
         /// Convenience method for instantiating <see cref="NormalizeTransform"/> for Min-Max normalization.
         /// Min-Max normalization is a normalization strategy which linearly transforms values in a column X to y = (x - min) / (max - min),
         /// where min and max are the minimum and maximum values in X.
+        ///
+        /// For vector columns, Min-Max normalization is applied on each individual column (slot).
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>.</param>
@@ -403,7 +405,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Convenience method for instantiating <see cref="NormalizeTransform"/> for Supervised Binning normalization.
         /// It is similar to BinNormalizer <see cref="NormalizeTransform.CreateBinningNormalizer(IHostEnvironment, IDataView, string, string, int)"/>,
-        /// but calculates bins based on correlation with the label column, not equi-density. The value is mapped to bin_number / number_of_bins.
+        /// but calculates bins based on correlation with the label column, not equidensity. The value is mapped to bin_number / number_of_bins.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>.</param>
