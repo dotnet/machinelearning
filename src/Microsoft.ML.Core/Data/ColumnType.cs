@@ -962,8 +962,10 @@ namespace Microsoft.ML.Runtime.Data
         public override int GetHashCode()
         {
             int hash = Hashing.CombinedHash(_itemType.GetHashCode(), _size);
-            foreach (int o in _dims)
-                hash = Hashing.CombineHash(hash, o.GetHashCode());
+            int count = Utils.Size(_dims);
+            hash = Hashing.CombineHash(hash, count.GetHashCode());
+            for (int i = 0; i < count; i++)
+                hash = Hashing.CombineHash(hash, _dims[i].GetHashCode());
             return hash;
         }
 
