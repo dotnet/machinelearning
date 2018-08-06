@@ -13,7 +13,7 @@ set __IntermediatesDir=""
 set __BuildArch=x64
 set __VCBuildArch=x86_amd64
 set CMAKE_BUILD_TYPE=Debug
-set MKL_VERSION=0.0.0.0
+set MKL_LIB_PATH=""
 
 :Arg_Loop
 if [%1] == [] goto :ToolsVersion
@@ -24,7 +24,7 @@ if /i [%1] == [x86]         ( set __BuildArch=x86&&set __VCBuildArch=x86&&shift&
 if /i [%1] == [x64]         ( set __BuildArch=x64&&set __VCBuildArch=x86_amd64&&shift&goto Arg_Loop)
 if /i [%1] == [amd64]       ( set __BuildArch=x64&&set __VCBuildArch=x86_amd64&&shift&goto Arg_Loop)
 
-if /i [%1] == [--mklversion] ( set MKL_VERSION=%2&&shift&goto Arg_Loop)
+if /i [%1] == [--mkllibpath] ( set MKL_LIB_PATH=%2&&shift&goto Arg_Loop)
 
 shift
 goto :Arg_Loop
