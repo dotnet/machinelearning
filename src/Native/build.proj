@@ -30,7 +30,7 @@
           DependsOnTargets="GenerateVersionSourceFile">
     <PropertyGroup>
       <StripArgs Condition="'$(StripNativeSymbols)' == 'True'">--stripSymbols</StripArgs>
-      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs) --mklversion $(MlNetMklDepsPackageVersion</BuildArgs>
+      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs) --mklversion $(MlNetMklDepsPackageVersion)</BuildArgs>
     </PropertyGroup>
 
     <Message Text="$(MSBuildProjectDirectory)/build.sh $(BuildArgs)" Importance="High"/>
