@@ -34,7 +34,6 @@
       BuildNative;
       $(TraversalBuildDependsOn);
       DownloadExternalTestFiles;
-      RunTests;
     </TraversalBuildDependsOn>
   </PropertyGroup>
 
@@ -80,7 +79,7 @@
                          TreatErrorsAsWarnings="true"/>
   </Target>
 
-  <Target Name="RunTests" Condition="'$(RunTests)'=='true'">
+  <Target Name="RunTests">
     <MSBuild Projects="test\run-tests.proj"
              Targets="RunTests" />
   </Target>
