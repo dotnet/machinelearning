@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 });
                 var predictor = trainer.Train(new Runtime.TrainContext(trainRoles));
                 
-                DeleteOutputPath("temp.idv");
+                DeleteOutputPath("i.idv");
             }
         }
     }

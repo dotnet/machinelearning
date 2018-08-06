@@ -152,7 +152,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             return new CompositeReader<TSource, TNewLastTransformer>(Reader, Transformer.Append(transformer));
         }
 
-        public void Save(IHostEnvironment env, Stream outputStream)
+        public void SavePipeline(IHostEnvironment env, Stream outputStream)
         {
             using (var ch = env.Start("Saving model"))
             {
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
     public static class CompositeReader
     {
-        public static CompositeReader<IMultiStreamSource, ITransformer> LoadModel(IHostEnvironment env, Stream stream)
+        public static CompositeReader<IMultiStreamSource, ITransformer> LoadPipeline(IHostEnvironment env, Stream stream)
         {
             using (var rep = RepositoryReader.Open(stream, env))
             {
