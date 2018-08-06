@@ -16,6 +16,23 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     internal static class SseIntrinsics
     {
+        private const int CbAlign = 16;
+
+        private static bool Compat(AlignedArray a)
+        {
+            Contracts.AssertValue(a);
+            Contracts.Assert(a.Size > 0);
+            return a.CbAlign == CbAlign;
+        }
+
+        private static unsafe float* Ptr(AlignedArray a, float* p)
+        {
+            Contracts.AssertValue(a);
+            float* q = p + a.GetBase((long)p);
+            Contracts.Assert(((long)q & (CbAlign - 1)) == 0);
+            return q;
+        }
+
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static unsafe Vector128<float> Load1(float* src, int* idx)
         {
@@ -74,13 +91,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // Multiply matrix times vector into vector.
         internal static unsafe void MatMulA(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
         {
+            Contracts.Assert(Compat(mat));
+            Contracts.Assert(Compat(src));
+            Contracts.Assert(Compat(dst));
+
             fixed (float* pSrcStart = &src.Items[0])
             fixed (float* pDstStart = &dst.Items[0])
             fixed (float* pMatStart = &mat.Items[0])
             {
-                float* psrc = CpuMathUtils.Ptr(src, pSrcStart);
-                float* pdst = CpuMathUtils.Ptr(dst, pDstStart);
-                float* pmat = CpuMathUtils.Ptr(mat, pMatStart);
+                float* psrc = Ptr(src, pSrcStart);
+                float* pdst = Ptr(dst, pDstStart);
+                float* pmat = Ptr(mat, pMatStart);
 
                 float* pSrcEnd = psrc + ccol;
                 float* pDstEnd = pdst + crow;
@@ -135,6 +156,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         internal static unsafe void MatMulPA(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
                                         int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
         {
+            Contracts.Assert(Compat(mat));
+            Contracts.Assert(Compat(src));
+            Contracts.Assert(Compat(dst));
+
             // REVIEW: For extremely sparse inputs, interchanging the loops would
             // likely be more efficient.
             fixed (float* pSrcStart = &src.Items[0])
@@ -142,9 +167,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pMatStart = &mat.Items[0])
             fixed (int* pposSrc = &rgposSrc[0])
             {
-                float* psrc = CpuMathUtils.Ptr(src, pSrcStart);
-                float* pdst = CpuMathUtils.Ptr(dst, pDstStart);
-                float* pmat = CpuMathUtils.Ptr(mat, pMatStart);
+                float* psrc = Ptr(src, pSrcStart);
+                float* pdst = Ptr(dst, pDstStart);
+                float* pmat = Ptr(mat, pMatStart);
 
                 int* pposMin = pposSrc + iposMin;
                 int* pposEnd = pposSrc + iposEnd;
@@ -187,13 +212,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         internal static unsafe void MatMulTranA(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
         {
+            Contracts.Assert(Compat(mat));
+            Contracts.Assert(Compat(src));
+            Contracts.Assert(Compat(dst));
+
             fixed (float* pSrcStart = &src.Items[0])
             fixed (float* pDstStart = &dst.Items[0])
             fixed (float* pMatStart = &mat.Items[0])
             {
-                float* psrc = CpuMathUtils.Ptr(src, pSrcStart);
-                float* pdst = CpuMathUtils.Ptr(dst, pDstStart);
-                float* pmat = CpuMathUtils.Ptr(mat, pMatStart);
+                float* psrc = Ptr(src, pSrcStart);
+                float* pdst = Ptr(dst, pDstStart);
+                float* pmat = Ptr(mat, pMatStart);
 
                 float* pSrcEnd = psrc + ccol;
                 float* pDstEnd = pdst + crow;
@@ -285,14 +314,18 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         internal static unsafe void MatMulTranPA(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
                                         int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow)
         {
+            Contracts.Assert(Compat(mat));
+            Contracts.Assert(Compat(src));
+            Contracts.Assert(Compat(dst));
+
             fixed (float* pSrcStart = &src.Items[0])
             fixed (float* pDstStart = &dst.Items[0])
             fixed (float* pMatStart = &mat.Items[0])
             fixed (int* pposSrc = &rgposSrc[0])
             {
-                float* psrc = CpuMathUtils.Ptr(src, pSrcStart);
-                float* pdst = CpuMathUtils.Ptr(dst, pDstStart);
-                float* pmat = CpuMathUtils.Ptr(mat, pMatStart);
+                float* psrc = Ptr(src, pSrcStart);
+                float* pdst = Ptr(dst, pDstStart);
+                float* pmat = Ptr(mat, pMatStart);
 
                 int* ppos = pposSrc + iposMin;
                 int* pposEnd = pposSrc + iposEnd;
@@ -349,14 +382,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         internal static unsafe void MatMulRU(bool add, int[] starts, int[] indices, float[] coefs,
                                                 AlignedArray src, AlignedArray dst, int crow)
         {
+            Contracts.Assert(Compat(src));
+            Contracts.Assert(Compat(dst));
+
             fixed (int* pstarts = &starts[0])
             fixed (int* pindices = &indices[0])
             fixed (float* pcoefs = &coefs[0])
             fixed (float* pSrcStart = &src.Items[0])
             fixed (float* pDstStart = &dst.Items[0])
             {
-                float* psrc = CpuMathUtils.Ptr(src, pSrcStart);
-                float* pdst = CpuMathUtils.Ptr(dst, pDstStart);
+                float* psrc = Ptr(src, pSrcStart);
+                float* pdst = Ptr(dst, pDstStart);
 
                 int* pii = pstarts + 1;
                 int* pIdxCurrent = pindices;
@@ -407,6 +443,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         internal static unsafe void MatMulCU(bool add, int[] mprowiv, int[] mprowcol,
             int[] runs, float[] coefs, AlignedArray src, AlignedArray dst, int crow)
         {
+            Contracts.Assert(Compat(src));
+            Contracts.Assert(Compat(dst));
 
             fixed (int* pmprowiv = &mprowiv[0])
             fixed (int* pmprowcol = &mprowcol[0])
@@ -415,8 +453,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pSrcStart = &src.Items[0])
             fixed (float* pDstStart = &dst.Items[0])
             {
-                float* psrc = CpuMathUtils.Ptr(src, pSrcStart);
-                float* pdst = CpuMathUtils.Ptr(dst, pDstStart);
+                float* psrc = Ptr(src, pSrcStart);
+                float* pdst = Ptr(dst, pDstStart);
 
                 int size = pruns[1];
                 int* psupport = pruns + 2;
@@ -475,6 +513,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         internal static unsafe void MatMulDU(bool add, int[] mprowiv, int[] mprowcol, int[] mprowrun,
             int[] runs, float[] coefs, AlignedArray src, AlignedArray dst, int crow)
         {
+            Contracts.Assert(Compat(src));
+            Contracts.Assert(Compat(dst));
+
             fixed (int* pmprowiv = &mprowiv[0])
             fixed (int* pmprowcol = &mprowcol[0])
             fixed (int* pmprowrun = &mprowrun[0])
@@ -483,8 +524,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pSrcStart = &src.Items[0])
             fixed (float* pDstStart = &dst.Items[0])
             {
-                float* psrc = CpuMathUtils.Ptr(src, pSrcStart);
-                float* pdst = CpuMathUtils.Ptr(dst, pDstStart);
+                float* psrc = Ptr(src, pSrcStart);
+                float* pdst = Ptr(dst, pDstStart);
 
                 int* piv = pmprowiv;
                 int* pcol = pmprowcol;
@@ -980,7 +1021,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pDstStart = &dst.Items[0])
             fixed (int* pidx = &indices[0])
             {
-                float* pdst = CpuMathUtils.Ptr(dst, pDstStart);
+                float* pdst = Ptr(dst, pDstStart);
 
                 // REVIEW NEEDED: This line expands to (void)(c); but is it necessary?
                 // DEBUG_ONLY(c);
@@ -999,7 +1040,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pDstStart = &dst.Items[0])
             fixed (int* pidx = &indices[0])
             {
-                float* pdst = CpuMathUtils.Ptr(dst, pDstStart);
+                float* pdst = Ptr(dst, pDstStart);
 
                 // REVIEW NEEDED: This line expands to (void)(c); but is it necessary?
                 // DEBUG_ONLY(c);

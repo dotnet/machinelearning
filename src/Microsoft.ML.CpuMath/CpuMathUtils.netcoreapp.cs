@@ -9,28 +9,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     public static partial class CpuMathUtils
     {
-        public const int CbAlign = 16;
-
-        private static bool Compat(AlignedArray a)
-        {
-            Contracts.AssertValue(a);
-            Contracts.Assert(a.Size > 0);
-            return a.CbAlign == CbAlign;
-        }
-
-        internal static unsafe float* Ptr(AlignedArray a, float* p)
-        {
-            Contracts.AssertValue(a);
-            float* q = p + a.GetBase((long)p);
-            Contracts.Assert(((long)q & (CbAlign - 1)) == 0);
-            return q;
-        }
-
         public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
         {
-            Contracts.Assert(Compat(mat));
-            Contracts.Assert(Compat(src));
-            Contracts.Assert(Compat(dst));
             Contracts.Assert(mat.Size == dst.Size * src.Size);
 
             if (Sse.IsSupported)
@@ -55,9 +35,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
             int posMin, int iposMin, int iposEnd, AlignedArray dst, int crun)
         {
-            Contracts.Assert(Compat(mat));
-            Contracts.Assert(Compat(srcValues));
-            Contracts.Assert(Compat(dst));
             Contracts.AssertValue(rgposSrc);
             Contracts.Assert(0 <= iposMin && iposMin <= iposEnd && iposEnd <= rgposSrc.Length);
             Contracts.Assert(mat.Size == dst.Size * srcValues.Size);
@@ -100,8 +77,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(starts[crow] == indices.Length);
             Contracts.AssertNonEmpty(coefs);
             Contracts.Assert(indices.Length == coefs.Length);
-            Contracts.Assert(Compat(src));
-            Contracts.Assert(Compat(dst));
             Contracts.Assert(0 < crow && crow <= dst.Size);
             Contracts.Assert(crow * src.Size >= coefs.Length);
 
@@ -126,8 +101,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(mprowrun == null || mprowrun.Length == crow);
             Contracts.AssertNonEmpty(runs);
             Contracts.AssertNonEmpty(coefs);
-            Contracts.Assert(Compat(src));
-            Contracts.Assert(Compat(dst));
             Contracts.Assert(0 < crow && crow <= dst.Size);
 
             if (mprowrun == null)
