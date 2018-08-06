@@ -1,20 +1,20 @@
-﻿using Microsoft.ML.Runtime.Data;
+﻿using Microsoft.ML.Models;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Xunit;
-using Microsoft.ML.Models;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
     public partial class ApiScenariosTests
     {
         /// <summary>
-        /// Evaluation: Similar to the simple train scenario, except instead of having some 
-        /// predictive structure, be able to score another "test" data file, run the result 
-        /// through an evaluator and get metrics like AUC, accuracy, PR curves, and whatnot. 
-        /// Getting metrics out of this shoudl be as straightforward and unannoying as possible.
+        /// Reconfigurable predictions: The following should be possible: A user trains a binary classifier,
+        /// and through the test evaluator gets a PR curve, the based on the PR curve picks a new threshold
+        /// and configures the scorer (or more precisely instantiates a new scorer over the same predictor)
+        /// with some threshold derived from that.
         /// </summary>
         [Fact]
-        public void Evaluation()
+        void ReconfigurablePrediction()
         {
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
@@ -44,6 +44,16 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var metricsDict = evaluator.Evaluate(dataEval);
 
                 var metrics = BinaryClassificationMetrics.FromMetrics(env, metricsDict["OverallMetrics"], metricsDict["ConfusionMatrix"])[0];
+
+                var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor, null);
+                var mapper = bindable.Bind(env, trainRoles.Schema);
+                var newScorer = new BinaryClassifierScorer(env, new BinaryClassifierScorer.Arguments { Threshold = 0.01f, ThresholdColumn = DefaultColumnNames.Probability },
+                    scoreRoles.Data, mapper, trainRoles.Schema);
+
+                dataEval = new RoleMappedData(newScorer, label: "Label", feature: "Features", opt: true);
+                var new_evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments() { Threshold = 0.01f, UseRawScoreThreshold = false });
+                metricsDict = new_evaluator.Evaluate(dataEval);
+                var new_metrics = BinaryClassificationMetrics.FromMetrics(env, metricsDict["OverallMetrics"], metricsDict["ConfusionMatrix"])[0];
             }
         }
     }

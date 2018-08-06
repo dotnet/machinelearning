@@ -34,7 +34,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Train.
                 var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
                 {
-                    NumThreads = 1
+                    NumThreads = 1,
+                    ConvergenceTolerance = 1f
                 });
 
                 // Auto-caching.
