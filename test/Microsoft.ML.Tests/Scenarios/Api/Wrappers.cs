@@ -16,6 +16,8 @@ using System.IO;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
+    using LinearModel = LinearPredictor;
+
     public sealed class LoaderWrapper : IDataReader<IMultiStreamSource>, ICanSaveModel
     {
         public const string LoaderSignature = "LoaderWrapper";
@@ -161,6 +163,24 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyAllTransformsToData(_env, _xf, input);
     }
 
+    public interface IPredictorTransformer<out TModel>: ITransformer
+    {
+        TModel TrainedModel { get; }
+    }
+
+    public class ScorerWrapper<TModel>: TransformWrapper, IPredictorTransformer<TModel>
+        where TModel: IPredictor
+    {
+        public ScorerWrapper(IHostEnvironment env, IDataView scorer, TModel trainedModel)
+            :base(env, scorer)
+        {
+            Model = trainedModel;
+        }
+
+        public TModel TrainedModel => Model;
+
+        public TModel Model { get; }
+    }
 
     public class MyTextLoader : IDataReaderEstimator<IMultiStreamSource, LoaderWrapper>
     {
@@ -185,7 +205,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public abstract class TrainerBase : IEstimator<TransformWrapper>
+    public abstract class TrainerBase<TModel> : IEstimator<ScorerWrapper<TModel>>
+        where TModel: IPredictor
     {
         protected readonly IHostEnvironment _env;
         private readonly string _featureCol;
@@ -200,17 +221,33 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _labelCol = labelColumn;
         }
 
-        public TransformWrapper Fit(IDataView input)
+        public ScorerWrapper<TModel> Fit(IDataView input)
         {
-            var cached = _cache ? new CacheDataView(_env, input, prefetch: null) : input;
+            return TrainTransformer(input);
+        }
 
-            var trainRoles = new RoleMappedData(cached, label: _labelCol, feature: _featureCol);
-            var pred = Train(trainRoles);
+        protected ScorerWrapper<TModel> TrainTransformer(IDataView trainSet, IDataView validationSet = null, IPredictor initPredictor = null)
+        {
+            var cachedTrain = _cache ? new CacheDataView(_env, trainSet, prefetch: null) : trainSet;
 
-            var emptyData = new EmptyDataView(_env, input.Schema);
+            var trainRoles = new RoleMappedData(cachedTrain, label: _labelCol, feature: _featureCol);
+            RoleMappedData validRoles;
+
+            if (validationSet == null)
+                validRoles = null;
+            else
+            {
+                var cachedValid = _cache ? new CacheDataView(_env, validationSet, prefetch: null) : validationSet;
+                validRoles = new RoleMappedData(cachedValid, label: _labelCol, feature: _featureCol);
+            }
+
+            var pred = TrainCore(new TrainContext(trainRoles, validRoles, initPredictor));
+
+            var emptyData = new EmptyDataView(_env, trainSet.Schema);
             var scoreRoles = new RoleMappedData(emptyData, label: _labelCol, feature: _featureCol);
             IDataScorerTransform scorer = ScoreUtils.GetScorer(pred, scoreRoles, _env, trainRoles.Schema);
-            return new TransformWrapper(_env, scorer);
+            return new ScorerWrapper<TModel>(_env, scorer, pred);
+
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -218,7 +255,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             throw new NotImplementedException();
         }
 
-        protected abstract IPredictor Train(RoleMappedData data);
+        protected abstract TModel TrainCore(TrainContext trainContext);
     }
 
     public class MyTextTransform : IEstimator<TransformWrapper>
@@ -246,7 +283,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public sealed class MySdca : TrainerBase
+    public sealed class MySdca : TrainerBase<IPredictor>
     {
         private readonly LinearClassificationTrainer.Arguments _args;
 
@@ -256,7 +293,27 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _args = args;
         }
 
-        protected override IPredictor Train(RoleMappedData data) => new LinearClassificationTrainer(_env, _args).Train(data);
+        protected override IPredictor TrainCore(TrainContext context) => new LinearClassificationTrainer(_env, _args).Train(context);
+
+        public ITransformer Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
+    }
+
+    public sealed class MyAveragedPerceptron: TrainerBase<IPredictor>
+    {
+        private readonly AveragedPerceptronTrainer _trainer;
+
+        public MyAveragedPerceptron(IHostEnvironment env, AveragedPerceptronTrainer.Arguments args, string featureCol, string labelCol)
+            :base(env, false, featureCol, labelCol)
+        {
+            _trainer = new AveragedPerceptronTrainer(env, args);
+        }
+
+        protected override IPredictor TrainCore(TrainContext trainContext) => _trainer.Train(trainContext);
+
+        public ITransformer Train(IDataView trainData, IPredictorTransformer<IPredictor> initialPredictor)
+        {
+            return TrainTransformer(trainData, initPredictor: initialPredictor.TrainedModel);
+        }
     }
 
     public sealed class MyPredictionEngine<TSrc, TDst>

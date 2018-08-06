@@ -93,10 +93,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 {
                     // Save model. 
                     using (var fs = file.CreateWriteStream())
-                        model.Save(env, fs);
+                        model.SavePipeline(env, fs);
 
                     // Load model.
-                    loadedModel = CompositeReader.LoadModel(env, file.OpenReadStream());
+                    loadedModel = CompositeReader.LoadPipeline(env, file.OpenReadStream());
 
                 }
 
