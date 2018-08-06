@@ -1899,7 +1899,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                         if (string.IsNullOrEmpty(Name) && Settings?.Length == 0)
                             return "{}";
 
-                        if (Settings.Length == 0)
+                        if (Settings?.Length == 0)
                             return Name;
 
                         string str = CombineSettings(Settings);

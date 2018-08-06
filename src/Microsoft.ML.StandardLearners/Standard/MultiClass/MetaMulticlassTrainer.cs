@@ -27,8 +27,7 @@ namespace Microsoft.ML.Runtime.Learners
             public IComponentFactory<TScalarTrainer> PredictorType;
 
             [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
-            public IComponentFactory<ICalibratorTrainer> Calibrator =
-                new SimpleComponentFactory<ICalibratorTrainer>(env => new PlattCalibratorTrainer(env));
+            public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of instances to train the calibrator", ShortName = "numcali")]
             public int MaxCalibrationExamples = 1000000000;
