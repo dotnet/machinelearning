@@ -666,11 +666,6 @@ namespace Microsoft.ML.Runtime.Data
                     ch.Assert(args.Trainer.IsGood());
 
                     ch.Trace("Creating TrainAndScoreTransform");
-                    string scorerSettings = CmdParser.GetSettings(ch, scorerArgs,
-                        new TreeEnsembleFeaturizerBindableMapper.Arguments());
-                    var scorer =
-                        new SubComponent<IDataScorerTransform, SignatureDataScorer>(
-                            TreeEnsembleFeaturizerBindableMapper.LoadNameShort, scorerSettings);
 
                     var trainScoreArgs = new TrainAndScoreTransform.Arguments();
                     args.CopyTo(trainScoreArgs);
@@ -678,7 +673,8 @@ namespace Microsoft.ML.Runtime.Data
                         args.Trainer.Settings);
 
                     var labelInput = AppendLabelTransform(host, ch, input, trainScoreArgs.LabelColumn, args.LabelPermutationSeed);
-                    trainScoreArgs.Scorer = scorer;
+                    trainScoreArgs.Scorer = new SimpleComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>(
+                        (e, data, mapper, trainSchema) => Create(e, scorerArgs, data, mapper, trainSchema));
                     var scoreXf = TrainAndScoreTransform.Create(host, trainScoreArgs, labelInput);
                     if (input == labelInput)
                         return scoreXf;

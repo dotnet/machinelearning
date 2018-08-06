@@ -79,14 +79,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             using (var ch = host.Start("Creating scoring pipeline"))
             {
                 ch.Trace("Creating pipeline");
-                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerSettings: null);
+                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerFactorySettings: null);
                 ch.AssertValue(bindable);
 
                 var mapper = bindable.Bind(host, data.Schema);
-                var scorer = ScoreUtils.GetScorerComponent(mapper);
-                Contracts.Assert(string.IsNullOrEmpty(scorer.SubComponentSettings));
-                scorer.SubComponentSettings = string.Format("suffix={{{0}}}", input.Suffix);
-                scoredPipe = scorer.CreateInstance(host, data.Data, mapper, input.PredictorModel.GetTrainingSchema(host));
+                var scorer = ScoreUtils.GetScorerComponent(mapper, input.Suffix);
+                scoredPipe = scorer.CreateComponent(host, data.Data, mapper, input.PredictorModel.GetTrainingSchema(host));
                 ch.Done();
             }
 
@@ -132,12 +130,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             using (var ch = host.Start("Creating scoring pipeline"))
             {
                 ch.Trace("Creating pipeline");
-                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerSettings: null);
+                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerFactorySettings: null);
                 ch.AssertValue(bindable);
 
                 var mapper = bindable.Bind(host, data.Schema);
                 var scorer = ScoreUtils.GetScorerComponent(mapper);
-                scoredPipe = scorer.CreateInstance(host, data.Data, mapper, input.PredictorModel.GetTrainingSchema(host));
+                scoredPipe = scorer.CreateComponent(host, data.Data, mapper, input.PredictorModel.GetTrainingSchema(host));
                 ch.Done();
             }
 

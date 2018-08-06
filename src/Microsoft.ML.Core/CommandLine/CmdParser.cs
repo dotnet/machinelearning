@@ -1856,17 +1856,13 @@ namespace Microsoft.ML.Runtime.CommandLine
                         factoryType.IsGenericType);
 
                     Type componentFactoryType;
-                    if (factoryType.GenericTypeArguments.Length == 1)
+                    switch (factoryType.GenericTypeArguments.Length)
                     {
-                        componentFactoryType = typeof(ComponentFactory<>);
-                    }
-                    else if (factoryType.GenericTypeArguments.Length == 2)
-                    {
-                        componentFactoryType = typeof(ComponentFactory<,>);
-                    }
-                    else
-                    {
-                        throw Contracts.ExceptNotImpl("ComponentFactoryFactory can only create components with 1 or 2 type args.");
+                        case 1: componentFactoryType = typeof(ComponentFactory<>); break;
+                        case 2: componentFactoryType = typeof(ComponentFactory<,>); break;
+                        case 3: componentFactoryType = typeof(ComponentFactory<,,>); break;
+                        case 4: componentFactoryType = typeof(ComponentFactory<,,,>); break;
+                        default: throw Contracts.ExceptNotImpl("ComponentFactoryFactory can only create component factories with 4 or less type args.");
                     }
 
                     return (IComponentFactory)Activator.CreateInstance(
@@ -1948,6 +1944,47 @@ namespace Microsoft.ML.Runtime.CommandLine
                             Name,
                             GetSettingsString(),
                             argument1);
+                    }
+                }
+
+                private class ComponentFactory<TArg1, TArg2, TComponent> : ComponentFactory, IComponentFactory<TArg1, TArg2, TComponent>
+                    where TComponent : class
+                {
+                    public ComponentFactory(Type signatureType, string name, string[] settings)
+                        : base(signatureType, name, settings)
+                    {
+                    }
+
+                    public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2)
+                    {
+                        return ComponentCatalog.CreateInstance<TComponent>(
+                            env,
+                            SignatureType,
+                            Name,
+                            GetSettingsString(),
+                            argument1,
+                            argument2);
+                    }
+                }
+
+                private class ComponentFactory<TArg1, TArg2, TArg3, TComponent> : ComponentFactory, IComponentFactory<TArg1, TArg2, TArg3, TComponent>
+                    where TComponent : class
+                {
+                    public ComponentFactory(Type signatureType, string name, string[] settings)
+                        : base(signatureType, name, settings)
+                    {
+                    }
+
+                    public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2, TArg3 argument3)
+                    {
+                        return ComponentCatalog.CreateInstance<TComponent>(
+                            env,
+                            SignatureType,
+                            Name,
+                            GetSettingsString(),
+                            argument1,
+                            argument2,
+                            argument3);
                     }
                 }
             }
