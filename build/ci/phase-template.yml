@@ -21,8 +21,10 @@ phases:
           _configuration: Release
       ${{ insert }}: ${{ parameters.queue }}
     steps:
+    - script: $(_buildScript) -$(_configuration)
+      displayName: Build
     - script: $(_buildScript) -$(_configuration) -runtests
-      displayName: Build and Test
+      displayName: Run Tests
     - task: PublishTestResults@2
       displayName: Publish Test Results
       condition: succeededOrFailed()

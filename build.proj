@@ -34,14 +34,14 @@
       BuildNative;
       $(TraversalBuildDependsOn);
       DownloadExternalTestFiles;
-      RunTests;
     </TraversalBuildDependsOn>
   </PropertyGroup>
 
   <Target Name="RestoreProjects" Condition="'$(RestoreDuringBuild)'=='true'">
     <Message Importance="High" Text="Restoring all projects..." />
     <MSBuild Projects="@(Project)"
-             Targets="Restore" />
+             Targets="Restore" 
+             Properties="MSBuildWarningsAsMessages=NU1503" />
   </Target>
 
   <Target Name="BuildNative"
@@ -79,7 +79,7 @@
                          TreatErrorsAsWarnings="true"/>
   </Target>
 
-  <Target Name="RunTests" Condition="'$(RunTests)'=='true'">
+  <Target Name="RunTests">
     <MSBuild Projects="test\run-tests.proj"
              Targets="RunTests" />
   </Target>
