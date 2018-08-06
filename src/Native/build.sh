@@ -58,7 +58,7 @@ while [ "$1" != "" ]; do
     shift
 done
 
-__cmake_defines="-DCMAKE_BUILD_TYPE=${__configuration} ${__strip_argument} -DMKL_LIB_PATH=${__mkllibpath"
+__cmake_defines="-DCMAKE_BUILD_TYPE=${__configuration} ${__strip_argument} -DMKL_LIB_PATH=${__mkllibpath}"
 
 __IntermediatesDir="$__baseIntermediateOutputPath/$__build_arch.$__configuration/Native"
 __BinDir="$__rootBinPath/$__build_arch.$__configuration/Native"
