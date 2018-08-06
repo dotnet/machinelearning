@@ -30,7 +30,7 @@
           DependsOnTargets="GenerateVersionSourceFile">
     <PropertyGroup>
       <StripArgs Condition="'$(StripNativeSymbols)' == 'True'">--stripSymbols</StripArgs>
-      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs)</BuildArgs>
+      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs) --mklversion $(MlNetMklDepsPackageVersion</BuildArgs>
     </PropertyGroup>
 
     <Message Text="$(MSBuildProjectDirectory)/build.sh $(BuildArgs)" Importance="High"/>
@@ -41,9 +41,9 @@
   <Target Name="BuildNativeWindows"
           Condition="'$(OS)' == 'Windows_NT'"
           DependsOnTargets="GenerateVersionHeader">
-
+          
     <PropertyGroup>
-      <BuildArgs>$(Configuration) $(TargetArchitecture)</BuildArgs>
+      <BuildArgs>$(Configuration) $(TargetArchitecture) --mklversion $(MlNetMklDepsPackageVersion)</BuildArgs>
     </PropertyGroup>
 
     <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
