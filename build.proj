@@ -41,7 +41,8 @@
   <Target Name="RestoreProjects" Condition="'$(RestoreDuringBuild)'=='true'">
     <Message Importance="High" Text="Restoring all projects..." />
     <MSBuild Projects="@(Project)"
-             Targets="Restore" />
+             Targets="Restore" 
+             Properties="MSBuildWarningsAsMessages=NU1503" />
   </Target>
 
   <Target Name="BuildNative"
