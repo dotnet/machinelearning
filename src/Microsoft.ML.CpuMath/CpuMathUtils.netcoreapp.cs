@@ -9,6 +9,139 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     public static partial class CpuMathUtils
     {
+        public const int CbAlign = 16;
+
+        private static bool Compat(AlignedArray a)
+        {
+            Contracts.AssertValue(a);
+            Contracts.Assert(a.Size > 0);
+            return a.CbAlign == CbAlign;
+        }
+
+        internal static unsafe float* Ptr(AlignedArray a, float* p)
+        {
+            Contracts.AssertValue(a);
+            float* q = p + a.GetBase((long)p);
+            Contracts.Assert(((long)q & (CbAlign - 1)) == 0);
+            return q;
+        }
+
+        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
+        {
+            Contracts.Assert(Compat(mat));
+            Contracts.Assert(Compat(src));
+            Contracts.Assert(Compat(dst));
+            Contracts.Assert(mat.Size == dst.Size * src.Size);
+
+            if (Sse.IsSupported)
+            {
+                if (!tran)
+                {
+                    Contracts.Assert(0 <= crun && crun <= dst.Size);
+                    SseIntrinsics.MatMulA(add, mat, src, dst, crun, src.Size);
+                }
+                else
+                {
+                    Contracts.Assert(0 <= crun && crun <= src.Size);
+                    SseIntrinsics.MatMulTranA(add, mat, src, dst, dst.Size, crun);
+                }
+            }
+            else
+            {
+                // TODO: Software fallback
+            }
+        }
+
+        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
+            int posMin, int iposMin, int iposEnd, AlignedArray dst, int crun)
+        {
+            Contracts.Assert(Compat(mat));
+            Contracts.Assert(Compat(srcValues));
+            Contracts.Assert(Compat(dst));
+            Contracts.AssertValue(rgposSrc);
+            Contracts.Assert(0 <= iposMin && iposMin <= iposEnd && iposEnd <= rgposSrc.Length);
+            Contracts.Assert(mat.Size == dst.Size * srcValues.Size);
+
+            if (iposMin >= iposEnd)
+            {
+                if (!add)
+                    dst.ZeroItems();
+                return;
+            }
+
+            Contracts.AssertNonEmpty(rgposSrc);
+
+            if (Sse.IsSupported)
+            {
+                if (!tran)
+                {
+                    Contracts.Assert(0 <= crun && crun <= dst.Size);
+                    SseIntrinsics.MatMulPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposEnd, dst, crun, srcValues.Size);
+                }
+                else
+                {
+                    Contracts.Assert(0 <= crun && crun <= srcValues.Size);
+                    SseIntrinsics.MatMulTranPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposEnd, dst, dst.Size);
+                }
+            }
+            else
+            {
+                // TODO: Software fallback
+            }
+        }
+
+        public static void MatTimesSrc(bool add, int[] starts, int[] indices, float[] coefs,
+            AlignedArray src, AlignedArray dst, int crow)
+        {
+            Contracts.AssertNonEmpty(starts);
+            Contracts.Assert(starts.Length == crow + 1);
+            Contracts.Assert(starts[0] == 0);
+            Contracts.AssertNonEmpty(indices);
+            Contracts.Assert(starts[crow] == indices.Length);
+            Contracts.AssertNonEmpty(coefs);
+            Contracts.Assert(indices.Length == coefs.Length);
+            Contracts.Assert(Compat(src));
+            Contracts.Assert(Compat(dst));
+            Contracts.Assert(0 < crow && crow <= dst.Size);
+            Contracts.Assert(crow * src.Size >= coefs.Length);
+
+            if (Sse.IsSupported)
+            {
+                SseIntrinsics.MatMulRU(add, starts, indices, coefs, src, dst, crow);
+            }
+            else
+            {
+                // TODO: Software fallback
+            }
+        }
+
+        public static void MatTimesSrc(bool add, int[] mprowiv, int[] mprowcol,
+            int[] mprowrun, int[] runs, float[] coefs,
+            AlignedArray src, AlignedArray dst, int crow)
+        {
+            Contracts.AssertNonEmpty(mprowiv);
+            Contracts.Assert(mprowiv.Length == crow);
+            Contracts.AssertNonEmpty(mprowcol);
+            Contracts.Assert(mprowcol.Length == crow);
+            Contracts.Assert(mprowrun == null || mprowrun.Length == crow);
+            Contracts.AssertNonEmpty(runs);
+            Contracts.AssertNonEmpty(coefs);
+            Contracts.Assert(Compat(src));
+            Contracts.Assert(Compat(dst));
+            Contracts.Assert(0 < crow && crow <= dst.Size);
+
+            if (mprowrun == null)
+            {
+                SseIntrinsics.MatMulCU(add, mprowiv, mprowcol, runs, coefs,
+                    src, dst, crow);
+            }
+            else
+            {
+                SseIntrinsics.MatMulDU(add, mprowiv, mprowcol, mprowrun, runs, coefs,
+                    src, dst, crow);
+            }
+        }
+
         public static void Scale(float a, float[] dst, int count)
         {
             Contracts.AssertNonEmpty(dst);
@@ -390,6 +523,27 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     norm += distance * distance;
                 }
                 return norm;
+            }
+        }
+
+        public static void ZeroMatrixItems(AlignedArray dst, int ccol, int cfltRow, int[] indices)
+        {
+            Contracts.Assert(0 < ccol && ccol <= cfltRow);
+
+            if (Sse.IsSupported)
+            {
+                if (ccol == cfltRow)
+                {
+                    SseIntrinsics.ZeroItemsU(dst, dst.Size, indices, indices.Length);
+                }
+                else
+                {
+                    SseIntrinsics.ZeroMatrixItemsCore(dst, dst.Size, ccol, cfltRow, indices, indices.Length);
+                }
+            }
+            else
+            {
+                // TODO: Software fallback
             }
         }
     }

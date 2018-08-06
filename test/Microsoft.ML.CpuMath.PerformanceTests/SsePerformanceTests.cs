@@ -19,8 +19,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         private const int EXP_RANGE = EXP_MAX / 2;
         private const int DEFAULT_SEED = 253421;
         private const float DEFAULT_SCALE = 1.11f;
+        private const int DEFAULT_CROW = 1000;
+        private const int DEFAULT_CCOL = 1000;
+        private const bool ADD = true;
 
-        private float[] src, dst, original, src1, src2;
+        private float[] src, dst, original, src1, src2, mat;
         private int[] idx;
         private int seed = DEFAULT_SEED;
 
@@ -66,6 +69,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             src2 = new float[LEN];
             original = new float[LEN];
             idx = new int[IDXLEN];
+            mat = new float[DEFAULT_CROW * DEFAULT_CCOL];
 
             seed = GetSeed();
             Random rand = new Random(seed);
@@ -83,12 +87,28 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             {
                 idx[i] = rand.Next(0, LEN);
             }
+
+            for (int i = 0; i < mat.Length; i++)
+            {
+                mat[i] = NextFloat(rand, EXP_RANGE);
+            }
         }
 
         [GlobalCleanup]
         public void GlobalCleanup()
         {
             original.CopyTo(dst, 0);
+        }
+
+        [Benchmark]
+        public unsafe void NativeMatMulAPerf()
+        {
+            fixed (float* pmat = mat)
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            {
+                CpuMathNativeUtils.MatMulA(ADD, pmat, psrc, pdst, DEFAULT_CROW, DEFAULT_CCOL);
+            }
         }
 
         [Benchmark]

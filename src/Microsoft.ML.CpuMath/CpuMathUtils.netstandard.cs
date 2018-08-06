@@ -6,6 +6,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     public static partial class CpuMathUtils
     {
+        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun) => SseUtils.MatTimesSrc(tran, add, mat, src, dst, crun);
+
+        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
+            int posMin, int iposMin, int iposLim, AlignedArray dst, int crun) => SseUtils.MatTimesSrc(tran, add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun);
+
+        public static void MatTimesSrc(bool add, int[] starts, int[] indices, float[] coefs,
+            AlignedArray src, AlignedArray dst, int crow) => SseUtils.MatTimesSrc(add, starts, indices, coefs, src, dst, crow);
+
+        public static void MatTimesSrc(bool add, int[] mprowiv, int[] mprowcol, int[] mprowrun, int[] runs, float[] coefs,
+            AlignedArray src, AlignedArray dst, int crow) => SseUtils.MatTimesSrc(add, mprowiv, mprowcol, mprowrun, runs, coefs, src, dst, crow);
+
         public static void Scale(float a, float[] dst, int count) => SseUtils.Scale(a, dst, count);
 
         public static void Scale(float a, float[] dst, int offset, int count) => SseUtils.Scale(a, dst, offset, count);
@@ -43,5 +54,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static float DotProductSparse(float[] a, int offset, float[] b, int[] indices, int count) => SseUtils.DotProductSparse(a, offset, b, indices, count);
 
         public static float L2DistSquared(float[] a, float[] b, int count) => SseUtils.L2DistSquared(a, b, count);
+
+        public static void ZeroMatrixItems(AlignedArray dst, int ccol, int cfltRow, int[] indices) => SseUtils.ZeroMatrixItems(dst, ccol, cfltRow, indices);
     }
 }
