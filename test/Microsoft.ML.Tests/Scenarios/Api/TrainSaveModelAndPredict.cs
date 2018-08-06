@@ -1,8 +1,6 @@
-﻿using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Api;
+﻿using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Model;
 using System.Linq;
 using Xunit;
 
