@@ -67,6 +67,11 @@ Below are some of the highlights from this release.
       [SSWE](http://anthology.aclweb.org/P/P14/P14-1146.pdf). The pretrained model is downloaded automatically on first use.
     * Documentation can be found
       [here](https://docs.microsoft.com/en-us/dotnet/api/microsoft.ml.transforms.wordembeddings?view=ml-dotnet).
+    
+* Improved support for F# by allowing use of property-based row classes ([#616](https://github.com/dotnet/machinelearning/pull/616))
+    
+    * ML.NET now supports F# record types.
+    * The ML.NET samples repository is being updated to include F# samples as part of [#36](https://github.com/dotnet/machinelearning-samples/pull/36).
 
 Additional issues closed in this milestone can be found
 [here](https://github.com/dotnet/machinelearning/milestone/3?closed=1).
