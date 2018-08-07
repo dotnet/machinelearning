@@ -1,12 +1,14 @@
-﻿using Microsoft.ML.Runtime.Data;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.TextAnalytics;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -49,9 +51,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 {
                     NgramLength = 1,
                     Column = new[] { new WordBagTransform.Column() { Name = "Tokenize", Source = new[] { "SentimentText" } } }
-                },
-loader
-);
+                }, loader);
+
                 var lda = new LdaTransform(env, new LdaTransform.Arguments()
                 {
                     NumTopic = 10,

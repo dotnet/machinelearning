@@ -1,9 +1,9 @@
-﻿using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.TestFramework;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -21,14 +21,20 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public const string SentimentDataPath = "wikipedia-detox-250-line-data.tsv";
         public const string SentimentTestPath = "wikipedia-detox-250-line-test.tsv";
 
-        public class IrisData
+        public class IrisData : IrisDataNoLabel
+        {
+
+            public string Label;
+        }
+
+        public class IrisDataNoLabel
         {
             public float SepalLength;
             public float SepalWidth;
             public float PetalLength;
             public float PetalWidth;
-            public string Label;
         }
+
 
         public class IrisPrediction
         {

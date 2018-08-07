@@ -1,4 +1,8 @@
-﻿using Microsoft.ML.Runtime.Api;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using System.Linq;
@@ -37,18 +41,18 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 var scoreRoles = new RoleMappedData(concat, label: "Label", feature: "Features");
                 IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, scoreRoles, env, trainRoles.Schema);
-                
-                // Cut of term transform from pipeline.
-                var new_scorer = ApplyTransformUtils.ApplyAllTransformsToData(env, scorer, loader, term);
-                var keyToValue = new KeyToValueTransform(env, new_scorer, "PredictedLabel");
-                var model = env.CreatePredictionEngine<IrisData, IrisPrediction>(keyToValue);
+
+                // Cut out term transform from pipeline.
+                var newScorer = ApplyTransformUtils.ApplyAllTransformsToData(env, scorer, loader, term);
+                var keyToValue = new KeyToValueTransform(env, newScorer, "PredictedLabel");
+                var model = env.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(keyToValue);
 
                 var testLoader = new TextLoader(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
-                var testData = testLoader.AsEnumerable<IrisData>(env, false);
+                var testData = testLoader.AsEnumerable<IrisDataNoLabel>(env, false);
                 foreach (var input in testData.Take(20))
                 {
                     var prediction = model.Predict(input);
-                    Assert.True(prediction.PredictedLabel == input.Label);
+                    Assert.True(prediction.PredictedLabel == "Iris-setosa");
                 }
             }
         }
