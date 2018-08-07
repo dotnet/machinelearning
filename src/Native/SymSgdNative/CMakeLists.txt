@@ -6,7 +6,7 @@ set(SOURCES
 
 find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
 if(WIN32)
-    message("executing commands for Windows."
+    message("executing commands for Windows.")
 else()
     list(APPEND SOURCES ${VERSION_FILE_PATH})
     if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
