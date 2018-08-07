@@ -15,61 +15,86 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestEqualAndGetHashCode()
         {
-            var hashSet = new HashSet<ColumnType>();
+            var dict = new Dictionary<ColumnType, string>();
             // add PrimitiveTypes, KeyType & corresponding VectorTypes
             PrimitiveType tmp;
             VectorType tmp1, tmp2;
             foreach (var kind in (DataKind[])Enum.GetValues(typeof(DataKind)))
             {
                 tmp = PrimitiveType.FromKind(kind);
-                Assert.True(hashSet.Add(tmp), tmp.ToString() + " should not be present.");
+                if(dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
+                    Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
+                dict[tmp] = tmp.ToString();
                 for (int size = 0; size < 5; size++)
                 {
                     tmp1 = new VectorType(tmp, size);
-                    Assert.True(hashSet.Add(tmp1), tmp1.ToString() + " should not be present.");
+                    if (dict.ContainsKey(tmp1) && dict[tmp1] != tmp1.ToString())
+                        Assert.True(false, dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
+                    dict[tmp1] = tmp1.ToString();
                     for (int size1 = 0; size1 < 5; size1++)
                     {
                         tmp2 = new VectorType(tmp, size, size1);
-                        Assert.True(hashSet.Add(tmp2), tmp2.ToString() + " should not be present.");
+                        if (dict.ContainsKey(tmp2) && dict[tmp2] != tmp2.ToString())
+                            Assert.True(false, dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
+                        dict[tmp2] = tmp2.ToString();
                     }
                 }
 
+                // KeyType & Vector
+                if (!KeyType.IsValidDataKind(kind))
+                    continue;
                 for (ulong min = 0; min < 5; min++)
+                {
                     for (var count = 0; count < 5; count++)
                     {
                         tmp = new KeyType(kind, min, count);
-                        Assert.True(hashSet.Add(tmp), tmp.ToString() + " should not be present.");
+                        if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
+                            Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
+                        dict[tmp] = tmp.ToString();
                         for (int size = 0; size < 5; size++)
                         {
                             tmp1 = new VectorType(tmp, size);
-                            Assert.True(hashSet.Add(tmp1), tmp1.ToString() + " should not be present.");
+                            if (dict.ContainsKey(tmp1) && dict[tmp1] != tmp1.ToString())
+                                Assert.True(false, dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
+                            dict[tmp1] = tmp1.ToString();
                             for (int size1 = 0; size1 < 5; size1++)
                             {
                                 tmp2 = new VectorType(tmp, size, size1);
-                                Assert.True(hashSet.Add(tmp2), tmp2.ToString() + " should not be present.");
-                            }
-                        }
-                        tmp = new KeyType(kind, min, count, false);
-                        Assert.True(hashSet.Add(tmp), tmp.ToString() + " should not be present.");
-                        for (int size = 0; size < 5; size++)
-                        {
-                            tmp1 = new VectorType(tmp, size);
-                            Assert.True(hashSet.Add(tmp1), tmp1.ToString() + " should not be present.");
-                            for (int size1 = 0; size1 < 5; size1++)
-                            {
-                                tmp2 = new VectorType(tmp, size, size1);
-                                Assert.True(hashSet.Add(tmp2), tmp2.ToString() + " should not be present.");
+                                if (dict.ContainsKey(tmp2) && dict[tmp2] != tmp2.ToString())
+                                    Assert.True(false, dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
+                                dict[tmp2] = tmp2.ToString();
                             }
                         }
                     }
+                    tmp = new KeyType(kind, min, 0, false);
+                    if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
+                        Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
+                    dict[tmp] = tmp.ToString();
+                    for (int size = 0; size < 5; size++)
+                    {
+                        tmp1 = new VectorType(tmp, size);
+                        if (dict.ContainsKey(tmp1) && dict[tmp1] != tmp1.ToString())
+                            Assert.True(false, dict[tmp1] + " and " + tmp1.ToString() + " are duplicates.");
+                        dict[tmp1] = tmp1.ToString();
+                        for (int size1 = 0; size1 < 5; size1++)
+                        {
+                            tmp2 = new VectorType(tmp, size, size1);
+                            if (dict.ContainsKey(tmp2) && dict[tmp2] != tmp2.ToString())
+                                Assert.True(false, dict[tmp2] + " and " + tmp2.ToString() + " are duplicates.");
+                            dict[tmp2] = tmp2.ToString();
+                        }
+                    }
+                }
             }
 
             // add ImageTypes
-            for (int height = 0; height < 5; height++)
-                for (int width = 0; width < 5; width++)
+            for (int height = 1; height < 5; height++)
+                for (int width = 1; width < 5; width++)
                 {
                     var tmp4 = new ImageType(height, width);
-                    Assert.True(hashSet.Add(tmp4), tmp4.ToString() + " should not be present.");
+                    if (dict.ContainsKey(tmp4) && dict[tmp4] != tmp4.ToString())
+                        Assert.True(false, dict[tmp4] + " and " + tmp4.ToString() + " are duplicates.");
+                    dict[tmp4] = tmp4.ToString();
                 }
         }
     }
