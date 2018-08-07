@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Threading;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Model
@@ -251,9 +252,9 @@ namespace Microsoft.ML.Runtime.Model
             // The gymnastics below are meant to deal with bad invocations including absolute paths, etc.
             // That's why we go through it even if DirTemp is null.
             string root = Path.GetFullPath(DirTemp ?? @"x:\dummy");
-            string entityPath = Path.Combine(root, dir ?? "", name);
+            string entityPath = Path.Combine(root, dir ?? "", Thread.CurrentThread.ManagedThreadId.ToString(), name);
             entityPath = Path.GetFullPath(entityPath);
-            string tempPath = Path.Combine(root, PathMap.Count.ToString());
+            string tempPath = Path.Combine(root, Thread.CurrentThread.ManagedThreadId.ToString(), PathMap.Count.ToString());
             tempPath = Path.GetFullPath(tempPath);
 
             string parent = Path.GetDirectoryName(entityPath);
@@ -504,8 +505,15 @@ namespace Microsoft.ML.Runtime.Model
             {
                 // Extract to a temporary file.
                 Directory.CreateDirectory(Path.GetDirectoryName(pathTemp));
-                entry.ExtractToFile(pathTemp);
-                PathMap.Add(pathLower, pathTemp);
+                if (!PathMap.ContainsKey(pathLower))
+                {
+                    entry.ExtractToFile(pathTemp);
+                    PathMap.Add(pathLower, pathTemp);
+                }
+                else
+                {
+                    pathTemp = PathMap[pathLower];
+                }
                 stream = new FileStream(pathTemp, FileMode.Open, FileAccess.Read);
             }
             else
