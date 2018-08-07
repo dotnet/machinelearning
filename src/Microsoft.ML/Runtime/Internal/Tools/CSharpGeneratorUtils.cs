@@ -420,7 +420,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine($"public void Add({inputOuputClassName} input, {inputOuputClassName}.Output output)");
             writer.WriteLine("{");
             writer.Indent();
-            writer.WriteLine($"_jsonNodes.Add(Serialize(\"{className}\", input, output));");
+            writer.WriteLine($"AddSerialize(\"{className}\", input, output);");
             writer.Outdent();
             writer.WriteLine("}");
             writer.WriteLine();
