@@ -144,16 +144,7 @@
 
     <member name="TreeEnsembleFeaturizerTransform">
       <summary>
-        Trains a tree ensemble, or loads it from a file, then maps a numeric feature vector
-        to three outputs:
-        <list type='number'>
-          <item><description>A vector containing the individual tree outputs of the tree ensemble.</description></item>
-          <item><description>A vector indicating the leaves that the feature vector falls on in the tree ensemble.</description></item>
-          <item><description>A vector indicating the paths that the feature vector falls on in the tree ensemble.</description></item>
-        </list>
-        If a both a model file and a trainer are specified - will use the model file. If neither are specified, 
-        will train a default FastTree model. 
-        This can handle key labels by training a regression model towards their optionally permuted indices.
+        Trains a tree ensemble, or loads it from a file, then maps a numeric feature vector to outputs.
       </summary>
       <remarks>
         In machine learning​ it is a pretty common and powerful approach to utilize the already trained model in the process of defining features.
@@ -169,7 +160,18 @@
           <item><description>The weights of the linear model are often used as a crude indicator of &apos;feature importance&apos;. At the very minimum, the 0-weight features are not needed by the model,
             and there&apos;s no reason to compute them. </description></item>
         </list>
-        <para>Tree featurizer uses the decision tree ensembles for feature engineering in the same fashion as above.</para>
+        <para>
+          Tree featurizer uses the decision tree ensembles for feature engineering in the same fashion as above.
+          It trains a tree ensemble, or loads it from a file, then maps a numeric feature vector to three outputs:
+        </para>
+        <list type='number'>
+          <item><description>A vector containing the individual tree outputs of the tree ensemble.</description></item>
+          <item><description>A vector indicating the leaves that the feature vector falls on in the tree ensemble.</description></item>
+          <item><description>A vector indicating the paths that the feature vector falls on in the tree ensemble.</description></item>
+        </list>
+        If a both a model file and a trainer are specified - will use the model file. If neither are specified,
+        will train a default FastTree model.
+        This can handle key labels by training a regression model towards their optionally permuted indices.
         <para>Let&apos;s assume that we&apos;ve built a tree ensemble of 100 trees with 100 leaves each (it doesn&apos;t matter whether boosting was used or not in training). 
         If we associate each leaf of each tree with a sequential integer, we can, for every incoming example x, 
         produce an indicator vector L(x), where Li(x) = 1 if the example x &apos;falls&apos; into the leaf #i, and 0 otherwise.</para>
