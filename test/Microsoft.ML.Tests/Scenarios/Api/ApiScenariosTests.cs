@@ -23,7 +23,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public class IrisData : IrisDataNoLabel
         {
-
             public string Label;
         }
 
