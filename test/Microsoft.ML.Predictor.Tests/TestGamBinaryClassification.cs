@@ -23,18 +23,21 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        [TestCategory("ParallelFasttree")]
+        [TestCategory("GAM")]
         public void TestBinaryClassificationGamTrainer()
         {
             using (var env = new TlcEnvironment())
             {
-                var dataset = LoadDataset(env);
+                var trainingSet = LoadDataset(env);
+                var validationSet = LoadDataset(env);
+
+                var context = new TrainContext(trainingSet: trainingSet, validationSet: validationSet);
 
                 var binaryTrainer = new BinaryClassificationGamTrainer(env, new BinaryClassificationGamTrainer.Arguments() { LearningRates = 0.1 });
-                var binaryPredictor = binaryTrainer.Train(dataset);
+                var binaryPredictor = binaryTrainer.Train(context);
 
                 var regressionTrainer = new RegressionGamTrainer(env, new RegressionGamTrainer.Arguments());
-                var regressionPredictor = regressionTrainer.Train(dataset);
+                var regressionPredictor = regressionTrainer.Train(context);
 
                 //// Compare the predictors
                 //ComparePredictors(env, firstPredictor, secondPredictor, dataset);
