@@ -92,7 +92,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 {
                     var lteChild = tree.LteChild;
                     var gteChild = tree.GtChild;
-                    //get Nodes;
+                    // Get nodes.
                     for (var i = 0; i < tree.NumNodes; i++)
                     {
                         var node = tree.GetNode(i, false, featureNameCollection);
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                         var threshold = GetValue<string>(node.KeyValues, "Threshold").Split(new[] { ' ' }, 2)[1];
                         var nodeIndex = i;
                     }
-                    // get leafs
+                    // Get leafs.
                     for (var i = 0; i < tree.NumLeaves; i++)
                     {
                         var node = tree.GetNode(i, true, featureNameCollection);
@@ -112,9 +112,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                         var nodeIndex = ~i;
                     }
                 }
-
-
-
             }
         }
     }

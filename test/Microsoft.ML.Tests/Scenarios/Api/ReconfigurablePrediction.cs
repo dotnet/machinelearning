@@ -55,9 +55,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     scoreRoles.Data, mapper, trainRoles.Schema);
 
                 dataEval = new RoleMappedData(newScorer, label: "Label", feature: "Features", opt: true);
-                var new_evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments() { Threshold = 0.01f, UseRawScoreThreshold = false });
-                metricsDict = new_evaluator.Evaluate(dataEval);
-                var new_metrics = BinaryClassificationMetrics.FromMetrics(env, metricsDict["OverallMetrics"], metricsDict["ConfusionMatrix"])[0];
+                var newEvaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments() { Threshold = 0.01f, UseRawScoreThreshold = false });
+                metricsDict = newEvaluator.Evaluate(dataEval);
+                var newMetrics = BinaryClassificationMetrics.FromMetrics(env, metricsDict["OverallMetrics"], metricsDict["ConfusionMatrix"])[0];
             }
         }
     }

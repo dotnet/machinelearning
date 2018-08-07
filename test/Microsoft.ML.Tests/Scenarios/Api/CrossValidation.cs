@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -33,8 +34,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline.
                 var loader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
-                var random = new GenerateNumberTransform(env, trans, "StratificationColumn");
+                var text = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
+                IDataView trans = new GenerateNumberTransform(env, text, "StratificationColumn");
                 // Train.
                 var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
                 {
@@ -42,8 +43,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     ConvergenceTolerance = 1f
                 });
 
+                if (trainer.Info.NeedNormalization)
+                {
+                    trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features");
+                }
+
                 // Auto-caching.
-                IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, random, prefetch: null) : random;
+                IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, trans, prefetch: null) : trans;
                 var metrics = new List<BinaryClassificationMetrics>();
                 for (int fold = 0; fold < numFolds; fold++)
                 {
@@ -55,9 +61,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                         Complement = true
                     }, trainData);
 
-                    // Auto-normalization.
                     var trainRoles = new RoleMappedData(trainFilter, label: "Label", feature: "Features");
-                    NormalizeTransform.CreateIfNeeded(env, ref trainRoles, trainer);
 
                     var predictor = trainer.Train(new Runtime.TrainContext(trainRoles));
                     var testFilter = new RangeFilter(env, new RangeFilter.Arguments()
@@ -69,7 +73,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     }, trainData);
                     // Auto-normalization.
                     var testRoles = new RoleMappedData(testFilter, label: "Label", feature: "Features");
-                    NormalizeTransform.CreateIfNeeded(env, ref testRoles, trainer);
 
                     IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, testRoles, env, testRoles.Schema);
 
@@ -77,7 +80,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     var dataEval = new RoleMappedData(scorer, testRoles.Schema.GetColumnRoleNames(), opt: true);
                     var dict = eval.Evaluate(dataEval);
                     var foldMetrics = BinaryClassificationMetrics.FromMetrics(env, dict["OverallMetrics"], dict["ConfusionMatrix"]);
-                    metrics.AddRange(foldMetrics);
+                    metrics.Add(foldMetrics.Single());
                 }
             }
         }

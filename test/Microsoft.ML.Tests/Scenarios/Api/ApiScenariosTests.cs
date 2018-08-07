@@ -35,7 +35,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             public float PetalWidth;
         }
 
-
         public class IrisPrediction
         {
             public string PredictedLabel;
