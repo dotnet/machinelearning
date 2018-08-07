@@ -179,7 +179,56 @@
     <example name="LightLDA">
       <example>
         <code language="csharp">
-          pipeline.Add(new LightLda(("InTextCol" , "OutTextCol")));
+          pipeline.Add(new LightLda((&quot;InTextCol&quot; , &quot;OutTextCol&quot;)));
+        </code>
+      </example>
+    </example>
+
+    <member name="WordEmbeddings">
+      <summary>
+        Word Embeddings transform is a text featurizer which converts vectors of text tokens into sentence vectors using a pre-trained model.
+      </summary>
+      <remarks>
+        <para>WordEmbeddings wrap different embedding models, such as GloVe. Users can specify which embedding to use. 
+        The available options are various versions of <a href="https://nlp.stanford.edu/projects/glove/">GloVe Models</a>, <a href="https://en.wikipedia.org/wiki/FastText">fastText</a>, and <a href="http://anthology.aclweb.org/P/P14/P14-1146.pdf">SSWE</a>.
+        </para>
+        <para>Note: As WordEmbedding requires a column with text vector, e.g. &apos;this&apos;, &apos;is&apos;, &apos;good&apos;, users need to create an input column by
+          using the output_tokens=True for TextTransform to convert a column with sentences like &apos;This is good&apos; into &apos;this&apos;, &apos;is&apos;, &apos;good&apos;.
+          The suffix of &apos;_TransformedText&apos; is added to the original column name to create the output token column. For instance if the input column is &apos;body&apos;,
+          the output tokens column is named &apos;body_TransformedText&apos;.</para>
+        <para>
+          License attributes for pretrained models:
+          <list type="bullet">
+            <item>
+              <description>
+                &quot;fastText Wikipedia 300D&quot; by Facebook, Inc. is licensed under <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA 3.0</a> based on:
+                P. Bojanowski*, E. Grave*, A. Joulin, T. Mikolov,<a href="https://arxiv.org/abs/1607.04606">Enriching Word Vectors with Subword Information</a>
+                More information can be found <a href="https://github.com/facebookresearch/fastText/blob/master/pretrained-vectors.md">here</a>.
+              </description>
+            </item>
+            <item>
+              <description>
+                GloVe models by Stanford University, or (Jeffrey Pennington, Richard Socher, and Christopher D. Manning. 2014. 
+                <a href="https://nlp.stanford.edu/pubs/glove.pdf">GloVe: Global Vectors for Word Representation</a>) is licensed under <a href="https://opendatacommons.org/licenses/pddl/1.0/">PDDL</a>.
+                More information can be found <a href="https://nlp.stanford.edu/projects/glove/">here</a>. 
+                Repository can be found <a href="https://github.com/stanfordnlp/GloVe">here</a>.
+              </description>
+          </item>
+        </list>
+        </para>
+      </remarks>
+    </member>
+    <example name="WordEmbeddings">
+      <example>
+        <code language="csharp">
+          pipeline.Add(new TextFeaturizer(&quot;Words&quot;, &quot;InputTextCol&quot;)
+          {
+              TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
+              OutputTokens = true,
+              CharFeatureExtractor=null,
+              WordFeatureExtractor = null
+          });
+          pipeline.Add(new WordEmbeddings((&quot;Words_TransformedText&quot;, &quot;OutTextCol&quot;)));
         </code>
       </example>
     </example>

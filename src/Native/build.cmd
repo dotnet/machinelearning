@@ -17,7 +17,9 @@ set CMAKE_BUILD_TYPE=Debug
 :Arg_Loop
 if [%1] == [] goto :ToolsVersion
 if /i [%1] == [Release]     ( set CMAKE_BUILD_TYPE=Release&&shift&goto Arg_Loop)
+if /i [%1] == [Release-Intrinsics]     ( set CMAKE_BUILD_TYPE=Release-Intrinsics&&shift&goto Arg_Loop)
 if /i [%1] == [Debug]       ( set CMAKE_BUILD_TYPE=Debug&&shift&goto Arg_Loop)
+if /i [%1] == [Debug-Intrinsics]       ( set CMAKE_BUILD_TYPE=Debug-Intrinsics&&shift&goto Arg_Loop)
 
 if /i [%1] == [x86]         ( set __BuildArch=x86&&set __VCBuildArch=x86&&shift&goto Arg_Loop)
 if /i [%1] == [x64]         ( set __BuildArch=x64&&set __VCBuildArch=x86_amd64&&shift&goto Arg_Loop)
@@ -86,6 +88,10 @@ if %__IntermediatesDir% == "" (
 set "__CMakeBinDir=%__CMakeBinDir:\=/%"
 set "__IntermediatesDir=%__IntermediatesDir:\=/%"
 
+:: Strip the "-Intrinsics" suffix from the build type
+if [%CMAKE_BUILD_TYPE:~-11%] == [-Intrinsics] (
+	set CMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE:~0,-11%
+)
 
 :: Check that the intermediate directory exists so we can place our cmake build tree there
 if not exist "%__IntermediatesDir%" md "%__IntermediatesDir%"

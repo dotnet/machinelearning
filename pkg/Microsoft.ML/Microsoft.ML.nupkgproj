@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
     <Content Include="build\**\*" Pack="true" PackagePath="build" />
   </ItemGroup>
 </Project>

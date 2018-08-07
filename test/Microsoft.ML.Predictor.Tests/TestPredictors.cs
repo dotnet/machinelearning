@@ -233,6 +233,18 @@ namespace Microsoft.ML.Runtime.RunTests
 
         [Fact]
         [TestCategory("Binary")]
+        public void BinaryClassifierSymSgdTest()
+        {
+            //Results sometimes go out of error tolerance on OS X.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) 
+                return;
+
+            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true);
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Binary")]
         public void BinaryClassifierTesterThresholdingTest()
         {
             var binaryPredictors = new[] { TestLearners.logisticRegression };
@@ -888,11 +900,11 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// A test for ordinary least squares regression.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
-            Run_TrainTest(TestLearners.Ols, TestDatasets.housing);
+            Run_TrainTest(TestLearners.Ols, TestDatasets.winequality);
             Done();
         }
 
@@ -905,8 +917,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void RegressorSdcaTest()
         {
             var regressionPredictors = new[] { TestLearners.Sdcar, TestLearners.SdcarNorm, TestLearners.SdcarReg };
-            var regressionDatasets = GetDatasetsForRegressorTest();
-            RunAllTests(regressionPredictors, regressionDatasets);
+            RunAllTests(regressionPredictors, new[] { TestDatasets.winequality });
             Done();
         }
 

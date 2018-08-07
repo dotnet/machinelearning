@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <members>
+    
+    <member name="OLS">
+      <summary>
+        Train an OLS regression model.
+      </summary>
+      <remarks>
+        <a href='https://en.wikipedia.org/wiki/Ordinary_least_squares'>Ordinary least squares (OLS)</a> is a parameterized regression method. 
+        It assumes that the conditional mean of the dependent variable follows a linear function of the dependent variables.
+        The parameters of the regressor can be estimated by minimizing the squares of the difference between observed values and the predictions.
+      </remarks>
+       <example>
+        <code language="csharp">
+          new OrdinaryLeastSquaresRegressor
+          {
+            L2Weight = 0.1,
+            PerParameterSignificance = false,
+            NormalizeFeatures  = Microsoft.ML.Models.NormalizeOption.Yes
+          }
+        </code>
+      </example>
+    </member>
+    <member name="SymSGD">
+      <summary>
+        Parallel Stochastic Gradient Descent trainer.
+      </summary>
+      <remarks>
+        <a href='https://en.wikipedia.org/wiki/Stochastic_gradient_descent'>Stochastic gradient descent (SGD)</a> is an interative algorithm
+        that optimizes a differentiable objective function. <a href='https://arxiv.org/abs/1705.08030'>SYMSGD</a> parallelizes SGD using Sound Combiners.
+      </remarks>
+      <example>
+        <code language="csharp">
+          new SymSgdBinaryClassifier()
+          {
+            NumberOfIterations = 50,
+            L2Regularization = 0,
+            Shuffle = true
+          }
+        </code>
+      </example>
+    </member>
+  </members>
+</doc>

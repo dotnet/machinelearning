@@ -7,14 +7,15 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.HalLearners;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
 using System.Runtime.InteropServices;
 
@@ -28,8 +29,11 @@ using System.Runtime.InteropServices;
     "OLS Linear Regression Executor",
     OlsLinearRegressionPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Learners
+[assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
+
+namespace Microsoft.ML.Runtime.HalLearners
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
     public sealed class OlsLinearRegressionTrainer : TrainerBase<OlsLinearRegressionPredictor>
     {
         public sealed class Arguments : LearnerInputBaseWithWeight
@@ -51,11 +55,6 @@ namespace Microsoft.ML.Runtime.Learners
         public const string ShortName = "ols";
         internal const string Summary = "The ordinary least square regression fits the target function as a linear function of the numerical features "
             + "that minimizes the square loss function.";
-        internal const string Remarks = @"<remarks>
-<a href='https://en.wikipedia.org/wiki/Ordinary_least_squares'>Ordinary least squares (OLS)</a> is a parameterized regression method. 
-It assumes that the conditional mean of the dependent variable follows a linear function of the dependent variables.
-By minimizing the squares of the difference between observed values and the predictions, the parameters of the regressor can be estimated.
-</remarks>";
 
         private readonly Float _l2Weight;
         private readonly bool _perParameterSignificance;
@@ -222,7 +221,7 @@ By minimizing the squares of the difference between observed values and the pred
             catch (DllNotFoundException)
             {
                 // REVIEW: Is there no better way?
-                throw ch.ExceptNotSupp("The MKL library (Microsoft.ML.MklImports.dll) or one of its dependencies is missing.");
+                throw ch.ExceptNotSupp("The MKL library (libMklImports) or one of its dependencies is missing.");
             }
             // Solve for beta in (LL')beta = X'y:
             Mkl.Pptrs(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, m, 1, xtx, xty, 1);
@@ -331,7 +330,7 @@ By minimizing the squares of the difference between observed values and the pred
 
         internal static class Mkl
         {
-            private const string DllName = "Microsoft.ML.MklImports.dll";
+            private const string DllName = "MklImports";
 
             public enum Layout
             {
@@ -462,6 +461,24 @@ By minimizing the squares of the difference between observed values and the pred
                         throw Contracts.Except();
                 }
             }
+        }
+
+        [TlcModule.EntryPoint(Name = "Trainers.OrdinaryLeastSquaresRegressor",
+            Desc = "Train an OLS regression model.",
+            UserName = UserNameValue,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""OLS""]/*' />" })]
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register("TrainOLS");
+            host.CheckValue(input, nameof(input));
+            EntryPointUtils.CheckInputArgs(host, input);
+
+            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.RegressionOutput>(host, input,
+                () => new OlsLinearRegressionTrainer(host, input),
+                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
+                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
     }
 
