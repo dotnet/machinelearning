@@ -16,6 +16,7 @@ def branch = GithubBranchName
 
             def newJob = job(Utilities.getFullJobName(project, jobName, isPR)) {
                 steps {
+                    shell("./build.sh -$config")
                     shell("./build.sh -$config -runtests")
                     shell("./build.sh -buildPackages")
                 }

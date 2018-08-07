@@ -11,4 +11,8 @@
     <PackageReference Include="System.Runtime.Intrinsics.Experimental" Version="4.6.0-preview1-26708-04" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj " />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.ML.CpuMath.UnitTests.netstandard\UnitTests.cs" />
+  </ItemGroup>
+  
+</Project>
