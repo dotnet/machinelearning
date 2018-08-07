@@ -1886,6 +1886,11 @@ namespace Microsoft.ML.Runtime.CommandLine
                     {
                         SignatureType = signatureType;
                         Name = name;
+
+                        if (settings == null || (settings.Length == 1 && string.IsNullOrEmpty(settings[0])))
+                        {
+                            settings = Array.Empty<string>();
+                        }
                         Settings = settings;
                     }
 
@@ -1896,10 +1901,10 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                     public override string ToString()
                     {
-                        if (string.IsNullOrEmpty(Name) && Settings?.Length == 0)
+                        if (string.IsNullOrEmpty(Name) && Settings.Length == 0)
                             return "{}";
 
-                        if (Settings?.Length == 0)
+                        if (Settings.Length == 0)
                             return Name;
 
                         string str = CombineSettings(Settings);
