@@ -59,9 +59,9 @@ namespace Microsoft.ML.Runtime.FastTree
     {
         public partial class Arguments : ArgumentsBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Metric for pruning. (For regression, 1: L1, 2:L2", ShortName = "pmetric")]
-            [TGUI(Description = "Metric for pruning. (For regression, 1: L1, 2:L2")]
-            public int PruningMetrics;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2)", ShortName = "pmetric")]
+            [TGUI(Description = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2")]
+            public int PruningMetrics = 2;
         }
 
         internal const string LoadNameValue = "RegressionGamTrainer";
@@ -91,7 +91,9 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override void DefinePruningTest()
         {
             var validTest = new RegressionTest(ValidSetScore, Args.PruningMetrics);
-            PruningTest = new TestHistory(validTest, 0);
+            // Because we specify pruning metrics as L2 by default, the results array will have 1 value
+            PruningLossIndex = 0;
+            PruningTest = new TestHistory(validTest, PruningLossIndex);
         }
     }
 
@@ -160,7 +162,9 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             var validTest = new BinaryClassificationTest(ValidSetScore,
                 ConvertTargetsToBool(ValidSet.Targets), Args.LearningRates);
-            PruningTest = new TestHistory(validTest, 0);
+            // As per FastTreeClassification.ConstructOptimizationAlgorithm()
+            PruningLossIndex = Args.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/;
+            PruningTest = new TestHistory(validTest, PruningLossIndex);
         }
     }
 
@@ -218,7 +222,7 @@ namespace Microsoft.ML.Runtime.FastTree
             public bool FeatureFlocks = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enable post-training pruning to avoid overfitting. (a validation set is required)", ShortName = "pruning")]
-            public bool EnablePruning;
+            public bool EnablePruning = true;
         }
 
         internal const string Summary = "Trains a gradient boosted stump per feature, on all features simultaneously, " +
@@ -241,6 +245,7 @@ namespace Microsoft.ML.Runtime.FastTree
         protected ScoreTracker TrainSetScore;
         protected ScoreTracker ValidSetScore;
         protected TestHistory PruningTest;
+        protected int PruningLossIndex;
         protected int InputLength;
         private LeastSquaresRegressionTreeLearner.LeafSplitCandidates _leafSplitCandidates;
         private SufficientStatsBase[] _histogram;
@@ -248,8 +253,8 @@ namespace Microsoft.ML.Runtime.FastTree
         private bool HasWeights => TrainSet?.SampleWeights != null;
 
         // Training Datastructures
-        private double[][] SplitPoint;
-        private double[][][] SplitValue;
+        private double[][] _splitPoint;
+        private double[][][] _splitValue;
 
         //Results of Training
         protected double[][] BinEffects;
@@ -398,28 +403,12 @@ namespace Microsoft.ML.Runtime.FastTree
 
                         SumUpsAcrossFlocks(gradient, sumTargets, sumWeights);
                         TrainOnEachFeature(gradient, TrainSetScore.Scores, sumTargets, sumWeights, iteration);
-                        UpdateScores();
+                        UpdateScores(iteration);
                     }
                 }
             }
 
-            if (HasValidSet)
-            {
-                ch.Info("Pruning");
-                int bestIteration = Args.NumIterations;
-                var test = PruningTest.SimpleTest.ComputeTests().ToArray()[0];
-                string lossFunctionName = test.LossFunctionName;
-                double bestLoss = test.FinalValue;
-                if (PruningTest != null)
-                {
-                    bestIteration = PruningTest.BestIteration;
-                    bestLoss = PruningTest.BestResult.FinalValue;
-                }
-                if (bestIteration != Args.NumIterations)
-                    ch.Info($"Best Iteration ({lossFunctionName}): {bestIteration} @ {bestLoss} (vs {Args.NumIterations} @ {test.FinalValue}).");
-                else
-                    ch.Info("No pruning necessary. More iterations may be necessary.");
-            }
+            CombineGraphs(ch);
         }
 
         private void SumUpsAcrossFlocks(double[] gradient, double sumTargets, double sumWeights)
@@ -466,29 +455,38 @@ namespace Microsoft.ML.Runtime.FastTree
 
             // Adjust the model
             if (_leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].Gain > 0)
-                AddOutputsToBins(globalFeatureIndex, flockIndex, subFeatureIndex, iteration);
+                ConvertTreeToGraph(globalFeatureIndex, iteration);
         }
 
         /// <summary>
         /// Update scores for all tracked datasets
         /// </summary>
-        private void UpdateScores()
+        private void UpdateScores(int iteration)
         {
-            TrainSetScore.SetScores(UpdateScoresForSet(TrainSet));
+            // Pass scores by reference to be updated and manually trigger the update callbacks
+            UpdateScoresForSet(TrainSet, TrainSetScore.Scores, iteration);
+            TrainSetScore.SendScoresUpdatedMessage();
+
             if (HasValidSet)
-                ValidSetScore.SetScores(UpdateScoresForSet(ValidSet));
+            {
+                UpdateScoresForSet(ValidSet, ValidSetScore.Scores, iteration);
+                ValidSetScore.SendScoresUpdatedMessage();
+            }
         }
 
         /// <summary>
         /// Updates the scores for a dataset. Currently allocates new memory.
         /// </summary>
         /// <param name="dataset">The dataset to use.</param>
+        /// <param name="scores">The current scores for this dataset</param>
+        /// <param name="iteration">The iteration of the algorithm.
+        /// Used to look up the sub-graph to use to update the score.</param>
         /// <returns></returns>
-        private double[] UpdateScoresForSet(Dataset dataset)
+        private void UpdateScoresForSet(Dataset dataset, double[] scores, int iteration)
         {
             int numThreads = BlockingThreadPool.NumThreads;
-            int extras = TrainSet.NumDocs % numThreads;
-            int documentsPerThread = TrainSet.NumDocs / numThreads;
+            int extras = dataset.NumDocs % numThreads;
+            int documentsPerThread = dataset.NumDocs / numThreads;
             int[] division = new int[numThreads + 1];
             division[0] = 0;
             for (int t = 0; t < extras; t++)
@@ -496,41 +494,83 @@ namespace Microsoft.ML.Runtime.FastTree
             for (int t = extras; t < numThreads; t++)
                 division[t + 1] = division[t] + documentsPerThread;
 
-            var scores = new double[TrainSet.NumDocs];
             var updateTask = ThreadTaskManager.MakeTask(
                 (threadIndex) =>
                 {
                     int startIndexInclusive = division[threadIndex];
                     int endIndexExclusive = division[threadIndex + 1];
-                    Array.Clear(scores, startIndexInclusive, endIndexExclusive - startIndexInclusive);
-                    for (int featureIndex = 0; featureIndex < BinEffects.Length; featureIndex++)
+                    for (int featureIndex = 0; featureIndex < _splitPoint.Length; featureIndex++)
                     {
-                        var featureIndexer = TrainSet.GetIndexer(featureIndex);
-                        var binEffect = BinEffects[featureIndex];
+                        var featureIndexer = dataset.GetIndexer(featureIndex);
+                        var splitPoint = _splitPoint[featureIndex][iteration];
+                        var splitValue = _splitValue[featureIndex][iteration];
                         for (int doc = startIndexInclusive; doc < endIndexExclusive; doc++)
-                            scores[doc] += binEffect[featureIndexer[doc]];
+                        {
+                            if (featureIndexer[doc] <= splitPoint)
+                                scores[doc] += splitValue[0];
+                            else
+                                scores[doc] += splitValue[1];
+                        }
                     }
                 }, numThreads);
             updateTask.RunTask();
-            return scores;
         }
 
-        private void AddOutputsToBins(int globalFeatureIndex, int flockIndex, int subFeatureIndex, int iteration)
+        /// <summary>
+        /// Combine the single-feature single-tree graphs to a single-feature model
+        /// </summary>
+        private void CombineGraphs(IChannel ch)
         {
-            int numOfBins = TrainSet.Flocks[flockIndex].BinCount(subFeatureIndex);
+            // Prune backwards to the best iteration
+            int bestIteration = Args.NumIterations;
+            if (Args.EnablePruning && PruningTest != null)
+            {
+                ch.Info("Pruning");
+                var finalResult = PruningTest.ComputeTests().ToArray()[PruningLossIndex];
+                string lossFunctionName = finalResult.LossFunctionName;
+                double bestLoss = finalResult.FinalValue;
+                if (PruningTest != null)
+                {
+                    bestIteration = PruningTest.BestIteration;
+                    bestLoss = PruningTest.BestResult.FinalValue;
+                }
+                if (bestIteration != Args.NumIterations)
+                    ch.Info($"Best Iteration ({lossFunctionName}): {bestIteration} @ {bestLoss:G6} (vs {Args.NumIterations} @ {finalResult.FinalValue:G6}).");
+                else
+                    ch.Info("No pruning necessary. More iterations may be necessary.");
+            }
+
+            // Compose the BinEffects array
+            BinEffects = new double[TrainSet.NumFeatures][];
+            for (int featureIndex = 0; featureIndex < TrainSet.NumFeatures; featureIndex++)
+            {
+                TrainSet.MapFeatureToFlockAndSubFeature(featureIndex, out int flockIndex, out int subFeatureIndex);
+                int numOfBins = TrainSet.Flocks[flockIndex].BinCount(subFeatureIndex);
+                BinEffects[featureIndex] = new double[numOfBins];
+
+                for (int iteration = 0; iteration < bestIteration; iteration++)
+                {
+                    var splitPoint = _splitPoint[featureIndex][iteration];
+                    var splitValue = _splitValue[featureIndex][iteration];
+                    for (int bin = 0; bin <= splitPoint; bin++)
+                        BinEffects[featureIndex][bin] += splitValue[0];
+                    for (int bin = (int)splitPoint + 1; bin < numOfBins; bin++)
+                        BinEffects[featureIndex][bin] += splitValue[1];
+
+                    // Drop the unused values
+                    _splitValue[featureIndex][iteration] = null;
+                }
+            }
+        }
+
+        private void ConvertTreeToGraph(int globalFeatureIndex, int iteration)
+        {
             SplitInfo splitinfo = _leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex];
-            double lessThanEffect = splitinfo.LteOutput * Args.LearningRates;
-            double greaterThanEffect = splitinfo.GTOutput * Args.LearningRates;
 
-            SplitPoint[globalFeatureIndex][iteration] = splitinfo.Threshold;
-            SplitValue[globalFeatureIndex][iteration][0] = lessThanEffect;
-            SplitValue[globalFeatureIndex][iteration][1] = greaterThanEffect;
-
-            //var binEffect = BinEffects[globalFeatureIndex][iteration];
-            //for (int bin = 0; bin <= splitinfo.Threshold; bin++)
-            //    binEffect[bin] += lessThanEffect;
-            //for (int bin = (int)splitinfo.Threshold + 1; bin < numOfBins; bin++)
-            //    binEffect[bin] += greaterThanEffect;
+            _splitPoint[globalFeatureIndex][iteration] = splitinfo.Threshold;
+            _splitValue[globalFeatureIndex][iteration] = new double[2]; // Easily extend to variable-length trees
+            _splitValue[globalFeatureIndex][iteration][0] = Args.LearningRates * splitinfo.LteOutput;
+            _splitValue[globalFeatureIndex][iteration][1] = Args.LearningRates * splitinfo.GTOutput;
         }
 
         private void InitializeGamHistograms()
@@ -539,18 +579,12 @@ namespace Microsoft.ML.Runtime.FastTree
             for (int i = 0; i < TrainSet.Flocks.Length; i++)
                 _histogram[i] = TrainSet.Flocks[i].CreateSufficientStats(HasWeights);
 
-            SplitPoint = new double[TrainSet.NumFeatures][];
-            SplitValue = new double[TrainSet.NumFeatures][][];
-            //BinEffects = new double[TrainSet.NumFeatures][][];
+            _splitPoint = new double[TrainSet.NumFeatures][];
+            _splitValue = new double[TrainSet.NumFeatures][][];
             for (int i = 0; i < TrainSet.NumFeatures; i++)
             {
-                SplitPoint[i] = new double[Args.NumIterations];
-                SplitValue[i] = new double[Args.NumIterations][];
-                //BinEffects[i] = new double[Args.NumIterations][];
-                for (int j = 0; j < Args.NumIterations; j++)
-                    SplitValue[i][j] = new double[2];
-                //TrainSet.MapFeatureToFlockAndSubFeature(i, out int flockIndex, out int subFeatureIndex);
-                //BinEffects[i][j] = new double[TrainSet.Flocks[flockIndex].BinCount(subFeatureIndex)];
+                _splitPoint[i] = new double[Args.NumIterations];
+                _splitValue[i] = new double[Args.NumIterations][]; // Note the last dim is null
             }
         }
 
