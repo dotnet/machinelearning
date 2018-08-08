@@ -18063,7 +18063,7 @@
     },
     {
       "Name": "Transforms.HashConverter",
-      "Desc": "Converts column values into hashes. This transform accepts both numeric and text inputs, both single and vector-valued columns. This is a part of the Dracula transform.",
+      "Desc": "Converts column values into hashes. This transform accepts both numeric and text inputs, both single and vector-valued columns. ",
       "FriendlyName": "Hash Join Transform",
       "ShortName": "HashJoin",
       "Inputs": [
