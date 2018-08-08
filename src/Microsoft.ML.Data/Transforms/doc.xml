@@ -9,7 +9,7 @@
         This transform removes the entire row if any of the input columns have a missing value in that row.
         This preprocessing is required for many ML algorithms that cannot work with missing values.
         Useful if any missing entry invalidates the entire row.
-        If the <see cref="Microsoft.ML.Transforms.MissingValuesRowDropper.Complement"/> is set to true, this transform would do the exact opposite,
+        If the <see cref="P:Microsoft.ML.Transforms.MissingValuesRowDropper.Complement"/> is set to true, this transform would do the exact opposite,
         it will keep only the rows that have missing values.
       </remarks>
       <seealso cref="T:Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"></seealso>
