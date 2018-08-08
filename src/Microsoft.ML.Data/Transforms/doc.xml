@@ -9,10 +9,10 @@
         This transform removes the entire row if any of the input columns have a missing value in that row.
         This preprocessing is required for many ML algorithms that cannot work with missing values.
         Useful if any missing entry invalidates the entire row.
-        If the <see cref="Microsoft.ML.Runtime.Data.NAFilter.Defaults.Complement"/> is set to true, this transform would do the exact opposite,
+        If the <see cref="Microsoft.ML.Transforms.MissingValuesRowDropper.Complement"/> is set to true, this transform would do the exact opposite,
         it will keep only the rows that have missing values.
       </remarks>
-      <seealso cref="Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"></seealso>
+      <seealso cref="T:Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"></seealso>
     </member>
     <example name="NAFilter">
       <example>
@@ -44,7 +44,7 @@
         <code language="csharp">
           pipeline.Add(new TextToKeyConverter((&quot;Column&quot;, &quot;OutColumn&quot;))
           { 
-            Sort = TermTransformSortOrder.Occurrence 
+              Sort = TermTransformSortOrder.Occurrence 
           });
         </code>
       </example>
@@ -82,7 +82,7 @@
           It can be changed to true for known length vectors, but it results in an error if changed to false for variable length vectors.
         </para>
       </remarks>
-      <seealso cref=" Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"/>
+      <seealso cref="T:Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"/>
       <seealso cref="T:Microsoft.ML.Data.DataKind"/>
     </member>
     <example name="NAHandle">
@@ -90,7 +90,7 @@
         <code language="csharp">
           pipeline.Add(new MissingValueHandler(&quot;FeatureCol&quot;, &quot;CleanFeatureCol&quot;)
           {
-          ReplaceWith  = NAHandleTransformReplacementKind.Mean
+              ReplaceWith  = NAHandleTransformReplacementKind.Mean
           });
         </code>
       </example>
