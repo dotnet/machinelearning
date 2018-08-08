@@ -9796,9 +9796,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <summary>
-        /// Train a symbolic SGD.
-        /// </summary>
+        /// <include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
         public sealed partial class SymSgdBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
