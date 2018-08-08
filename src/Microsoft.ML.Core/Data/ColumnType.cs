@@ -242,6 +242,10 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         internal virtual int ValueCountCore { get { return 1; } }
 
+        // IEquatable<T> interface recommends also to override base class implementations of
+        // Object.Equals(Object) and GetHashCode. In classes below where Equals(ColumnType other)
+        // is effectively a referencial comparison, there is no need to override base class implementations
+        // of Object.Equals(Object) (and GetHashCode) since its also a referencial comparison.
         public abstract bool Equals(ColumnType other);
 
         /// <summary>
@@ -789,6 +793,16 @@ namespace Microsoft.ML.Runtime.Data
             return true;
         }
 
+        public override bool Equals(object other)
+        {
+            return other is ColumnType tmp && Equals(tmp);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hashing.CombinedHash(RawKind.GetHashCode(), _contiguous, _min, _count);
+        }
+
         public override string ToString()
         {
             if (_count > 0)
@@ -938,6 +952,21 @@ namespace Microsoft.ML.Runtime.Data
                     return false;
             }
             return true;
+        }
+
+        public override bool Equals(object other)
+        {
+            return other is ColumnType tmp && Equals(tmp);
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = Hashing.CombinedHash(_itemType.GetHashCode(), _size);
+            int count = Utils.Size(_dims);
+            hash = Hashing.CombineHash(hash, count.GetHashCode());
+            for (int i = 0; i < count; i++)
+                hash = Hashing.CombineHash(hash, _dims[i].GetHashCode());
+            return hash;
         }
 
         /// <summary>
