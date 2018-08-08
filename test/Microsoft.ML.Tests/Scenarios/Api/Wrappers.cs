@@ -1,4 +1,5 @@
 ﻿using Microsoft.ML.Core.Data;
+using Microsoft.ML.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
@@ -9,6 +10,8 @@ using Microsoft.ML.Tests.Scenarios.Api;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+
 [assembly: LoadableClass(typeof(TransformWrapper), null, typeof(SignatureLoadModel),
     "Transform wrapper", TransformWrapper.LoaderSignature)]
 [assembly: LoadableClass(typeof(LoaderWrapper), null, typeof(SignatureLoadModel),
@@ -163,16 +166,16 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyAllTransformsToData(_env, _xf, input);
     }
 
-    public interface IPredictorTransformer<out TModel>: ITransformer
+    public interface IPredictorTransformer<out TModel> : ITransformer
     {
         TModel TrainedModel { get; }
     }
 
-    public class ScorerWrapper<TModel>: TransformWrapper, IPredictorTransformer<TModel>
-        where TModel: IPredictor
+    public class ScorerWrapper<TModel> : TransformWrapper, IPredictorTransformer<TModel>
+        where TModel : IPredictor
     {
         public ScorerWrapper(IHostEnvironment env, IDataView scorer, TModel trainedModel)
-            :base(env, scorer)
+            : base(env, scorer)
         {
             Model = trainedModel;
         }
@@ -206,7 +209,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     }
 
     public abstract class TrainerBase<TModel> : IEstimator<ScorerWrapper<TModel>>
-        where TModel: IPredictor
+        where TModel : IPredictor
     {
         protected readonly IHostEnvironment _env;
         private readonly string _featureCol;
@@ -298,12 +301,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public ITransformer Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
     }
 
-    public sealed class MyAveragedPerceptron: TrainerBase<IPredictor>
+    public sealed class MyAveragedPerceptron : TrainerBase<IPredictor>
     {
         private readonly AveragedPerceptronTrainer _trainer;
 
         public MyAveragedPerceptron(IHostEnvironment env, AveragedPerceptronTrainer.Arguments args, string featureCol, string labelCol)
-            :base(env, false, featureCol, labelCol)
+            : base(env, false, featureCol, labelCol)
         {
             _trainer = new AveragedPerceptronTrainer(env, args);
         }
@@ -331,6 +334,32 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public TDst Predict(TSrc example)
         {
             return _engine.Predict(example);
+        }
+    }
+
+    public sealed class MyBinaryClassifierEvaluator
+    {
+        private readonly IHostEnvironment _env;
+        private readonly BinaryClassifierEvaluator _evaluator;
+
+        public MyBinaryClassifierEvaluator(IHostEnvironment env, BinaryClassifierEvaluator.Arguments args)
+        {
+            _env = env;
+            _evaluator = new BinaryClassifierEvaluator(env, args);
+        }
+
+        public BinaryClassificationMetrics Evaluate(IDataView data, string labelColumn, string probabilityColumn)
+        {
+            var ci = EvaluateUtils.GetScoreColumnInfo(_env, data.Schema, null, "Score", MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
+            var map = new KeyValuePair<RoleMappedSchema.ColumnRole, string>[]
+            {
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probabilityColumn),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, ci.Name)
+            };
+            var rmd = new RoleMappedData(data, labelColumn, "Features", opt: true, custom: map);
+
+            var metricsDict = _evaluator.Evaluate(rmd);
+            return BinaryClassificationMetrics.FromMetrics(_env, metricsDict["OverallMetrics"], metricsDict["ConfusionMatrix"]).Single();
         }
     }
 

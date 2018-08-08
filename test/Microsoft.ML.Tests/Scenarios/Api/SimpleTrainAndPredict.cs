@@ -71,7 +71,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             {
                 // Pipeline.
                 var pipeline = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
-                    .StartPipe() // Actually optional
                     .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()))
                     .Append(new MySdca(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
 
