@@ -40,16 +40,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Concatenate all features into a vector.
                 Features: row.SepalWidth.ConcatWith(row.SepalLength, row.PetalWidth, row.PetalLength)));
 
-            // Create a learner and train it.
-            var learner = preprocess.AppendEstimator(row => row.Label.SdcaPredict(row.Features, l1Coefficient: 0.1));
-            var classifier = learner.Fit(data);
+            var pipeline = preprocess
+                // Append the trainer to the training pipeline.
+                .AppendEstimator(row => row.Label.PredictWithSdca(row.Features))
+                .AppendEstimator(row => row.PredictedLabel.KeyToValue());
 
-            // Add another transformer that converts the integer prediction into string.
-            var finalTransformer = classifier.AppendTransformer(row => row.PredictedLabel.KeyToValue());
+            // Train the model and make some predictions.
+            var model = pipeline.Fit<IrisExample, IrisPrediction>(data);
 
-            // Make a prediction engine and predict.
-            engine = finalTransformer.MakePredictionEngine<IrisExample, IrisPrediction>();
-            IrisPrediction prediction = engine.Predict(new IrisExample
+            IrisPrediction prediction = model.Predict(new IrisExample
                 {
                     SepalWidth = 3.3f,
                     SepalLength = 1.6f,
