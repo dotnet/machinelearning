@@ -25,12 +25,30 @@
     <GenerateNativeVersionInfo>true</GenerateNativeVersionInfo>
   </PropertyGroup>
 
+  <PropertyGroup>
+     <NativeAssetsBuiltPath>$(BaseOutputPath)$(TargetArchitecture).$(Configuration)\Native</NativeAssetsBuiltPath>
+
+     <NativeLibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</NativeLibPrefix>
+     <NativeLibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</NativeLibExtension>
+     <NativeLibExtension Condition="'$(OS)' != 'Windows_NT'">.so</NativeLibExtension>
+     <NativeLibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</NativeLibExtension>
+
+     <NativeLibSymbolExtension Condition="'$(OS)' == 'Windows_NT'">.pdb</NativeLibSymbolExtension>
+     <NativeLibSymbolExtension Condition="'$(OS)' != 'Windows_NT'">.so.dbg</NativeLibSymbolExtension>
+     <NativeLibSymbolExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib.dwarf</NativeLibSymbolExtension>
+
+     <PackageRid Condition="'$(OS)' == 'Windows_NT'">win</PackageRid>
+     <PackageRid Condition="'$(OS)' != 'Windows_NT'">linux</PackageRid>
+     <PackageRid Condition="$([MSBuild]::IsOSPlatform('osx'))">osx</PackageRid>
+     <PackageRid>$(PackageRid)-$(TargetArchitecture)</PackageRid>
+  </PropertyGroup>
+
   <Target Name="BuildNativeUnix"
           Condition="'$(OS)' != 'Windows_NT'"
           DependsOnTargets="GenerateVersionSourceFile">
     <PropertyGroup>
       <StripArgs Condition="'$(StripNativeSymbols)' == 'True'">--stripSymbols</StripArgs>
-      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs)</BuildArgs>
+      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs) --mkllibpath $(PackagesDir)mlnetmkldeps/$(MlNetMklDepsPackageVersion)/runtimes/$(PackageRid)/native</BuildArgs>
     </PropertyGroup>
 
     <Message Text="$(MSBuildProjectDirectory)/build.sh $(BuildArgs)" Importance="High"/>
@@ -41,9 +59,9 @@
   <Target Name="BuildNativeWindows"
           Condition="'$(OS)' == 'Windows_NT'"
           DependsOnTargets="GenerateVersionHeader">
-
+          
     <PropertyGroup>
-      <BuildArgs>$(Configuration) $(TargetArchitecture)</BuildArgs>
+      <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native</BuildArgs>
     </PropertyGroup>
 
     <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
@@ -53,25 +71,7 @@
   </Target>
 
   <Target Name="PreparePackageAssets">
-
-    <PropertyGroup>
-      <NativeAssetsBuiltPath>$(BaseOutputPath)$(TargetArchitecture).$(Configuration)\Native</NativeAssetsBuiltPath>
-
-      <NativeLibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</NativeLibPrefix>
-      <NativeLibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</NativeLibExtension>
-      <NativeLibExtension Condition="'$(OS)' != 'Windows_NT'">.so</NativeLibExtension>
-      <NativeLibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</NativeLibExtension>
-
-      <NativeLibSymbolExtension Condition="'$(OS)' == 'Windows_NT'">.pdb</NativeLibSymbolExtension>
-      <NativeLibSymbolExtension Condition="'$(OS)' != 'Windows_NT'">.so.dbg</NativeLibSymbolExtension>
-      <NativeLibSymbolExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib.dwarf</NativeLibSymbolExtension>
-
-      <PackageRid Condition="'$(OS)' == 'Windows_NT'">win</PackageRid>
-      <PackageRid Condition="'$(OS)' != 'Windows_NT'">linux</PackageRid>
-      <PackageRid Condition="$([MSBuild]::IsOSPlatform('osx'))">osx</PackageRid>
-      <PackageRid>$(PackageRid)-$(TargetArchitecture)</PackageRid>
-    </PropertyGroup>
-
+    
     <!-- Copy MklImports into the native assets folder, so it can be treated like a regularly built native assembly - packaged into our NuGet packages, and used by tests. -->
     
     <Copy SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
