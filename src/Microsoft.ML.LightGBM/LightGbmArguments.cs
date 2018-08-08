@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             {
                 FieldInfo[] fields = Args.GetType().GetFields();
                 foreach (var field in fields)
-                    res[GetArgName(field.Name)] = field.GetValue(Args).ToString();
+                    res[GetArgName(field.Name)] = field.GetValue(Args);
             }
         }
 
@@ -364,6 +364,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
             Contracts.CheckValue(host, nameof(host));
             Contracts.CheckUserArg(MaxBin > 0, nameof(MaxBin), "must be > 0.");
+            Contracts.CheckUserArg(Sigmoid > 0, nameof(Sigmoid), "must be > 0.");
             Dictionary<string, object> res = new Dictionary<string, object>();
 
             var boosterParams = Booster.CreateComponent(host);
@@ -406,13 +407,13 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
             if (!string.IsNullOrEmpty(metric))
                 res["metric"] = metric;
-            res["sigmoid"] = Sigmoid.ToString();
+            res["sigmoid"] = Sigmoid;
             res["label_gain"] = CustomGains;
-            res[GetArgName(nameof(UseMissing))] = UseMissing.ToString();
-            res[GetArgName(nameof(MinDataPerGroup))] = MinDataPerGroup.ToString();
-            res[GetArgName(nameof(MaxCatThreshold))] = MaxCatThreshold.ToString();
-            res[GetArgName(nameof(CatSmooth))] = CatSmooth.ToString();
-            res[GetArgName(nameof(CatL2))] = CatL2.ToString();
+            res[GetArgName(nameof(UseMissing))] = UseMissing;
+            res[GetArgName(nameof(MinDataPerGroup))] = MinDataPerGroup;
+            res[GetArgName(nameof(MaxCatThreshold))] = MaxCatThreshold;
+            res[GetArgName(nameof(CatSmooth))] = CatSmooth;
+            res[GetArgName(nameof(CatL2))] = CatL2;
             return res;
         }
     }
