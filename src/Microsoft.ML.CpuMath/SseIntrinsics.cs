@@ -4,8 +4,14 @@
 
 // The exported function names need to be unique (can't be disambiguated based on signature), hence
 // we introduce suffix letters to indicate the general patterns used.
+// * A suffix means aligned and padded for SSE operations.
 // * U suffix means unaligned and unpadded.
 // * S suffix means sparse (unaligned) vector.
+// * P suffix means sparse (unaligned) partial vector - the vector is only part of a larger sparse vector.
+// * R suffix means sparse matrix.
+// * C suffix means convolution matrix.
+// * D suffix means convolution matrix, with implicit source padding.
+// * Tran means the matrix is transposed.
 
 using System;
 using System.Runtime.CompilerServices;
@@ -72,7 +78,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static Vector128<float> VectorSum(in Vector128<float> vector)
+        private static Vector128<float> VectorSum(Vector128<float> vector)
         {
             if (Sse3.IsSupported)
             {
@@ -355,7 +361,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 while (ppos < pposEnd)
                 {
                     int col = *ppos - posMin;
-                    ppos++;
 
                     Vector128<float> x0 = Sse.SetAllVector128(psrc[col]);
                     float* pDstCurrent = pdst;
@@ -378,237 +383,30 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        // Sparse matrix.
-        internal static unsafe void MatMulRU(bool add, int[] starts, int[] indices, float[] coefs,
-                                                AlignedArray src, AlignedArray dst, int crow)
+        // dst[i] += scale
+        internal static unsafe void AddScalarU(float scale, Span<float> dst)
         {
-            Contracts.Assert(Compat(src));
-            Contracts.Assert(Compat(dst));
-
-            fixed (int* pstarts = &starts[0])
-            fixed (int* pindices = &indices[0])
-            fixed (float* pcoefs = &coefs[0])
-            fixed (float* pSrcStart = &src.Items[0])
-            fixed (float* pDstStart = &dst.Items[0])
+            fixed (float* pdst = dst)
             {
-                float* psrc = Ptr(src, pSrcStart);
-                float* pdst = Ptr(dst, pDstStart);
-
-                int* pii = pstarts + 1;
-                int* pIdxCurrent = pindices;
-                float* pMatCurrent = pcoefs;
-                float* pDstEnd = pdst + crow;
-
+                float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
 
-                while (pDstCurrent < pDstEnd)
+                Vector128<float> x1 = Sse.SetAllVector128(scale);
+
+                while (pDstCurrent + 4 <= pDstEnd)
                 {
-                    int* pIdxEnd = pindices + *pii;
-                    pii++;
+                    Vector128<float> x2 = Sse.LoadVector128(pDstCurrent);
+                    x2 = Sse.Add(x2, x1);
+                    Sse.Store(pDstCurrent, x2);
 
-                    Vector128<float> result = Sse.SetZeroVector128();
-
-                    while (pIdxCurrent + 4 <= pIdxEnd)
-                    {
-                        Vector128<float> x = Sse.Multiply(Load4(psrc, pIdxCurrent), Sse.LoadVector128(pMatCurrent));
-                        result = Sse.Add(result, x);
-
-                        pIdxCurrent += 4;
-                        pMatCurrent += 4;
-                    }
-
-                    while (pIdxCurrent < pIdxEnd)
-                    {
-                        Vector128<float> x = Sse.MultiplyScalar(Load1(psrc, pIdxCurrent), Sse.SetScalarVector128(*pMatCurrent));
-                        result = Sse.AddScalar(result, x);
-
-                        pIdxCurrent++;
-                        pMatCurrent++;
-                    }
-
-                    result = VectorSum(in result);
-
-                    if (add)
-                    {
-                        result = Sse.AddScalar(result, Sse.SetScalarVector128(*pDstCurrent));
-                    }
-                    Sse.StoreScalar(pDstCurrent, result);
-
-                    pDstCurrent++;
+                    pDstCurrent += 4;
                 }
-            }
-        }
-
-        // Unpadded convolution.
-        internal static unsafe void MatMulCU(bool add, int[] mprowiv, int[] mprowcol,
-            int[] runs, float[] coefs, AlignedArray src, AlignedArray dst, int crow)
-        {
-            Contracts.Assert(Compat(src));
-            Contracts.Assert(Compat(dst));
-
-            fixed (int* pmprowiv = &mprowiv[0])
-            fixed (int* pmprowcol = &mprowcol[0])
-            fixed (int* pruns = &runs[0])
-            fixed (float* pcoefs = &coefs[0])
-            fixed (float* pSrcStart = &src.Items[0])
-            fixed (float* pDstStart = &dst.Items[0])
-            {
-                float* psrc = Ptr(src, pSrcStart);
-                float* pdst = Ptr(dst, pDstStart);
-
-                int size = pruns[1];
-                int* psupport = pruns + 2;
-                int* piv = pmprowiv;
-                int* pcol = pmprowcol;
-                int* pIdxEnd = psupport + size;
-                float* pDstEnd = pdst + crow;
-
-                float* pDstCurrent = pdst;
 
                 while (pDstCurrent < pDstEnd)
                 {
-                    float* pMatCurrent = pcoefs + *piv;
-                    piv++;
-                    float* pSrcCurrent = psrc + *pcol;
-                    pcol++;
-                    int* pIdxCurrent = psupport;
-
-                    Vector128<float> result = Sse.SetZeroVector128();
-
-                    while (pIdxCurrent + 4 <= pIdxEnd)
-                    {
-                        Vector128<float> x = Sse.Multiply(Load4(pSrcCurrent, pIdxCurrent), Sse.LoadVector128(pMatCurrent));
-                        result = Sse.Add(result, x);
-
-                        pIdxCurrent += 4;
-                        pMatCurrent += 4;
-                    }
-
-                    while (pIdxCurrent < pIdxEnd)
-                    {
-                        Vector128<float> x = Sse.MultiplyScalar(Load1(pSrcCurrent, pIdxCurrent), Sse.SetScalarVector128(*pMatCurrent));
-                        result = Sse.AddScalar(result, x);
-
-                        pIdxCurrent++;
-                        pMatCurrent++;
-                    }
-
-                    result = VectorSum(result);
-
-                    // Add the bias.
-                    result = Sse.AddScalar(result, Sse.SetScalarVector128(*pMatCurrent));
-
-                    if (add)
-                    {
-                        result = Sse.AddScalar(result, Sse.SetScalarVector128(*pDstCurrent));
-                    }
-                    Sse.StoreScalar(pDstCurrent, result);
-
-                    pDstCurrent++;
-                }
-            }
-        }
-
-        // Padded convolution.
-        internal static unsafe void MatMulDU(bool add, int[] mprowiv, int[] mprowcol, int[] mprowrun,
-            int[] runs, float[] coefs, AlignedArray src, AlignedArray dst, int crow)
-        {
-            Contracts.Assert(Compat(src));
-            Contracts.Assert(Compat(dst));
-
-            fixed (int* pmprowiv = &mprowiv[0])
-            fixed (int* pmprowcol = &mprowcol[0])
-            fixed (int* pmprowrun = &mprowrun[0])
-            fixed (int* pruns = &runs[0])
-            fixed (float* pcoefs = &coefs[0])
-            fixed (float* pSrcStart = &src.Items[0])
-            fixed (float* pDstStart = &dst.Items[0])
-            {
-                float* psrc = Ptr(src, pSrcStart);
-                float* pdst = Ptr(dst, pDstStart);
-
-                int* piv = pmprowiv;
-                int* pcol = pmprowcol;
-                float* pDstEnd = pdst + crow;
-                int kernelSize = pruns[1];
-
-                int* pirun = pmprowrun;
-                float* pDstCurrent = pdst;
-
-                while (pDstCurrent < pDstEnd)
-                {
-                    float* pMatCurrent = pcoefs + *piv;
-                    piv++;
-                    float* pMatBias = pMatCurrent + kernelSize;
-                    float* pSrcCurrent = psrc + *pcol;
-                    pcol++;
-                    int irun = *pirun;
-                    pirun++;
-
-                    int* pIdxCurrent = pruns + 2 + irun;
-                    int* pIdxEnd = pIdxCurrent + pIdxCurrent[-1];
-
-                    Vector128<float> result = Sse.SetZeroVector128();
-
-                    if (irun == 0)
-                    {
-                        // No masking needed.
-                        while (pIdxCurrent + 4 <= pIdxEnd)
-                        {
-                            Vector128<float> x = Sse.Multiply(Load4(pSrcCurrent, pIdxCurrent), Sse.LoadVector128(pMatCurrent));
-                            result = Sse.Add(result, x);
-
-                            pIdxCurrent += 4;
-                            pMatCurrent += 4;
-                        }
-
-                        while (pIdxCurrent < pIdxEnd)
-                        {
-                            Vector128<float> x = Sse.MultiplyScalar(Load1(pSrcCurrent, pIdxCurrent), Sse.SetScalarVector128(*pMatCurrent));
-                            result = Sse.AddScalar(result, x);
-
-                            pIdxCurrent++;
-                            pMatCurrent++;
-                        }
-                    }
-                    else
-                    {
-                        // Need masking.
-                        pMatCurrent += pIdxCurrent[-2];
-                        // REVIEW NEEDED: Is it the correct translation from: "const float * pmask = reinterpret_cast<const float *>(piLim);"?
-                        float* pmask = (float*)pIdxEnd;
-
-                        while (pIdxCurrent + 4 <= pIdxEnd)
-                        {
-                            Vector128<float> x = Sse.Multiply(Load4(pSrcCurrent, pIdxCurrent), Sse.And(Sse.LoadVector128(pmask), Sse.LoadVector128(pMatCurrent)));
-                            result = Sse.Add(result, x);
-
-                            pIdxCurrent += 4;
-                            pMatCurrent += 4;
-                            pmask += 4;
-                        }
-
-                        while (pIdxCurrent < pIdxEnd)
-                        {
-                            Vector128<float> x = Sse.MultiplyScalar(Load1(pSrcCurrent, pIdxCurrent), Sse.And(Sse.SetScalarVector128(*pmask), Sse.SetScalarVector128(*pMatCurrent)));
-                            result = Sse.AddScalar(result, x);
-
-                            pIdxCurrent++;
-                            pMatCurrent++;
-                            pmask++;
-                        }
-                    }
-
-                    result = VectorSum(result);
-
-                    // Add the bias.
-                    result = Sse.AddScalar(result, Sse.SetScalarVector128(*pMatBias));
-
-                    if (add)
-                    {
-                        result = Sse.AddScalar(result, Sse.SetScalarVector128(*pDstCurrent));
-                    }
-                    Sse.StoreScalar(pDstCurrent, result);
+                    Vector128<float> x2 = Sse.LoadScalarVector128(pDstCurrent);
+                    x2 = Sse.AddScalar(x2, x1);
+                    Sse.StoreScalar(pDstCurrent, x2);
 
                     pDstCurrent++;
                 }
@@ -639,6 +437,72 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
 
                     dstVector = Sse.MultiplyScalar(scaleVector, dstVector);
+                    Sse.StoreScalar(pDstCurrent, dstVector);
+
+                    pDstCurrent++;
+                }
+            }
+        }
+
+        internal static unsafe void ScaleSrcU(float scale, Span<float> src, Span<float> dst)
+        {
+            Vector128<float> scaleVector = Sse.SetAllVector128(scale);
+
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            {
+                float* pDstEnd = pdst + dst.Length;
+                float* pSrcCurrent = psrc;
+                float* pDstCurrent = pdst;
+
+                while (pDstCurrent + 4 <= pDstEnd)
+                {
+                    Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
+                    srcVector = Sse.Multiply(srcVector, scaleVector);
+                    Sse.Store(pDstCurrent, srcVector);
+
+                    pSrcCurrent += 4;
+                    pDstCurrent += 4;
+                }
+
+                while (pDstCurrent < pDstEnd)
+                {
+                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
+                    srcVector = Sse.MultiplyScalar(srcVector, scaleVector);
+                    Sse.StoreScalar(pDstCurrent, srcVector);
+
+                    pSrcCurrent++;
+                    pDstCurrent++;
+                }
+            }
+        }
+
+        // dst[i] = a * (dst[i] + b)
+        internal static unsafe void ScaleAddU(float a, float b, Span<float> dst)
+        {
+            Vector128<float> x1 = Sse.SetAllVector128(a);
+            Vector128<float> x2 = Sse.SetAllVector128(b);
+
+            fixed (float* pdst = dst)
+            {
+                float* pDstEnd = pdst + dst.Length;
+                float* pDstCurrent = pdst;
+
+                while (pDstCurrent + 4 <= pDstEnd)
+                {
+                    Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
+                    dstVector = Sse.Add(dstVector, x2);
+                    dstVector = Sse.Multiply(dstVector, x1);
+                    Sse.Store(pDstCurrent, dstVector);
+
+                    pDstCurrent += 4;
+                }
+
+                while (pDstCurrent < pDstEnd)
+                {
+                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
+                    dstVector = Sse.AddScalar(dstVector, x2);
+                    dstVector = Sse.MultiplyScalar(dstVector, x1);
                     Sse.StoreScalar(pDstCurrent, dstVector);
 
                     pDstCurrent++;
@@ -681,6 +545,47 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     pDstCurrent++;
                     pSrcCurrent++;
+                }
+            }
+        }
+
+        internal static unsafe void AddScaleCopyU(float scale, Span<float> src, Span<float> dst, Span<float> result)
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            fixed (float* pres = result)
+            {
+                float* pResEnd = pres + result.Length;
+                float* pSrcCurrent = psrc;
+                float* pDstCurrent = pdst;
+                float* pResCurrent = pres;
+
+                Vector128<float> x1 = Sse.SetAllVector128(scale);
+
+                while (pResCurrent + 4 <= pResEnd)
+                {
+                    Vector128<float> x2 = Sse.LoadVector128(pSrcCurrent);
+                    Vector128<float> x3 = Sse.LoadVector128(pDstCurrent);
+                    x2 = Sse.Multiply(x2, x1);
+                    x3 = Sse.Add(x3, x2);
+                    Sse.Store(pResCurrent, x3);
+
+                    pSrcCurrent += 4;
+                    pDstCurrent += 4;
+                    pResCurrent += 4;
+                }
+
+                while (pResCurrent < pResEnd)
+                {
+                    Vector128<float> x2 = Sse.LoadScalarVector128(pSrcCurrent);
+                    Vector128<float> x3 = Sse.LoadScalarVector128(pDstCurrent);
+                    x2 = Sse.MultiplyScalar(x2, x1);
+                    x3 = Sse.AddScalar(x3, x2);
+                    Sse.StoreScalar(pResCurrent, x3);
+
+                    pSrcCurrent++;
+                    pDstCurrent++;
+                    pResCurrent++;
                 }
             }
         }
@@ -826,6 +731,33 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
+        internal static unsafe float SumU(Span<float> src)
+        {
+            fixed (float* psrc = src)
+            {
+                float* pSrcEnd = psrc + src.Length;
+                float* pSrcCurrent = psrc;
+
+                Vector128<float> result = Sse.SetZeroVector128();
+
+                while (pSrcCurrent + 4 < pSrcEnd)
+                {
+                    result = Sse.Add(result, Sse.LoadVector128(pSrcCurrent));
+                    pSrcCurrent += 4;
+                }
+
+                result = VectorSum(result);
+
+                while (pSrcCurrent < pSrcEnd)
+                {
+                    result = Sse.AddScalar(result, Sse.LoadScalarVector128(pSrcCurrent));
+                    pSrcCurrent++;
+                }
+
+                return Sse.ConvertToSingle(result);
+            }
+        }
+
         internal static unsafe float SumSqU(Span<float> src)
         {
             Vector128<float> result = Sse.SetZeroVector128();
@@ -843,7 +775,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent += 4;
                 }
 
-                result = VectorSum(in result);
+                result = VectorSum(result);
 
                 while (pSrcCurrent < pEnd)
                 {
@@ -855,6 +787,40 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
 
             return Sse.ConvertToSingle(result);
+        }
+
+        internal static unsafe float SumSqDiffU(float mean, Span<float> src)
+        {
+            fixed (float* psrc = src)
+            {
+                float* pSrcEnd = psrc + src.Length;
+                float* pSrcCurrent = psrc;
+
+                Vector128<float> result = Sse.SetZeroVector128();
+                Vector128<float> meanVector = Sse.SetAllVector128(mean);
+
+                while (pSrcCurrent + 4 <= pSrcEnd)
+                {
+                    Vector128<float> x = Sse.LoadVector128(pSrcCurrent);
+                    x = Sse.Subtract(x, meanVector);
+                    result = Sse.Add(result, Sse.Multiply(x, x));
+
+                    pSrcCurrent += 4;
+                }
+
+                result = VectorSum(result);
+
+                while (pSrcCurrent < pSrcEnd)
+                {
+                    Vector128<float> x = Sse.LoadScalarVector128(pSrcCurrent);
+                    x = Sse.SubtractScalar(x, meanVector);
+                    result = Sse.AddScalar(result, Sse.MultiplyScalar(x, x));
+
+                    pSrcCurrent++;
+                }
+
+                return Sse.ConvertToSingle(result);
+            }
         }
 
         internal static unsafe float SumAbsU(Span<float> src)
@@ -884,12 +850,147 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent += 4;
                 }
 
-                result = VectorSum(in result);
+                result = VectorSum(result);
 
                 while (pSrcCurrent < pEnd)
                 {
+                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
+                    result = Sse.AddScalar(result, Sse.And(srcVector, mask));
+
+                    pSrcCurrent++;
+                }
+            }
+
+            return Sse.ConvertToSingle(result);
+        }
+
+        internal static unsafe float SumAbsDiffU(float mean, Span<float> src)
+        {
+            Vector128<float> result = Sse.SetZeroVector128();
+            Vector128<float> meanVector = Sse.SetAllVector128(mean);
+            Vector128<float> mask;
+
+            if (Sse2.IsSupported)
+            {
+                mask = Sse.StaticCast<int, float>(Sse2.SetAllVector128(0x7FFFFFFF));
+            }
+            else
+            {
+                mask = Sse.SetAllVector128(BitConverter.Int32BitsToSingle(0x7FFFFFFF));
+            }
+
+            fixed (float* psrc = src)
+            {
+                float* pSrcCurrent = psrc;
+                float* pEnd = psrc + src.Length;
+
+                while (pSrcCurrent + 4 <= pEnd)
+                {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
+                    srcVector = Sse.Subtract(srcVector, meanVector);
                     result = Sse.Add(result, Sse.And(srcVector, mask));
+
+                    pSrcCurrent += 4;
+                }
+
+                result = VectorSum(result);
+
+                while (pSrcCurrent < pEnd)
+                {
+                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
+                    srcVector = Sse.SubtractScalar(srcVector, meanVector);
+                    result = Sse.AddScalar(result, Sse.And(srcVector, mask));
+
+                    pSrcCurrent++;
+                }
+            }
+
+            return Sse.ConvertToSingle(result);
+        }
+
+        internal static unsafe float MaxAbsU(Span<float> src)
+        {
+            Vector128<float> result = Sse.SetZeroVector128();
+            Vector128<float> mask;
+
+            if (Sse2.IsSupported)
+            {
+                mask = Sse.StaticCast<int, float>(Sse2.SetAllVector128(0x7FFFFFFF));
+            }
+            else
+            {
+                mask = Sse.SetAllVector128(BitConverter.Int32BitsToSingle(0x7FFFFFFF));
+            }
+
+            fixed (float* psrc = src)
+            {
+                float* pSrcCurrent = psrc;
+                float* pEnd = psrc + src.Length;
+
+                while (pSrcCurrent + 4 <= pEnd)
+                {
+                    Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
+                    result = Sse.Max(result, Sse.And(srcVector, mask));
+
+                    pSrcCurrent += 4;
+                }
+
+                Vector128<float> x1 = Sse.Shuffle(result, result, 0xB1);
+                result = Sse.Max(result, x1);
+                x1 = Sse.Shuffle(result, result, 0x02);
+                result = Sse.MaxScalar(result, x1);
+
+                while (pSrcCurrent < pEnd)
+                {
+                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
+                    result = Sse.MaxScalar(result, Sse.And(srcVector, mask));
+
+                    pSrcCurrent++;
+                }
+            }
+
+            return Sse.ConvertToSingle(result);
+        }
+
+        internal static unsafe float MaxAbsDiffU(float mean, Span<float> src)
+        {
+            Vector128<float> result = Sse.SetZeroVector128();
+            Vector128<float> meanVector = Sse.SetAllVector128(mean);
+            Vector128<float> mask;
+
+            if (Sse2.IsSupported)
+            {
+                mask = Sse.StaticCast<int, float>(Sse2.SetAllVector128(0x7FFFFFFF));
+            }
+            else
+            {
+                mask = Sse.SetAllVector128(BitConverter.Int32BitsToSingle(0x7FFFFFFF));
+            }
+
+            fixed (float* psrc = src)
+            {
+                float* pSrcCurrent = psrc;
+                float* pEnd = psrc + src.Length;
+
+                while (pSrcCurrent + 4 <= pEnd)
+                {
+                    Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
+                    srcVector = Sse.Subtract(srcVector, meanVector);
+                    result = Sse.Max(result, Sse.And(srcVector, mask));
+
+                    pSrcCurrent += 4;
+                }
+
+                Vector128<float> x1 = Sse.Shuffle(result, result, 0xB1);
+                result = Sse.Max(result, x1);
+                x1 = Sse.Shuffle(result, result, 0x02);
+                result = Sse.MaxScalar(result, x1);
+
+                while (pSrcCurrent < pEnd)
+                {
+                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
+                    srcVector = Sse.SubtractScalar(srcVector, meanVector);
+                    result = Sse.MaxScalar(result, Sse.And(srcVector, mask));
 
                     pSrcCurrent++;
                 }
@@ -920,7 +1021,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                result = VectorSum(in result);
+                result = VectorSum(result);
 
                 while (pSrcCurrent < pEnd)
                 {
@@ -961,7 +1062,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                result = VectorSum(in result);
+                result = VectorSum(result);
 
                 while (pIdxCurrent < pEnd)
                 {
@@ -1000,7 +1101,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                sqDistanceVector = VectorSum(in sqDistanceVector);
+                sqDistanceVector = VectorSum(sqDistanceVector);
 
                 float norm = Sse.ConvertToSingle(sqDistanceVector);
                 while (pSrcCurrent < pEnd)
@@ -1069,6 +1170,103 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     }
 
                     pdst[ivPhyMin + col] = 0;
+                }
+            }
+        }
+
+        internal static unsafe void SdcaL1UpdateU(float primalUpdate, Span<float> src, float threshold, Span<float> v, Span<float> w)
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst1 = v)
+            fixed (float* pdst2 = w)
+            {
+                float* pSrcEnd = psrc + src.Length;
+                float* pSrcCurrent = psrc;
+                float* pDst1Current = pdst1;
+                float* pDst2Current = pdst2;
+
+                Vector128<float> xPrimal = Sse.SetAllVector128(primalUpdate);
+
+                Vector128<float> signMask = Sse.SetAllVector128(-0.0f); // 1000 0000 ...
+                Vector128<float> xThreshold = Sse.SetAllVector128(threshold);
+
+                while (pSrcCurrent + 4 <= pSrcEnd)
+                {
+                    Vector128<float> xSrc = Sse.LoadVector128(pSrcCurrent);
+                    Vector128<float> xDst1 = Sse.LoadVector128(pDst1Current);
+                    xDst1 = Sse.Add(xDst1, Sse.Multiply(xSrc, xPrimal));
+                    Sse.Store(pDst1Current, xDst1);
+
+                    Vector128<float> xSign = Sse.And(xDst1, signMask); // result = 10000... if xDst1 is negative or 00000 otherwise
+                    Vector128<float> xDst1Abs = Sse.Xor(xDst1, xSign);
+                    Vector128<float> xCond = Sse.CompareGreaterThan(xDst1Abs, xThreshold); // all 1's if true
+                    Vector128<float> x2 = Sse.Xor(xSign, xThreshold); // -threshold if xDst1 is negative and +threshold otherwise
+                    Vector128<float> xDst2 = Sse.And(Sse.Subtract(xDst1, x2), xCond);
+                    Sse.Store(pDst2Current, xDst2);
+
+                    pSrcCurrent += 4;
+                    pDst1Current += 4;
+                    pDst2Current += 4;
+                }
+
+                while (pSrcCurrent < pSrcEnd)
+                {
+                    *pDst1Current += (*pSrcCurrent) * primalUpdate;
+                    float dst1 = *pDst1Current;
+                    *pDst2Current = Math.Abs(dst1) > threshold ? (dst1 > 0 ? dst1 - threshold : dst1 + threshold) : 0;
+
+                    pSrcCurrent++;
+                    pDst1Current++;
+                    pDst2Current++;
+                }
+            }
+        }
+
+        internal static unsafe void SdcaL1UpdateSU(float primalUpdate, Span<float> src, Span<int> indices, float threshold, Span<float> v, Span<float> w)
+        {
+            fixed (float* psrc = src)
+            fixed (int* pidx = indices)
+            fixed (float* pdst1 = v)
+            fixed (float* pdst2 = w)
+            {
+                int* pIdxEnd = pidx + indices.Length;
+                float* pSrcCurrent = psrc;
+                int* pIdxCurrent = pidx;
+
+                Vector128<float> xPrimal = Sse.SetAllVector128(primalUpdate);
+
+                Vector128<float> signMask = Sse.SetAllVector128(-0.0f); // 1000 0000 ...
+                Vector128<float> xThreshold = Sse.SetAllVector128(threshold);
+
+                while (pIdxCurrent + 4 <= pIdxEnd)
+                {
+                    Vector128<float> xSrc = Sse.LoadVector128(pSrcCurrent);
+
+                    Vector128<float> xDst1 = Load4(pdst1, pIdxCurrent);
+                    xDst1 = Sse.Add(xDst1, Sse.Multiply(xSrc, xPrimal));
+
+                    Vector128<float> xSign = Sse.And(xDst1, signMask); // result = 10000... if xDst1 is negative or 00000 otherwise
+                    Vector128<float> xDst1Abs = Sse.Xor(xDst1, xSign);
+                    Vector128<float> xCond = Sse.CompareGreaterThan(xDst1Abs, xThreshold); // all 1's if true
+                    Vector128<float> x2 = Sse.Xor(xSign, xThreshold); // -threshold if xDst1 is negative and +threshold otherwise
+                    Vector128<float> xDst2 = Sse.And(Sse.Subtract(xDst1, x2), xCond);
+
+                    Store4(xDst1, pdst1, pIdxCurrent);
+                    Store4(xDst2, pdst2, pIdxCurrent);
+
+                    pIdxCurrent += 4;
+                    pSrcCurrent += 4;
+                }
+
+                while (pIdxCurrent < pIdxEnd)
+                {
+                    int index = *pIdxCurrent;
+                    pdst1[index] += (*pSrcCurrent) * primalUpdate;
+                    float dst1 = pdst1[index];
+                    pdst2[index] = Math.Abs(dst1) > threshold ? (dst1 > 0 ? dst1 - threshold : dst1 + threshold) : 0;
+
+                    pIdxCurrent++;
+                    pSrcCurrent++;
                 }
             }
         }
