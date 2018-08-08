@@ -11116,6 +11116,18 @@
           "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
         },
         {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
+        },
+        {
           "Name": "BatchSize",
           "Type": "Int",
           "Desc": "Number of entries in a batch when loading data.",
@@ -11597,6 +11609,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
+        },
+        {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
         },
         {
           "Name": "BatchSize",
@@ -12082,6 +12106,18 @@
           "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
         },
         {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
+        },
+        {
           "Name": "BatchSize",
           "Type": "Int",
           "Desc": "Number of entries in a batch when loading data.",
@@ -12563,6 +12599,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
+        },
+        {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
         },
         {
           "Name": "BatchSize",

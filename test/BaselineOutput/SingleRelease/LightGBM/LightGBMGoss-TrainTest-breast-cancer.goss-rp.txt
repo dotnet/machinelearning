@@ -1,4 +1,4 @@
 LightGBM
 AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/iter	/lr	/nl	/mil	/booster	/v	/nt	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.995765	0.987124	0.967742	0.995851	0.997783	0.982533	0.167803	81.94341	0.981595	0.986193	10	0.2	20	10	goss	+	1	LightGBM	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=LightGBM{nt=1 iter=10 v=+ booster=goss lr=0.2 mil=10 nl=20} cache=- dout=%Output% loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9} data=%Data% out=%Output% seed=1	/iter:10;/lr:0.2;/nl:20;/mil:10;/booster:goss;/v:+;/nt:1	
+0.996036	0.982833	0.959839	0.991701	0.995556	0.978166	0.38308	58.7784	0.97551	0.984442	10	0.2	20	10	goss	+	1	LightGBM	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=LightGBM{nt=1 iter=10 v=+ booster=goss lr=0.2 mil=10 nl=20} cache=- dout=%Output% loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9} data=%Data% out=%Output% seed=1	/iter:10;/lr:0.2;/nl:20;/mil:10;/booster:goss;/v:+;/nt:1	
 

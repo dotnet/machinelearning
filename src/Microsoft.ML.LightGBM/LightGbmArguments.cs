@@ -321,6 +321,11 @@ namespace Microsoft.ML.Runtime.LightGBM
         [TGUI(Label = "Ranking Label Gain")]
         public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function. Used only in binary and multiclassova " +
+            "classification and in lambdarank applications", ShortName = "sigmoid")]
+        [TGUI(Label = "Sigmoid")]
+        public double Sigmoid = 1;
+
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of entries in a batch when loading data.", Hide = true)]
         public int BatchSize = 1 << 20;
 
@@ -401,7 +406,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
             if (!string.IsNullOrEmpty(metric))
                 res["metric"] = metric;
-            res["sigmoid"] = "0.5";
+            res["sigmoid"] = Sigmoid.ToString();
             res["label_gain"] = CustomGains;
             res[GetArgName(nameof(UseMissing))] = UseMissing.ToString();
             res[GetArgName(nameof(MinDataPerGroup))] = MinDataPerGroup.ToString();

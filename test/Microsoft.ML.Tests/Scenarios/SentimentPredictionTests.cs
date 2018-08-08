@@ -223,16 +223,16 @@ namespace Microsoft.ML.Scenarios
         private void ValidateBinaryMetricsLightGBM(BinaryClassificationMetrics metrics)
         {
 
-            Assert.Equal(.6111, metrics.Accuracy, 4);
-            Assert.Equal(.8, metrics.Auc, 1);
-            Assert.Equal(0.88, metrics.Auprc, 2);
+            Assert.Equal(.5556, metrics.Accuracy, 4);
+            Assert.Equal(.9, metrics.Auc, 1);
+            Assert.Equal(0.93, metrics.Auprc, 2);
             Assert.Equal(1, metrics.Entropy, 3);
-            Assert.Equal(.72, metrics.F1Score, 4);
-            Assert.Equal(0.96456100297125325, metrics.LogLoss, 4);
-            Assert.Equal(3.5438997028746755, metrics.LogLossReduction, 4);
+            Assert.Equal(.6923, metrics.F1Score, 4);
+            Assert.Equal(0.9457, metrics.LogLoss, 4);
+            Assert.Equal(5.4256444677279418, metrics.LogLossReduction, 4);
             Assert.Equal(1, metrics.NegativePrecision, 3);
-            Assert.Equal(.222, metrics.NegativeRecall, 3);
-            Assert.Equal(.562, metrics.PositivePrecision, 3);
+            Assert.Equal(.111, metrics.NegativeRecall, 3);
+            Assert.Equal(0.52941176470588236, metrics.PositivePrecision, 3);
             Assert.Equal(1, metrics.PositiveRecall);
 
             var matrix = metrics.ConfusionMatrix;
@@ -246,10 +246,10 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0, matrix[0, 1]);
             Assert.Equal(0, matrix["positive", "negative"]);
 
-            Assert.Equal(7, matrix[1, 0]);
-            Assert.Equal(7, matrix["negative", "positive"]);
-            Assert.Equal(2, matrix[1, 1]);
-            Assert.Equal(2, matrix["negative", "negative"]);
+            Assert.Equal(8, matrix[1, 0]);
+            Assert.Equal(8, matrix["negative", "positive"]);
+            Assert.Equal(1, matrix[1, 1]);
+            Assert.Equal(1, matrix["negative", "negative"]);
 
         }
 
