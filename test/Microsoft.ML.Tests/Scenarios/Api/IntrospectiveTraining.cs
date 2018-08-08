@@ -103,7 +103,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                         var threshold = GetValue<string>(node.KeyValues, "Threshold").Split(new[] { ' ' }, 2)[1];
                         var nodeIndex = i;
                     }
-                    // Get leafs.
+                    // Get leaves.
                     for (var i = 0; i < tree.NumLeaves; i++)
                     {
                         var node = tree.GetNode(i, true, featureNameCollection);
