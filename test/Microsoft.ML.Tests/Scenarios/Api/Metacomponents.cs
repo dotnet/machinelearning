@@ -1,6 +1,4 @@
-﻿using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.CommandLine;
+﻿using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Learners;
@@ -27,10 +25,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var concat = new ConcatTransform(env, term, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
                 var trainer = new Ova(env, new Ova.Arguments
                 {
-                    PredictorType = new SubComponent<ITrainer<IPredictorProducing<float>>, SignatureBinaryClassifierTrainer>
-                     (
-                         FastTreeBinaryClassificationTrainer.LoadNameValue
-                     )
+                    PredictorType = new FastTreeBinaryClassificationTrainer.Arguments()
                 });
 
                 IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, concat, prefetch: null) : concat;

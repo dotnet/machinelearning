@@ -15,6 +15,11 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
+    [TlcModule.ComponentKind("FastTreeBinaryTrainer")]
+    public interface IFastTreeBinaryTrainerFactory : IComponentFactory<ITrainer<IPredictorWithFeatureWeights<float>>>
+    {
+    }
+
     [TlcModule.ComponentKind("FastTreeTrainer")]
     public interface IFastTreeTrainerFactory : IComponentFactory<ITrainer>
     {
@@ -24,13 +29,13 @@ namespace Microsoft.ML.Runtime.FastTree
     public sealed partial class FastTreeBinaryClassificationTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Arguments : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Arguments : BoostedTreeArgs, IFastTreeBinaryTrainerFactory
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
             public bool UnbalancedSets = false;
 
-            public ITrainer CreateComponent(IHostEnvironment env) => new FastTreeBinaryClassificationTrainer(env, this);
+            public ITrainer<IPredictorWithFeatureWeights<float>> CreateComponent(IHostEnvironment env) => new FastTreeBinaryClassificationTrainer(env, this);
         }
     }
 
