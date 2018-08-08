@@ -2417,10 +2417,9 @@
           "Name": "Onnx",
           "Type": "String",
           "Desc": "The path to write the output ONNX to.",
-          "Required": false,
+          "Required": true,
           "SortOrder": 1.0,
-          "IsNullable": false,
-          "Default": null
+          "IsNullable": false
         },
         {
           "Name": "Json",
