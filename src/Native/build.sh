@@ -9,7 +9,7 @@ usage()
     echo "  --arch <Architecture>             Target Architecture (x64, x86)"
     echo "  --configuration <Configuration>   Build Configuration (Debug, Release)"
     echo "  --stripSymbols                    Enable symbol stripping (to external file)"
-
+    echo "  --mkllibpath                      Path to mkl library."
     exit 1
 }
 
@@ -28,6 +28,7 @@ __configuration=Debug
 __rootBinPath="$RootRepo/bin"
 __baseIntermediateOutputPath="$__rootBinPath/obj"
 __versionSourceFile="$__baseIntermediateOutputPath/version.c"
+__mkllibpath=""
 
 while [ "$1" != "" ]; do
         lowerI="$(echo $1 | awk '{print tolower($0)}')"
@@ -44,6 +45,10 @@ while [ "$1" != "" ]; do
             shift
             __configuration=$1
             ;;
+        --mkllibpath)
+            shift
+            __mkllibpath=$1
+            ;;
         --stripsymbols)
             __strip_argument="-DSTRIP_SYMBOLS=true"
             ;;
@@ -53,7 +58,7 @@ while [ "$1" != "" ]; do
     shift
 done
 
-__cmake_defines="-DCMAKE_BUILD_TYPE=${__configuration} ${__strip_argument}"
+__cmake_defines="-DCMAKE_BUILD_TYPE=${__configuration} ${__strip_argument} -DMKL_LIB_PATH=${__mkllibpath}"
 
 __IntermediatesDir="$__baseIntermediateOutputPath/$__build_arch.$__configuration/Native"
 __BinDir="$__rootBinPath/$__build_arch.$__configuration/Native"

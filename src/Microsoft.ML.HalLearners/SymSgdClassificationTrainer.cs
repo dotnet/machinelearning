@@ -32,6 +32,7 @@ namespace Microsoft.ML.Runtime.SymSgd
 {
     using TPredictor = IPredictorWithFeatureWeights<Float>;
 
+    /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
     public sealed class SymSgdClassificationTrainer :
         TrainerBase<TPredictor>,
         ITrainer<TPredictor>
@@ -173,7 +174,11 @@ namespace Microsoft.ML.Runtime.SymSgd
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.SymSgdBinaryClassifier", Desc = "Train a symbolic SGD.", UserName = SymSgdClassificationTrainer.UserNameValue, ShortName = SymSgdClassificationTrainer.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.SymSgdBinaryClassifier",
+            Desc = "Train a symbolic SGD.",
+            UserName = SymSgdClassificationTrainer.UserNameValue,
+            ShortName = SymSgdClassificationTrainer.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""SymSGD""]/*' />" })]
         public static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The path to write the output ONNX to.", SortOrder = 1)]
+            [Argument(ArgumentType.Required, HelpText = "The path to write the output ONNX to.", SortOrder = 1)]
             public string Onnx;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The path to write the output JSON to.", SortOrder = 2)]
@@ -74,13 +74,18 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 : base(env, args, LoadName)
         {
             Host.CheckValue(args, nameof(args));
+            Host.CheckNonWhiteSpace(args.Onnx, nameof(args.Onnx));
+
             Utils.CheckOptionalUserDirectory(args.Onnx, nameof(args.Onnx));
-            _outputModelPath = string.IsNullOrWhiteSpace(args.Onnx) ? null : args.Onnx;
+            _outputModelPath = args.Onnx;
             _outputJsonModelPath = string.IsNullOrWhiteSpace(args.Json) ? null : args.Json;
-            if (args.Name == null && _outputModelPath != null)
+            if (args.Name == null)
                 _name = Path.GetFileNameWithoutExtension(_outputModelPath);
-            else if (!string.IsNullOrWhiteSpace(args.Name))
+            else
+            {
+                Host.CheckNonWhiteSpace(args.Name, nameof(args.Name));
                 _name = args.Name;
+            }
 
             _loadPredictor = args.LoadPredictor;
             _inputsToDrop = CreateDropMap(args.InputsToDropArray ?? args.InputsToDrop?.Split(','));
@@ -237,12 +242,9 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             }
 
             var model = ctx.MakeModel();
-            if (_outputModelPath != null)
-            {
-                using (var file = Host.CreateOutputFile(_outputModelPath))
-                using (var stream = file.CreateWriteStream())
-                    model.WriteTo(stream);
-            }
+            using (var file = Host.CreateOutputFile(_outputModelPath))
+            using (var stream = file.CreateWriteStream())
+                model.WriteTo(stream);
 
             if (_outputJsonModelPath != null)
             {
