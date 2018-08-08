@@ -20,20 +20,6 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 {
     internal static class CpuMathNativeUtils
     {
-        [DllImport("CpuMathNative", EntryPoint = "MatMulA"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe void MatMulA(bool add, /*_In_ const*/ float* pmat, /*_In_ const*/ float* psrc, /*_Inout_*/ float* pdst, int crow, int ccol);
-
-        [DllImport("CpuMathNative", EntryPoint = "MatMulPA"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe void MatMulPA(bool add, /*_In_ const*/ float* pmat, /*_In_ const*/ int* pposSrc, /*_In_ const*/ float* psrc,
-            int posMin, int iposMin, int iposLim, /*_Inout_*/ float* pdst, int crow, int ccol);
-
-        [DllImport("CpuMathNative", EntryPoint = "MatMulTranA"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe void MatMulTranA(bool add, /*_In_ const*/ float* pmat, /*_In_ const*/ float* psrc, /*_Inout_*/ float* pdst, int crow, int ccol);
-
-        [DllImport("CpuMathNative", EntryPoint = "MatMulTranPA"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe void MatMulTranPA(bool add, /*_In_ const*/ float* pmat, /*_In_ const*/ int* pposSrc, /*_In_ const*/ float* psrc,
-            int posMin, int iposMin, int iposLim, /*_Inout_*/ float* pdst, int crow);
-
         [DllImport("CpuMathNative", EntryPoint = "AddScalarU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float AddScalarU(float a, /*_Inout_*/ float* pd, int c);
 
@@ -93,12 +79,6 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         [DllImport("CpuMathNative", EntryPoint = "Dist2"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float Dist2(/*const*/ float* px, /*const*/ float* py, int c);
-
-        [DllImport("CpuMathNative", EntryPoint = "ZeroItemsU"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe void ZeroItemsU(/*_Inout_*/ float* pd, int c, /*_In_ const*/ int* pindices, int cindices);
-
-        [DllImport("CpuMathNative", EntryPoint = "ZeroMatrixItemsCore"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe void ZeroMatrixItemsCore(/*_Inout_*/ float* pd, int c, int ccol, int cfltRow, /*_In_ const*/ int* pindices, int cindices);
 
         [DllImport("CpuMathNative", EntryPoint = "SdcaL1UpdateU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void SdcaL1UpdateU(float primalUpdate, /*_In_ const*/ float* ps, float threshold, /*_Inout_*/ float* pd1, /*_Inout_*/ float* pd2, int c);

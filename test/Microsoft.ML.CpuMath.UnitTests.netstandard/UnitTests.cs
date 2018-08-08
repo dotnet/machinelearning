@@ -30,7 +30,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
             comparer = new FloatEqualityComparer();
 
             // Padded matrices whose dimensions are multiples of 4
-            float[] testMatrix1 = new float[4 * 4] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f };
+            float[] testMatrix1 = new float[4 * 4] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f,
+                1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f };
             float[] testMatrix2 = new float[4 * 8];
 
             for (int i = 0; i < testMatrix2.Length; i++)

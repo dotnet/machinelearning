@@ -811,7 +811,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(0 < ccol && ccol <= cfltRow);
 
             // REVIEW NEEDED: Since the two methods below do not involve any SSE hardware intrinsics, no software fallback is needed.
-            // REVIEW NEEDED; Keeping the check for SSE support so that we don't miss these two methods in case of any conditional compilation of files
+            // REVIEW NEEDED: Keeping the check for SSE support so that we don't miss these two methods in case of any conditional compilation of files
             if (Sse.IsSupported)
             {
                 if (ccol == cfltRow)
