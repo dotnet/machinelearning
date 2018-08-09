@@ -337,9 +337,9 @@ namespace Microsoft.ML.Runtime.Api
         /// Create a schema definition by enumerating all public fields of the given type.
         /// </summary>
         /// <param name="userType">The type to base the schema on.</param>
-        /// <param name="direction"></param>
+        /// <param name="direction">Accept fields and properties based on their direction.</param>
         /// <returns>The generated schema definition.</returns>
-        public static SchemaDefinition Create(Type userType, Direction direction)
+        public static SchemaDefinition Create(Type userType, Direction direction = Direction.Both)
         {
             // REVIEW: This will have to be updated whenever we start
             // supporting properties and not just fields.

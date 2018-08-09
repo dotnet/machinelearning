@@ -698,7 +698,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public int UnusedPropertyWithPrivateSetter { get { return _unusedPrivateField1; } private set { _unusedPrivateField1 = value; } }
 
             [NoColumn]
-            // This property can be used as recipticle for dataview, but not as source for dataview.
+            // This property can be used as receptacle for dataview, but not as source for dataview.
             public int UnusedPropertyWithPrivateGetter { private get { return _unusedPrivateField1; } set { _unusedPrivateField1 = value; } }
 
             public string StringProp { get { return _fString; } set { _fString = value; } }
@@ -983,7 +983,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
 
-        class ClassWithPrivateGetter
+        class ClassWithGetter
         {
             private DateTime _dateTime = DateTime.Now;
             public float Day { get { return _dateTime.Day; } }
@@ -1005,11 +1005,11 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void PrivateGetSetProperties()
         {
-            var data = new List<ClassWithPrivateGetter>()
+            var data = new List<ClassWithGetter>()
             {
-                new ClassWithPrivateGetter(),
-                new ClassWithPrivateGetter(),
-                new ClassWithPrivateGetter()
+                new ClassWithGetter(),
+                new ClassWithGetter(),
+                new ClassWithGetter()
             };
             using (var env = new TlcEnvironment())
             {
