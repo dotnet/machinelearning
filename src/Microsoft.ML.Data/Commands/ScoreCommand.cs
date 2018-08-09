@@ -328,38 +328,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Given a predictor and an optional scorer SubComponent, produces a compatible ISchemaBindableMapper.
-        /// First, it tries to instantiate the bindable mapper using the <paramref name="scorerSettings"/>
-        /// (this will only succeed if there's a registered BindableMapper creation method with load name equal to the one
-        /// of the scorer).
-        /// If the above fails, it checks whether the predictor implements <see cref="ISchemaBindableMapper"/>
-        /// directly.
-        /// If this also isn't true, it will create a 'matching' standard mapper.
-        /// </summary>
-        public static ISchemaBindableMapper GetSchemaBindableMapper(IHostEnvironment env, IPredictor predictor,
-            SubComponent<IDataScorerTransform, SignatureDataScorer> scorerSettings)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(predictor, nameof(predictor));
-            env.CheckValueOrNull(scorerSettings);
-
-            // See if we can instantiate a mapper using scorer arguments.
-            if (scorerSettings.IsGood() && TryCreateBindableFromScorer(env, predictor, scorerSettings, out var bindable))
-                return bindable;
-
-            // The easy case is that the predictor implements the interface.
-            bindable = predictor as ISchemaBindableMapper;
-            if (bindable != null)
-                return bindable;
-
-            // Use one of the standard wrappers.
-            if (predictor is IValueMapperDist)
-                return new SchemaBindableBinaryPredictorWrapper(predictor);
-
-            return new SchemaBindablePredictorWrapper(predictor);
-        }
-
-        /// <summary>
         /// Given a predictor, an optional mapper factory, and an optional scorer factory settings,
         /// produces a compatible ISchemaBindableMapper.
         /// First, it tries to instantiate the bindable mapper using the mapper factory.
@@ -399,18 +367,6 @@ namespace Microsoft.ML.Runtime.Data
                 return new SchemaBindableBinaryPredictorWrapper(predictor);
 
             return new SchemaBindablePredictorWrapper(predictor);
-        }
-
-        private static bool TryCreateBindableFromScorer(IHostEnvironment env, IPredictor predictor,
-            SubComponent<IDataScorerTransform, SignatureDataScorer> scorerSettings, out ISchemaBindableMapper bindable)
-        {
-            Contracts.AssertValue(env);
-            env.AssertValue(predictor);
-            env.Assert(scorerSettings.IsGood());
-
-            // Try to find a mapper factory method with the same loadname as the scorer settings.
-            var mapperComponent = new SubComponent<ISchemaBindableMapper, SignatureBindableMapper>(scorerSettings.Kind, scorerSettings.Settings);
-            return ComponentCatalog.TryCreateInstance(env, out bindable, mapperComponent, predictor);
         }
 
         private static bool TryCreateBindableFromScorer(IHostEnvironment env, IPredictor predictor,

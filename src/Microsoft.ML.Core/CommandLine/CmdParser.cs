@@ -1297,6 +1297,41 @@ namespace Microsoft.ML.Runtime.CommandLine
                 typeBase.IsEnum;
         }
 
+        /// <summary>
+        /// Creates an ICommandLineComponentFactory given the factory type, signature type,
+        /// and a command line string.
+        /// </summary>
+        public static ICommandLineComponentFactory CreateComponentFactory(
+            Type factoryType,
+            Type signatureType,
+            string settings)
+        {
+            ParseComponentStrings(settings, out string name, out string args);
+
+            string[] argsArray = string.IsNullOrEmpty(args) ? Array.Empty<string>() : new string[] { args };
+
+            return ComponentFactoryFactory.CreateComponentFactory(factoryType, signatureType, name, argsArray);
+        }
+
+        private static void ParseComponentStrings(string str, out string kind, out string args)
+        {
+            kind = args = null;
+            if (string.IsNullOrWhiteSpace(str))
+                return;
+            str = str.Trim();
+            int ich = str.IndexOf('{');
+            if (ich < 0)
+            {
+                kind = str;
+                return;
+            }
+            if (ich == 0 || str[str.Length - 1] != '}')
+                throw Contracts.Except("Invalid Component string: mismatched braces, or empty component name.");
+
+            kind = str.Substring(0, ich);
+            args = CmdLexer.UnquoteValue(str.Substring(ich));
+        }
+
         private sealed class ArgValue
         {
             public readonly string FirstValue;
@@ -1838,155 +1873,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                 }
 
                 return error;
-            }
-
-            /// <summary>
-            /// A factory class for creating IComponentFactory instances.
-            /// </summary>
-            private static class ComponentFactoryFactory
-            {
-                public static IComponentFactory CreateComponentFactory(
-                    Type factoryType,
-                    Type signatureType,
-                    string name,
-                    string[] settings)
-                {
-                    Contracts.Check(factoryType != null &&
-                        typeof(IComponentFactory).IsAssignableFrom(factoryType) &&
-                        factoryType.IsGenericType);
-
-                    Type componentFactoryType;
-                    switch (factoryType.GenericTypeArguments.Length)
-                    {
-                        case 1: componentFactoryType = typeof(ComponentFactory<>); break;
-                        case 2: componentFactoryType = typeof(ComponentFactory<,>); break;
-                        case 3: componentFactoryType = typeof(ComponentFactory<,,>); break;
-                        case 4: componentFactoryType = typeof(ComponentFactory<,,,>); break;
-                        default: throw Contracts.ExceptNotImpl("ComponentFactoryFactory can only create component factories with 4 or less type args.");
-                    }
-
-                    return (IComponentFactory)Activator.CreateInstance(
-                        componentFactoryType.MakeGenericType(factoryType.GenericTypeArguments),
-                        signatureType,
-                        name,
-                        settings);
-                }
-
-                private abstract class ComponentFactory : ICommandLineComponentFactory
-                {
-                    public Type SignatureType { get; }
-                    public string Name { get; }
-                    private string[] Settings { get; }
-
-                    protected ComponentFactory(Type signatureType, string name, string[] settings)
-                    {
-                        SignatureType = signatureType;
-                        Name = name;
-
-                        if (settings == null || (settings.Length == 1 && string.IsNullOrEmpty(settings[0])))
-                        {
-                            settings = Array.Empty<string>();
-                        }
-                        Settings = settings;
-                    }
-
-                    public string GetSettingsString()
-                    {
-                        return CombineSettings(Settings);
-                    }
-
-                    public override string ToString()
-                    {
-                        if (string.IsNullOrEmpty(Name) && Settings.Length == 0)
-                            return "{}";
-
-                        if (Settings.Length == 0)
-                            return Name;
-
-                        string str = CombineSettings(Settings);
-                        StringBuilder sb = new StringBuilder();
-                        CmdQuoter.QuoteValue(str, sb, true);
-                        return Name + sb.ToString();
-                    }
-                }
-
-                private class ComponentFactory<TComponent> : ComponentFactory, IComponentFactory<TComponent>
-                    where TComponent : class
-                {
-                    public ComponentFactory(Type signatureType, string name, string[] settings)
-                        : base(signatureType, name, settings)
-                    {
-                    }
-
-                    public TComponent CreateComponent(IHostEnvironment env)
-                    {
-                        return ComponentCatalog.CreateInstance<TComponent>(
-                            env,
-                            SignatureType,
-                            Name,
-                            GetSettingsString());
-                    }
-                }
-
-                private class ComponentFactory<TArg1, TComponent> : ComponentFactory, IComponentFactory<TArg1, TComponent>
-                    where TComponent : class
-                {
-                    public ComponentFactory(Type signatureType, string name, string[] settings)
-                        : base(signatureType, name, settings)
-                    {
-                    }
-
-                    public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1)
-                    {
-                        return ComponentCatalog.CreateInstance<TComponent>(
-                            env,
-                            SignatureType,
-                            Name,
-                            GetSettingsString(),
-                            argument1);
-                    }
-                }
-
-                private class ComponentFactory<TArg1, TArg2, TComponent> : ComponentFactory, IComponentFactory<TArg1, TArg2, TComponent>
-                    where TComponent : class
-                {
-                    public ComponentFactory(Type signatureType, string name, string[] settings)
-                        : base(signatureType, name, settings)
-                    {
-                    }
-
-                    public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2)
-                    {
-                        return ComponentCatalog.CreateInstance<TComponent>(
-                            env,
-                            SignatureType,
-                            Name,
-                            GetSettingsString(),
-                            argument1,
-                            argument2);
-                    }
-                }
-
-                private class ComponentFactory<TArg1, TArg2, TArg3, TComponent> : ComponentFactory, IComponentFactory<TArg1, TArg2, TArg3, TComponent>
-                    where TComponent : class
-                {
-                    public ComponentFactory(Type signatureType, string name, string[] settings)
-                        : base(signatureType, name, settings)
-                    {
-                    }
-
-                    public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2, TArg3 argument3)
-                    {
-                        return ComponentCatalog.CreateInstance<TComponent>(
-                            env,
-                            SignatureType,
-                            Name,
-                            GetSettingsString(),
-                            argument1,
-                            argument2,
-                            argument3);
-                    }
-                }
             }
 
             private bool ReportMissingRequiredArgument(CmdParser owner, ArgValue val)
@@ -2622,6 +2508,155 @@ namespace Microsoft.ML.Runtime.CommandLine
 
             public bool IsCustomItemType {
                 get { return _infoCustom != null; }
+            }
+        }
+
+        /// <summary>
+        /// A factory class for creating IComponentFactory instances.
+        /// </summary>
+        private static class ComponentFactoryFactory
+        {
+            public static ICommandLineComponentFactory CreateComponentFactory(
+                Type factoryType,
+                Type signatureType,
+                string name,
+                string[] settings)
+            {
+                Contracts.Check(factoryType != null &&
+                    typeof(IComponentFactory).IsAssignableFrom(factoryType) &&
+                    factoryType.IsGenericType);
+
+                Type componentFactoryType;
+                switch (factoryType.GenericTypeArguments.Length)
+                {
+                    case 1: componentFactoryType = typeof(ComponentFactory<>); break;
+                    case 2: componentFactoryType = typeof(ComponentFactory<,>); break;
+                    case 3: componentFactoryType = typeof(ComponentFactory<,,>); break;
+                    case 4: componentFactoryType = typeof(ComponentFactory<,,,>); break;
+                    default: throw Contracts.ExceptNotImpl("ComponentFactoryFactory can only create component factories with 4 or less type args.");
+                }
+
+                return (ICommandLineComponentFactory)Activator.CreateInstance(
+                    componentFactoryType.MakeGenericType(factoryType.GenericTypeArguments),
+                    signatureType,
+                    name,
+                    settings);
+            }
+
+            private abstract class ComponentFactory : ICommandLineComponentFactory
+            {
+                public Type SignatureType { get; }
+                public string Name { get; }
+                private string[] Settings { get; }
+
+                protected ComponentFactory(Type signatureType, string name, string[] settings)
+                {
+                    SignatureType = signatureType;
+                    Name = name;
+
+                    if (settings == null || (settings.Length == 1 && string.IsNullOrEmpty(settings[0])))
+                    {
+                        settings = Array.Empty<string>();
+                    }
+                    Settings = settings;
+                }
+
+                public string GetSettingsString()
+                {
+                    return CombineSettings(Settings);
+                }
+
+                public override string ToString()
+                {
+                    if (string.IsNullOrEmpty(Name) && Settings.Length == 0)
+                        return "{}";
+
+                    if (Settings.Length == 0)
+                        return Name;
+
+                    string str = CombineSettings(Settings);
+                    StringBuilder sb = new StringBuilder();
+                    CmdQuoter.QuoteValue(str, sb, true);
+                    return Name + sb.ToString();
+                }
+            }
+
+            private class ComponentFactory<TComponent> : ComponentFactory, IComponentFactory<TComponent>
+                where TComponent : class
+            {
+                public ComponentFactory(Type signatureType, string name, string[] settings)
+                    : base(signatureType, name, settings)
+                {
+                }
+
+                public TComponent CreateComponent(IHostEnvironment env)
+                {
+                    return ComponentCatalog.CreateInstance<TComponent>(
+                        env,
+                        SignatureType,
+                        Name,
+                        GetSettingsString());
+                }
+            }
+
+            private class ComponentFactory<TArg1, TComponent> : ComponentFactory, IComponentFactory<TArg1, TComponent>
+                where TComponent : class
+            {
+                public ComponentFactory(Type signatureType, string name, string[] settings)
+                    : base(signatureType, name, settings)
+                {
+                }
+
+                public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1)
+                {
+                    return ComponentCatalog.CreateInstance<TComponent>(
+                        env,
+                        SignatureType,
+                        Name,
+                        GetSettingsString(),
+                        argument1);
+                }
+            }
+
+            private class ComponentFactory<TArg1, TArg2, TComponent> : ComponentFactory, IComponentFactory<TArg1, TArg2, TComponent>
+                where TComponent : class
+            {
+                public ComponentFactory(Type signatureType, string name, string[] settings)
+                    : base(signatureType, name, settings)
+                {
+                }
+
+                public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2)
+                {
+                    return ComponentCatalog.CreateInstance<TComponent>(
+                        env,
+                        SignatureType,
+                        Name,
+                        GetSettingsString(),
+                        argument1,
+                        argument2);
+                }
+            }
+
+            private class ComponentFactory<TArg1, TArg2, TArg3, TComponent> : ComponentFactory, IComponentFactory<TArg1, TArg2, TArg3, TComponent>
+                where TComponent : class
+            {
+                public ComponentFactory(Type signatureType, string name, string[] settings)
+                    : base(signatureType, name, settings)
+                {
+                }
+
+                public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2, TArg3 argument3)
+                {
+                    return ComponentCatalog.CreateInstance<TComponent>(
+                        env,
+                        SignatureType,
+                        Name,
+                        GetSettingsString(),
+                        argument1,
+                        argument2,
+                        argument3);
+                }
             }
         }
     }
