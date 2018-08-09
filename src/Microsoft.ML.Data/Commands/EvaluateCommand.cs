@@ -217,7 +217,8 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(ch);
 
             ch.Trace("Creating loader");
-            IDataView view = CreateAndSaveLoader(IO.BinaryLoader.LoadName);
+            IDataView view = CreateAndSaveLoader(
+                (env, source) => new IO.BinaryLoader(env, new IO.BinaryLoader.Arguments(), source));
 
             ch.Trace("Binding columns");
             ISchema schema = view.Schema;
