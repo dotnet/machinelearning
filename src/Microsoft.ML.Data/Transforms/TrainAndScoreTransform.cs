@@ -194,13 +194,25 @@ namespace Microsoft.ML.Runtime.Data
             return Create(env, args, trainer, input, null);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input, IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory = null)
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckUserArg(args.Trainer.IsGood(), nameof(args.Trainer),
                 "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
             env.CheckValue(input, nameof(input));
+
+            return Create(env, args, args.Trainer.CreateInstance(env), input, null);
+        }
+
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input, IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckUserArg(args.Trainer.IsGood(), nameof(args.Trainer),
+                "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
+            env.CheckValue(input, nameof(input));
+            env.CheckValueOrNull(mapperFactory);
 
             return Create(env, args, args.Trainer.CreateInstance(env), input, mapperFactory);
         }
