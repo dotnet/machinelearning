@@ -23,9 +23,6 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         private const int DEFAULT_CCOL = 2000;
         private const bool ADD = true;
 
-        // Naming follows from SseIntrinsics.
-        private const int CbAlign = 16;
-
         private float[] src, dst, original, src1, src2, result;
         private int[] idx;
         private int seed = DEFAULT_SEED;
