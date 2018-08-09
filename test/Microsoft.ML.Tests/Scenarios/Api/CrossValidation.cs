@@ -43,37 +43,44 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     ConvergenceTolerance = 1f
                 });
 
-                if (trainer.Info.NeedNormalization)
-                {
-                    trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features");
-                }
-
-                // Auto-caching.
-                IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, trans, prefetch: null) : trans;
+                
                 var metrics = new List<BinaryClassificationMetrics>();
                 for (int fold = 0; fold < numFolds; fold++)
                 {
-                    var trainFilter = new RangeFilter(env, new RangeFilter.Arguments()
+                    IDataView trainPipe = new RangeFilter(env, new RangeFilter.Arguments()
                     {
                         Column = "StratificationColumn",
                         Min = (Double)fold / numFolds,
                         Max = (Double)(fold + 1) / numFolds,
                         Complement = true
-                    }, trainData);
+                    }, trans);
+                    trainPipe = new OpaqueDataView(trainPipe);
+                    var trainData = new RoleMappedData(trainPipe, label: "Label", feature: "Features");
+                    // Auto-normalization.
+                    NormalizeTransform.CreateIfNeeded(env, ref trainData, trainer);
+                    var preCachedData = trainData;
+                    // Auto-caching.
+                    if (trainer.Info.WantCaching)
+                    {
+                        var prefetch = trainData.Schema.GetColumnRoles().Select(kc => kc.Value.Index).ToArray();
+                        var cacheView = new CacheDataView(env, trainData.Data, prefetch);
+                        // Because the prefetching worked, we know that these are valid columns.
+                        trainData = new RoleMappedData(cacheView, trainData.Schema.GetColumnRoleNames());
+                    }
 
-                    var trainRoles = new RoleMappedData(trainFilter, label: "Label", feature: "Features");
-
-                    var predictor = trainer.Train(new Runtime.TrainContext(trainRoles));
-                    var testFilter = new RangeFilter(env, new RangeFilter.Arguments()
+                    var predictor = trainer.Train(new Runtime.TrainContext(trainData));
+                    IDataView testPipe = new RangeFilter(env, new RangeFilter.Arguments()
                     {
                         Column = "StratificationColumn",
                         Min = (Double)fold / numFolds,
                         Max = (Double)(fold + 1) / numFolds,
                         Complement = false
-                    }, trainData);
-                    // Auto-normalization.
-                    var testRoles = new RoleMappedData(testFilter, label: "Label", feature: "Features");
+                    }, trans);
+                    testPipe = new OpaqueDataView(testPipe);
+                    var pipe = ApplyTransformUtils.ApplyAllTransformsToData(env, preCachedData.Data, testPipe, trainPipe);
 
+                    var testRoles = new RoleMappedData(pipe, trainData.Schema.GetColumnRoleNames());
+                    
                     IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, testRoles, env, testRoles.Schema);
 
                     BinaryClassifierMamlEvaluator eval = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments() { });
