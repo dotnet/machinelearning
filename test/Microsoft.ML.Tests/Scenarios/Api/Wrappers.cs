@@ -313,9 +313,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         protected override IPredictor TrainCore(TrainContext trainContext) => _trainer.Train(trainContext);
 
-        public ITransformer Train(IDataView trainData, IPredictorTransformer<IPredictor> initialPredictor)
+        public ITransformer Train(IDataView trainData, IPredictor initialPredictor)
         {
-            return TrainTransformer(trainData, initPredictor: initialPredictor.TrainedModel);
+            return TrainTransformer(trainData, initPredictor: initialPredictor);
         }
     }
 
@@ -325,9 +325,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     {
         private readonly PredictionEngine<TSrc, TDst> _engine;
 
-        public MyPredictionEngine(IHostEnvironment env, ISchema inputSchema, ITransformer pipe)
+        public MyPredictionEngine(IHostEnvironment env, ITransformer pipe)
         {
-            IDataView dv = new EmptyDataView(env, inputSchema);
+            IDataView dv = env.CreateDataView(new TSrc[0]);
             _engine = env.CreatePredictionEngine<TSrc, TDst>(pipe.Transform(dv));
         }
 

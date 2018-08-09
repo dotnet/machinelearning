@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 // Train the second predictor on the same data.
                 var secondTrainer = new MyAveragedPerceptron(env, new AveragedPerceptronTrainer.Arguments(), "Features", "Label");
-                var finalPredictor = secondTrainer.Train(trainData, firstPredictor);
+                var finalPredictor = secondTrainer.Train(trainData, firstPredictor.Model);
             }
         }
 

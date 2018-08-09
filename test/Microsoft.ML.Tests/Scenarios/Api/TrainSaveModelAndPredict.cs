@@ -101,7 +101,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 }
 
                 // Create prediction engine and test predictions.
-                var engine = new MyPredictionEngine<SentimentData, SentimentPrediction>(env, model.Reader.GetOutputSchema(), model.Transformer);
+                var engine = new MyPredictionEngine<SentimentData, SentimentPrediction>(env, model.Transformer);
 
                 // Take a couple examples out of the test data and run predictions on top.
                 var testData = model.Reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))
