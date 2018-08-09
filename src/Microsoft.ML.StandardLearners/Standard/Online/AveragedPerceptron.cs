@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Learners
         internal const string ShortName = "ap";
         internal const string Summary = "Averaged Perceptron Binary Classifier.";
 
-        public class Arguments : AveragedLinearArguments
+        public sealed class Arguments : AveragedLinearArguments, IBinaryTrainerFactory
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportClassificationLossFactory LossFunction = new HingeLoss.Arguments();
@@ -47,6 +47,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public int MaxCalibrationExamples = 1000000;
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new AveragedPerceptronTrainer(env, this);
         }
 
         protected override bool NeedCalibration => true;

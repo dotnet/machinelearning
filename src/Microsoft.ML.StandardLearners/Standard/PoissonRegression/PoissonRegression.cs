@@ -34,8 +34,9 @@ namespace Microsoft.ML.Runtime.Learners
         internal const string ShortName = "PR";
         internal const string Summary = "Poisson Regression assumes the unknown function, denoted Y has a Poisson distribution.";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IRegressionTrainerFactory
         {
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new PoissonRegression(env, this);
         }
 
         private Double _lossNormalizer;

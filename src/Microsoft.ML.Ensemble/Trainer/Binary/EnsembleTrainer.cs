@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
@@ -17,6 +17,8 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 [assembly: LoadableClass(EnsembleTrainer.Summary, typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
     EnsembleTrainer.UserNameValue, EnsembleTrainer.LoadNameValue, "pe", "ParallelEnsemble")]
+
+[assembly: EntryPointModule(typeof(EnsembleTrainer.Arguments))]
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
@@ -33,7 +35,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         public const string UserNameValue = "Parallel Ensemble (bagging, stacking, etc)";
         public const string Summary = "A generic ensemble classifier for binary classification.";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IBinaryTrainerFactory
         {
             [Argument(ArgumentType.Multiple, HelpText = "Algorithm to prune the base learners for selective Ensemble", ShortName = "pt", SortOrder = 4)]
             [TGUI(Label = "Sub-Model Selector(pruning) Type",
@@ -48,6 +50,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             {
                 BasePredictors = new[] { new SubComponent<ITrainer<TScalarPredictor>, SignatureBinaryClassifierTrainer>("LinearSVM") };
             }
+
+            public ITrainer<TScalarPredictor> CreateComponent(IHostEnvironment env) => new EnsembleTrainer(env, this);
         }
 
         private readonly ISupportBinaryOutputCombinerFactory _outputCombiner;
@@ -83,4 +87,5 @@ namespace Microsoft.ML.Runtime.Ensemble
                     models.Select(k => new FeatureSubsetModel<TScalarPredictor>(k)).ToArray(), combiner);
         }
     }
+
 }

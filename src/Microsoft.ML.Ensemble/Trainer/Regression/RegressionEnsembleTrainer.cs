@@ -8,16 +8,18 @@ using System.Linq;
 using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer) },
     RegressionEnsembleTrainer.UserNameValue,
     RegressionEnsembleTrainer.LoadNameValue)]
+
+[assembly: EntryPointModule(typeof(RegressionEnsembleTrainer.Arguments))]
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
@@ -29,7 +31,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         public const string LoadNameValue = "EnsembleRegression";
         public const string UserNameValue = "Regression Ensemble (bagging, stacking, etc)";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IRegressionTrainerFactory
         {
             [Argument(ArgumentType.Multiple, HelpText = "Algorithm to prune the base learners for selective Ensemble", ShortName = "pt", SortOrder = 4)]
             [TGUI(Label = "Sub-Model Selector(pruning) Type", Description = "Algorithm to prune the base learners for selective Ensemble")]
@@ -43,6 +45,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             {
                 BasePredictors = new[] { new SubComponent<ITrainer<TScalarPredictor>, SignatureRegressorTrainer>("OnlineGradientDescent") };
             }
+
+            public ITrainer<TScalarPredictor> CreateComponent(IHostEnvironment env) => new RegressionEnsembleTrainer(env, this);
         }
 
         private readonly ISupportRegressionOutputCombinerFactory _outputCombiner;

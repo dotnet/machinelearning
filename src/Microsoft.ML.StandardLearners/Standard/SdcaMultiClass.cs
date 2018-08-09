@@ -37,10 +37,12 @@ namespace Microsoft.ML.Runtime.Learners
         public const string ShortName = "sasdcamc";
         internal const string Summary = "The SDCA linear multi-class classification trainer.";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IMulticlassTrainerFactory
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
+
+            public ITrainer<TVectorPredictor> CreateComponent(IHostEnvironment env) => new SdcaMultiClassTrainer(env, this);
         }
 
         private readonly ISupportSdcaClassificationLoss _loss;

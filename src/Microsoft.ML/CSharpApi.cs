@@ -7433,7 +7433,7 @@ namespace Microsoft.ML
 
     namespace Trainers
     {
-        public enum LightGbmArgumentsEvalMetricType
+        public enum LightGbmArgumentsBaseEvalMetricType
         {
             DefaultMetric = 0,
             Rmse = 1,
@@ -7507,7 +7507,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Evaluation metrics.
             /// </summary>
-            public LightGbmArgumentsEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsEvalMetricType.DefaultMetric;
+            public LightGbmArgumentsBaseEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsBaseEvalMetricType.DefaultMetric;
 
             /// <summary>
             /// Use softmax loss for the multi classification.
@@ -7711,7 +7711,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Evaluation metrics.
             /// </summary>
-            public LightGbmArgumentsEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsEvalMetricType.DefaultMetric;
+            public LightGbmArgumentsBaseEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsBaseEvalMetricType.DefaultMetric;
 
             /// <summary>
             /// Use softmax loss for the multi classification.
@@ -7915,7 +7915,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Evaluation metrics.
             /// </summary>
-            public LightGbmArgumentsEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsEvalMetricType.DefaultMetric;
+            public LightGbmArgumentsBaseEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsBaseEvalMetricType.DefaultMetric;
 
             /// <summary>
             /// Use softmax loss for the multi classification.
@@ -8119,7 +8119,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Evaluation metrics.
             /// </summary>
-            public LightGbmArgumentsEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsEvalMetricType.DefaultMetric;
+            public LightGbmArgumentsBaseEvalMetricType EvalMetric { get; set; } = LightGbmArgumentsBaseEvalMetricType.DefaultMetric;
 
             /// <summary>
             /// Use softmax loss for the multi classification.
@@ -16955,6 +16955,361 @@ namespace Microsoft.ML
             internal override string ComponentName => "AutoMlState";
         }
 
+        public abstract class BinaryTrainerFactory : ComponentKind {}
+
+
+
+        /// <summary>
+        /// Uses a logit-boost boosted tree learner to perform binary classification.
+        /// </summary>
+        public sealed class FastTreeBinaryClassificationBinaryTrainerFactory : BinaryTrainerFactory
+        {
+            /// <summary>
+            /// Should we use derivatives optimized for unbalanced sets
+            /// </summary>
+            public bool UnbalancedSets { get; set; } = false;
+
+            /// <summary>
+            /// Use best regression step trees?
+            /// </summary>
+            public bool BestStepRankingRegressionTrees { get; set; } = false;
+
+            /// <summary>
+            /// Should we use line search for a step size
+            /// </summary>
+            public bool UseLineSearch { get; set; } = false;
+
+            /// <summary>
+            /// Number of post-bracket line search steps
+            /// </summary>
+            public int NumPostBracketSteps { get; set; }
+
+            /// <summary>
+            /// Minimum line search step size
+            /// </summary>
+            public double MinStepSize { get; set; }
+
+            /// <summary>
+            /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
+            /// </summary>
+            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+
+            /// <summary>
+            /// Early stopping rule. (Validation set (/valid) is required.)
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public EarlyStoppingCriterion EarlyStoppingRule { get; set; }
+
+            /// <summary>
+            /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)
+            /// </summary>
+            public int EarlyStoppingMetrics { get; set; }
+
+            /// <summary>
+            /// Enable post-training pruning to avoid overfitting. (a validation set is required)
+            /// </summary>
+            public bool EnablePruning { get; set; } = false;
+
+            /// <summary>
+            /// Use window and tolerance for pruning
+            /// </summary>
+            public bool UseTolerantPruning { get; set; } = false;
+
+            /// <summary>
+            /// The tolerance threshold for pruning
+            /// </summary>
+            public double PruningThreshold { get; set; } = 0.004d;
+
+            /// <summary>
+            /// The moving window size for pruning
+            /// </summary>
+            public int PruningWindowSize { get; set; } = 5;
+
+            /// <summary>
+            /// The learning rate
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+            public double LearningRates { get; set; } = 0.2d;
+
+            /// <summary>
+            /// Shrinkage
+            /// </summary>
+            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+            public double Shrinkage { get; set; } = 1d;
+
+            /// <summary>
+            /// Dropout rate for tree regularization
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+            public double DropoutRate { get; set; }
+
+            /// <summary>
+            /// Sample each query 1 in k times in the GetDerivatives function
+            /// </summary>
+            public int GetDerivativesSampleRate { get; set; } = 1;
+
+            /// <summary>
+            /// Write the last ensemble instead of the one determined by early stopping
+            /// </summary>
+            public bool WriteLastEnsemble { get; set; } = false;
+
+            /// <summary>
+            /// Upper bound on absolute value of single tree output
+            /// </summary>
+            public double MaxTreeOutput { get; set; } = 100d;
+
+            /// <summary>
+            /// Training starts from random ordering (determined by /r1)
+            /// </summary>
+            public bool RandomStart { get; set; } = false;
+
+            /// <summary>
+            /// Filter zero lambdas during training
+            /// </summary>
+            public bool FilterZeroLambdas { get; set; } = false;
+
+            /// <summary>
+            /// Freeform defining the scores that should be used as the baseline ranker
+            /// </summary>
+            public string BaselineScoresFormula { get; set; }
+
+            /// <summary>
+            /// Baseline alpha for tradeoffs of risk (0 is normal training)
+            /// </summary>
+            public string BaselineAlphaRisk { get; set; }
+
+            /// <summary>
+            /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)
+            /// </summary>
+            public string PositionDiscountFreeform { get; set; }
+
+            /// <summary>
+            /// Allows to choose Parallel FastTree Learning Algorithm
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public ParallelTraining ParallelTrainer { get; set; } = new SingleParallelTraining();
+
+            /// <summary>
+            /// The number of threads to use
+            /// </summary>
+            public int? NumThreads { get; set; }
+
+            /// <summary>
+            /// The seed of the random number generator
+            /// </summary>
+            public int RngSeed { get; set; } = 123;
+
+            /// <summary>
+            /// The seed of the active feature selection
+            /// </summary>
+            public int FeatureSelectSeed { get; set; } = 123;
+
+            /// <summary>
+            /// The entropy (regularization) coefficient between 0 and 1
+            /// </summary>
+            public double EntropyCoefficient { get; set; }
+
+            /// <summary>
+            /// The number of histograms in the pool (between 2 and numLeaves)
+            /// </summary>
+            public int HistogramPoolSize { get; set; } = -1;
+
+            /// <summary>
+            /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose
+            /// </summary>
+            public bool? DiskTranspose { get; set; }
+
+            /// <summary>
+            /// Whether to collectivize features during dataset preparation to speed up training
+            /// </summary>
+            public bool FeatureFlocks { get; set; } = true;
+
+            /// <summary>
+            /// Whether to do split based on multiple categorical feature values.
+            /// </summary>
+            public bool CategoricalSplit { get; set; } = false;
+
+            /// <summary>
+            /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
+            /// </summary>
+            public int MaxCategoricalGroupsPerNode { get; set; } = 64;
+
+            /// <summary>
+            /// Maximum categorical split points to consider when splitting on a categorical feature.
+            /// </summary>
+            public int MaxCategoricalSplitPoints { get; set; } = 64;
+
+            /// <summary>
+            /// Minimum categorical docs percentage in a bin to consider for a split.
+            /// </summary>
+            public double MinDocsPercentageForCategoricalSplit { get; set; } = 0.001d;
+
+            /// <summary>
+            /// Minimum categorical doc count in a bin to consider for a split.
+            /// </summary>
+            public int MinDocsForCategoricalSplit { get; set; } = 100;
+
+            /// <summary>
+            /// Bias for calculating gradient for each feature bin for a categorical feature.
+            /// </summary>
+            public double Bias { get; set; }
+
+            /// <summary>
+            /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
+            /// </summary>
+            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+
+            /// <summary>
+            /// Maximum number of distinct values (bins) per feature
+            /// </summary>
+            public int MaxBins { get; set; } = 255;
+
+            /// <summary>
+            /// Sparsity level needed to use sparse feature representation
+            /// </summary>
+            public double SparsifyThreshold { get; set; } = 0.7d;
+
+            /// <summary>
+            /// The feature first use penalty coefficient
+            /// </summary>
+            public double FeatureFirstUsePenalty { get; set; }
+
+            /// <summary>
+            /// The feature re-use penalty (regularization) coefficient
+            /// </summary>
+            public double FeatureReusePenalty { get; set; }
+
+            /// <summary>
+            /// Tree fitting gain confidence requirement (should be in the range [0,1) ).
+            /// </summary>
+            public double GainConfidenceLevel { get; set; }
+
+            /// <summary>
+            /// The temperature of the randomized softmax distribution for choosing the feature
+            /// </summary>
+            public double SoftmaxTemperature { get; set; }
+
+            /// <summary>
+            /// Print execution time breakdown to stdout
+            /// </summary>
+            public bool ExecutionTimes { get; set; } = false;
+
+            /// <summary>
+            /// The max number of leaves in each regression tree
+            /// </summary>
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            public int NumLeaves { get; set; } = 20;
+
+            /// <summary>
+            /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+            public int MinDocumentsInLeafs { get; set; } = 10;
+
+            /// <summary>
+            /// Total number of decision trees to create in the ensemble
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+            public int NumTrees { get; set; } = 100;
+
+            /// <summary>
+            /// The fraction of features (chosen randomly) to use on each iteration
+            /// </summary>
+            public double FeatureFraction { get; set; } = 1d;
+
+            /// <summary>
+            /// Number of trees in each bag (0 for disabling bagging)
+            /// </summary>
+            public int BaggingSize { get; set; }
+
+            /// <summary>
+            /// Percentage of training examples used in each bag
+            /// </summary>
+            public double BaggingTrainFraction { get; set; } = 0.7d;
+
+            /// <summary>
+            /// The fraction of features (chosen randomly) to use on each split
+            /// </summary>
+            public double SplitFraction { get; set; } = 1d;
+
+            /// <summary>
+            /// Smoothing paramter for tree regularization
+            /// </summary>
+            public double Smoothing { get; set; }
+
+            /// <summary>
+            /// When a root split is impossible, allow training to proceed
+            /// </summary>
+            public bool AllowEmptyTrees { get; set; } = true;
+
+            /// <summary>
+            /// The level of feature compression to use
+            /// </summary>
+            public int FeatureCompressionLevel { get; set; } = 1;
+
+            /// <summary>
+            /// Compress the tree Ensemble
+            /// </summary>
+            public bool CompressEnsemble { get; set; } = false;
+
+            /// <summary>
+            /// Maximum Number of trees after compression
+            /// </summary>
+            public int MaxTreesAfterCompression { get; set; } = -1;
+
+            /// <summary>
+            /// Print metrics graph for the first test set
+            /// </summary>
+            public bool PrintTestGraph { get; set; } = false;
+
+            /// <summary>
+            /// Print Train and Validation metrics in graph
+            /// </summary>
+            public bool PrintTrainValidGraph { get; set; } = false;
+
+            /// <summary>
+            /// Calculate metric values for train/valid/test every k rounds
+            /// </summary>
+            public int TestFrequency { get; set; } = 2147483647;
+
+            /// <summary>
+            /// Column to use for example groupId
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for example weight
+            /// </summary>
+            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+            internal override string ComponentName => "FastTreeBinaryClassification";
+        }
+
         public abstract class BoosterParameterFunction : ComponentKind {}
 
 
@@ -17836,367 +18191,171 @@ namespace Microsoft.ML
             internal override string ComponentName => "RandomPartitionSelector";
         }
 
-        public abstract class FastTreeTrainer : ComponentKind {}
+        public abstract class NgramExtractor : ComponentKind {}
 
 
 
         /// <summary>
-        /// Uses a logit-boost boosted tree learner to perform binary classification.
+        /// Extracts NGrams from text and convert them to vector using dictionary.
         /// </summary>
-        public sealed class FastTreeBinaryClassificationFastTreeTrainer : FastTreeTrainer
+        public sealed class NGramNgramExtractor : NgramExtractor
         {
             /// <summary>
-            /// Should we use derivatives optimized for unbalanced sets
+            /// Ngram length
             /// </summary>
-            public bool UnbalancedSets { get; set; } = false;
+            public int NgramLength { get; set; } = 1;
 
             /// <summary>
-            /// Use best regression step trees?
+            /// Maximum number of tokens to skip when constructing an ngram
             /// </summary>
-            public bool BestStepRankingRegressionTrees { get; set; } = false;
+            public int SkipLength { get; set; }
 
             /// <summary>
-            /// Should we use line search for a step size
+            /// Whether to include all ngram lengths up to NgramLength or only NgramLength
             /// </summary>
-            public bool UseLineSearch { get; set; } = false;
+            public bool AllLengths { get; set; } = true;
 
             /// <summary>
-            /// Number of post-bracket line search steps
+            /// Maximum number of ngrams to store in the dictionary
             /// </summary>
-            public int NumPostBracketSteps { get; set; }
+            public int[] MaxNumTerms { get; set; } = { 10000000 };
 
             /// <summary>
-            /// Minimum line search step size
+            /// The weighting criteria
             /// </summary>
-            public double MinStepSize { get; set; }
+            public Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } = Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
 
-            /// <summary>
-            /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
-            /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
-
-            /// <summary>
-            /// Early stopping rule. (Validation set (/valid) is required.)
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            public EarlyStoppingCriterion EarlyStoppingRule { get; set; }
-
-            /// <summary>
-            /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)
-            /// </summary>
-            public int EarlyStoppingMetrics { get; set; }
-
-            /// <summary>
-            /// Enable post-training pruning to avoid overfitting. (a validation set is required)
-            /// </summary>
-            public bool EnablePruning { get; set; } = false;
-
-            /// <summary>
-            /// Use window and tolerance for pruning
-            /// </summary>
-            public bool UseTolerantPruning { get; set; } = false;
-
-            /// <summary>
-            /// The tolerance threshold for pruning
-            /// </summary>
-            public double PruningThreshold { get; set; } = 0.004d;
-
-            /// <summary>
-            /// The moving window size for pruning
-            /// </summary>
-            public int PruningWindowSize { get; set; } = 5;
-
-            /// <summary>
-            /// The learning rate
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
-            public double LearningRates { get; set; } = 0.2d;
-
-            /// <summary>
-            /// Shrinkage
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
-            public double Shrinkage { get; set; } = 1d;
-
-            /// <summary>
-            /// Dropout rate for tree regularization
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
-            public double DropoutRate { get; set; }
-
-            /// <summary>
-            /// Sample each query 1 in k times in the GetDerivatives function
-            /// </summary>
-            public int GetDerivativesSampleRate { get; set; } = 1;
-
-            /// <summary>
-            /// Write the last ensemble instead of the one determined by early stopping
-            /// </summary>
-            public bool WriteLastEnsemble { get; set; } = false;
-
-            /// <summary>
-            /// Upper bound on absolute value of single tree output
-            /// </summary>
-            public double MaxTreeOutput { get; set; } = 100d;
-
-            /// <summary>
-            /// Training starts from random ordering (determined by /r1)
-            /// </summary>
-            public bool RandomStart { get; set; } = false;
-
-            /// <summary>
-            /// Filter zero lambdas during training
-            /// </summary>
-            public bool FilterZeroLambdas { get; set; } = false;
-
-            /// <summary>
-            /// Freeform defining the scores that should be used as the baseline ranker
-            /// </summary>
-            public string BaselineScoresFormula { get; set; }
-
-            /// <summary>
-            /// Baseline alpha for tradeoffs of risk (0 is normal training)
-            /// </summary>
-            public string BaselineAlphaRisk { get; set; }
-
-            /// <summary>
-            /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)
-            /// </summary>
-            public string PositionDiscountFreeform { get; set; }
-
-            /// <summary>
-            /// Allows to choose Parallel FastTree Learning Algorithm
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            public ParallelTraining ParallelTrainer { get; set; } = new SingleParallelTraining();
-
-            /// <summary>
-            /// The number of threads to use
-            /// </summary>
-            public int? NumThreads { get; set; }
-
-            /// <summary>
-            /// The seed of the random number generator
-            /// </summary>
-            public int RngSeed { get; set; } = 123;
-
-            /// <summary>
-            /// The seed of the active feature selection
-            /// </summary>
-            public int FeatureSelectSeed { get; set; } = 123;
-
-            /// <summary>
-            /// The entropy (regularization) coefficient between 0 and 1
-            /// </summary>
-            public double EntropyCoefficient { get; set; }
-
-            /// <summary>
-            /// The number of histograms in the pool (between 2 and numLeaves)
-            /// </summary>
-            public int HistogramPoolSize { get; set; } = -1;
-
-            /// <summary>
-            /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose
-            /// </summary>
-            public bool? DiskTranspose { get; set; }
-
-            /// <summary>
-            /// Whether to collectivize features during dataset preparation to speed up training
-            /// </summary>
-            public bool FeatureFlocks { get; set; } = true;
-
-            /// <summary>
-            /// Whether to do split based on multiple categorical feature values.
-            /// </summary>
-            public bool CategoricalSplit { get; set; } = false;
-
-            /// <summary>
-            /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
-            /// </summary>
-            public int MaxCategoricalGroupsPerNode { get; set; } = 64;
-
-            /// <summary>
-            /// Maximum categorical split points to consider when splitting on a categorical feature.
-            /// </summary>
-            public int MaxCategoricalSplitPoints { get; set; } = 64;
-
-            /// <summary>
-            /// Minimum categorical docs percentage in a bin to consider for a split.
-            /// </summary>
-            public double MinDocsPercentageForCategoricalSplit { get; set; } = 0.001d;
-
-            /// <summary>
-            /// Minimum categorical doc count in a bin to consider for a split.
-            /// </summary>
-            public int MinDocsForCategoricalSplit { get; set; } = 100;
-
-            /// <summary>
-            /// Bias for calculating gradient for each feature bin for a categorical feature.
-            /// </summary>
-            public double Bias { get; set; }
-
-            /// <summary>
-            /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
-            /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
-
-            /// <summary>
-            /// Maximum number of distinct values (bins) per feature
-            /// </summary>
-            public int MaxBins { get; set; } = 255;
-
-            /// <summary>
-            /// Sparsity level needed to use sparse feature representation
-            /// </summary>
-            public double SparsifyThreshold { get; set; } = 0.7d;
-
-            /// <summary>
-            /// The feature first use penalty coefficient
-            /// </summary>
-            public double FeatureFirstUsePenalty { get; set; }
-
-            /// <summary>
-            /// The feature re-use penalty (regularization) coefficient
-            /// </summary>
-            public double FeatureReusePenalty { get; set; }
-
-            /// <summary>
-            /// Tree fitting gain confidence requirement (should be in the range [0,1) ).
-            /// </summary>
-            public double GainConfidenceLevel { get; set; }
-
-            /// <summary>
-            /// The temperature of the randomized softmax distribution for choosing the feature
-            /// </summary>
-            public double SoftmaxTemperature { get; set; }
-
-            /// <summary>
-            /// Print execution time breakdown to stdout
-            /// </summary>
-            public bool ExecutionTimes { get; set; } = false;
-
-            /// <summary>
-            /// The max number of leaves in each regression tree
-            /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
-            public int NumLeaves { get; set; } = 20;
-
-            /// <summary>
-            /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
-            public int MinDocumentsInLeafs { get; set; } = 10;
-
-            /// <summary>
-            /// Total number of decision trees to create in the ensemble
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
-            public int NumTrees { get; set; } = 100;
-
-            /// <summary>
-            /// The fraction of features (chosen randomly) to use on each iteration
-            /// </summary>
-            public double FeatureFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// Number of trees in each bag (0 for disabling bagging)
-            /// </summary>
-            public int BaggingSize { get; set; }
-
-            /// <summary>
-            /// Percentage of training examples used in each bag
-            /// </summary>
-            public double BaggingTrainFraction { get; set; } = 0.7d;
-
-            /// <summary>
-            /// The fraction of features (chosen randomly) to use on each split
-            /// </summary>
-            public double SplitFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// Smoothing paramter for tree regularization
-            /// </summary>
-            public double Smoothing { get; set; }
-
-            /// <summary>
-            /// When a root split is impossible, allow training to proceed
-            /// </summary>
-            public bool AllowEmptyTrees { get; set; } = true;
-
-            /// <summary>
-            /// The level of feature compression to use
-            /// </summary>
-            public int FeatureCompressionLevel { get; set; } = 1;
-
-            /// <summary>
-            /// Compress the tree Ensemble
-            /// </summary>
-            public bool CompressEnsemble { get; set; } = false;
-
-            /// <summary>
-            /// Maximum Number of trees after compression
-            /// </summary>
-            public int MaxTreesAfterCompression { get; set; } = -1;
-
-            /// <summary>
-            /// Print metrics graph for the first test set
-            /// </summary>
-            public bool PrintTestGraph { get; set; } = false;
-
-            /// <summary>
-            /// Print Train and Validation metrics in graph
-            /// </summary>
-            public bool PrintTrainValidGraph { get; set; } = false;
-
-            /// <summary>
-            /// Calculate metric values for train/valid/test every k rounds
-            /// </summary>
-            public int TestFrequency { get; set; } = 2147483647;
-
-            /// <summary>
-            /// Column to use for example groupId
-            /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for example weight
-            /// </summary>
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for labels
-            /// </summary>
-            public string LabelColumn { get; set; } = "Label";
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// Column to use for features
-            /// </summary>
-            public string FeatureColumn { get; set; } = "Features";
-
-            /// <summary>
-            /// Normalize option for the feature column
-            /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
-
-            /// <summary>
-            /// Whether learner should cache input training data
-            /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
-
-            internal override string ComponentName => "FastTreeBinaryClassification";
+            internal override string ComponentName => "NGram";
         }
+
+
+
+        /// <summary>
+        /// Extracts NGrams from text and convert them to vector using hashing trick.
+        /// </summary>
+        public sealed class NGramHashNgramExtractor : NgramExtractor
+        {
+            /// <summary>
+            /// Ngram length
+            /// </summary>
+            public int NgramLength { get; set; } = 1;
+
+            /// <summary>
+            /// Maximum number of tokens to skip when constructing an ngram
+            /// </summary>
+            public int SkipLength { get; set; }
+
+            /// <summary>
+            /// Number of bits to hash into. Must be between 1 and 30, inclusive.
+            /// </summary>
+            public int HashBits { get; set; } = 16;
+
+            /// <summary>
+            /// Hashing seed
+            /// </summary>
+            public uint Seed { get; set; } = 314489979;
+
+            /// <summary>
+            /// Whether the position of each source column should be included in the hash (when there are multiple source columns).
+            /// </summary>
+            public bool Ordered { get; set; } = true;
+
+            /// <summary>
+            /// Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.
+            /// </summary>
+            public int InvertHash { get; set; }
+
+            /// <summary>
+            /// Whether to include all ngram lengths up to ngramLength or only ngramLength
+            /// </summary>
+            public bool AllLengths { get; set; } = true;
+
+            internal override string ComponentName => "NGramHash";
+        }
+
+        public abstract class ParallelLightGBM : ComponentKind {}
+
+
+
+        /// <summary>
+        /// Single node machine learning process.
+        /// </summary>
+        public sealed class SingleParallelLightGBM : ParallelLightGBM
+        {
+            internal override string ComponentName => "Single";
+        }
+
+        public abstract class ParallelTraining : ComponentKind {}
+
+
+
+        /// <summary>
+        /// Single node machine learning process.
+        /// </summary>
+        public sealed class SingleParallelTraining : ParallelTraining
+        {
+            internal override string ComponentName => "Single";
+        }
+
+        public abstract class PartitionedPathParser : ComponentKind {}
+
+
+
+        /// <summary>
+        /// Extract name/value pairs from Parquet formatted directory names. Example path: Year=2018/Month=12/data1.parquet
+        /// </summary>
+        public sealed class ParquetPathParserPartitionedPathParser : PartitionedPathParser
+        {
+            internal override string ComponentName => "ParquetPathParser";
+        }
+
+
+        public sealed partial class PartitionedFileLoaderColumn
+        {
+            /// <summary>
+            /// Name of the column.
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Data type of the column.
+            /// </summary>
+            public Microsoft.ML.Data.DataKind? Type { get; set; }
+
+            /// <summary>
+            /// Index of the directory representing this column.
+            /// </summary>
+            public int Source { get; set; }
+
+        }
+
+
+        /// <summary>
+        /// A simple parser that extracts directory names as column values. Column names are defined as arguments.
+        /// </summary>
+        public sealed class SimplePathParserPartitionedPathParser : PartitionedPathParser
+        {
+            /// <summary>
+            /// Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1
+            /// </summary>
+            public PartitionedFileLoaderColumn[] Columns { get; set; }
+
+            /// <summary>
+            /// Data type of each column.
+            /// </summary>
+            public Microsoft.ML.Data.DataKind Type { get; set; } = Microsoft.ML.Data.DataKind.TX;
+
+            internal override string ComponentName => "SimplePathParser";
+        }
+
+        public abstract class RankingTrainerFactory : ComponentKind {}
 
 
 
         /// <summary>
         /// Trains gradient boosted decision trees to the LambdaRank quasi-gradient.
         /// </summary>
-        public sealed class FastTreeRankingFastTreeTrainer : FastTreeTrainer
+        public sealed class FastTreeRankingRankingTrainerFactory : RankingTrainerFactory
         {
             /// <summary>
             /// Comma seperated list of gains associated to each relevance label.
@@ -18579,12 +18738,51 @@ namespace Microsoft.ML
             internal override string ComponentName => "FastTreeRanking";
         }
 
+        public abstract class RegressionLossFunction : ComponentKind {}
+
+
+
+        /// <summary>
+        /// Poisson loss.
+        /// </summary>
+        public sealed class PoissonLossRegressionLossFunction : RegressionLossFunction
+        {
+            internal override string ComponentName => "PoissonLoss";
+        }
+
+
+
+        /// <summary>
+        /// Squared loss.
+        /// </summary>
+        public sealed class SquaredLossRegressionLossFunction : RegressionLossFunction
+        {
+            internal override string ComponentName => "SquaredLoss";
+        }
+
+
+
+        /// <summary>
+        /// Tweedie loss.
+        /// </summary>
+        public sealed class TweedieLossRegressionLossFunction : RegressionLossFunction
+        {
+            /// <summary>
+            /// Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.
+            /// </summary>
+            public double Index { get; set; } = 1.5d;
+
+            internal override string ComponentName => "TweedieLoss";
+        }
+
+        public abstract class RegressionTrainerFactory : ComponentKind {}
+
 
 
         /// <summary>
         /// Trains gradient boosted decision trees to fit target values using least-squares.
         /// </summary>
-        public sealed class FastTreeRegressionFastTreeTrainer : FastTreeTrainer
+        public sealed class FastTreeRegressionRegressionTrainerFactory : RegressionTrainerFactory
         {
             /// <summary>
             /// Use best regression step trees?
@@ -18932,7 +19130,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.
         /// </summary>
-        public sealed class FastTreeTweedieRegressionFastTreeTrainer : FastTreeTrainer
+        public sealed class FastTreeTweedieRegressionRegressionTrainerFactory : RegressionTrainerFactory
         {
             /// <summary>
             /// Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.
@@ -19278,200 +19476,6 @@ namespace Microsoft.ML
             public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeTweedieRegression";
-        }
-
-        public abstract class NgramExtractor : ComponentKind {}
-
-
-
-        /// <summary>
-        /// Extracts NGrams from text and convert them to vector using dictionary.
-        /// </summary>
-        public sealed class NGramNgramExtractor : NgramExtractor
-        {
-            /// <summary>
-            /// Ngram length
-            /// </summary>
-            public int NgramLength { get; set; } = 1;
-
-            /// <summary>
-            /// Maximum number of tokens to skip when constructing an ngram
-            /// </summary>
-            public int SkipLength { get; set; }
-
-            /// <summary>
-            /// Whether to include all ngram lengths up to NgramLength or only NgramLength
-            /// </summary>
-            public bool AllLengths { get; set; } = true;
-
-            /// <summary>
-            /// Maximum number of ngrams to store in the dictionary
-            /// </summary>
-            public int[] MaxNumTerms { get; set; } = { 10000000 };
-
-            /// <summary>
-            /// The weighting criteria
-            /// </summary>
-            public Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } = Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
-
-            internal override string ComponentName => "NGram";
-        }
-
-
-
-        /// <summary>
-        /// Extracts NGrams from text and convert them to vector using hashing trick.
-        /// </summary>
-        public sealed class NGramHashNgramExtractor : NgramExtractor
-        {
-            /// <summary>
-            /// Ngram length
-            /// </summary>
-            public int NgramLength { get; set; } = 1;
-
-            /// <summary>
-            /// Maximum number of tokens to skip when constructing an ngram
-            /// </summary>
-            public int SkipLength { get; set; }
-
-            /// <summary>
-            /// Number of bits to hash into. Must be between 1 and 30, inclusive.
-            /// </summary>
-            public int HashBits { get; set; } = 16;
-
-            /// <summary>
-            /// Hashing seed
-            /// </summary>
-            public uint Seed { get; set; } = 314489979;
-
-            /// <summary>
-            /// Whether the position of each source column should be included in the hash (when there are multiple source columns).
-            /// </summary>
-            public bool Ordered { get; set; } = true;
-
-            /// <summary>
-            /// Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.
-            /// </summary>
-            public int InvertHash { get; set; }
-
-            /// <summary>
-            /// Whether to include all ngram lengths up to ngramLength or only ngramLength
-            /// </summary>
-            public bool AllLengths { get; set; } = true;
-
-            internal override string ComponentName => "NGramHash";
-        }
-
-        public abstract class ParallelLightGBM : ComponentKind {}
-
-
-
-        /// <summary>
-        /// Single node machine learning process.
-        /// </summary>
-        public sealed class SingleParallelLightGBM : ParallelLightGBM
-        {
-            internal override string ComponentName => "Single";
-        }
-
-        public abstract class ParallelTraining : ComponentKind {}
-
-
-
-        /// <summary>
-        /// Single node machine learning process.
-        /// </summary>
-        public sealed class SingleParallelTraining : ParallelTraining
-        {
-            internal override string ComponentName => "Single";
-        }
-
-        public abstract class PartitionedPathParser : ComponentKind {}
-
-
-
-        /// <summary>
-        /// Extract name/value pairs from Parquet formatted directory names. Example path: Year=2018/Month=12/data1.parquet
-        /// </summary>
-        public sealed class ParquetPathParserPartitionedPathParser : PartitionedPathParser
-        {
-            internal override string ComponentName => "ParquetPathParser";
-        }
-
-
-        public sealed partial class PartitionedFileLoaderColumn
-        {
-            /// <summary>
-            /// Name of the column.
-            /// </summary>
-            public string Name { get; set; }
-
-            /// <summary>
-            /// Data type of the column.
-            /// </summary>
-            public Microsoft.ML.Data.DataKind? Type { get; set; }
-
-            /// <summary>
-            /// Index of the directory representing this column.
-            /// </summary>
-            public int Source { get; set; }
-
-        }
-
-
-        /// <summary>
-        /// A simple parser that extracts directory names as column values. Column names are defined as arguments.
-        /// </summary>
-        public sealed class SimplePathParserPartitionedPathParser : PartitionedPathParser
-        {
-            /// <summary>
-            /// Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1
-            /// </summary>
-            public PartitionedFileLoaderColumn[] Columns { get; set; }
-
-            /// <summary>
-            /// Data type of each column.
-            /// </summary>
-            public Microsoft.ML.Data.DataKind Type { get; set; } = Microsoft.ML.Data.DataKind.TX;
-
-            internal override string ComponentName => "SimplePathParser";
-        }
-
-        public abstract class RegressionLossFunction : ComponentKind {}
-
-
-
-        /// <summary>
-        /// Poisson loss.
-        /// </summary>
-        public sealed class PoissonLossRegressionLossFunction : RegressionLossFunction
-        {
-            internal override string ComponentName => "PoissonLoss";
-        }
-
-
-
-        /// <summary>
-        /// Squared loss.
-        /// </summary>
-        public sealed class SquaredLossRegressionLossFunction : RegressionLossFunction
-        {
-            internal override string ComponentName => "SquaredLoss";
-        }
-
-
-
-        /// <summary>
-        /// Tweedie loss.
-        /// </summary>
-        public sealed class TweedieLossRegressionLossFunction : RegressionLossFunction
-        {
-            /// <summary>
-            /// Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.
-            /// </summary>
-            public double Index { get; set; } = 1.5d;
-
-            internal override string ComponentName => "TweedieLoss";
         }
 
         public abstract class SDCAClassificationLossFunction : ComponentKind {}

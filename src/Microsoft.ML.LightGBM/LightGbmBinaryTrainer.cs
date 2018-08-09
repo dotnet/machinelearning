@@ -11,9 +11,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(LightGbmArguments),
-    new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
-    LightGbmBinaryTrainer.UserName, LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
+[assembly: EntryPointModule(typeof(LightGbmBinaryTrainer.Arguments))]
 
 [assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(LightGbmBinaryPredictor), null, typeof(SignatureLoadModel),
     "LightGBM Binary Executor",
@@ -85,10 +83,14 @@ namespace Microsoft.ML.Runtime.LightGBM
         internal const string LoadNameValue = "LightGBMBinary";
         internal const string ShortName = "LightGBM";
         internal const string Summary = "Train a LightGBM binary classification model.";
+        public sealed class Arguments : LightGbmArgumentsBase, IBinaryTrainerFactory
+        {
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new LightGbmBinaryTrainer(env, this);
+        }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public LightGbmBinaryTrainer(IHostEnvironment env, LightGbmArguments args)
+        public LightGbmBinaryTrainer(IHostEnvironment env, Arguments args)
             : base(env, args, LoadNameValue)
         {
         }
@@ -135,14 +137,14 @@ namespace Microsoft.ML.Runtime.LightGBM
             ShortName = LightGbmBinaryTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
                                  @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmBinaryClassifier""]/*' />"})]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmArguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmBinaryTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<LightGbmArguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<LightGbmBinaryTrainer.Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LightGbmBinaryTrainer(host, input),
                 getLabel: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));

@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.Learners
             + "In the TLC implementation of OGD, it is for linear regression.";
         internal const string ShortName = "ogd";
 
-        public sealed class Arguments : AveragedLinearArguments
+        public sealed class Arguments : AveragedLinearArguments, IBinaryTrainerFactory
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             [TGUI(Label = "Loss Function")]
@@ -50,6 +50,8 @@ namespace Microsoft.ML.Runtime.Learners
                 LearningRate = (Float)0.1;
                 DecreaseLearningRate = true;
             }
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new OnlineGradientDescentTrainer(env, this);
         }
 
         public OnlineGradientDescentTrainer(IHostEnvironment env, Arguments args)

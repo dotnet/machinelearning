@@ -11,16 +11,16 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
 
-[assembly: LoadableClass(typeof(LightGbmArguments.TreeBooster), typeof(LightGbmArguments.TreeBooster.Arguments),
-    typeof(SignatureLightGBMBooster), LightGbmArguments.TreeBooster.FriendlyName, LightGbmArguments.TreeBooster.Name)]
-[assembly: LoadableClass(typeof(LightGbmArguments.DartBooster), typeof(LightGbmArguments.DartBooster.Arguments),
-    typeof(SignatureLightGBMBooster), LightGbmArguments.DartBooster.FriendlyName, LightGbmArguments.DartBooster.Name)]
-[assembly: LoadableClass(typeof(LightGbmArguments.GossBooster), typeof(LightGbmArguments.GossBooster.Arguments),
-    typeof(SignatureLightGBMBooster), LightGbmArguments.GossBooster.FriendlyName, LightGbmArguments.GossBooster.Name)]
+[assembly: LoadableClass(typeof(LightGbmArgumentsBase.TreeBooster), typeof(LightGbmArgumentsBase.TreeBooster.Arguments),
+    typeof(SignatureLightGBMBooster), LightGbmArgumentsBase.TreeBooster.FriendlyName, LightGbmArgumentsBase.TreeBooster.Name)]
+[assembly: LoadableClass(typeof(LightGbmArgumentsBase.DartBooster), typeof(LightGbmArgumentsBase.DartBooster.Arguments),
+    typeof(SignatureLightGBMBooster), LightGbmArgumentsBase.DartBooster.FriendlyName, LightGbmArgumentsBase.DartBooster.Name)]
+[assembly: LoadableClass(typeof(LightGbmArgumentsBase.GossBooster), typeof(LightGbmArgumentsBase.GossBooster.Arguments),
+    typeof(SignatureLightGBMBooster), LightGbmArgumentsBase.GossBooster.FriendlyName, LightGbmArgumentsBase.GossBooster.Name)]
 
-[assembly: EntryPointModule(typeof(LightGbmArguments.TreeBooster.Arguments))]
-[assembly: EntryPointModule(typeof(LightGbmArguments.DartBooster.Arguments))]
-[assembly: EntryPointModule(typeof(LightGbmArguments.GossBooster.Arguments))]
+[assembly: EntryPointModule(typeof(LightGbmArgumentsBase.TreeBooster.Arguments))]
+[assembly: EntryPointModule(typeof(LightGbmArgumentsBase.DartBooster.Arguments))]
+[assembly: EntryPointModule(typeof(LightGbmArgumentsBase.GossBooster.Arguments))]
 
 namespace Microsoft.ML.Runtime.LightGBM
 {
@@ -30,6 +30,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     public interface ISupportBoosterParameterFactory : IComponentFactory<IBoosterParameter>
     {
     }
+
     public interface IBoosterParameter
     {
         void UpdateParameters(Dictionary<string, object> res);
@@ -39,7 +40,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// Parameters names comes from LightGBM library.
     /// See https://github.com/Microsoft/LightGBM/blob/master/docs/Parameters.rst.
     /// </summary>
-    public sealed class LightGbmArguments : LearnerInputBaseWithGroupId
+    public abstract class LightGbmArgumentsBase : LearnerInputBaseWithGroupId
     {
         public abstract class BoosterParameter<TArgs> : IBoosterParameter
             where TArgs : class, new()
@@ -310,7 +311,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public EvalMetricType EvalMetric = EvalMetricType.DefaultMetric;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
-        [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false})]
+        [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
         public bool? UseSoftmax;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Rounds of early stopping, 0 will disable it.",

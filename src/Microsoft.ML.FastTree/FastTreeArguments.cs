@@ -15,43 +15,39 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
-    [TlcModule.ComponentKind("FastTreeTrainer")]
-    public interface IFastTreeTrainerFactory : IComponentFactory<ITrainer>
-    {
-    }
 
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeBinaryClassificationTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Arguments : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Arguments : BoostedTreeArgs, IBinaryTrainerFactory
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
             public bool UnbalancedSets = false;
 
-            public ITrainer CreateComponent(IHostEnvironment env) => new FastTreeBinaryClassificationTrainer(env, this);
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new FastTreeBinaryClassificationTrainer(env, this);
         }
     }
 
     public sealed partial class FastTreeRegressionTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Arguments : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Arguments : BoostedTreeArgs, IRegressionTrainerFactory
         {
             public Arguments()
             {
                 EarlyStoppingMetrics = 1; // Use L1 by default.
             }
 
-            public ITrainer CreateComponent(IHostEnvironment env) => new FastTreeRegressionTrainer(env, this);
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new FastTreeRegressionTrainer(env, this);
         }
     }
 
     public sealed partial class FastTreeTweedieTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Arguments : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Arguments : BoostedTreeArgs, IRegressionTrainerFactory
         {
             // REVIEW: It is possible to estimate this index parameter from the distribution of data, using
             // a combination of univariate optimization and grid search, following section 4.2 of the paper. However
@@ -61,14 +57,14 @@ namespace Microsoft.ML.Runtime.FastTree
                 "and intermediate values are compound Poisson loss.")]
             public Double Index = 1.5;
 
-            public ITrainer CreateComponent(IHostEnvironment env) => new FastTreeTweedieTrainer(env, this);
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new FastTreeTweedieTrainer(env, this);
         }
     }
 
     public sealed partial class FastTreeRankingTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Arguments : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Arguments : BoostedTreeArgs, IRankingTrainerFactory
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(NoSweep = true)]
@@ -110,7 +106,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 EarlyStoppingMetrics = 1;
             }
 
-            public ITrainer CreateComponent(IHostEnvironment env) => new FastTreeRankingTrainer(env, this);
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new FastTreeRankingTrainer(env, this);
 
             internal override void Check(IExceptionContext ectx)
             {
@@ -228,14 +224,14 @@ namespace Microsoft.ML.Runtime.FastTree
         // REVIEW: Different from original FastRank arguments (shortname l vs. nl). Different default from TLC FR Wrapper (20 vs. 20).
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The max number of leaves in each regression tree", ShortName = "nl", SortOrder = 2)]
         [TGUI(Description = "The maximum number of leaves per tree", SuggestedSweeps = "2-128;log;inc:4")]
-        [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, isLogScale:true, stepSize:4)]
+        [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, isLogScale: true, stepSize: 4)]
         public int NumLeaves = 20;
 
         // REVIEW: Arrays not supported in GUI
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil", SortOrder = 3)]
         [TGUI(Description = "Minimum number of training instances required to form a leaf", SuggestedSweeps = "1,10,50")]
-        [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] {1, 10, 50})]
+        [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
         public int MinDocumentsInLeafs = 10;
 
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
@@ -364,17 +360,17 @@ namespace Microsoft.ML.Runtime.FastTree
 
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
         [TGUI(Label = "Learning Rate", SuggestedSweeps = "0.025-0.4;log")]
-        [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+        [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
         public Double LearningRates = 0.2;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Shrinkage", ShortName = "shrk")]
         [TGUI(Label = "Shrinkage", SuggestedSweeps = "0.25-4;log")]
-        [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+        [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale: true)]
         public Double Shrinkage = 1;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Dropout rate for tree regularization", ShortName = "tdrop")]
         [TGUI(SuggestedSweeps = "0,0.000000001,0.05,0.1,0.2")]
-        [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[] { 0.0f, 1E-9f, 0.05f, 0.1f, 0.2f})]
+        [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[] { 0.0f, 1E-9f, 0.05f, 0.1f, 0.2f })]
         public Double DropoutRate = 0;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Sample each query 1 in k times in the GetDerivatives function", ShortName = "sr")]
