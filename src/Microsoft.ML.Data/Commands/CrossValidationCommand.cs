@@ -559,7 +559,8 @@ namespace Microsoft.ML.Runtime.Data
 
                     // Score.
                     ch.Trace("Scoring and evaluating");
-                    var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, _scorer as ICommandLineComponentFactory);
+                    ch.Assert(_scorer == null || _scorer is ICommandLineComponentFactory, "CrossValidationCommand should only be used from the command line.");
+                    var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerFactorySettings: _scorer as ICommandLineComponentFactory);
                     ch.AssertValue(bindable);
                     var mapper = bindable.Bind(host, testData.Schema);
                     var scorerComp = _scorer ?? ScoreUtils.GetScorerComponent(mapper);

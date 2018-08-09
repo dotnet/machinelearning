@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             using (var ch = host.Start("Creating scoring pipeline"))
             {
                 ch.Trace("Creating pipeline");
-                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerFactorySettings: null);
+                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor);
                 ch.AssertValue(bindable);
 
                 var mapper = bindable.Bind(host, data.Schema);
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             using (var ch = host.Start("Creating scoring pipeline"))
             {
                 ch.Trace("Creating pipeline");
-                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerFactorySettings: null);
+                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor);
                 ch.AssertValue(bindable);
 
                 var mapper = bindable.Bind(host, data.Schema);

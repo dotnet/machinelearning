@@ -191,10 +191,10 @@ namespace Microsoft.ML.Runtime.Data
                 GroupColumn = groupColumn
             };
 
-            return Create(env, args, trainer, input);
+            return Create(env, args, trainer, input, null);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input, IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -202,10 +202,10 @@ namespace Microsoft.ML.Runtime.Data
                 "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
             env.CheckValue(input, nameof(input));
 
-            return Create(env, args, args.Trainer.CreateInstance(env), input);
+            return Create(env, args, args.Trainer.CreateInstance(env), input, mapperFactory);
         }
 
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, ITrainer trainer, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, ITrainer trainer, IDataView input, IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory)
         {
             Contracts.AssertValue(env, nameof(env));
             env.AssertValue(args, nameof(args));
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 ch.Done();
 
-                return ScoreUtils.GetScorer(args.Scorer, predictor, input, feat, group, customCols, env, data.Schema);
+                return ScoreUtils.GetScorer(args.Scorer, predictor, input, feat, group, customCols, env, data.Schema, mapperFactory);
             }
         }
 

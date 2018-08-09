@@ -108,6 +108,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Score.
             ch.Trace("Scoring and evaluating");
+            ch.Assert(Args.Scorer == null || Args.Scorer is ICommandLineComponentFactory, "TestCommand should only be used from the command line.");
             IDataScorerTransform scorePipe = ScoreUtils.GetScorer(Args.Scorer, predictor, loader, features, group, customCols, Host, trainSchema);
 
             // Evaluate.

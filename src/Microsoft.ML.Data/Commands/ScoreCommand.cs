@@ -105,7 +105,8 @@ namespace Microsoft.ML.Runtime.Data
 
             ch.Trace("Creating pipeline");
             var scorer = Args.Scorer;
-            var bindable = ScoreUtils.GetSchemaBindableMapper(Host, predictor, scorer as ICommandLineComponentFactory);
+            ch.Assert(scorer == null || scorer is ICommandLineComponentFactory, "ScoreCommand should only be used from the command line.");
+            var bindable = ScoreUtils.GetSchemaBindableMapper(Host, predictor, scorerFactorySettings: scorer as ICommandLineComponentFactory);
             ch.AssertValue(bindable);
 
             // REVIEW: We probably ought to prefer role mappings from the training schema.
@@ -225,7 +226,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         public static IDataScorerTransform GetScorer(IPredictor predictor, RoleMappedData data, IHostEnvironment env, RoleMappedSchema trainSchema)
         {
-            var sc = GetScorerComponentAndMapper(predictor, null, data.Schema, env, out var mapper);
+            var sc = GetScorerComponentAndMapper(predictor, null, data.Schema, env, null, out var mapper);
             return sc.CreateComponent(env, data.Data, mapper, trainSchema);
         }
 
@@ -237,7 +238,8 @@ namespace Microsoft.ML.Runtime.Data
             string groupColName,
             IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> customColumns,
             IHostEnvironment env,
-            RoleMappedSchema trainSchema)
+            RoleMappedSchema trainSchema,
+            IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValueOrNull(scorer);
@@ -249,7 +251,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValueOrNull(trainSchema);
 
             var schema = new RoleMappedSchema(input.Schema, label: null, feature: featureColName, group: groupColName, custom: customColumns, opt: true);
-            var sc = GetScorerComponentAndMapper(predictor, scorer, schema, env, out var mapper);
+            var sc = GetScorerComponentAndMapper(predictor, scorer, schema, env, mapperFactory, out var mapper);
             return sc.CreateComponent(env, input, mapper, trainSchema);
         }
 
@@ -257,12 +259,16 @@ namespace Microsoft.ML.Runtime.Data
         /// Determines the scorer component factory (if the given one is null or empty), and creates the schema bound mapper.
         /// </summary>
         private static IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> GetScorerComponentAndMapper(
-            IPredictor predictor, IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> scorerFactory,
-            RoleMappedSchema schema, IHostEnvironment env, out ISchemaBoundMapper mapper)
+            IPredictor predictor,
+            IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> scorerFactory,
+            RoleMappedSchema schema,
+            IHostEnvironment env,
+            IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory,
+            out ISchemaBoundMapper mapper)
         {
             Contracts.AssertValue(env);
 
-            var bindable = GetSchemaBindableMapper(env, predictor, scorerFactory as ICommandLineComponentFactory);
+            var bindable = GetSchemaBindableMapper(env, predictor, mapperFactory, scorerFactory as ICommandLineComponentFactory);
             env.AssertValue(bindable);
             mapper = bindable.Bind(env, schema);
             if (scorerFactory != null)
@@ -354,20 +360,30 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Given a predictor and an optional scorer factory settings, produces a compatible ISchemaBindableMapper.
-        /// First, it tries to instantiate the bindable mapper using the <paramref name="scorerFactorySettings"/>
+        /// Given a predictor, an optional mapper factory, and an optional scorer factory settings,
+        /// produces a compatible ISchemaBindableMapper.
+        /// First, it tries to instantiate the bindable mapper using the mapper factory.
+        /// Next, it tries to instantiate the bindable mapper using the <paramref name="scorerFactorySettings"/>
         /// (this will only succeed if there's a registered BindableMapper creation method with load name equal to the one
         /// of the scorer).
         /// If the above fails, it checks whether the predictor implements <see cref="ISchemaBindableMapper"/>
         /// directly.
         /// If this also isn't true, it will create a 'matching' standard mapper.
         /// </summary>
-        public static ISchemaBindableMapper GetSchemaBindableMapper(IHostEnvironment env, IPredictor predictor,
-            ICommandLineComponentFactory scorerFactorySettings)
+        public static ISchemaBindableMapper GetSchemaBindableMapper(
+            IHostEnvironment env,
+            IPredictor predictor,
+            IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory = null,
+            ICommandLineComponentFactory scorerFactorySettings = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(predictor, nameof(predictor));
+            env.CheckValueOrNull(mapperFactory);
             env.CheckValueOrNull(scorerFactorySettings);
+
+            // if the mapperFactory was supplied, use it
+            if (mapperFactory != null)
+                return mapperFactory.CreateComponent(env, predictor);
 
             // See if we can instantiate a mapper using scorer arguments.
             if (scorerFactorySettings != null && TryCreateBindableFromScorer(env, predictor, scorerFactorySettings, out var bindable))
