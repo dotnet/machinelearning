@@ -39,10 +39,12 @@ namespace Microsoft.ML.Runtime.Learners
         internal const string Summary = "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can "
             + "be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IRegressionTrainerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
             public bool ShowTrainingStats = false;
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new LogisticRegression(env, this);
         }
 
         private Double _posWeight;

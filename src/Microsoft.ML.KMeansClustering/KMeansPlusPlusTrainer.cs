@@ -26,6 +26,8 @@ using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: LoadableClass(typeof(void), typeof(KMeansPlusPlusTrainer), null, typeof(SignatureEntryPointModule), "KMeans")]
 
+[assembly: EntryPointModule(typeof(KMeansPlusPlusTrainer.Arguments))]
+
 namespace Microsoft.ML.Runtime.KMeans
 {
     /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
@@ -45,7 +47,7 @@ namespace Microsoft.ML.Runtime.KMeans
             KMeansParallel = 2
         }
 
-        public class Arguments : UnsupervisedLearnerInputBaseWithWeight
+        public class Arguments : UnsupervisedLearnerInputBaseWithWeight, IClusteringTrainerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of clusters", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "5,10,20,40")]
@@ -71,6 +73,8 @@ namespace Microsoft.ML.Runtime.KMeans
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", ShortName = "nt,t,threads", SortOrder = 50)]
             [TGUI(Label = "Number of threads")]
             public int? NumThreads;
+
+            public ITrainer<IPredictorProducing<VBuffer<float>>> CreateComponent(IHostEnvironment env) => new KMeansPlusPlusTrainer(env, this);
         }
 
         private readonly int _k;

@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 
 [assembly: LoadableClass(MulticlassDataPartitionEnsembleTrainer.Summary, typeof(MulticlassDataPartitionEnsembleTrainer),
@@ -19,6 +20,8 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     MulticlassDataPartitionEnsembleTrainer.UserNameValue,
     MulticlassDataPartitionEnsembleTrainer.LoadNameValue)]
+
+[assembly: EntryPointModule(typeof(MulticlassDataPartitionEnsembleTrainer.Arguments))]
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
@@ -35,7 +38,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         public const string UserNameValue = "Multi-class Parallel Ensemble (bagging, stacking, etc)";
         public const string Summary = "A generic ensemble classifier for multi-class classification.";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IMulticlassTrainerFactory
         {
             [Argument(ArgumentType.Multiple, HelpText = "Algorithm to prune the base learners for selective Ensemble", ShortName = "pt", SortOrder = 4)]
             [TGUI(Label = "Sub-Model Selector(pruning) Type", Description = "Algorithm to prune the base learners for selective Ensemble")]
@@ -49,6 +52,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             {
                 BasePredictors = new[] { new SubComponent<ITrainer<TVectorPredictor>, SignatureMultiClassClassifierTrainer>("MultiClassLogisticRegression") };
             }
+
+            public ITrainer<TVectorPredictor> CreateComponent(IHostEnvironment env) => new MulticlassDataPartitionEnsembleTrainer(env, this);
         }
 
         private readonly ISupportMulticlassOutputCombinerFactory _outputCombiner;

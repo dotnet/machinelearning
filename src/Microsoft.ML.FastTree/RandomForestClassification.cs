@@ -8,7 +8,6 @@ using System;
 using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.FastTree.Internal;
@@ -30,6 +29,7 @@ using Microsoft.ML.Runtime.Training;
     FastForestClassificationPredictor.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(FastForest), null, typeof(SignatureEntryPointModule), "FastForest")]
+[assembly: EntryPointModule(typeof(FastForestClassification.Arguments))]
 
 namespace Microsoft.ML.Runtime.FastTree
 {
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Runtime.FastTree
     public sealed partial class FastForestClassification :
         RandomForestTrainerBase<FastForestClassification.Arguments, IPredictorWithFeatureWeights<Float>>
     {
-        public sealed class Arguments : FastForestArgumentsBase
+        public sealed class Arguments : FastForestArgumentsBase, IBinaryTrainerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
             public Double MaxTreeOutput = 100;
@@ -120,6 +120,8 @@ namespace Microsoft.ML.Runtime.FastTree
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public int MaxCalibrationExamples = 1000000;
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new FastForestClassification(env, this);
         }
 
         internal const string LoadNameValue = "FastForestClassification";

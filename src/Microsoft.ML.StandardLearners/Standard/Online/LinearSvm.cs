@@ -41,11 +41,11 @@ namespace Microsoft.ML.Runtime.Learners
             + "and all the negative examples are on the other. After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the "
             + "margin, i.e., the minimal distance between it and the instances.";
 
-        public sealed class Arguments : OnlineLinearArguments
+        public sealed class Arguments : OnlineLinearArguments, IBinaryTrainerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer constant", ShortName = "lambda", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.00001-0.1;log;inc:10")]
-            [TlcModule.SweepableFloatParamAttribute("Lambda", 0.00001f, 0.1f, 10, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("Lambda", 0.00001f, 0.1f, 10, isLogScale: true)]
             public Float Lambda = (Float)0.001;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Batch size", ShortName = "batch", SortOrder = 190)]
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Learners
             public int BatchSize = 1;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Perform projection to unit-ball? Typically used with batch size > 1.", ShortName = "project", SortOrder = 50)]
-            [TlcModule.SweepableDiscreteParam("PerformProjection", null, isBool:true)]
+            [TlcModule.SweepableDiscreteParam("PerformProjection", null, isBool: true)]
             public bool PerformProjection = false;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "No bias")]
@@ -65,6 +65,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public int MaxCalibrationExamples = 1000000;
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new LinearSvm(env, this);
         }
 
         private int _batch;

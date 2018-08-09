@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Learners
         internal const string UserNameValue = "Random Predictor";
         internal const string Summary = "A toy predictor that returns a random value.";
 
-        public class Arguments
+        public class Arguments : IBinaryTrainerFactory
         {
             // Some sample arguments
             [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr")]
@@ -52,6 +52,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Some bool arg", ShortName = "boolarg")]
             public bool BooleanArg = false;
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new RandomTrainer(env, this);
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;

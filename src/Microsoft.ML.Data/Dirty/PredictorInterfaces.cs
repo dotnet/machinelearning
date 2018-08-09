@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Runtime.EntryPoints;
 
 namespace Microsoft.ML.Runtime.Internal.Internallearn
 {
@@ -204,4 +205,30 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     {
         string[] GetLabelNamesOrNull(out ColumnType labelType);
     }
+
+    [TlcModule.ComponentKind("BinaryTrainerFactory")]
+    public interface IBinaryTrainerFactory : IComponentFactory<ITrainer<IPredictorProducing<float>>>
+    {
+    }
+
+    [TlcModule.ComponentKind("MulticlassTrainerFactory")]
+    public interface IMulticlassTrainerFactory : IComponentFactory<ITrainer<IPredictorProducing<VBuffer<float>>>>
+    {
+    }
+
+    [TlcModule.ComponentKind("RankingTrainerFactory")]
+    public interface IRankingTrainerFactory : IComponentFactory<ITrainer<IPredictorProducing<float>>>
+    {
+    }
+
+    [TlcModule.ComponentKind("RegressionTrainerFactory")]
+    public interface IRegressionTrainerFactory : IComponentFactory<ITrainer<IPredictorProducing<float>>>
+    {
+    }
+
+    [TlcModule.ComponentKind("ClusteringTrainer")]
+    public interface IClusteringTrainerFactory : IComponentFactory<ITrainer<IPredictorProducing<VBuffer<float>>>>
+    {
+    }
+
 }

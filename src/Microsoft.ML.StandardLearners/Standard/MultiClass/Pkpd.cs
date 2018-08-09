@@ -8,7 +8,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -27,7 +26,6 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Learners
 {
     using TScalarTrainer = ITrainer<IPredictorProducing<Float>>;
-    using TScalarPredictor = IPredictorProducing<Float>;
     using TDistPredictor = IDistPredictorProducing<Float, Float>;
     using CR = RoleMappedSchema.ColumnRole;
 
@@ -65,8 +63,9 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Arguments passed to PKPD.
         /// </summary>
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IMulticlassTrainerFactory
         {
+            public ITrainer<IPredictorProducing<VBuffer<float>>> CreateComponent(IHostEnvironment env) => new Pkpd(env, this);
         }
 
         public Pkpd(IHostEnvironment env, Arguments args)

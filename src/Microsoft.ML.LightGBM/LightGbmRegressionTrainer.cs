@@ -7,10 +7,11 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(LightGbmRegressorTrainer.Summary, typeof(LightGbmRegressorTrainer), typeof(LightGbmArguments),
+[assembly: LoadableClass(LightGbmRegressorTrainer.Summary, typeof(LightGbmRegressorTrainer), typeof(LightGbmRegressorTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     LightGbmRegressorTrainer.UserNameValue, LightGbmRegressorTrainer.LoadNameValue, LightGbmRegressorTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
@@ -80,7 +81,12 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public LightGbmRegressorTrainer(IHostEnvironment env, LightGbmArguments args)
+        public sealed class Arguments : LightGbmArgumentsBase, IRegressionTrainerFactory
+        {
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new LightGbmRegressorTrainer(env, this);
+        }
+
+        public LightGbmRegressorTrainer(IHostEnvironment env, Arguments args)
             : base(env, args, LoadNameValue)
         {
         }
@@ -125,14 +131,14 @@ namespace Microsoft.ML.Runtime.LightGBM
             ShortName = LightGbmRegressorTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
                                  @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmRegressor""]/*' />"})]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, LightGbmArguments input)
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, LightGbmRegressorTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<LightGbmArguments, CommonOutputs.RegressionOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<LightGbmRegressorTrainer.Arguments, CommonOutputs.RegressionOutput>(host, input,
                 () => new LightGbmRegressorTrainer(host, input),
                 getLabel: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));

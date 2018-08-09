@@ -31,12 +31,14 @@ using System.Runtime.InteropServices;
 
 [assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
 
+[assembly: EntryPointModule(typeof(OlsLinearRegressionTrainer.Arguments))]
+
 namespace Microsoft.ML.Runtime.HalLearners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
     public sealed class OlsLinearRegressionTrainer : TrainerBase<OlsLinearRegressionPredictor>
     {
-        public sealed class Arguments : LearnerInputBaseWithWeight
+        public sealed class Arguments : LearnerInputBaseWithWeight, IRegressionTrainerFactory
         {
             // Adding L2 regularization turns this into a form of ridge regression,
             // rather than, strictly speaking, ordinary least squares. But it is an
@@ -48,6 +50,8 @@ namespace Microsoft.ML.Runtime.HalLearners
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to calculate per parameter significance statistics", ShortName = "sig")]
             public bool PerParameterSignificance = true;
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new OlsLinearRegressionTrainer(env, this);
         }
 
         public const string LoadNameValue = "OLSLinearRegression";

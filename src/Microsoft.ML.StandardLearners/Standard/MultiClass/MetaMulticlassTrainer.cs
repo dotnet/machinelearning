@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor", ShortName = "p", SortOrder = 1, SignatureType = typeof(SignatureBinaryClassifierTrainer))]
             [TGUI(Label = "Predictor Type", Description = "Type of underlying binary predictor")]
-            public IComponentFactory<TScalarTrainer> PredictorType;
+            public IBinaryTrainerFactory PredictorType = new LinearSvm.Arguments();
 
             [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
             public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
@@ -56,9 +56,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         private TScalarTrainer CreateTrainer()
         {
-            return Args.PredictorType != null ?
-                Args.PredictorType.CreateComponent(Host) :
-                new LinearSvm(Host, new LinearSvm.Arguments());
+            return Args.PredictorType.CreateComponent(Host);
         }
 
         protected IDataView MapLabelsCore<T>(ColumnType type, RefPredicate<T> equalsTarget, RoleMappedData data, string dstName)

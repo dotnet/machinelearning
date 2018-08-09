@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.Learners
         public const string ShortName = "sasdcar";
         internal const string Summary = "The SDCA linear regression trainer.";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IRegressionTrainerFactory
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaRegressionLossFactory LossFunction = new SquaredLossFactory();
@@ -46,6 +46,8 @@ namespace Microsoft.ML.Runtime.Learners
                 // Default to use unregularized bias in regression.
                 BiasLearningRate = 1;
             }
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new SdcaRegressionTrainer(env, this);
         }
 
         private readonly ISupportSdcaRegressionLoss _loss;

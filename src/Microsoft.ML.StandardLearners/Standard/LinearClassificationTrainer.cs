@@ -1356,7 +1356,7 @@ namespace Microsoft.ML.Runtime.Learners
         public const string LoadNameValue = "SDCA";
         public const string UserNameValue = "Fast Linear (SA-SDCA)";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IBinaryTrainerFactory
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
@@ -1369,6 +1369,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public int MaxCalibrationExamples = 1000000;
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new LinearClassificationTrainer(env, this);
 
             internal override void Check(IHostEnvironment env)
             {
@@ -1432,7 +1434,7 @@ namespace Microsoft.ML.Runtime.Learners
         public const string UserNameValue = "Hogwild SGD (binary)";
         public const string ShortName = "HogwildSGD";
 
-        public sealed class Arguments : LearnerInputBaseWithWeight
+        public sealed class Arguments : LearnerInputBaseWithWeight, IBinaryTrainerFactory
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportClassificationLossFactory LossFunction = new LogLossFactory();
@@ -1475,6 +1477,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public int MaxCalibrationExamples = 1000000;
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new StochasticGradientDescentClassificationTrainer(env, this);
 
             internal void Check(IHostEnvironment env)
             {

@@ -48,11 +48,13 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Arguments passed to OVA.
         /// </summary>
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IMulticlassTrainerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use probability or margins to determine max", ShortName = "useprob")]
             [TGUI(Label = "Use Probability", Description = "Use probabilities (vs. raw outputs) to identify top-score category")]
             public bool UseProbabilities = true;
+
+            public ITrainer<IPredictorProducing<VBuffer<float>>> CreateComponent(IHostEnvironment env) => new Ova(env, this);
         }
 
         public Ova(IHostEnvironment env, Arguments args)

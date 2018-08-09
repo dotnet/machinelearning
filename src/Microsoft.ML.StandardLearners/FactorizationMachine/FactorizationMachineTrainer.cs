@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.CpuMath;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
 
@@ -37,7 +38,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         public const string LoadName = "FieldAwareFactorizationMachine";
         public const string ShortName = "ffm";
 
-        public sealed class Arguments : LearnerInputBaseWithLabel
+        public sealed class Arguments : LearnerInputBaseWithLabel, IBinaryTrainerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate", ShortName = "lr", SortOrder = 1)]
             [TlcModule.SweepableFloatParam(0.001f, 1.0f, isLogScale: true)]
@@ -71,6 +72,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             [Argument(ArgumentType.AtMostOnce, HelpText = "Radius of initial latent factors", ShortName = "rad", SortOrder = 110)]
             [TlcModule.SweepableFloatParam(0.1f, 1f)]
             public float Radius = 0.5f;
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new FieldAwareFactorizationMachineTrainer(env, this);
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;

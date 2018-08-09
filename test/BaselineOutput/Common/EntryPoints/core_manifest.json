@@ -23157,6 +23157,905 @@
       ]
     },
     {
+      "Kind": "BinaryTrainerFactory",
+      "Components": [
+        {
+          "Name": "FastTreeBinaryClassification",
+          "Desc": "Uses a logit-boost boosted tree learner to perform binary classification.",
+          "FriendlyName": "FastTree (Boosted Trees) Classification",
+          "Settings": [
+            {
+              "Name": "NumTrees",
+              "Type": "Int",
+              "Desc": "Total number of decision trees to create in the ensemble",
+              "Aliases": [
+                "iter"
+              ],
+              "Required": false,
+              "SortOrder": 1.0,
+              "IsNullable": false,
+              "Default": 100,
+              "SweepRange": {
+                "RangeType": "Discrete",
+                "Values": [
+                  20,
+                  100,
+                  500
+                ]
+              }
+            },
+            {
+              "Name": "TrainingData",
+              "Type": "DataView",
+              "Desc": "The data to be used for training",
+              "Aliases": [
+                "data"
+              ],
+              "Required": true,
+              "SortOrder": 1.0,
+              "IsNullable": false
+            },
+            {
+              "Name": "NumLeaves",
+              "Type": "Int",
+              "Desc": "The max number of leaves in each regression tree",
+              "Aliases": [
+                "nl"
+              ],
+              "Required": false,
+              "SortOrder": 2.0,
+              "IsNullable": false,
+              "Default": 20,
+              "SweepRange": {
+                "RangeType": "Long",
+                "Min": 2,
+                "Max": 128,
+                "StepSize": 4.0,
+                "IsLogScale": true
+              }
+            },
+            {
+              "Name": "FeatureColumn",
+              "Type": "String",
+              "Desc": "Column to use for features",
+              "Aliases": [
+                "feat"
+              ],
+              "Required": false,
+              "SortOrder": 2.0,
+              "IsNullable": false,
+              "Default": "Features"
+            },
+            {
+              "Name": "MinDocumentsInLeafs",
+              "Type": "Int",
+              "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
+              "Aliases": [
+                "mil"
+              ],
+              "Required": false,
+              "SortOrder": 3.0,
+              "IsNullable": false,
+              "Default": 10,
+              "SweepRange": {
+                "RangeType": "Discrete",
+                "Values": [
+                  1,
+                  10,
+                  50
+                ]
+              }
+            },
+            {
+              "Name": "LabelColumn",
+              "Type": "String",
+              "Desc": "Column to use for labels",
+              "Aliases": [
+                "lab"
+              ],
+              "Required": false,
+              "SortOrder": 3.0,
+              "IsNullable": false,
+              "Default": "Label"
+            },
+            {
+              "Name": "LearningRates",
+              "Type": "Float",
+              "Desc": "The learning rate",
+              "Aliases": [
+                "lr"
+              ],
+              "Required": false,
+              "SortOrder": 4.0,
+              "IsNullable": false,
+              "Default": 0.2,
+              "SweepRange": {
+                "RangeType": "Float",
+                "Min": 0.025,
+                "Max": 0.4,
+                "IsLogScale": true
+              }
+            },
+            {
+              "Name": "WeightColumn",
+              "Type": "String",
+              "Desc": "Column to use for example weight",
+              "Aliases": [
+                "weight"
+              ],
+              "Required": false,
+              "SortOrder": 4.0,
+              "IsNullable": false,
+              "Default": "Weight"
+            },
+            {
+              "Name": "GroupIdColumn",
+              "Type": "String",
+              "Desc": "Column to use for example groupId",
+              "Aliases": [
+                "groupId"
+              ],
+              "Required": false,
+              "SortOrder": 5.0,
+              "IsNullable": false,
+              "Default": "GroupId"
+            },
+            {
+              "Name": "NormalizeFeatures",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "No",
+                  "Warn",
+                  "Auto",
+                  "Yes"
+                ]
+              },
+              "Desc": "Normalize option for the feature column",
+              "Aliases": [
+                "norm"
+              ],
+              "Required": false,
+              "SortOrder": 5.0,
+              "IsNullable": false,
+              "Default": "Auto"
+            },
+            {
+              "Name": "Caching",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "Auto",
+                  "Memory",
+                  "Disk",
+                  "None"
+                ]
+              },
+              "Desc": "Whether learner should cache input training data",
+              "Aliases": [
+                "cache"
+              ],
+              "Required": false,
+              "SortOrder": 6.0,
+              "IsNullable": false,
+              "Default": "Auto"
+            },
+            {
+              "Name": "UnbalancedSets",
+              "Type": "Bool",
+              "Desc": "Should we use derivatives optimized for unbalanced sets",
+              "Aliases": [
+                "us"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "BestStepRankingRegressionTrees",
+              "Type": "Bool",
+              "Desc": "Use best regression step trees?",
+              "Aliases": [
+                "bsr"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "UseLineSearch",
+              "Type": "Bool",
+              "Desc": "Should we use line search for a step size",
+              "Aliases": [
+                "ls"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "NumPostBracketSteps",
+              "Type": "Int",
+              "Desc": "Number of post-bracket line search steps",
+              "Aliases": [
+                "lssteps"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0
+            },
+            {
+              "Name": "MinStepSize",
+              "Type": "Float",
+              "Desc": "Minimum line search step size",
+              "Aliases": [
+                "minstep"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0
+            },
+            {
+              "Name": "OptimizationAlgorithm",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "GradientDescent",
+                  "AcceleratedGradientDescent",
+                  "ConjugateGradientDescent"
+                ]
+              },
+              "Desc": "Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)",
+              "Aliases": [
+                "oa"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": "GradientDescent"
+            },
+            {
+              "Name": "EarlyStoppingRule",
+              "Type": {
+                "Kind": "Component",
+                "ComponentKind": "EarlyStoppingCriterion"
+              },
+              "Desc": "Early stopping rule. (Validation set (/valid) is required.)",
+              "Aliases": [
+                "esr"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": null
+            },
+            {
+              "Name": "EarlyStoppingMetrics",
+              "Type": "Int",
+              "Desc": "Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)",
+              "Aliases": [
+                "esmt"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0
+            },
+            {
+              "Name": "EnablePruning",
+              "Type": "Bool",
+              "Desc": "Enable post-training pruning to avoid overfitting. (a validation set is required)",
+              "Aliases": [
+                "pruning"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "UseTolerantPruning",
+              "Type": "Bool",
+              "Desc": "Use window and tolerance for pruning",
+              "Aliases": [
+                "prtol"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "PruningThreshold",
+              "Type": "Float",
+              "Desc": "The tolerance threshold for pruning",
+              "Aliases": [
+                "prth"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.004
+            },
+            {
+              "Name": "PruningWindowSize",
+              "Type": "Int",
+              "Desc": "The moving window size for pruning",
+              "Aliases": [
+                "prws"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 5
+            },
+            {
+              "Name": "Shrinkage",
+              "Type": "Float",
+              "Desc": "Shrinkage",
+              "Aliases": [
+                "shrk"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0,
+              "SweepRange": {
+                "RangeType": "Float",
+                "Min": 0.025,
+                "Max": 4.0,
+                "IsLogScale": true
+              }
+            },
+            {
+              "Name": "DropoutRate",
+              "Type": "Float",
+              "Desc": "Dropout rate for tree regularization",
+              "Aliases": [
+                "tdrop"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0,
+              "SweepRange": {
+                "RangeType": "Discrete",
+                "Values": [
+                  0.0,
+                  1E-09,
+                  0.05,
+                  0.1,
+                  0.2
+                ]
+              }
+            },
+            {
+              "Name": "GetDerivativesSampleRate",
+              "Type": "Int",
+              "Desc": "Sample each query 1 in k times in the GetDerivatives function",
+              "Aliases": [
+                "sr"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1
+            },
+            {
+              "Name": "WriteLastEnsemble",
+              "Type": "Bool",
+              "Desc": "Write the last ensemble instead of the one determined by early stopping",
+              "Aliases": [
+                "hl"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "MaxTreeOutput",
+              "Type": "Float",
+              "Desc": "Upper bound on absolute value of single tree output",
+              "Aliases": [
+                "mo"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 100.0
+            },
+            {
+              "Name": "RandomStart",
+              "Type": "Bool",
+              "Desc": "Training starts from random ordering (determined by /r1)",
+              "Aliases": [
+                "rs"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "FilterZeroLambdas",
+              "Type": "Bool",
+              "Desc": "Filter zero lambdas during training",
+              "Aliases": [
+                "fzl"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "BaselineScoresFormula",
+              "Type": "String",
+              "Desc": "Freeform defining the scores that should be used as the baseline ranker",
+              "Aliases": [
+                "basescores"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": null
+            },
+            {
+              "Name": "BaselineAlphaRisk",
+              "Type": "String",
+              "Desc": "Baseline alpha for tradeoffs of risk (0 is normal training)",
+              "Aliases": [
+                "basealpha"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": null
+            },
+            {
+              "Name": "PositionDiscountFreeform",
+              "Type": "String",
+              "Desc": "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
+              "Aliases": [
+                "pdff"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": null
+            },
+            {
+              "Name": "ParallelTrainer",
+              "Type": {
+                "Kind": "Component",
+                "ComponentKind": "ParallelTraining"
+              },
+              "Desc": "Allows to choose Parallel FastTree Learning Algorithm",
+              "Aliases": [
+                "parag"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": {
+                "Name": "Single"
+              }
+            },
+            {
+              "Name": "NumThreads",
+              "Type": "Int",
+              "Desc": "The number of threads to use",
+              "Aliases": [
+                "t"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": true,
+              "Default": null
+            },
+            {
+              "Name": "RngSeed",
+              "Type": "Int",
+              "Desc": "The seed of the random number generator",
+              "Aliases": [
+                "r1"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 123
+            },
+            {
+              "Name": "FeatureSelectSeed",
+              "Type": "Int",
+              "Desc": "The seed of the active feature selection",
+              "Aliases": [
+                "r3"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 123
+            },
+            {
+              "Name": "EntropyCoefficient",
+              "Type": "Float",
+              "Desc": "The entropy (regularization) coefficient between 0 and 1",
+              "Aliases": [
+                "e"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0
+            },
+            {
+              "Name": "HistogramPoolSize",
+              "Type": "Int",
+              "Desc": "The number of histograms in the pool (between 2 and numLeaves)",
+              "Aliases": [
+                "ps"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": -1
+            },
+            {
+              "Name": "DiskTranspose",
+              "Type": "Bool",
+              "Desc": "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose",
+              "Aliases": [
+                "dt"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": true,
+              "Default": null
+            },
+            {
+              "Name": "FeatureFlocks",
+              "Type": "Bool",
+              "Desc": "Whether to collectivize features during dataset preparation to speed up training",
+              "Aliases": [
+                "flocks"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": true
+            },
+            {
+              "Name": "CategoricalSplit",
+              "Type": "Bool",
+              "Desc": "Whether to do split based on multiple categorical feature values.",
+              "Aliases": [
+                "cat"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "MaxCategoricalGroupsPerNode",
+              "Type": "Int",
+              "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
+              "Aliases": [
+                "mcg"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 64
+            },
+            {
+              "Name": "MaxCategoricalSplitPoints",
+              "Type": "Int",
+              "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
+              "Aliases": [
+                "maxcat"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 64
+            },
+            {
+              "Name": "MinDocsPercentageForCategoricalSplit",
+              "Type": "Float",
+              "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
+              "Aliases": [
+                "mdop"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.001
+            },
+            {
+              "Name": "MinDocsForCategoricalSplit",
+              "Type": "Int",
+              "Desc": "Minimum categorical doc count in a bin to consider for a split.",
+              "Aliases": [
+                "mdo"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 100
+            },
+            {
+              "Name": "Bias",
+              "Type": "Float",
+              "Desc": "Bias for calculating gradient for each feature bin for a categorical feature.",
+              "Aliases": [
+                "bias"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0
+            },
+            {
+              "Name": "Bundling",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "None",
+                  "AggregateLowPopulation",
+                  "Adjacent"
+                ]
+              },
+              "Desc": "Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.",
+              "Aliases": [
+                "bundle"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": "None"
+            },
+            {
+              "Name": "MaxBins",
+              "Type": "Int",
+              "Desc": "Maximum number of distinct values (bins) per feature",
+              "Aliases": [
+                "mb"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 255
+            },
+            {
+              "Name": "SparsifyThreshold",
+              "Type": "Float",
+              "Desc": "Sparsity level needed to use sparse feature representation",
+              "Aliases": [
+                "sp"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.7
+            },
+            {
+              "Name": "FeatureFirstUsePenalty",
+              "Type": "Float",
+              "Desc": "The feature first use penalty coefficient",
+              "Aliases": [
+                "ffup"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0
+            },
+            {
+              "Name": "FeatureReusePenalty",
+              "Type": "Float",
+              "Desc": "The feature re-use penalty (regularization) coefficient",
+              "Aliases": [
+                "frup"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0
+            },
+            {
+              "Name": "GainConfidenceLevel",
+              "Type": "Float",
+              "Desc": "Tree fitting gain confidence requirement (should be in the range [0,1) ).",
+              "Aliases": [
+                "gainconf"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0
+            },
+            {
+              "Name": "SoftmaxTemperature",
+              "Type": "Float",
+              "Desc": "The temperature of the randomized softmax distribution for choosing the feature",
+              "Aliases": [
+                "smtemp"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0
+            },
+            {
+              "Name": "ExecutionTimes",
+              "Type": "Bool",
+              "Desc": "Print execution time breakdown to stdout",
+              "Aliases": [
+                "et"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "FeatureFraction",
+              "Type": "Float",
+              "Desc": "The fraction of features (chosen randomly) to use on each iteration",
+              "Aliases": [
+                "ff"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0
+            },
+            {
+              "Name": "BaggingSize",
+              "Type": "Int",
+              "Desc": "Number of trees in each bag (0 for disabling bagging)",
+              "Aliases": [
+                "bag"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0
+            },
+            {
+              "Name": "BaggingTrainFraction",
+              "Type": "Float",
+              "Desc": "Percentage of training examples used in each bag",
+              "Aliases": [
+                "bagfrac"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.7
+            },
+            {
+              "Name": "SplitFraction",
+              "Type": "Float",
+              "Desc": "The fraction of features (chosen randomly) to use on each split",
+              "Aliases": [
+                "sf"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.0
+            },
+            {
+              "Name": "Smoothing",
+              "Type": "Float",
+              "Desc": "Smoothing paramter for tree regularization",
+              "Aliases": [
+                "s"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0.0
+            },
+            {
+              "Name": "AllowEmptyTrees",
+              "Type": "Bool",
+              "Desc": "When a root split is impossible, allow training to proceed",
+              "Aliases": [
+                "allowempty",
+                "dummies"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": true
+            },
+            {
+              "Name": "FeatureCompressionLevel",
+              "Type": "Int",
+              "Desc": "The level of feature compression to use",
+              "Aliases": [
+                "fcomp"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1
+            },
+            {
+              "Name": "CompressEnsemble",
+              "Type": "Bool",
+              "Desc": "Compress the tree Ensemble",
+              "Aliases": [
+                "cmp"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "MaxTreesAfterCompression",
+              "Type": "Int",
+              "Desc": "Maximum Number of trees after compression",
+              "Aliases": [
+                "cmpmax"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": -1
+            },
+            {
+              "Name": "PrintTestGraph",
+              "Type": "Bool",
+              "Desc": "Print metrics graph for the first test set",
+              "Aliases": [
+                "graph"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "PrintTrainValidGraph",
+              "Type": "Bool",
+              "Desc": "Print Train and Validation metrics in graph",
+              "Aliases": [
+                "graphtv"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
+              "Name": "TestFrequency",
+              "Type": "Int",
+              "Desc": "Calculate metric values for train/valid/test every k rounds",
+              "Aliases": [
+                "tf"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 2147483647
+            }
+          ]
+        }
+      ]
+    },
+    {
       "Kind": "BoosterParameterFunction",
       "Components": [
         {
@@ -24687,389 +25586,23 @@
       ]
     },
     {
-      "Kind": "FastTreeTrainer",
+      "Kind": "NgramExtractor",
       "Components": [
         {
-          "Name": "FastTreeBinaryClassification",
-          "Desc": "Uses a logit-boost boosted tree learner to perform binary classification.",
-          "FriendlyName": "FastTree (Boosted Trees) Classification",
+          "Name": "NGram",
+          "Desc": "Extracts NGrams from text and convert them to vector using dictionary.",
+          "FriendlyName": "NGram Extractor Transform",
+          "Aliases": [
+            "NGramExtractorTransform",
+            "NGramExtractor"
+          ],
           "Settings": [
             {
-              "Name": "NumTrees",
+              "Name": "NgramLength",
               "Type": "Int",
-              "Desc": "Total number of decision trees to create in the ensemble",
+              "Desc": "Ngram length",
               "Aliases": [
-                "iter"
-              ],
-              "Required": false,
-              "SortOrder": 1.0,
-              "IsNullable": false,
-              "Default": 100,
-              "SweepRange": {
-                "RangeType": "Discrete",
-                "Values": [
-                  20,
-                  100,
-                  500
-                ]
-              }
-            },
-            {
-              "Name": "TrainingData",
-              "Type": "DataView",
-              "Desc": "The data to be used for training",
-              "Aliases": [
-                "data"
-              ],
-              "Required": true,
-              "SortOrder": 1.0,
-              "IsNullable": false
-            },
-            {
-              "Name": "NumLeaves",
-              "Type": "Int",
-              "Desc": "The max number of leaves in each regression tree",
-              "Aliases": [
-                "nl"
-              ],
-              "Required": false,
-              "SortOrder": 2.0,
-              "IsNullable": false,
-              "Default": 20,
-              "SweepRange": {
-                "RangeType": "Long",
-                "Min": 2,
-                "Max": 128,
-                "StepSize": 4.0,
-                "IsLogScale": true
-              }
-            },
-            {
-              "Name": "FeatureColumn",
-              "Type": "String",
-              "Desc": "Column to use for features",
-              "Aliases": [
-                "feat"
-              ],
-              "Required": false,
-              "SortOrder": 2.0,
-              "IsNullable": false,
-              "Default": "Features"
-            },
-            {
-              "Name": "MinDocumentsInLeafs",
-              "Type": "Int",
-              "Desc": "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data",
-              "Aliases": [
-                "mil"
-              ],
-              "Required": false,
-              "SortOrder": 3.0,
-              "IsNullable": false,
-              "Default": 10,
-              "SweepRange": {
-                "RangeType": "Discrete",
-                "Values": [
-                  1,
-                  10,
-                  50
-                ]
-              }
-            },
-            {
-              "Name": "LabelColumn",
-              "Type": "String",
-              "Desc": "Column to use for labels",
-              "Aliases": [
-                "lab"
-              ],
-              "Required": false,
-              "SortOrder": 3.0,
-              "IsNullable": false,
-              "Default": "Label"
-            },
-            {
-              "Name": "LearningRates",
-              "Type": "Float",
-              "Desc": "The learning rate",
-              "Aliases": [
-                "lr"
-              ],
-              "Required": false,
-              "SortOrder": 4.0,
-              "IsNullable": false,
-              "Default": 0.2,
-              "SweepRange": {
-                "RangeType": "Float",
-                "Min": 0.025,
-                "Max": 0.4,
-                "IsLogScale": true
-              }
-            },
-            {
-              "Name": "WeightColumn",
-              "Type": "String",
-              "Desc": "Column to use for example weight",
-              "Aliases": [
-                "weight"
-              ],
-              "Required": false,
-              "SortOrder": 4.0,
-              "IsNullable": false,
-              "Default": "Weight"
-            },
-            {
-              "Name": "GroupIdColumn",
-              "Type": "String",
-              "Desc": "Column to use for example groupId",
-              "Aliases": [
-                "groupId"
-              ],
-              "Required": false,
-              "SortOrder": 5.0,
-              "IsNullable": false,
-              "Default": "GroupId"
-            },
-            {
-              "Name": "NormalizeFeatures",
-              "Type": {
-                "Kind": "Enum",
-                "Values": [
-                  "No",
-                  "Warn",
-                  "Auto",
-                  "Yes"
-                ]
-              },
-              "Desc": "Normalize option for the feature column",
-              "Aliases": [
-                "norm"
-              ],
-              "Required": false,
-              "SortOrder": 5.0,
-              "IsNullable": false,
-              "Default": "Auto"
-            },
-            {
-              "Name": "Caching",
-              "Type": {
-                "Kind": "Enum",
-                "Values": [
-                  "Auto",
-                  "Memory",
-                  "Disk",
-                  "None"
-                ]
-              },
-              "Desc": "Whether learner should cache input training data",
-              "Aliases": [
-                "cache"
-              ],
-              "Required": false,
-              "SortOrder": 6.0,
-              "IsNullable": false,
-              "Default": "Auto"
-            },
-            {
-              "Name": "UnbalancedSets",
-              "Type": "Bool",
-              "Desc": "Should we use derivatives optimized for unbalanced sets",
-              "Aliases": [
-                "us"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "BestStepRankingRegressionTrees",
-              "Type": "Bool",
-              "Desc": "Use best regression step trees?",
-              "Aliases": [
-                "bsr"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "UseLineSearch",
-              "Type": "Bool",
-              "Desc": "Should we use line search for a step size",
-              "Aliases": [
-                "ls"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "NumPostBracketSteps",
-              "Type": "Int",
-              "Desc": "Number of post-bracket line search steps",
-              "Aliases": [
-                "lssteps"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0
-            },
-            {
-              "Name": "MinStepSize",
-              "Type": "Float",
-              "Desc": "Minimum line search step size",
-              "Aliases": [
-                "minstep"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.0
-            },
-            {
-              "Name": "OptimizationAlgorithm",
-              "Type": {
-                "Kind": "Enum",
-                "Values": [
-                  "GradientDescent",
-                  "AcceleratedGradientDescent",
-                  "ConjugateGradientDescent"
-                ]
-              },
-              "Desc": "Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)",
-              "Aliases": [
-                "oa"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": "GradientDescent"
-            },
-            {
-              "Name": "EarlyStoppingRule",
-              "Type": {
-                "Kind": "Component",
-                "ComponentKind": "EarlyStoppingCriterion"
-              },
-              "Desc": "Early stopping rule. (Validation set (/valid) is required.)",
-              "Aliases": [
-                "esr"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": null
-            },
-            {
-              "Name": "EarlyStoppingMetrics",
-              "Type": "Int",
-              "Desc": "Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)",
-              "Aliases": [
-                "esmt"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0
-            },
-            {
-              "Name": "EnablePruning",
-              "Type": "Bool",
-              "Desc": "Enable post-training pruning to avoid overfitting. (a validation set is required)",
-              "Aliases": [
-                "pruning"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "UseTolerantPruning",
-              "Type": "Bool",
-              "Desc": "Use window and tolerance for pruning",
-              "Aliases": [
-                "prtol"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "PruningThreshold",
-              "Type": "Float",
-              "Desc": "The tolerance threshold for pruning",
-              "Aliases": [
-                "prth"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.004
-            },
-            {
-              "Name": "PruningWindowSize",
-              "Type": "Int",
-              "Desc": "The moving window size for pruning",
-              "Aliases": [
-                "prws"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 5
-            },
-            {
-              "Name": "Shrinkage",
-              "Type": "Float",
-              "Desc": "Shrinkage",
-              "Aliases": [
-                "shrk"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0,
-              "SweepRange": {
-                "RangeType": "Float",
-                "Min": 0.025,
-                "Max": 4.0,
-                "IsLogScale": true
-              }
-            },
-            {
-              "Name": "DropoutRate",
-              "Type": "Float",
-              "Desc": "Dropout rate for tree regularization",
-              "Aliases": [
-                "tdrop"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.0,
-              "SweepRange": {
-                "RangeType": "Discrete",
-                "Values": [
-                  0.0,
-                  1E-09,
-                  0.05,
-                  0.1,
-                  0.2
-                ]
-              }
-            },
-            {
-              "Name": "GetDerivativesSampleRate",
-              "Type": "Int",
-              "Desc": "Sample each query 1 in k times in the GetDerivatives function",
-              "Aliases": [
-                "sr"
+                "ngram"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25077,383 +25610,11 @@
               "Default": 1
             },
             {
-              "Name": "WriteLastEnsemble",
-              "Type": "Bool",
-              "Desc": "Write the last ensemble instead of the one determined by early stopping",
-              "Aliases": [
-                "hl"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "MaxTreeOutput",
-              "Type": "Float",
-              "Desc": "Upper bound on absolute value of single tree output",
-              "Aliases": [
-                "mo"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 100.0
-            },
-            {
-              "Name": "RandomStart",
-              "Type": "Bool",
-              "Desc": "Training starts from random ordering (determined by /r1)",
-              "Aliases": [
-                "rs"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "FilterZeroLambdas",
-              "Type": "Bool",
-              "Desc": "Filter zero lambdas during training",
-              "Aliases": [
-                "fzl"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "BaselineScoresFormula",
-              "Type": "String",
-              "Desc": "Freeform defining the scores that should be used as the baseline ranker",
-              "Aliases": [
-                "basescores"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": null
-            },
-            {
-              "Name": "BaselineAlphaRisk",
-              "Type": "String",
-              "Desc": "Baseline alpha for tradeoffs of risk (0 is normal training)",
-              "Aliases": [
-                "basealpha"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": null
-            },
-            {
-              "Name": "PositionDiscountFreeform",
-              "Type": "String",
-              "Desc": "The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)",
-              "Aliases": [
-                "pdff"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": null
-            },
-            {
-              "Name": "ParallelTrainer",
-              "Type": {
-                "Kind": "Component",
-                "ComponentKind": "ParallelTraining"
-              },
-              "Desc": "Allows to choose Parallel FastTree Learning Algorithm",
-              "Aliases": [
-                "parag"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": {
-                "Name": "Single"
-              }
-            },
-            {
-              "Name": "NumThreads",
+              "Name": "SkipLength",
               "Type": "Int",
-              "Desc": "The number of threads to use",
+              "Desc": "Maximum number of tokens to skip when constructing an ngram",
               "Aliases": [
-                "t"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": true,
-              "Default": null
-            },
-            {
-              "Name": "RngSeed",
-              "Type": "Int",
-              "Desc": "The seed of the random number generator",
-              "Aliases": [
-                "r1"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 123
-            },
-            {
-              "Name": "FeatureSelectSeed",
-              "Type": "Int",
-              "Desc": "The seed of the active feature selection",
-              "Aliases": [
-                "r3"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 123
-            },
-            {
-              "Name": "EntropyCoefficient",
-              "Type": "Float",
-              "Desc": "The entropy (regularization) coefficient between 0 and 1",
-              "Aliases": [
-                "e"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.0
-            },
-            {
-              "Name": "HistogramPoolSize",
-              "Type": "Int",
-              "Desc": "The number of histograms in the pool (between 2 and numLeaves)",
-              "Aliases": [
-                "ps"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": -1
-            },
-            {
-              "Name": "DiskTranspose",
-              "Type": "Bool",
-              "Desc": "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose",
-              "Aliases": [
-                "dt"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": true,
-              "Default": null
-            },
-            {
-              "Name": "FeatureFlocks",
-              "Type": "Bool",
-              "Desc": "Whether to collectivize features during dataset preparation to speed up training",
-              "Aliases": [
-                "flocks"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": true
-            },
-            {
-              "Name": "CategoricalSplit",
-              "Type": "Bool",
-              "Desc": "Whether to do split based on multiple categorical feature values.",
-              "Aliases": [
-                "cat"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "MaxCategoricalGroupsPerNode",
-              "Type": "Int",
-              "Desc": "Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.",
-              "Aliases": [
-                "mcg"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 64
-            },
-            {
-              "Name": "MaxCategoricalSplitPoints",
-              "Type": "Int",
-              "Desc": "Maximum categorical split points to consider when splitting on a categorical feature.",
-              "Aliases": [
-                "maxcat"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 64
-            },
-            {
-              "Name": "MinDocsPercentageForCategoricalSplit",
-              "Type": "Float",
-              "Desc": "Minimum categorical docs percentage in a bin to consider for a split.",
-              "Aliases": [
-                "mdop"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.001
-            },
-            {
-              "Name": "MinDocsForCategoricalSplit",
-              "Type": "Int",
-              "Desc": "Minimum categorical doc count in a bin to consider for a split.",
-              "Aliases": [
-                "mdo"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 100
-            },
-            {
-              "Name": "Bias",
-              "Type": "Float",
-              "Desc": "Bias for calculating gradient for each feature bin for a categorical feature.",
-              "Aliases": [
-                "bias"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.0
-            },
-            {
-              "Name": "Bundling",
-              "Type": {
-                "Kind": "Enum",
-                "Values": [
-                  "None",
-                  "AggregateLowPopulation",
-                  "Adjacent"
-                ]
-              },
-              "Desc": "Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.",
-              "Aliases": [
-                "bundle"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": "None"
-            },
-            {
-              "Name": "MaxBins",
-              "Type": "Int",
-              "Desc": "Maximum number of distinct values (bins) per feature",
-              "Aliases": [
-                "mb"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 255
-            },
-            {
-              "Name": "SparsifyThreshold",
-              "Type": "Float",
-              "Desc": "Sparsity level needed to use sparse feature representation",
-              "Aliases": [
-                "sp"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.7
-            },
-            {
-              "Name": "FeatureFirstUsePenalty",
-              "Type": "Float",
-              "Desc": "The feature first use penalty coefficient",
-              "Aliases": [
-                "ffup"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.0
-            },
-            {
-              "Name": "FeatureReusePenalty",
-              "Type": "Float",
-              "Desc": "The feature re-use penalty (regularization) coefficient",
-              "Aliases": [
-                "frup"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.0
-            },
-            {
-              "Name": "GainConfidenceLevel",
-              "Type": "Float",
-              "Desc": "Tree fitting gain confidence requirement (should be in the range [0,1) ).",
-              "Aliases": [
-                "gainconf"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.0
-            },
-            {
-              "Name": "SoftmaxTemperature",
-              "Type": "Float",
-              "Desc": "The temperature of the randomized softmax distribution for choosing the feature",
-              "Aliases": [
-                "smtemp"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.0
-            },
-            {
-              "Name": "ExecutionTimes",
-              "Type": "Bool",
-              "Desc": "Print execution time breakdown to stdout",
-              "Aliases": [
-                "et"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "FeatureFraction",
-              "Type": "Float",
-              "Desc": "The fraction of features (chosen randomly) to use on each iteration",
-              "Aliases": [
-                "ff"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0
-            },
-            {
-              "Name": "BaggingSize",
-              "Type": "Int",
-              "Desc": "Number of trees in each bag (0 for disabling bagging)",
-              "Aliases": [
-                "bag"
+                "skips"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25461,48 +25622,11 @@
               "Default": 0
             },
             {
-              "Name": "BaggingTrainFraction",
-              "Type": "Float",
-              "Desc": "Percentage of training examples used in each bag",
-              "Aliases": [
-                "bagfrac"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.7
-            },
-            {
-              "Name": "SplitFraction",
-              "Type": "Float",
-              "Desc": "The fraction of features (chosen randomly) to use on each split",
-              "Aliases": [
-                "sf"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0
-            },
-            {
-              "Name": "Smoothing",
-              "Type": "Float",
-              "Desc": "Smoothing paramter for tree regularization",
-              "Aliases": [
-                "s"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0.0
-            },
-            {
-              "Name": "AllowEmptyTrees",
+              "Name": "AllLengths",
               "Type": "Bool",
-              "Desc": "When a root split is impossible, allow training to proceed",
+              "Desc": "Whether to include all ngram lengths up to NgramLength or only NgramLength",
               "Aliases": [
-                "allowempty",
-                "dummies"
+                "all"
               ],
               "Required": false,
               "SortOrder": 150.0,
@@ -25510,79 +25634,293 @@
               "Default": true
             },
             {
-              "Name": "FeatureCompressionLevel",
-              "Type": "Int",
-              "Desc": "The level of feature compression to use",
+              "Name": "MaxNumTerms",
+              "Type": {
+                "Kind": "Array",
+                "ItemType": "Int"
+              },
+              "Desc": "Maximum number of ngrams to store in the dictionary",
               "Aliases": [
-                "fcomp"
+                "max"
               ],
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
-              "Default": 1
+              "Default": [
+                10000000
+              ]
             },
             {
-              "Name": "CompressEnsemble",
-              "Type": "Bool",
-              "Desc": "Compress the tree Ensemble",
-              "Aliases": [
-                "cmp"
-              ],
+              "Name": "Weighting",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "Tf",
+                  "Idf",
+                  "TfIdf"
+                ]
+              },
+              "Desc": "The weighting criteria",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "MaxTreesAfterCompression",
-              "Type": "Int",
-              "Desc": "Maximum Number of trees after compression",
-              "Aliases": [
-                "cmpmax"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": -1
-            },
-            {
-              "Name": "PrintTestGraph",
-              "Type": "Bool",
-              "Desc": "Print metrics graph for the first test set",
-              "Aliases": [
-                "graph"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "PrintTrainValidGraph",
-              "Type": "Bool",
-              "Desc": "Print Train and Validation metrics in graph",
-              "Aliases": [
-                "graphtv"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
-              "Name": "TestFrequency",
-              "Type": "Int",
-              "Desc": "Calculate metric values for train/valid/test every k rounds",
-              "Aliases": [
-                "tf"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 2147483647
+              "Default": "Tf"
             }
           ]
         },
+        {
+          "Name": "NGramHash",
+          "Desc": "Extracts NGrams from text and convert them to vector using hashing trick.",
+          "FriendlyName": "NGram Hash Extractor Transform",
+          "Aliases": [
+            "NGramHashExtractorTransform",
+            "NGramHashExtractor"
+          ],
+          "Settings": [
+            {
+              "Name": "HashBits",
+              "Type": "Int",
+              "Desc": "Number of bits to hash into. Must be between 1 and 30, inclusive.",
+              "Aliases": [
+                "bits"
+              ],
+              "Required": false,
+              "SortOrder": 2.0,
+              "IsNullable": false,
+              "Default": 16
+            },
+            {
+              "Name": "NgramLength",
+              "Type": "Int",
+              "Desc": "Ngram length",
+              "Aliases": [
+                "ngram"
+              ],
+              "Required": false,
+              "SortOrder": 3.0,
+              "IsNullable": false,
+              "Default": 1
+            },
+            {
+              "Name": "SkipLength",
+              "Type": "Int",
+              "Desc": "Maximum number of tokens to skip when constructing an ngram",
+              "Aliases": [
+                "skips"
+              ],
+              "Required": false,
+              "SortOrder": 4.0,
+              "IsNullable": false,
+              "Default": 0
+            },
+            {
+              "Name": "AllLengths",
+              "Type": "Bool",
+              "Desc": "Whether to include all ngram lengths up to ngramLength or only ngramLength",
+              "Aliases": [
+                "all"
+              ],
+              "Required": false,
+              "SortOrder": 4.0,
+              "IsNullable": false,
+              "Default": true
+            },
+            {
+              "Name": "Seed",
+              "Type": "UInt",
+              "Desc": "Hashing seed",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 314489979
+            },
+            {
+              "Name": "Ordered",
+              "Type": "Bool",
+              "Desc": "Whether the position of each source column should be included in the hash (when there are multiple source columns).",
+              "Aliases": [
+                "ord"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": true
+            },
+            {
+              "Name": "InvertHash",
+              "Type": "Int",
+              "Desc": "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
+              "Aliases": [
+                "ih"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Kind": "ParallelLightGBM",
+      "Components": [
+        {
+          "Name": "Single",
+          "Desc": "Single node machine learning process.",
+          "FriendlyName": "Single",
+          "Settings": []
+        }
+      ]
+    },
+    {
+      "Kind": "ParallelTraining",
+      "Components": [
+        {
+          "Name": "Single",
+          "Desc": "Single node machine learning process.",
+          "FriendlyName": "Single",
+          "Settings": []
+        }
+      ]
+    },
+    {
+      "Kind": "PartitionedPathParser",
+      "Components": [
+        {
+          "Name": "ParquetPathParser",
+          "Desc": "Extract name/value pairs from Parquet formatted directory names. Example path: Year=2018/Month=12/data1.parquet",
+          "FriendlyName": "Parquet Partitioned Path Parser",
+          "Aliases": [
+            "ParqPP"
+          ],
+          "Settings": []
+        },
+        {
+          "Name": "SimplePathParser",
+          "Desc": "A simple parser that extracts directory names as column values. Column names are defined as arguments.",
+          "FriendlyName": "Simple Partitioned Path Parser",
+          "Aliases": [
+            "SmplPP"
+          ],
+          "Settings": [
+            {
+              "Name": "Columns",
+              "Type": {
+                "Kind": "Array",
+                "ItemType": {
+                  "Kind": "Struct",
+                  "Fields": [
+                    {
+                      "Name": "Name",
+                      "Type": "String",
+                      "Desc": "Name of the column.",
+                      "Required": true,
+                      "SortOrder": 150.0,
+                      "IsNullable": false
+                    },
+                    {
+                      "Name": "Type",
+                      "Type": {
+                        "Kind": "Enum",
+                        "Values": [
+                          "I1",
+                          "U1",
+                          "I2",
+                          "U2",
+                          "I4",
+                          "U4",
+                          "I8",
+                          "U8",
+                          "R4",
+                          "Num",
+                          "R8",
+                          "TX",
+                          "Text",
+                          "TXT",
+                          "BL",
+                          "Bool",
+                          "TimeSpan",
+                          "TS",
+                          "DT",
+                          "DateTime",
+                          "DZ",
+                          "DateTimeZone",
+                          "UG",
+                          "U16"
+                        ]
+                      },
+                      "Desc": "Data type of the column.",
+                      "Required": false,
+                      "SortOrder": 150.0,
+                      "IsNullable": true,
+                      "Default": null
+                    },
+                    {
+                      "Name": "Source",
+                      "Type": "Int",
+                      "Desc": "Index of the directory representing this column.",
+                      "Required": true,
+                      "SortOrder": 150.0,
+                      "IsNullable": false,
+                      "Default": 0
+                    }
+                  ]
+                }
+              },
+              "Desc": "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1",
+              "Aliases": [
+                "col"
+              ],
+              "Required": false,
+              "SortOrder": 1.0,
+              "IsNullable": false,
+              "Default": null
+            },
+            {
+              "Name": "Type",
+              "Type": {
+                "Kind": "Enum",
+                "Values": [
+                  "I1",
+                  "U1",
+                  "I2",
+                  "U2",
+                  "I4",
+                  "U4",
+                  "I8",
+                  "U8",
+                  "R4",
+                  "Num",
+                  "R8",
+                  "TX",
+                  "Text",
+                  "TXT",
+                  "BL",
+                  "Bool",
+                  "TimeSpan",
+                  "TS",
+                  "DT",
+                  "DateTime",
+                  "DZ",
+                  "DateTimeZone",
+                  "UG",
+                  "U16"
+                ]
+              },
+              "Desc": "Data type of each column.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": "TX"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Kind": "RankingTrainerFactory",
+      "Components": [
         {
           "Name": "FastTreeRanking",
           "Desc": "Trains gradient boosted decision trees to the LambdaRank quasi-gradient.",
@@ -26557,7 +26895,51 @@
               "Default": 2147483647
             }
           ]
+        }
+      ]
+    },
+    {
+      "Kind": "RegressionLossFunction",
+      "Components": [
+        {
+          "Name": "PoissonLoss",
+          "Desc": "Poisson loss.",
+          "FriendlyName": "Poisson Loss",
+          "Settings": []
         },
+        {
+          "Name": "SquaredLoss",
+          "Desc": "Squared loss.",
+          "FriendlyName": "Squared Loss",
+          "Aliases": [
+            "L2"
+          ],
+          "Settings": []
+        },
+        {
+          "Name": "TweedieLoss",
+          "Desc": "Tweedie loss.",
+          "FriendlyName": "Tweedie Loss",
+          "Aliases": [
+            "tweedie"
+          ],
+          "Settings": [
+            {
+              "Name": "Index",
+              "Type": "Float",
+              "Desc": "Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.",
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": 1.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Kind": "RegressionTrainerFactory",
+      "Components": [
         {
           "Name": "FastTreeRegression",
           "Desc": "Trains gradient boosted decision trees to fit target values using least-squares.",
@@ -28328,378 +28710,6 @@
               "SortOrder": 150.0,
               "IsNullable": false,
               "Default": 2147483647
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Kind": "NgramExtractor",
-      "Components": [
-        {
-          "Name": "NGram",
-          "Desc": "Extracts NGrams from text and convert them to vector using dictionary.",
-          "FriendlyName": "NGram Extractor Transform",
-          "Aliases": [
-            "NGramExtractorTransform",
-            "NGramExtractor"
-          ],
-          "Settings": [
-            {
-              "Name": "NgramLength",
-              "Type": "Int",
-              "Desc": "Ngram length",
-              "Aliases": [
-                "ngram"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1
-            },
-            {
-              "Name": "SkipLength",
-              "Type": "Int",
-              "Desc": "Maximum number of tokens to skip when constructing an ngram",
-              "Aliases": [
-                "skips"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0
-            },
-            {
-              "Name": "AllLengths",
-              "Type": "Bool",
-              "Desc": "Whether to include all ngram lengths up to NgramLength or only NgramLength",
-              "Aliases": [
-                "all"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": true
-            },
-            {
-              "Name": "MaxNumTerms",
-              "Type": {
-                "Kind": "Array",
-                "ItemType": "Int"
-              },
-              "Desc": "Maximum number of ngrams to store in the dictionary",
-              "Aliases": [
-                "max"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": [
-                10000000
-              ]
-            },
-            {
-              "Name": "Weighting",
-              "Type": {
-                "Kind": "Enum",
-                "Values": [
-                  "Tf",
-                  "Idf",
-                  "TfIdf"
-                ]
-              },
-              "Desc": "The weighting criteria",
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": "Tf"
-            }
-          ]
-        },
-        {
-          "Name": "NGramHash",
-          "Desc": "Extracts NGrams from text and convert them to vector using hashing trick.",
-          "FriendlyName": "NGram Hash Extractor Transform",
-          "Aliases": [
-            "NGramHashExtractorTransform",
-            "NGramHashExtractor"
-          ],
-          "Settings": [
-            {
-              "Name": "HashBits",
-              "Type": "Int",
-              "Desc": "Number of bits to hash into. Must be between 1 and 30, inclusive.",
-              "Aliases": [
-                "bits"
-              ],
-              "Required": false,
-              "SortOrder": 2.0,
-              "IsNullable": false,
-              "Default": 16
-            },
-            {
-              "Name": "NgramLength",
-              "Type": "Int",
-              "Desc": "Ngram length",
-              "Aliases": [
-                "ngram"
-              ],
-              "Required": false,
-              "SortOrder": 3.0,
-              "IsNullable": false,
-              "Default": 1
-            },
-            {
-              "Name": "SkipLength",
-              "Type": "Int",
-              "Desc": "Maximum number of tokens to skip when constructing an ngram",
-              "Aliases": [
-                "skips"
-              ],
-              "Required": false,
-              "SortOrder": 4.0,
-              "IsNullable": false,
-              "Default": 0
-            },
-            {
-              "Name": "AllLengths",
-              "Type": "Bool",
-              "Desc": "Whether to include all ngram lengths up to ngramLength or only ngramLength",
-              "Aliases": [
-                "all"
-              ],
-              "Required": false,
-              "SortOrder": 4.0,
-              "IsNullable": false,
-              "Default": true
-            },
-            {
-              "Name": "Seed",
-              "Type": "UInt",
-              "Desc": "Hashing seed",
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 314489979
-            },
-            {
-              "Name": "Ordered",
-              "Type": "Bool",
-              "Desc": "Whether the position of each source column should be included in the hash (when there are multiple source columns).",
-              "Aliases": [
-                "ord"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": true
-            },
-            {
-              "Name": "InvertHash",
-              "Type": "Int",
-              "Desc": "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
-              "Aliases": [
-                "ih"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 0
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Kind": "ParallelLightGBM",
-      "Components": [
-        {
-          "Name": "Single",
-          "Desc": "Single node machine learning process.",
-          "FriendlyName": "Single",
-          "Settings": []
-        }
-      ]
-    },
-    {
-      "Kind": "ParallelTraining",
-      "Components": [
-        {
-          "Name": "Single",
-          "Desc": "Single node machine learning process.",
-          "FriendlyName": "Single",
-          "Settings": []
-        }
-      ]
-    },
-    {
-      "Kind": "PartitionedPathParser",
-      "Components": [
-        {
-          "Name": "ParquetPathParser",
-          "Desc": "Extract name/value pairs from Parquet formatted directory names. Example path: Year=2018/Month=12/data1.parquet",
-          "FriendlyName": "Parquet Partitioned Path Parser",
-          "Aliases": [
-            "ParqPP"
-          ],
-          "Settings": []
-        },
-        {
-          "Name": "SimplePathParser",
-          "Desc": "A simple parser that extracts directory names as column values. Column names are defined as arguments.",
-          "FriendlyName": "Simple Partitioned Path Parser",
-          "Aliases": [
-            "SmplPP"
-          ],
-          "Settings": [
-            {
-              "Name": "Columns",
-              "Type": {
-                "Kind": "Array",
-                "ItemType": {
-                  "Kind": "Struct",
-                  "Fields": [
-                    {
-                      "Name": "Name",
-                      "Type": "String",
-                      "Desc": "Name of the column.",
-                      "Required": true,
-                      "SortOrder": 150.0,
-                      "IsNullable": false
-                    },
-                    {
-                      "Name": "Type",
-                      "Type": {
-                        "Kind": "Enum",
-                        "Values": [
-                          "I1",
-                          "U1",
-                          "I2",
-                          "U2",
-                          "I4",
-                          "U4",
-                          "I8",
-                          "U8",
-                          "R4",
-                          "Num",
-                          "R8",
-                          "TX",
-                          "Text",
-                          "TXT",
-                          "BL",
-                          "Bool",
-                          "TimeSpan",
-                          "TS",
-                          "DT",
-                          "DateTime",
-                          "DZ",
-                          "DateTimeZone",
-                          "UG",
-                          "U16"
-                        ]
-                      },
-                      "Desc": "Data type of the column.",
-                      "Required": false,
-                      "SortOrder": 150.0,
-                      "IsNullable": true,
-                      "Default": null
-                    },
-                    {
-                      "Name": "Source",
-                      "Type": "Int",
-                      "Desc": "Index of the directory representing this column.",
-                      "Required": true,
-                      "SortOrder": 150.0,
-                      "IsNullable": false,
-                      "Default": 0
-                    }
-                  ]
-                }
-              },
-              "Desc": "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1",
-              "Aliases": [
-                "col"
-              ],
-              "Required": false,
-              "SortOrder": 1.0,
-              "IsNullable": false,
-              "Default": null
-            },
-            {
-              "Name": "Type",
-              "Type": {
-                "Kind": "Enum",
-                "Values": [
-                  "I1",
-                  "U1",
-                  "I2",
-                  "U2",
-                  "I4",
-                  "U4",
-                  "I8",
-                  "U8",
-                  "R4",
-                  "Num",
-                  "R8",
-                  "TX",
-                  "Text",
-                  "TXT",
-                  "BL",
-                  "Bool",
-                  "TimeSpan",
-                  "TS",
-                  "DT",
-                  "DateTime",
-                  "DZ",
-                  "DateTimeZone",
-                  "UG",
-                  "U16"
-                ]
-              },
-              "Desc": "Data type of each column.",
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": "TX"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Kind": "RegressionLossFunction",
-      "Components": [
-        {
-          "Name": "PoissonLoss",
-          "Desc": "Poisson loss.",
-          "FriendlyName": "Poisson Loss",
-          "Settings": []
-        },
-        {
-          "Name": "SquaredLoss",
-          "Desc": "Squared loss.",
-          "FriendlyName": "Squared Loss",
-          "Aliases": [
-            "L2"
-          ],
-          "Settings": []
-        },
-        {
-          "Name": "TweedieLoss",
-          "Desc": "Tweedie loss.",
-          "FriendlyName": "Tweedie Loss",
-          "Aliases": [
-            "tweedie"
-          ],
-          "Settings": [
-            {
-              "Name": "Index",
-              "Type": "Float",
-              "Desc": "Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.",
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.5
             }
           ]
         }

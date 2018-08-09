@@ -47,6 +47,8 @@ using Microsoft.ML.Runtime.Training;
     "GAM Vizualization Command", GamPredictorBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
 
 [assembly: LoadableClass(typeof(void), typeof(Gam), null, typeof(SignatureEntryPointModule), "GAM")]
+[assembly: EntryPointModule(typeof(BinaryClassificationGamTrainer.Arguments))]
+[assembly: EntryPointModule(typeof(RegressionGamTrainer.Arguments))]
 
 namespace Microsoft.ML.Runtime.FastTree
 {
@@ -57,8 +59,9 @@ namespace Microsoft.ML.Runtime.FastTree
     public sealed class RegressionGamTrainer :
         GamTrainerBase<RegressionGamTrainer.Arguments, RegressionGamPredictor>
     {
-        public partial class Arguments : ArgumentsBase
+        public partial class Arguments : ArgumentsBase, IRegressionTrainerFactory
         {
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new RegressionGamTrainer(env, this);
         }
 
         internal const string LoadNameValue = "RegressionGamTrainer";
@@ -89,7 +92,7 @@ namespace Microsoft.ML.Runtime.FastTree
     public sealed class BinaryClassificationGamTrainer :
         GamTrainerBase<BinaryClassificationGamTrainer.Arguments, BinaryClassGamPredictor>
     {
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IBinaryTrainerFactory
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
@@ -100,6 +103,8 @@ namespace Microsoft.ML.Runtime.FastTree
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public int MaxCalibrationExamples = 1000000;
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new BinaryClassificationGamTrainer(env, this);
         }
 
         internal const string LoadNameValue = "BinaryClassificationGamTrainer";

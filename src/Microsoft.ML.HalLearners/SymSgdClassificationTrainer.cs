@@ -28,6 +28,8 @@ using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(typeof(void), typeof(SymSgdClassificationTrainer), null, typeof(SignatureEntryPointModule), "SymSGD")]
 
+[assembly: EntryPointModule(typeof(SymSgdClassificationTrainer.Arguments))]
+
 namespace Microsoft.ML.Runtime.SymSgd
 {
     using TPredictor = IPredictorWithFeatureWeights<Float>;
@@ -41,7 +43,7 @@ namespace Microsoft.ML.Runtime.SymSgd
         public const string UserNameValue = "Symbolic SGD (binary)";
         public const string ShortName = "SymSGD";
 
-        public sealed class Arguments : LearnerInputBaseWithLabel
+        public sealed class Arguments : LearnerInputBaseWithLabel, IBinaryTrainerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Determinism not guaranteed. " +
                 "Multi-threading is not supported currently.", ShortName = "nt")]
@@ -87,6 +89,8 @@ namespace Microsoft.ML.Runtime.SymSgd
                 ectx.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Must be positive");
                 ectx.CheckUserArg(UpdateFrequency == null || UpdateFrequency > 0, nameof(UpdateFrequency), "Must be positive");
             }
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new SymSgdClassificationTrainer(env, this);
         }
 
         public override TrainerInfo Info { get; }
@@ -837,5 +841,4 @@ namespace Microsoft.ML.Runtime.SymSgd
 #pragma warning restore 649 // never assigned
         }
     }
-
 }

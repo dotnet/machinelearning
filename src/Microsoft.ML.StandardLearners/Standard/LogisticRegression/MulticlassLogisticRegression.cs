@@ -44,10 +44,12 @@ namespace Microsoft.ML.Runtime.Learners
         internal const string UserNameValue = "Multi-class Logistic Regression";
         internal const string ShortName = "mlr";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase, IMulticlassTrainerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
             public bool ShowTrainingStats = false;
+
+            public ITrainer<IPredictorProducing<VBuffer<float>>> CreateComponent(IHostEnvironment env) => new MulticlassLogisticRegression(env, this);
         }
 
         private int _numClasses;

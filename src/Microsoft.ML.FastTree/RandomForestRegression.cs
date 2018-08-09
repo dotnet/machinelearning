@@ -25,6 +25,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 [assembly: LoadableClass(typeof(FastForestRegressionPredictor), null, typeof(SignatureLoadModel),
     "FastForest Regression Executor",
     FastForestRegressionPredictor.LoaderSignature)]
+[assembly: EntryPointModule(typeof(FastForestRegression.Arguments))]
 
 namespace Microsoft.ML.Runtime.FastTree
 {
@@ -140,11 +141,13 @@ namespace Microsoft.ML.Runtime.FastTree
     /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestRegression : RandomForestTrainerBase<FastForestRegression.Arguments, FastForestRegressionPredictor>
     {
-        public sealed class Arguments : FastForestArgumentsBase
+        public sealed class Arguments : FastForestArgumentsBase, IRegressionTrainerFactory
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Shuffle the labels on every iteration. " +
                 "Useful probably only if using this tree as a tree leaf featurizer for multiclass.")]
             public bool ShuffleLabels;
+
+            public ITrainer<IPredictorProducing<float>> CreateComponent(IHostEnvironment env) => new FastForestRegression(env, this);
         }
 
         internal const string Summary = "Trains a random forest to fit target values using least-squares.";
