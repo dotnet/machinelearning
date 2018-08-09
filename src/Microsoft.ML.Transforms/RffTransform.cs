@@ -23,7 +23,7 @@ using Microsoft.ML.Runtime.Numeric;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    using CpuUtils = SseUtils;
+    using CpuUtils = CpuMathUtils;
 
     public sealed class RffTransform : OneToOneTransformBase
     {

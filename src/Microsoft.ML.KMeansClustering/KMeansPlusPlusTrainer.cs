@@ -830,7 +830,7 @@ namespace Microsoft.ML.Runtime.KMeans
                     {
                         weights = new Float[totalSamples];
                         for (int i = 0; i < workStateWeights.Length; i++)
-                            SseUtils.Add(workStateWeights[i], weights, totalSamples);
+                            CpuMathUtils.Add(workStateWeights[i], weights, totalSamples);
                     },
                     ref weightBuffer, ref totalWeights);
 #if DEBUG
