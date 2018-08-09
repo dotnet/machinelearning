@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Drawing;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
@@ -14,14 +16,14 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         public ImageType(int height, int width)
            : base(typeof(Bitmap))
         {
-            Contracts.CheckParam(height > 0, nameof(height));
-            Contracts.CheckParam(width > 0, nameof(width));
-            Contracts.CheckParam((long)height * width <= int.MaxValue / 4, nameof(height), nameof(height) + " * " + nameof(width) + " is too large");
+            Contracts.CheckParam(height > 0, nameof(height), "Must be positive.");
+            Contracts.CheckParam(width > 0, nameof(width), " Must be positive.");
+            Contracts.CheckParam((long)height * width <= int.MaxValue / 4, nameof(height), nameof(height) + " * " + nameof(width) + " is too large.");
             Height = height;
             Width = width;
         }
 
-        public ImageType() : base(typeof(Image))
+        public ImageType() : base(typeof(Bitmap))
         {
         }
 
@@ -34,6 +36,16 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             if (Height != tmp.Height)
                 return false;
             return Width != tmp.Width;
+        }
+
+        public override bool Equals(object other)
+        {
+            return other is ColumnType tmp && Equals(tmp);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hashing.CombineHash(Height.GetHashCode(), Width.GetHashCode());
         }
 
         public override string ToString()
