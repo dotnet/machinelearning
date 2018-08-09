@@ -31,7 +31,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                               (
                                   (e) => new FastTreeBinaryClassificationTrainer(e, new FastTreeBinaryClassificationTrainer.Arguments())
                               )
-
                 });
 
                 IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, concat, prefetch: null) : concat;
@@ -44,9 +43,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var scoreRoles = new RoleMappedData(concat, label: "Label", feature: "Features");
                 IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, scoreRoles, env, trainRoles.Schema);
 
-                // Cut out term transform from pipeline.
-                var newScorer = ApplyTransformUtils.ApplyAllTransformsToData(env, scorer, loader, term);
-                var keyToValue = new KeyToValueTransform(env, newScorer, "PredictedLabel");
+                var keyToValue = new KeyToValueTransform(env, scorer, "PredictedLabel");
                 var model = env.CreatePredictionEngine<IrisData, IrisPrediction>(keyToValue);
 
                 var testLoader = new TextLoader(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));

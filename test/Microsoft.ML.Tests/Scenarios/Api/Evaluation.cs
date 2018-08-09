@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Xunit;
@@ -41,6 +42,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var predictor = trainer.Train(new Runtime.TrainContext(trainRoles));
                 var scoreRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, scoreRoles, env, trainRoles.Schema);
+
+                // Create prediction engine and test predictions.
+                var model = env.CreatePredictionEngine<SentimentData, SentimentPrediction>(scorer);
+
+                // Take a couple examples out of the test data and run predictions on top.
+                var testLoader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(SentimentTestPath)));
+                var testData = testLoader.AsEnumerable<SentimentData>(env, false);
 
                 var dataEval = new RoleMappedData(scorer, label: "Label", feature: "Features", opt: true);
 
