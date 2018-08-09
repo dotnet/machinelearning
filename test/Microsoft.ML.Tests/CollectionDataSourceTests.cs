@@ -982,7 +982,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
-
         class ClassWithGetter
         {
             private DateTime _dateTime = DateTime.Now;
@@ -1001,7 +1000,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             public int GetHour => Hour;
         }
 
-
         [Fact]
         public void PrivateGetSetProperties()
         {
@@ -1011,6 +1009,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithGetter(),
                 new ClassWithGetter()
             };
+
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
@@ -1022,7 +1021,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                         enumeratorSimple.Current.GetHour == originalEnumerator.Current.Hour);
                 }
             }
-
         }
     }
 }
