@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static Vector128<float> VectorSum(Vector128<float> vector)
+        private static Vector128<float> VectorSum(in Vector128<float> vector)
         {
             if (Sse3.IsSupported)
             {
