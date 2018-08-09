@@ -1,5 +1,7 @@
-﻿using Microsoft.ML.Runtime.Api;
+﻿using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Learners;
 using System.Linq;
@@ -25,7 +27,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var concat = new ConcatTransform(env, term, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
                 var trainer = new Ova(env, new Ova.Arguments
                 {
-                    PredictorType = new FastTreeBinaryClassificationTrainer.Arguments()
+                    PredictorType = new SimpleComponentFactory<ITrainer<IPredictorProducing<float>>>
+                              (
+                                  (e) => new FastTreeBinaryClassificationTrainer(e, new FastTreeBinaryClassificationTrainer.Arguments())
+                              )
+
                 });
 
                 IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, concat, prefetch: null) : concat;
@@ -41,14 +47,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Cut out term transform from pipeline.
                 var newScorer = ApplyTransformUtils.ApplyAllTransformsToData(env, scorer, loader, term);
                 var keyToValue = new KeyToValueTransform(env, newScorer, "PredictedLabel");
-                var model = env.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(keyToValue);
+                var model = env.CreatePredictionEngine<IrisData, IrisPrediction>(keyToValue);
 
                 var testLoader = new TextLoader(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
-                var testData = testLoader.AsEnumerable<IrisDataNoLabel>(env, false);
+                var testData = testLoader.AsEnumerable<IrisData>(env, false);
                 foreach (var input in testData.Take(20))
                 {
                     var prediction = model.Predict(input);
-                    Assert.True(prediction.PredictedLabel == "Iris-setosa");
+                    Assert.True(prediction.PredictedLabel == input.Label);
                 }
             }
         }
