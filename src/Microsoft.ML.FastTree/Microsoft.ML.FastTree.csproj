@@ -9,6 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="GamClassification.cs" />
+    <None Remove="GamRegression.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
@@ -27,6 +32,8 @@
     <Compile Include="FastTreeRegression.cs" />
     <Compile Include="FastTree.cs" />
     <Compile Include="FastTreeTweedie.cs" />
+    <Compile Include="GamClassification.cs" />
+    <Compile Include="GamRegression.cs" />
     <Compile Include="GamTrainer.cs" />
     <Compile Include="RandomForest.cs" />
     <Compile Include="RandomForestRegression.cs" />

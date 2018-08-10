@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Runtime.Internal.Calibration;
+using EasyTextLoader = Microsoft.ML.Data.TextLoader;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -28,26 +32,152 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             using (var env = new TlcEnvironment())
             {
-                var trainingSet = LoadDataset(env);
-                var validationSet = LoadDataset(env);
+                var trainFile = "binary_sine_logistic_10k.tsv";
+                var validationFile = "binary_sine_logistic_10k_valid.tsv";
+
+                var trainingSet = LoadDataset(env, trainFile);
+                var validationSet = LoadDataset(env, validationFile);
 
                 var context = new TrainContext(trainingSet: trainingSet, validationSet: validationSet);
 
-                var binaryTrainer = new BinaryClassificationGamTrainer(env, new BinaryClassificationGamTrainer.Arguments() { LearningRates = 0.1 });
-                var binaryPredictor = binaryTrainer.Train(context);
+                var numIterations = 10000;
+                var LearningRates = 0.002;
 
-                var regressionTrainer = new RegressionGamTrainer(env, new RegressionGamTrainer.Arguments());
-                var regressionPredictor = regressionTrainer.Train(context);
+                var binaryTrainer = new BinaryClassificationGamTrainer(env,
+                    new BinaryClassificationGamTrainer.Arguments() {
+                        NumIterations = numIterations,
+                        LearningRates = LearningRates
+                    });
+                var binaryPredictor = (CalibratedPredictor) binaryTrainer.Train(context);
 
-                //// Compare the predictors
-                //ComparePredictors(env, firstPredictor, secondPredictor, dataset);
+                var gamPredictor = (BinaryClassGamPredictor)binaryPredictor.SubPredictor;
+
+                GetSummary(gamPredictor, trainingSet.Schema);
+
+                double trainLoss = ComputeLoss(env, binaryPredictor, trainingSet, trainFile, ComputeLogisticGradient);
+
+                Assert.Equal(gamPredictor.TrainingSummary.TrainLoss, trainLoss, 4);
+
+                double validationLoss = ComputeLoss(env, binaryPredictor, validationSet, validationFile,
+                    ComputeBinaryLossRate, BinaryLossRateCorrection);
+
+                Assert.Equal(gamPredictor.TrainingSummary.ValidMetric, validationLoss, 4);
             }
         }
 
-        private RoleMappedData LoadDataset(TlcEnvironment env)
+        [Fact]
+        [TestCategory("GAM")]
+        public void TestRegressionGamTrainer()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
-            var outRoot = @"..\Common\CheckPointTest";
+            using (var env = new TlcEnvironment())
+            {
+                // Tuning parameters for testing
+                var numIterations = 10000;
+                var LearningRates = 0.001;
+
+                // The datasets to use here
+                var trainFile = "regression_sine_identity_10k.tsv";
+                var validationFile = "regression_sine_identity_10k_valid.tsv";
+
+                var trainingSet = LoadDataset(env, trainFile);
+                var validationSet = LoadDataset(env, validationFile);
+                var context = new TrainContext(trainingSet: trainingSet, validationSet: validationSet);
+
+                var regressionTrainer = new RegressionGamTrainer(env, 
+                    new RegressionGamTrainer.Arguments()
+                    {
+                        NumIterations = numIterations,
+                        LearningRates = LearningRates
+                    });
+                var regressionPredictor = regressionTrainer.Train(context);
+
+                GetSummary(regressionPredictor, trainingSet.Schema);
+
+                double trainLoss = ComputeLoss(env, regressionPredictor, trainingSet, trainFile, ComputeRegressionGradient);
+
+                Assert.Equal(regressionPredictor.TrainingSummary.TrainLoss, trainLoss, 4);
+
+                double validationLoss = ComputeLoss(env, regressionPredictor, validationSet, validationFile, 
+                    ComputeL2Loss, L2LossCorrection);
+
+                Assert.Equal(regressionPredictor.TrainingSummary.ValidMetric, validationLoss, 4);
+            }
+        }
+
+        private double ComputeLoss(TlcEnvironment env, IPredictor predictor,
+            RoleMappedData dataset, string fileName,
+            Func<float, TestData, double> lossFunction, Func<double, int, double> correction = null)
+        {
+            var testData = LoadDataAsObjects(GetDataPath(fileName));
+            var scores = GetModel(env, predictor, dataset)
+                            .Predict(testData, false)
+                            .Select(p => p.Score);
+
+            var gradients = scores.Zip(testData, (score, row) => lossFunction(score, row));
+
+            var total = gradients.Sum();
+
+            if (correction != null)
+                total = correction(total, testData.Count());
+
+            return total;
+        }
+
+
+        private double ComputeLogisticGradient(float score, TestData row)
+        {
+            double sigmoidParameter = 1.0;
+            int label = row.Label == 1 ? 1 : -1;
+            double recip = 1;
+            double response = 2.0 * label * sigmoidParameter / (1.0 + Math.Exp(2.0 * label * sigmoidParameter * score));
+            double absResponse = Math.Abs(response);
+            double pLambda = response * recip;
+
+            return pLambda;
+        }
+
+        private double ComputeBinaryLossRate(float score, TestData row)
+        {
+            double sigmoidParameter = 1.0;
+            int label = row.Label == 1 ? 1 : -1;
+            double loss = Math.Log(1.0 + Math.Exp(-2.0 * sigmoidParameter * label * score));
+
+            return loss;
+        }
+        
+        private double BinaryLossRateCorrection(double total, int length)
+        {
+            return total / length;
+        }
+
+        private double ComputeRegressionGradient(float score, TestData row)
+        {
+            return row.Label - score;
+        }
+
+        private double ComputeL2Loss(float score, TestData row)
+        {
+            return (row.Label - score)*(row.Label - score);
+        }
+
+        private double L2LossCorrection(double total, int length)
+        {
+            return Math.Sqrt(total / length);
+        }
+
+        private void GetSummary(GamPredictorBase gamPredictor, RoleMappedSchema schema)
+        {
+            using (StringWriter writer = new StringWriter())
+            {
+                gamPredictor.SaveSummary(writer, schema);
+                Logger.WriteLine("Summary {0}", writer.ToString());
+            }
+        }
+
+        private RoleMappedData LoadDataset(TlcEnvironment env, string name)
+        {
+            var dataPath = GetDataPath(name);
+            var outRoot = @"..\Common\GAMBinaryClassification";
 
             var modelOutPath = DeleteOutputPath(outRoot, "codegen-model.zip");
             var csOutPath = DeleteOutputPath(outRoot, "codegen-out.cs");
@@ -68,7 +198,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         new TextLoader.Column()
                         {
                             Name = "Features",
-                            Source = new [] { new TextLoader.Range() { Min=1, Max=9} },
+                            Source = new [] { new TextLoader.Range() { Min=1, Max=3} },
                             Type = DataKind.R4
                         }
                     }
@@ -77,18 +207,6 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // Specify the dataset
             return new RoleMappedData(loader, label: "Label", feature: "Features");
-        }
-
-        private void ComparePredictors(TlcEnvironment env, IPredictor firstPredictor, IPredictor secondPredictor, RoleMappedData dataset)
-        {
-            var firstModel = GetModel(env, firstPredictor, dataset);
-            var firstPredictions = firstModel.Predict(GetTestData(), false).Select(p => p.Probability);
-
-            var secondModel = GetModel(env, secondPredictor, dataset);
-            var secondPredictions = secondModel.Predict(GetTestData(), false).Select(p => p.Probability);
-
-            Assert.Equal(firstPredictions, secondPredictions);
-            Logger.WriteLine("Prediction comparison passed!");
         }
 
         private BatchPredictionEngine<TestData, Prediction> GetModel(TlcEnvironment env, IPredictor predictor, RoleMappedData dataset)
@@ -102,46 +220,37 @@ namespace Microsoft.ML.Runtime.RunTests
             [Column(ordinal: "0", name: "Label")]
             public float Label;
 
-            [Column(ordinal: "1-9")]
-            [VectorType(9)]
+            [Column(ordinal: "1")]
+            [VectorType(3)]
             public float[] Features;
         }
 
         public class Prediction
         {
-            [ColumnName("Probability")]
-            public float Probability;
+            //[ColumnName("Probability")]
+            //public float Probability;
+
+            [ColumnName("Score")]
+            public float Score;
         }
 
-        private IEnumerable<TestData> GetTestData()
+        private IEnumerable<TestData> LoadDataAsObjects(string filePath)
         {
-            return new[]
+            StreamReader reader = new StreamReader(filePath);
+            string inputLine = "";
+            var dataset = new List<TestData>();
+            while ((inputLine = reader.ReadLine()) != null)
             {
-                new TestData
+                string[] inputArray = inputLine.Split(new char[] { '\t' });
+                if (inputArray.Count() > 0)
                 {
-                    Features = new float[9] {0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f,}
-                },
-                new TestData
-                {
-                    Features = new float[9] {0f, 1f, 0f, 0f, -100f, 1000f, 0f, 0f, 0f,}
-                },
-                new TestData
-                {
-                    Features = new float[9] {0f, 1f, 1f, 0f, 10f, 0f, 0f, -123f, 0f,}
-                },
-                new TestData
-                {
-                    Features = new float[9] {0f, 1f, 1f, 1f, 0f, 78f, 0f, 0f, 0f,}
-                },
-                new TestData
-                {
-                    Features = new float[9] {0f, 1f, 0.345f, 1f, 1f, 0f, 0f, 0f, 0f,}
-                },
-                new TestData
-                {
-                    Features = new float[9] {1f, 1f, 1f, 1f, 1f, 1f, 1e-4f, 1f, 2f,}
+                    yield return new TestData
+                    {
+                        Label = float.Parse(inputArray[0]),
+                        Features = inputArray.Skip(1).Select(x => float.Parse(x)).ToArray<float>()
+                    };
                 }
-            };
+            }
         }
     }
 }

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -21,28 +20,6 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 
-[assembly: LoadableClass(RegressionGamTrainer.Summary,
-    typeof(RegressionGamTrainer), typeof(RegressionGamTrainer.Arguments),
-    new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    RegressionGamTrainer.UserNameValue,
-    RegressionGamTrainer.LoadNameValue,
-    RegressionGamTrainer.ShortName, DocName = "trainer/GAM.md")]
-
-[assembly: LoadableClass(BinaryClassificationGamTrainer.Summary,
-    typeof(BinaryClassificationGamTrainer), typeof(BinaryClassificationGamTrainer.Arguments),
-    new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    BinaryClassificationGamTrainer.UserNameValue,
-    BinaryClassificationGamTrainer.LoadNameValue,
-    BinaryClassificationGamTrainer.ShortName, DocName = "trainer/GAM.md")]
-
-[assembly: LoadableClass(typeof(RegressionGamPredictor), null, typeof(SignatureLoadModel),
-    "GAM Regression Predictor",
-    RegressionGamPredictor.LoaderSignature)]
-
-[assembly: LoadableClass(typeof(BinaryClassGamPredictor), null, typeof(SignatureLoadModel),
-    "GAM Binary Class Predictor",
-    BinaryClassGamPredictor.LoaderSignature)]
-
 [assembly: LoadableClass(typeof(GamPredictorBase.VisualizationCommand), typeof(GamPredictorBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
     "GAM Vizualization Command", GamPredictorBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
 
@@ -54,126 +31,12 @@ namespace Microsoft.ML.Runtime.FastTree
     using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
     using AutoResetEvent = System.Threading.AutoResetEvent;
 
-    public sealed class RegressionGamTrainer :
-        GamTrainerBase<RegressionGamTrainer.Arguments, RegressionGamPredictor>
-    {
-        public partial class Arguments : ArgumentsBase
-        {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2)", ShortName = "pmetric")]
-            [TGUI(Description = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2")]
-            public int PruningMetrics = 2;
-        }
-
-        internal const string LoadNameValue = "RegressionGamTrainer";
-        internal const string UserNameValue = "Generalized Additive Model for Regression";
-        internal const string ShortName = "gamr";
-
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
-
-        public RegressionGamTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args) { }
-
-        internal override void CheckLabel(RoleMappedData data)
-        {
-            data.CheckRegressionLabel();
-        }
-
-        private protected override RegressionGamPredictor CreatePredictor()
-        {
-            return new RegressionGamPredictor(Host, InputLength, TrainSet, BinEffects, FeatureMap);
-        }
-
-        protected override ObjectiveFunctionBase CreateObjectiveFunction()
-        {
-            return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, Args);
-        }
-
-        protected override void DefinePruningTest()
-        {
-            var validTest = new RegressionTest(ValidSetScore, Args.PruningMetrics);
-            // Because we specify pruning metrics as L2 by default, the results array will have 1 value
-            PruningLossIndex = 0;
-            PruningTest = new TestHistory(validTest, PruningLossIndex);
-        }
-    }
-
-    public sealed class BinaryClassificationGamTrainer :
-        GamTrainerBase<BinaryClassificationGamTrainer.Arguments, BinaryClassGamPredictor>
-    {
-        public sealed class Arguments : ArgumentsBase
-        {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use derivatives optimized for unbalanced sets", ShortName = "us")]
-            [TGUI(Label = "Optimize for unbalanced")]
-            public bool UnbalancedSets = false;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public int MaxCalibrationExamples = 1000000;
-        }
-
-        internal const string LoadNameValue = "BinaryClassificationGamTrainer";
-        internal const string UserNameValue = "Generalized Additive Model for Binary Classification";
-        internal const string ShortName = "gam";
-
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        private protected override bool NeedCalibration => true;
-
-        public BinaryClassificationGamTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args) { }
-
-        internal override void CheckLabel(RoleMappedData data)
-        {
-            data.CheckBinaryLabel();
-        }
-
-        private bool[] ConvertTargetsToBool(double[] targets)
-        {
-            bool[] boolArray = new bool[targets.Length];
-            int innerLoopSize = 1 + targets.Length / BlockingThreadPool.NumThreads;
-            var actions = new Action[(int)Math.Ceiling(1.0 * targets.Length / innerLoopSize)];
-            var actionIndex = 0;
-            for (int d = 0; d < targets.Length; d += innerLoopSize)
-            {
-                var fromDoc = d;
-                var toDoc = Math.Min(d + innerLoopSize, targets.Length);
-                actions[actionIndex++] = () =>
-                {
-                    for (int doc = fromDoc; doc < toDoc; doc++)
-                        boolArray[doc] = targets[doc] > 0;
-                };
-            }
-            Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = BlockingThreadPool.NumThreads }, actions);
-            return boolArray;
-        }
-
-        private protected override BinaryClassGamPredictor CreatePredictor()
-        {
-            return new BinaryClassGamPredictor(Host, InputLength, TrainSet, BinEffects, FeatureMap);
-        }
-
-        protected override ObjectiveFunctionBase CreateObjectiveFunction()
-        {
-            return new FastTreeBinaryClassificationTrainer.ObjectiveImpl(TrainSet, ConvertTargetsToBool(TrainSet.Targets), Args);
-        }
-
-        protected override void DefinePruningTest()
-        {
-            var validTest = new BinaryClassificationTest(ValidSetScore,
-                ConvertTargetsToBool(ValidSet.Targets), Args.LearningRates);
-            // As per FastTreeClassification.ConstructOptimizationAlgorithm()
-            PruningLossIndex = Args.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/;
-            PruningTest = new TestHistory(validTest, PruningLossIndex);
-        }
-    }
-
     /// <summary>
     /// Generalized Additive Model Learner.
     /// </summary>
     public abstract partial class GamTrainerBase<TArgs, TPredictor> : TrainerBase<TPredictor>
         where TArgs : GamTrainerBase<TArgs, TPredictor>.ArgumentsBase, new()
-        where TPredictor : GamPredictorBase
+        where TPredictor : IPredictorProducing<Float>
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithWeight
         {
@@ -250,18 +113,22 @@ namespace Microsoft.ML.Runtime.FastTree
         private LeastSquaresRegressionTreeLearner.LeafSplitCandidates _leafSplitCandidates;
         private SufficientStatsBase[] _histogram;
         private ILeafSplitStatisticsCalculator _leafSplitHelper;
+        private ObjectiveFunctionBase _objectiveFunction;
         private bool HasWeights => TrainSet?.SampleWeights != null;
 
         // Training Datastructures
-        private double[][] _splitPoint;
+        private uint[][] _splitPoint;
         private double[][][] _splitValue;
 
         //Results of Training
         protected double[][] BinEffects;
         protected int[] FeatureMap;
+        protected TrainingResults FinalResults;
 
         public override TrainerInfo Info { get; }
         private protected virtual bool NeedCalibration => false;
+
+        protected readonly IParallelTraining ParallelTraining;
 
         private protected GamTrainerBase(IHostEnvironment env, TArgs args)
             : base(env, RegisterName)
@@ -282,6 +149,8 @@ namespace Microsoft.ML.Runtime.FastTree
             _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
             _entropyCoefficient = Args.EntropyCoefficient * 1e-6;
 
+            ParallelTraining = new SingleTrainer();
+
             int numThreads = args.NumThreads ?? Environment.ProcessorCount;
             if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
                 using (var ch = Host.Start("GamTrainer"))
@@ -295,7 +164,11 @@ namespace Microsoft.ML.Runtime.FastTree
             InitializeThreads(numThreads);
         }
 
-        public sealed override TPredictor Train(TrainContext context)
+        /// <summary>
+        /// Load the data off the context and train the model
+        /// </summary>
+        /// <param name="context"></param>
+        protected void TrainBase(TrainContext context)
         {
             using (var ch = Host.Start("Training"))
             {
@@ -311,9 +184,8 @@ namespace Microsoft.ML.Runtime.FastTree
                 InputLength = context.TrainingSet.Schema.Feature.Type.ValueCount;
 
                 TrainCore(ch);
-                var pred = CreatePredictor();
+
                 ch.Done();
-                return pred;
             }
         }
 
@@ -332,8 +204,6 @@ namespace Microsoft.ML.Runtime.FastTree
         /// </summary>
         protected abstract void DefinePruningTest();
 
-        private protected abstract TPredictor CreatePredictor();
-
         internal abstract void CheckLabel(RoleMappedData data);
 
         private void ConvertData(RoleMappedData trainData, RoleMappedData validationData)
@@ -345,9 +215,8 @@ namespace Microsoft.ML.Runtime.FastTree
             var useTranspose = UseTranspose(Args.DiskTranspose, trainData);
             var instanceConverter = new ExamplesToFastTreeBins(Host, Args.MaxBins, useTranspose, !Args.FeatureFlocks, Args.MinDocuments, Float.PositiveInfinity);
 
-            var parallelTraining = new SingleTrainer();
-            parallelTraining.InitEnvironment();
-            TrainSet = instanceConverter.FindBinsAndReturnDataset(trainData, PredictionKind, parallelTraining, null, false);
+            ParallelTraining.InitEnvironment();
+            TrainSet = instanceConverter.FindBinsAndReturnDataset(trainData, PredictionKind, ParallelTraining, null, false);
             FeatureMap = instanceConverter.FeatureMap;
             if (validationData != null)
                 ValidSet = instanceConverter.GetCompatibleDataset(validationData, PredictionKind, null, false);
@@ -390,7 +259,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
             using (var pch = Host.StartProgressChannel("GAM training"))
             {
-                var obj = CreateObjectiveFunction();
+                _objectiveFunction = CreateObjectiveFunction();
                 var sumWeights = HasWeights ? TrainSet.SampleWeights.Sum() : 0;
 
                 pch.SetHeader(new ProgressHeader("iterations"), e => e.SetProgress(0, 0, iterations));
@@ -398,7 +267,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 {
                     using (Timer.Time(TimerEvent.Iteration))
                     {
-                        var gradient = obj.GetGradient(ch, TrainSetScore.Scores);
+                        var gradient = _objectiveFunction.GetGradient(ch, TrainSetScore.Scores);
                         var sumTargets = gradient.Sum();
 
                         SumUpsAcrossFlocks(gradient, sumTargets, sumWeights);
@@ -464,25 +333,27 @@ namespace Microsoft.ML.Runtime.FastTree
         private void UpdateScores(int iteration)
         {
             // Pass scores by reference to be updated and manually trigger the update callbacks
-            UpdateScoresForSet(TrainSet, TrainSetScore.Scores, iteration);
+            UpdateScoresForSet(TrainSet, TrainSetScore.Scores, iteration, UpdateWithSplitValues);
             TrainSetScore.SendScoresUpdatedMessage();
 
             if (HasValidSet)
             {
-                UpdateScoresForSet(ValidSet, ValidSetScore.Scores, iteration);
+                UpdateScoresForSet(ValidSet, ValidSetScore.Scores, iteration, UpdateWithSplitValues);
                 ValidSetScore.SendScoresUpdatedMessage();
             }
         }
 
         /// <summary>
-        /// Updates the scores for a dataset. Currently allocates new memory.
+        /// Updates the scores for a dataset.
         /// </summary>
         /// <param name="dataset">The dataset to use.</param>
         /// <param name="scores">The current scores for this dataset</param>
         /// <param name="iteration">The iteration of the algorithm.
         /// Used to look up the sub-graph to use to update the score.</param>
+        /// <param name="updateFunction">Function to use to update the scores</param>
         /// <returns></returns>
-        private void UpdateScoresForSet(Dataset dataset, double[] scores, int iteration)
+        private void UpdateScoresForSet(Dataset dataset, double[] scores, int iteration,
+            Action<int, int, int, int, double[]> updateFunction)
         {
             int numThreads = BlockingThreadPool.NumThreads;
             int extras = dataset.NumDocs % numThreads;
@@ -502,18 +373,42 @@ namespace Microsoft.ML.Runtime.FastTree
                     for (int featureIndex = 0; featureIndex < _splitPoint.Length; featureIndex++)
                     {
                         var featureIndexer = dataset.GetIndexer(featureIndex);
-                        var splitPoint = _splitPoint[featureIndex][iteration];
-                        var splitValue = _splitValue[featureIndex][iteration];
                         for (int doc = startIndexInclusive; doc < endIndexExclusive; doc++)
                         {
-                            if (featureIndexer[doc] <= splitPoint)
-                                scores[doc] += splitValue[0];
-                            else
-                                scores[doc] += splitValue[1];
+                            updateFunction(doc, featureIndex, iteration, featureIndexer[doc], scores);
                         }
                     }
                 }, numThreads);
             updateTask.RunTask();
+        }
+
+        /// <summary>
+        /// Update the scores incrementally using a subgraph
+        /// </summary>
+        /// <param name="doc">the document index</param>
+        /// <param name="featureIndex">the feature index</param>
+        /// <param name="iteration">the iteration</param>
+        /// <param name="featureBin">the bin for the feature in this document</param>
+        /// <param name="scores">the array of scores</param>
+        private void UpdateWithSplitValues(int doc, int featureIndex, int iteration, int featureBin, double[] scores)
+        {
+            if (featureBin <= _splitPoint[featureIndex][iteration])
+                scores[doc] += _splitValue[featureIndex][iteration][0];
+            else
+                scores[doc] += _splitValue[featureIndex][iteration][1];
+        }
+
+        /// <summary>
+        /// Update the scores using the BinEffects graph
+        /// </summary>
+        /// <param name="doc">the document index</param>
+        /// <param name="featureIndex">the feature index</param>
+        /// <param name="iteration">the iteration</param>
+        /// <param name="featureBin">the bin for the feature in this document</param>
+        /// <param name="scores">the array of scores</param>
+        private void UpdateWithGraph(int doc, int featureIndex, int iteration, int featureBin, double[] scores)
+        {
+            scores[doc] += BinEffects[featureIndex][featureBin];
         }
 
         /// <summary>
@@ -561,6 +456,26 @@ namespace Microsoft.ML.Runtime.FastTree
                     _splitValue[featureIndex][iteration] = null;
                 }
             }
+
+            // Recompute the final results if necessary
+            if (bestIteration != Args.NumIterations)
+            {
+                Array.Clear(TrainSetScore.Scores, 0, TrainSetScore.Scores.Length);
+                if (HasValidSet)
+                    Array.Clear(ValidSetScore.Scores, 0, ValidSetScore.Scores.Length);
+
+                UpdateScoresForSet(TrainSet, TrainSetScore.Scores, bestIteration, UpdateWithGraph);
+                if (HasValidSet)
+                    UpdateScoresForSet(ValidSet, ValidSetScore.Scores, bestIteration, UpdateWithGraph);
+            }
+
+            if (HasValidSet && PruningTest != null) {
+                FinalResults = new TrainingResults(bestIteration,
+                    _objectiveFunction.GetGradient(ch, TrainSetScore.Scores).Sum(),
+                    PruningTest.ComputeTests().ToArray()[PruningLossIndex].FinalValue);
+            }
+            else
+                FinalResults = new TrainingResults(bestIteration, _objectiveFunction.GetGradient(ch, TrainSetScore.Scores).Sum());
         }
 
         private void ConvertTreeToGraph(int globalFeatureIndex, int iteration)
@@ -579,11 +494,11 @@ namespace Microsoft.ML.Runtime.FastTree
             for (int i = 0; i < TrainSet.Flocks.Length; i++)
                 _histogram[i] = TrainSet.Flocks[i].CreateSufficientStats(HasWeights);
 
-            _splitPoint = new double[TrainSet.NumFeatures][];
+            _splitPoint = new uint[TrainSet.NumFeatures][];
             _splitValue = new double[TrainSet.NumFeatures][][];
             for (int i = 0; i < TrainSet.NumFeatures; i++)
             {
-                _splitPoint[i] = new double[Args.NumIterations];
+                _splitPoint[i] = new uint[Args.NumIterations];
                 _splitValue[i] = new double[Args.NumIterations][]; // Note the last dim is null
             }
         }
@@ -648,86 +563,28 @@ namespace Microsoft.ML.Runtime.FastTree
         }
     }
 
-    public class BinaryClassGamPredictor : GamPredictorBase
+    public sealed class TrainingResults
     {
-        public const string LoaderSignature = "BinaryClassGamPredictor";
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        public double Iteration { get; private set; }
+        public double TrainLoss { get; private set; }
+        public double ValidMetric { get; private set; }
 
-        public BinaryClassGamPredictor(IHostEnvironment env, int inputLength, Dataset trainset, double[][] binEffects, int[] featureMap = null)
-            : base(env, LoaderSignature, inputLength, trainset, binEffects, featureMap) { }
-
-        private BinaryClassGamPredictor(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, LoaderSignature, ctx) { }
-
-        public static VersionInfo GetVersionInfo()
+        public TrainingResults(int iteration, double trainLoss)
         {
-            return new VersionInfo(
-                modelSignature: "GAM BINP",
-                verWrittenCur: 0x00010001,
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+            Iteration = iteration;
+            TrainLoss = trainLoss;
         }
 
-        public static BinaryClassGamPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        public TrainingResults(int iteration, double trainLoss, double validMetric)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-
-            return new BinaryClassGamPredictor(env, ctx);
-        }
-
-        public override void Save(ModelSaveContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
-            base.Save(ctx);
-        }
-    }
-
-    public class RegressionGamPredictor : GamPredictorBase
-    {
-        public const string LoaderSignature = "RegressionGamPredictor";
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
-
-        public RegressionGamPredictor(IHostEnvironment env, int inputLength, Dataset trainset, double[][] binEffects, int[] featureMap = null)
-            : base(env, LoaderSignature, inputLength, trainset, binEffects, featureMap) { }
-
-        private RegressionGamPredictor(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, LoaderSignature, ctx) { }
-
-        public static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "GAM REGP",
-                verWrittenCur: 0x00010001,
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
-        }
-
-        public static RegressionGamPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-
-            return new RegressionGamPredictor(env, ctx);
-        }
-
-        public override void Save(ModelSaveContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
-            base.Save(ctx);
+            Iteration = iteration;
+            TrainLoss = trainLoss;
+            ValidMetric = validMetric;
         }
     }
 
     public abstract class GamPredictorBase : PredictorBase<Float>,
-        IValueMapper, ICanSaveModel, ICanSaveInTextFormat
+        IValueMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
@@ -743,11 +600,15 @@ namespace Microsoft.ML.Runtime.FastTree
         private readonly int _inputLength;
         private readonly Dictionary<int, int> _inputFeatureToDatasetFeatureMap;
 
+        public readonly TrainingResults TrainingSummary;
+
         public ColumnType InputType => _inputType;
 
         public ColumnType OutputType => NumberType.Float;
 
-        private protected GamPredictorBase(IHostEnvironment env, string name, int inputLength, Dataset trainSet, double[][] binEffects, int[] featureMap)
+        private protected GamPredictorBase(IHostEnvironment env, string name,
+            int inputLength, Dataset trainSet, double[][] binEffects, int[] featureMap,
+            TrainingResults trainingResults)
             : base(env, name)
         {
             Host.CheckValue(trainSet, nameof(trainSet));
@@ -761,6 +622,8 @@ namespace Microsoft.ML.Runtime.FastTree
             _numFeatures = binEffects.Length;
             _inputType = new VectorType(NumberType.Float, _inputLength);
             _featureMap = featureMap;
+
+            TrainingSummary = trainingResults;
 
             //No features were filtered.
             if (_featureMap == null)
@@ -804,6 +667,8 @@ namespace Microsoft.ML.Runtime.FastTree
                     }
                 }
                 meanEffect /= binEffect.Length;
+
+                // THIS MEAN IS NOT CORRECT UNLESS THE BINS ARE EQUALLY SPACED!
 
                 newBinBoundaries.Add(binUpperBound[binEffect.Length - 1]);
                 newBinEffects.Add(binEffect[binEffect.Length - 1]);
@@ -930,9 +795,6 @@ namespace Microsoft.ML.Runtime.FastTree
             }
 
             response = (Float)value;
-
-            //int[] bins = new int[_numFeatures];
-            //repsonse = (Float) GetFeatureBinsAndScore(ref features, bins);
         }
 
         /// <summary>
@@ -981,6 +843,8 @@ namespace Microsoft.ML.Runtime.FastTree
                     }
                 }
             }
+
+            builder.GetResult(ref contribs);
 
             return;
         }
@@ -1035,6 +899,10 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
 
+            writer.WriteLine("Iterations: {0}", TrainingSummary.Iteration);
+            writer.WriteLine("Training Loss: {0}", TrainingSummary.TrainLoss);
+            writer.WriteLine("Validation Metric: {0}", TrainingSummary.ValidMetric);
+
             writer.WriteLine("\xfeffFeature index table"); // add BOM to tell excel this is UTF-8
             writer.WriteLine($"Number of features:\t{_numFeatures+1:D}");
             writer.WriteLine("Feature Index\tFeature Name");
@@ -1070,6 +938,11 @@ namespace Microsoft.ML.Runtime.FastTree
                 for (int i = 0; i < effects.Length; ++i)
                     writer.WriteLine($"{featureIndex:D}\t{boundaries[i]:R}\t{effects[i]:R}");
             }
+        }
+
+        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        {
+            SaveAsText(writer, schema);
         }
 
         /// <summary>
