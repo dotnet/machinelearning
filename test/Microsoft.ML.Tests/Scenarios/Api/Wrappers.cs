@@ -374,5 +374,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-
+    public static class MyHelperExtensions
+    {
+        public static void SaveAsBinary(this IDataView data, IHostEnvironment env, Stream stream)
+        {
+            var saver = new BinarySaver(env, new BinarySaver.Arguments());
+            using (var ch = env.Start("SaveData"))
+                DataSaverUtils.SaveDataView(ch, saver, data, stream);
+        }
+    }
 }
