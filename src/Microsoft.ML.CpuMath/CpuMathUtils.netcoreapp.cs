@@ -12,18 +12,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
         {
             Contracts.Assert(mat.Size == dst.Size * src.Size);
+            Contracts.Assert(crun >= 0);
 
             if (Sse.IsSupported)
             {
                 if (!tran)
                 {
-                    Contracts.Assert(crun >= 0);
                     Contracts.Assert(crun <= dst.Size);
                     SseIntrinsics.MatMulA(add, mat, src, dst, crun, src.Size);
                 }
                 else
                 {
-                    Contracts.Assert(crun >= 0);
                     Contracts.Assert(crun <= src.Size);
                     SseIntrinsics.MatMulTranA(add, mat, src, dst, dst.Size, crun);
                 }
@@ -32,7 +31,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 if (!tran)
                 {
-                    Contracts.Assert(crun >= 0);
                     Contracts.Assert(crun <= dst.Size);
                     for (int i = 0; i < crun; i++)
                     {
@@ -54,7 +52,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
                 else
                 {
-                    Contracts.Assert(crun >= 0);
                     Contracts.Assert(crun <= src.Size);
                     for (int i = 0; i < dst.Size; i++)
                     {
@@ -94,18 +91,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
 
             Contracts.AssertNonEmpty(rgposSrc);
+            Contracts.Assert(crun >= 0);
 
             if (Sse.IsSupported)
             {
                 if (!tran)
                 {
-                    Contracts.Assert(crun >= 0);
                     Contracts.Assert(crun <= dst.Size);
                     SseIntrinsics.MatMulPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
                 }
                 else
                 {
-                    Contracts.Assert(crun >= 0);
                     Contracts.Assert(crun <= srcValues.Size);
                     SseIntrinsics.MatMulTranPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
                 }
@@ -114,7 +110,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 if (!tran)
                 {
-                    Contracts.Assert(crun >= 0);
                     Contracts.Assert(crun <= dst.Size);
                     for (int i = 0; i < crun; i++)
                     {
@@ -137,7 +132,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
                 else
                 {
-                    Contracts.Assert(crun >= 0);
                     Contracts.Assert(crun <= srcValues.Size);
                     for (int i = 0; i < dst.Size; i++)
                     {
@@ -171,7 +165,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Add(a, new Span<float>(dst, 0, count));
         }
 
-        // dst += a
         private static void Add(float a, Span<float> dst)
         {
             if (Sse.IsSupported)
@@ -856,7 +849,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 for (int i = 0; i < cindices; ++i)
                 {
                     int index = pidx[i];
-                    Contracts.Assert(0 <= index && index < c);
+                    Contracts.Assert(index >= 0);
+                    Contracts.Assert(index < c);
                     pdst[index] = 0;
                 }
             }
@@ -874,7 +868,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 for (int i = 0; i < cindices; ++i)
                 {
                     int index = pidx[i];
-                    Contracts.Assert(0 <= index && index < c);
+                    Contracts.Assert(index >= 0);
+                    Contracts.Assert(index < c);
 
                     int col = index - ivLogMin;
                     if ((uint)col >= (uint)ccol)
@@ -886,7 +881,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         ivLogLim = ivLogMin + ccol;
                         ivPhyMin = row * cfltRow;
 
-                        Contracts.Assert(ivLogMin <= index && index < ivLogLim);
+                        Contracts.Assert(index >= ivLogMin);
+                        Contracts.Assert(index < ivLogLim);
                         col = index - ivLogMin;
                     }
 

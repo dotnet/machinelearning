@@ -98,7 +98,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static Vector128<float> GetAbsMask()
         {
-            return (Sse2.IsSupported) ?
+            return Sse2.IsSupported ?
                 Sse.StaticCast<int, float>(Sse2.SetAllVector128(0x7FFFFFFF)) :
                 Sse.SetAllVector128(BitConverter.Int32BitsToSingle(0x7FFFFFFF));
         }
