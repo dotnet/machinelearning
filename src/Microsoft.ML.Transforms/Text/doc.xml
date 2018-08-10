@@ -74,7 +74,7 @@
         The n-grams are represented as count vectors, with vector slots corresponding to n-grams.
         Embedding ngrams in a vector space allows their contents to be compared in an efficient manner. 
         The slot values in the vector can be weighted by the following factors:
-        <list>
+        <list type="bullet">
           <item>
             <term>term frequency</term>
             <description> the number of occurrences of the slot in the text</description>
@@ -169,7 +169,7 @@
         </para>
         <para>
           For more details please see original LightLDA paper, and its open source implementation. 
-          <list>
+          <list type="bullet">
             <item><description><a href="http://arxiv.org/abs/1412.1576"> LightLDA: Big Topic Models on Modest Computer Clusters</a></description></item>
             <item><description><a href=" https://github.com/Microsoft/LightLDA">LightLDA </a></description></item>
           </list>
