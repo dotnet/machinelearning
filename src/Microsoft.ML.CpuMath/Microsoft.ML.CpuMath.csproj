@@ -27,4 +27,8 @@
     <Compile Remove="CpuMathUtils.netcoreapp.cs" />
     <Compile Remove="SseIntrinsics.cs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="AvxIntrinsics.cs" />
+  </ItemGroup>
 </Project>
