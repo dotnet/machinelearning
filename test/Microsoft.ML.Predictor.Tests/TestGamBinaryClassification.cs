@@ -10,7 +10,6 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
-using EasyTextLoader = Microsoft.ML.Data.TextLoader;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,6 +25,18 @@ namespace Microsoft.ML.Runtime.RunTests
             Logger = logger;
         }
 
+        /// <summary>
+        /// Tests the BinaryClassificationGamTrainer to make sure it runs end-to-end
+        /// and verifies that the training loss and validation metrics are what would
+        /// be expected based on the output of the resulting model.
+        /// Assumptions:
+        ///  1. UnbalancedSets is false: The validation metric implemented here is for balanced sets.
+        ///  2. The trainer does not prune: The training loss is then based on the 
+        ///     subgraph output, and the test then computes off the full graph, testing
+        ///     that the subgraph-to-graph conversion was done correctly. If pruning is used,
+        ///     then the training loss is then based on the resulting graph, so the test will
+        ///     not validate that the end graph was constructed correctly.
+        /// </summary>
         [Fact]
         [TestCategory("GAM")]
         public void TestBinaryClassificationGamTrainer()
@@ -40,7 +51,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 var context = new TrainContext(trainingSet: trainingSet, validationSet: validationSet);
 
-                var numIterations = 10000;
+                var numIterations = 100;
                 var LearningRates = 0.002;
 
                 var binaryTrainer = new BinaryClassificationGamTrainer(env,
@@ -65,6 +76,19 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
+        /// <summary>
+        /// Tests the RegressionGamTrainer to make sure it runs end-to-end
+        /// and verifies that the training loss and validation metrics are what would
+        /// be expected based on the output of the resulting model.
+        /// Assumptions:
+        ///  1. The validation metric is L2 (here assumed to be the default). The validation
+        ///     metric implemented here is L2.
+        ///  2. The trainer does not prune: The training loss is then based on the 
+        ///     subgraph output, and the test then computes off the full graph, testing
+        ///     that the subgraph-to-graph conversion was done correctly. If pruning is used,
+        ///     then the training loss is then based on the resulting graph, so the test will
+        ///     not validate that the end graph was constructed correctly.
+        /// </summary>
         [Fact]
         [TestCategory("GAM")]
         public void TestRegressionGamTrainer()
@@ -72,8 +96,8 @@ namespace Microsoft.ML.Runtime.RunTests
             using (var env = new TlcEnvironment())
             {
                 // Tuning parameters for testing
-                var numIterations = 10000;
-                var LearningRates = 0.001;
+                var numIterations = 100;
+                var LearningRates = 0.002;
 
                 // The datasets to use here
                 var trainFile = "regression_sine_identity_10k.tsv";
@@ -104,6 +128,16 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
+        /// <summary>
+        /// Compute the loss function over a dataset
+        /// </summary>
+        /// <param name="env">TLC Environment</param>
+        /// <param name="predictor">The predictor to compute the loss function with</param>
+        /// <param name="dataset">The daatset used to create the predictor</param>
+        /// <param name="fileName">The location of the data file to score with in the data directory</param>
+        /// <param name="lossFunction">The loss function to use on each point</param>
+        /// <param name="correction">The correction to apply on the sum of per-instance loss</param>
+        /// <returns></returns>
         private double ComputeLoss(TlcEnvironment env, IPredictor predictor,
             RoleMappedData dataset, string fileName,
             Func<float, TestData, double> lossFunction, Func<double, int, double> correction = null)
@@ -174,15 +208,16 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
+        /// <summary>
+        /// Load a dataset with fixed features.
+        /// Note: Possible to extend to variable-length features and generalize
+        /// </summary>
+        /// <param name="env">TLC Environment</param>
+        /// <param name="name">The name of the file in the data directory</param>
+        /// <returns></returns>
         private RoleMappedData LoadDataset(TlcEnvironment env, string name)
         {
             var dataPath = GetDataPath(name);
-            var outRoot = @"..\Common\GAMBinaryClassification";
-
-            var modelOutPath = DeleteOutputPath(outRoot, "codegen-model.zip");
-            var csOutPath = DeleteOutputPath(outRoot, "codegen-out.cs");
-
-            // Pipeline
 
             var loader = new TextLoader(env,
                 new TextLoader.Arguments()
@@ -204,18 +239,27 @@ namespace Microsoft.ML.Runtime.RunTests
                     }
                 },
                 new MultiFileSource(dataPath));
-
-            // Specify the dataset
+            
             return new RoleMappedData(loader, label: "Label", feature: "Features");
         }
 
+        /// <summary>
+        /// Cretae a model from a predictor and a dataset
+        /// </summary>
+        /// <param name="env">TLC Environment</param>
+        /// <param name="predictor">The predictor that was built on the dataset</param>
+        /// <param name="dataset">The dataset used to build the predictor</param>
+        /// <returns></returns>
         private BatchPredictionEngine<TestData, Prediction> GetModel(TlcEnvironment env, IPredictor predictor, RoleMappedData dataset)
         {
             var scorer = ScoreUtils.GetScorer(predictor, dataset, env, dataset.Schema);
             return env.CreateBatchPredictionEngine<TestData, Prediction>(scorer);
         }
 
-        public class TestData
+        /// <summary>
+        /// The test data, of fixed feature size
+        /// </summary>
+        private class TestData
         {
             [Column(ordinal: "0", name: "Label")]
             public float Label;
@@ -234,6 +278,11 @@ namespace Microsoft.ML.Runtime.RunTests
             public float Score;
         }
 
+        /// <summary>
+        /// Loader to bring the data back as a typed IEnumerable
+        /// </summary>
+        /// <param name="filePath">The location of the data on the local disk</param>
+        /// <returns></returns>
         private IEnumerable<TestData> LoadDataAsObjects(string filePath)
         {
             StreamReader reader = new StreamReader(filePath);
