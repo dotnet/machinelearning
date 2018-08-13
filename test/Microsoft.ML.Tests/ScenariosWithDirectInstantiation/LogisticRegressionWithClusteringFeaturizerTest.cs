@@ -69,13 +69,15 @@ namespace Microsoft.ML.Scenarios
                 trans = new ConcatTransform(env, trans, "Features", "NumFeatures", "CatFeatures");
                 trans = TrainAndScoreTransform.Create(env, new TrainAndScoreTransform.Arguments
                 {
-                     Trainer = new SubComponent<ITrainer, SignatureTrainer>("KMeans", "k=300"),
+                     Trainer = new SubComponent<ITrainer, SignatureTrainer>("KMeans", "k=200"),
                      FeatureColumn = "Features"
                 }, trans);
                 trans = new ConcatTransform(env, trans, "Features", "Features", "Score");
 
                 // Train
-                var trainer = new LogisticRegression(env, new LogisticRegression.Arguments() { EnforceNonNegativity = true });
+                var trainer = new LogisticRegression(env, new LogisticRegression.Arguments() { EnforceNonNegativity = true, OptTol = 1e-3f });
+                var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
+                var pred = trainer.Train(trainRoles);
             }
         }
     }
