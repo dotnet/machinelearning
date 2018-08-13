@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
@@ -193,6 +194,77 @@ namespace Microsoft.ML.Scenarios
                 Assert.Equal(1.0, (double)summary[0].Value, 1);
             }
         }
+
+        [Fact]
+        public void TrainAndPredictSentimentModelWithDirectionInstantiationTestWithWordEmbeddingForBenchmarking()
+        {
+            var dataPath = GetDataPath(SentimentDataPath);
+            var testDataPath = GetDataPath(SentimentTestPath);
+
+            using (var env = new TlcEnvironment(seed: 1))
+            {
+                // Pipeline
+                var loader = new TextLoader(env,
+                new TextLoader.Arguments()
+                {
+                    Separator = "tab",
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoader.Range() { Min=0, Max=0} },
+                            Type = DataKind.Num
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "SentimentText",
+                            Source = new [] { new TextLoader.Range() { Min=1, Max=1} },
+                            Type = DataKind.Text
+                        }
+                    }
+                }, new MultiFileSource(dataPath));
+
+                var text = TextTransform.Create(env, new TextTransform.Arguments()
+                {
+                    Column = new TextTransform.Column
+                    {
+                        Name = "WordEmbeddings",
+                        Source = new[] { "SentimentText" }
+                    },
+                    KeepDiacritics = false,
+                    KeepPunctuations = false,
+                    TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
+                    OutputTokens = true,
+                    StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
+                    VectorNormalizer = TextTransform.TextNormKind.None,
+                    CharFeatureExtractor = null,
+                    WordFeatureExtractor = null,
+                },
+                loader);
+
+                var trans = new WordEmbeddingsTransform(env, new WordEmbeddingsTransform.Arguments()
+                {
+                    Column = new WordEmbeddingsTransform.Column[1]
+                    {
+                        new WordEmbeddingsTransform.Column
+                        {
+                            Name = "Features",
+                            Source = "WordEmbeddings_TransformedText"
+                        }
+                    },
+                    ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
+                }, text);
+                // Train
+                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments());
+
+                var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
+                var pred = trainer.Train(trainRoles);
+            }
+        }
+
         private BinaryClassificationMetrics EvaluateBinary(IHostEnvironment env, IDataView scoredData)
         {
             var dataEval = new RoleMappedData(scoredData, label: "Label", feature: "Features", opt: true);
