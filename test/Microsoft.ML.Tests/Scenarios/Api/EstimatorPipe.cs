@@ -4,6 +4,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Tests.Scenarios.Api;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,9 +18,19 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         where TLastTransformer : class, ITransformer
     {
         private readonly ITransformer[] _transformers;
+        private readonly TransformerScope[] _scopes;
         public readonly TLastTransformer LastTransformer;
 
         private const string TransformDirTemplate = "Transform_{0:000}";
+
+        internal TransformerChain(ITransformer[] transformers, TransformerScope[] scopes)
+        {
+            _transformers = transformers.ToArray();
+            _scopes = scopes.ToArray();
+            LastTransformer = transformers.Last() as TLastTransformer;
+            Contracts.Check(LastTransformer != null);
+            Contracts.Check(transformers.Length == scopes.Length);
+        }
 
         public TransformerChain(params ITransformer[] transformers)
         {
@@ -31,6 +42,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             else
             {
                 _transformers = transformers.ToArray();
+                _scopes = transformers.Select(x => TransformerScope.Everything).ToArray();
                 LastTransformer = transformers.Last() as TLastTransformer;
                 Contracts.Check(LastTransformer != null);
             }
@@ -63,11 +75,26 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             return _transformers;
         }
 
-        public TransformerChain<TNewLast> Append<TNewLast>(TNewLast transformer)
+        public TransformerChain<ITransformer> GetModelFor(TransformerScope scopeFilter)
+        {
+            var xfs = new List<ITransformer>();
+            var scopes = new List<TransformerScope>();
+            for (int i=0; i<_transformers.Length; i++)
+            {
+                if ((_scopes[i] & scopeFilter) != TransformerScope.None)
+                {
+                    xfs.Add(_transformers[i]);
+                    scopes.Add(_scopes[i]);
+                }
+            }
+            return new TransformerChain<ITransformer>(xfs.ToArray(), scopes.ToArray());
+        }
+
+        public TransformerChain<TNewLast> Append<TNewLast>(TNewLast transformer, TransformerScope scope)
             where TNewLast : class, ITransformer
         {
             Contracts.CheckValue(transformer, nameof(transformer));
-            return new TransformerChain<TNewLast>(_transformers.Append(transformer).ToArray());
+            return new TransformerChain<TNewLast>(_transformers.Append(transformer).ToArray(), _scopes.Append(scope).ToArray());
         }
 
         public void Save(ModelSaveContext ctx)
@@ -79,6 +106,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             for (int i = 0; i < _transformers.Length; i++)
             {
+                ctx.Writer.Write((int)_scopes[i]);
                 var dirName = string.Format(TransformDirTemplate, i);
                 ctx.SaveModel(_transformers[i], dirName);
             }
@@ -88,8 +116,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             int len = ctx.Reader.ReadInt32();
             _transformers = new ITransformer[len];
+            _scopes = new TransformerScope[len];
             for (int i = 0; i < len; i++)
             {
+                _scopes[i] = (TransformerScope)(ctx.Reader.ReadInt32());
                 var dirName = string.Format(TransformDirTemplate, i);
                 ctx.LoadModel<ITransformer, SignatureLoadModel>(env, out _transformers[i], dirName);
             }
@@ -146,12 +176,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             return s;
         }
 
-        public CompositeReader<TSource, TNewLastTransformer> Append<TNewLastTransformer>(TNewLastTransformer transformer)
-            where TNewLastTransformer : class, ITransformer
-        {
-            return new CompositeReader<TSource, TNewLastTransformer>(Reader, Transformer.Append(transformer));
-        }
-
         public void SavePipeline(IHostEnvironment env, Stream outputStream)
         {
             using (var ch = env.Start("Saving model"))
@@ -182,26 +206,40 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
+    [Flags]
+    public enum TransformerScope
+    {
+        None = 0,
+        Training = 1 << 0,
+        Testing = 1 << 1,
+        Scoring = 1 << 2,
+        TrainTest = Training | Testing,
+        Everything = Training | Testing | Scoring
+    }
+
     public sealed class EstimatorChain<TLastTransformer> : IEstimator<TransformerChain<TLastTransformer>>
         where TLastTransformer : class, ITransformer
     {
+        private readonly TransformerScope[] _scopes;
+
         private readonly IEstimator<ITransformer>[] _estimators;
         public readonly IEstimator<TLastTransformer> LastEstimator;
 
-        public EstimatorChain(params IEstimator<ITransformer>[] estimators)
+        private EstimatorChain(IEstimator<ITransformer>[] estimators, TransformerScope[] scopes)
         {
-            Contracts.CheckValueOrNull(estimators);
-            if (Utils.Size(estimators) == 0)
-            {
-                _estimators = new IEstimator<ITransformer>[0];
-                LastEstimator = null;
-            }
-            else
-            {
-                _estimators = estimators;
-                LastEstimator = estimators.Last() as IEstimator<TLastTransformer>;
-                Contracts.Check(LastEstimator != null);
-            }
+            _estimators = estimators;
+            _scopes = scopes;
+            LastEstimator = estimators.Last() as IEstimator<TLastTransformer>;
+
+            Contracts.Check(LastEstimator != null);
+            Contracts.Check(Utils.Size(estimators) == Utils.Size(scopes));
+        }
+
+        public EstimatorChain()
+        {
+            _estimators = new IEstimator<ITransformer>[0];
+            LastEstimator = null;
+            _scopes = new TransformerScope[0];
         }
 
         public TransformerChain<TLastTransformer> Fit(IDataView input)
@@ -215,7 +253,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 dv = xfs[i].Transform(dv);
             }
 
-            return new TransformerChain<TLastTransformer>(xfs);
+            return new TransformerChain<TLastTransformer>(xfs, _scopes);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -230,11 +268,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             return s;
         }
 
-        public EstimatorChain<TNewTrans> Append<TNewTrans>(IEstimator<TNewTrans> estimator)
+        public EstimatorChain<TNewTrans> Append<TNewTrans>(IEstimator<TNewTrans> estimator, TransformerScope scope = TransformerScope.Everything)
             where TNewTrans : class, ITransformer
         {
             Contracts.CheckValue(estimator, nameof(estimator));
-            return new EstimatorChain<TNewTrans>(_estimators.Append(estimator).ToArray());
+            return new EstimatorChain<TNewTrans>(_estimators.Append(estimator).ToArray(), _scopes.Append(scope).ToArray());
         }
     }
 
@@ -282,16 +320,18 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
     public static class LearningPipelineExtensions
     {
-        public static CompositeReaderEstimator<TSource, ITransformer> StartPipe<TSource>(this IDataReaderEstimator<TSource, IDataReader<TSource>> start)
-        {
-            return new CompositeReaderEstimator<TSource, ITransformer>(start);
-        }
-
         public static CompositeReaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
             this IDataReaderEstimator<TSource, IDataReader<TSource>> start, IEstimator<TTrans> estimator)
             where TTrans : class, ITransformer
         {
             return new CompositeReaderEstimator<TSource, ITransformer>(start).Append(estimator);
+        }
+
+        public static EstimatorChain<TTrans> Append<TTrans>(
+            this IEstimator<ITransformer> start, IEstimator<TTrans> estimator, TransformerScope scope = TransformerScope.Everything)
+            where TTrans : class, ITransformer
+        {
+            return new EstimatorChain<ITransformer>().Append(start).Append(estimator, scope);
         }
     }
 }

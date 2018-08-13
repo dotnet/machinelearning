@@ -21,13 +21,17 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public const string SentimentDataPath = "wikipedia-detox-250-line-data.tsv";
         public const string SentimentTestPath = "wikipedia-detox-250-line-test.tsv";
 
-        public class IrisData
+        public class IrisData: IrisDataNoLabel
+        {
+            public string Label;
+        }
+
+        public class IrisDataNoLabel
         {
             public float SepalLength;
             public float SepalWidth;
             public float PetalLength;
             public float PetalWidth;
-            public string Label;
         }
 
         public class IrisPrediction

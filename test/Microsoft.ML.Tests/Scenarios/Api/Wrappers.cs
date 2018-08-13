@@ -297,6 +297,87 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
+    public class MyTermTransform: IEstimator<TransformWrapper>
+    {
+        private readonly IHostEnvironment _env;
+        private readonly string _column;
+        private readonly string _srcColumn;
+
+        public MyTermTransform(IHostEnvironment env, string column, string srcColumn = null)
+        {
+            _env = env;
+            _column = column;
+            _srcColumn = srcColumn;
+        }
+
+        public TransformWrapper Fit(IDataView input)
+        {
+            var xf = new TermTransform(_env, input, _column, _srcColumn);
+            var empty = new EmptyDataView(_env, input.Schema);
+            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
+            return new TransformWrapper(_env, chunk);
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class MyConcatTransform: IEstimator<TransformWrapper>
+    {
+        private readonly IHostEnvironment _env;
+        private readonly string _name;
+        private readonly string[] _source;
+
+        public MyConcatTransform(IHostEnvironment env, string name, params string[] source)
+        {
+            _env = env;
+            _name = name;
+            _source = source;
+        }
+
+        public TransformWrapper Fit(IDataView input)
+        {
+            var xf = new ConcatTransform(_env, input, _name, _source);
+            var empty = new EmptyDataView(_env, input.Schema);
+            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
+            return new TransformWrapper(_env, chunk);
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class MyKeyToValueTransform: IEstimator<TransformWrapper>
+    {
+        private readonly IHostEnvironment _env;
+        private readonly string _name;
+        private readonly string _source;
+
+        public MyKeyToValueTransform(IHostEnvironment env, string name, string source = null)
+        {
+            _env = env;
+            _name = name;
+            _source = source;
+        }
+
+        public TransformWrapper Fit(IDataView input)
+        {
+            var xf = new KeyToValueTransform(_env, input, _name, _source);
+            var empty = new EmptyDataView(_env, input.Schema);
+            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
+            return new TransformWrapper(_env, chunk);
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public sealed class MySdca : TrainerBase<IPredictor>
     {
         private readonly LinearClassificationTrainer.Arguments _args;
@@ -310,6 +391,19 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         protected override IPredictor TrainCore(TrainContext context) => new LinearClassificationTrainer(_env, _args).Train(context);
 
         public ITransformer Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
+    }
+
+    public sealed class MySdcaMulticlass: TrainerBase<IPredictor>
+    {
+        private readonly SdcaMultiClassTrainer.Arguments _args;
+
+        public MySdcaMulticlass(IHostEnvironment env, SdcaMultiClassTrainer.Arguments args, string featureCol, string labelCol)
+            : base(env, true, true, featureCol, labelCol)
+        {
+            _args = args;
+        }
+
+        protected override IPredictor TrainCore(TrainContext context) => new SdcaMultiClassTrainer(_env, _args).Train(context);
     }
 
     public sealed class MyAveragedPerceptron : TrainerBase<IPredictor>
@@ -382,5 +476,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var ch = env.Start("SaveData"))
                 DataSaverUtils.SaveDataView(ch, saver, data, stream);
         }
+
+        public static IDataView FitAndTransform(this IEstimator<ITransformer> est, IDataView data) => est.Fit(data).Transform(data);
+
+        public static IDataView FitAndRead<TSource>(this IDataReaderEstimator<TSource, IDataReader<TSource>> est, TSource source)
+            => est.Fit(source).Read(source);
     }
 }
