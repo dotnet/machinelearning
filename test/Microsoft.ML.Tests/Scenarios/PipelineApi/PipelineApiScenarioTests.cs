@@ -41,7 +41,6 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 
         public class IrisPrediction
         {
-            public string PredictedLabel;
             public float[] Score;
         }
 

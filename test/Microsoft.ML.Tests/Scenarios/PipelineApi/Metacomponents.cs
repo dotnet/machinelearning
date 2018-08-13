@@ -34,8 +34,8 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var testData = new TextLoader(dataPath).CreateFrom<IrisData>(useHeader: false);
             var evaluator = new ClassificationEvaluator();
             ClassificationMetrics metrics = evaluator.Evaluate(model, testData);
-            // I can't find way to convert predictedLabel from Key to string.
-            //var prediction = model.Predict(new IrisData { PetalLength = 1, PetalWidth = 2, SepalLength = 1.4f, SepalWidth = 1.6f });
+
+            var prediction = model.Predict(new IrisData { PetalLength = 1, PetalWidth = 2, SepalLength = 1.4f, SepalWidth = 1.6f });
         }
     }
 }
