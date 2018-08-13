@@ -3,11 +3,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -59,8 +55,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var testData = testLoader.AsEnumerable<SentimentData>(env, false);
                 var lockEngine = new LockBasedPredictionEngine(env, model);
                 Parallel.ForEach(testData, (input) => lockEngine.Predict(input));
-                int numThreads = 2;
-                PredictionEngine<SentimentData, SentimentPrediction>[] models = new PredictionEngine<SentimentData, SentimentPrediction>[numThreads];
                 using (var file = env.CreateTempFile())
                 {
                     // Save model. 
@@ -74,10 +68,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             }
         }
 
-
         /// <summary>
-        /// This is a trivial implementation of a thread-safe prediction engine, where the underlying <see cref="SimplePredictionEngine"/>
-        /// is just guarded by a lock.
+        /// This is a trivial implementation of a thread-safe prediction engine, where the underlying model is just guarded by a lock.
         /// </summary>
         private sealed class LockBasedPredictionEngine
         {
@@ -98,8 +90,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
 
         /// <summary>
-        /// This is an implementation of a thread-safe prediction engine that works by instantiating one <see cref="SimplePredictionEngine"/>
-        /// per the worker thread.
+        /// This is an implementation of a thread-safe prediction engine that works by instantiating one model per the worker thread.
         /// </summary>
         private sealed class ThreadLocalBasedPredictionEngine
         {
@@ -123,7 +114,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         /// <summary>
         /// This is an implementation of a thread-safe prediction engine that works by keeping a pool of allocated
-        /// <see cref="SimplePredictionEngine"/> objects, that is grown as needed. 
+        /// model objects, that is grown as needed. 
         /// </summary>
         private sealed class PoolBasedPredictionEngine
         {
