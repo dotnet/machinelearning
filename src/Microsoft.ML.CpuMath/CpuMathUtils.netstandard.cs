@@ -6,7 +6,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     public static partial class CpuMathUtils
     {
-        public const int SseCbAlign = 16;
+        // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
+        public const int Vector128Alignment = 16;
 
         public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun) => SseUtils.MatTimesSrc(tran, add, mat, src, dst, crun);
 
