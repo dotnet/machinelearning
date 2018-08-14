@@ -22,14 +22,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.RawKind)
                     {
-                    case DataKind.I1:
+                    case DataKind.NI1:
                         return new I1.MeanAggregatorOne(ch, cursor, col);
-                    case DataKind.I2:
+                    case DataKind.NI2:
                         return new I2.MeanAggregatorOne(ch, cursor, col);
-                    case DataKind.I4:
+                    case DataKind.NI4:
                         return new I4.MeanAggregatorOne(ch, cursor, col);
-                    case DataKind.I8:
-                        return new Long.MeanAggregatorOne<DvInt8>(ch, type, cursor, col);
+                    case DataKind.NI8:
+                        return new Long.MeanAggregatorOne<long?>(ch, type, cursor, col);
                     case DataKind.R4:
                         return new R4.MeanAggregatorOne(ch, cursor, col);
                     case DataKind.R8:
@@ -46,14 +46,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.RawKind)
                     {
-                    case DataKind.I1:
+                    case DataKind.NI1:
                         return new I1.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.I2:
+                    case DataKind.NI2:
                         return new I2.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.I4:
+                    case DataKind.NI4:
                         return new I4.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.I8:
-                        return new Long.MinMaxAggregatorOne<DvInt8>(ch, type, cursor, col, kind == ReplacementKind.Max);
+                    case DataKind.NI8:
+                        return new Long.MinMaxAggregatorOne<long?>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R4:
                         return new R4.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
@@ -78,14 +78,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.ItemType.RawKind)
                     {
-                    case DataKind.I1:
+                    case DataKind.NI1:
                         return new I1.MeanAggregatorBySlot(ch, type, cursor, col);
-                    case DataKind.I2:
+                    case DataKind.NI2:
                         return new I2.MeanAggregatorBySlot(ch, type, cursor, col);
-                    case DataKind.I4:
+                    case DataKind.NI4:
                         return new I4.MeanAggregatorBySlot(ch, type, cursor, col);
-                    case DataKind.I8:
-                        return new Long.MeanAggregatorBySlot<DvInt8>(ch, type, cursor, col);
+                    case DataKind.NI8:
+                        return new Long.MeanAggregatorBySlot<long?>(ch, type, cursor, col);
                     case DataKind.R4:
                         return new R4.MeanAggregatorBySlot(ch, type, cursor, col);
                     case DataKind.R8:
@@ -102,14 +102,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.ItemType.RawKind)
                     {
-                    case DataKind.I1:
+                    case DataKind.NI1:
                         return new I1.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.I2:
+                    case DataKind.NI2:
                         return new I2.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.I4:
+                    case DataKind.NI4:
                         return new I4.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.I8:
-                        return new Long.MinMaxAggregatorBySlot<DvInt8>(ch, type, cursor, col, kind == ReplacementKind.Max);
+                    case DataKind.NI8:
+                        return new Long.MinMaxAggregatorBySlot<long?>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R4:
                         return new R4.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
@@ -130,14 +130,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.ItemType.RawKind)
                     {
-                    case DataKind.I1:
+                    case DataKind.NI1:
                         return new I1.MeanAggregatorAcrossSlots(ch, cursor, col);
-                    case DataKind.I2:
+                    case DataKind.NI2:
                         return new I2.MeanAggregatorAcrossSlots(ch, cursor, col);
-                    case DataKind.I4:
+                    case DataKind.NI4:
                         return new I4.MeanAggregatorAcrossSlots(ch, cursor, col);
-                    case DataKind.I8:
-                        return new Long.MeanAggregatorAcrossSlots<DvInt8>(ch, type, cursor, col);
+                    case DataKind.NI8:
+                        return new Long.MeanAggregatorAcrossSlots<long?>(ch, type, cursor, col);
                     case DataKind.R4:
                         return new R4.MeanAggregatorAcrossSlots(ch, cursor, col);
                     case DataKind.R8:
@@ -154,14 +154,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.ItemType.RawKind)
                     {
-                    case DataKind.I1:
+                    case DataKind.NI1:
                         return new I1.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.I2:
+                    case DataKind.NI2:
                         return new I2.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.I4:
+                    case DataKind.NI4:
                         return new I4.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.I8:
-                        return new Long.MinMaxAggregatorAcrossSlots<DvInt8>(ch, type, cursor, col, kind == ReplacementKind.Max);
+                    case DataKind.NI8:
+                        return new Long.MinMaxAggregatorAcrossSlots<long?>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R4:
                         return new R4.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
@@ -503,17 +503,17 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(_cna >= 0);
             }
 
-            public void Update(long val, long valMax)
+            public void Update(long? val, long valMax)
             {
                 AssertValid(valMax);
-                Contracts.Assert(-valMax - 1 <= val && val <= valMax);
+                Contracts.Assert(!val.HasValue || -valMax <= val && val <= valMax);
 
-                if (val >= 0)
-                    IntUtils.Add(ref _sumHi, ref _sumLo, (ulong)val);
-                else if (val >= -valMax)
-                    IntUtils.Sub(ref _sumHi, ref _sumLo, (ulong)(-val));
-                else
+                if (!val.HasValue)
                     _cna++;
+                else if (val >= 0)
+                    IntUtils.Add(ref _sumHi, ref _sumLo, (ulong)val);
+                else
+                    IntUtils.Sub(ref _sumHi, ref _sumLo, (ulong)(-val));
 
                 AssertValid(valMax);
             }
@@ -935,73 +935,73 @@ namespace Microsoft.ML.Runtime.Data
 
             private const long MaxVal = sbyte.MaxValue;
 
-            public sealed class MeanAggregatorOne : StatAggregator<DvInt1, MeanStatInt>
+            public sealed class MeanAggregatorOne : StatAggregator<sbyte?, MeanStatInt>
             {
                 public MeanAggregatorOne(IChannel ch, IRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessRow(ref DvInt1 val)
+                protected override void ProcessRow(ref sbyte? val)
                 {
-                    Stat.Update(val.RawValue, MaxVal);
+                    Stat.Update(val, MaxVal);
                 }
 
                 public override object GetStat()
                 {
                     long val = Stat.GetCurrentValue(Ch, RowCount, MaxVal);
-                    Ch.Assert(-MaxVal - 1 <= val && val <= MaxVal);
-                    return (DvInt1)(sbyte)val;
+                    Ch.Assert(-MaxVal <= val && val <= MaxVal);
+                    return (sbyte)val;
                 }
             }
 
-            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<DvInt1, MeanStatInt>
+            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<sbyte?, MeanStatInt>
             {
                 public MeanAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(ref DvInt1 val)
+                protected override void ProcessValue(ref sbyte? val)
                 {
-                    Stat.Update(val.RawValue, MaxVal);
+                    Stat.Update(val, MaxVal);
                 }
 
                 public override object GetStat()
                 {
                     long val = Stat.GetCurrentValue(Ch, ValueCount, MaxVal);
-                    Ch.Assert(-MaxVal - 1 <= val && val <= MaxVal);
-                    return (DvInt1)(sbyte)val;
+                    Ch.Assert(-MaxVal <= val && val <= MaxVal);
+                    return (sbyte)val;
                 }
             }
 
-            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<DvInt1, MeanStatInt>
+            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<sbyte?, MeanStatInt>
             {
                 public MeanAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(ref DvInt1 val, int slot)
+                protected override void ProcessValue(ref sbyte? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
-                    Stat[slot].Update(val.RawValue, MaxVal);
+                    Stat[slot].Update(val, MaxVal);
                 }
 
                 public override object GetStat()
                 {
-                    DvInt1[] stat = new DvInt1[Stat.Length];
+                    sbyte[] stat = new sbyte[Stat.Length];
                     for (int slot = 0; slot < stat.Length; slot++)
                     {
                         long val = Stat[slot].GetCurrentValue(Ch, RowCount, MaxVal);
-                        Ch.Assert(-MaxVal - 1 <= val && val <= MaxVal);
-                        stat[slot] = (DvInt1)(sbyte)val;
+                        Ch.Assert(-MaxVal <= val && val <= MaxVal);
+                        stat[slot] = (sbyte)val;
                     }
                     return stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<DvInt1, sbyte>
+            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<sbyte?, sbyte>
             {
                 public MinMaxAggregatorOne(IChannel ch, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
@@ -1009,27 +1009,27 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = (sbyte)(ReturnMax ? -MaxVal : MaxVal);
                 }
 
-                protected override void ProcessValueMin(ref DvInt1 val)
+                protected override void ProcessValueMin(ref sbyte? val)
                 {
-                    var raw = val.RawValue;
-                    if (raw < Stat && raw != DvInt1.RawNA)
-                        Stat = raw;
+                    var raw = val;
+                    if (raw.HasValue && raw < Stat)
+                        Stat = raw.Value;
                 }
 
-                protected override void ProcessValueMax(ref DvInt1 val)
+                protected override void ProcessValueMax(ref sbyte? val)
                 {
-                    var raw = val.RawValue;
+                    var raw = val;
                     if (raw > Stat)
-                        Stat = raw;
+                        Stat = raw.Value;
                 }
 
                 public override object GetStat()
                 {
-                    return (DvInt1)Stat;
+                    return (sbyte)Stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<DvInt1, sbyte>
+            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<sbyte?, sbyte>
             {
                 public MinMaxAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
@@ -1037,18 +1037,16 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = (sbyte)(ReturnMax ? -MaxVal : MaxVal);
                 }
 
-                protected override void ProcessValueMin(ref DvInt1 val)
+                protected override void ProcessValueMin(ref sbyte? val)
                 {
-                    var raw = val.RawValue;
-                    if (raw < Stat && raw != DvInt1.RawNA)
-                        Stat = raw;
+                    if (val.HasValue && val < Stat)
+                        Stat = val.Value;
                 }
 
-                protected override void ProcessValueMax(ref DvInt1 val)
+                protected override void ProcessValueMax(ref sbyte? val)
                 {
-                    var raw = val.RawValue;
-                    if (raw > Stat)
-                        Stat = raw;
+                    if (val.HasValue && val > Stat)
+                        Stat = val.Value;
                 }
 
                 public override object GetStat()
@@ -1056,14 +1054,14 @@ namespace Microsoft.ML.Runtime.Data
                     // If sparsity occurred, fold in a zero.
                     if (ValueCount > (ulong)ValuesProcessed)
                     {
-                        var def = default(DvInt1);
+                        var def = default(sbyte?);
                         ProcValueDelegate(ref def);
                     }
-                    return (DvInt1)Stat;
+                    return Stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<DvInt1, sbyte>
+            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<sbyte?, sbyte>
             {
                 public MinMaxAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
@@ -1073,34 +1071,32 @@ namespace Microsoft.ML.Runtime.Data
                         Stat[i] = bound;
                 }
 
-                protected override void ProcessValueMin(ref DvInt1 val, int slot)
+                protected override void ProcessValueMin(ref sbyte? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
-                    var raw = val.RawValue;
-                    if (raw < Stat[slot] && raw != DvInt1.RawNA)
-                        Stat[slot] = raw;
+                    if (val.HasValue && val.Value < Stat[slot])
+                        Stat[slot] = val.Value;
                 }
 
-                protected override void ProcessValueMax(ref DvInt1 val, int slot)
+                protected override void ProcessValueMax(ref sbyte? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
-                    var raw = val.RawValue;
-                    if (raw > Stat[slot])
-                        Stat[slot] = raw;
+                    if (val.HasValue && val.Value > Stat[slot])
+                        Stat[slot] = val.Value;
                 }
 
                 public override object GetStat()
                 {
-                    DvInt1[] stat = new DvInt1[Stat.Length];
+                    sbyte[] stat = new sbyte[Stat.Length];
                     // Account for defaults resulting from sparsity.
                     for (int slot = 0; slot < Stat.Length; slot++)
                     {
                         if (GetValuesProcessed(slot) < RowCount)
                         {
-                            var def = default(DvInt1);
+                            var def = default(sbyte?);
                             ProcValueDelegate(ref def, slot);
                         }
-                        stat[slot] = (DvInt1)Stat[slot];
+                        stat[slot] = Stat[slot];
                     }
                     return stat;
                 }
@@ -1111,73 +1107,73 @@ namespace Microsoft.ML.Runtime.Data
         {
             private const long MaxVal = short.MaxValue;
 
-            public sealed class MeanAggregatorOne : StatAggregator<DvInt2, MeanStatInt>
+            public sealed class MeanAggregatorOne : StatAggregator<short?, MeanStatInt>
             {
                 public MeanAggregatorOne(IChannel ch, IRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessRow(ref DvInt2 val)
+                protected override void ProcessRow(ref short? val)
                 {
-                    Stat.Update(val.RawValue, MaxVal);
+                    Stat.Update(val, MaxVal);
                 }
 
                 public override object GetStat()
                 {
                     long val = Stat.GetCurrentValue(Ch, RowCount, MaxVal);
-                    Ch.Assert(-MaxVal - 1 <= val && val <= MaxVal);
-                    return (DvInt2)(short)val;
+                    Ch.Assert(-MaxVal <= val && val <= MaxVal);
+                    return (short)val;
                 }
             }
 
-            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<DvInt2, MeanStatInt>
+            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<short?, MeanStatInt>
             {
                 public MeanAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(ref DvInt2 val)
+                protected override void ProcessValue(ref short? val)
                 {
-                    Stat.Update(val.RawValue, MaxVal);
+                    Stat.Update(val, MaxVal);
                 }
 
                 public override object GetStat()
                 {
                     long val = Stat.GetCurrentValue(Ch, ValueCount, MaxVal);
-                    Ch.Assert(-MaxVal - 1 <= val && val <= MaxVal);
-                    return (DvInt2)(short)val;
+                    Ch.Assert(-MaxVal <= val && val <= MaxVal);
+                    return (short)val;
                 }
             }
 
-            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<DvInt2, MeanStatInt>
+            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<short?, MeanStatInt>
             {
                 public MeanAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(ref DvInt2 val, int slot)
+                protected override void ProcessValue(ref short? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
-                    Stat[slot].Update(val.RawValue, MaxVal);
+                    Stat[slot].Update(val, MaxVal);
                 }
 
                 public override object GetStat()
                 {
-                    DvInt2[] stat = new DvInt2[Stat.Length];
+                    short[] stat = new short[Stat.Length];
                     for (int slot = 0; slot < stat.Length; slot++)
                     {
                         long val = Stat[slot].GetCurrentValue(Ch, RowCount, MaxVal);
-                        Ch.Assert(-MaxVal - 1 <= val && val <= MaxVal);
-                        stat[slot] = (DvInt2)(short)val;
+                        Ch.Assert(-MaxVal <= val && val <= MaxVal);
+                        stat[slot] = (short)val;
                     }
                     return stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<DvInt2, short>
+            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<short?, short>
             {
                 public MinMaxAggregatorOne(IChannel ch, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
@@ -1185,27 +1181,25 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = (short)(ReturnMax ? -MaxVal : MaxVal);
                 }
 
-                protected override void ProcessValueMin(ref DvInt2 val)
+                protected override void ProcessValueMin(ref short? val)
                 {
-                    var raw = val.RawValue;
-                    if (raw < Stat && raw != DvInt2.RawNA)
-                        Stat = raw;
+                    if (val.HasValue && val < Stat)
+                        Stat = val.Value;
                 }
 
-                protected override void ProcessValueMax(ref DvInt2 val)
+                protected override void ProcessValueMax(ref short? val)
                 {
-                    var raw = val.RawValue;
-                    if (raw > Stat)
-                        Stat = raw;
+                    if (val.HasValue && val > Stat)
+                        Stat = val.Value;
                 }
 
                 public override object GetStat()
                 {
-                    return (DvInt2)Stat;
+                    return Stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<DvInt2, short>
+            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<short?, short>
             {
                 public MinMaxAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
@@ -1213,18 +1207,16 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = (short)(ReturnMax ? -MaxVal : MaxVal);
                 }
 
-                protected override void ProcessValueMin(ref DvInt2 val)
+                protected override void ProcessValueMin(ref short? val)
                 {
-                    var raw = val.RawValue;
-                    if (raw < Stat && raw != DvInt2.RawNA)
-                        Stat = raw;
+                    if (val.HasValue && val < Stat)
+                        Stat = val.Value;
                 }
 
-                protected override void ProcessValueMax(ref DvInt2 val)
+                protected override void ProcessValueMax(ref short? val)
                 {
-                    var raw = val.RawValue;
-                    if (raw > Stat)
-                        Stat = raw;
+                    if (val.HasValue && val > Stat)
+                        Stat = val.Value;
                 }
 
                 public override object GetStat()
@@ -1232,14 +1224,14 @@ namespace Microsoft.ML.Runtime.Data
                     // If sparsity occurred, fold in a zero.
                     if (ValueCount > (ulong)ValuesProcessed)
                     {
-                        var def = default(DvInt2);
+                        var def = default(short?);
                         ProcValueDelegate(ref def);
                     }
-                    return (DvInt2)Stat;
+                    return Stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<DvInt2, short>
+            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<short?, short>
             {
                 public MinMaxAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
@@ -1249,34 +1241,32 @@ namespace Microsoft.ML.Runtime.Data
                         Stat[i] = bound;
                 }
 
-                protected override void ProcessValueMin(ref DvInt2 val, int slot)
+                protected override void ProcessValueMin(ref short? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
-                    var raw = val.RawValue;
-                    if (raw < Stat[slot] && raw != DvInt2.RawNA)
-                        Stat[slot] = raw;
+                    if (val.HasValue && val < Stat[slot])
+                        Stat[slot] = val.Value;
                 }
 
-                protected override void ProcessValueMax(ref DvInt2 val, int slot)
+                protected override void ProcessValueMax(ref short? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
-                    var raw = val.RawValue;
-                    if (raw > Stat[slot])
-                        Stat[slot] = raw;
+                    if (val.HasValue && val > Stat[slot])
+                        Stat[slot] = val.Value;
                 }
 
                 public override object GetStat()
                 {
-                    DvInt2[] stat = new DvInt2[Stat.Length];
+                    short[] stat = new short[Stat.Length];
                     // Account for defaults resulting from sparsity.
                     for (int slot = 0; slot < Stat.Length; slot++)
                     {
                         if (GetValuesProcessed(slot) < RowCount)
                         {
-                            var def = default(DvInt2);
+                            var def = default(short?);
                             ProcValueDelegate(ref def, slot);
                         }
-                        stat[slot] = (DvInt2)Stat[slot];
+                        stat[slot] = Stat[slot];
                     }
                     return stat;
                 }
@@ -1287,73 +1277,73 @@ namespace Microsoft.ML.Runtime.Data
         {
             private const long MaxVal = int.MaxValue;
 
-            public sealed class MeanAggregatorOne : StatAggregator<DvInt4, MeanStatInt>
+            public sealed class MeanAggregatorOne : StatAggregator<Int32?, MeanStatInt>
             {
                 public MeanAggregatorOne(IChannel ch, IRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessRow(ref DvInt4 val)
+                protected override void ProcessRow(ref Int32? val)
                 {
-                    Stat.Update(val.RawValue, MaxVal);
+                    Stat.Update(val, MaxVal);
                 }
 
                 public override object GetStat()
                 {
                     long val = Stat.GetCurrentValue(Ch, RowCount, MaxVal);
-                    Ch.Assert(-MaxVal - 1 <= val && val <= MaxVal);
-                    return (DvInt4)(int)val;
+                    Ch.Assert(-MaxVal <= val && val <= MaxVal);
+                    return (int)val;
                 }
             }
 
-            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<DvInt4, MeanStatInt>
+            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<Int32?, MeanStatInt>
             {
                 public MeanAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(ref DvInt4 val)
+                protected override void ProcessValue(ref Int32? val)
                 {
-                    Stat.Update(val.RawValue, MaxVal);
+                    Stat.Update(val, MaxVal);
                 }
 
                 public override object GetStat()
                 {
                     long val = Stat.GetCurrentValue(Ch, ValueCount, MaxVal);
-                    Ch.Assert(-MaxVal - 1 <= val && val <= MaxVal);
-                    return (DvInt4)(int)val;
+                    Ch.Assert(-MaxVal <= val && val <= MaxVal);
+                    return (int)val;
                 }
             }
 
-            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<DvInt4, MeanStatInt>
+            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<Int32?, MeanStatInt>
             {
                 public MeanAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(ref DvInt4 val, int slot)
+                protected override void ProcessValue(ref Int32? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
-                    Stat[slot].Update(val.RawValue, MaxVal);
+                    Stat[slot].Update(val, MaxVal);
                 }
 
                 public override object GetStat()
                 {
-                    DvInt4[] stat = new DvInt4[Stat.Length];
+                    Int32[] stat = new Int32[Stat.Length];
                     for (int slot = 0; slot < stat.Length; slot++)
                     {
                         long val = Stat[slot].GetCurrentValue(Ch, RowCount, MaxVal);
-                        Ch.Assert(-MaxVal - 1 <= val && val <= MaxVal);
-                        stat[slot] = (DvInt4)(int)val;
+                        Ch.Assert(-MaxVal <= val && val <= MaxVal);
+                        stat[slot] = (int)val;
                     }
                     return stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<DvInt4, int>
+            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<Int32?, int>
             {
                 public MinMaxAggregatorOne(IChannel ch, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
@@ -1361,27 +1351,25 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = (int)(ReturnMax ? -MaxVal : MaxVal);
                 }
 
-                protected override void ProcessValueMin(ref DvInt4 val)
+                protected override void ProcessValueMin(ref Int32? val)
                 {
-                    var raw = val.RawValue;
-                    if (raw < Stat && raw != DvInt4.RawNA)
-                        Stat = raw;
+                    if (val.HasValue && val < Stat)
+                        Stat = val.Value;
                 }
 
-                protected override void ProcessValueMax(ref DvInt4 val)
+                protected override void ProcessValueMax(ref Int32? val)
                 {
-                    var raw = val.RawValue;
-                    if (raw > Stat)
-                        Stat = raw;
+                    if (val.HasValue && val > Stat)
+                        Stat = val.Value;
                 }
 
                 public override object GetStat()
                 {
-                    return (DvInt4)Stat;
+                    return Stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<DvInt4, int>
+            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<Int32?, int>
             {
                 public MinMaxAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
@@ -1389,18 +1377,16 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = (int)(ReturnMax ? -MaxVal : MaxVal);
                 }
 
-                protected override void ProcessValueMin(ref DvInt4 val)
+                protected override void ProcessValueMin(ref Int32? val)
                 {
-                    var raw = val.RawValue;
-                    if (raw < Stat && raw != DvInt4.RawNA)
-                        Stat = raw;
+                    if (val.HasValue && val < Stat)
+                        Stat = val.Value;
                 }
 
-                protected override void ProcessValueMax(ref DvInt4 val)
+                protected override void ProcessValueMax(ref Int32? val)
                 {
-                    var raw = val.RawValue;
-                    if (raw > Stat)
-                        Stat = raw;
+                    if (val.HasValue && val > Stat)
+                        Stat = val.Value;
                 }
 
                 public override object GetStat()
@@ -1408,14 +1394,14 @@ namespace Microsoft.ML.Runtime.Data
                     // If sparsity occurred, fold in a zero.
                     if (ValueCount > (ulong)ValuesProcessed)
                     {
-                        var def = default(DvInt4);
+                        var def = default(Int32?);
                         ProcValueDelegate(ref def);
                     }
-                    return (DvInt4)Stat;
+                    return Stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<DvInt4, int>
+            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<Int32?, int>
             {
                 public MinMaxAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
@@ -1425,20 +1411,18 @@ namespace Microsoft.ML.Runtime.Data
                         Stat[i] = bound;
                 }
 
-                protected override void ProcessValueMin(ref DvInt4 val, int slot)
+                protected override void ProcessValueMin(ref Int32? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
-                    var raw = val.RawValue;
-                    if (raw < Stat[slot] && raw != DvInt4.RawNA)
-                        Stat[slot] = raw;
+                    if (val.HasValue && val < Stat[slot])
+                        Stat[slot] = val.Value;
                 }
 
-                protected override void ProcessValueMax(ref DvInt4 val, int slot)
+                protected override void ProcessValueMax(ref Int32? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
-                    var raw = val.RawValue;
-                    if (raw > Stat[slot])
-                        Stat[slot] = raw;
+                    if (val.HasValue && val > Stat[slot])
+                        Stat[slot] = val.Value;
                 }
 
                 public override object GetStat()
@@ -1449,10 +1433,10 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         if (GetValuesProcessed(slot) < RowCount)
                         {
-                            var def = default(DvInt4);
+                            var def = default(Int32?);
                             ProcValueDelegate(ref def, slot);
                         }
-                        stat[slot] = (DvInt4)Stat[slot];
+                        stat[slot] = Stat[slot];
                     }
                     return stat;
                 }
@@ -1550,15 +1534,15 @@ namespace Microsoft.ML.Runtime.Data
                 protected override void ProcessValueMin(ref TItem val)
                 {
                     var raw = _converter.ToLong(val);
-                    if (raw < Stat && -MaxVal <= raw)
-                        Stat = raw;
+                    if (raw.HasValue && raw < Stat)
+                        Stat = raw.Value;
                 }
 
                 protected override void ProcessValueMax(ref TItem val)
                 {
                     var raw = _converter.ToLong(val);
-                    if (raw > Stat)
-                        Stat = raw;
+                    if (raw.HasValue && raw > Stat)
+                        Stat = raw.Value;
                 }
 
                 public override object GetStat()
@@ -1581,15 +1565,15 @@ namespace Microsoft.ML.Runtime.Data
                 protected override void ProcessValueMin(ref TItem val)
                 {
                     var raw = _converter.ToLong(val);
-                    if (raw < Stat && -MaxVal <= raw)
-                        Stat = raw;
+                    if (raw.HasValue && raw < Stat)
+                        Stat = raw.Value;
                 }
 
                 protected override void ProcessValueMax(ref TItem val)
                 {
                     var raw = _converter.ToLong(val);
-                    if (raw > Stat)
-                        Stat = raw;
+                    if (raw.HasValue && raw > Stat)
+                        Stat = raw.Value;
                 }
 
                 public override object GetStat()
@@ -1622,16 +1606,16 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     var raw = _converter.ToLong(val);
-                    if (raw < Stat[slot] && -MaxVal <= raw)
-                        Stat[slot] = raw;
+                    if (raw.HasValue && raw < Stat[slot])
+                        Stat[slot] = raw.Value;
                 }
 
                 protected override void ProcessValueMax(ref TItem val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     var raw = _converter.ToLong(val);
-                    if (raw > Stat[slot])
-                        Stat[slot] = raw;
+                    if (raw.HasValue && raw > Stat[slot])
+                        Stat[slot] = raw.Value;
                 }
 
                 public override object GetStat()
@@ -1677,46 +1661,46 @@ namespace Microsoft.ML.Runtime.Data
 
             private abstract class Converter<T> : Converter
             {
-                public abstract long ToLong(T val);
-                public abstract T FromLong(long val);
+                public abstract long? ToLong(T val);
+                public abstract T FromLong(long? val);
             }
 
-            private sealed class I8Converter : Converter<DvInt8>
+            private sealed class I8Converter : Converter<long?>
             {
-                public override long ToLong(DvInt8 val)
+                public override long? ToLong(long? val)
                 {
-                    return val.RawValue;
+                    return val;
                 }
 
-                public override DvInt8 FromLong(long val)
+                public override long? FromLong(long? val)
                 {
-                    Contracts.Assert(DvInt8.RawNA != val);
-                    return (DvInt8)val;
+                    Contracts.Assert(val.HasValue);
+                    return val.Value;
                 }
             }
 
             private sealed class TSConverter : Converter<DvTimeSpan>
             {
-                public override long ToLong(DvTimeSpan val)
+                public override long? ToLong(DvTimeSpan val)
                 {
                     return val.Ticks.RawValue;
                 }
 
-                public override DvTimeSpan FromLong(long val)
+                public override DvTimeSpan FromLong(long? val)
                 {
-                    Contracts.Assert(DvInt8.RawNA != val);
+                    Contracts.Assert(val.HasValue);
                     return new DvTimeSpan(val);
                 }
             }
 
             private sealed class DTConverter : Converter<DvDateTime>
             {
-                public override long ToLong(DvDateTime val)
+                public override long? ToLong(DvDateTime val)
                 {
                     return val.Ticks.RawValue;
                 }
 
-                public override DvDateTime FromLong(long val)
+                public override DvDateTime FromLong(long? val)
                 {
                     Contracts.Assert(0 <= val && val <= DvDateTime.MaxTicks);
                     return new DvDateTime(val);
