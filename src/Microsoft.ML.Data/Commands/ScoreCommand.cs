@@ -20,6 +20,8 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
+    using TScorerFactory = IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>;
+
     public interface IDataScorerTransform : IDataTransform, ITransformTemplate
     {
     }
@@ -52,7 +54,7 @@ namespace Microsoft.ML.Runtime.Data
             public KeyValuePair<string, string>[] CustomColumn;
 
             [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", SignatureType = typeof(SignatureDataScorer))]
-            public IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> Scorer;
+            public TScorerFactory Scorer;
 
             [Argument(ArgumentType.Multiple, HelpText = "The data saver to use")]
             public SubComponent<IDataSaver, SignatureDataSaver> Saver;
@@ -231,7 +233,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         public static IDataScorerTransform GetScorer(
-            IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> scorer,
+            TScorerFactory scorer,
             IPredictor predictor,
             IDataView input,
             string featureColName,
@@ -258,9 +260,9 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Determines the scorer component factory (if the given one is null or empty), and creates the schema bound mapper.
         /// </summary>
-        private static IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> GetScorerComponentAndMapper(
+        private static TScorerFactory GetScorerComponentAndMapper(
             IPredictor predictor,
-            IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> scorerFactory,
+            TScorerFactory scorerFactory,
             RoleMappedSchema schema,
             IHostEnvironment env,
             IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory,
@@ -283,7 +285,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="mapper">The schema bound mapper to get the default scorer.</param>.
         /// <param name="suffix">An optional suffix to append to the default column names.</param>
-        public static IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> GetScorerComponent(
+        public static TScorerFactory GetScorerComponent(
             ISchemaBoundMapper mapper,
             string suffix = null)
         {
@@ -300,31 +302,35 @@ namespace Microsoft.ML.Runtime.Data
                 if (info == null || !typeof(IDataScorerTransform).IsAssignableFrom(info.Type))
                     info = null;
             }
-            return new SimpleComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>(
-                (env, data, innerMapper, trainSchema) =>
+
+            Func<IHostEnvironment, IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> factoryFunc;
+            if (info == null)
+            {
+                factoryFunc = (env, data, innerMapper, trainSchema) =>
+                    new GenericScorer(
+                        env,
+                        new GenericScorer.Arguments() { Suffix = suffix },
+                        data,
+                        innerMapper,
+                        trainSchema);
+            }
+            else
+            {
+                factoryFunc = (env, data, innerMapper, trainSchema) =>
                 {
-                    if (info == null)
+                    object args = info.CreateArguments();
+                    if (args is ScorerArgumentsBase scorerArgs)
                     {
-                        return new GenericScorer(
-                            env,
-                            new GenericScorer.Arguments() { Suffix = suffix },
-                            data,
-                            innerMapper,
-                            trainSchema);
+                        scorerArgs.Suffix = suffix;
                     }
-                    else
-                    {
-                        object args = info.CreateArguments();
-                        if (args is ScorerArgumentsBase scorerArgs)
-                        {
-                            scorerArgs.Suffix = suffix;
-                        }
-                        return (IDataScorerTransform)info.CreateInstance(
-                            env,
-                            args,
-                            new object[] { data, innerMapper, trainSchema });
-                    }
-                });
+                    return (IDataScorerTransform)info.CreateInstance(
+                        env,
+                        args,
+                        new object[] { data, innerMapper, trainSchema });
+                };
+            }
+
+            return new SimpleComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>(factoryFunc);
         }
 
         /// <summary>
