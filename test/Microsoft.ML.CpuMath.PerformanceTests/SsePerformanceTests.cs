@@ -19,8 +19,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         private const int EXP_RANGE = EXP_MAX / 2;
         private const int DEFAULT_SEED = 253421;
         private const float DEFAULT_SCALE = 1.11f;
+        private const int DEFAULT_CROW = 500;
+        private const int DEFAULT_CCOL = 2000;
+        private const bool ADD = true;
 
-        private float[] src, dst, original, src1, src2;
+        private float[] src, dst, original, src1, src2, result;
         private int[] idx;
         private int seed = DEFAULT_SEED;
 
@@ -65,6 +68,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             src1 = new float[LEN];
             src2 = new float[LEN];
             original = new float[LEN];
+            result = new float[LEN];
             idx = new int[IDXLEN];
 
             seed = GetSeed();
@@ -75,6 +79,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 src[i] = NextFloat(rand, EXP_RANGE);
                 dst[i] = NextFloat(rand, EXP_RANGE);
                 original[i] = dst[i];
+                result[i] = dst[i];
                 src1[i] = NextFloat(rand, EXP_RANGE);
                 src2[i] = NextFloat(rand, EXP_RANGE);
             }
@@ -89,73 +94,57 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         public void GlobalCleanup()
         {
             original.CopyTo(dst, 0);
+            original.CopyTo(result, 0);
         }
 
         [Benchmark]
-        public unsafe float NativeDotUPerf()
+        public unsafe float NativeAddScalarUPerf()
+        {
+            fixed (float* pdst = dst)
+            {
+                return CpuMathNativeUtils.AddScalarU(DEFAULT_SCALE, pdst, LEN);
+            }
+        }
+
+        [Benchmark]
+        public void ManagedAddScalarUPerf() => CpuMathUtils.Add(DEFAULT_SCALE, dst, LEN);
+
+        [Benchmark]
+        public unsafe void NativeScaleUPerf()
+        {
+            fixed (float* pdst = dst)
+            {
+                CpuMathNativeUtils.ScaleU(DEFAULT_SCALE, pdst, LEN);
+            }
+        }
+
+        [Benchmark]
+        public void ManagedScaleUPerf() => CpuMathUtils.Scale(DEFAULT_SCALE, dst, LEN);
+
+        [Benchmark]
+        public unsafe void NativeScaleSrcUPerf()
         {
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
-                return CpuMathNativeUtils.DotU(psrc, pdst, LEN);
+                CpuMathNativeUtils.ScaleSrcU(DEFAULT_SCALE, psrc, pdst, LEN);
             }
         }
 
         [Benchmark]
-        public float ManagedDotUPerf() => CpuMathUtils.DotProductDense(src, dst, LEN);
+        public void ManagedScaleSrcUPerf() => CpuMathUtils.Scale(DEFAULT_SCALE, src, dst, LEN);
 
         [Benchmark]
-        public unsafe float NativeDotSUPerf()
+        public unsafe void NativeScaleAddUPerf()
         {
-            fixed (float* psrc = src)
-            fixed (float* pdst = dst)
-            fixed (int* pidx = idx)
-            {
-                return CpuMathNativeUtils.DotSU(psrc, pdst, pidx, IDXLEN);
-            }
-        }
-
-        [Benchmark]
-        public float ManagedDotSUPerf() => CpuMathUtils.DotProductSparse(src, dst, idx, IDXLEN);
-
-        [Benchmark]
-        public unsafe float NativeSumSqUPerf()
-        {
-            fixed (float* psrc = src)
-            {
-                return CpuMathNativeUtils.SumSqU(psrc, LEN);
-            }
-        }
-
-        [Benchmark]
-        public float ManagedSumSqUPerf() => CpuMathUtils.SumSq(src, LEN);
-
-        [Benchmark]
-        public unsafe void NativeAddUPerf()
-        {
-            fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
-                CpuMathNativeUtils.AddU(psrc, pdst, LEN);
+                CpuMathNativeUtils.ScaleAddU(DEFAULT_SCALE, DEFAULT_SCALE, pdst, LEN);
             }
         }
 
         [Benchmark]
-        public void ManagedAddUPerf() => CpuMathUtils.Add(src, dst, LEN);
-
-        [Benchmark]
-        public unsafe void NativeAddSUPerf()
-        {
-            fixed (float* psrc = src)
-            fixed (float* pdst = dst)
-            fixed (int* pidx = idx)
-            {
-                CpuMathNativeUtils.AddSU(psrc, pidx, pdst, IDXLEN);
-            }
-        }
-
-        [Benchmark]
-        public void ManagedAddSUPerf() => CpuMathUtils.Add(src, idx, dst, IDXLEN);
+        public void ManagedScaleAddUPerf() => CpuMathUtils.ScaleAdd(DEFAULT_SCALE, DEFAULT_SCALE, dst, LEN);
 
         [Benchmark]
         public unsafe void NativeAddScaleUPerf()
@@ -185,16 +174,172 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         public void ManagedAddScaleSUPerf() => CpuMathUtils.AddScale(DEFAULT_SCALE, src, idx, dst, IDXLEN);
 
         [Benchmark]
-        public unsafe void NativeScaleUPerf()
+        public unsafe void NativeAddScaleCopyUPerf()
         {
+            fixed (float* psrc = src)
             fixed (float* pdst = dst)
+            fixed (float* pres = result)
             {
-                CpuMathNativeUtils.ScaleU(DEFAULT_SCALE, pdst, LEN);
+                CpuMathNativeUtils.AddScaleCopyU(DEFAULT_SCALE, psrc, pdst, pres, LEN);
             }
         }
 
         [Benchmark]
-        public void ManagedScaleUPerf() => CpuMathUtils.Scale(DEFAULT_SCALE, dst, LEN);
+        public void ManagedAddScaleCopyUPerf() => CpuMathUtils.AddScaleCopy(DEFAULT_SCALE, src, dst, result, LEN);
+
+        [Benchmark]
+        public unsafe void NativeAddUPerf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            {
+                CpuMathNativeUtils.AddU(psrc, pdst, LEN);
+            }
+        }
+
+        [Benchmark]
+        public void ManagedAddUPerf() => CpuMathUtils.Add(src, dst, LEN);
+
+        [Benchmark]
+        public unsafe void NativeAddSUPerf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            fixed (int* pidx = idx)
+            {
+                CpuMathNativeUtils.AddSU(psrc, pidx, pdst, IDXLEN);
+            }
+        }
+
+        [Benchmark]
+        public void ManagedAddSUPerf() => CpuMathUtils.Add(src, idx, dst, IDXLEN);
+
+
+        [Benchmark]
+        public unsafe void NativeMulElementWiseUPerf()
+        {
+            fixed (float* psrc1 = src1)
+            fixed (float* psrc2 = src2)
+            fixed (float* pdst = dst)
+            {
+                CpuMathNativeUtils.MulElementWiseU(psrc1, psrc2, pdst, LEN);
+            }
+        }
+
+        [Benchmark]
+        public void ManagedMulElementWiseUPerf() => CpuMathUtils.MulElementWise(src1, src2, dst, LEN);
+
+        [Benchmark]
+        public unsafe float NativeSumUPerf()
+        {
+            fixed (float* psrc = src)
+            {
+                return CpuMathNativeUtils.SumU(psrc, LEN);
+            }
+        }
+
+        [Benchmark]
+        public float ManagedSumUPerf() => CpuMathUtils.Sum(src, LEN);
+
+        [Benchmark]
+        public unsafe float NativeSumSqUPerf()
+        {
+            fixed (float* psrc = src)
+            {
+                return CpuMathNativeUtils.SumSqU(psrc, LEN);
+            }
+        }
+
+        [Benchmark]
+        public float ManagedSumSqUPerf() => CpuMathUtils.SumSq(src, LEN);
+
+        [Benchmark]
+        public unsafe float NativeSumSqDiffUPerf()
+        {
+            fixed (float* psrc = src)
+            {
+                return CpuMathNativeUtils.SumSqDiffU(DEFAULT_SCALE, psrc, LEN);
+            }
+        }
+
+        [Benchmark]
+        public float ManagedSumSqDiffUPerf() => CpuMathUtils.SumSq(DEFAULT_SCALE, src, 0, LEN);
+
+        [Benchmark]
+        public unsafe float NativeSumAbsUPerf()
+        {
+            fixed (float* psrc = src)
+            {
+                return CpuMathNativeUtils.SumAbsU(psrc, LEN);
+            }
+        }
+
+        [Benchmark]
+        public float ManagedSumAbsUPerf() => CpuMathUtils.SumAbs(src, LEN);
+
+        [Benchmark]
+        public unsafe float NativeSumAbsDiffUPerf()
+        {
+            fixed (float* psrc = src)
+            {
+                return CpuMathNativeUtils.SumAbsDiffU(DEFAULT_SCALE, psrc, LEN);
+            }
+        }
+
+        [Benchmark]
+        public float ManagedSumAbsDiffUPerf() => CpuMathUtils.SumAbs(DEFAULT_SCALE, src, 0, LEN);
+
+        [Benchmark]
+        public unsafe float NativeMaxAbsUPerf()
+        {
+            fixed (float* psrc = src)
+            {
+                return CpuMathNativeUtils.MaxAbsU(psrc, LEN);
+            }
+        }
+
+        [Benchmark]
+        public float ManagedMaxAbsUPerf() => CpuMathUtils.MaxAbs(src, LEN);
+
+        [Benchmark]
+        public unsafe float NativeMaxAbsDiffUPerf()
+        {
+            fixed (float* psrc = src)
+            {
+                return CpuMathNativeUtils.MaxAbsDiffU(DEFAULT_SCALE, psrc, LEN);
+            }
+        }
+
+        [Benchmark]
+        public float ManagedMaxAbsDiffUPerf() => CpuMathUtils.MaxAbsDiff(DEFAULT_SCALE, src, LEN);
+        // TODO: MaxAbsU!!!
+
+        [Benchmark]
+        public unsafe float NativeDotUPerf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            {
+                return CpuMathNativeUtils.DotU(psrc, pdst, LEN);
+            }
+        }
+
+        [Benchmark]
+        public float ManagedDotUPerf() => CpuMathUtils.DotProductDense(src, dst, LEN);
+
+        [Benchmark]
+        public unsafe float NativeDotSUPerf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            fixed (int* pidx = idx)
+            {
+                return CpuMathNativeUtils.DotSU(psrc, pdst, pidx, IDXLEN);
+            }
+        }
+
+        [Benchmark]
+        public float ManagedDotSUPerf() => CpuMathUtils.DotProductSparse(src, dst, idx, IDXLEN);
 
         [Benchmark]
         public unsafe float NativeDist2Perf()
@@ -210,29 +355,32 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         public float ManagedDist2Perf() => CpuMathUtils.L2DistSquared(src, dst, LEN);
 
         [Benchmark]
-        public unsafe float NativeSumAbsUPerf()
+        public unsafe void NativeSdcaL1UpdateUPerf()
         {
             fixed (float* psrc = src)
-            {
-                return CpuMathNativeUtils.SumAbsU(psrc, LEN);
-            }
-        }
-
-        [Benchmark]
-        public float ManagedSumAbsqUPerf() => CpuMathUtils.SumAbs(src, LEN);
-
-        [Benchmark]
-        public unsafe void NativeMulElementWiseUPerf()
-        {
-            fixed (float* psrc1 = src1)
-            fixed (float* psrc2 = src2)
             fixed (float* pdst = dst)
+            fixed (float* pres = result)
             {
-                CpuMathNativeUtils.MulElementWiseU(psrc1, psrc2, pdst, LEN);
+                CpuMathNativeUtils.SdcaL1UpdateU(DEFAULT_SCALE, psrc, DEFAULT_SCALE, pdst, pres, LEN);
             }
         }
 
         [Benchmark]
-        public void ManagedMulElementWiseUPerf() => CpuMathUtils.MulElementWise(src1, src2, dst, LEN);
+        public void ManagedSdcaL1UpdateUPerf() => CpuMathUtils.SdcaL1UpdateDense(DEFAULT_SCALE, LEN, src, DEFAULT_SCALE, dst, result);
+
+        [Benchmark]
+        public unsafe void NativeSdcaL1UpdateSUPerf()
+        {
+            fixed (float* psrc = src)
+            fixed (float* pdst = dst)
+            fixed (float* pres = result)
+            fixed (int* pidx = idx)
+            {
+                CpuMathNativeUtils.SdcaL1UpdateSU(DEFAULT_SCALE, psrc, pidx, DEFAULT_SCALE, pdst, pres, IDXLEN);
+            }
+        }
+
+        [Benchmark]
+        public void ManagedSdcaL1UpdateSUPerf() => CpuMathUtils.SdcaL1UpdateSparse(DEFAULT_SCALE, LEN, src, idx, IDXLEN, DEFAULT_SCALE, dst, result);
     }
 }
