@@ -229,7 +229,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             return TrainTransformer(input);
         }
 
-        protected ScorerWrapper<TModel> TrainTransformer(IDataView trainSet, 
+        protected ScorerWrapper<TModel> TrainTransformer(IDataView trainSet,
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
             var cachedTrain = _cache ? new CacheDataView(_env, trainSet, prefetch: null) : trainSet;
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             }
 
             var pred = TrainCore(new TrainContext(trainRoles, validRoles, initPredictor));
-            
+
             var scoreRoles = new RoleMappedData(normalizer, label: _labelCol, feature: _featureCol);
             IDataScorerTransform scorer = ScoreUtils.GetScorer(pred, scoreRoles, _env, trainRoles.Schema);
             return new ScorerWrapper<TModel>(_env, scorer, pred);
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public class MyTermTransform: IEstimator<TransformWrapper>
+    public class MyTermTransform : IEstimator<TransformWrapper>
     {
         private readonly IHostEnvironment _env;
         private readonly string _column;
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public class MyConcatTransform: IEstimator<TransformWrapper>
+    public class MyConcatTransform : IEstimator<TransformWrapper>
     {
         private readonly IHostEnvironment _env;
         private readonly string _name;
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public class MyKeyToValueTransform: IEstimator<TransformWrapper>
+    public class MyKeyToValueTransform : IEstimator<TransformWrapper>
     {
         private readonly IHostEnvironment _env;
         private readonly string _name;
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public ITransformer Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
     }
 
-    public sealed class MySdcaMulticlass: TrainerBase<IPredictor>
+    public sealed class MySdcaMulticlass : TrainerBase<IPredictor>
     {
         private readonly SdcaMultiClassTrainer.Arguments _args;
 
@@ -481,5 +481,55 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public static IDataView FitAndRead<TSource>(this IDataReaderEstimator<TSource, IDataReader<TSource>> est, TSource source)
             => est.Fit(source).Read(source);
+
+        public static (ITransformer[] Models, BinaryClassificationMetrics[] Metrics) CrossValidateBinary(IHostEnvironment env, IDataView trainData, IEstimator<ITransformer> estimator,
+            string labelColumn,
+            int numFolds = 2,
+            string stratificationColumn = null,
+            bool cache = false)
+        {
+            var models = new ITransformer[numFolds];
+            var metrics = new BinaryClassificationMetrics[numFolds];
+
+            if (stratificationColumn == null)
+            {
+                stratificationColumn = "StratificationColumn";
+                var random = new GenerateNumberTransform(env, trainData, stratificationColumn);
+                trainData = random;
+            }
+            else
+                throw new NotImplementedException();
+
+            IDataView cachedTrain = trainData;
+            if (cache)
+                cachedTrain = new CacheDataView(env, trainData, prefetch: null);
+
+            var evaluator = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { });
+
+            for (int fold = 0; fold < numFolds; fold++)
+            {
+                var trainFilter = new RangeFilter(env, new RangeFilter.Arguments()
+                {
+                    Column = stratificationColumn,
+                    Min = (Double)fold / numFolds,
+                    Max = (Double)(fold + 1) / numFolds,
+                    Complement = true
+                }, cachedTrain);
+                var testFilter = new RangeFilter(env, new RangeFilter.Arguments()
+                {
+                    Column = stratificationColumn,
+                    Min = (Double)fold / numFolds,
+                    Max = (Double)(fold + 1) / numFolds,
+                    Complement = false
+                }, cachedTrain);
+
+                models[fold] = estimator.Fit(trainFilter);
+                var scoredTest = models[fold].Transform(testFilter);
+                metrics[fold] = evaluator.Evaluate(scoredTest, labelColumn: labelColumn, probabilityColumn: "Probability");
+            }
+
+            return (models, metrics);
+        }
+
     }
 }

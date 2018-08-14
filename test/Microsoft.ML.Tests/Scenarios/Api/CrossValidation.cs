@@ -77,5 +77,36 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 }
             }
         }
+
+
+        /// <summary>
+        /// Cross-validation: Have a mechanism to do cross validation, that is, you come up with
+        /// a data source (optionally with stratification column), come up with an instantiable transform
+        /// and trainer pipeline, and it will handle (1) splitting up the data, (2) training the separate
+        /// pipelines on in-fold data, (3) scoring on the out-fold data, (4) returning the set of
+        /// evaluations and optionally trained pipes. (People always want metrics out of xfold,
+        /// they sometimes want the actual models too.)
+        /// </summary>
+        [Fact]
+        void New_CrossValidation()
+        {
+            var dataPath = GetDataPath(SentimentDataPath);
+            var testDataPath = GetDataPath(SentimentTestPath);
+
+            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            {
+
+                var data = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
+                    .FitAndRead(new MultiFileSource(dataPath));
+                // Pipeline.
+                var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs())
+                        .Append(new MySdca(env, new LinearClassificationTrainer.Arguments {
+                            NumThreads = 1,
+                            ConvergenceTolerance = 1f
+                        }, "Features", "Label"));
+
+                (var models, var metrics) = MyHelperExtensions.CrossValidateBinary(env, data, pipeline, "Label", numFolds: 2);
+            }
+        }
     }
 }
