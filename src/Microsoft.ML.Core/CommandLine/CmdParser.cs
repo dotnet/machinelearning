@@ -1743,12 +1743,20 @@ namespace Microsoft.ML.Runtime.CommandLine
                         settings = values.Select(x => (string)x.Value).ToArray();
 
                     Contracts.Check(_signatureType != null, "ComponentFactory Arguments need a SignatureType set.");
-                    var factory = ComponentFactoryFactory.CreateComponentFactory(
+                    if (ComponentFactoryFactory.TryCreateComponentFactory(
                         ItemType,
                         _signatureType,
                         name,
-                        settings);
-                    Field.SetValue(destination, factory);
+                        settings,
+                        out ICommandLineComponentFactory factory))
+                    {
+                        Field.SetValue(destination, factory);
+                    }
+                    else
+                    {
+                        owner.Report("There was an error creating the ComponentFactory. Ensure '{0}' is configured correctly.", LongName);
+                        error = true;
+                    }
                 }
                 else if (IsMultiSubComponent)
                 {
@@ -1813,12 +1821,20 @@ namespace Microsoft.ML.Runtime.CommandLine
                             string[] settings = null;
                             if (i < values.Count && IsCurlyGroup((string)values[i].Value) && string.IsNullOrEmpty(values[i].Key))
                                 settings = new string[] { (string)values[i++].Value };
-                            var factory = ComponentFactoryFactory.CreateComponentFactory(
+                            if (ComponentFactoryFactory.TryCreateComponentFactory(
                                 ItemValueType,
                                 _signatureType,
                                 name,
-                                settings);
-                            comList.Add(new KeyValuePair<string, IComponentFactory>(tag, factory));
+                                settings,
+                                out ICommandLineComponentFactory factory))
+                            {
+                                comList.Add(new KeyValuePair<string, IComponentFactory>(tag, factory));
+                            }
+                            else
+                            {
+                                owner.Report("There was an error creating the ComponentFactory. Ensure '{0}' is configured correctly.", LongName);
+                                error = true;
+                            }
                         }
 
                         var arr = Array.CreateInstance(ItemType, comList.Count);
@@ -1840,12 +1856,20 @@ namespace Microsoft.ML.Runtime.CommandLine
                             string[] settings = null;
                             if (i < values.Count && IsCurlyGroup((string)values[i].Value))
                                 settings = new string[] { (string)values[i++].Value };
-                            var factory = ComponentFactoryFactory.CreateComponentFactory(
+                            if (ComponentFactoryFactory.TryCreateComponentFactory(
                                 ItemValueType,
                                 _signatureType,
                                 name,
-                                settings);
-                            comList.Add(factory);
+                                settings,
+                                out ICommandLineComponentFactory factory))
+                            {
+                                comList.Add(factory);
+                            }
+                            else
+                            {
+                                owner.Report("There was an error creating the ComponentFactory. Ensure '{0}' is configured correctly.", LongName);
+                                error = true;
+                            }
                         }
 
                         var arr = Array.CreateInstance(ItemValueType, comList.Count);
@@ -2522,9 +2546,29 @@ namespace Microsoft.ML.Runtime.CommandLine
                 string name,
                 string[] settings)
             {
-                Contracts.Check(factoryType != null &&
-                    typeof(IComponentFactory).IsAssignableFrom(factoryType) &&
-                    factoryType.IsGenericType);
+                if (!TryCreateComponentFactory(factoryType, signatureType, name, settings, out ICommandLineComponentFactory factory))
+                {
+                    throw Contracts.ExceptNotImpl("ComponentFactoryFactory can only create IComponentFactory<> types with 4 or less type args.");
+                }
+
+                return factory;
+            }
+
+            public static bool TryCreateComponentFactory(
+                Type factoryType,
+                Type signatureType,
+                string name,
+                string[] settings,
+                out ICommandLineComponentFactory factory)
+            {
+
+                if (factoryType == null ||
+                    !typeof(IComponentFactory).IsAssignableFrom(factoryType) ||
+                    !factoryType.IsGenericType)
+                {
+                    factory = null;
+                    return false;
+                }
 
                 Type componentFactoryType;
                 switch (factoryType.GenericTypeArguments.Length)
@@ -2533,14 +2577,17 @@ namespace Microsoft.ML.Runtime.CommandLine
                     case 2: componentFactoryType = typeof(ComponentFactory<,>); break;
                     case 3: componentFactoryType = typeof(ComponentFactory<,,>); break;
                     case 4: componentFactoryType = typeof(ComponentFactory<,,,>); break;
-                    default: throw Contracts.ExceptNotImpl("ComponentFactoryFactory can only create component factories with 4 or less type args.");
+                    default:
+                        factory = null;
+                        return false;
                 }
 
-                return (ICommandLineComponentFactory)Activator.CreateInstance(
+                factory = (ICommandLineComponentFactory)Activator.CreateInstance(
                     componentFactoryType.MakeGenericType(factoryType.GenericTypeArguments),
                     signatureType,
                     name,
                     settings);
+                return true;
             }
 
             private abstract class ComponentFactory : ICommandLineComponentFactory
