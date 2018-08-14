@@ -1,10 +1,7 @@
-﻿using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
+﻿using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -53,96 +50,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Take a couple examples out of the test data and run predictions on top.
                 var testLoader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(SentimentTestPath)));
                 var testData = testLoader.AsEnumerable<SentimentData>(env, false);
-                var lockEngine = new LockBasedPredictionEngine(env, model);
-                Parallel.ForEach(testData, (input) => lockEngine.Predict(input));
-                using (var file = env.CreateTempFile())
+
+                Parallel.ForEach(testData, (input) =>
                 {
-                    // Save model. 
-                    using (var ch = env.Start("saving"))
-                        TrainUtils.SaveModel(env, ch, file, predictor, scoreRoles);
-                    var threadEngine = new ThreadLocalBasedPredictionEngine(env, file);
-                    var poolEngine = new PoolBasedPredictionEngine(env, file);
-                    Parallel.ForEach(testData, (input) => threadEngine.Predict(input));
-                    Parallel.ForEach(testData, (input) => poolEngine.Predict(input));
-                }
-            }
-        }
-
-        /// <summary>
-        /// This is a trivial implementation of a thread-safe prediction engine, where the underlying model is just guarded by a lock.
-        /// </summary>
-        private sealed class LockBasedPredictionEngine
-        {
-            private readonly PredictionEngine<SentimentData, SentimentPrediction> _model;
-
-            public LockBasedPredictionEngine(IHostEnvironment env, PredictionEngine<SentimentData, SentimentPrediction> model)
-            {
-                _model = model;
-            }
-
-            public SentimentPrediction Predict(SentimentData input)
-            {
-                lock (_model)
-                {
-                    return _model.Predict(input);
-                }
-            }
-        }
-
-        /// <summary>
-        /// This is an implementation of a thread-safe prediction engine that works by instantiating one model per the worker thread.
-        /// </summary>
-        private sealed class ThreadLocalBasedPredictionEngine
-        {
-            private readonly ThreadLocal<PredictionEngine<SentimentData, SentimentPrediction>> _engine;
-
-            public ThreadLocalBasedPredictionEngine(IHostEnvironment env, IFileHandle fileHandle)
-            {
-                _engine = new ThreadLocal<PredictionEngine<SentimentData, SentimentPrediction>>(
-                    () =>
+                    lock (model)
                     {
-                        using (var fs = fileHandle.OpenReadStream())
-                            return env.CreatePredictionEngine<SentimentData, SentimentPrediction>(fs);
-                    });
-            }
-
-            public SentimentPrediction Predict(SentimentData input)
-            {
-                return _engine.Value.Predict(input);
+                        var prediction = model.Predict(input);
+                    }
+                });
             }
         }
-
-        /// <summary>
-        /// This is an implementation of a thread-safe prediction engine that works by keeping a pool of allocated
-        /// model objects, that is grown as needed. 
-        /// </summary>
-        private sealed class PoolBasedPredictionEngine
-        {
-            private readonly MadeObjectPool<PredictionEngine<SentimentData, SentimentPrediction>> _enginePool;
-
-            public PoolBasedPredictionEngine(IHostEnvironment env, IFileHandle fileHandle)
-            {
-                _enginePool = new MadeObjectPool<PredictionEngine<SentimentData, SentimentPrediction>>(
-                    () =>
-                    {
-                        using (var fs = fileHandle.OpenReadStream())
-                            return env.CreatePredictionEngine<SentimentData, SentimentPrediction>(fs);
-                    });
-            }
-
-            public SentimentPrediction Predict(SentimentData features)
-            {
-                var engine = _enginePool.Get();
-                try
-                {
-                    return engine.Predict(features);
-                }
-                finally
-                {
-                    _enginePool.Return(engine);
-                }
-            }
-        }
-
     }
 }
