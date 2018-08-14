@@ -2,9 +2,6 @@
 using Microsoft.ML.Models;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi
@@ -32,9 +29,6 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var testLearningPipelineItem = new TextLoader(testDataPath).CreateFrom<SentimentData>();
             var evaluator = new BinaryClassificationEvaluator();
             var metrics = evaluator.Evaluate(model, testLearningPipelineItem);
-
-            var singlePrediction = model.Predict(new SentimentData() { SentimentText = "Not big fan of this." });
-            Assert.True(singlePrediction.Sentiment);
         }
     }
 }

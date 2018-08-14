@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
 
-            // this will throw exception during training time if you specify any other than binary classifier.
+            // This will throw exception during training time if you specify any other than binary classifier.
             pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
 
             var model = pipeline.Train<IrisData, IrisPrediction>();
