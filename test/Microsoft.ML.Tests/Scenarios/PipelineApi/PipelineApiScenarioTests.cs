@@ -46,8 +46,9 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 
         public class SentimentData
         {
-            [ColumnName("Label")]
+            [Column("0", name: "Label")]
             public bool Sentiment;
+            [Column("1")]
             public string SentimentText;
         }
 

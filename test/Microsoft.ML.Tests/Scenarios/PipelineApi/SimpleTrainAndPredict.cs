@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var testDataPath = GetDataPath(SentimentDataPath);
             var pipeline = new LearningPipeline();
 
-            pipeline.Add(MakeSentimentTextLoader(dataPath));
+            pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>());
 
             pipeline.Add(MakeSentimentTextTransform());
 
@@ -34,40 +34,8 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
             var model = pipeline.Train<SentimentData, SentimentPrediction>();
-            var testData = MakeSentimentTextLoader(testDataPath);
-            var evaluator = new BinaryClassificationEvaluator();
-            var metrics = evaluator.Evaluate(model, testData);
-
-            var singlePrediction = model.Predict(new SentimentData() { SentimentText = "Not big fan of this."});
+            var singlePrediction = model.Predict(new SentimentData() { SentimentText = "Not big fan of this." });
             Assert.True(singlePrediction.Sentiment);
-        }
-
-        private static TextLoader MakeSentimentTextLoader(string dataPath)
-        {
-            return new TextLoader(dataPath)
-            {
-                Arguments = new TextLoaderArguments
-                {
-                    Separator = new[] { '\t' },
-                    HasHeader = true,
-                    Column = new[]
-                     {
-                        new TextLoaderColumn()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoaderRange(0) },
-                            Type = Data.DataKind.Num
-                        },
-
-                        new TextLoaderColumn()
-                        {
-                            Name = "SentimentText",
-                            Source = new [] { new TextLoaderRange(1) },
-                            Type = Data.DataKind.Text
-                        }
-                    }
-                }
-            };
         }
 
         private static TextFeaturizer MakeSentimentTextTransform()

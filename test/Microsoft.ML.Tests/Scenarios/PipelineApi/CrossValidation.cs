@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Models;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
@@ -23,15 +24,11 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         void CrossValidation()
         {
             var dataPath = GetDataPath(SentimentDataPath);
-            var testDataPath = GetDataPath(SentimentDataPath);
+
             var pipeline = new LearningPipeline();
-
-            pipeline.Add(MakeSentimentTextLoader(dataPath));
-
+            pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>());
             pipeline.Add(MakeSentimentTextTransform());
-
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
-
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
 
             var cv = new CrossValidator().CrossValidate<SentimentData, SentimentPrediction>(pipeline);
