@@ -1392,8 +1392,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return LearnerEntryPointsUtils.Train<BinaryClassificationGamTrainer.Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new BinaryClassificationGamTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
-                calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
+                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
     }
 }
