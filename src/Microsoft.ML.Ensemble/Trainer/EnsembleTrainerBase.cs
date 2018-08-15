@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    public abstract class EnsembleTrainerBase<TOutput, TPredictor, TSelector, TCombiner, TSig> : TrainerBase<TPredictor>
+    public abstract class EnsembleTrainerBase<TOutput, TPredictor, TSelector, TCombiner> : TrainerBase<TPredictor>
          where TPredictor : class, IPredictorProducing<TOutput>
          where TSelector : class, ISubModelSelector<TOutput>
          where TCombiner : class, IOutputCombiner<TOutput>
@@ -53,8 +53,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             [TGUI(Label = "Show Sub-Model Metrics")]
             public bool ShowMetrics;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public SubComponent<ITrainer<IPredictorProducing<TOutput>>, TSig>[] BasePredictors;
+            public abstract IComponentFactory<ITrainer<IPredictorProducing<TOutput>>>[] BasePredictorFactories { get; set; }
         }
 
         private const int DefaultNumModels = 50;
@@ -78,21 +77,22 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             using (var ch = Host.Start("Init"))
             {
-                ch.CheckUserArg(Utils.Size(Args.BasePredictors) > 0, nameof(Args.BasePredictors), "This should have at-least one value");
+                var predictorFactories = Args.BasePredictorFactories;
+                ch.CheckUserArg(Utils.Size(predictorFactories) > 0, nameof(Args.BasePredictorFactories), "This should have at-least one value");
 
                 NumModels = Args.NumModels ??
-                    (Args.BasePredictors.Length == 1 ? DefaultNumModels : Args.BasePredictors.Length);
+                    (predictorFactories.Length == 1 ? DefaultNumModels : predictorFactories.Length);
 
                 ch.CheckUserArg(NumModels > 0, nameof(Args.NumModels), "Must be positive, or null to indicate numModels is the number of base predictors");
 
-                if (Utils.Size(Args.BasePredictors) > NumModels)
+                if (Utils.Size(predictorFactories) > NumModels)
                     ch.Warning("The base predictor count is greater than models count. Some of the base predictors will be ignored.");
 
                 _subsetSelector = Args.SamplingType.CreateComponent(Host);
 
                 Trainers = new ITrainer<IPredictorProducing<TOutput>>[NumModels];
                 for (int i = 0; i < Trainers.Length; i++)
-                    Trainers[i] = Args.BasePredictors[i % Args.BasePredictors.Length].CreateInstance(Host);
+                    Trainers[i] = predictorFactories[i % predictorFactories.Length].CreateComponent(Host);
                 // We infer normalization and calibration preferences from the trainers. However, even if the internal trainers
                 // don't need caching we are performing multiple passes over the data, so it is probably appropriate to always cache.
                 Info = new TrainerInfo(

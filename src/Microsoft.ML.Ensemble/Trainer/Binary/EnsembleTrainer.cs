@@ -13,6 +13,8 @@ using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Learners;
 
 [assembly: LoadableClass(EnsembleTrainer.Summary, typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
@@ -26,7 +28,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     /// A generic ensemble trainer for binary classification.
     /// </summary>
     public sealed class EnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
-        IBinarySubModelSelector, IBinaryOutputCombiner, SignatureBinaryClassifierTrainer>,
+        IBinarySubModelSelector, IBinaryOutputCombiner>,
         IModelCombiner<TScalarPredictor, TScalarPredictor>
     {
         public const string LoadNameValue = "WeightedEnsemble";
@@ -44,9 +46,22 @@ namespace Microsoft.ML.Runtime.Ensemble
             [TGUI(Label = "Output combiner", Description = "Output combiner type")]
             public ISupportBinaryOutputCombinerFactory OutputCombiner = new MedianFactory();
 
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureBinaryClassifierTrainer))]
+            public IComponentFactory<ITrainer<TScalarPredictor>>[] BasePredictors;
+
+            public override IComponentFactory<ITrainer<TScalarPredictor>>[] BasePredictorFactories
+            {
+                get { return BasePredictors; }
+                set { BasePredictors = value; }
+            }
+
             public Arguments()
             {
-                BasePredictors = new[] { new SubComponent<ITrainer<TScalarPredictor>, SignatureBinaryClassifierTrainer>("LinearSVM") };
+                BasePredictors = new[]
+                {
+                    new SimpleComponentFactory<ITrainer<TScalarPredictor>>(
+                        env => new LinearSvm(env, new LinearSvm.Arguments()))
+                };
             }
         }
 

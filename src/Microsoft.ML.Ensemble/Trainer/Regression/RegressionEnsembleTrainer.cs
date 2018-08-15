@@ -12,7 +12,9 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Learners;
 
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer) },
@@ -23,7 +25,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 {
     using TScalarPredictor = IPredictorProducing<Single>;
     public sealed class RegressionEnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
-       IRegressionSubModelSelector, IRegressionOutputCombiner, SignatureRegressorTrainer>,
+       IRegressionSubModelSelector, IRegressionOutputCombiner>,
        IModelCombiner<TScalarPredictor, TScalarPredictor>
     {
         public const string LoadNameValue = "EnsembleRegression";
@@ -39,9 +41,22 @@ namespace Microsoft.ML.Runtime.Ensemble
             [TGUI(Label = "Output combiner", Description = "Output combiner type")]
             public ISupportRegressionOutputCombinerFactory OutputCombiner = new MedianFactory();
 
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureRegressorTrainer))]
+            public IComponentFactory<ITrainer<TScalarPredictor>>[] BasePredictors;
+
+            public override IComponentFactory<ITrainer<TScalarPredictor>>[] BasePredictorFactories
+            {
+                get { return BasePredictors; }
+                set { BasePredictors = value; }
+            }
+
             public Arguments()
             {
-                BasePredictors = new[] { new SubComponent<ITrainer<TScalarPredictor>, SignatureRegressorTrainer>("OnlineGradientDescent") };
+                BasePredictors = new[]
+                {
+                    new SimpleComponentFactory<ITrainer<TScalarPredictor>>(
+                        env => new OnlineGradientDescentTrainer(env, new OnlineGradientDescentTrainer.Arguments()))
+                };
             }
         }
 
