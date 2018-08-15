@@ -2,6 +2,7 @@
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Learners;
@@ -90,8 +91,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public const string LoaderSignature = "TransformWrapper";
         private const string TransformDirTemplate = "Step_{0:000}";
 
-        private readonly IHostEnvironment _env;
-        private readonly IDataView _xf;
+        protected readonly IHostEnvironment _env;
+        protected readonly IDataView _xf;
 
         public TransformWrapper(IHostEnvironment env, IDataView xf)
         {
@@ -174,13 +175,40 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     public class ScorerWrapper<TModel> : TransformWrapper, IPredictorTransformer<TModel>
         where TModel : IPredictor
     {
-        public ScorerWrapper(IHostEnvironment env, IDataView scorer, TModel trainedModel)
+        protected readonly string _featureColumn;
+
+        public ScorerWrapper(IHostEnvironment env, IDataView scorer, TModel trainedModel, string featureColumn)
             : base(env, scorer)
         {
+            _featureColumn = featureColumn;
             InnerModel = trainedModel;
         }
 
         public TModel InnerModel { get; }
+    }
+
+    public class BinaryScorerWrapper<TModel>: ScorerWrapper<TModel>
+        where TModel: IPredictor
+    {
+        public BinaryScorerWrapper(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn, BinaryClassifierScorer.Arguments args)
+            :base(env, MakeScorer(env, inputSchema, featureColumn, model, args), model, featureColumn)
+        {
+        }
+
+        private static IDataView MakeScorer(IHostEnvironment env, ISchema schema, string featureColumn, TModel model, BinaryClassifierScorer.Arguments args)
+        {
+            var settings = $"Binary{{{CmdParser.GetSettings(env, args, new BinaryClassifierScorer.Arguments())}}}";
+            var mapper = ScoreUtils.GetSchemaBindableMapper(env, model, SubComponent.Parse<IDataScorerTransform, SignatureDataScorer>(settings));
+            var edv = new EmptyDataView(env, schema);
+            var data = new RoleMappedData(edv, "Label", featureColumn, opt: true);
+            return new BinaryClassifierScorer(env, args, data.Data, mapper.Bind(env, data.Schema), data.Schema);
+        }
+
+        public BinaryScorerWrapper<TModel> Clone(BinaryClassifierScorer.Arguments scorerArgs)
+        {
+            var scorer = _xf as IDataScorerTransform;
+            return new BinaryScorerWrapper<TModel>(_env, InnerModel, scorer.Source.Schema, _featureColumn, scorerArgs);
+        }
     }
 
     public class MyTextLoader : IDataReaderEstimator<IMultiStreamSource, LoaderWrapper>
@@ -206,12 +234,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public abstract class TrainerBase<TModel> : IEstimator<ScorerWrapper<TModel>>
+    public abstract class TrainerBase<TTransformer, TModel> : IEstimator<TTransformer>
+        where TTransformer: ScorerWrapper<TModel>
         where TModel : IPredictor
     {
         protected readonly IHostEnvironment _env;
-        private readonly string _featureCol;
-        private readonly string _labelCol;
+        protected readonly string _featureCol;
+        protected readonly string _labelCol;
         private readonly bool _cache;
         private readonly bool _normalize;
 
@@ -224,12 +253,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _labelCol = labelColumn;
         }
 
-        public ScorerWrapper<TModel> Fit(IDataView input)
+        public TTransformer Fit(IDataView input)
         {
             return TrainTransformer(input);
         }
 
-        protected ScorerWrapper<TModel> TrainTransformer(IDataView trainSet,
+        protected TTransformer TrainTransformer(IDataView trainSet,
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
             var cachedTrain = _cache ? new CacheDataView(_env, trainSet, prefetch: null) : trainSet;
@@ -260,8 +289,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var pred = TrainCore(new TrainContext(trainRoles, validRoles, initPredictor));
 
             var scoreRoles = new RoleMappedData(normalizer, label: _labelCol, feature: _featureCol);
-            IDataScorerTransform scorer = ScoreUtils.GetScorer(pred, scoreRoles, _env, trainRoles.Schema);
-            return new ScorerWrapper<TModel>(_env, scorer, pred);
+            return MakeScorer(pred, scoreRoles);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -270,6 +298,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
 
         protected abstract TModel TrainCore(TrainContext trainContext);
+
+        protected abstract TTransformer MakeScorer(TModel predictor, RoleMappedData data);
+
+        protected ScorerWrapper<TModel> MakeScorerBasic(TModel predictor, RoleMappedData data)
+        {
+            var scorer = ScoreUtils.GetScorer(predictor, data, _env, data.Schema);
+            return (TTransformer)(new ScorerWrapper<TModel>(_env, scorer, predictor, data.Schema.Feature.Name));
+        }
     }
 
     public class MyTextTransform : IEstimator<TransformWrapper>
@@ -378,7 +414,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public sealed class MySdca : TrainerBase<IPredictor>
+    public sealed class MySdca : TrainerBase<BinaryScorerWrapper<IPredictor>,IPredictor>
     {
         private readonly LinearClassificationTrainer.Arguments _args;
 
@@ -391,9 +427,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         protected override IPredictor TrainCore(TrainContext context) => new LinearClassificationTrainer(_env, _args).Train(context);
 
         public ITransformer Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
+
+        protected override BinaryScorerWrapper<IPredictor> MakeScorer(IPredictor predictor, RoleMappedData data) 
+            => new BinaryScorerWrapper<IPredictor>(_env, predictor, data.Data.Schema, _featureCol, new BinaryClassifierScorer.Arguments());
     }
 
-    public sealed class MySdcaMulticlass : TrainerBase<IPredictor>
+    public sealed class MySdcaMulticlass : TrainerBase<ScorerWrapper<IPredictor>, IPredictor>
     {
         private readonly SdcaMultiClassTrainer.Arguments _args;
 
@@ -403,10 +442,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _args = args;
         }
 
+        protected override ScorerWrapper<IPredictor> MakeScorer(IPredictor predictor, RoleMappedData data) => MakeScorerBasic(predictor, data);
+
         protected override IPredictor TrainCore(TrainContext context) => new SdcaMultiClassTrainer(_env, _args).Train(context);
     }
 
-    public sealed class MyAveragedPerceptron : TrainerBase<IPredictor>
+    public sealed class MyAveragedPerceptron : TrainerBase<BinaryScorerWrapper<IPredictor>, IPredictor>
     {
         private readonly AveragedPerceptronTrainer _trainer;
 
@@ -422,6 +463,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             return TrainTransformer(trainData, initPredictor: initialPredictor);
         }
+
+        protected override BinaryScorerWrapper<IPredictor> MakeScorer(IPredictor predictor, RoleMappedData data)
+            => new BinaryScorerWrapper<IPredictor>(_env, predictor, data.Data.Schema, _featureCol, new BinaryClassifierScorer.Arguments());
     }
 
     public sealed class MyPredictionEngine<TSrc, TDst>
