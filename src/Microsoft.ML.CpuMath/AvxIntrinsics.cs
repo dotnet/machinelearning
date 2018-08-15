@@ -53,13 +53,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static unsafe Vector128<float> GetLow(in Vector128<float> x)
+        private static unsafe Vector128<float> GetLow(in Vector256<float> x)
         {
             return Avx.ExtractVector128<float>(x, 0);
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static unsafe Vector128<float> GetHigh(in Vector128<float> x)
+        private static unsafe Vector128<float> GetHigh(in Vector256<float> x)
         {
             return Avx.ExtractVector128<float>(x, 1);
         }
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 while (pDstCurrent < pDstEnd)
                 {
-                    Vector256<float> res0 = Avx.SetZeroVector256();
+                    Vector256<float> res0 = Avx.SetZeroVector256<float>();
                     Vector256<float> res1 = res0;
                     Vector256<float> res2 = res0;
                     Vector256<float> res3 = res0;
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(Compat(mat));
             Contracts.Assert(Compat(src));
             Contracts.Assert(Compat(dst));
-            
+
             // REVIEW: For extremely sparse inputs, interchanging the loops would
             // likely be more efficient.
             fixed (float* pSrcStart = &src.Items[0])
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     float* pm1 = pm0 + ccol;
                     float* pm2 = pm1 + ccol;
                     float* pm3 = pm2 + ccol;
-                    Vector256<float> result = Avx.SetZeroVector256();
+                    Vector256<float> result = Avx.SetZeroVector256<float>();
 
                     int* ppos = pposMin;
 
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
 
-                Vector256<float> result = Avx.SetZeroVector256();
+                Vector256<float> result = Avx.SetZeroVector256<float>();
 
                 while (pSrcCurrent < pSrcEnd)
                 {

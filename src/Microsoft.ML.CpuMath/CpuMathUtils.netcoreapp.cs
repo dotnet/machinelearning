@@ -17,7 +17,20 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(mat.Size == dst.Size * src.Size);
             Contracts.Assert(crun >= 0);
 
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                if (!tran)
+                {
+                    Contracts.Assert(crun <= dst.Size);
+                    AvxIntrinsics.MatMulX(add, mat, src, dst, crun, src.Size);
+                }
+                else
+                {
+                    Contracts.Assert(crun <= src.Size);
+                    AvxIntrinsics.MatMulTranX(add, mat, src, dst, dst.Size, crun);
+                }
+            }
+            else if (Sse.IsSupported)
             {
                 if (!tran)
                 {
@@ -96,7 +109,20 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.AssertNonEmpty(rgposSrc);
             Contracts.Assert(crun >= 0);
 
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                if (!tran)
+                {
+                    Contracts.Assert(crun <= dst.Size);
+                    AvxIntrinsics.MatMulPX(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
+                }
+                else
+                {
+                    Contracts.Assert(crun <= srcValues.Size);
+                    AvxIntrinsics.MatMulTranPX(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
+                }
+            }
+            else if (Sse.IsSupported)
             {
                 if (!tran)
                 {

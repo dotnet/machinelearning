@@ -16,7 +16,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         private const int IDXLEN = 1000003;
         private const int LEN = 1000003;
-        private const int EXP_RANGE = EXP_MAX / 2;
+        private const int EXP_RANGE = EXP_MAX / 8;
         private const int DEFAULT_SEED = 253421;
         private const float DEFAULT_SCALE = 1.11f;
         private const int DEFAULT_CROW = 500;
@@ -312,7 +312,6 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         [Benchmark]
         public float ManagedMaxAbsDiffUPerf() => CpuMathUtils.MaxAbsDiff(DEFAULT_SCALE, src, LEN);
-        // TODO: MaxAbsU!!!
 
         [Benchmark]
         public unsafe float NativeDotUPerf()
