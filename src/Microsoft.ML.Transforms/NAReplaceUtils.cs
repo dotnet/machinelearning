@@ -1427,7 +1427,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public override object GetStat()
                 {
-                    DvInt4[] stat = new DvInt4[Stat.Length];
+                    Int32[] stat = new Int32[Stat.Length];
                     // Account for defaults resulting from sparsity.
                     for (int slot = 0; slot < Stat.Length; slot++)
                     {

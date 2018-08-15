@@ -404,9 +404,9 @@ namespace Microsoft.ML.Runtime.Data
                 return isValid;
 
             var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex);
-            if (type?.RawType == typeof(VBuffer<DvInt4>))
+            if (type?.RawType == typeof(VBuffer<Int32>))
             {
-                VBuffer<DvInt4> catIndices = default(VBuffer<DvInt4>);
+                VBuffer<Int32> catIndices = default(VBuffer<Int32>);
                 schema.GetMetadata(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex, ref catIndices);
                 VBufferUtils.Densify(ref catIndices);
                 int columnSlotsCount = schema.GetColumnType(colIndex).AsVector.VectorSizeCore;
@@ -416,19 +416,19 @@ namespace Microsoft.ML.Runtime.Data
                     isValid = true;
                     for (int i = 0; i < catIndices.Values.Length; i += 2)
                     {
-                        if (catIndices.Values[i].RawValue > catIndices.Values[i + 1].RawValue ||
-                            catIndices.Values[i].RawValue <= previousEndIndex ||
-                            catIndices.Values[i].RawValue >= columnSlotsCount ||
-                            catIndices.Values[i + 1].RawValue >= columnSlotsCount)
+                        if (catIndices.Values[i] > catIndices.Values[i + 1] ||
+                            catIndices.Values[i] <= previousEndIndex ||
+                            catIndices.Values[i] >= columnSlotsCount ||
+                            catIndices.Values[i + 1] >= columnSlotsCount)
                         {
                             isValid = false;
                             break;
                         }
 
-                        previousEndIndex = catIndices.Values[i + 1].RawValue;
+                        previousEndIndex = catIndices.Values[i + 1];
                     }
                     if (isValid)
-                        categoricalFeatures = catIndices.Values.Select(val => val.RawValue).ToArray();
+                        categoricalFeatures = catIndices.Values.Select(val => val).ToArray();
                 }
             }
 

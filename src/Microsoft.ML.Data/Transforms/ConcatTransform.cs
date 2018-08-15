@@ -404,7 +404,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (_typesCategoricals[iinfo] == null)
                             throw MetadataUtils.ExceptGetMetadata();
 
-                        MetadataUtils.Marshal<VBuffer<DvInt4>, TValue>(GetCategoricalSlotRanges, iinfo, ref value);
+                        MetadataUtils.Marshal<VBuffer<Int32>, TValue>(GetCategoricalSlotRanges, iinfo, ref value);
                         break;
                     case MetadataUtils.Kinds.IsNormalized:
                         if (!_isNormalized[iinfo])
@@ -417,9 +417,9 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private void GetCategoricalSlotRanges(int iiinfo, ref VBuffer<DvInt4> dst)
+            private void GetCategoricalSlotRanges(int iiinfo, ref VBuffer<Int32> dst)
             {
-                List<DvInt4> allValues = new List<DvInt4>();
+                List<Int32> allValues = new List<Int32>();
                 int slotCount = 0;
                 for (int i = 0; i < Infos[iiinfo].SrcIndices.Length; i++)
                 {
@@ -440,7 +440,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 Contracts.Assert(allValues.Count > 0);
 
-                dst = new VBuffer<DvInt4>(allValues.Count, allValues.ToArray());
+                dst = new VBuffer<Int32>(allValues.Count, allValues.ToArray());
             }
 
             private void IsNormalized(int iinfo, ref DvBool dst)
