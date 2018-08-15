@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -19,6 +20,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Timer = Microsoft.ML.Runtime.FastTree.Internal.Timer;
 
 [assembly: LoadableClass(typeof(GamPredictorBase.VisualizationCommand), typeof(GamPredictorBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
     "GAM Vizualization Command", GamPredictorBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
@@ -121,6 +123,7 @@ namespace Microsoft.ML.Runtime.FastTree
         private double[][][] _splitValue;
 
         //Results of Training
+        protected double MeanEffect;
         protected double[][] BinEffects;
         protected int[] FeatureMap;
         protected TrainingResults FinalResults;
@@ -408,7 +411,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="scores">the array of scores</param>
         private void UpdateWithGraph(int doc, int featureIndex, int iteration, int featureBin, double[] scores)
         {
-            scores[doc] += BinEffects[featureIndex][featureBin];
+            scores[doc] += BinEffects[featureIndex][featureBin] + MeanEffect/BinEffects.Length;
         }
 
         /// <summary>
@@ -435,7 +438,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     ch.Info("No pruning necessary. More iterations may be necessary.");
             }
 
-            // Compose the BinEffects array
+            // Combine the graphs to compute the per-feature (binned) Effects
             BinEffects = new double[TrainSet.NumFeatures][];
             for (int featureIndex = 0; featureIndex < TrainSet.NumFeatures; featureIndex++)
             {
@@ -457,6 +460,9 @@ namespace Microsoft.ML.Runtime.FastTree
                 }
             }
 
+            // Center the graph around zero
+            CenterGraph();
+
             // Recompute the final results if necessary
             if (bestIteration != Args.NumIterations)
             {
@@ -476,6 +482,75 @@ namespace Microsoft.ML.Runtime.FastTree
             }
             else
                 FinalResults = new TrainingResults(bestIteration, _objectiveFunction.GetGradient(ch, TrainSetScore.Scores).Sum());
+        }
+
+        /// <summary>
+        /// Distribute the documents into blocks to be computed on each thread
+        /// </summary>
+        /// <param name="numDocs">The number of documents in the dataset</param>
+        /// <param name="blocks">An array containing the starting point for each thread;
+        /// the next position is the exclusive ending point for the thread.</param>
+        /// <param name="numThreads">The number of threads used.</param>
+        private void DefineDocumentThreadBlocks(int numDocs, int numThreads, out int[] blocks)
+        {
+            int extras = numDocs % numThreads;
+            int documentsPerThread = numDocs / numThreads;
+            blocks = new int[numThreads + 1];
+            blocks[0] = 0;
+            for (int t = 0; t < extras; t++)
+                blocks[t + 1] = blocks[t] + documentsPerThread + 1;
+            for (int t = extras; t < numThreads; t++)
+                blocks[t + 1] = blocks[t] + documentsPerThread;
+        }
+
+        /// <summary>
+        /// Center the graph using the mean response per feature on the training set.
+        /// </summary>
+        private void CenterGraph()
+        {
+            // Define this once
+            DefineDocumentThreadBlocks(TrainSet.NumDocs, BlockingThreadPool.NumThreads, out int[] trainThreadBlocks);
+
+            // Compute the mean of each Effect
+            var meanEffects = new double[BinEffects.Length];
+            var updateTask = ThreadTaskManager.MakeTask(
+                (threadIndex) =>
+                {
+                    int startIndexInclusive = trainThreadBlocks[threadIndex];
+                    int endIndexExclusive = trainThreadBlocks[threadIndex + 1];
+                    for (int featureIndex = 0; featureIndex < BinEffects.Length; featureIndex++)
+                    {
+                        var featureIndexer = TrainSet.GetIndexer(featureIndex);
+                        for (int doc = startIndexInclusive; doc < endIndexExclusive; doc++)
+                        {
+                            var bin = featureIndexer[doc];
+                            double totalEffect;
+                            double newTotalEffect;
+                            do
+                            {
+                                totalEffect = meanEffects[featureIndex];
+                                newTotalEffect = totalEffect + BinEffects[featureIndex][bin];
+
+                            } while (totalEffect !=
+                                     Interlocked.CompareExchange(ref meanEffects[featureIndex], newTotalEffect, totalEffect));
+                            // Update the shared effect, being careful of threading
+                        }
+                    }
+                }, BlockingThreadPool.NumThreads);
+            updateTask.RunTask();
+
+            // Compute the intercept and center each graph
+            MeanEffect = 0.0;
+            for (int featureIndex = 0; featureIndex < BinEffects.Length; featureIndex++)
+            {
+                // Compute the mean effect
+                meanEffects[featureIndex] /= TrainSet.NumDocs;
+
+                // Shift the mean from the bins into the intercept
+                MeanEffect += meanEffects[featureIndex];
+                for (int bin=0; bin < BinEffects[featureIndex].Length; ++bin)
+                    BinEffects[featureIndex][bin] -= meanEffects[featureIndex];
+            }
         }
 
         private void ConvertTreeToGraph(int globalFeatureIndex, int iteration)
@@ -607,7 +682,7 @@ namespace Microsoft.ML.Runtime.FastTree
         public ColumnType OutputType => NumberType.Float;
 
         private protected GamPredictorBase(IHostEnvironment env, string name,
-            int inputLength, Dataset trainSet, double[][] binEffects, int[] featureMap,
+            int inputLength, Dataset trainSet, double meanEffect, double[][] binEffects, int[] featureMap,
             TrainingResults trainingResults)
             : base(env, name)
         {
@@ -622,6 +697,8 @@ namespace Microsoft.ML.Runtime.FastTree
             _numFeatures = binEffects.Length;
             _inputType = new VectorType(NumberType.Float, _inputLength);
             _featureMap = featureMap;
+
+            _intercept = meanEffect;
 
             TrainingSummary = trainingResults;
 
@@ -653,12 +730,10 @@ namespace Microsoft.ML.Runtime.FastTree
                 double[] binEffect = binEffects[i];
                 Host.CheckValue(binEffect, nameof(binEffects), "Array contained null entries");
                 Host.CheckParam(binUpperBound.Length == binEffect.Length, nameof(binEffects), "Array contained wrong number of effects");
-                double meanEffect = 0.0;
                 double value = binEffect[0];
                 for (int j = 0; j < binEffect.Length; j++)
                 {
                     double element = binEffect[j];
-                    meanEffect += element;
                     if (element != value)
                     {
                         newBinEffects.Add(value);
@@ -666,17 +741,13 @@ namespace Microsoft.ML.Runtime.FastTree
                         value = element;
                     }
                 }
-                meanEffect /= binEffect.Length;
-
-                // THIS MEAN IS NOT CORRECT UNLESS THE BINS ARE EQUALLY SPACED!
 
                 newBinBoundaries.Add(binUpperBound[binEffect.Length - 1]);
                 newBinEffects.Add(binEffect[binEffect.Length - 1]);
                 _binUpperBounds[i] = newBinBoundaries.ToArray();
 
                 // Center the effect around 0, and move the mean into the intercept
-                _binEffects[i] = newBinEffects.Select(x => x - meanEffect).ToArray();
-                _intercept += meanEffect;
+                _binEffects[i] = newBinEffects.ToArray();
                 _valueAtAllZero += _binEffects[i][0];
                 newBinEffects.Clear();
                 newBinBoundaries.Clear();

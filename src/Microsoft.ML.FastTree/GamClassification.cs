@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             TrainBase(context);
             var predictor = new BinaryClassGamPredictor(Host, InputLength, TrainSet,
-                BinEffects, FeatureMap, FinalResults);
+                MeanEffect, BinEffects, FeatureMap, FinalResults);
             var calibrator = new PlattCalibrator(Host, -2 * _sigmoidParameter, 0);
             return new CalibratedPredictor(Host, predictor, calibrator);
         }
@@ -120,8 +120,8 @@ namespace Microsoft.ML.Runtime.FastTree
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         public BinaryClassGamPredictor(IHostEnvironment env, int inputLength, Dataset trainset,
-            double[][] binEffects, int[] featureMap, TrainingResults trainingResults)
-            : base(env, LoaderSignature, inputLength, trainset, binEffects, featureMap, trainingResults) { }
+            double meanEffect, double[][] binEffects, int[] featureMap, TrainingResults trainingResults)
+            : base(env, LoaderSignature, inputLength, trainset, meanEffect, binEffects, featureMap, trainingResults) { }
 
         private BinaryClassGamPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx) { }
