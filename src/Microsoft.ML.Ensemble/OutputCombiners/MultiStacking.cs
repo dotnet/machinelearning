@@ -8,7 +8,10 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(MultiStacking), typeof(MultiStacking.Arguments), typeof(SignatureCombiner),
@@ -20,7 +23,7 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
-    public sealed class MultiStacking : BaseStacking<VBuffer<Single>, SignatureMultiClassClassifierTrainer>, ICanSaveModel, IMultiClassOutputCombiner
+    public sealed class MultiStacking : BaseStacking<VBuffer<Single>>, ICanSaveModel, IMultiClassOutputCombiner
     {
         public const string LoadName = "MultiStacking";
         public const string LoaderSignature = "MultiStackingCombiner";
@@ -38,13 +41,28 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
         public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
         {
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
+                Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMultiClassClassifierTrainer))]
+            [TGUI(Label = "Base predictor")]
+            public IComponentFactory<ITrainer<IPredictorProducing<VBuffer<Single>>>> BasePredictorType;
+
+            public override IComponentFactory<ITrainer<TVectorPredictor>> BasePredictorFactory
+            {
+                get { return BasePredictorType; }
+                set { BasePredictorType = value; }
+            }
+
             public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiStacking(env, this);
 
             public Arguments()
             {
                 // REVIEW: Perhaps we can have a better non-parametetric learner.
-                BasePredictorType = new SubComponent<ITrainer<TVectorPredictor>, SignatureMultiClassClassifierTrainer>(
-                    "OVA", "p=FastTreeBinaryClassification");
+                BasePredictorType = new SimpleComponentFactory<ITrainer<TVectorPredictor>>(
+                    env => new Ova(env, new Ova.Arguments()
+                    {
+                        PredictorType = new SimpleComponentFactory<ITrainer<IPredictorProducing<Single>>>(
+                            e => new FastTreeBinaryClassificationTrainer(e, new FastTreeBinaryClassificationTrainer.Arguments()))
+                    }));
             }
         }
 

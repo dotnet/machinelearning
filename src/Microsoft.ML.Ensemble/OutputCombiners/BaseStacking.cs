@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -15,7 +16,7 @@ using Microsoft.ML.Runtime.Training;
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     using ColumnRole = RoleMappedSchema.ColumnRole;
-    public abstract class BaseStacking<TOutput, TSigBase> : IStackingTrainer<TOutput>
+    public abstract class BaseStacking<TOutput> : IStackingTrainer<TOutput>
     {
         public abstract class ArgumentsBase
         {
@@ -24,13 +25,10 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             [TGUI(Label = "Validation Dataset Proportion")]
             public Single ValidationDatasetProportion = 0.3f;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
-                Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            [TGUI(Label = "Base predictor")]
-            public SubComponent<ITrainer<IPredictorProducing<TOutput>>, TSigBase> BasePredictorType;
+            public abstract IComponentFactory<ITrainer<IPredictorProducing<TOutput>>> BasePredictorFactory { get; set; }
         }
 
-        protected readonly SubComponent<ITrainer<IPredictorProducing<TOutput>>, TSigBase> BasePredictorType;
+        protected readonly IComponentFactory<ITrainer<IPredictorProducing<TOutput>>> BasePredictorFactory;
         protected readonly IHost Host;
         protected IPredictorProducing<TOutput> Meta;
 
@@ -45,10 +43,10 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             Host.CheckUserArg(0 <= args.ValidationDatasetProportion && args.ValidationDatasetProportion < 1,
                     nameof(args.ValidationDatasetProportion),
                     "The validation proportion for stacking should be greater than or equal to 0 and less than 1");
-            Host.CheckUserArg(args.BasePredictorType.IsGood(), nameof(args.BasePredictorType));
+            Host.CheckUserArg(args.BasePredictorFactory != null, nameof(args.BasePredictorFactory));
 
             ValidationDatasetProportion = args.ValidationDatasetProportion;
-            BasePredictorType = args.BasePredictorType;
+            BasePredictorFactory = args.BasePredictorFactory;
         }
 
         internal BaseStacking(IHostEnvironment env, string name, ModelLoadContext ctx)
@@ -135,7 +133,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             using (var ch = host.Start("Training stacked model"))
             {
                 ch.Check(Meta == null, "Train called multiple times");
-                ch.Check(BasePredictorType != null);
+                ch.Check(BasePredictorFactory != null);
 
                 var maps = new ValueMapper<VBuffer<Single>, TOutput>[models.Count];
                 for (int i = 0; i < maps.Length; i++)
@@ -187,7 +185,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 var view = bldr.GetDataView();
                 var rmd = new RoleMappedData(view, DefaultColumnNames.Label, DefaultColumnNames.Features);
 
-                var trainer = BasePredictorType.CreateInstance(host);
+                var trainer = BasePredictorFactory.CreateComponent(host);
                 if (trainer.Info.NeedNormalization)
                     ch.Warning("The trainer specified for stacking wants normalization, but we do not currently allow this.");
                 Meta = trainer.Train(rmd);

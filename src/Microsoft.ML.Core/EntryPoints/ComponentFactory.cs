@@ -30,6 +30,25 @@ namespace Microsoft.ML.Runtime.EntryPoints
     }
 
     /// <summary>
+    /// A class for creating a component with no extra parameters (other than an <see cref="IHostEnvironment"/>)
+    /// that simply wraps a delegate which creates the component.
+    /// </summary>
+    public class SimpleComponentFactory<TComponent> : IComponentFactory<TComponent>
+    {
+        private Func<IHostEnvironment, TComponent> _factory;
+
+        public SimpleComponentFactory(Func<IHostEnvironment, TComponent> factory)
+        {
+            _factory = factory;
+        }
+
+        public TComponent CreateComponent(IHostEnvironment env)
+        {
+            return _factory(env);
+        }
+    }
+
+    /// <summary>
     /// An interface for creating a component when we take one extra parameter (and an <see cref="IHostEnvironment"/>).
     /// </summary>
     public interface IComponentFactory<in TArg1, out TComponent> : IComponentFactory
