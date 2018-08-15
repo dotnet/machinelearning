@@ -358,21 +358,13 @@ namespace Microsoft.ML.Runtime.FastTree
         private void UpdateScoresForSet(Dataset dataset, double[] scores, int iteration,
             Action<int, int, int, int, double[]> updateFunction)
         {
-            int numThreads = BlockingThreadPool.NumThreads;
-            int extras = dataset.NumDocs % numThreads;
-            int documentsPerThread = dataset.NumDocs / numThreads;
-            int[] division = new int[numThreads + 1];
-            division[0] = 0;
-            for (int t = 0; t < extras; t++)
-                division[t + 1] = division[t] + documentsPerThread + 1;
-            for (int t = extras; t < numThreads; t++)
-                division[t + 1] = division[t] + documentsPerThread;
+            DefineDocumentThreadBlocks(dataset.NumDocs, BlockingThreadPool.NumThreads, out int[] threadBlocks);
 
             var updateTask = ThreadTaskManager.MakeTask(
                 (threadIndex) =>
                 {
-                    int startIndexInclusive = division[threadIndex];
-                    int endIndexExclusive = division[threadIndex + 1];
+                    int startIndexInclusive = threadBlocks[threadIndex];
+                    int endIndexExclusive = threadBlocks[threadIndex + 1];
                     for (int featureIndex = 0; featureIndex < _splitPoint.Length; featureIndex++)
                     {
                         var featureIndexer = dataset.GetIndexer(featureIndex);
@@ -381,7 +373,7 @@ namespace Microsoft.ML.Runtime.FastTree
                             updateFunction(doc, featureIndex, iteration, featureIndexer[doc], scores);
                         }
                     }
-                }, numThreads);
+                }, BlockingThreadPool.NumThreads);
             updateTask.RunTask();
         }
 
