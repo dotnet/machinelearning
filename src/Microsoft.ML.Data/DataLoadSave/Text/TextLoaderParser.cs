@@ -993,15 +993,15 @@ namespace Microsoft.ML.Runtime.Data
                                 var spanT = Fields.Spans[Fields.Count - 1];
 
                                 // Note that Convert produces NA if the text is unparsable.
-                                DvInt4 csrc = default(DvInt4);
+                                int? csrc = default;
                                 Conversion.Conversions.Instance.Convert(ref spanT, ref csrc);
-                                csrcSparse = csrc.RawValue;
-                                if (csrcSparse <= 0)
+                                if (!csrc.HasValue || csrc.Value <= 0)
                                 {
                                     _stats.LogBadFmt(ref scan, "Bad dimensionality or ambiguous sparse item. Use sparse=- for non-sparse file, and/or quote the value.");
                                     break;
                                 }
 
+                                csrcSparse = csrc.Value;
                                 srcLimFixed = Fields.Indices[--Fields.Count];
                                 if (csrcSparse >= SrcLim - srcLimFixed)
                                     csrcSparse = SrcLim - srcLimFixed - 1;
