@@ -4,14 +4,15 @@
 
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
-using Microsoft.ML.Data;
 using Microsoft.ML.Models;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -20,6 +21,7 @@ namespace Microsoft.ML.Benchmarks
         internal static ClassificationMetrics s_metrics;
         private static PredictionModel<IrisData, IrisPrediction> s_trainedModel;
         private static string s_dataPath;
+        private static string s_sentimentDataPath;
         private static IrisData[][] s_batches;
         private static readonly int[] s_batchSizes = new int[] { 1, 2, 5 };
         private readonly Random r = new Random(0);
@@ -44,14 +46,18 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public IEnumerable<IrisPrediction> PredictIrisBatchOf5() => s_trainedModel.Predict(s_batches[2]);
 
+        [Benchmark]
+        public IPredictor TrainSentiment() => TrainSentimentCore();
+
         [GlobalSetup]
         public void Setup()
         {
             s_dataPath = Program.GetDataPath("iris.txt");
+            s_sentimentDataPath = Program.GetDataPath("wikipedia-detox-250-line-data.tsv");
             s_trainedModel = TrainCore();
             IrisPrediction prediction = s_trainedModel.Predict(s_example);
 
-            var testData = new TextLoader(s_dataPath).CreateFrom<IrisData>(useHeader: true);
+            var testData = new Data.TextLoader(s_dataPath).CreateFrom<IrisData>(useHeader: true);
             var evaluator = new ClassificationEvaluator();
             s_metrics = evaluator.Evaluate(s_trainedModel, testData);
 
@@ -71,7 +77,7 @@ namespace Microsoft.ML.Benchmarks
         {
             var pipeline = new LearningPipeline();
 
-            pipeline.Add(new TextLoader(s_dataPath).CreateFrom<IrisData>(useHeader: true));
+            pipeline.Add(new Data.TextLoader(s_dataPath).CreateFrom<IrisData>(useHeader: true));
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
 
@@ -79,6 +85,75 @@ namespace Microsoft.ML.Benchmarks
 
             PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
             return model;
+        }
+
+        private static IPredictor TrainSentimentCore()
+        {
+            var dataPath = s_sentimentDataPath;
+            using (var env = new TlcEnvironment(seed: 1))
+            {
+                // Pipeline
+                var loader = new TextLoader(env,
+                new TextLoader.Arguments()
+                {
+                    AllowQuoting = false,
+                    AllowSparse = false,
+                    Separator = "tab",
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoader.Column()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoader.Range() { Min=0, Max=0} },
+                            Type = DataKind.Num
+                        },
+
+                        new TextLoader.Column()
+                        {
+                            Name = "SentimentText",
+                            Source = new [] { new TextLoader.Range() { Min=1, Max=1} },
+                            Type = DataKind.Text
+                        }
+                    }
+                }, new MultiFileSource(dataPath));
+
+                var text = TextTransform.Create(env, new TextTransform.Arguments()
+                {
+                    Column = new TextTransform.Column
+                    {
+                        Name = "WordEmbeddings",
+                        Source = new[] { "SentimentText" }
+                    },
+                    KeepDiacritics = false,
+                    KeepPunctuations = false,
+                    TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
+                    OutputTokens = true,
+                    StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
+                    VectorNormalizer = TextTransform.TextNormKind.None,
+                    CharFeatureExtractor = null,
+                    WordFeatureExtractor = null,
+                },
+                loader);
+
+                var trans = new WordEmbeddingsTransform(env, new WordEmbeddingsTransform.Arguments()
+                {
+                    Column = new WordEmbeddingsTransform.Column[1]
+                    {
+                        new WordEmbeddingsTransform.Column
+                        {
+                            Name = "Features",
+                            Source = "WordEmbeddings_TransformedText"
+                        }
+                    },
+                    ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
+                }, text);
+                // Train
+                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { MaxIterations = 20 });
+
+                var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
+                return trainer.Train(trainRoles);
+            }
         }
 
         public class IrisData

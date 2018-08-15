@@ -2,22 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
-using Xunit;
 
-namespace Microsoft.ML.Scenarios
+namespace Microsoft.ML.Benchmarks
 {
-    public partial class ScenariosTests
+    public class KMeansAndLogisticRegressionBench
     {
-        [Fact]
-        public void KMeansAndLRTest()
-        {
-            string dataPath = GetDataPath("adult.train");
+        private static string s_dataPath;
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+        [Benchmark]
+        public IPredictor TrainKMeansAndLR() => TrainKMeansAndLRCore();
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            s_dataPath = Program.GetDataPath("adult.train");
+            StochasticDualCoordinateAscentClassifierBench.s_metrics = Models.ClassificationMetrics.Empty;
+        }
+
+        private static IPredictor TrainKMeansAndLRCore()
+        {
+            string dataPath = s_dataPath;
+
+            using (var env = new TlcEnvironment(seed: 1))
             {
                 // Pipeline
                 var loader = new TextLoader(env,
@@ -41,7 +54,7 @@ namespace Microsoft.ML.Scenarios
                                     new TextLoader.Range() { Min = 5, Max = 9 },
                                     new TextLoader.Range() { Min = 13, Max = 13 }
                                 },
-                                Type = DataKind.R4
+                                Type = DataKind.TX
                             },
                             new TextLoader.Column()
                             {
@@ -59,7 +72,7 @@ namespace Microsoft.ML.Scenarios
 
                 IDataTransform trans = CategoricalTransform.Create(env, new CategoricalTransform.Arguments
                 {
-                    Column = new [] 
+                    Column = new[]
                     {
                         new CategoricalTransform.Column { Name = "CatFeatures", Source = "CatFeatures" }
                     }
@@ -69,16 +82,40 @@ namespace Microsoft.ML.Scenarios
                 trans = new ConcatTransform(env, trans, "Features", "NumFeatures", "CatFeatures");
                 trans = TrainAndScoreTransform.Create(env, new TrainAndScoreTransform.Arguments
                 {
-                     Trainer = new SubComponent<ITrainer, SignatureTrainer>("KMeans", "k=200"),
-                     FeatureColumn = "Features"
+                    Trainer = new SubComponent<ITrainer, SignatureTrainer>("KMeans", "k=100"),
+                    FeatureColumn = "Features"
                 }, trans);
                 trans = new ConcatTransform(env, trans, "Features", "Features", "Score");
 
                 // Train
                 var trainer = new LogisticRegression(env, new LogisticRegression.Arguments() { EnforceNonNegativity = true, OptTol = 1e-3f });
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
-                var pred = trainer.Train(trainRoles);
+                return trainer.Train(trainRoles);
             }
+        }
+
+        public class IrisData
+        {
+            [Column("0")]
+            public float Label;
+
+            [Column("1")]
+            public float SepalLength;
+
+            [Column("2")]
+            public float SepalWidth;
+
+            [Column("3")]
+            public float PetalLength;
+
+            [Column("4")]
+            public float PetalWidth;
+        }
+
+        public class IrisPrediction
+        {
+            [ColumnName("Score")]
+            public float[] PredictedLabels;
         }
     }
 }
