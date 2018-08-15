@@ -25,12 +25,21 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var loader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
 
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
+                
+                // In order to find out available column names, you can go through schema and check
+                // column names and appropriate type for getter.
+                for( int i=0; i< trans.Schema.ColumnCount; i++)
+                {
+                    var columnName = trans.Schema.GetColumnName(i);
+                    var columnType = trans.Schema.GetColumnType(i).RawType;
+                }
 
                 using (var cursor = trans.GetRowCursor(x => true))
                 {
                     Assert.True(cursor.Schema.TryGetColumnIndex("SentimentText", out int textColumn));
                     Assert.True(cursor.Schema.TryGetColumnIndex("Features_TransformedText", out int transformedTextColumn));
                     Assert.True(cursor.Schema.TryGetColumnIndex("Features", out int featureColumn));
+                    
                     var originalTextGettter = cursor.GetGetter<DvText>(textColumn);
                     var transformedTextGettter = cursor.GetGetter<VBuffer<DvText>>(transformedTextColumn);
                     var featureGettter = cursor.GetGetter<VBuffer<float>>(featureColumn);
