@@ -634,7 +634,8 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
             if (value.IsNA())
                 return 0;
-            return (Hashing.MixHash(Hashing.MurmurRound(seed, FloatUtils.GetBits(value))) & mask) + 1;
+            // (value == 0 ? 0 : value) takes care of negative 0, its equal to positive 0 according to the IEEE 754 standard
+            return (Hashing.MixHash(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value))) & mask) + 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -654,7 +655,6 @@ namespace Microsoft.ML.Runtime.Data
             if (value.IsNA())
                 return 0;
 
-            // take care of negative 0, its equal to positive 0 according to the IEEE 754 standard
             ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
             var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
             var hi = Utils.GetHi(v);
@@ -671,7 +671,7 @@ namespace Microsoft.ML.Runtime.Data
             if (value.IsNA())
                 return 0;
 
-            ulong v = FloatUtils.GetBits(value);
+            ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
             var lo = Utils.GetLo(v);
             var hi = Utils.GetHi(v);
             var hash = Hashing.MurmurRound(Hashing.MurmurRound(seed, (uint)i), lo);
