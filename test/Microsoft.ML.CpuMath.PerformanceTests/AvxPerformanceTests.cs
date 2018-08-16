@@ -16,7 +16,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         private const int IDXLEN = 1000003;
         private const int LEN = 1000003;
-        private const int EXP_RANGE = EXP_MAX / 2;
+        private const int EXP_RANGE = EXP_MAX / 8;
         private const int DEFAULT_SEED = 253421;
         private const float DEFAULT_SCALE = 1.11f;
         private const int DEFAULT_CROW = 500;
@@ -37,11 +37,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         private static int GetSeed()
         {
             int seed = DEFAULT_SEED;
+            string CPUMATH_SEED = Environment.GetEnvironmentVariable("CPUMATH_SEED");
 
-            if (Environment.GetEnvironmentVariable("CPUMATH_SEED") != null)
+            if (CPUMATH_SEED != null)
             {
-                string CPUMATH_SEED = Environment.GetEnvironmentVariable("CPUMATH_SEED");
-
                 if (!int.TryParse(CPUMATH_SEED, out seed))
                 {
                     if (string.Equals(CPUMATH_SEED, "random", StringComparison.OrdinalIgnoreCase))
@@ -56,7 +55,6 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             }
 
             Console.WriteLine("Random seed: " + seed + "; set environment variable CPUMATH_SEED to this value to reproduce results");
-
             return seed;
         }
 

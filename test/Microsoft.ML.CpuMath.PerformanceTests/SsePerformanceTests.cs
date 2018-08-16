@@ -37,11 +37,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         private static int GetSeed()
         {
             int seed = DEFAULT_SEED;
+            string CPUMATH_SEED = Environment.GetEnvironmentVariable("CPUMATH_SEED");
 
-            if (Environment.GetEnvironmentVariable("CPUMATH_SEED") != null)
+            if (CPUMATH_SEED != null)
             {
-                string CPUMATH_SEED = Environment.GetEnvironmentVariable("CPUMATH_SEED");
-
                 if (!int.TryParse(CPUMATH_SEED, out seed))
                 {
                     if(string.Equals(CPUMATH_SEED, "random", StringComparison.OrdinalIgnoreCase))
@@ -56,7 +55,6 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             }
 
             Console.WriteLine("Random seed: " + seed + "; set environment variable CPUMATH_SEED to this value to reproduce results");
-
             return seed;
         }
 
