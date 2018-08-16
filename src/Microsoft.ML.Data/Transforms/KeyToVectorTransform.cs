@@ -319,7 +319,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (!bag && info.TypeSrc.ValueCount > 0)
                 {
-                    bldr.AddGetter<VBuffer<Int32>>(MetadataUtils.Kinds.CategoricalSlotRanges,
+                    bldr.AddGetter<VBuffer<int>>(MetadataUtils.Kinds.CategoricalSlotRanges,
                         MetadataUtils.GetCategoricalType(info.TypeSrc.ValueCount), trans.GetCategoricalSlotRanges);
                 }
 
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Runtime.Data
             return _types[iinfo];
         }
 
-        private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<Int32> dst)
+        private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<int> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
 
@@ -342,7 +342,7 @@ namespace Microsoft.ML.Runtime.Data
 
             Host.Assert(info.TypeSrc.ValueCount > 0);
 
-            Int32[] ranges = new Int32[info.TypeSrc.ValueCount * 2];
+            int[] ranges = new int[info.TypeSrc.ValueCount * 2];
             int size = info.TypeSrc.ItemType.KeyCount;
 
             ranges[0] = 0;
@@ -353,7 +353,7 @@ namespace Microsoft.ML.Runtime.Data
                 ranges[i + 1] = ranges[i] + size - 1;
             }
 
-            dst = new VBuffer<Int32>(ranges.Length, ranges);
+            dst = new VBuffer<int>(ranges.Length, ranges);
         }
 
         // Used for slot names when appropriate.

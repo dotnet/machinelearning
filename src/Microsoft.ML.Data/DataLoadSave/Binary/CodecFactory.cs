@@ -46,11 +46,11 @@ namespace Microsoft.ML.Runtime.Data.IO
             // Register the current codecs.
             RegisterSimpleCodec(new UnsafeTypeCodec<sbyte>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<byte>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<Int16>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<short>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<ushort>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<int>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<uint>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<Int64>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<long>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<ulong>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<Single>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<Double>(this));

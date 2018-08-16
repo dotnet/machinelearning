@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.RunTests
             const int count = 100;
 
             var rand = RandomUtils.Create(42);
-            var values = new Int32?[2 * count];
+            var values = new int?[2 * count];
             for (int i = 0; i < count; i++)
             {
                 var v = values[i] = rand.Next();

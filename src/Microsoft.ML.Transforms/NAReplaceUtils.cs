@@ -1229,14 +1229,14 @@ namespace Microsoft.ML.Runtime.Data
         {
             private const long MaxVal = int.MaxValue;
 
-            public sealed class MeanAggregatorOne : StatAggregator<Int32?, MeanStatInt>
+            public sealed class MeanAggregatorOne : StatAggregator<int?, MeanStatInt>
             {
                 public MeanAggregatorOne(IChannel ch, IRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessRow(ref Int32? val)
+                protected override void ProcessRow(ref int? val)
                 {
                     Stat.Update(val, MaxVal);
                 }
@@ -1249,14 +1249,14 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<Int32?, MeanStatInt>
+            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<int?, MeanStatInt>
             {
                 public MeanAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(ref Int32? val)
+                protected override void ProcessValue(ref int? val)
                 {
                     Stat.Update(val, MaxVal);
                 }
@@ -1269,14 +1269,14 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<Int32?, MeanStatInt>
+            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<int?, MeanStatInt>
             {
                 public MeanAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(ref Int32? val, int slot)
+                protected override void ProcessValue(ref int? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     Stat[slot].Update(val, MaxVal);
@@ -1284,7 +1284,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public override object GetStat()
                 {
-                    Int32[] stat = new Int32[Stat.Length];
+                    int[] stat = new int[Stat.Length];
                     for (int slot = 0; slot < stat.Length; slot++)
                     {
                         long val = Stat[slot].GetCurrentValue(Ch, RowCount, MaxVal);
@@ -1295,7 +1295,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<Int32?, int>
+            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<int?, int>
             {
                 public MinMaxAggregatorOne(IChannel ch, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
@@ -1303,13 +1303,13 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = (int)(ReturnMax ? -MaxVal : MaxVal);
                 }
 
-                protected override void ProcessValueMin(ref Int32? val)
+                protected override void ProcessValueMin(ref int? val)
                 {
                     if (val.HasValue && val < Stat)
                         Stat = val.Value;
                 }
 
-                protected override void ProcessValueMax(ref Int32? val)
+                protected override void ProcessValueMax(ref int? val)
                 {
                     if (val.HasValue && val > Stat)
                         Stat = val.Value;
@@ -1321,7 +1321,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<Int32?, int>
+            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<int?, int>
             {
                 public MinMaxAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
@@ -1329,13 +1329,13 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = (int)(ReturnMax ? -MaxVal : MaxVal);
                 }
 
-                protected override void ProcessValueMin(ref Int32? val)
+                protected override void ProcessValueMin(ref int? val)
                 {
                     if (val.HasValue && val < Stat)
                         Stat = val.Value;
                 }
 
-                protected override void ProcessValueMax(ref Int32? val)
+                protected override void ProcessValueMax(ref int? val)
                 {
                     if (val.HasValue && val > Stat)
                         Stat = val.Value;
@@ -1346,14 +1346,14 @@ namespace Microsoft.ML.Runtime.Data
                     // If sparsity occurred, fold in a zero.
                     if (ValueCount > (ulong)ValuesProcessed)
                     {
-                        var def = default(Int32?);
+                        var def = default(int?);
                         ProcValueDelegate(ref def);
                     }
                     return Stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<Int32?, int>
+            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<int?, int>
             {
                 public MinMaxAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
@@ -1363,14 +1363,14 @@ namespace Microsoft.ML.Runtime.Data
                         Stat[i] = bound;
                 }
 
-                protected override void ProcessValueMin(ref Int32? val, int slot)
+                protected override void ProcessValueMin(ref int? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     if (val.HasValue && val < Stat[slot])
                         Stat[slot] = val.Value;
                 }
 
-                protected override void ProcessValueMax(ref Int32? val, int slot)
+                protected override void ProcessValueMax(ref int? val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     if (val.HasValue && val > Stat[slot])
@@ -1379,13 +1379,13 @@ namespace Microsoft.ML.Runtime.Data
 
                 public override object GetStat()
                 {
-                    Int32[] stat = new Int32[Stat.Length];
+                    int[] stat = new int[Stat.Length];
                     // Account for defaults resulting from sparsity.
                     for (int slot = 0; slot < Stat.Length; slot++)
                     {
                         if (GetValuesProcessed(slot) < RowCount)
                         {
-                            var def = default(Int32?);
+                            var def = default(int?);
                             ProcValueDelegate(ref def, slot);
                         }
                         stat[slot] = Stat[slot];

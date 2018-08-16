@@ -525,7 +525,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    // Reasonable choices are Double and System.Int64.
+    // Reasonable choices are Double and System.long.
     using EnergyType = System.Double;
 
     // Uses dynamic programming.

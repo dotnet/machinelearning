@@ -134,22 +134,22 @@ namespace Microsoft.ML.Runtime.Api
                         else if (outputType.GetElementType() == typeof(int))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I4);
-                            return CreateConvertingArrayGetterDelegate<int, Int32>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<int, int>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(long))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I8);
-                            return CreateConvertingArrayGetterDelegate<long, Int64>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<long, long>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(short))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I2);
-                            return CreateConvertingArrayGetterDelegate<short, Int16>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<short, short>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(sbyte))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I1);
-                            return CreateConvertingArrayGetterDelegate<sbyte, SByte>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<sbyte, sbyte>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(bool))
                         {
@@ -204,13 +204,13 @@ namespace Microsoft.ML.Runtime.Api
                         {
                             // int -> int
                             Ch.Assert(colType == NumberType.I4);
-                            return CreateConvertingGetterDelegate<int, Int32>(index, x => x);
+                            return CreateConvertingGetterDelegate<int, int>(index, x => x);
                         }
                         else if (outputType == typeof(short))
                         {
                             // short -> short
                             Ch.Assert(colType == NumberType.I2);
-                            return CreateConvertingGetterDelegate<short, Int16>(index, x => x);
+                            return CreateConvertingGetterDelegate<short, short>(index, x => x);
                         }
                         else if (outputType == typeof(long))
                         {
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Runtime.Api
                         {
                             // sbyte -> sbyte
                             Ch.Assert(colType == NumberType.I1);
-                            return CreateConvertingGetterDelegate<sbyte, SByte>(index, x => x);
+                            return CreateConvertingGetterDelegate<sbyte, sbyte>(index, x => x);
                         }
                         // T -> T
                         if (outputType.IsGenericType && outputType.GetGenericTypeDefinition() == typeof(Nullable<>))

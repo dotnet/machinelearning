@@ -242,7 +242,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(MinMinutesOffset <= offset.RawValue && offset.RawValue <= MaxMinutesOffset);
             var offsetTicks = offset.RawValue * TicksPerMinute;
             // This operation cannot overflow because offset should have already been validated to be within
-            // 14 hours and the DateTime instance is more than that distance from the boundaries of Int64.
+            // 14 hours and the DateTime instance is more than that distance from the boundaries of long.
             long utcTicks = dateTime.Ticks.RawValue - offsetTicks;
             var dvdt = new DvDateTime(utcTicks);
             if (dvdt.IsNA)

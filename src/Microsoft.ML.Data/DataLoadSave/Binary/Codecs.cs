@@ -639,7 +639,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 public override long GetCommitLengthEstimate()
                 {
-                    return _numWritten * sizeof(Int64);
+                    return _numWritten * sizeof(long);
                 }
             }
 
@@ -740,7 +740,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 public override long GetCommitLengthEstimate()
                 {
-                    return (long)_offsets.Count * (sizeof(Int64) + sizeof(Int16));
+                    return (long)_offsets.Count * (sizeof(long) + sizeof(short));
                 }
             }
 

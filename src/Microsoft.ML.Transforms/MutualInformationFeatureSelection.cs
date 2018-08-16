@@ -407,7 +407,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Note: NAs have their own separate bin.
                 if (labelType == NumberType.I4)
                 {
-                    var tmp = default(VBuffer<Int32>);
+                    var tmp = default(VBuffer<int>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
                     BinInts(ref tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (type.ItemType == NumberType.I4)
                 {
                     return ComputeMutualInformation(trans, col,
-                        (ref VBuffer<Int32> src, ref VBuffer<int> dst, out int min, out int lim) =>
+                        (ref VBuffer<int> src, ref VBuffer<int> dst, out int min, out int lim) =>
                         {
                             BinInts(ref src, ref dst, _numBins, out min, out lim);
                         });
@@ -676,7 +676,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// Maps Ints.
             /// </summary>
-            private void BinInts(ref VBuffer<Int32> input, ref VBuffer<int> output,
+            private void BinInts(ref VBuffer<int> input, ref VBuffer<int> output,
                 int numBins, out int min, out int lim)
             {
                 Contracts.Assert(_singles.Count == 0);
@@ -685,8 +685,8 @@ namespace Microsoft.ML.Runtime.Data
                 min = -1 - bounds.FindIndexSorted(0);
                 lim = min + bounds.Length + 1;
                 int offset = min;
-                ValueMapper<Int32, int> mapper =
-                    (ref Int32 src, ref int dst) =>
+                ValueMapper<int, int> mapper =
+                    (ref int src, ref int dst) =>
                         dst = offset + 1 + bounds.FindIndexSorted((Single)src);
                 mapper.MapVector(ref input, ref output);
                 _singles.Clear();

@@ -427,7 +427,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
         }
 
-        public static long WriteSByteStream(this BinaryWriter writer, IEnumerable<SByte> e)
+        public static long WriteSByteStream(this BinaryWriter writer, IEnumerable<sbyte> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteShortStream(this BinaryWriter writer, IEnumerable<Int16> e)
+        public static long WriteShortStream(this BinaryWriter writer, IEnumerable<short> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -493,7 +493,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteLongStream(this BinaryWriter writer, IEnumerable<Int64> e)
+        public static long WriteLongStream(this BinaryWriter writer, IEnumerable<long> e)
         {
             long c = 0;
             foreach (var v in e)

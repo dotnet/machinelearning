@@ -136,7 +136,7 @@ namespace Microsoft.ML.Runtime.Data
             var thresholdAtK = new List<Single>();
             var thresholdAtP = new List<Single>();
             var thresholdAtNumAnomalies = new List<Single>();
-            var numAnoms = new List<Int64>();
+            var numAnoms = new List<long>();
 
             var scores = new List<Single>();
             var labels = new List<Single>();
@@ -678,11 +678,11 @@ namespace Microsoft.ML.Runtime.Data
             int stratVal;
             bool hasStratVals = overall.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             Contracts.Assert(hasStrat == hasStratVals);
-            Int64 numAnomalies = 0;
+            long numAnomalies = 0;
             using (var cursor = overall.GetRowCursor(col => col == numAnomIndex ||
                 (hasStrat && col == stratCol)))
             {
-                var numAnomGetter = cursor.GetGetter<Int64>(numAnomIndex);
+                var numAnomGetter = cursor.GetGetter<long>(numAnomIndex);
                 ValueGetter<uint> stratGetter = null;
                 if (hasStrat)
                 {

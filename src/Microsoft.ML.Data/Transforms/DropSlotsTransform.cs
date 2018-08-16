@@ -393,14 +393,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     if (MetadataUtils.TryGetCategoricalFeatureIndices(Source.Schema, Infos[iinfo].Source, out categoricalRanges))
                     {
-                        VBuffer<Int32> dst = default(VBuffer<Int32>);
+                        VBuffer<int> dst = default(VBuffer<int>);
                         GetCategoricalSlotRangesCore(iinfo, slotDropper.SlotsMin, slotDropper.SlotsMax, categoricalRanges, ref dst);
                         // REVIEW: cache dst as opposed to caculating it again.
                         if (dst.Length > 0)
                         {
                             Contracts.Assert(dst.Length % 2 == 0);
 
-                            bldr.AddGetter<VBuffer<Int32>>(MetadataUtils.Kinds.CategoricalSlotRanges,
+                            bldr.AddGetter<VBuffer<int>>(MetadataUtils.Kinds.CategoricalSlotRanges,
                                 MetadataUtils.GetCategoricalType(dst.Length / 2), GetCategoricalSlotRanges);
                         }
                     }
@@ -443,7 +443,7 @@ namespace Microsoft.ML.Runtime.Data
             infoEx.SlotDropper.DropSlots(ref names, ref dst);
         }
 
-        private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<Int32> dst)
+        private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<int> dst)
         {
             if (_exes[iinfo].CategoricalRanges != null)
             {
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private void GetCategoricalSlotRangesCore(int iinfo, int[] slotsMin, int[] slotsMax, int[] catRanges, ref VBuffer<Int32> dst)
+        private void GetCategoricalSlotRangesCore(int iinfo, int[] slotsMin, int[] slotsMax, int[] catRanges, ref VBuffer<int> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             Host.Assert(slotsMax != null && slotsMin != null);
@@ -467,9 +467,9 @@ namespace Microsoft.ML.Runtime.Data
             int previousDropSlotsIndex = 0;
             int droppedSlotsCount = 0;
             bool combine = false;
-            Int32 min = -1;
-            Int32 max = -1;
-            List<Int32> newCategoricalSlotRanges = new List<Int32>();
+            int min = -1;
+            int max = -1;
+            List<int> newCategoricalSlotRanges = new List<int>();
 
             // Six possible ways a drop slot range interacts with categorical slots range.
             //
@@ -586,12 +586,12 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(0 <= droppedSlotsCount && droppedSlotsCount <= slotsMax[slotsMax.Length - 1] + 1);
 
             if (newCategoricalSlotRanges.Count > 0)
-                dst = new VBuffer<Int32>(newCategoricalSlotRanges.Count, newCategoricalSlotRanges.ToArray());
+                dst = new VBuffer<int>(newCategoricalSlotRanges.Count, newCategoricalSlotRanges.ToArray());
         }
 
         private void CombineRanges(
-            Int32 minRange1, Int32 maxRange1, Int32 minRange2, Int32 maxRange2,
-            out Int32 newRangeMin, out Int32 newRangeMax)
+            int minRange1, int maxRange1, int minRange2, int maxRange2,
+            out int newRangeMin, out int newRangeMax)
         {
             Contracts.Assert(minRange2 >= 0 && maxRange2 >= 0);
             Contracts.Assert(minRange2 <= maxRange2);
