@@ -879,19 +879,19 @@ namespace Microsoft.ML.Runtime.RunTests
                 switch (type.RawKind)
                 {
                 case DataKind.I1:
-                    return GetComparerOne<DvInt1>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                    return GetComparerOne<SByte>(r1, r2, col, (x, y) => x == y);
                 case DataKind.U1:
                     return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
                 case DataKind.I2:
-                    return GetComparerOne<DvInt2>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                    return GetComparerOne<Int16>(r1, r2, col, (x, y) => x == y);
                 case DataKind.U2:
                     return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
                 case DataKind.I4:
-                    return GetComparerOne<DvInt4>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                    return GetComparerOne<Int32>(r1, r2, col, (x, y) => x == y);
                 case DataKind.U4:
                     return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
                 case DataKind.I8:
-                    return GetComparerOne<DvInt8>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                    return GetComparerOne<Int64>(r1, r2, col, (x, y) => x == y);
                 case DataKind.U8:
                     return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
                 case DataKind.R4:
@@ -922,19 +922,19 @@ namespace Microsoft.ML.Runtime.RunTests
                 switch (type.ItemType.RawKind)
                 {
                 case DataKind.I1:
-                    return GetComparerVec<DvInt1>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                    return GetComparerVec<SByte>(r1, r2, col, size, (x, y) => x == y);
                 case DataKind.U1:
                     return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
                 case DataKind.I2:
-                    return GetComparerVec<DvInt2>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                    return GetComparerVec<Int16>(r1, r2, col, size, (x, y) => x == y);
                 case DataKind.U2:
                     return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
                 case DataKind.I4:
-                    return GetComparerVec<DvInt4>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                    return GetComparerVec<Int32>(r1, r2, col, size, (x, y) => x == y);
                 case DataKind.U4:
                     return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
                 case DataKind.I8:
-                    return GetComparerVec<DvInt8>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                    return GetComparerVec<Int64>(r1, r2, col, size, (x, y) => x == y);
                 case DataKind.U8:
                     return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
                 case DataKind.R4:
