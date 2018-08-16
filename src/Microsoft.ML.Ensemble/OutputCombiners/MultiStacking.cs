@@ -44,13 +44,9 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
                 Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMultiClassClassifierTrainer))]
             [TGUI(Label = "Base predictor")]
-            public IComponentFactory<ITrainer<IPredictorProducing<VBuffer<Single>>>> BasePredictorType;
+            public IComponentFactory<ITrainer<TVectorPredictor>> BasePredictorType;
 
-            public override IComponentFactory<ITrainer<TVectorPredictor>> BasePredictorFactory
-            {
-                get { return BasePredictorType; }
-                set { BasePredictorType = value; }
-            }
+            internal override IComponentFactory<ITrainer<TVectorPredictor>> GetPredictorFactory() => BasePredictorType;
 
             public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiStacking(env, this);
 

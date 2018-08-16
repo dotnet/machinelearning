@@ -50,11 +50,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMultiClassClassifierTrainer))]
             public IComponentFactory<ITrainer<TVectorPredictor>>[] BasePredictors;
 
-            public override IComponentFactory<ITrainer<TVectorPredictor>>[] BasePredictorFactories
-            {
-                get { return BasePredictors; }
-                set { BasePredictors = value; }
-            }
+            internal override IComponentFactory<ITrainer<TVectorPredictor>>[] GetPredictorFactories() => BasePredictors;
 
             public Arguments()
             {

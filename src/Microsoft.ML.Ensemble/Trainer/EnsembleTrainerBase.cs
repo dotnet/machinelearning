@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             [TGUI(Label = "Show Sub-Model Metrics")]
             public bool ShowMetrics;
 
-            public abstract IComponentFactory<ITrainer<IPredictorProducing<TOutput>>>[] BasePredictorFactories { get; set; }
+            internal abstract IComponentFactory<ITrainer<IPredictorProducing<TOutput>>>[] GetPredictorFactories();
         }
 
         private const int DefaultNumModels = 50;
@@ -77,8 +77,8 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             using (var ch = Host.Start("Init"))
             {
-                var predictorFactories = Args.BasePredictorFactories;
-                ch.CheckUserArg(Utils.Size(predictorFactories) > 0, nameof(Args.BasePredictorFactories), "This should have at-least one value");
+                var predictorFactories = Args.GetPredictorFactories();
+                ch.CheckUserArg(Utils.Size(predictorFactories) > 0, nameof(EnsembleTrainer.Arguments.BasePredictors), "This should have at-least one value");
 
                 NumModels = Args.NumModels ??
                     (predictorFactories.Length == 1 ? DefaultNumModels : predictorFactories.Length);

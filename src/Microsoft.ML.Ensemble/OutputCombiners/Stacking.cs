@@ -39,13 +39,9 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
                 Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureBinaryClassifierTrainer))]
             [TGUI(Label = "Base predictor")]
-            public IComponentFactory<ITrainer<IPredictorProducing<Single>>> BasePredictorType;
+            public IComponentFactory<ITrainer<TScalarPredictor>> BasePredictorType;
 
-            public override IComponentFactory<ITrainer<TScalarPredictor>> BasePredictorFactory
-            {
-                get { return BasePredictorType; }
-                set { BasePredictorType = value; }
-            }
+            internal override IComponentFactory<ITrainer<TScalarPredictor>> GetPredictorFactory() => BasePredictorType;
 
             public Arguments()
             {
