@@ -235,7 +235,7 @@ namespace Microsoft.ML.Runtime.Data
                 kind = DataKind.R8;
             else if (type == typeof(DvText))
                 kind = DataKind.TX;
-            else if (type == typeof(bool) || type == typeof(bool?))
+            else if (type == typeof(DvBool) || type == typeof(bool) || type == typeof(bool?))
                 kind = DataKind.BL;
             else if (type == typeof(DvTimeSpan))
                 kind = DataKind.TS;
