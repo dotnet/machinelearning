@@ -64,4 +64,32 @@ namespace Microsoft.ML.Runtime.EntryPoints
     {
         TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2);
     }
+
+    /// <summary>
+    /// An interface for creating a component when we take three extra parameters (and an <see cref="IHostEnvironment"/>).
+    /// </summary>
+    public interface IComponentFactory<in TArg1, in TArg2, in TArg3, out TComponent> : IComponentFactory
+    {
+        TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2, TArg3 argument3);
+    }
+
+    /// <summary>
+    /// A class for creating a component when we take three extra parameters
+    /// (and an <see cref="IHostEnvironment"/>) that simply wraps a delegate which
+    /// creates the component.
+    /// </summary>
+    public class SimpleComponentFactory<TArg1, TArg2, TArg3, TComponent> : IComponentFactory<TArg1, TArg2, TArg3, TComponent>
+    {
+        private Func<IHostEnvironment, TArg1, TArg2, TArg3, TComponent> _factory;
+
+        public SimpleComponentFactory(Func<IHostEnvironment, TArg1, TArg2, TArg3, TComponent> factory)
+        {
+            _factory = factory;
+        }
+
+        public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2, TArg3 argument3)
+        {
+            return _factory(env, argument1, argument2, argument3);
+        }
+    }
 }

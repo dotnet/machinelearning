@@ -666,20 +666,21 @@ namespace Microsoft.ML.Runtime.Data
                     ch.Assert(args.Trainer.IsGood());
 
                     ch.Trace("Creating TrainAndScoreTransform");
-                    string scorerSettings = CmdParser.GetSettings(ch, scorerArgs,
-                        new TreeEnsembleFeaturizerBindableMapper.Arguments());
-                    var scorer =
-                        new SubComponent<IDataScorerTransform, SignatureDataScorer>(
-                            TreeEnsembleFeaturizerBindableMapper.LoadNameShort, scorerSettings);
 
                     var trainScoreArgs = new TrainAndScoreTransform.Arguments();
                     args.CopyTo(trainScoreArgs);
                     trainScoreArgs.Trainer = new SubComponent<ITrainer, SignatureTrainer>(args.Trainer.Kind,
                         args.Trainer.Settings);
 
+                    trainScoreArgs.Scorer = new SimpleComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>(
+                        (e, data, mapper, trainSchema) => Create(e, scorerArgs, data, mapper, trainSchema));
+
+                    var mapperFactory = new SimpleComponentFactory<IPredictor, ISchemaBindableMapper>(
+                            (e, predictor) => new TreeEnsembleFeaturizerBindableMapper(e, scorerArgs, predictor));
+
                     var labelInput = AppendLabelTransform(host, ch, input, trainScoreArgs.LabelColumn, args.LabelPermutationSeed);
-                    trainScoreArgs.Scorer = scorer;
-                    var scoreXf = TrainAndScoreTransform.Create(host, trainScoreArgs, labelInput);
+                    var scoreXf = TrainAndScoreTransform.Create(host, trainScoreArgs, labelInput, mapperFactory);
+
                     if (input == labelInput)
                         return scoreXf;
                     return (IDataTransform)ApplyTransformUtils.ApplyAllTransformsToData(host, scoreXf, input, labelInput);
