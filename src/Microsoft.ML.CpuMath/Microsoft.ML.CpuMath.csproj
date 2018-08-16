@@ -2,21 +2,29 @@
 
   <PropertyGroup>
     <Configurations>Debug;Release;Debug-Intrinsics;Release-Intrinsics</Configurations>
-    <UseIntrinsics Condition="'$(UseIntrinsics)' == ''">$(Configuration.EndsWith('-Intrinsics'))</UseIntrinsics>
-    
     <TargetFramework Condition="'$(UseIntrinsics)' != 'true'">netstandard2.0</TargetFramework>
     <TargetFrameworks Condition="'$(UseIntrinsics)' == 'true'">netstandard2.0;netcoreapp3.0</TargetFrameworks>
     <IncludeInPackage>Microsoft.ML.CpuMath</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);CORECLR;PRIVATE_CONTRACTS</DefineConstants>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="..\Microsoft.ML.Core\Utilities\Contracts.cs" />
+
+    <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
+    <None Include="**/*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+    <Compile Remove="CpuMathUtils.netstandard.cs" />
     <!-- This is only needed until https://github.com/dotnet/corefx/issues/31064 is addressed. -->
     <PackageReference Include="System.Runtime.Intrinsics.Experimental" Version="4.6.0-preview1-26708-04" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Remove="CpuMathUtils.netcoreapp.cs" />
+    <Compile Remove="SseIntrinsics.cs" />
   </ItemGroup>
 </Project>

@@ -103,11 +103,11 @@ namespace Microsoft.ML.Runtime.Api
                     throw _host.Except("Column '{0}' not found in the data view", col.ColumnName);
                 }
                 var realColType = _data.Schema.GetColumnType(colIndex);
-                if (!IsCompatibleType(realColType, col.FieldInfo))
+                if (!IsCompatibleType(realColType, col.MemberInfo))
                 {
                     throw _host.Except(
-                        "Can't bind the IDataView column '{0}' of type '{1}' to field '{2}' of type '{3}'.",
-                        col.ColumnName, realColType, col.FieldInfo.Name, col.FieldInfo.FieldType.FullName);
+                        "Can't bind the IDataView column '{0}' of type '{1}' to field or property '{2}' of type '{3}'.",
+                        col.ColumnName, realColType, col.MemberInfo.Name, col.FieldOrPropertyType.FullName);
                 }
 
                 acceptedCols.Add(col);
@@ -130,14 +130,12 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// Returns whether the column type <paramref name="colType"/> can be bound to field <paramref name="fieldInfo"/>.
+        /// Returns whether the column type <paramref name="colType"/> can be bound to field <paramref name="memberInfo"/>.
         /// They must both be vectors or scalars, and the raw data kind should match.
         /// </summary>
-        private static bool IsCompatibleType(ColumnType colType, FieldInfo fieldInfo)
+        private static bool IsCompatibleType(ColumnType colType, MemberInfo memberInfo)
         {
-            bool isVector;
-            DataKind kind;
-            InternalSchemaDefinition.GetVectorAndKind(fieldInfo, out isVector, out kind);
+            InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
             if (isVector)
                 return colType.IsVector && colType.ItemType.RawKind == kind;
             else
@@ -269,8 +267,7 @@ namespace Microsoft.ML.Runtime.Api
             private Action<TRow> GenerateSetter(IRow input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
             {
                 var colType = input.Schema.GetColumnType(index);
-                var fieldInfo = column.FieldInfo;
-                var fieldType = fieldInfo.FieldType;
+                var fieldType = column.OutputType;
                 var genericType = fieldType;
                 Func<IRow, int, Delegate, Delegate, Action<TRow>> del;
                 if (fieldType.IsArray)
@@ -431,7 +428,7 @@ namespace Microsoft.ML.Runtime.Api
                 else
                 {
                     // REVIEW: Is this even possible?
-                    throw Ch.ExceptNotImpl("Type '{0}' is not yet supported.", fieldInfo.FieldType.FullName);
+                    throw Ch.ExceptNotImpl("Type '{0}' is not yet supported.", column.OutputType.FullName);
                 }
                 MethodInfo meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(genericType);
                 return (Action<TRow>)meth.Invoke(this, new object[] { input, index, poke, peek });
