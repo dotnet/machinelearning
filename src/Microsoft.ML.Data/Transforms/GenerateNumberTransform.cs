@@ -430,9 +430,9 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            private ValueGetter<DvInt8> MakeGetter()
+            private ValueGetter<Int64> MakeGetter()
             {
-                return (ref DvInt8 value) =>
+                return (ref Int64 value) =>
                 {
                     Ch.Check(IsGood);
                     value = Input.Position;

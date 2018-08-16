@@ -134,42 +134,42 @@ namespace Microsoft.ML.Runtime.Api
                         else if (outputType.GetElementType() == typeof(int))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I4);
-                            return CreateConvertingArrayGetterDelegate<int, DvInt4>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<int, Int32>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(int?))
                         {
-                            Ch.Assert(colType.ItemType == NumberType.I4);
-                            return CreateConvertingArrayGetterDelegate<int?, DvInt4>(index, x => x ?? DvInt4.NA);
+                            Ch.Assert(colType.ItemType == NumberType.NI4);
+                            return CreateConvertingArrayGetterDelegate<int?, Int32?>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(long))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I8);
-                            return CreateConvertingArrayGetterDelegate<long, DvInt8>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<long, Int64>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(long?))
                         {
-                            Ch.Assert(colType.ItemType == NumberType.I8);
-                            return CreateConvertingArrayGetterDelegate<long?, DvInt8>(index, x => x ?? DvInt8.NA);
+                            Ch.Assert(colType.ItemType == NumberType.NI8);
+                            return CreateConvertingArrayGetterDelegate<long?, Int64?>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(short))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I2);
-                            return CreateConvertingArrayGetterDelegate<short, DvInt2>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<short, Int16>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(short?))
                         {
-                            Ch.Assert(colType.ItemType == NumberType.I2);
-                            return CreateConvertingArrayGetterDelegate<short?, DvInt2>(index, x => x ?? DvInt2.NA);
+                            Ch.Assert(colType.ItemType == NumberType.NI2);
+                            return CreateConvertingArrayGetterDelegate<short?, Int16?>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(sbyte))
                         {
                             Ch.Assert(colType.ItemType == NumberType.I1);
-                            return CreateConvertingArrayGetterDelegate<sbyte, DvInt1>(index, x => x);
+                            return CreateConvertingArrayGetterDelegate<sbyte, SByte>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(sbyte?))
                         {
-                            Ch.Assert(colType.ItemType == NumberType.I1);
-                            return CreateConvertingArrayGetterDelegate<sbyte?, DvInt1>(index, x => x ?? DvInt1.NA);
+                            Ch.Assert(colType.ItemType == NumberType.NI1);
+                            return CreateConvertingArrayGetterDelegate<sbyte?, SByte?>(index, x => x);
                         }
                         else if (outputType.GetElementType() == typeof(bool))
                         {
@@ -222,51 +222,51 @@ namespace Microsoft.ML.Runtime.Api
                         }
                         else if (outputType == typeof(int))
                         {
-                            // int -> DvInt4
+                            // int -> int
                             Ch.Assert(colType == NumberType.I4);
-                            return CreateConvertingGetterDelegate<int, DvInt4>(index, x => x);
+                            return CreateConvertingGetterDelegate<int, Int32>(index, x => x);
                         }
                         else if (outputType == typeof(int?))
                         {
-                            // int? -> DvInt4
-                            Ch.Assert(colType == NumberType.I4);
-                            return CreateConvertingGetterDelegate<int?, DvInt4>(index, x => x ?? DvInt4.NA);
+                            // int? -> int?
+                            Ch.Assert(colType == NumberType.NI4);
+                            return CreateConvertingGetterDelegate<int?, Int32?>(index, x => x);
                         }
                         else if (outputType == typeof(short))
                         {
-                            // short -> DvInt2
+                            // short -> short
                             Ch.Assert(colType == NumberType.I2);
-                            return CreateConvertingGetterDelegate<short, DvInt2>(index, x => x);
+                            return CreateConvertingGetterDelegate<short, Int16>(index, x => x);
                         }
                         else if (outputType == typeof(short?))
                         {
-                            // short? -> DvInt2
-                            Ch.Assert(colType == NumberType.I2);
-                            return CreateConvertingGetterDelegate<short?, DvInt2>(index, x => x ?? DvInt2.NA);
+                            // short? -> short?
+                            Ch.Assert(colType == NumberType.NI2);
+                            return CreateConvertingGetterDelegate<short?, Int16?>(index, x => x);
                         }
                         else if (outputType == typeof(long))
                         {
-                            // long -> DvInt8
+                            // long -> long
                             Ch.Assert(colType == NumberType.I8);
-                            return CreateConvertingGetterDelegate<long, DvInt8>(index, x => x);
+                            return CreateConvertingGetterDelegate<long, long>(index, x => x);
                         }
                         else if (outputType == typeof(long?))
                         {
-                            // long? -> DvInt8
-                            Ch.Assert(colType == NumberType.I8);
-                            return CreateConvertingGetterDelegate<long?, DvInt8>(index, x => x ?? DvInt8.NA);
+                            // long? -> long?
+                            Ch.Assert(colType == NumberType.NI8);
+                            return CreateConvertingGetterDelegate<long?, Int64?>(index, x => x);
                         }
                         else if (outputType == typeof(sbyte))
                         {
-                            // sbyte -> DvInt1
+                            // sbyte -> sbyte
                             Ch.Assert(colType == NumberType.I1);
-                            return CreateConvertingGetterDelegate<sbyte, DvInt1>(index, x => x);
+                            return CreateConvertingGetterDelegate<sbyte, SByte>(index, x => x);
                         }
                         else if (outputType == typeof(sbyte?))
                         {
-                            // sbyte? -> DvInt1
-                            Ch.Assert(colType == NumberType.I1);
-                            return CreateConvertingGetterDelegate<sbyte?, DvInt1>(index, x => x ?? DvInt1.NA);
+                            // sbyte? -> sbyte?
+                            Ch.Assert(colType == NumberType.NI1);
+                            return CreateConvertingGetterDelegate<sbyte?, SByte?>(index, x => x);
                         }
                         // T -> T
                         if (outputType.IsGenericType && outputType.GetGenericTypeDefinition() == typeof(Nullable<>))

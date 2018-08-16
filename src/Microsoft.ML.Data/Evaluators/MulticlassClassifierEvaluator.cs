@@ -998,8 +998,8 @@ namespace Microsoft.ML.Runtime.Data
             if (labelType.IsKey && (!perInst.Schema.HasKeyNames(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToLong", perInst, schema.Label.Name,
-                    schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.I8,
-                    (ref uint src, ref DvInt8 dst) => dst = src == 0 ? DvInt8.NA : src - 1 + (long)labelType.AsKey.Min);
+                    schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.NI8,
+                    (ref uint src, ref Int64? dst) => dst = src == 0 ? null : src - 1 + (long?)labelType.AsKey.Min);
             }
 
             var perInstSchema = perInst.Schema;

@@ -292,42 +292,42 @@ namespace Microsoft.ML.Runtime.Api
                     else if (fieldType.GetElementType() == typeof(int))
                     {
                         Ch.Assert(colType.ItemType == NumberType.I4);
-                        return CreateConvertingVBufferSetter<DvInt4, int>(input, index, poke, peek, x => (int)x);
+                        return CreateConvertingVBufferSetter<Int32, int>(input, index, poke, peek, x => (int)x);
                     }
                     else if (fieldType.GetElementType() == typeof(int?))
                     {
-                        Ch.Assert(colType.ItemType == NumberType.I4);
-                        return CreateConvertingVBufferSetter<DvInt4, int?>(input, index, poke, peek, x => (int?)x);
+                        Ch.Assert(colType.ItemType == NumberType.NI4);
+                        return CreateConvertingVBufferSetter<Int32?, int?>(input, index, poke, peek, x => x);
                     }
                     else if (fieldType.GetElementType() == typeof(short))
                     {
                         Ch.Assert(colType.ItemType == NumberType.I2);
-                        return CreateConvertingVBufferSetter<DvInt2, short>(input, index, poke, peek, x => (short)x);
+                        return CreateConvertingVBufferSetter<Int16, short>(input, index, poke, peek, x => x);
                     }
                     else if (fieldType.GetElementType() == typeof(short?))
                     {
-                        Ch.Assert(colType.ItemType == NumberType.I2);
-                        return CreateConvertingVBufferSetter<DvInt2, short?>(input, index, poke, peek, x => (short?)x);
+                        Ch.Assert(colType.ItemType == NumberType.NI2);
+                        return CreateConvertingVBufferSetter<Int16?, short?>(input, index, poke, peek, x => x);
                     }
                     else if (fieldType.GetElementType() == typeof(long))
                     {
                         Ch.Assert(colType.ItemType == NumberType.I8);
-                        return CreateConvertingVBufferSetter<DvInt8, long>(input, index, poke, peek, x => (long)x);
+                        return CreateConvertingVBufferSetter<Int64, long>(input, index, poke, peek, x => x);
                     }
                     else if (fieldType.GetElementType() == typeof(long?))
                     {
-                        Ch.Assert(colType.ItemType == NumberType.I8);
-                        return CreateConvertingVBufferSetter<DvInt8, long?>(input, index, poke, peek, x => (long?)x);
+                        Ch.Assert(colType.ItemType == NumberType.NI8);
+                        return CreateConvertingVBufferSetter<Int64?, long?>(input, index, poke, peek, x => x);
                     }
                     else if (fieldType.GetElementType() == typeof(sbyte))
                     {
                         Ch.Assert(colType.ItemType == NumberType.I1);
-                        return CreateConvertingVBufferSetter<DvInt1, sbyte>(input, index, poke, peek, x => (sbyte)x);
+                        return CreateConvertingVBufferSetter<SByte, sbyte>(input, index, poke, peek, x => x);
                     }
                     else if (fieldType.GetElementType() == typeof(sbyte?))
                     {
-                        Ch.Assert(colType.ItemType == NumberType.I1);
-                        return CreateConvertingVBufferSetter<DvInt1, sbyte?>(input, index, poke, peek, x => (sbyte?)x);
+                        Ch.Assert(colType.ItemType == NumberType.NI1);
+                        return CreateConvertingVBufferSetter<SByte?, sbyte?>(input, index, poke, peek, x => x);
                     }
 
                     // VBuffer<T> -> T[]
@@ -373,49 +373,49 @@ namespace Microsoft.ML.Runtime.Api
                     {
                         Ch.Assert(colType == NumberType.I4);
                         Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt4, int>(input, index, poke, x => (int)x);
+                        return CreateConvertingActionSetter<Int32, int>(input, index, poke, x => x);
                     }
                     else if (fieldType == typeof(int?))
                     {
-                        Ch.Assert(colType == NumberType.I4);
+                        Ch.Assert(colType == NumberType.NI4);
                         Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt4, int?>(input, index, poke, x => (int?)x);
+                        return CreateConvertingActionSetter<Int32?, int?>(input, index, poke, x => x);
                     }
                     else if (fieldType == typeof(short))
                     {
                         Ch.Assert(colType == NumberType.I2);
                         Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt2, short>(input, index, poke, x => (short)x);
+                        return CreateConvertingActionSetter<Int16, short>(input, index, poke, x => x);
                     }
                     else if (fieldType == typeof(short?))
                     {
-                        Ch.Assert(colType == NumberType.I2);
+                        Ch.Assert(colType == NumberType.NI2);
                         Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt2, short?>(input, index, poke, x => (short?)x);
+                        return CreateConvertingActionSetter<Int16?, short?>(input, index, poke, x => x);
                     }
                     else if (fieldType == typeof(long))
                     {
                         Ch.Assert(colType == NumberType.I8);
                         Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt8, long>(input, index, poke, x => (long)x);
+                        return CreateConvertingActionSetter<Int64, long>(input, index, poke, x => x);
                     }
                     else if (fieldType == typeof(long?))
                     {
-                        Ch.Assert(colType == NumberType.I8);
+                        Ch.Assert(colType == NumberType.NI8);
                         Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt8, long?>(input, index, poke, x => (long?)x);
+                        return CreateConvertingActionSetter<Int64?, long?>(input, index, poke, x => x);
                     }
                     else if (fieldType == typeof(sbyte))
                     {
                         Ch.Assert(colType == NumberType.I1);
                         Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt1, sbyte>(input, index, poke, x => (sbyte)x);
+                        return CreateConvertingActionSetter<SByte, sbyte>(input, index, poke, x => x);
                     }
                     else if (fieldType == typeof(sbyte?))
                     {
-                        Ch.Assert(colType == NumberType.I1);
+                        Ch.Assert(colType == NumberType.NI1);
                         Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt1, sbyte?>(input, index, poke, x => (sbyte?)x);
+                        return CreateConvertingActionSetter<SByte?, sbyte?>(input, index, poke, x => x);
                     }
                     // T -> T
                     if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Nullable<>))
