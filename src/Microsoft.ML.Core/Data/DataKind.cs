@@ -50,10 +50,7 @@ namespace Microsoft.ML.Runtime.Data
         NI1 = 17,
         NI2 = 18,
         NI4 = 19,
-        NI8 = 20,
-#pragma warning disable MSML_GeneralName
-        NBL = 21,
-#pragma warning restore MSML_GeneralName
+        NI8 = 20
     }
 
     /// <summary>
@@ -62,7 +59,7 @@ namespace Microsoft.ML.Runtime.Data
     public static class DataKindExtensions
     {
         public const DataKind KindMin = DataKind.I1;
-        public const DataKind KindLim = DataKind.NBL + 1;
+        public const DataKind KindLim = DataKind.NI8 + 1;
         public const int KindCount = KindLim - KindMin;
 
         /// <summary>
@@ -186,9 +183,7 @@ namespace Microsoft.ML.Runtime.Data
                 case DataKind.TX:
                     return typeof(DvText);
                 case DataKind.BL:
-                    return typeof(bool);
-                case DataKind.NBL:
-                    return typeof(bool?);
+                    return typeof(DvBool);
                 case DataKind.TS:
                     return typeof(DvTimeSpan);
                 case DataKind.DT:
@@ -240,10 +235,8 @@ namespace Microsoft.ML.Runtime.Data
                 kind = DataKind.R8;
             else if (type == typeof(DvText))
                 kind = DataKind.TX;
-            else if (type == typeof(bool))
+            else if (type == typeof(bool) || type == typeof(bool?))
                 kind = DataKind.BL;
-            else if (type == typeof(bool?))
-                kind = DataKind.NBL;
             else if (type == typeof(DvTimeSpan))
                 kind = DataKind.TS;
             else if (type == typeof(DvDateTime))
@@ -299,8 +292,6 @@ namespace Microsoft.ML.Runtime.Data
                     return "R8";
                 case DataKind.BL:
                     return "BL";
-                case DataKind.NBL:
-                    return "NBL";
                 case DataKind.TX:
                     return "TX";
                 case DataKind.TS:

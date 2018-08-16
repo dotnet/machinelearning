@@ -624,17 +624,6 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static volatile BoolType _ninstance;
-        public static BoolType NInstance
-        {
-            get
-            {
-                if (_ninstance == null)
-                    Interlocked.CompareExchange(ref _ninstance, new BoolType(DataKind.NBL, "NBool"), null);
-                return _ninstance;
-            }
-        }
-
         private readonly string _name;
 
         private BoolType(DataKind kind, string name)
