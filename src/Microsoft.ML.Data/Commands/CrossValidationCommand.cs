@@ -164,7 +164,7 @@ namespace Microsoft.ML.Runtime.Data
                         new[]
                         {
                             new KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>(
-                                "", new SimpleComponentFactory<IDataView, IDataTransform>(
+                                "", ComponentFactoryUtils.CreateFromFunction<IDataView, IDataTransform>(
                                     (env, input) =>
                                     {
                                         var args = new GenerateNumberTransform.Arguments();

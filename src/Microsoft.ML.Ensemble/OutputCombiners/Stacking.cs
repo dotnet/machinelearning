@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 
             public Arguments()
             {
-                BasePredictorType = new SimpleComponentFactory<ITrainer<TScalarPredictor>>(
+                BasePredictorType = ComponentFactoryUtils.CreateFromFunction(
                     env => new FastTreeBinaryClassificationTrainer(env, new FastTreeBinaryClassificationTrainer.Arguments()));
             }
 

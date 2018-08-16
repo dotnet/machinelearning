@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             {
                 BasePredictors = new[]
                 {
-                    new SimpleComponentFactory<ITrainer<TScalarPredictor>>(
+                    ComponentFactoryUtils.CreateFromFunction(
                         env => new OnlineGradientDescentTrainer(env, new OnlineGradientDescentTrainer.Arguments()))
                 };
             }

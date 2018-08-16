@@ -57,10 +57,10 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             public Arguments()
             {
                 // REVIEW: Perhaps we can have a better non-parametetric learner.
-                BasePredictorType = new SimpleComponentFactory<ITrainer<TVectorPredictor>>(
+                BasePredictorType = ComponentFactoryUtils.CreateFromFunction(
                     env => new Ova(env, new Ova.Arguments()
                     {
-                        PredictorType = new SimpleComponentFactory<ITrainer<IPredictorProducing<Single>>>(
+                        PredictorType = ComponentFactoryUtils.CreateFromFunction(
                             e => new FastTreeBinaryClassificationTrainer(e, new FastTreeBinaryClassificationTrainer.Arguments()))
                     }));
             }

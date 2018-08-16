@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             {
                 BasePredictors = new[]
                 {
-                    new SimpleComponentFactory<ITrainer<TScalarPredictor>>(
+                    ComponentFactoryUtils.CreateFromFunction(
                         env => new LinearSvm(env, new LinearSvm.Arguments()))
                 };
             }

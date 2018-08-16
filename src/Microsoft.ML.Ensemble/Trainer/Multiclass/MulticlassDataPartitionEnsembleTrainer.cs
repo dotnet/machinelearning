@@ -60,7 +60,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             {
                 BasePredictors = new[]
                 {
-                    new SimpleComponentFactory<ITrainer<TVectorPredictor>>(
+                    ComponentFactoryUtils.CreateFromFunction(
                         env => new MulticlassLogisticRegression(env, new MulticlassLogisticRegression.Arguments()))
                 };
             }
