@@ -19,12 +19,12 @@ namespace Microsoft.ML.Runtime.RunTests
 {
     public sealed partial class TestDataPipe : TestDataPipeBase
     {
-        private static Float[] dataFloat = new Float[]   { 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
+        private static Float[] dataFloat = new Float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
                 Single.MaxValue, Single.Epsilon, Single.NegativeInfinity, Single.PositiveInfinity };
-        private static uint[] resultsFloat = new uint[] { 21, 16, 16, 31, 17, 0, 23, 24, 15, 10, 7 };
-        private static Double[] dataDouble = new Double[]   { 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
+        private static uint[] resultsFloat = new uint[] { 21, 21, 16, 16, 31, 17, 0, 23, 24, 15, 10, 7 };
+        private static Double[] dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
                 Double.MaxValue, Double.Epsilon, Double.NegativeInfinity, Double.PositiveInfinity };
-        private static uint[] resultsDouble = new uint[] { 21, 31, 17, 10, 15, 0, 16, 21, 15, 6, 30 };
+        private static uint[] resultsDouble = new uint[] { 21, 21, 31, 17, 10, 15, 0, 16, 21, 15, 6, 30 };
 
         [Fact]
         public void TestHashTransformFloat()
