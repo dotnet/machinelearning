@@ -622,14 +622,14 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public SchemaBindableCalibratedPredictor(IHostEnvironment env, IPredictorProducing<Single> predictor, ICalibrator calibrator)
             : base(env, LoaderSignature, predictor, calibrator)
         {
-            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor, null);
+            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor);
             _whatTheFeature = SubPredictor as IWhatTheFeatureValueMapper;
         }
 
         private SchemaBindableCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, GetPredictor(env, ctx), GetCalibrator(env, ctx))
         {
-            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor, null);
+            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor);
             _whatTheFeature = SubPredictor as IWhatTheFeatureValueMapper;
         }
 
@@ -717,7 +717,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 return false;
             }
 
-            var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor, null);
+            var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor);
             var bound = bindable.Bind(env, schema);
             var outputSchema = bound.OutputSchema;
             int scoreCol;
