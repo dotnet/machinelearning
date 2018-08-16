@@ -385,17 +385,6 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static volatile NumberType _instNI1;
-        public static NumberType NI1
-        {
-            get
-            {
-                if (_instNI1 == null)
-                    Interlocked.CompareExchange(ref _instNI1, new NumberType(DataKind.NI1, "NI1"), null);
-                return _instNI1;
-            }
-        }
-
         private static volatile NumberType _instU1;
         public static NumberType U1
         {
@@ -415,17 +404,6 @@ namespace Microsoft.ML.Runtime.Data
                 if (_instI2 == null)
                     Interlocked.CompareExchange(ref _instI2, new NumberType(DataKind.I2, "I2"), null);
                 return _instI2;
-            }
-        }
-
-        private static volatile NumberType _instNI2;
-        public static NumberType NI2
-        {
-            get
-            {
-                if (_instNI2 == null)
-                    Interlocked.CompareExchange(ref _instNI2, new NumberType(DataKind.NI2, "NI2"), null);
-                return _instNI2;
             }
         }
 
@@ -451,17 +429,6 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static volatile NumberType _instNI4;
-        public static NumberType NI4
-        {
-            get
-            {
-                if (_instNI4 == null)
-                    Interlocked.CompareExchange(ref _instNI4, new NumberType(DataKind.NI4, "NI4"), null);
-                return _instNI4;
-            }
-        }
-
         private static volatile NumberType _instU4;
         public static NumberType U4
         {
@@ -481,17 +448,6 @@ namespace Microsoft.ML.Runtime.Data
                 if (_instI8 == null)
                     Interlocked.CompareExchange(ref _instI8, new NumberType(DataKind.I8, "I8"), null);
                 return _instI8;
-            }
-        }
-
-        private static volatile NumberType _instNI8;
-        public static NumberType NI8
-        {
-            get
-            {
-                if (_instNI8 == null)
-                    Interlocked.CompareExchange(ref _instNI8, new NumberType(DataKind.NI8, "NI8"), null);
-                return _instNI8;
             }
         }
 
@@ -550,26 +506,18 @@ namespace Microsoft.ML.Runtime.Data
             {
             case DataKind.I1:
                 return I1;
-            case DataKind.NI1:
-                return NI1;
             case DataKind.U1:
                 return U1;
             case DataKind.I2:
                 return I2;
-            case DataKind.NI2:
-                return NI2;
             case DataKind.U2:
                 return U2;
             case DataKind.I4:
                 return I4;
-            case DataKind.NI4:
-                return NI4;
             case DataKind.U4:
                 return U4;
             case DataKind.I8:
                 return I8;
-            case DataKind.NI8:
-                return NI8;
             case DataKind.U8:
                 return U8;
             case DataKind.R4:
@@ -631,7 +579,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertNonEmpty(name);
             _name = name;
-            Contracts.Assert(IsNumber);
         }
 
         public override bool Equals(ColumnType other)

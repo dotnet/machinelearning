@@ -22,14 +22,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.RawKind)
                     {
-                    case DataKind.NI1:
-                        return new I1.MeanAggregatorOne(ch, cursor, col);
-                    case DataKind.NI2:
-                        return new I2.MeanAggregatorOne(ch, cursor, col);
-                    case DataKind.NI4:
-                        return new I4.MeanAggregatorOne(ch, cursor, col);
-                    case DataKind.NI8:
-                        return new Long.MeanAggregatorOne<long?>(ch, type, cursor, col);
                     case DataKind.R4:
                         return new R4.MeanAggregatorOne(ch, cursor, col);
                     case DataKind.R8:
@@ -46,14 +38,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.RawKind)
                     {
-                    case DataKind.NI1:
-                        return new I1.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.NI2:
-                        return new I2.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.NI4:
-                        return new I4.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.NI8:
-                        return new Long.MinMaxAggregatorOne<long?>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R4:
                         return new R4.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
@@ -78,14 +62,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.ItemType.RawKind)
                     {
-                    case DataKind.NI1:
-                        return new I1.MeanAggregatorBySlot(ch, type, cursor, col);
-                    case DataKind.NI2:
-                        return new I2.MeanAggregatorBySlot(ch, type, cursor, col);
-                    case DataKind.NI4:
-                        return new I4.MeanAggregatorBySlot(ch, type, cursor, col);
-                    case DataKind.NI8:
-                        return new Long.MeanAggregatorBySlot<long?>(ch, type, cursor, col);
                     case DataKind.R4:
                         return new R4.MeanAggregatorBySlot(ch, type, cursor, col);
                     case DataKind.R8:
@@ -102,14 +78,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.ItemType.RawKind)
                     {
-                    case DataKind.NI1:
-                        return new I1.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.NI2:
-                        return new I2.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.NI4:
-                        return new I4.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.NI8:
-                        return new Long.MinMaxAggregatorBySlot<long?>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R4:
                         return new R4.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
@@ -130,14 +98,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.ItemType.RawKind)
                     {
-                    case DataKind.NI1:
-                        return new I1.MeanAggregatorAcrossSlots(ch, cursor, col);
-                    case DataKind.NI2:
-                        return new I2.MeanAggregatorAcrossSlots(ch, cursor, col);
-                    case DataKind.NI4:
-                        return new I4.MeanAggregatorAcrossSlots(ch, cursor, col);
-                    case DataKind.NI8:
-                        return new Long.MeanAggregatorAcrossSlots<long?>(ch, type, cursor, col);
                     case DataKind.R4:
                         return new R4.MeanAggregatorAcrossSlots(ch, cursor, col);
                     case DataKind.R8:
@@ -154,14 +114,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     switch (type.ItemType.RawKind)
                     {
-                    case DataKind.NI1:
-                        return new I1.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.NI2:
-                        return new I2.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.NI4:
-                        return new I4.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.NI8:
-                        return new Long.MinMaxAggregatorAcrossSlots<long?>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R4:
                         return new R4.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:

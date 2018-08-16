@@ -992,16 +992,16 @@ namespace Microsoft.ML.Runtime.Data
                                 }
                                 var spanT = Fields.Spans[Fields.Count - 1];
 
-                                // Note that Convert produces NA if the text is unparsable.
-                                int? csrc = default;
+                                // Note that Convert throws exception the text is unparsable.
+                                int csrc = default;
                                 Conversion.Conversions.Instance.Convert(ref spanT, ref csrc);
-                                if (!csrc.HasValue || csrc.Value <= 0)
+                                if (csrc <= 0)
                                 {
                                     _stats.LogBadFmt(ref scan, "Bad dimensionality or ambiguous sparse item. Use sparse=- for non-sparse file, and/or quote the value.");
                                     break;
                                 }
 
-                                csrcSparse = csrc.Value;
+                                csrcSparse = csrc;
                                 srcLimFixed = Fields.Indices[--Fields.Count];
                                 if (csrcSparse >= SrcLim - srcLimFixed)
                                     csrcSparse = SrcLim - srcLimFixed - 1;

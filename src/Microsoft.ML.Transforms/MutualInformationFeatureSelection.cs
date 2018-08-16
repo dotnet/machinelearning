@@ -412,13 +412,6 @@ namespace Microsoft.ML.Runtime.Data
                     BinInts(ref tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
-                else if (labelType == NumberType.NI4)
-                {
-                    var tmp = default(VBuffer<Int32?>);
-                    trans.GetSingleSlotValue(labelCol, ref tmp);
-                    BinInts(ref tmp, ref labels, _numBins, out min, out lim);
-                    _numLabels = lim - min;
-                }
                 else if (labelType == NumberType.R4)
                 {
                     var tmp = default(VBuffer<Single>);
@@ -494,14 +487,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<Int32> src, ref VBuffer<int> dst, out int min, out int lim) =>
-                        {
-                            BinInts(ref src, ref dst, _numBins, out min, out lim);
-                        });
-                }
-                else if (type.ItemType == NumberType.NI4)
-                {
-                    return ComputeMutualInformation(trans, col,
-                        (ref VBuffer<Int32?> src, ref VBuffer<int> dst, out int min, out int lim) =>
                         {
                             BinInts(ref src, ref dst, _numBins, out min, out lim);
                         });
@@ -703,34 +688,6 @@ namespace Microsoft.ML.Runtime.Data
                 ValueMapper<Int32, int> mapper =
                     (ref Int32 src, ref int dst) =>
                         dst = offset + 1 + bounds.FindIndexSorted((Single)src);
-                mapper.MapVector(ref input, ref output);
-                _singles.Clear();
-            }
-
-            /// <summary>
-            /// Maps from Int32? to ints. NaNs (and only NaNs) are mapped to the first bin.
-            /// </summary>
-            private void BinInts(ref VBuffer<Int32?> input, ref VBuffer<int> output,
-                int numBins, out int min, out int lim)
-            {
-                Contracts.Assert(_singles.Count == 0);
-                if (input.Values != null)
-                {
-                    for (int i = 0; i < input.Count; i++)
-                    {
-                        var val = input.Values[i];
-                        if (!val.HasValue)
-                            _singles.Add((Single)val);
-                    }
-                }
-
-                var bounds = _binFinder.FindBins(numBins, _singles, input.Length - input.Count);
-                min = -1 - bounds.FindIndexSorted(0);
-                lim = min + bounds.Length + 1;
-                int offset = min;
-                ValueMapper<Int32?, int> mapper =
-                    (ref Int32? src, ref int dst) =>
-                        dst = !src.HasValue ? offset : offset + 1 + bounds.FindIndexSorted((Single)src);
                 mapper.MapVector(ref input, ref output);
                 _singles.Clear();
             }

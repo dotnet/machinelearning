@@ -17,10 +17,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
     using BL = DvBool;
     using DT = DvDateTime;
     using DZ = DvDateTimeZone;
-    using NI1 = Nullable<SByte>;
-    using NI2 = Nullable<Int16>;
-    using NI4 = Nullable<Int32>;
-    using NI8 = Nullable<Int64>;
     using R4 = Single;
     using R8 = Double;
     using I1 = SByte;
@@ -119,37 +115,37 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             // !!! WARNING !!!: Do NOT add any standard conversions without clearing from the IDV Type System
             // design committee. Any changes also require updating the IDV Type System Specification.
 
-            AddStd<NI1, NI1>(Convert);
-            AddStd<NI1, NI2>(Convert);
-            AddStd<NI1, NI4>(Convert);
-            AddStd<NI1, NI8>(Convert);
-            AddStd<NI1, R4>(Convert);
-            AddStd<NI1, R8>(Convert);
-            AddAux<NI1, SB>(Convert);
+            AddStd<I1, I1>(Convert);
+            AddStd<I1, I2>(Convert);
+            AddStd<I1, I4>(Convert);
+            AddStd<I1, I8>(Convert);
+            AddStd<I1, R4>(Convert);
+            AddStd<I1, R8>(Convert);
+            AddAux<I1, SB>(Convert);
 
-            AddStd<NI2, NI1>(Convert);
-            AddStd<NI2, NI2>(Convert);
-            AddStd<NI2, NI4>(Convert);
-            AddStd<NI2, NI8>(Convert);
-            AddStd<NI2, R4>(Convert);
-            AddStd<NI2, R8>(Convert);
-            AddAux<NI2, SB>(Convert);
+            AddStd<I2, I1>(Convert);
+            AddStd<I2, I2>(Convert);
+            AddStd<I2, I4>(Convert);
+            AddStd<I2, I8>(Convert);
+            AddStd<I2, R4>(Convert);
+            AddStd<I2, R8>(Convert);
+            AddAux<I2, SB>(Convert);
 
-            AddStd<NI4, NI1>(Convert);
-            AddStd<NI4, NI2>(Convert);
-            AddStd<NI4, NI4>(Convert);
-            AddStd<NI4, NI8>(Convert);
-            AddStd<NI4, R4>(Convert);
-            AddStd<NI4, R8>(Convert);
-            AddAux<NI4, SB>(Convert);
+            AddStd<I4, I1>(Convert);
+            AddStd<I4, I2>(Convert);
+            AddStd<I4, I4>(Convert);
+            AddStd<I4, I8>(Convert);
+            AddStd<I4, R4>(Convert);
+            AddStd<I4, R8>(Convert);
+            AddAux<I4, SB>(Convert);
 
-            AddStd<NI8, NI1>(Convert);
-            AddStd<NI8, NI2>(Convert);
-            AddStd<NI8, NI4>(Convert);
-            AddStd<NI8, NI8>(Convert);
-            AddStd<NI8, R4>(Convert);
-            AddStd<NI8, R8>(Convert);
-            AddAux<NI8, SB>(Convert);
+            AddStd<I8, I1>(Convert);
+            AddStd<I8, I2>(Convert);
+            AddStd<I8, I4>(Convert);
+            AddStd<I8, I8>(Convert);
+            AddStd<I8, R4>(Convert);
+            AddStd<I8, R8>(Convert);
+            AddAux<I8, SB>(Convert);
 
             AddStd<U1, U1>(Convert);
             AddStd<U1, U2>(Convert);
@@ -202,13 +198,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddStd<R8, R8>(Convert);
             AddAux<R8, SB>(Convert);
 
-            AddStd<TX, NI1>(Convert);
+            AddStd<TX, I1>(Convert);
             AddStd<TX, U1>(Convert);
-            AddStd<TX, NI2>(Convert);
+            AddStd<TX, I2>(Convert);
             AddStd<TX, U2>(Convert);
-            AddStd<TX, NI4>(Convert);
+            AddStd<TX, I4>(Convert);
             AddStd<TX, U4>(Convert);
-            AddStd<TX, NI8>(Convert);
+            AddStd<TX, I8>(Convert);
             AddStd<TX, U8>(Convert);
             AddStd<TX, UG>(Convert);
             AddStd<TX, R4>(Convert);
@@ -220,34 +216,30 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddStd<TX, DT>(Convert);
             AddStd<TX, DZ>(Convert);
 
-            AddStd<BL, NI1>(Convert);
-            AddStd<BL, NI2>(Convert);
-            AddStd<BL, NI4>(Convert);
-            AddStd<BL, NI8>(Convert);
+            AddStd<BL, I1>(Convert);
+            AddStd<BL, I2>(Convert);
+            AddStd<BL, I4>(Convert);
+            AddStd<BL, I8>(Convert);
             AddStd<BL, R4>(Convert);
             AddStd<BL, R8>(Convert);
             AddStd<BL, BL>(Convert);
             AddAux<BL, SB>(Convert);
 
-            AddStd<TS, NI8>(Convert);
+            AddStd<TS, I8>(Convert);
             AddStd<TS, R4>(Convert);
             AddStd<TS, R8>(Convert);
             AddAux<TS, SB>(Convert);
 
-            AddStd<DT, NI8>(Convert);
+            AddStd<DT, I8>(Convert);
             AddStd<DT, R4>(Convert);
             AddStd<DT, R8>(Convert);
             AddAux<DT, SB>(Convert);
 
-            AddStd<DZ, NI8>(Convert);
+            AddStd<DZ, I8>(Convert);
             AddStd<DZ, R4>(Convert);
             AddStd<DZ, R8>(Convert);
             AddAux<DZ, SB>(Convert);
 
-            AddIsNA<NI1>(IsNA);
-            AddIsNA<NI2>(IsNA);
-            AddIsNA<NI4>(IsNA);
-            AddIsNA<NI8>(IsNA);
             AddIsNA<R4>(IsNA);
             AddIsNA<R8>(IsNA);
             AddIsNA<BL>(IsNA);
@@ -256,10 +248,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddIsNA<DT>(IsNA);
             AddIsNA<DZ>(IsNA);
 
-            AddGetNA<NI1>(GetNA);
-            AddGetNA<NI2>(GetNA);
-            AddGetNA<NI4>(GetNA);
-            AddGetNA<NI8>(GetNA);
             AddGetNA<R4>(GetNA);
             AddGetNA<R8>(GetNA);
             AddGetNA<BL>(GetNA);
@@ -268,10 +256,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddGetNA<DT>(GetNA);
             AddGetNA<DZ>(GetNA);
 
-            AddHasNA<NI1>(HasNA);
-            AddHasNA<NI2>(HasNA);
-            AddHasNA<NI4>(HasNA);
-            AddHasNA<NI8>(HasNA);
             AddHasNA<R4>(HasNA);
             AddHasNA<R8>(HasNA);
             AddHasNA<BL>(HasNA);
@@ -280,10 +264,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddHasNA<DT>(HasNA);
             AddHasNA<DZ>(HasNA);
 
-            AddIsDef<NI1>(IsDefault);
-            AddIsDef<NI2>(IsDefault);
-            AddIsDef<NI4>(IsDefault);
-            AddIsDef<NI8>(IsDefault);
+            AddIsDef<I1>(IsDefault);
+            AddIsDef<I2>(IsDefault);
+            AddIsDef<I4>(IsDefault);
+            AddIsDef<I8>(IsDefault);
             AddIsDef<R4>(IsDefault);
             AddIsDef<R8>(IsDefault);
             AddIsDef<BL>(IsDefault);
@@ -302,10 +286,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddHasZero<U4>(HasZero);
             AddHasZero<U8>(HasZero);
 
-            AddTryParse<NI1>(TryParse);
-            AddTryParse<NI2>(TryParse);
-            AddTryParse<NI4>(TryParse);
-            AddTryParse<NI8>(TryParse);
+            AddTryParse<I1>(TryParse);
+            AddTryParse<I2>(TryParse);
+            AddTryParse<I4>(TryParse);
+            AddTryParse<I8>(TryParse);
             AddTryParse<U1>(TryParse);
             AddTryParse<U2>(TryParse);
             AddTryParse<U4>(TryParse);
@@ -846,10 +830,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         // The IsNA methods are for efficient delegates (instance instead of static).
         #region IsNA
-        private bool IsNA(ref NI1 src) => !src.HasValue;
-        private bool IsNA(ref NI2 src) => !src.HasValue;
-        private bool IsNA(ref NI4 src) => !src.HasValue;
-        private bool IsNA(ref NI8 src) => !src.HasValue;
         private bool IsNA(ref R4 src) => src.IsNA();
         private bool IsNA(ref R8 src) => src.IsNA();
         private bool IsNA(ref BL src) => src.IsNA;
@@ -860,10 +840,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion IsNA
 
         #region HasNA
-        private bool HasNA(ref VBuffer<NI1> src) { for (int i = 0; i < src.Count; i++) { if (!src.Values[i].HasValue) return true; } return false; }
-        private bool HasNA(ref VBuffer<NI2> src) { for (int i = 0; i < src.Count; i++) { if (!src.Values[i].HasValue) return true; } return false; }
-        private bool HasNA(ref VBuffer<NI4> src) { for (int i = 0; i < src.Count; i++) { if (!src.Values[i].HasValue) return true; } return false; }
-        private bool HasNA(ref VBuffer<NI8> src) { for (int i = 0; i < src.Count; i++) { if (!src.Values[i].HasValue) return true; } return false; }
         private bool HasNA(ref VBuffer<R4> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA()) return true; } return false; }
         private bool HasNA(ref VBuffer<R8> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA()) return true; } return false; }
         private bool HasNA(ref VBuffer<BL> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
@@ -874,10 +850,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion HasNA
 
         #region IsDefault
-        private bool IsDefault(ref NI1 src) => src == default(NI1);
-        private bool IsDefault(ref NI2 src) => src == default(NI2);
-        private bool IsDefault(ref NI4 src) => src == default(NI4);
-        private bool IsDefault(ref NI8 src) => src == default(NI8);
+        private bool IsDefault(ref I1 src) => src == default(I1);
+        private bool IsDefault(ref I2 src) => src == default(I2);
+        private bool IsDefault(ref I4 src) => src == default(I4);
+        private bool IsDefault(ref I8 src) => src == default(I8);
         private bool IsDefault(ref R4 src) => src == 0;
         private bool IsDefault(ref R8 src) => src == 0;
         private bool IsDefault(ref TX src) => src.IsEmpty;
@@ -900,10 +876,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion HasZero
 
         #region GetNA
-        private void GetNA(ref NI1 value) => value = default;
-        private void GetNA(ref NI2 value) => value = default;
-        private void GetNA(ref NI4 value) => value = default;
-        private void GetNA(ref NI8 value) => value = default;
         private void GetNA(ref R4 value) => value = R4.NaN;
         private void GetNA(ref R8 value) => value = R8.NaN;
         private void GetNA(ref BL value) => value = BL.NA;
@@ -914,35 +886,35 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion GetNA
 
         #region ToI1
-        public void Convert(ref NI1 src, ref NI1 dst) => dst = src;
-        public void Convert(ref NI2 src, ref NI1 dst) => dst = (NI1)src;
-        public void Convert(ref NI4 src, ref NI1 dst) => dst = (NI1)src;
-        public void Convert(ref NI8 src, ref NI1 dst) => dst = (NI1)src;
+        public void Convert(ref I1 src, ref I1 dst) => dst = src;
+        public void Convert(ref I2 src, ref I1 dst) => dst = (I1)src;
+        public void Convert(ref I4 src, ref I1 dst) => dst = (I1)src;
+        public void Convert(ref I8 src, ref I1 dst) => dst = (I1)src;
         #endregion ToI1
 
         #region ToI2
-        public void Convert(ref NI1 src, ref NI2 dst) => dst = src;
-        public void Convert(ref NI2 src, ref NI2 dst) => dst = src;
-        public void Convert(ref NI4 src, ref NI2 dst) => dst = (NI2)src;
-        public void Convert(ref NI8 src, ref NI2 dst) => dst = (NI2)src;
+        public void Convert(ref I1 src, ref I2 dst) => dst = src;
+        public void Convert(ref I2 src, ref I2 dst) => dst = src;
+        public void Convert(ref I4 src, ref I2 dst) => dst = (I2)src;
+        public void Convert(ref I8 src, ref I2 dst) => dst = (I2)src;
         #endregion ToI2
 
         #region ToI4
-        public void Convert(ref NI1 src, ref NI4 dst) => dst = src;
-        public void Convert(ref NI2 src, ref NI4 dst) => dst = src;
-        public void Convert(ref NI4 src, ref NI4 dst) => dst = src;
-        public void Convert(ref NI8 src, ref NI4 dst) => dst = (NI4)src;
+        public void Convert(ref I1 src, ref I4 dst) => dst = src;
+        public void Convert(ref I2 src, ref I4 dst) => dst = src;
+        public void Convert(ref I4 src, ref I4 dst) => dst = src;
+        public void Convert(ref I8 src, ref I4 dst) => dst = (I4)src;
         #endregion ToI4
 
         #region ToI8
-        public void Convert(ref NI1 src, ref NI8 dst) => dst = src;
-        public void Convert(ref NI2 src, ref NI8 dst) => dst = src;
-        public void Convert(ref NI4 src, ref NI8 dst) => dst = src;
-        public void Convert(ref NI8 src, ref NI8 dst) => dst = src;
+        public void Convert(ref I1 src, ref I8 dst) => dst = src;
+        public void Convert(ref I2 src, ref I8 dst) => dst = src;
+        public void Convert(ref I4 src, ref I8 dst) => dst = src;
+        public void Convert(ref I8 src, ref I8 dst) => dst = src;
 
-        public void Convert(ref TS src, ref NI8 dst) => dst = (NI8)src.Ticks;
-        public void Convert(ref DT src, ref NI8 dst) => dst = (NI8)src.Ticks;
-        public void Convert(ref DZ src, ref NI8 dst) => dst = (NI8)src.UtcDateTime.Ticks;
+        public void Convert(ref TS src, ref I8 dst) => dst = (I8)src.Ticks;
+        public void Convert(ref DT src, ref I8 dst) => dst = (I8)src.Ticks;
+        public void Convert(ref DZ src, ref I8 dst) => dst = (I8)src.UtcDateTime.Ticks;
         #endregion ToI8
 
         #region ToU1
@@ -986,10 +958,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion ToUG
 
         #region ToR4
-        public void Convert(ref NI1 src, ref R4 dst) => dst = (R4)src;
-        public void Convert(ref NI2 src, ref R4 dst) => dst = (R4)src;
-        public void Convert(ref NI4 src, ref R4 dst) => dst = (R4)src;
-        public void Convert(ref NI8 src, ref R4 dst) => dst = (R4)src;
+        public void Convert(ref I1 src, ref R4 dst) => dst = (R4)src;
+        public void Convert(ref I2 src, ref R4 dst) => dst = (R4)src;
+        public void Convert(ref I4 src, ref R4 dst) => dst = (R4)src;
+        public void Convert(ref I8 src, ref R4 dst) => dst = (R4)src;
         public void Convert(ref U1 src, ref R4 dst) => dst = src;
         public void Convert(ref U2 src, ref R4 dst) => dst = src;
         public void Convert(ref U4 src, ref R4 dst) => dst = src;
@@ -1004,10 +976,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion ToR4
 
         #region ToR8
-        public void Convert(ref NI1 src, ref R8 dst) => dst = (R8)src;
-        public void Convert(ref NI2 src, ref R8 dst) => dst = (R8)src;
-        public void Convert(ref NI4 src, ref R8 dst) => dst = (R8)src;
-        public void Convert(ref NI8 src, ref R8 dst) => dst = (R8)src;
+        public void Convert(ref I1 src, ref R8 dst) => dst = (R8)src;
+        public void Convert(ref I2 src, ref R8 dst) => dst = (R8)src;
+        public void Convert(ref I4 src, ref R8 dst) => dst = (R8)src;
+        public void Convert(ref I8 src, ref R8 dst) => dst = (R8)src;
         public void Convert(ref U1 src, ref R8 dst) => dst = src;
         public void Convert(ref U2 src, ref R8 dst) => dst = src;
         public void Convert(ref U4 src, ref R8 dst) => dst = src;
@@ -1022,10 +994,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion ToR8
 
         #region ToStringBuilder
-        public void Convert(ref NI1 src, ref SB dst) { ClearDst(ref dst); if (src.HasValue) dst.Append(src.Value); }
-        public void Convert(ref NI2 src, ref SB dst) { ClearDst(ref dst); if (src.HasValue) dst.Append(src.Value); }
-        public void Convert(ref NI4 src, ref SB dst) { ClearDst(ref dst); if (src.HasValue) dst.Append(src.Value); }
-        public void Convert(ref NI8 src, ref SB dst) { ClearDst(ref dst); if (src.HasValue) dst.Append(src.Value); }
+        public void Convert(ref I1 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
+        public void Convert(ref I2 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
+        public void Convert(ref I4 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
+        public void Convert(ref I8 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
         public void Convert(ref U1 src, ref SB dst) => ClearDst(ref dst).Append(src);
         public void Convert(ref U2 src, ref SB dst) => ClearDst(ref dst).Append(src);
         public void Convert(ref U4 src, ref SB dst) => ClearDst(ref dst).Append(src);
@@ -1303,16 +1275,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
         /// On failure, it sets dst to the NA value.
         /// </summary>
-        public bool TryParse(ref TX src, out NI1 dst)
+        public bool TryParse(ref TX src, out I1 dst)
         {
             long? res;
             bool f = TryParseSigned(I1.MaxValue, ref src, out res);
-            Contracts.Assert(f || !res.HasValue);
-            Contracts.Assert(!res.HasValue || (I1)res == res);
-            if (res.HasValue)
-                dst = (I1)res;
-            else
-                dst = null;
+            Contracts.Check(f && res.HasValue);
+            Contracts.Assert((I1)res == res);
+            dst = (I1)res;
             return f;
         }
 
@@ -1320,16 +1289,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
         /// On failure, it sets dst to the NA value.
         /// </summary>
-        public bool TryParse(ref TX src, out NI2 dst)
+        public bool TryParse(ref TX src, out I2 dst)
         {
             long? res;
             bool f = TryParseSigned(I2.MaxValue, ref src, out res);
-            Contracts.Assert(f || !res.HasValue);
+            Contracts.Check(f && res.HasValue);
             Contracts.Assert(!res.HasValue || (I2)res == res);
-            if (res.HasValue)
-                dst = (I2)res;
-            else
-                dst = null;
+            dst = (I2)res;
             return f;
         }
 
@@ -1337,16 +1303,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
         /// On failure, it sets dst to the NA value.
         /// </summary>
-        public bool TryParse(ref TX src, out NI4 dst)
+        public bool TryParse(ref TX src, out I4 dst)
         {
             long? res;
             bool f = TryParseSigned(I4.MaxValue, ref src, out res);
-            Contracts.Assert(f || !res.HasValue);
+            Contracts.Check(f && res.HasValue);
             Contracts.Assert(!res.HasValue || (I4)res == res);
-            if (res.HasValue)
-                dst = (I4)res;
-            else
-                dst = null;
+            dst = (I4)res;
             return f;
         }
 
@@ -1354,15 +1317,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
         /// On failure, it sets dst to the NA value.
         /// </summary>
-        public bool TryParse(ref TX src, out NI8 dst)
+        public bool TryParse(ref TX src, out I8 dst)
         {
             long? res;
             bool f = TryParseSigned(I8.MaxValue, ref src, out res);
-            Contracts.Assert(f || !res.HasValue);
-            if (res.HasValue)
-                dst = (I8)res;
-            else
-                dst = null;
+            Contracts.Check(f && res.HasValue);
+            dst = (I8)res;
             return f;
         }
 
@@ -1543,48 +1503,39 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         }
 
         // These map unparsable and overflow values to "NA", which is null.
-        private NI1 ParseI1(ref TX src)
+        private I1 ParseI1(ref TX src)
         {
             long? res;
             bool f = TryParseSigned(I1.MaxValue, ref src, out res);
-            Contracts.Assert(f || !res.HasValue);
-            if (!res.HasValue)
-                return null;
-
+            Contracts.Check(f && res.HasValue);
             Contracts.Assert((I1)res == res);
             return (I1)res;
         }
 
-        private NI2 ParseI2(ref TX src)
+        private I2 ParseI2(ref TX src)
         {
             long? res;
             bool f = TryParseSigned(I2.MaxValue, ref src, out res);
-            Contracts.Assert(f || !res.HasValue);
-            if (!res.HasValue)
-                return null;
-
+            Contracts.Check(f && res.HasValue);
             Contracts.Assert((I2)res == res);
             return (I2)res;
         }
 
-        private NI4 ParseI4(ref TX src)
+        private I4 ParseI4(ref TX src)
         {
             long? res;
             bool f = TryParseSigned(I4.MaxValue, ref src, out res);
-            Contracts.Assert(f || !res.HasValue);
-            if (!res.HasValue)
-                return null;
-
+            Contracts.Check(f && res.HasValue);
             Contracts.Assert((I4)res == res);
             return (I4)res;
         }
 
-        private NI8 ParseI8(ref TX src)
+        private I8 ParseI8(ref TX src)
         {
             long? res;
             bool f = TryParseSigned(I8.MaxValue, ref src, out res);
             Contracts.Assert(f || !res.HasValue);
-            return res;
+            return res.Value;
         }
 
         // These map unparsable and overflow values to zero. The unsigned integer types do not have an NA value.
@@ -1755,7 +1706,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             return true;
         }
 
-        public void Convert(ref TX span, ref NI1 value)
+        public void Convert(ref TX span, ref I1 value)
         {
             value = ParseI1(ref span);
         }
@@ -1763,7 +1714,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             value = ParseU1(ref span);
         }
-        public void Convert(ref TX span, ref NI2 value)
+        public void Convert(ref TX span, ref I2 value)
         {
             value = ParseI2(ref span);
         }
@@ -1771,7 +1722,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             value = ParseU2(ref span);
         }
-        public void Convert(ref TX span, ref NI4 value)
+        public void Convert(ref TX span, ref I4 value)
         {
             value = ParseI4(ref span);
         }
@@ -1779,7 +1730,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             value = ParseU4(ref span);
         }
-        public void Convert(ref TX span, ref NI8 value)
+        public void Convert(ref TX span, ref I8 value)
         {
             value = ParseI8(ref span);
         }
@@ -1841,10 +1792,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion FromTX
 
         #region FromBL
-        public void Convert(ref BL src, ref NI1 dst) => dst = (NI1)src;
-        public void Convert(ref BL src, ref NI2 dst) => dst = (NI2)src;
-        public void Convert(ref BL src, ref NI4 dst) => dst = (NI4)src;
-        public void Convert(ref BL src, ref NI8 dst) => dst = (NI8)src;
+        public void Convert(ref BL src, ref I1 dst) => dst = (I1)src;
+        public void Convert(ref BL src, ref I2 dst) => dst = (I2)src;
+        public void Convert(ref BL src, ref I4 dst) => dst = (I4)src;
+        public void Convert(ref BL src, ref I8 dst) => dst = (I8)src;
         public void Convert(ref BL src, ref R4 dst) => dst = (R4)src;
         public void Convert(ref BL src, ref R8 dst) => dst = (R8)src;
         public void Convert(ref BL src, ref BL dst) => dst = src;

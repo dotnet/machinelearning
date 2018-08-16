@@ -2021,7 +2021,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     "Transforms.ColumnTypeConverter",
                     "Transforms.ColumnTypeConverter",
-                    "Transforms.ColumnTypeConverter",
                 },
                 new[]
                 {
@@ -2037,7 +2036,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       {
                         'Name': 'Feat',
                         'Source': 'FT',
-                        'Type': 'I1'
+                        'Type': 'R4'
                       },
                       {
                         'Name': 'Key1',
@@ -2047,18 +2046,11 @@ namespace Microsoft.ML.Runtime.RunTests
                       ]",
                     @"'Column': [
                       {
-                        'Name': 'Ints',
+                        'Name': 'Doubles',
                         'Source': 'Feat'
                       }
                       ],
-                      'Type': 'I4'",
-                    @"'Column': [
-                      {
-                        'Name': 'Floats',
-                        'Source': 'Ints'
-                      }
-                      ],
-                      'Type': 'Num'",
+                      'Type': 'R8'",
                 });
         }
 

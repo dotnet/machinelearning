@@ -449,7 +449,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteIntStream(this BinaryWriter writer, IEnumerable<Int32> e)
+        public static long WriteIntStream(this BinaryWriter writer, IEnumerable<int> e)
         {
             long c = 0;
             foreach (var v in e)

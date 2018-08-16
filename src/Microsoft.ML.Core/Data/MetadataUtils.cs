@@ -404,9 +404,9 @@ namespace Microsoft.ML.Runtime.Data
                 return isValid;
 
             var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex);
-            if (type?.RawType == typeof(VBuffer<Int32>))
+            if (type?.RawType == typeof(VBuffer<int>))
             {
-                VBuffer<Int32> catIndices = default(VBuffer<Int32>);
+                VBuffer<int> catIndices = default(VBuffer<int>);
                 schema.GetMetadata(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex, ref catIndices);
                 VBufferUtils.Densify(ref catIndices);
                 int columnSlotsCount = schema.GetColumnType(colIndex).AsVector.VectorSizeCore;

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.Api
         {
             // REVIEW: This should be a Dictionary<Type, OpCode> based solution.
             // DvTypes, strings, arrays, all nullable types, VBuffers and UInt128.
-            if (t == typeof(DvText) || t == typeof(string) || t.IsArray ||
+            if (t == typeof(DvText) || t == typeof(DvBool) || t == typeof(string) || t.IsArray ||
                 (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(VBuffer<>)) ||
                 (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>)) ||
                 t == typeof(DvDateTime) || t == typeof(DvDateTimeZone) || t == typeof(DvTimeSpan) || t == typeof(UInt128))
