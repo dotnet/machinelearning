@@ -67,8 +67,8 @@
       "defaultValue": ""
     },
     "RunTests": {
-      "description": "Run tests after building.",
-      "valueType": "property",
+      "description": "MsBuild target that run the tests. Call this after building.",
+      "valueType": "target",
       "values": [],
       "defaultValue": ""
     },
@@ -113,9 +113,9 @@
           }
         },
         "runtests": {
-          "description": "Runs the tests after building.",
+          "description": "Runs the tests. Call this after building.",
           "settings": {
-            "RunTests": "true"
+            "RunTests": "default"
           }
         },
         "verbose": {

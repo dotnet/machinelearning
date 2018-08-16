@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime
             case "libvw.dll":
             case "matrixinterf.dll":
             case "Microsoft.ML.neuralnetworks.gpucuda.dll":
-            case "Microsoft.ML.mklimports.dll":
+            case "MklImports.dll":
             case "microsoft.research.controls.decisiontrees.dll":
             case "Microsoft.ML.neuralnetworks.sse.dll":
             case "neuraltreeevaluator.dll":
@@ -832,10 +832,15 @@ namespace Microsoft.ML.Runtime
 
         public static LoadableClassInfo GetLoadableClassInfo<TSig>(string loadName)
         {
-            Contracts.CheckParam(typeof(TSig).BaseType == typeof(MulticastDelegate), nameof(TSig), "TSig must be a delegate type");
+            return GetLoadableClassInfo(loadName, typeof(TSig));
+        }
+
+        public static LoadableClassInfo GetLoadableClassInfo(string loadName, Type signatureType)
+        {
+            Contracts.CheckParam(signatureType.BaseType == typeof(MulticastDelegate), nameof(signatureType), "signatureType must be a delegate type");
             Contracts.CheckValueOrNull(loadName);
             loadName = (loadName ?? "").ToLowerInvariant().Trim();
-            return FindClassCore(new LoadableClassInfo.Key(loadName, typeof(TSig)));
+            return FindClassCore(new LoadableClassInfo.Key(loadName, signatureType));
         }
 
         public static LoadableClassInfo GetLoadableClassInfo<TRes, TSig>(SubComponent<TRes, TSig> sub)
@@ -887,6 +892,18 @@ namespace Microsoft.ML.Runtime
         }
 
         /// <summary>
+        /// Create an instance of the indicated component with the given extra parameters.
+        /// </summary>
+        public static TRes CreateInstance<TRes>(IHostEnvironment env, Type signatureType, string name, string options, params object[] extra)
+            where TRes : class
+        {
+            TRes result;
+            if (TryCreateInstance(env, signatureType, out result, name, options, extra))
+                return result;
+            throw Contracts.Except("Unknown loadable class: {0}", name).MarkSensitive(MessageSensitivity.None);
+        }
+
+        /// <summary>
         /// Try to create an instance of the indicated component with the given extra parameters. If there is no
         /// such component in the catalog, returns false. Any other error results in an exception.
         /// </summary>
@@ -914,12 +931,18 @@ namespace Microsoft.ML.Runtime
         public static bool TryCreateInstance<TRes, TSig>(IHostEnvironment env, out TRes result, string name, string options, params object[] extra)
             where TRes : class
         {
+            return TryCreateInstance<TRes>(env, typeof(TSig), out result, name, options, extra);
+        }
+
+        private static bool TryCreateInstance<TRes>(IHostEnvironment env, Type signatureType, out TRes result, string name, string options, params object[] extra)
+            where TRes : class
+        {
             Contracts.CheckValue(env, nameof(env));
-            env.Check(typeof(TSig).BaseType == typeof(MulticastDelegate));
+            env.Check(signatureType.BaseType == typeof(MulticastDelegate));
             env.CheckValueOrNull(name);
 
             string nameLower = (name ?? "").ToLowerInvariant().Trim();
-            LoadableClassInfo info = FindClassCore(new LoadableClassInfo.Key(nameLower, typeof(TSig)));
+            LoadableClassInfo info = FindClassCore(new LoadableClassInfo.Key(nameLower, signatureType));
             if (info == null)
             {
                 result = null;

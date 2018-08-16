@@ -51,14 +51,31 @@ namespace Microsoft.ML.Runtime.Api
         /// </summary>
         internal static Delegate GeneratePeek<TOwn, TRow>(InternalSchemaDefinition.Column column)
         {
-            var fieldInfo = column.FieldInfo;
-            Type fieldType = fieldInfo.FieldType;
+            switch (column.MemberInfo)
+            {
+                case FieldInfo fieldInfo:
+                    Type fieldType = fieldInfo.FieldType;
 
-            var assignmentOpCode = GetAssignmentOpCode(fieldType);
-            Func<FieldInfo, OpCode, Delegate> func = GeneratePeek<TOwn, TRow, int>;
-            var methInfo = func.GetMethodInfo().GetGenericMethodDefinition()
-                .MakeGenericMethod(typeof(TOwn), typeof(TRow), fieldType);
-            return (Delegate)methInfo.Invoke(null, new object[] { fieldInfo, assignmentOpCode });
+                    var assignmentOpCode = GetAssignmentOpCode(fieldType);
+                    Func<FieldInfo, OpCode, Delegate> func = GeneratePeek<TOwn, TRow, int>;
+                    var methInfo = func.GetMethodInfo().GetGenericMethodDefinition()
+                        .MakeGenericMethod(typeof(TOwn), typeof(TRow), fieldType);
+                    return (Delegate)methInfo.Invoke(null, new object[] { fieldInfo, assignmentOpCode });
+
+                case PropertyInfo propertyInfo:
+                    Type propertyType = propertyInfo.PropertyType;
+
+                    var assignmentOpCodeProp = GetAssignmentOpCode(propertyType);
+                    Func<PropertyInfo, OpCode, Delegate> funcProp = GeneratePeek<TOwn, TRow, int>;
+                    var methInfoProp = funcProp.GetMethodInfo().GetGenericMethodDefinition()
+                        .MakeGenericMethod(typeof(TOwn), typeof(TRow), propertyType);
+                    return (Delegate)methInfoProp.Invoke(null, new object[] { propertyInfo, assignmentOpCodeProp });
+
+                default:
+                    Contracts.Assert(false);
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+
+            }
         }
 
         private static Delegate GeneratePeek<TOwn, TRow, TValue>(FieldInfo fieldInfo, OpCode assignmentOpCode)
@@ -81,6 +98,28 @@ namespace Microsoft.ML.Runtime.Api
             return mb.CreateDelegate(typeof(Peek<TRow, TValue>));
         }
 
+        private static Delegate GeneratePeek<TOwn, TRow, TValue>(PropertyInfo propertyInfo, OpCode assignmentOpCode)
+        {
+            // REVIEW: It seems like we really should cache these, instead of generating them per cursor.
+            Type[] args = { typeof(TOwn), typeof(TRow), typeof(long), typeof(TValue).MakeByRefType() };
+            var mb = new DynamicMethod("Peek", null, args, typeof(TOwn), true);
+            var il = mb.GetILGenerator();
+            var minfo = propertyInfo.GetGetMethod();
+            var opcode = (minfo.IsVirtual || minfo.IsAbstract) ? OpCodes.Callvirt : OpCodes.Call;
+
+            il.Emit(OpCodes.Ldarg_3);               // push arg3
+            il.Emit(OpCodes.Ldarg_1);               // push arg1
+            il.Emit(opcode, minfo);                 // call [stack top].get_[propertyInfo]()
+            // Stobj needs to coupled with a type.
+            if (assignmentOpCode == OpCodes.Stobj)  // [stack top-1] = [stack top]
+                il.Emit(assignmentOpCode, propertyInfo.PropertyType);
+            else
+                il.Emit(assignmentOpCode);
+            il.Emit(OpCodes.Ret);                   // ret
+
+            return mb.CreateDelegate(typeof(Peek<TRow, TValue>));
+        }
+
         /// <summary>
         /// Each of the specialized 'poke' methods sets the appropriate field value of an instance of T
         /// to the provided value. So, the call is 'peek(userObject, providedValue)' and the logic is
@@ -88,14 +127,30 @@ namespace Microsoft.ML.Runtime.Api
         /// </summary>
         internal static Delegate GeneratePoke<TOwn, TRow>(InternalSchemaDefinition.Column column)
         {
-            var fieldInfo = column.FieldInfo;
-            Type fieldType = fieldInfo.FieldType;
+            switch (column.MemberInfo)
+            {
+                case FieldInfo fieldInfo:
+                    Type fieldType = fieldInfo.FieldType;
 
-            var assignmentOpCode = GetAssignmentOpCode(fieldType);
-            Func<FieldInfo, OpCode, Delegate> func = GeneratePoke<TOwn, TRow, int>;
-            var methInfo = func.GetMethodInfo().GetGenericMethodDefinition()
-                .MakeGenericMethod(typeof(TOwn), typeof(TRow), fieldType);
-            return (Delegate)methInfo.Invoke(null, new object[] { fieldInfo, assignmentOpCode });
+                    var assignmentOpCode = GetAssignmentOpCode(fieldType);
+                    Func<FieldInfo, OpCode, Delegate> func = GeneratePoke<TOwn, TRow, int>;
+                    var methInfo = func.GetMethodInfo().GetGenericMethodDefinition()
+                        .MakeGenericMethod(typeof(TOwn), typeof(TRow), fieldType);
+                    return (Delegate)methInfo.Invoke(null, new object[] { fieldInfo, assignmentOpCode });
+
+                case PropertyInfo propertyInfo:
+                    Type propertyType = propertyInfo.PropertyType;
+
+                    var assignmentOpCodeProp = GetAssignmentOpCode(propertyType);
+                    Func<PropertyInfo, Delegate> funcProp = GeneratePoke<TOwn, TRow, int>;
+                    var methInfoProp = funcProp.GetMethodInfo().GetGenericMethodDefinition()
+                        .MakeGenericMethod(typeof(TOwn), typeof(TRow), propertyType);
+                    return (Delegate)methInfoProp.Invoke(null, new object[] { propertyInfo });
+
+                default:
+                    Contracts.Assert(false);
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+            }
         }
 
         private static Delegate GeneratePoke<TOwn, TRow, TValue>(FieldInfo fieldInfo, OpCode assignmentOpCode)
@@ -112,6 +167,21 @@ namespace Microsoft.ML.Runtime.Api
                 il.Emit(assignmentOpCode, fieldInfo.FieldType);
             else
                 il.Emit(assignmentOpCode);
+            il.Emit(OpCodes.Ret);                   // ret
+            return mb.CreateDelegate(typeof(Poke<TRow, TValue>), null);
+        }
+
+        private static Delegate GeneratePoke<TOwn, TRow, TValue>(PropertyInfo propertyInfo)
+        {
+            Type[] args = { typeof(TOwn), typeof(TRow), typeof(TValue) };
+            var mb = new DynamicMethod("Poke", null, args, typeof(TOwn), true);
+            var il = mb.GetILGenerator();
+            var minfo = propertyInfo.GetSetMethod();
+            var opcode = (minfo.IsVirtual || minfo.IsAbstract) ? OpCodes.Callvirt : OpCodes.Call;
+
+            il.Emit(OpCodes.Ldarg_1);               // push arg1
+            il.Emit(OpCodes.Ldarg_2);               // push arg2
+            il.Emit(opcode, minfo);                 // call [stack top-1].set_[propertyInfo]([stack top])
             il.Emit(OpCodes.Ret);                   // ret
             return mb.CreateDelegate(typeof(Poke<TRow, TValue>), null);
         }

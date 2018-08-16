@@ -838,6 +838,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Trainers.StochasticGradientDescentBinaryClassifier", input, output));
             }
 
+            public Microsoft.ML.Trainers.SymSgdBinaryClassifier.Output Add(Microsoft.ML.Trainers.SymSgdBinaryClassifier input)
+            {
+                var output = new Microsoft.ML.Trainers.SymSgdBinaryClassifier.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Trainers.SymSgdBinaryClassifier input, Microsoft.ML.Trainers.SymSgdBinaryClassifier.Output output)
+            {
+                _jsonNodes.Add(Serialize("Trainers.SymSgdBinaryClassifier", input, output));
+            }
+
             public Microsoft.ML.Transforms.ApproximateBootstrapSampler.Output Add(Microsoft.ML.Transforms.ApproximateBootstrapSampler input)
             {
                 var output = new Microsoft.ML.Transforms.ApproximateBootstrapSampler.Output();
@@ -8911,7 +8923,7 @@ namespace Microsoft.ML
     namespace Trainers
     {
 
-        /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name="OLS"]/*' />
+        /// <include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name="OLS"]/*' />
         public sealed partial class OrdinaryLeastSquaresRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -9752,6 +9764,126 @@ namespace Microsoft.ML
             private class StochasticGradientDescentBinaryClassifierPipelineStep : ILearningPipelinePredictorStep
             {
                 public StochasticGradientDescentBinaryClassifierPipelineStep(Output output)
+                {
+                    Model = output.PredictorModel;
+                }
+
+                public Var<IPredictorModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Trainers
+    {
+
+        /// <include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
+        public sealed partial class SymSgdBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// Degree of lock-free parallelism. Determinism not guaranteed. Multi-threading is not supported currently.
+            /// </summary>
+            public int? NumberOfThreads { get; set; }
+
+            /// <summary>
+            /// Number of passes over the data.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("NumberOfIterations", new object[]{1, 5, 10, 20, 30, 40, 50})]
+            public int NumberOfIterations { get; set; } = 50;
+
+            /// <summary>
+            /// Tolerance for difference in average loss in consecutive passes.
+            /// </summary>
+            public float Tolerance { get; set; } = 0.0001f;
+
+            /// <summary>
+            /// Learning rate
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("LearningRate", new object[]{"<Auto>", 10f, 1f, 0.1f, 0.01f, 0.001f})]
+            public float? LearningRate { get; set; }
+
+            /// <summary>
+            /// L2 regularization
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("L2Regularization", new object[]{0f, 1E-05f, 1E-05f, 1E-06f, 1E-07f})]
+            public float L2Regularization { get; set; }
+
+            /// <summary>
+            /// The number of iterations each thread learns a local model until combining it with the global model. Low value means more updated global model and high value means less cache traffic.
+            /// </summary>
+            [TlcModule.SweepableDiscreteParamAttribute("UpdateFrequency", new object[]{"<Auto>", 5, 20})]
+            public int? UpdateFrequency { get; set; }
+
+            /// <summary>
+            /// The acceleration memory budget in MB
+            /// </summary>
+            public long MemorySize { get; set; } = 1024;
+
+            /// <summary>
+            /// Shuffle data?
+            /// </summary>
+            public bool Shuffle { get; set; } = true;
+
+            /// <summary>
+            /// Apply weight to the positive class, for imbalanced data
+            /// </summary>
+            public float PositiveInstanceWeight { get; set; } = 1f;
+
+            /// <summary>
+            /// Column to use for labels
+            /// </summary>
+            public string LabelColumn { get; set; } = "Label";
+
+            /// <summary>
+            /// The data to be used for training
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+            /// <summary>
+            /// Column to use for features
+            /// </summary>
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Normalize option for the feature column
+            /// </summary>
+            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+
+            /// <summary>
+            /// Whether learner should cache input training data
+            /// </summary>
+            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            {
+                /// <summary>
+                /// The trained model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+
+            }
+            public Var<IDataView> GetInputData() => TrainingData;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(SymSgdBinaryClassifier)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    TrainingData = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new SymSgdBinaryClassifierPipelineStep(output);
+            }
+
+            private class SymSgdBinaryClassifierPipelineStep : ILearningPipelinePredictorStep
+            {
+                public SymSgdBinaryClassifierPipelineStep(Output output)
                 {
                     Model = output.PredictorModel;
                 }
