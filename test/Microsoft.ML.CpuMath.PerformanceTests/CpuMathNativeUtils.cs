@@ -85,17 +85,5 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         [DllImport("CpuMathNative", EntryPoint = "SdcaL1UpdateSU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void SdcaL1UpdateSU(float primalUpdate, /*_In_ const*/ float* ps, /*_In_ const*/ int* pi, float threshold, /*_Inout_*/ float* pd1, /*_Inout_*/ float* pd2, int c);
-
-        [DllImport("CpuMathNative", EntryPoint = "ScaleX"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe void ScaleX(float a, /*_Inout_*/ float* pd, int c);
-
-        [DllImport("CpuMathNative", EntryPoint = "AddScaleX"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe void AddScaleX(float a, /*_In_ const*/ float* ps, /*_Inout_*/ float* pd, int c);
-
-        [DllImport("CpuMathNative", EntryPoint = "AddX"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe void AddX(/*_In_ const*/ float* ps, /*_Inout_*/ float* pd, int c);
-
-        [DllImport("CpuMathNative", EntryPoint = "SumX"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe float SumX(/*const*/ float* ps, int c);
     }
 }

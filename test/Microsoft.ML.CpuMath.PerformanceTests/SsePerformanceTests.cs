@@ -9,7 +9,7 @@ using Microsoft.ML.Runtime.Internal.CpuMath;
 
 namespace Microsoft.ML.CpuMath.PerformanceTests
 {
-    public class AvxVSSseNativePerformanceTests
+    public class SsePerformanceTests
     {
         private const int EXP_MAX = 127;
         private const int EXP_MIN = 0;
@@ -105,7 +105,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedAddScalarUPerf() => CpuMathUtils.Add(DEFAULT_SCALE, dst, LEN);
+        public void ManagedAddScalarUPerf()
+        {
+            SseIntrinsics.AddScalarU(DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe void NativeScaleUPerf()
@@ -117,7 +120,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedScaleUPerf() => CpuMathUtils.Scale(DEFAULT_SCALE, dst, LEN);
+        public void ManagedScaleUPerf()
+        {
+            SseIntrinsics.ScaleU(DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe void NativeScaleSrcUPerf()
@@ -130,7 +136,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedScaleSrcUPerf() => CpuMathUtils.Scale(DEFAULT_SCALE, src, dst, LEN);
+        public void ManagedScaleSrcUPerf()
+        {
+            SseIntrinsics.ScaleSrcU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe void NativeScaleAddUPerf()
@@ -142,7 +151,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedScaleAddUPerf() => CpuMathUtils.ScaleAdd(DEFAULT_SCALE, DEFAULT_SCALE, dst, LEN);
+        public void ManagedScaleAddUPerf()
+        {
+            SseIntrinsics.ScaleAddU(DEFAULT_SCALE, DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe void NativeAddScaleUPerf()
@@ -155,7 +167,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedAddScaleUPerf() => CpuMathUtils.AddScale(DEFAULT_SCALE, src, dst, LEN);
+        public void ManagedAddScaleUPerf()
+        {
+            SseIntrinsics.AddScaleU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe void NativeAddScaleSUPerf()
@@ -169,7 +184,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedAddScaleSUPerf() => CpuMathUtils.AddScale(DEFAULT_SCALE, src, idx, dst, IDXLEN);
+        public void ManagedAddScaleSUPerf()
+        {
+            SseIntrinsics.AddScaleSU(DEFAULT_SCALE, new Span<float>(src), new Span<int>(idx, 0, IDXLEN), new Span<float>(dst));
+        }
 
         [Benchmark]
         public unsafe void NativeAddScaleCopyUPerf()
@@ -183,7 +201,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedAddScaleCopyUPerf() => CpuMathUtils.AddScaleCopy(DEFAULT_SCALE, src, dst, result, LEN);
+        public void ManagedAddScaleCopyUPerf()
+        {
+            SseIntrinsics.AddScaleCopyU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN), new Span<float>(result, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe void NativeAddUPerf()
@@ -196,7 +217,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedAddUPerf() => CpuMathUtils.Add(src, dst, LEN);
+        public void ManagedAddUPerf()
+        {
+            SseIntrinsics.AddU(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe void NativeAddSUPerf()
@@ -210,7 +234,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedAddSUPerf() => CpuMathUtils.Add(src, idx, dst, IDXLEN);
+        public void ManagedAddSUPerf()
+        {
+            SseIntrinsics.AddSU(new Span<float>(src), new Span<int>(idx, 0, IDXLEN), new Span<float>(dst));
+        }
 
 
         [Benchmark]
@@ -225,7 +252,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedMulElementWiseUPerf() => CpuMathUtils.MulElementWise(src1, src2, dst, LEN);
+        public void ManagedMulElementWiseUPerf()
+        {
+            SseIntrinsics.MulElementWiseU(new Span<float>(src1, 0, LEN), new Span<float>(src2, 0, LEN),
+                                            new Span<float>(dst, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe float NativeSumUPerf()
@@ -237,7 +268,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float ManagedSumUPerf() => CpuMathUtils.Sum(src, LEN);
+        public float ManagedSumUPerf()
+        {
+            return SseIntrinsics.SumU(new Span<float>(src, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe float NativeSumSqUPerf()
@@ -249,7 +283,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float ManagedSumSqUPerf() => CpuMathUtils.SumSq(src, LEN);
+        public float ManagedSumSqUPerf()
+        {
+            return SseIntrinsics.SumSqU(new Span<float>(src, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe float NativeSumSqDiffUPerf()
@@ -261,7 +298,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float ManagedSumSqDiffUPerf() => CpuMathUtils.SumSq(DEFAULT_SCALE, src, 0, LEN);
+        public float ManagedSumSqDiffUPerf()
+        {
+            return SseIntrinsics.SumSqDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe float NativeSumAbsUPerf()
@@ -273,7 +313,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float ManagedSumAbsUPerf() => CpuMathUtils.SumAbs(src, LEN);
+        public float ManagedSumAbsUPerf()
+        {
+            return SseIntrinsics.SumAbsU(new Span<float>(src, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe float NativeSumAbsDiffUPerf()
@@ -285,7 +328,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float ManagedSumAbsDiffUPerf() => CpuMathUtils.SumAbs(DEFAULT_SCALE, src, 0, LEN);
+        public float ManagedSumAbsDiffUPerf()
+        {
+            return SseIntrinsics.SumAbsDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe float NativeMaxAbsUPerf()
@@ -297,7 +343,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float ManagedMaxAbsUPerf() => CpuMathUtils.MaxAbs(src, LEN);
+        public float ManagedMaxAbsUPerf()
+        {
+            return SseIntrinsics.MaxAbsU(new Span<float>(src, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe float NativeMaxAbsDiffUPerf()
@@ -309,7 +358,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float ManagedMaxAbsDiffUPerf() => CpuMathUtils.MaxAbsDiff(DEFAULT_SCALE, src, LEN);
+        public float ManagedMaxAbsDiffUPerf()
+        {
+            return SseIntrinsics.MaxAbsDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe float NativeDotUPerf()
@@ -322,7 +374,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float ManagedDotUPerf() => CpuMathUtils.DotProductDense(src, dst, LEN);
+        public float ManagedDotUPerf()
+        {
+            return SseIntrinsics.DotU(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe float NativeDotSUPerf()
@@ -336,7 +391,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float ManagedDotSUPerf() => CpuMathUtils.DotProductSparse(src, dst, idx, IDXLEN);
+        public float ManagedDotSUPerf()
+        {
+            return SseIntrinsics.DotSU(new Span<float>(src), new Span<float>(dst), new Span<int>(idx, 0, IDXLEN));
+        }
 
         [Benchmark]
         public unsafe float NativeDist2Perf()
@@ -349,7 +407,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public float ManagedDist2Perf() => CpuMathUtils.L2DistSquared(src, dst, LEN);
+        public float ManagedDist2Perf()
+        {
+            return SseIntrinsics.Dist2(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe void NativeSdcaL1UpdateUPerf()
@@ -363,7 +424,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedSdcaL1UpdateUPerf() => CpuMathUtils.SdcaL1UpdateDense(DEFAULT_SCALE, LEN, src, DEFAULT_SCALE, dst, result);
+        public void ManagedSdcaL1UpdateUPerf()
+        {
+            SseIntrinsics.SdcaL1UpdateU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), DEFAULT_SCALE, new Span<float>(dst, 0, LEN), new Span<float>(result, 0, LEN));
+        }
 
         [Benchmark]
         public unsafe void NativeSdcaL1UpdateSUPerf()
@@ -378,6 +442,9 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public void ManagedSdcaL1UpdateSUPerf() => CpuMathUtils.SdcaL1UpdateSparse(DEFAULT_SCALE, LEN, src, idx, IDXLEN, DEFAULT_SCALE, dst, result);
+        public void ManagedSdcaL1UpdateSUPerf()
+        {
+            SseIntrinsics.SdcaL1UpdateSU(DEFAULT_SCALE, new Span<float>(src, 0, IDXLEN), new Span<int>(idx, 0, IDXLEN), DEFAULT_SCALE, new Span<float>(dst), new Span<float>(result));
+        }
     }
 }
