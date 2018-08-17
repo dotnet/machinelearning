@@ -81,10 +81,10 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
                 // Because the training and test datasets are drawn from the same base dataset, the test data role mappings
                 // are the same as for the train data.
                 IDataScorerTransform scorePipe = ScoreUtils.GetScorer(model.Predictor, testData, Host, testData.Schema);
-                // REVIEW: Should we somehow allow the user to customize the evaluator?
-                // By what mechanism should we allow that?
                 RoleMappedData scoredTestData = new RoleMappedData(scorePipe,
                     GetColumnRoles(testData.Schema, scorePipe.Schema));
+                // REVIEW: Should we somehow allow the user to customize the evaluator?
+                // By what mechanism should we allow that?
                 IEvaluator evaluator = GetEvaluator(Host);
                 // REVIEW: with the new evaluators, metrics of individual models are no longer
                 // printed to the Console. Consider adding an option on the combiner to print them.
