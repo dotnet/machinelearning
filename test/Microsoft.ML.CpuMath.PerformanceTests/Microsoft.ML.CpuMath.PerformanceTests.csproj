@@ -3,7 +3,6 @@
     <OutputType>Exe</OutputType>
     <LangVersion>7.2</LangVersion>
     <StartupObject>Microsoft.ML.CpuMath.PerformanceTests.Program</StartupObject>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   
