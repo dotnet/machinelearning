@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.Data
             _transformers = transformers;
             _scopes = scopes;
             LastTransformer = transformers.LastOrDefault() as TLastTransformer;
-            Contracts.Check((transformers.Length == 0) == (LastTransformer != null));
+            Contracts.Check((transformers.Length > 0) == (LastTransformer != null));
             Contracts.Check(transformers.Length == scopes.Length);
         }
 
