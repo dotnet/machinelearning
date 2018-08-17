@@ -96,15 +96,70 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
+        public void ManagedAddScalarUPerf() => CpuMathUtils.Add(DEFAULT_SCALE, dst, LEN);
+
+        [Benchmark]
         public void ManagedScaleUPerf() => CpuMathUtils.Scale(DEFAULT_SCALE, dst, LEN);
+
+        [Benchmark]
+        public void ManagedScaleSrcUPerf() => CpuMathUtils.Scale(DEFAULT_SCALE, src, dst, LEN);
+
+        [Benchmark]
+        public void ManagedScaleAddUPerf() => CpuMathUtils.ScaleAdd(DEFAULT_SCALE, DEFAULT_SCALE, dst, LEN);
 
         [Benchmark]
         public void ManagedAddScaleUPerf() => CpuMathUtils.AddScale(DEFAULT_SCALE, src, dst, LEN);
 
         [Benchmark]
+        public void ManagedAddScaleSUPerf() => CpuMathUtils.AddScale(DEFAULT_SCALE, src, idx, dst, IDXLEN);
+
+        [Benchmark]
+        public void ManagedAddScaleCopyUPerf() => CpuMathUtils.AddScaleCopy(DEFAULT_SCALE, src, dst, result, LEN);
+
+        [Benchmark]
         public void ManagedAddUPerf() => CpuMathUtils.Add(src, dst, LEN);
 
         [Benchmark]
+        public void ManagedAddSUPerf() => CpuMathUtils.Add(src, idx, dst, IDXLEN);
+
+
+        [Benchmark]
+        public void ManagedMulElementWiseUPerf() => CpuMathUtils.MulElementWise(src1, src2, dst, LEN);
+
+        [Benchmark]
         public float ManagedSumUPerf() => CpuMathUtils.Sum(src, LEN);
+
+        [Benchmark]
+        public float ManagedSumSqUPerf() => CpuMathUtils.SumSq(src, LEN);
+
+        [Benchmark]
+        public float ManagedSumSqDiffUPerf() => CpuMathUtils.SumSq(DEFAULT_SCALE, src, 0, LEN);
+
+        [Benchmark]
+        public float ManagedSumAbsUPerf() => CpuMathUtils.SumAbs(src, LEN);
+
+        [Benchmark]
+        public float ManagedSumAbsDiffUPerf() => CpuMathUtils.SumAbs(DEFAULT_SCALE, src, 0, LEN);
+
+        [Benchmark]
+        public float ManagedMaxAbsUPerf() => CpuMathUtils.MaxAbs(src, LEN);
+
+        [Benchmark]
+        public float ManagedMaxAbsDiffUPerf() => CpuMathUtils.MaxAbsDiff(DEFAULT_SCALE, src, LEN);
+
+        [Benchmark]
+        public float ManagedDotUPerf() => CpuMathUtils.DotProductDense(src, dst, LEN);
+
+        [Benchmark]
+        public float ManagedDotSUPerf() => CpuMathUtils.DotProductSparse(src, dst, idx, IDXLEN);
+
+        [Benchmark]
+        public float ManagedDist2Perf() => CpuMathUtils.L2DistSquared(src, dst, LEN);
+
+        [Benchmark]
+        public void ManagedSdcaL1UpdateUPerf() => CpuMathUtils.SdcaL1UpdateDense(DEFAULT_SCALE, LEN, src, DEFAULT_SCALE, dst, result);
+
+        [Benchmark]
+        public void ManagedSdcaL1UpdateSUPerf() => CpuMathUtils.SdcaL1UpdateSparse(DEFAULT_SCALE, LEN, src, idx, IDXLEN, DEFAULT_SCALE, dst, result);
     }
 }

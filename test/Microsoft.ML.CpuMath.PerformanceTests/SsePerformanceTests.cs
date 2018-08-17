@@ -9,7 +9,7 @@ using Microsoft.ML.Runtime.Internal.CpuMath;
 
 namespace Microsoft.ML.CpuMath.PerformanceTests
 {
-    public class SsePerformanceTests
+    public class AvxVSSseNativePerformanceTests
     {
         private const int EXP_MAX = 127;
         private const int EXP_MIN = 0;
