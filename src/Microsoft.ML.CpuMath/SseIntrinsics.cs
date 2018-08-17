@@ -406,19 +406,19 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // dst[i] += scale
-        internal static unsafe void AddScalarU(float scale, Span<float> dst)
+        internal static unsafe void AddScalarU(float scalar, Span<float> dst)
         {
             fixed (float* pdst = dst)
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
 
-                Vector128<float> x1 = Sse.SetAllVector128(scale);
+                Vector128<float> scalarVector = Sse.SetAllVector128(scalar);
 
                 while (pDstCurrent + 4 <= pDstEnd)
                 {
                     Vector128<float> x2 = Sse.LoadVector128(pDstCurrent);
-                    x2 = Sse.Add(x2, x1);
+                    x2 = Sse.Add(x2, scalarVector);
                     Sse.Store(pDstCurrent, x2);
 
                     pDstCurrent += 4;
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 while (pDstCurrent < pDstEnd)
                 {
                     Vector128<float> x2 = Sse.LoadScalarVector128(pDstCurrent);
-                    x2 = Sse.AddScalar(x2, x1);
+                    x2 = Sse.AddScalar(x2, scalarVector);
                     Sse.StoreScalar(pDstCurrent, x2);
 
                     pDstCurrent++;

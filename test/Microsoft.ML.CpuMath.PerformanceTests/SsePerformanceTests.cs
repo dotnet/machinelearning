@@ -96,11 +96,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public unsafe float NativeAddScalarUPerf()
+        public unsafe void NativeAddScalarUPerf()
         {
             fixed (float* pdst = dst)
             {
-                return CpuMathNativeUtils.AddScalarU(DEFAULT_SCALE, pdst, LEN);
+                CpuMathNativeUtils.AddScalarU(DEFAULT_SCALE, pdst, LEN);
             }
         }
 

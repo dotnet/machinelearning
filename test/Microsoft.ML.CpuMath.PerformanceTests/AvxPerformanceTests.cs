@@ -96,53 +96,15 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public unsafe void NativeScaleXPerf()
-        {
-            fixed (float* pdst = dst)
-            {
-                CpuMathNativeUtils.ScaleX(DEFAULT_SCALE, pdst, LEN);
-            }
-        }
+        public void ManagedScaleUPerf() => CpuMathUtils.Scale(DEFAULT_SCALE, dst, LEN);
 
         [Benchmark]
-        public void ManagedScaleXPerf() => CpuMathUtils.Scale(DEFAULT_SCALE, dst, LEN);
+        public void ManagedAddScaleUPerf() => CpuMathUtils.AddScale(DEFAULT_SCALE, src, dst, LEN);
 
         [Benchmark]
-        public unsafe void NativeAddScaleXPerf()
-        {
-            fixed (float* psrc = src)
-            fixed (float* pdst = dst)
-            {
-                CpuMathNativeUtils.AddScaleX(DEFAULT_SCALE, psrc, pdst, LEN);
-            }
-        }
+        public void ManagedAddUPerf() => CpuMathUtils.Add(src, dst, LEN);
 
         [Benchmark]
-        public void ManagedAddScaleXPerf() => CpuMathUtils.AddScale(DEFAULT_SCALE, src, dst, LEN);
-
-        [Benchmark]
-        public unsafe void NativeAddXPerf()
-        {
-            fixed (float* psrc = src)
-            fixed (float* pdst = dst)
-            {
-                CpuMathNativeUtils.AddX(psrc, pdst, LEN);
-            }
-        }
-
-        [Benchmark]
-        public void ManagedAddXPerf() => CpuMathUtils.Add(src, dst, LEN);
-
-        [Benchmark]
-        public unsafe float NativeSumXPerf()
-        {
-            fixed (float* psrc = src)
-            {
-                return CpuMathNativeUtils.SumX(psrc, LEN);
-            }
-        }
-
-        [Benchmark]
-        public float ManagedSumXPerf() => CpuMathUtils.Sum(src, LEN);
+        public float ManagedSumUPerf() => CpuMathUtils.Sum(src, LEN);
     }
 }

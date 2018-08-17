@@ -35,17 +35,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static unsafe Vector256<float> ToVector256(in Vector128<float> a, in Vector128<float> b)
+        private static Vector256<float> ToVector256(in Vector128<float> a, in Vector128<float> b)
         {
             // REVIEW NEEDED: Is it the correct port of the following code?
             // #ifndef _WIN32
             // #define _mm256_set_m128(va, vb) _mm256_insertf128_ps(_mm256_castps128_ps256(vb), va, 1)
             // #endif
-            return Avx.InsertVector128<float>(Avx.ExtendToVector256<float>(b), a, 1);
+            return Avx.InsertVector128(Avx.ExtendToVector256(b), a, 1);
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static unsafe void ZeroUpper()
+        private static void ZeroUpper()
         {
             // Currently no-op since _mm256_zeroupper is not supported (ref: https://github.com/dotnet/coreclr/pull/16955)
             // This is a placeholder in case the intrinsic is supported later on.
@@ -53,15 +53,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static unsafe Vector128<float> GetLow(in Vector256<float> x)
+        private static Vector128<float> GetLow(in Vector256<float> x)
         {
-            return Avx.ExtractVector128<float>(x, 0);
+            return Avx.ExtractVector128(x, 0);
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static unsafe Vector128<float> GetHigh(in Vector256<float> x)
+        private static Vector128<float> GetHigh(in Vector256<float> x)
         {
-            return Avx.ExtractVector128<float>(x, 1);
+            return Avx.ExtractVector128(x, 1);
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
@@ -84,10 +84,26 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static Vector256<float> VectorSum(in Vector256<float> vector)
+        private static Vector256<float> VectorSum256(in Vector256<float> vector)
         {
             Vector256<float> partialSum = Avx.HorizontalAdd(vector, vector);
             return Avx.HorizontalAdd(partialSum, partialSum);
+        }
+
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
+        private static Vector128<float> VectorSum128(in Vector128<float> vector)
+        {
+            if (Sse3.IsSupported)
+            {
+                Vector128<float> partialSum = Sse3.HorizontalAdd(vector, vector);
+                return Sse3.HorizontalAdd(partialSum, partialSum);
+            }
+            else
+            {
+                Vector128<float> partialSum = Sse.Add(vector, Sse.MoveHighToLow(vector, vector));
+                // The control byte shuffles the four 32-bit floats of partialSum: ABCD -> BADC.
+                return Sse.Add(partialSum, Sse.Shuffle(partialSum, partialSum, 0xB1));
+            }
         }
 
         // Multiply matrix times vector into vector.
@@ -403,33 +419,53 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe void ScaleX(float scale, Span<float> dst)
+        internal static unsafe void ScaleU(float scale, Span<float> dst)
         {
-            Vector256<float> scaleVector = Avx.SetAllVector256(scale);
-
             fixed (float* pdst = dst)
             {
                 float* pDstCurrent = pdst;
                 float* pEnd = pdst + dst.Length;
 
-                while (pDstCurrent < pEnd)
-                {
-                    Vector256<float> dstVector = Avx.LoadAlignedVector256(pDstCurrent);
+                Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
 
-                    dstVector = Avx.Multiply(scaleVector, dstVector);
-                    Avx.StoreAligned(pDstCurrent, dstVector);
+                while (pDstCurrent + 8 <= pEnd)
+                {
+                    Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
+
+                    dstVector = Avx.Multiply(scaleVector256, dstVector);
+                    Avx.Store(pDstCurrent, dstVector);
 
                     pDstCurrent += 8;
+                }
+
+                Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
+
+                while (pDstCurrent + 4 <= pEnd)
+                {
+                    Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
+
+                    dstVector = Sse.Multiply(scaleVector128, dstVector);
+                    Sse.Store(pDstCurrent, dstVector);
+
+                    pDstCurrent += 4;
+                }
+
+                while (pDstCurrent < pEnd)
+                {
+                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
+
+                    dstVector = Sse.MultiplyScalar(scaleVector128, dstVector);
+                    Sse.StoreScalar(pDstCurrent, dstVector);
+
+                    pDstCurrent++;
                 }
             }
 
             ZeroUpper();
         }
 
-        internal static unsafe void AddScaleX(float scale, Span<float> src, Span<float> dst)
+        internal static unsafe void AddScaleU(float scale, Span<float> src, Span<float> dst)
         {
-            Vector256<float> scaleVector = Avx.SetAllVector256(scale);
-
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
@@ -437,24 +473,54 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pDstCurrent = pdst;
                 float* pEnd = pdst + dst.Length;
 
+                Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
+
+                while (pDstCurrent + 8 <= pEnd)
+                {
+                    Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
+                    Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
+
+                    srcVector = Avx.Multiply(srcVector, scaleVector256);
+                    dstVector = Avx.Add(dstVector, srcVector);
+                    Avx.Store(pDstCurrent, dstVector);
+
+                    pSrcCurrent += 8;
+                    pDstCurrent += 8;
+                }
+
+                Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
+
+                while (pDstCurrent + 4 <= pEnd)
+                {
+                    Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
+                    Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
+
+                    srcVector = Sse.Multiply(srcVector, scaleVector128);
+                    dstVector = Sse.Add(dstVector, srcVector);
+                    Sse.Store(pDstCurrent, dstVector);
+
+                    pSrcCurrent += 4;
+                    pDstCurrent += 4;
+                }
+
                 while (pDstCurrent < pEnd)
                 {
-                    Vector256<float> srcVector = Avx.LoadAlignedVector256(pSrcCurrent);
-                    Vector256<float> dstVector = Avx.LoadAlignedVector256(pDstCurrent);
+                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
+                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
 
-                    srcVector = Avx.Multiply(srcVector, scaleVector);
-                    dstVector = Avx.Add(dstVector, srcVector);
-                    Avx.StoreAligned(pDstCurrent, dstVector);
+                    srcVector = Sse.MultiplyScalar(srcVector, scaleVector128);
+                    dstVector = Sse.AddScalar(dstVector, srcVector);
+                    Sse.StoreScalar(pDstCurrent, dstVector);
 
-                    pDstCurrent += 8;
-                    pSrcCurrent += 8;
+                    pSrcCurrent++;
+                    pDstCurrent++;
                 }
             }
 
             ZeroUpper();
         }
 
-        internal static unsafe void AddX(Span<float> src, Span<float> dst)
+        internal static unsafe void AddU(Span<float> src, Span<float> dst)
         {
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
@@ -463,41 +529,81 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pDstCurrent = pdst;
                 float* pEnd = psrc + src.Length;
 
-                while (pSrcCurrent < pEnd)
+                while (pSrcCurrent + 8 <= pEnd)
                 {
-                    Vector256<float> srcVector = Avx.LoadAlignedVector256(pSrcCurrent);
-                    Vector256<float> dstVector = Avx.LoadAlignedVector256(pDstCurrent);
+                    Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
+                    Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
 
                     Vector256<float> result = Avx.Add(srcVector, dstVector);
-                    Avx.StoreAligned(pDstCurrent, result);
+                    Avx.Store(pDstCurrent, result);
 
                     pSrcCurrent += 8;
                     pDstCurrent += 8;
+                }
+
+                while (pSrcCurrent + 4 <= pEnd)
+                {
+                    Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
+                    Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
+
+                    Vector128<float> result = Sse.Add(srcVector, dstVector);
+                    Sse.Store(pDstCurrent, result);
+
+                    pSrcCurrent += 4;
+                    pDstCurrent += 4;
+                }
+
+                while (pSrcCurrent < pEnd)
+                {
+                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
+                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
+
+                    Vector128<float> result = Sse.AddScalar(srcVector, dstVector);
+                    Sse.StoreScalar(pDstCurrent, result);
+
+                    pSrcCurrent++;
+                    pDstCurrent++;
                 }
 
                 ZeroUpper();
             }
         }
 
-        internal static unsafe float SumX(Span<float> src)
+        internal static unsafe float SumU(Span<float> src)
         {
             fixed (float* psrc = src)
             {
                 float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
 
-                Vector256<float> result = Avx.SetZeroVector256<float>();
+                Vector256<float> result256 = Avx.SetZeroVector256<float>();
 
-                while (pSrcCurrent < pSrcEnd)
+                while (pSrcCurrent + 8 <= pSrcEnd)
                 {
-                    result = Avx.Add(result, Avx.LoadAlignedVector256(pSrcCurrent));
+                    result256 = Avx.Add(result256, Avx.LoadVector256(pSrcCurrent));
                     pSrcCurrent += 8;
                 }
 
-                result = VectorSum(in result);
-                Vector128<float> result128 = Sse.AddScalar(GetLow(result), GetHigh(result));
+                result256 = VectorSum256(in result256);
+                Vector128<float> resultPadded = Sse.AddScalar(GetLow(result256), GetHigh(result256));
 
-                float sum = Sse.ConvertToSingle(result128);
+                Vector128<float> result128 = Sse.SetZeroVector128();
+
+                while (pSrcCurrent + 4 <= pSrcEnd)
+                {
+                    result128 = Sse.Add(result128, Sse.LoadVector128(pSrcCurrent));
+                    pSrcCurrent += 4;
+                }
+
+                result128 = VectorSum128(in result128);
+
+                while (pSrcCurrent < pSrcEnd)
+                {
+                    result128 = Sse.AddScalar(result128, Sse.LoadScalarVector128(pSrcCurrent));
+                    pSrcCurrent++;
+                }
+
+                float sum = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
                 ZeroUpper();
                 return sum;
             }

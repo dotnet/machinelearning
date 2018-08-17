@@ -230,7 +230,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void Scale(float a, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.ScaleU(a, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.ScaleU(a, dst);
             }
@@ -321,7 +325,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void AddScale(float a, Span<float> src, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddScaleU(a, src, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.AddScaleU(a, src, dst);
             }
@@ -420,7 +428,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void Add(Span<float> src, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddU(src, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.AddU(src, dst);
             }
@@ -527,7 +539,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static float Sum(Span<float> src)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.SumU(src);
+            }
+            else if (Sse.IsSupported)
             {
                 return SseIntrinsics.SumU(src);
             }
