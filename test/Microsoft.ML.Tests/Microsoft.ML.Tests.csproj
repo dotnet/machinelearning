@@ -26,7 +26,7 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="LdaNative" />
-	<NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklImports" />
   </ItemGroup>
   

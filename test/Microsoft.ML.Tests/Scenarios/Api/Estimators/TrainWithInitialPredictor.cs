@@ -36,11 +36,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 {
                     NumThreads = 1
                 }, "Features", "Label");
-                var firstPredictor = trainer.Fit(trainData);
+                var firstModel = trainer.Fit(trainData);
 
                 // Train the second predictor on the same data.
                 var secondTrainer = new MyAveragedPerceptron(env, new AveragedPerceptronTrainer.Arguments(), "Features", "Label");
-                var finalPredictor = secondTrainer.Train(trainData, firstPredictor.InnerModel);
+                var finalModel = secondTrainer.Train(trainData, firstModel.InnerModel);
             }
         }
     }

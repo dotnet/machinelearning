@@ -1,4 +1,11 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// This file contains code examples that currently do not even compile. 
+// They serve as the reference point of the 'desired user-facing API' for the future work.
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -21,9 +28,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public void FirstExperienceWithML()
         {
-            // This is the 'getting started with ML' example, how we see it in our new API.
-            // It currently doesn't compile, let alone work, but we still can discuss and improve the syntax.
-
             // Load the data into the system.
             string dataPath = "iris-data.txt";
             var data = TextReader.FitAndRead(env, dataPath, row => (
@@ -49,12 +53,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = pipeline.Fit<IrisExample, IrisPrediction>(data);
 
             IrisPrediction prediction = model.Predict(new IrisExample
-                {
-                    SepalWidth = 3.3f,
-                    SepalLength = 1.6f,
-                    PetalWidth = 0.2f,
-                    PetalLength = 5.1f
-                });
+            {
+                SepalWidth = 3.3f,
+                SepalLength = 1.6f,
+                PetalWidth = 0.2f,
+                PetalLength = 5.1f
+            });
         }
     }
 }

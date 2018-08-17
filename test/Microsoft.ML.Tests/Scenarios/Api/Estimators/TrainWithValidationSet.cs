@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 // Train model with validation set.
                 var trainer = new MySdca(env, new Runtime.Learners.LinearClassificationTrainer.Arguments(), "Features", "Label");
-                var transformer = trainer.Train(trainData, validData);
+                var model = trainer.Train(trainData, validData);
             }
         }
     }

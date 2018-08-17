@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Evaluate on the test set.
                 var dataEval = model.Read(new MultiFileSource(testDataPath));
                 var evaluator = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { });
-                var metrics = evaluator.Evaluate(dataEval, labelColumn: "Label", probabilityColumn: "Probability");
+                var metrics = evaluator.Evaluate(dataEval);
             }
         }
     }

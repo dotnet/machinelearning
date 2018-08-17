@@ -1,9 +1,12 @@
-﻿using Microsoft.ML.Core.Data;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Tests.Scenarios.Api;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +15,7 @@ using System.Linq;
 [assembly: LoadableClass(typeof(ITransformer), typeof(TransformerChain), null, typeof(SignatureLoadModel),
     "Transformer chain", TransformerChain.LoaderSignature)]
 
-namespace Microsoft.ML.Tests.Scenarios.Api
+namespace Microsoft.ML.Runtime.Data
 {
     public sealed class TransformerChain<TLastTransformer> : ITransformer, ICanSaveModel
         where TLastTransformer : class, ITransformer
@@ -25,10 +28,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         internal TransformerChain(ITransformer[] transformers, TransformerScope[] scopes)
         {
-            _transformers = transformers.ToArray();
-            _scopes = scopes.ToArray();
-            LastTransformer = transformers.Last() as TLastTransformer;
-            Contracts.Check(LastTransformer != null);
+            _transformers = transformers;
+            _scopes = scopes;
+            LastTransformer = transformers.LastOrDefault() as TLastTransformer;
+            Contracts.Check((transformers.Length == 0) == (LastTransformer != null));
             Contracts.Check(transformers.Length == scopes.Length);
         }
 
