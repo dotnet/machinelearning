@@ -15,22 +15,22 @@ using System.Runtime.Intrinsics.X86;
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
-    internal static class AvxIntrinsics
+    public static class AvxIntrinsics
     {
-        private const int CbAlign = 32;
+        private const int Vector256Alignment = 32;
 
         private static bool Compat(AlignedArray a)
         {
             Contracts.AssertValue(a);
             Contracts.Assert(a.Size > 0);
-            return a.CbAlign == CbAlign;
+            return a.CbAlign == Vector256Alignment;
         }
 
         private static unsafe float* Ptr(AlignedArray a, float* p)
         {
             Contracts.AssertValue(a);
             float* q = p + a.GetBase((long)p);
-            Contracts.Assert(((long)q & (CbAlign - 1)) == 0);
+            Contracts.Assert(((long)q & (Vector256Alignment - 1)) == 0);
             return q;
         }
 
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Multiply matrix times vector into vector.
-        internal static unsafe void MatMulX(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMulX(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
         {
             Contracts.Assert(Compat(mat));
             Contracts.Assert(Compat(src));
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        internal static unsafe void MatMulPX(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
+        public static unsafe void MatMulPX(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
                                         int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
         {
             Contracts.Assert(Compat(mat));
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe void MatMulTranX(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMulTranX(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
         {
             Contracts.Assert(Compat(mat));
             Contracts.Assert(Compat(src));
@@ -445,7 +445,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        internal static unsafe void MatMulTranPX(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
+        public static unsafe void MatMulTranPX(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
                                         int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow)
         {
             Contracts.Assert(Compat(mat));
@@ -514,7 +514,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // dst[i] += scale
-        internal static unsafe void AddScalarU(float scalar, Span<float> dst)
+        public static unsafe void AddScalarU(float scalar, Span<float> dst)
         {
             fixed (float* pdst = dst)
             {
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             ZeroUpper();
         }
 
-        internal static unsafe void ScaleU(float scale, Span<float> dst)
+        public static unsafe void ScaleU(float scale, Span<float> dst)
         {
             fixed (float* pdst = dst)
             {
@@ -601,7 +601,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             ZeroUpper();
         }
 
-        internal static unsafe void ScaleSrcU(float scale, Span<float> src, Span<float> dst)
+        public static unsafe void ScaleSrcU(float scale, Span<float> src, Span<float> dst)
         {
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
@@ -649,7 +649,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // dst[i] = a * (dst[i] + b)
-        internal static unsafe void ScaleAddU(float a, float b, Span<float> dst)
+        public static unsafe void ScaleAddU(float a, float b, Span<float> dst)
         {
             fixed (float* pdst = dst)
             {
@@ -696,7 +696,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             ZeroUpper();
         }
 
-        internal static unsafe void AddScaleU(float scale, Span<float> src, Span<float> dst)
+        public static unsafe void AddScaleU(float scale, Span<float> src, Span<float> dst)
         {
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
@@ -752,7 +752,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             ZeroUpper();
         }
 
-        internal static unsafe void AddScaleCopyU(float scale, Span<float> src, Span<float> dst, Span<float> result)
+        public static unsafe void AddScaleCopyU(float scale, Span<float> src, Span<float> dst, Span<float> result)
         {
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
@@ -810,7 +810,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             ZeroUpper();
         }
 
-        internal static unsafe void AddScaleSU(float scale, Span<float> src, Span<int> idx, Span<float> dst)
+        public static unsafe void AddScaleSU(float scale, Span<float> src, Span<int> idx, Span<float> dst)
         {
             fixed (float* psrc = src)
             fixed (int* pidx = idx)
@@ -863,7 +863,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             ZeroUpper();
         }
 
-        internal static unsafe void AddU(Span<float> src, Span<float> dst)
+        public static unsafe void AddU(Span<float> src, Span<float> dst)
         {
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
@@ -912,7 +912,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             ZeroUpper();
         }
 
-        internal static unsafe void AddSU(Span<float> src, Span<int> idx, Span<float> dst)
+        public static unsafe void AddSU(Span<float> src, Span<int> idx, Span<float> dst)
         {
             fixed (float* psrc = src)
             fixed (int* pidx = idx)
@@ -959,7 +959,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             ZeroUpper();
         }
 
-        internal static unsafe void MulElementWiseU(Span<float> src1, Span<float> src2, Span<float> dst)
+        public static unsafe void MulElementWiseU(Span<float> src1, Span<float> src2, Span<float> dst)
         {
             fixed (float* psrc1 = &src1[0])
             fixed (float* psrc2 = &src2[0])
@@ -1010,7 +1010,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             ZeroUpper();
         }
 
-        internal static unsafe float SumU(Span<float> src)
+        public static unsafe float SumU(Span<float> src)
         {
             fixed (float* psrc = src)
             {
@@ -1050,7 +1050,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe float SumSqU(Span<float> src)
+        public static unsafe float SumSqU(Span<float> src)
         {
             fixed (float* psrc = src)
             {
@@ -1096,7 +1096,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe float SumSqDiffU(float mean, Span<float> src)
+        public static unsafe float SumSqDiffU(float mean, Span<float> src)
         {
             fixed (float* psrc = src)
             {
@@ -1147,7 +1147,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe float SumAbsU(Span<float> src)
+        public static unsafe float SumAbsU(Span<float> src)
         {
             fixed (float* psrc = src)
             {
@@ -1195,7 +1195,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe float SumAbsDiffU(float mean, Span<float> src)
+        public static unsafe float SumAbsDiffU(float mean, Span<float> src)
         {
             fixed (float* psrc = src)
             {
@@ -1248,7 +1248,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe float MaxAbsU(Span<float> src)
+        public static unsafe float MaxAbsU(Span<float> src)
         {
             fixed (float* psrc = src)
             {
@@ -1296,7 +1296,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe float MaxAbsDiffU(float mean, Span<float> src)
+        public static unsafe float MaxAbsDiffU(float mean, Span<float> src)
         {
             fixed (float* psrc = src)
             {
@@ -1349,7 +1349,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe float DotU(Span<float> src, Span<float> dst)
+        public static unsafe float DotU(Span<float> src, Span<float> dst)
         {
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
@@ -1406,7 +1406,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe float DotSU(Span<float> src, Span<float> dst, Span<int> idx)
+        public static unsafe float DotSU(Span<float> src, Span<float> dst, Span<int> idx)
         {
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
@@ -1465,7 +1465,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe float Dist2(Span<float> src, Span<float> dst)
+        public static unsafe float Dist2(Span<float> src, Span<float> dst)
         {
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
@@ -1520,7 +1520,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe void SdcaL1UpdateU(float primalUpdate, Span<float> src, float threshold, Span<float> v, Span<float> w)
+        public static unsafe void SdcaL1UpdateU(float primalUpdate, Span<float> src, float threshold, Span<float> v, Span<float> w)
         {
             fixed (float* psrc = src)
             fixed (float* pdst1 = v)
@@ -1586,7 +1586,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        internal static unsafe void SdcaL1UpdateSU(float primalUpdate, Span<float> src, Span<int> indices, float threshold, Span<float> v, Span<float> w)
+        public static unsafe void SdcaL1UpdateSU(float primalUpdate, Span<float> src, Span<int> indices, float threshold, Span<float> v, Span<float> w)
         {
             fixed (float* psrc = src)
             fixed (int* pidx = indices)

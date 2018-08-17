@@ -12,6 +12,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
         public const int Vector128Alignment = 16;
 
+        // The count of bytes in Vector256<T>, corresponding to _cbAlign in AlignedArray
+        public const int Vector256Alignment = 32;
+
+        public static int GetVectorAlignment()
+        {
+            // Assumes SSE support on machines that run ML.NET.
+            return Avx.IsSupported ? Vector256Alignment : Vector128Alignment;
+        }
+
         public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
         {
             Contracts.Assert(mat.Size == dst.Size * src.Size);

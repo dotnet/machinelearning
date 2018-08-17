@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 #if DEBUG
             var mat = values as TMatrix;
             Contracts.AssertValue(mat);
-            Contracts.Assert(mat.Items.CbAlign == CpuMathUtils.Vector128Alignment);
+            Contracts.Assert(mat.Items.CbAlign == CpuMathUtils.GetVectorAlignment());
 #endif
         }
 
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 #if DEBUG
             CpuAlignedVector vec = values as CpuAlignedVector;
             Contracts.AssertValue(vec);
-            Contracts.Assert(vec.Items.CbAlign == CpuMathUtils.Vector128Alignment);
+            Contracts.Assert(vec.Items.CbAlign == CpuMathUtils.GetVectorAlignment());
 #endif
         }
 
