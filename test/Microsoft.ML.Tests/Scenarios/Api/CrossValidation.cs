@@ -105,7 +105,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                             ConvergenceTolerance = 1f
                         }, "Features", "Label"));
 
-                (var models, var metrics) = MyHelperExtensions.CrossValidateBinary(env, data, pipeline, "Label", numFolds: 2);
+                var cv = new MyCrossValidation.BinaryCrossValidator(env)
+                {
+                    NumFolds = 2
+                };
+
+                var cvResult = cv.CrossValidate(data, pipeline);
             }
         }
     }

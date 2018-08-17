@@ -187,11 +187,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public TModel InnerModel { get; }
     }
 
-    public class BinaryScorerWrapper<TModel>: ScorerWrapper<TModel>
-        where TModel: IPredictor
+    public class BinaryScorerWrapper<TModel> : ScorerWrapper<TModel>
+        where TModel : IPredictor
     {
         public BinaryScorerWrapper(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn, BinaryClassifierScorer.Arguments args)
-            :base(env, MakeScorer(env, inputSchema, featureColumn, model, args), model, featureColumn)
+            : base(env, MakeScorer(env, inputSchema, featureColumn, model, args), model, featureColumn)
         {
         }
 
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     }
 
     public abstract class TrainerBase<TTransformer, TModel> : IEstimator<TTransformer>
-        where TTransformer: ScorerWrapper<TModel>
+        where TTransformer : ScorerWrapper<TModel>
         where TModel : IPredictor
     {
         protected readonly IHostEnvironment _env;
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public sealed class MySdca : TrainerBase<BinaryScorerWrapper<IPredictor>,IPredictor>
+    public sealed class MySdca : TrainerBase<BinaryScorerWrapper<IPredictor>, IPredictor>
     {
         private readonly LinearClassificationTrainer.Arguments _args;
 
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public ITransformer Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
 
-        protected override BinaryScorerWrapper<IPredictor> MakeScorer(IPredictor predictor, RoleMappedData data) 
+        protected override BinaryScorerWrapper<IPredictor> MakeScorer(IPredictor predictor, RoleMappedData data)
             => new BinaryScorerWrapper<IPredictor>(_env, predictor, data.Data.Schema, _featureCol, new BinaryClassifierScorer.Arguments());
     }
 
@@ -512,6 +512,80 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
+    public static class MyCrossValidation
+    {
+        public sealed class BinaryCrossValidationMetrics
+        {
+            public readonly ITransformer[] FoldModels;
+            public readonly BinaryClassificationMetrics[] FoldMetrics;
+
+            public BinaryCrossValidationMetrics(ITransformer[] models, BinaryClassificationMetrics[] metrics)
+            {
+                FoldModels = models;
+                FoldMetrics = metrics;
+            }
+        }
+
+        public sealed class BinaryCrossValidator
+        {
+            private readonly IHostEnvironment _env;
+
+            public int NumFolds { get; set; } = 2;
+
+            public string StratificationColumn { get; set; }
+
+            public string LabelColumn { get; set; } = DefaultColumnNames.Label;
+
+            public BinaryCrossValidator(IHostEnvironment env)
+            {
+                _env = env;
+            }
+
+            public BinaryCrossValidationMetrics CrossValidate(IDataView trainData, IEstimator<ITransformer> estimator)
+            {
+                var models = new ITransformer[NumFolds];
+                var metrics = new BinaryClassificationMetrics[NumFolds];
+
+                if (StratificationColumn == null)
+                {
+                    StratificationColumn = "StratificationColumn";
+                    var random = new GenerateNumberTransform(_env, trainData, StratificationColumn);
+                    trainData = random;
+                }
+                else
+                    throw new NotImplementedException();
+
+                var evaluator = new MyBinaryClassifierEvaluator(_env, new BinaryClassifierEvaluator.Arguments() { });
+
+                for (int fold = 0; fold < NumFolds; fold++)
+                {
+                    var trainFilter = new RangeFilter(_env, new RangeFilter.Arguments()
+                    {
+                        Column = StratificationColumn,
+                        Min = (Double)fold / NumFolds,
+                        Max = (Double)(fold + 1) / NumFolds,
+                        Complement = true
+                    }, trainData);
+                    var testFilter = new RangeFilter(_env, new RangeFilter.Arguments()
+                    {
+                        Column = StratificationColumn,
+                        Min = (Double)fold / NumFolds,
+                        Max = (Double)(fold + 1) / NumFolds,
+                        Complement = false
+                    }, trainData);
+
+                    models[fold] = estimator.Fit(trainFilter);
+                    var scoredTest = models[fold].Transform(testFilter);
+                    metrics[fold] = evaluator.Evaluate(scoredTest, labelColumn: LabelColumn, probabilityColumn: "Probability");
+                }
+
+                return new BinaryCrossValidationMetrics(models, metrics);
+
+            }
+        }
+    }
+
+
     public static class MyHelperExtensions
     {
         public static void SaveAsBinary(this IDataView data, IHostEnvironment env, Stream stream)
@@ -525,55 +599,5 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public static IDataView FitAndRead<TSource>(this IDataReaderEstimator<TSource, IDataReader<TSource>> est, TSource source)
             => est.Fit(source).Read(source);
-
-        public static (ITransformer[] Models, BinaryClassificationMetrics[] Metrics) CrossValidateBinary(IHostEnvironment env, IDataView trainData, IEstimator<ITransformer> estimator,
-            string labelColumn,
-            int numFolds = 2,
-            string stratificationColumn = null,
-            bool cache = false)
-        {
-            var models = new ITransformer[numFolds];
-            var metrics = new BinaryClassificationMetrics[numFolds];
-
-            if (stratificationColumn == null)
-            {
-                stratificationColumn = "StratificationColumn";
-                var random = new GenerateNumberTransform(env, trainData, stratificationColumn);
-                trainData = random;
-            }
-            else
-                throw new NotImplementedException();
-
-            IDataView cachedTrain = trainData;
-            if (cache)
-                cachedTrain = new CacheDataView(env, trainData, prefetch: null);
-
-            var evaluator = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { });
-
-            for (int fold = 0; fold < numFolds; fold++)
-            {
-                var trainFilter = new RangeFilter(env, new RangeFilter.Arguments()
-                {
-                    Column = stratificationColumn,
-                    Min = (Double)fold / numFolds,
-                    Max = (Double)(fold + 1) / numFolds,
-                    Complement = true
-                }, cachedTrain);
-                var testFilter = new RangeFilter(env, new RangeFilter.Arguments()
-                {
-                    Column = stratificationColumn,
-                    Min = (Double)fold / numFolds,
-                    Max = (Double)(fold + 1) / numFolds,
-                    Complement = false
-                }, cachedTrain);
-
-                models[fold] = estimator.Fit(trainFilter);
-                var scoredTest = models[fold].Transform(testFilter);
-                metrics[fold] = evaluator.Evaluate(scoredTest, labelColumn: labelColumn, probabilityColumn: "Probability");
-            }
-
-            return (models, metrics);
-        }
-
     }
 }
