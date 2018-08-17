@@ -417,18 +417,18 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 while (pDstCurrent + 4 <= pDstEnd)
                 {
-                    Vector128<float> x2 = Sse.LoadVector128(pDstCurrent);
-                    x2 = Sse.Add(x2, scalarVector);
-                    Sse.Store(pDstCurrent, x2);
+                    Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
+                    dstVector = Sse.Add(dstVector, scalarVector);
+                    Sse.Store(pDstCurrent, dstVector);
 
                     pDstCurrent += 4;
                 }
 
                 while (pDstCurrent < pDstEnd)
                 {
-                    Vector128<float> x2 = Sse.LoadScalarVector128(pDstCurrent);
-                    x2 = Sse.AddScalar(x2, scalarVector);
-                    Sse.StoreScalar(pDstCurrent, x2);
+                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
+                    dstVector = Sse.AddScalar(dstVector, scalarVector);
+                    Sse.StoreScalar(pDstCurrent, dstVector);
 
                     pDstCurrent++;
                 }
@@ -437,12 +437,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         internal static unsafe void ScaleU(float scale, Span<float> dst)
         {
-            Vector128<float> scaleVector = Sse.SetAllVector128(scale);
-
             fixed (float* pdst = dst)
             {
                 float* pDstCurrent = pdst;
                 float* pEnd = pdst + dst.Length;
+
+                Vector128<float> scaleVector = Sse.SetAllVector128(scale);
 
                 while (pDstCurrent + 4 <= pEnd)
                 {
@@ -468,14 +468,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         internal static unsafe void ScaleSrcU(float scale, Span<float> src, Span<float> dst)
         {
-            Vector128<float> scaleVector = Sse.SetAllVector128(scale);
-
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
+
+                Vector128<float> scaleVector = Sse.SetAllVector128(scale);
 
                 while (pDstCurrent + 4 <= pDstEnd)
                 {
@@ -502,19 +502,19 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // dst[i] = a * (dst[i] + b)
         internal static unsafe void ScaleAddU(float a, float b, Span<float> dst)
         {
-            Vector128<float> x1 = Sse.SetAllVector128(a);
-            Vector128<float> x2 = Sse.SetAllVector128(b);
-
             fixed (float* pdst = dst)
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
 
+                Vector128<float> aVector = Sse.SetAllVector128(a);
+                Vector128<float> bVector = Sse.SetAllVector128(b);
+
                 while (pDstCurrent + 4 <= pDstEnd)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
-                    dstVector = Sse.Add(dstVector, x2);
-                    dstVector = Sse.Multiply(dstVector, x1);
+                    dstVector = Sse.Add(dstVector, bVector);
+                    dstVector = Sse.Multiply(dstVector, aVector);
                     Sse.Store(pDstCurrent, dstVector);
 
                     pDstCurrent += 4;
@@ -523,8 +523,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 while (pDstCurrent < pDstEnd)
                 {
                     Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
-                    dstVector = Sse.AddScalar(dstVector, x2);
-                    dstVector = Sse.MultiplyScalar(dstVector, x1);
+                    dstVector = Sse.AddScalar(dstVector, bVector);
+                    dstVector = Sse.MultiplyScalar(dstVector, aVector);
                     Sse.StoreScalar(pDstCurrent, dstVector);
 
                     pDstCurrent++;
@@ -534,14 +534,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         internal static unsafe void AddScaleU(float scale, Span<float> src, Span<float> dst)
         {
-            Vector128<float> scaleVector = Sse.SetAllVector128(scale);
-
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
                 float* pEnd = pdst + dst.Length;
+
+                Vector128<float> scaleVector = Sse.SetAllVector128(scale);
 
                 while (pDstCurrent + 4 <= pEnd)
                 {
@@ -582,15 +582,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pDstCurrent = pdst;
                 float* pResCurrent = pres;
 
-                Vector128<float> x1 = Sse.SetAllVector128(scale);
+                Vector128<float> scaleVector = Sse.SetAllVector128(scale);
 
                 while (pResCurrent + 4 <= pResEnd)
                 {
-                    Vector128<float> x2 = Sse.LoadVector128(pSrcCurrent);
-                    Vector128<float> x3 = Sse.LoadVector128(pDstCurrent);
-                    x2 = Sse.Multiply(x2, x1);
-                    x3 = Sse.Add(x3, x2);
-                    Sse.Store(pResCurrent, x3);
+                    Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
+                    Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
+                    srcVector = Sse.Multiply(srcVector, scaleVector);
+                    dstVector = Sse.Add(dstVector, srcVector);
+                    Sse.Store(pResCurrent, dstVector);
 
                     pSrcCurrent += 4;
                     pDstCurrent += 4;
@@ -599,11 +599,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 while (pResCurrent < pResEnd)
                 {
-                    Vector128<float> x2 = Sse.LoadScalarVector128(pSrcCurrent);
-                    Vector128<float> x3 = Sse.LoadScalarVector128(pDstCurrent);
-                    x2 = Sse.MultiplyScalar(x2, x1);
-                    x3 = Sse.AddScalar(x3, x2);
-                    Sse.StoreScalar(pResCurrent, x3);
+                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
+                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
+                    srcVector = Sse.MultiplyScalar(srcVector, scaleVector);
+                    dstVector = Sse.AddScalar(dstVector, srcVector);
+                    Sse.StoreScalar(pResCurrent, dstVector);
 
                     pSrcCurrent++;
                     pDstCurrent++;
@@ -614,8 +614,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         internal static unsafe void AddScaleSU(float scale, Span<float> src, Span<int> idx, Span<float> dst)
         {
-            Vector128<float> scaleVector = Sse.SetAllVector128(scale);
-
             fixed (float* psrc = src)
             fixed (int* pidx = idx)
             fixed (float* pdst = dst)
@@ -624,6 +622,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 int* pIdxCurrent = pidx;
                 float* pDstCurrent = pdst;
                 int* pEnd = pidx + idx.Length;
+
+                Vector128<float> scaleVector = Sse.SetAllVector128(scale);
 
                 while (pIdxCurrent + 4 <= pEnd)
                 {
@@ -782,14 +782,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         internal static unsafe float SumSqU(Span<float> src)
         {
-            Vector128<float> result = Sse.SetZeroVector128();
-
             fixed (float* psrc = src)
             {
+                float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
-                float* pEnd = psrc + src.Length;
 
-                while (pSrcCurrent + 4 <= pEnd)
+                Vector128<float> result = Sse.SetZeroVector128();
+
+                while (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result = Sse.Add(result, Sse.Multiply(srcVector, srcVector));
@@ -799,16 +799,16 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 result = VectorSum(in result);
 
-                while (pSrcCurrent < pEnd)
+                while (pSrcCurrent < pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
                     result = Sse.AddScalar(result, Sse.MultiplyScalar(srcVector, srcVector));
 
                     pSrcCurrent++;
                 }
-            }
 
-            return Sse.ConvertToSingle(result);
+                return Sse.ConvertToSingle(result);
+            }
         }
 
         internal static unsafe float SumSqDiffU(float mean, Span<float> src)
@@ -823,9 +823,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 while (pSrcCurrent + 4 <= pSrcEnd)
                 {
-                    Vector128<float> x = Sse.LoadVector128(pSrcCurrent);
-                    x = Sse.Subtract(x, meanVector);
-                    result = Sse.Add(result, Sse.Multiply(x, x));
+                    Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
+                    srcVector = Sse.Subtract(srcVector, meanVector);
+                    result = Sse.Add(result, Sse.Multiply(srcVector, srcVector));
 
                     pSrcCurrent += 4;
                 }
@@ -834,9 +834,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 while (pSrcCurrent < pSrcEnd)
                 {
-                    Vector128<float> x = Sse.LoadScalarVector128(pSrcCurrent);
-                    x = Sse.SubtractScalar(x, meanVector);
-                    result = Sse.AddScalar(result, Sse.MultiplyScalar(x, x));
+                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
+                    srcVector = Sse.SubtractScalar(srcVector, meanVector);
+                    result = Sse.AddScalar(result, Sse.MultiplyScalar(srcVector, srcVector));
 
                     pSrcCurrent++;
                 }
@@ -847,15 +847,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         internal static unsafe float SumAbsU(Span<float> src)
         {
-            Vector128<float> result = Sse.SetZeroVector128();
-            Vector128<float> mask = GetAbsMask();
-
             fixed (float* psrc = src)
             {
+                float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
-                float* pEnd = psrc + src.Length;
 
-                while (pSrcCurrent + 4 <= pEnd)
+                Vector128<float> result = Sse.SetZeroVector128();
+                Vector128<float> mask = GetAbsMask();
+
+                while (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result = Sse.Add(result, Sse.And(srcVector, mask));
@@ -865,30 +865,30 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 result = VectorSum(in result);
 
-                while (pSrcCurrent < pEnd)
+                while (pSrcCurrent < pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
                     result = Sse.AddScalar(result, Sse.And(srcVector, mask));
 
                     pSrcCurrent++;
                 }
-            }
 
-            return Sse.ConvertToSingle(result);
+                return Sse.ConvertToSingle(result);
+            }
         }
 
         internal static unsafe float SumAbsDiffU(float mean, Span<float> src)
         {
-            Vector128<float> result = Sse.SetZeroVector128();
-            Vector128<float> meanVector = Sse.SetAllVector128(mean);
-            Vector128<float> mask = GetAbsMask();
-
             fixed (float* psrc = src)
             {
+                float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
-                float* pEnd = psrc + src.Length;
 
-                while (pSrcCurrent + 4 <= pEnd)
+                Vector128<float> result = Sse.SetZeroVector128();
+                Vector128<float> meanVector = Sse.SetAllVector128(mean);
+                Vector128<float> mask = GetAbsMask();
+
+                while (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Subtract(srcVector, meanVector);
@@ -899,7 +899,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 result = VectorSum(in result);
 
-                while (pSrcCurrent < pEnd)
+                while (pSrcCurrent < pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
                     srcVector = Sse.SubtractScalar(srcVector, meanVector);
@@ -907,22 +907,22 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     pSrcCurrent++;
                 }
-            }
 
-            return Sse.ConvertToSingle(result);
+                return Sse.ConvertToSingle(result);
+            }
         }
 
         internal static unsafe float MaxAbsU(Span<float> src)
         {
-            Vector128<float> result = Sse.SetZeroVector128();
-            Vector128<float> mask = GetAbsMask();
-
             fixed (float* psrc = src)
             {
+                float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
-                float* pEnd = psrc + src.Length;
 
-                while (pSrcCurrent + 4 <= pEnd)
+                Vector128<float> result = Sse.SetZeroVector128();
+                Vector128<float> mask = GetAbsMask();
+
+                while (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result = Sse.Max(result, Sse.And(srcVector, mask));
@@ -932,30 +932,30 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 result = VectorMax(in result);
 
-                while (pSrcCurrent < pEnd)
+                while (pSrcCurrent < pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
                     result = Sse.MaxScalar(result, Sse.And(srcVector, mask));
 
                     pSrcCurrent++;
                 }
-            }
 
-            return Sse.ConvertToSingle(result);
+                return Sse.ConvertToSingle(result);
+            }
         }
 
         internal static unsafe float MaxAbsDiffU(float mean, Span<float> src)
         {
-            Vector128<float> result = Sse.SetZeroVector128();
-            Vector128<float> meanVector = Sse.SetAllVector128(mean);
-            Vector128<float> mask = GetAbsMask();
-
             fixed (float* psrc = src)
             {
+                float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
-                float* pEnd = psrc + src.Length;
 
-                while (pSrcCurrent + 4 <= pEnd)
+                Vector128<float> result = Sse.SetZeroVector128();
+                Vector128<float> meanVector = Sse.SetAllVector128(mean);
+                Vector128<float> mask = GetAbsMask();
+
+                while (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Subtract(srcVector, meanVector);
@@ -966,7 +966,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 result = VectorMax(in result);
 
-                while (pSrcCurrent < pEnd)
+                while (pSrcCurrent < pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
                     srcVector = Sse.SubtractScalar(srcVector, meanVector);
@@ -974,23 +974,23 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     pSrcCurrent++;
                 }
-            }
 
-            return Sse.ConvertToSingle(result);
+                return Sse.ConvertToSingle(result);
+            }
         }
 
         internal static unsafe float DotU(Span<float> src, Span<float> dst)
         {
-            Vector128<float> result = Sse.SetZeroVector128();
-
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
-                float* pEnd = psrc + src.Length;
+                float* pSrcEnd = psrc + src.Length;
 
-                while (pSrcCurrent + 4 <= pEnd)
+                Vector128<float> result = Sse.SetZeroVector128();
+
+                while (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -1003,7 +1003,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 result = VectorSum(in result);
 
-                while (pSrcCurrent < pEnd)
+                while (pSrcCurrent < pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
@@ -1013,15 +1013,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent++;
                     pDstCurrent++;
                 }
-            }
 
-            return Sse.ConvertToSingle(result);
+                return Sse.ConvertToSingle(result);
+            }
         }
 
         internal static unsafe float DotSU(Span<float> src, Span<float> dst, Span<int> idx)
         {
-            Vector128<float> result = Sse.SetZeroVector128();
-
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             fixed (int* pidx = idx)
@@ -1029,9 +1027,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
                 int* pIdxCurrent = pidx;
-                int* pEnd = pidx + idx.Length;
+                int* pIdxEnd = pidx + idx.Length;
 
-                while (pIdxCurrent + 4 <= pEnd)
+                Vector128<float> result = Sse.SetZeroVector128();
+
+                while (pIdxCurrent + 4 <= pIdxEnd)
                 {
                     Vector128<float> srcVector = Load4(pSrcCurrent, pIdxCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -1044,7 +1044,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 result = VectorSum(in result);
 
-                while (pIdxCurrent < pEnd)
+                while (pIdxCurrent < pIdxEnd)
                 {
                     Vector128<float> srcVector = Load1(pSrcCurrent, pIdxCurrent);
                     Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
@@ -1054,23 +1054,23 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pIdxCurrent++;
                     pDstCurrent++;
                 }
-            }
 
-            return Sse.ConvertToSingle(result);
+                return Sse.ConvertToSingle(result);
+            }
         }
 
         internal static unsafe float Dist2(Span<float> src, Span<float> dst)
         {
-            Vector128<float> sqDistanceVector = Sse.SetZeroVector128();
-
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
-                float* pEnd = psrc + src.Length;
+                float* pSrcEnd = psrc + src.Length;
 
-                while (pSrcCurrent + 4 <= pEnd)
+                Vector128<float> sqDistanceVector = Sse.SetZeroVector128();
+
+                while (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> distanceVector = Sse.Subtract(Sse.LoadVector128(pSrcCurrent),
                                                                     Sse.LoadVector128(pDstCurrent));
@@ -1084,7 +1084,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 sqDistanceVector = VectorSum(in sqDistanceVector);
 
                 float norm = Sse.ConvertToSingle(sqDistanceVector);
-                while (pSrcCurrent < pEnd)
+                while (pSrcCurrent < pSrcEnd)
                 {
                     float distance = (*pSrcCurrent) - (*pDstCurrent);
                     norm += distance * distance;
