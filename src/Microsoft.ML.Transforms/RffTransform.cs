@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -39,9 +40,10 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
             public int NewDim = Defaults.NewDim;
 
-            [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel")]
-            public SubComponent<IFourierDistributionSampler, SignatureFourierDistributionSampler> MatrixGenerator =
-                new SubComponent<IFourierDistributionSampler, SignatureFourierDistributionSampler>(GaussianFourierSampler.LoadName);
+            [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureFourierDistributionSampler))]
+            public IComponentFactory<Float, IFourierDistributionSampler> MatrixGenerator =
+                ComponentFactoryUtils.CreateFromFunction<Float, IFourierDistributionSampler>(
+                    (env, avgDist) => new GaussianFourierSampler(env, new GaussianFourierSampler.Arguments(), avgDist));
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool UseSin = Defaults.UseSin;
@@ -57,8 +59,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
             public int? NewDim;
 
-            [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel")]
-            public SubComponent<IFourierDistributionSampler, SignatureFourierDistributionSampler> MatrixGenerator;
+            [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureFourierDistributionSampler))]
+            public IComponentFactory<Float, IFourierDistributionSampler> MatrixGenerator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool? UseSin;
@@ -81,7 +83,7 @@ namespace Microsoft.ML.Runtime.Data
             public bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (NewDim != null || MatrixGenerator.IsGood() || UseSin != null || Seed != null)
+                if (NewDim != null || MatrixGenerator != null || UseSin != null || Seed != null)
                     return false;
                 return TryUnparseCore(sb);
             }
@@ -115,10 +117,10 @@ namespace Microsoft.ML.Runtime.Data
                 _rand = seed.HasValue ? RandomUtils.Create(seed) : RandomUtils.Create(host.Rand);
                 _state = _rand.GetState();
 
-                var sub = item.MatrixGenerator;
-                if (!sub.IsGood())
-                    sub = args.MatrixGenerator;
-                _matrixGenerator = sub.CreateInstance(host, avgDist);
+                var generator = item.MatrixGenerator;
+                if (generator == null)
+                    generator = args.MatrixGenerator;
+                _matrixGenerator = generator.CreateComponent(host, avgDist);
 
                 int roundedUpD = RoundUp(NewDim, CfltAlign);
                 int roundedUpNumFeatures = RoundUp(SrcDim, CfltAlign);
@@ -417,12 +419,11 @@ namespace Microsoft.ML.Runtime.Data
                 else
                 {
                     Float[] distances;
-
                     var sub = args.Column[iinfo].MatrixGenerator;
-                    if (!sub.IsGood())
+                    if (sub == null)
                         sub = args.MatrixGenerator;
-                    var info = ComponentCatalog.GetLoadableClassInfo(sub);
-                    bool gaussian = info != null && info.Type == typeof(GaussianFourierSampler);
+                    var matrixGenerator = sub.CreateComponent(host, 1);
+                    bool gaussian = matrixGenerator is GaussianFourierSampler;
 
                     // If the number of pairs is at most the maximum reservoir size / 2, go over all the pairs.
                     if (resLength < reservoirSize)
