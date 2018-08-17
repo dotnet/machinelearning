@@ -925,11 +925,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 while (pIdxCurrent + 8 <= pEnd)
                 {
-                    Vector256<float> srcVector = Load8(pDstCurrent, pIdxCurrent);
-                    Vector256<float> dstVector = Avx.LoadVector256(pSrcCurrent);
+                    Vector256<float> dstVector = Load8(pDstCurrent, pIdxCurrent);
+                    Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
 
-                    srcVector = Avx.Add(srcVector, dstVector);
-                    Store8(in srcVector, pDstCurrent, pIdxCurrent);
+                    dstVector = Avx.Add(dstVector, srcVector);
+                    Store8(in dstVector, pDstCurrent, pIdxCurrent);
 
                     pIdxCurrent += 8;
                     pSrcCurrent += 8;
@@ -937,11 +937,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 while (pIdxCurrent + 4 <= pEnd)
                 {
-                    Vector128<float> srcVector = Load4(pDstCurrent, pIdxCurrent);
-                    Vector128<float> dstVector = Sse.LoadVector128(pSrcCurrent);
+                    Vector128<float> dstVector = Load4(pDstCurrent, pIdxCurrent);
+                    Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
 
-                    srcVector = Sse.Add(srcVector, dstVector);
-                    Store4(in srcVector, pDstCurrent, pIdxCurrent);
+                    dstVector = Sse.Add(dstVector, srcVector);
+                    Store4(in dstVector, pDstCurrent, pIdxCurrent);
 
                     pIdxCurrent += 4;
                     pSrcCurrent += 4;
@@ -961,8 +961,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void MulElementWiseU(Span<float> src1, Span<float> src2, Span<float> dst)
         {
-            fixed (float* psrc1 = &src1[0])
-            fixed (float* psrc2 = &src2[0])
+            fixed (float* psrc1 = src1)
+            fixed (float* psrc2 = src2)
             fixed (float* pdst = dst)
             {
                 float* pSrc1Current = psrc1;

@@ -696,11 +696,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 while (pIdxCurrent + 4 <= pEnd)
                 {
-                    Vector128<float> srcVector = Load4(pDstCurrent, pIdxCurrent);
-                    Vector128<float> dstVector = Sse.LoadVector128(pSrcCurrent);
+                    Vector128<float> dstVector = Load4(pDstCurrent, pIdxCurrent);
+                    Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
 
-                    srcVector = Sse.Add(srcVector, dstVector);
-                    Store4(in srcVector, pDstCurrent, pIdxCurrent);
+                    dstVector = Sse.Add(dstVector, srcVector);
+                    Store4(in dstVector, pDstCurrent, pIdxCurrent);
 
                     pIdxCurrent += 4;
                     pSrcCurrent += 4;

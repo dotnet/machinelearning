@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Xunit;
+using Xunit.Abstractions;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 
 namespace Microsoft.ML.CpuMath.UnitTests
@@ -20,14 +21,18 @@ namespace Microsoft.ML.CpuMath.UnitTests
         private const int SseCbAlign = 16;
         private FloatEqualityComparer comparer;
 
-        public CpuMathUtilsUnitTests()
+        private readonly ITestOutputHelper output;
+
+        public CpuMathUtilsUnitTests(ITestOutputHelper output)
         {
+            this.output = output;
+
             // Padded array whose length is a multiple of 4
-            float[] testArray1 = new float[8] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f };
+            float[] testArray1 = new float[16] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f };
             // Unpadded array whose length is not a multiple of 4.
-            float[] testArray2 = new float[7] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f };
+            float[] testArray2 = new float[15] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f, 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f };
             testArrays = new float[][] { testArray1, testArray2 };
-            testIndexArray = new int[4] { 0, 2, 5, 6 };
+            testIndexArray = new int[9] { 0, 2, 5, 6, 8, 11, 12, 13, 14 };
             comparer = new FloatEqualityComparer();
 
             // Padded matrices whose dimensions are multiples of 4
@@ -308,6 +313,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             expected[2] = -13.806f;
             expected[5] = -43.522f;
             expected[6] = 55.978f;
+            expected[8] = -178.869f;
+            expected[11] = -31.941f;
+            expected[12] = -51.205f;
+            expected[13] = -21.337f;
+            expected[14] = 35.782f;
 
             CpuMathUtils.AddScale(DEFAULT_SCALE, src, idx, dst, idx.Length);
             var actual = dst;
@@ -373,6 +383,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             expected[2] = -12.14f;
             expected[5] = -36.69f;
             expected[6] = 46.29f;
+            expected[8] = -104.41f;
+            expected[11] = -13.09f;
+            expected[12] = -73.92f;
+            expected[13] = -23.64f;
+            expected[14] = 34.41f;
 
             CpuMathUtils.Add(src, idx, dst, idx.Length);
             var actual = dst;
@@ -407,8 +422,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0, -93.9f)]
-        [InlineData(1, -97.19f)]
+        [InlineData(0, -187.8f)]
+        [InlineData(1, -191.09f)]
         public void SumUTest(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
@@ -417,8 +432,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0, 13399.9376f)]
-        [InlineData(1, 13389.1135f)]
+        [InlineData(0, 26799.8752f)]
+        [InlineData(1, 26789.0511f)]
         public void SumSqUTest(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
@@ -427,8 +442,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0, 13742.3176f)]
-        [InlineData(1, 13739.7895f)]
+        [InlineData(0, 27484.6352f)]
+        [InlineData(1, 27482.1071f)]
         public void SumSqDiffUTest(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
@@ -437,8 +452,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0, 196.98f)]
-        [InlineData(1, 193.69f)]
+        [InlineData(0, 393.96f)]
+        [InlineData(1, 390.67f)]
         public void SumAbsUTest(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
@@ -447,8 +462,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0, 196.98f)]
-        [InlineData(1, 195.39f)]
+        [InlineData(0, 393.96f)]
+        [InlineData(1, 392.37f)]
         public void SumAbsDiffUTest(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
@@ -477,8 +492,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0, 13306.0376f)]
-        [InlineData(1, 13291.9235f)]
+        [InlineData(0, 26612.0752f)]
+        [InlineData(1, 26597.9611f)]
         public void DotUTest(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
@@ -490,12 +505,12 @@ namespace Microsoft.ML.CpuMath.UnitTests
             }
 
             var actual = CpuMathUtils.DotProductDense(src, dst, dst.Length);
-            Assert.Equal(expected, actual, 2);
+            Assert.Equal(expected, actual, 1);
         }
 
         [Theory]
-        [InlineData(0, 736.7352f)]
-        [InlineData(1, 736.7352f)]
+        [InlineData(0, -3406.2154f)]
+        [InlineData(1, -3406.2154f)]
         public void DotSUTest(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
@@ -509,12 +524,12 @@ namespace Microsoft.ML.CpuMath.UnitTests
             }
 
             var actual = CpuMathUtils.DotProductSparse(src, dst, idx, idx.Length);
-            Assert.Equal(expected, actual, 4);
+            Assert.Equal(expected, actual, 2);
         }
 
         [Theory]
-        [InlineData(0, 8.0f)]
-        [InlineData(1, 7.0f)]
+        [InlineData(0, 16.0f)]
+        [InlineData(1, 15.0f)]
         public void Dist2Test(int test, float expected)
         {
             float[] src = (float[])testArrays[test].Clone();
