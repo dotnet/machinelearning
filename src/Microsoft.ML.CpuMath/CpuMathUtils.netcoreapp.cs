@@ -10,10 +10,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     public static partial class CpuMathUtils
     {
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
-        public const int Vector128Alignment = 16;
+        private const int Vector128Alignment = 16;
 
         // The count of bytes in Vector256<T>, corresponding to _cbAlign in AlignedArray
-        public const int Vector256Alignment = 32;
+        private const int Vector256Alignment = 32;
 
         public static int GetVectorAlignment()
         {
