@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
     }
 
     /// <summary>
-    /// A utility class for creating IComponentFactory instances.
+    /// A utility class for creating <see cref="IComponentFactory"/> instances.
     /// </summary>
     public static class ComponentFactoryUtils
     {
