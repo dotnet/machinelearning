@@ -5,6 +5,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Tests.Scenarios.Api;
@@ -198,10 +199,17 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         private static IDataView MakeScorer(IHostEnvironment env, ISchema schema, string featureColumn, TModel model, BinaryClassifierScorer.Arguments args)
         {
             var settings = $"Binary{{{CmdParser.GetSettings(env, args, new BinaryClassifierScorer.Arguments())}}}";
-            var mapper = ScoreUtils.GetSchemaBindableMapper(env, model, SubComponent.Parse<IDataScorerTransform, SignatureDataScorer>(settings));
+
+            var scorerFactorySettings = CmdParser.CreateComponentFactory(
+                typeof(IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>),
+                typeof(SignatureDataScorer),
+                settings);
+
+            var bindable = ScoreUtils.GetSchemaBindableMapper(env, model, scorerFactorySettings: scorerFactorySettings);
             var edv = new EmptyDataView(env, schema);
             var data = new RoleMappedData(edv, "Label", featureColumn, opt: true);
-            return new BinaryClassifierScorer(env, args, data.Data, mapper.Bind(env, data.Schema), data.Schema);
+
+            return new BinaryClassifierScorer(env, args, data.Data, bindable.Bind(env, data.Schema), data.Schema);
         }
 
         public BinaryScorerWrapper<TModel> Clone(BinaryClassifierScorer.Arguments scorerArgs)
