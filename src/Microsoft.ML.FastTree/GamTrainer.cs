@@ -253,6 +253,10 @@ namespace Microsoft.ML.Runtime.FastTree
             }
         }
 
+        /// <summary>
+        /// Training algorithm for the single-feature functions f(x)
+        /// </summary>
+        /// <param name="ch">The channel to write to</param>
         private void TrainMainEffectsModel(IChannel ch)
         {
             Contracts.AssertValue(ch);
@@ -587,7 +591,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
 
-        protected class LeafSplitHelper : ILeafSplitStatisticsCalculator
+        private class LeafSplitHelper : ILeafSplitStatisticsCalculator
         {
             private bool _hasWeights;
 
