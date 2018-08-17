@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Api
@@ -304,10 +305,18 @@ namespace Microsoft.ML.Runtime.Api
             env.CheckValue(predictor, nameof(predictor));
             env.CheckValueOrNull(trainSchema);
 
-            var subComponent = SubComponent.Parse<IDataScorerTransform, SignatureDataScorer>(settings);
-            var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor.Pred, subComponent);
+            ICommandLineComponentFactory scorerFactorySettings = ParseScorerSettings(settings);
+            var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor.Pred, scorerFactorySettings: scorerFactorySettings);
             var mapper = bindable.Bind(env, data.Schema);
             return CreateCore<IDataScorerTransform, SignatureDataScorer>(env, settings, data.Data, mapper, trainSchema);
+        }
+
+        private static ICommandLineComponentFactory ParseScorerSettings(string settings)
+        {
+            return CmdParser.CreateComponentFactory(
+                typeof(IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>),
+                typeof(SignatureDataScorer),
+                settings);
         }
 
         /// <summary>

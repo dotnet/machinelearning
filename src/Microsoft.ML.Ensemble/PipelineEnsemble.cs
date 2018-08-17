@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     Parent.PredictorModels[i].PrepareData(Parent.Host, emptyDv, out RoleMappedData rmd, out IPredictor predictor);
 
                     // Get the predictor as a bindable mapper, and bind it to the RoleMappedSchema found above.
-                    var bindable = ScoreUtils.GetSchemaBindableMapper(Parent.Host, Parent.PredictorModels[i].Predictor, null);
+                    var bindable = ScoreUtils.GetSchemaBindableMapper(Parent.Host, Parent.PredictorModels[i].Predictor);
                     Mappers[i] = bindable.Bind(Parent.Host, rmd.Schema) as ISchemaBoundRowMapper;
                     if (Mappers[i] == null)
                         throw Parent.Host.Except("Predictor {0} is not a row to row mapper", i);
