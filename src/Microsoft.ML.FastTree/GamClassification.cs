@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.FastTree
             data.CheckBinaryLabel();
         }
 
-        public static bool[] ConvertTargetsToBool(double[] targets)
+        private static bool[] ConvertTargetsToBool(double[] targets)
         {
             bool[] boolArray = new bool[targets.Length];
             int innerLoopSize = 1 + targets.Length / BlockingThreadPool.NumThreads;

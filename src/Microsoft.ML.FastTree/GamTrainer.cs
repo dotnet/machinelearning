@@ -96,13 +96,13 @@ namespace Microsoft.ML.Runtime.FastTree
         private const string RegisterName = "GamTraining";
 
         //Parameters of Training
-        internal readonly TArgs Args;
+        protected readonly TArgs Args;
         private readonly double _gainConfidenceInSquaredStandardDeviations;
         private readonly double _entropyCoefficient;
 
         //Dataset Information
-        internal Dataset TrainSet;
-        internal Dataset ValidSet;
+        protected Dataset TrainSet;
+        protected Dataset ValidSet;
         /// <summary>
         /// Whether a validation set was passed in
         /// </summary>
