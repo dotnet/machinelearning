@@ -115,8 +115,8 @@ namespace Microsoft.ML.Runtime.FastTree
         public FastTreeBinaryClassificationTrainer(IHostEnvironment env, Arguments args)
             : base(env, args)
         {
-            // Set the sigmoid parameter to the learning rate, as per FastTreeClassification loss
-            _sigmoidParameter = Args.LearningRates;
+            // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
+            _sigmoidParameter = 2.0 * Args.LearningRates;
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.FastTree
             // The correctness of this scaling depends upon the gradient calculation in
             // BinaryClassificationObjectiveFunction.GetGradientInOneQuery being consistent with the
             // description in section 6 of the paper.
-            var cali = new PlattCalibrator(Host, -2 * _sigmoidParameter, 0);
+            var cali = new PlattCalibrator(Host, -1 * _sigmoidParameter, 0);
             return new FeatureWeightsCalibratedPredictor(Host, pred, cali);
         }
 
@@ -304,10 +304,10 @@ namespace Microsoft.ML.Runtime.FastTree
                         {
                             int label = pLabels[i] ? 1 : -1;
                             double recip = pLabels[i] ? recipNpos : recipNneg;
-                            double response = 2.0 * label * _sigmoidParameter / (1.0 + Math.Exp(2.0 * label * _sigmoidParameter * pScores[i]));
+                            double response = label * _sigmoidParameter / (1.0 + Math.Exp(label * _sigmoidParameter * pScores[i]));
                             double absResponse = Math.Abs(response);
                             pLambdas[i] = response * recip;
-                            pWeights[i] = absResponse * (2.0 * _sigmoidParameter - absResponse) * recip;
+                            pWeights[i] = absResponse * (_sigmoidParameter - absResponse) * recip;
                         }
                     }
                 }

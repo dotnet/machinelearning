@@ -676,7 +676,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
                         const double documentWeight = 1.0;
                         bool correct = !(label ^ predictedClass);
-                        double loss = Math.Log(1.0 + Math.Exp(-2.0 * _sigmoidParameter * (label ? 1 : -1) * scores[i]));
+                        double loss = Math.Log(1.0 + Math.Exp(-1.0 * _sigmoidParameter * (label ? 1 : -1) * scores[i]));
 
                         errorRate += (correct ? 0 : 1) * documentWeight;
                         lossRate += loss * documentWeight;

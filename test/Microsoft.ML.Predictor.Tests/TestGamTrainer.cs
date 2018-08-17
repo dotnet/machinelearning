@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.RunTests
             double sigmoidParameter = 1.0;
             int label = row.Label == 1 ? 1 : -1;
             double recip = 1;
-            double response = 2.0 * label * sigmoidParameter / (1.0 + Math.Exp(2.0 * label * sigmoidParameter * score));
+            double response = label * sigmoidParameter / (1.0 + Math.Exp(label * sigmoidParameter * score));
             double absResponse = Math.Abs(response);
             double pLambda = response * recip;
 
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             double sigmoidParameter = 1.0;
             int label = row.Label == 1 ? 1 : -1;
-            double loss = Math.Log(1.0 + Math.Exp(-2.0 * sigmoidParameter * label * score));
+            double loss = Math.Log(1.0 + Math.Exp(-1.0 * sigmoidParameter * label * score));
 
             return loss;
         }

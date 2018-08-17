@@ -83,7 +83,7 @@ namespace Microsoft.ML.Runtime.FastTree
             TrainBase(context);
             var predictor = new BinaryClassGamPredictor(Host, InputLength, TrainSet,
                 MeanEffect, BinEffects, FeatureMap, FinalResults);
-            var calibrator = new PlattCalibrator(Host, -2 * _sigmoidParameter, 0);
+            var calibrator = new PlattCalibrator(Host, -1.0 * _sigmoidParameter, 0);
             return new CalibratedPredictor(Host, predictor, calibrator);
         }
 
