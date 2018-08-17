@@ -341,6 +341,34 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
+    public class MyLambdaTransform<TSrc, TDst> : IEstimator<TransformWrapper>
+         where TSrc : class, new()
+            where TDst : class, new()
+    {
+        private readonly IHostEnvironment _env;
+        private readonly Action<TSrc, TDst> _action;
+
+        public MyLambdaTransform(IHostEnvironment env, Action<TSrc, TDst> action)
+        {
+            _env = env;
+            _action = action;
+        }
+
+        public TransformWrapper Fit(IDataView input)
+        {
+            var xf = LambdaTransform.CreateMap(_env, input, _action);
+            var empty = new EmptyDataView(_env, input.Schema);
+            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
+            return new TransformWrapper(_env, chunk);
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
     public class MyTermTransform : IEstimator<TransformWrapper>
     {
         private readonly IHostEnvironment _env;
