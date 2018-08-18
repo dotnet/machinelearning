@@ -5,6 +5,7 @@
 // The exported function names need to be unique (can't be disambiguated based on signature), hence
 // we introduce suffix letters to indicate the general patterns used.
 // * A suffix means aligned and padded for SSE operations.
+// * U suffix means unaligned and unpadded.
 // * P suffix means sparse (unaligned) partial vector - the vector is only part of a larger sparse vector.
 // * Tran means the matrix is transposed.
 
