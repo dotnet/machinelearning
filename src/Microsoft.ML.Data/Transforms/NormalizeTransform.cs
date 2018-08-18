@@ -340,7 +340,7 @@ namespace Microsoft.ML.Runtime.Data
                 using (var bldr = md.BuildMetadata(iinfo, Source.Schema, Infos[iinfo].Source,
                     MetadataUtils.Kinds.SlotNames))
                 {
-                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, DvBool.True);
+                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, true);
                     _functions[iinfo].AttachMetadata(bldr, Infos[iinfo].TypeSrc);
                 }
             }
@@ -451,7 +451,6 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointNode node)
         {
             var schema = input.Data.Schema;
-            DvBool isNormalized = DvBool.False;
             var columnsToNormalize = new List<NormalizeTransform.AffineColumn>();
             foreach (var column in input.Column)
             {

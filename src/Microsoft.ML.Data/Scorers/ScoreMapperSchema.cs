@@ -205,14 +205,14 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
 
             if (col == base.ColumnCount && kind == MetadataUtils.Kinds.IsNormalized)
-                MetadataUtils.Marshal<DvBool, TValue>(IsNormalized, col, ref value);
+                MetadataUtils.Marshal<bool, TValue>(IsNormalized, col, ref value);
             else
                 base.GetMetadata<TValue>(kind, col, ref value);
         }
 
-        private void IsNormalized(int col, ref DvBool dst)
+        private void IsNormalized(int col, ref bool dst)
         {
-            dst = DvBool.True;
+            dst = true;
         }
 
         protected override void GetScoreValueKind(int col, ref DvText dst)

@@ -61,10 +61,6 @@ namespace Microsoft.ML.Runtime.Data.IO
             RegisterSimpleCodec(new DateTimeZoneCodec(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<UInt128>(this));
 
-            // Register the old boolean reading codec.
-            var oldBool = new OldBoolCodec(this);
-            RegisterOtherCodec(oldBool.LoadName, oldBool.GetCodec);
-
             RegisterOtherCodec("VBuffer", GetVBufferCodec);
             RegisterOtherCodec("Key", GetKeyCodec);
         }

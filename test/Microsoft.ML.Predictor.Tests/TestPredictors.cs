@@ -637,23 +637,23 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var scoreGetter = curs.GetGetter<float>(scoreCol);
                 var probGetter = curs.GetGetter<float>(probCol);
-                var predGetter = curs.GetGetter<DvBool>(predCol);
+                var predGetter = curs.GetGetter<bool>(predCol);
                 var scoreGetters = new ValueGetter<float>[3];
                 var probGetters = new ValueGetter<float>[3];
-                var predGetters = new ValueGetter<DvBool>[3];
+                var predGetters = new ValueGetter<bool>[3];
                 for (int i = 0; i < 3; i++)
                 {
                     scoreGetters[i] = cursors[i].GetGetter<float>(scoreColArray[i]);
                     probGetters[i] = cursors[i].GetGetter<float>(probColArray[i]);
-                    predGetters[i] = cursors[i].GetGetter<DvBool>(predColArray[i]);
+                    predGetters[i] = cursors[i].GetGetter<bool>(predColArray[i]);
                 }
 
                 float score = 0;
                 float prob = 0;
-                var pred = default(DvBool);
+                bool pred = default;
                 var scores = new float[3];
                 var probs = new float[3];
-                var preds = new DvBool[3];
+                var preds = new bool[3];
                 while (curs.MoveNext())
                 {
                     scoreGetter(ref score);
@@ -668,7 +668,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     }
                     Assert.Equal(score, 0.4 * scores.Sum() / 3, 5);
                     Assert.Equal(prob, 1 / (1 + Math.Exp(-score)), 6);
-                    Assert.True(pred.IsTrue == score > 0);
+                    Assert.True(pred == score > 0);
                 }
             }
         }

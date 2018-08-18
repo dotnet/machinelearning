@@ -10,60 +10,6 @@ namespace Microsoft.ML.Runtime.RunTests
 {
     public sealed class DvTypeTests
     {
-        [Fact]
-        public void TestComparableDvInt4()
-        {
-            const int count = 100;
-
-            var rand = RandomUtils.Create(42);
-            var values = new DvInt4[2 * count];
-            for (int i = 0; i < count; i++)
-            {
-                var v = values[i] = rand.Next();
-                values[values.Length - i - 1] = v;
-            }
-
-            // Assign two NA's at random.
-            int iv1 = rand.Next(values.Length);
-            int iv2 = rand.Next(values.Length - 1);
-            if (iv2 >= iv1)
-                iv2++;
-            values[iv1] = DvInt4.NA;
-            values[iv2] = DvInt4.NA;
-            Array.Sort(values);
-
-            Assert.True(values[0].IsNA);
-            Assert.True(values[1].IsNA);
-            Assert.True(!values[2].IsNA);
-
-            Assert.True((values[0] == values[1]).IsNA);
-            Assert.True((values[0] != values[1]).IsNA);
-            Assert.True((values[0] <= values[1]).IsNA);
-            Assert.True(values[0].Equals(values[1]));
-            Assert.True(values[0].CompareTo(values[1]) == 0);
-
-            Assert.True((values[1] == values[2]).IsNA);
-            Assert.True((values[1] != values[2]).IsNA);
-            Assert.True((values[1] <= values[2]).IsNA);
-            Assert.True(!values[1].Equals(values[2]));
-            Assert.True(values[1].CompareTo(values[2]) < 0);
-
-            for (int i = 3; i < values.Length; i++)
-            {
-                DvBool eq = values[i - 1] == values[i];
-                DvBool ne = values[i - 1] != values[i];
-                DvBool le = values[i - 1] <= values[i];
-                bool feq = values[i - 1].Equals(values[i]);
-                int cmp = values[i - 1].CompareTo(values[i]);
-                Assert.True(!eq.IsNA);
-                Assert.True(!ne.IsNA);
-                Assert.True(eq.IsTrue == ne.IsFalse);
-                Assert.True(le.IsTrue);
-                Assert.True(feq == eq.IsTrue);
-                Assert.True(cmp <= 0);
-                Assert.True(feq == (cmp == 0));
-            }
-        }
 
         [Fact]
         public void TestComparableDvText()
@@ -114,20 +60,6 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True((values[1] != values[2]).IsNA);
             Assert.True(!values[1].Equals(values[2]));
             Assert.True(values[1].CompareTo(values[2]) < 0);
-
-            for (int i = 3; i < values.Length; i++)
-            {
-                DvBool eq = values[i - 1] == values[i];
-                DvBool ne = values[i - 1] != values[i];
-                bool feq = values[i - 1].Equals(values[i]);
-                int cmp = values[i - 1].CompareTo(values[i]);
-                Assert.True(!eq.IsNA);
-                Assert.True(!ne.IsNA);
-                Assert.True(eq.IsTrue == ne.IsFalse);
-                Assert.True(feq == eq.IsTrue);
-                Assert.True(cmp <= 0);
-                Assert.True(feq == (cmp == 0));
-            }
         }
     }
 }

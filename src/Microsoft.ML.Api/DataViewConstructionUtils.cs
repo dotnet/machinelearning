@@ -174,12 +174,7 @@ namespace Microsoft.ML.Runtime.Api
                         else if (outputType.GetElementType() == typeof(bool))
                         {
                             Ch.Assert(colType.ItemType.IsBool);
-                            return CreateConvertingArrayGetterDelegate<bool, DvBool>(index, x => x);
-                        }
-                        else if (outputType.GetElementType() == typeof(bool?))
-                        {
-                            Ch.Assert(colType.ItemType.IsBool);
-                            return CreateConvertingArrayGetterDelegate<bool?, DvBool>(index, x => x ?? DvBool.NA);
+                            return CreateConvertingArrayGetterDelegate<bool, bool>(index, x => x);
                         }
 
                         // T[] -> VBuffer<T>
@@ -210,15 +205,9 @@ namespace Microsoft.ML.Runtime.Api
                         }
                         else if (outputType == typeof(bool))
                         {
-                            // Bool -> DvBool
+                            // Bool -> Bool.
                             Ch.Assert(colType.IsBool);
-                            return CreateConvertingGetterDelegate<bool, DvBool>(index, x => x);
-                        }
-                        else if (outputType == typeof(bool?))
-                        {
-                            // Bool? -> DvBool
-                            Ch.Assert(colType.IsBool);
-                            return CreateConvertingGetterDelegate<bool?, DvBool>(index, x => x ?? DvBool.NA);
+                            return CreateConvertingGetterDelegate<bool, bool>(index, x => x);
                         }
                         else if (outputType == typeof(int))
                         {

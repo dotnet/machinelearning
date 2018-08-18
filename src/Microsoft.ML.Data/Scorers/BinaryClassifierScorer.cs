@@ -250,8 +250,8 @@ namespace Microsoft.ML.Runtime.Data
                 return predFnAsKey;
             }
 
-            ValueGetter<DvBool> predFn =
-                (ref DvBool dst) =>
+            ValueGetter<bool> predFn =
+                (ref bool dst) =>
                 {
                     EnsureCachedPosition(ref cachedPosition, ref score, output, mapperScoreGetter);
                     GetPredictedLabelCore(score, ref dst);
@@ -259,9 +259,10 @@ namespace Microsoft.ML.Runtime.Data
             return predFn;
         }
 
-        private void GetPredictedLabelCore(Float score, ref DvBool value)
+        private void GetPredictedLabelCore(Float score, ref bool value)
         {
-            value = score > _threshold ? DvBool.True : score <= _threshold ? DvBool.False : DvBool.NA;
+            //Behavior for NA values is undefined.
+            value = score > _threshold ? true : false;
         }
 
         private void GetPredictedLabelCoreAsKey(Float score, ref uint value)

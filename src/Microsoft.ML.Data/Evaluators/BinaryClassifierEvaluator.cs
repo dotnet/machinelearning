@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             var stratCol = new List<uint>();
             var stratVal = new List<DvText>();
-            var isWeighted = new List<DvBool>();
+            var isWeighted = new List<bool>();
             var auc = new List<Double>();
             var accuracy = new List<Double>();
             var posPrec = new List<Double>();
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
                     agg.Finish();
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     auc.Add(agg.UnweightedAuc);
                     accuracy.Add(agg.UnweightedCounters.Acc);
                     posPrec.Add(agg.UnweightedCounters.PrecisionPos);
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         auc.Add(agg.WeightedAuc);
                         accuracy.Add(agg.WeightedCounters.Acc);
                         posPrec.Add(agg.WeightedCounters.PrecisionPos);
@@ -931,7 +931,7 @@ namespace Microsoft.ML.Runtime.Data
                 scoreGetter = nanGetter;
 
             Action updateCacheIfNeeded;
-            Func<DvBool> getPredictedLabel;
+            Func<bool> getPredictedLabel;
             if (_useRaw)
             {
                 updateCacheIfNeeded =
@@ -965,8 +965,8 @@ namespace Microsoft.ML.Runtime.Data
             var getters = _probIndex >= 0 ? new Delegate[2] : new Delegate[1];
             if (activeCols(AssignedCol))
             {
-                ValueGetter<DvBool> predFn =
-                    (ref DvBool dst) =>
+                ValueGetter<bool> predFn =
+                    (ref bool dst) =>
                     {
                         updateCacheIfNeeded();
                         dst = getPredictedLabel();
@@ -995,9 +995,10 @@ namespace Microsoft.ML.Runtime.Data
             return -Math.Log(1.0 - prob, 2);
         }
 
-        private DvBool GetPredictedLabel(Single val)
+        private bool GetPredictedLabel(Single val)
         {
-            return val.IsNA() ? DvBool.NA : val > _threshold ? DvBool.True : DvBool.False;
+            //Behavior for NA values is undefined.
+            return val.IsNA() ? false : val > _threshold ? true : false;
         }
 
         public override RowMapperColumnInfo[] GetOutputColumns()

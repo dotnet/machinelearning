@@ -495,7 +495,7 @@ namespace Microsoft.ML.Runtime.Data
                 switch (parquetType)
                 {
                     case DataType.Boolean:
-                        return CreateGetterDelegateCore<bool?, DvBool>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<bool, bool>(col, _parquetConversions.Conv);
                     case DataType.Byte:
                         return CreateGetterDelegateCore<byte, byte>(col, _parquetConversions.Conv);
                     case DataType.SignedByte:
@@ -698,7 +698,8 @@ namespace Microsoft.ML.Runtime.Data
 
             public void Conv(ref string src, ref DvText dst) => dst = new DvText(src);
 
-            public void Conv(ref bool? src, ref DvBool dst) => dst = src ?? DvBool.NA;
+            //Behavior for NA values is undefined.
+            public void Conv(ref bool src, ref bool dst) => dst = src;
 
             public void Conv(ref DateTimeOffset src, ref DvDateTimeZone dst) => dst = src;
 

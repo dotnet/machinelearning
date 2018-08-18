@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    using BL = DvBool;
+    using BL = Boolean;
     using I2 = DvInt2;
     using I4 = DvInt4;
     using I8 = DvInt8;
@@ -93,9 +93,7 @@ namespace Microsoft.ML.Runtime.Data
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator IX(BL a)
         {
-            if (a.IsNA)
-                return RawNA;
-            return (RawIX)a.RawValue;
+            return Convert.ToSByte(a);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -199,66 +197,6 @@ namespace Microsoft.ML.Runtime.Data
             if (_value == RawNA)
                 return "NA";
             return _value.ToString();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BL operator ==(IX a, IX b)
-        {
-            var av = a._value;
-            var bv = b._value;
-            if (av != RawNA && bv != RawNA)
-                return av == bv ? BL.True : BL.False;
-            return BL.NA;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BL operator !=(IX a, IX b)
-        {
-            var av = a._value;
-            var bv = b._value;
-            if (av != RawNA && bv != RawNA)
-                return av != bv ? BL.True : BL.False;
-            return BL.NA;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BL operator <(IX a, IX b)
-        {
-            var av = a._value;
-            var bv = b._value;
-            if (av != RawNA && bv != RawNA)
-                return av < bv ? BL.True : BL.False;
-            return BL.NA;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BL operator <=(IX a, IX b)
-        {
-            var av = a._value;
-            var bv = b._value;
-            if (av != RawNA && bv != RawNA)
-                return av <= bv ? BL.True : BL.False;
-            return BL.NA;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BL operator >=(IX a, IX b)
-        {
-            var av = a._value;
-            var bv = b._value;
-            if (av != RawNA && bv != RawNA)
-                return av >= bv ? BL.True : BL.False;
-            return BL.NA;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BL operator >(IX a, IX b)
-        {
-            var av = a._value;
-            var bv = b._value;
-            if (av != RawNA && bv != RawNA)
-                return av > bv ? BL.True : BL.False;
-            return BL.NA;
         }
     }
 }

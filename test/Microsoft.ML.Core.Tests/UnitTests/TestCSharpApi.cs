@@ -345,9 +345,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     var getter = cursor.GetGetter<double>(metricCol);
                     var foldGetter = cursor.GetGetter<DvText>(foldCol);
-                    var isWeightedGetter = cursor.GetGetter<DvBool>(isWeightedCol);
+                    var isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol);
                     DvText fold = default;
-                    DvBool isWeighted = default;
+                    bool isWeighted = default;
 
                     double avg = 0;
                     double weightedAvg = 0;
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         foldGetter(ref fold);
                         Assert.True(fold.EqualsStr("Average"));
                         isWeightedGetter(ref isWeighted);
-                        Assert.True(isWeighted.IsTrue == (w == 1));
+                        Assert.True(isWeighted == (w == 1));
 
                         // Get the standard deviation.
                         b = cursor.MoveNext();
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             Assert.Equal(0.000393, stdev, 6);
                         isWeightedGetter(ref isWeighted);
-                        Assert.True(isWeighted.IsTrue == (w == 1));
+                        Assert.True(isWeighted == (w == 1));
                     }
                     double sum = 0;
                     double weightedSum = 0;
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Runtime.RunTests
                                 sum += val;
                             Assert.True(fold.EqualsStr("Fold " + f));
                             isWeightedGetter(ref isWeighted);
-                            Assert.True(isWeighted.IsTrue == (w == 1));
+                            Assert.True(isWeighted == (w == 1));
                         }
                     }
                     Assert.Equal(weightedAvg, weightedSum / 2);

@@ -342,12 +342,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="schema">The schema to query</param>
         /// <param name="col">Which column in the schema to query</param>
         /// <returns>True if and only if the column has the <see cref="Kinds.IsNormalized"/> metadata
-        /// set to the scalar value <see cref="DvBool.True"/></returns>
+        /// set to the scalar value true</returns>
         public static bool IsNormalized(this ISchema schema, int col)
         {
             Contracts.CheckValue(schema, nameof(schema));
-            var value = default(DvBool);
-            return schema.TryGetMetadata(BoolType.Instance, Kinds.IsNormalized, col, ref value) && value.IsTrue;
+            var value = default(bool);
+            return schema.TryGetMetadata(BoolType.Instance, Kinds.IsNormalized, col, ref value) && value;
         }
 
         /// <summary>
