@@ -35,22 +35,22 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Train.
                 var model = pipeline.Fit(new MultiFileSource(dataPath));
 
-                CompositeReader<IMultiStreamSource, ITransformer> loadedModel;
+                ITransformer loadedModel;
                 using (var file = env.CreateTempFile())
                 {
                     // Save model. 
                     using (var fs = file.CreateWriteStream())
-                        model.SavePipeline(env, fs);
+                        model.Transformer.SaveTo(env, fs);
 
                     // Load model.
-                    loadedModel = CompositeReader.LoadPipeline(env, file.OpenReadStream());
+                    loadedModel = TransformerChain.LoadFrom(env, file.OpenReadStream());
                 }
 
                 // Create prediction engine and test predictions.
-                var engine = new MyPredictionEngine<SentimentData, SentimentPrediction>(env, loadedModel.Transformer);
+                var engine = new MyPredictionEngine<SentimentData, SentimentPrediction>(env, loadedModel);
 
                 // Take a couple examples out of the test data and run predictions on top.
-                var testData = loadedModel.Reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))
+                var testData = model.Reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))
                     .AsEnumerable<SentimentData>(env, false);
                 foreach (var input in testData.Take(5))
                 {
