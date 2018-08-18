@@ -1422,7 +1422,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                     return false;
                 }
                 Contracts.Assert(val >= 0);
-                result = -(long)val;
+                result = -val;
                 Contracts.Assert(long.MinValue < result && result <= 0);
                 return true;
             }
