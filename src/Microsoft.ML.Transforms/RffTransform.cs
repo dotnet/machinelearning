@@ -227,7 +227,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly TransformInfo[] _transformInfos;
 
         private const string RegistrationName = "Rff";
-        private readonly int _cfltAlign;
+        private static readonly int _cfltAlign = CpuMathUtils.GetVectorAlignment() / sizeof(float);
 
         private static string TestColumnType(ColumnType type)
         {
@@ -251,7 +251,6 @@ namespace Microsoft.ML.Runtime.Data
             string source = null)
             : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, NewDim = newDim }, input)
         {
-            _cfltAlign = CpuMathUtils.GetVectorAlignment() / sizeof(float);
         }
 
         /// <summary>
