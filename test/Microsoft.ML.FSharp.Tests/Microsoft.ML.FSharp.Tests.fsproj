@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Unix'">$(TargetFrameworks); net461</TargetFrameworks>
     <NoWarn>2003;$(NoWarn)</NoWarn>
     <PublicSign>false</PublicSign>
