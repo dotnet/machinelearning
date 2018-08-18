@@ -227,7 +227,10 @@ namespace Microsoft.ML.Runtime.Data
         private readonly TransformInfo[] _transformInfos;
 
         private const string RegistrationName = "Rff";
-        private const int CfltAlign = CpuMathUtils.GetVectorAlignment() / sizeof(float);
+
+        // REVIEW NEEDED: Used 32 (CpuMathUtils.Vector256Alignment) instead of CpuMathUtils.GetVectorAlignment()
+        // to silence the error that restricts the expression for CfltAlign to be constant.
+        private const int CfltAlign = 32 / sizeof(float);
 
         private static string TestColumnType(ColumnType type)
         {
