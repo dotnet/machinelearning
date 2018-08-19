@@ -156,10 +156,10 @@ namespace Microsoft.ML.Runtime.Data
         {
             get
             {
-                if (!(this is DateTimeZoneType))
+                if (!(this is DateTimeOffsetType))
                     return false;
-                // DateTimeZoneType is a singleton.
-                Contracts.Assert(this == DateTimeZoneType.Instance);
+                // DateTimeOffsetType is a singleton.
+                Contracts.Assert(this == DateTimeOffsetType.Instance);
                 return true;
             }
         }
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Runtime.Data
             if (kind == DataKind.DT)
                 return DateTimeType.Instance;
             if (kind == DataKind.DZ)
-                return DateTimeZoneType.Instance;
+                return DateTimeOffsetType.Instance;
             return NumberType.FromKind(kind);
         }
     }
@@ -623,20 +623,20 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class DateTimeZoneType : PrimitiveType
+    public sealed class DateTimeOffsetType : PrimitiveType
     {
-        private static volatile DateTimeZoneType _instance;
-        public static DateTimeZoneType Instance
+        private static volatile DateTimeOffsetType _instance;
+        public static DateTimeOffsetType Instance
         {
             get
             {
                 if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new DateTimeZoneType(), null);
+                    Interlocked.CompareExchange(ref _instance, new DateTimeOffsetType(), null);
                 return _instance;
             }
         }
 
-        private DateTimeZoneType()
+        private DateTimeOffsetType()
             : base(typeof(DateTimeOffset), DataKind.DZ)
         {
         }
@@ -645,7 +645,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (other == this)
                 return true;
-            Contracts.Assert(!(other is DateTimeZoneType));
+            Contracts.Assert(!(other is DateTimeOffsetType));
             return false;
         }
 

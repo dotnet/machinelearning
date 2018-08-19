@@ -666,12 +666,12 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private sealed class DateTimeZoneCodec : SimpleCodec<DateTimeOffset>
+        private sealed class DateTimeOffsetCodec : SimpleCodec<DateTimeOffset>
         {
             private readonly MadeObjectPool<long[]> _longBufferPool;
 
-            public DateTimeZoneCodec(CodecFactory factory)
-                : base(factory, DateTimeZoneType.Instance)
+            public DateTimeOffsetCodec(CodecFactory factory)
+                : base(factory, DateTimeOffsetType.Instance)
             {
                 _longBufferPool = new MadeObjectPool<long[]>(() => null);
             }
@@ -691,7 +691,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 private List<long> _offsets;
                 private List<long> _ticks;
 
-                public Writer(DateTimeZoneCodec codec, Stream stream)
+                public Writer(DateTimeOffsetCodec codec, Stream stream)
                     : base(codec.Factory, stream)
                 {
                     _offsets = new List<long>();
@@ -725,7 +725,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             private sealed class Reader : ValueReaderBase<DateTimeOffset>
             {
-                private readonly DateTimeZoneCodec _codec;
+                private readonly DateTimeOffsetCodec _codec;
 
                 private readonly int _entries;
                 private long[] _offsets;
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 private int _index;
                 private bool _disposed;
 
-                public Reader(DateTimeZoneCodec codec, Stream stream, int items)
+                public Reader(DateTimeOffsetCodec codec, Stream stream, int items)
                     : base(codec.Factory, stream)
                 {
                     _codec = codec;

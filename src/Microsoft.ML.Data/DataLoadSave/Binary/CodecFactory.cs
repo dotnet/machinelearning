@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             RegisterSimpleCodec(new DvTextCodec(this));
             RegisterSimpleCodec(new BoolCodec(this));
             RegisterSimpleCodec(new DateTimeCodec(this));
-            RegisterSimpleCodec(new DateTimeZoneCodec(this));
+            RegisterSimpleCodec(new DateTimeOffsetCodec(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<UInt128>(this));
 
             // Register the old boolean reading codec.

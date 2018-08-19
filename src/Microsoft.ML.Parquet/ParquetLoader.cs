@@ -358,7 +358,7 @@ namespace Microsoft.ML.Runtime.Data
                 case DataType.Decimal:
                     return NumberType.R8;
                 case DataType.DateTimeOffset:
-                    return DateTimeZoneType.Instance;
+                    return DateTimeOffsetType.Instance;
                 case DataType.Interval:
                     return TimeSpanType.Instance;
                 default:
