@@ -527,9 +527,9 @@ namespace Microsoft.ML.Runtime.Data
                     case DataType.Decimal:
                         return CreateGetterDelegateCore<decimal?, Double>(col, _parquetConversions.Conv);
                     case DataType.DateTimeOffset:
-                        return CreateGetterDelegateCore<DateTimeOffset, DvDateTimeZone>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<DateTimeOffset, DateTimeOffset>(col, _parquetConversions.Conv);
                     case DataType.Interval:
-                        return CreateGetterDelegateCore<Interval, DvTimeSpan>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<Interval, TimeSpan>(col, _parquetConversions.Conv);
                     default:
                         return CreateGetterDelegateCore<IList, DvText>(col, _parquetConversions.Conv);
                 }
@@ -700,7 +700,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public void Conv(ref bool? src, ref DvBool dst) => dst = src ?? DvBool.NA;
 
-            public void Conv(ref DateTimeOffset src, ref DvDateTimeZone dst) => dst = src;
+            public void Conv(ref DateTimeOffset src, ref DateTimeOffset dst) => dst = src;
 
             public void Conv(ref IList src, ref DvText dst) => dst = new DvText(ConvertListToString(src));
 
@@ -727,21 +727,21 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             /// <summary>
-            /// Converts a Parquet Interval data type value to a DvTimeSpan data type value.
+            /// Converts a Parquet Interval data type value to a TimeSpan data type value.
             /// </summary>
             /// <param name="src">Parquet Interval value (int : months, int : days, int : milliseconds).</param>
-            /// <param name="dst">DvTimeSpan object.</param>
-            public void Conv(ref Interval src, ref DvTimeSpan dst)
+            /// <param name="dst">TimeSpan object.</param>
+            public void Conv(ref Interval src, ref TimeSpan dst)
             {
                 try
                 {
-                    dst = new DvTimeSpan(TimeSpan.FromDays(src.Months * 30 + src.Days) + TimeSpan.FromMilliseconds(src.Millis));
+                    dst = TimeSpan.FromDays(src.Months * 30 + src.Days) + TimeSpan.FromMilliseconds(src.Millis);
                 }
                 catch (Exception ex)
                 {
                     // Handle TimeSpan OverflowException
-                    _ch.Error("Cannot convert Inteval to DvTimeSpan. Exception : '{0}'", ex.Message);
-                    dst = DvTimeSpan.NA;
+                    _ch.Error("Cannot convert Inteval to TimeSpan. Exception : '{0}'", ex.Message);
+                    dst = default;
                 }
             }
 

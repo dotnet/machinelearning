@@ -165,11 +165,11 @@ namespace Microsoft.ML.Runtime.Data
                 case DataKind.BL:
                     return typeof(DvBool);
                 case DataKind.TS:
-                    return typeof(DvTimeSpan);
+                    return typeof(TimeSpan);
                 case DataKind.DT:
-                    return typeof(DvDateTime);
+                    return typeof(DateTime);
                 case DataKind.DZ:
-                    return typeof(DvDateTimeZone);
+                    return typeof(DateTimeOffset);
                 case DataKind.UG:
                     return typeof(UInt128);
             }
@@ -209,11 +209,11 @@ namespace Microsoft.ML.Runtime.Data
                 kind = DataKind.TX;
             else if (type == typeof(DvBool) || type == typeof(bool) || type == typeof(bool?))
                 kind = DataKind.BL;
-            else if (type == typeof(DvTimeSpan))
+            else if (type == typeof(TimeSpan))
                 kind = DataKind.TS;
-            else if (type == typeof(DvDateTime))
+            else if (type == typeof(DateTime))
                 kind = DataKind.DT;
-            else if (type == typeof(DvDateTimeZone))
+            else if (type == typeof(DateTimeOffset))
                 kind = DataKind.DZ;
             else if (type == typeof(UInt128))
                 kind = DataKind.UG;

@@ -135,7 +135,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Whether this type is a DvDateTime.
+        /// Whether this type is a DateTime.
         /// </summary>
         public bool IsDateTime
         {
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Whether this type is a DvDateTimeZone.
+        /// Whether this type is a DateTimeOffset.
         /// </summary>
         public bool IsDateTimeZone
         {
@@ -605,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private DateTimeType()
-            : base(typeof(DvDateTime), DataKind.DT)
+            : base(typeof(DateTime), DataKind.DT)
         {
         }
 
@@ -637,7 +637,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private DateTimeZoneType()
-            : base(typeof(DvDateTimeZone), DataKind.DZ)
+            : base(typeof(DateTimeOffset), DataKind.DZ)
         {
         }
 
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private TimeSpanType()
-            : base(typeof(DvTimeSpan), DataKind.TS)
+            : base(typeof(TimeSpan), DataKind.TS)
         {
         }
 

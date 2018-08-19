@@ -179,10 +179,10 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
 
             // Gatekeeper to ensure T is a type that is supported by UnsafeTypeCodec.
-            // Throws an exception if T is neither a DvTimeSpan nor a NumberType.
+            // Throws an exception if T is neither a TimeSpan nor a NumberType.
             private static ColumnType UnsafeColumnType(Type type)
             {
-                return type == typeof(DvTimeSpan) ? (ColumnType)TimeSpanType.Instance : NumberType.FromType(type);
+                return type == typeof(TimeSpan) ? (ColumnType)TimeSpanType.Instance : NumberType.FromType(type);
             }
 
             public UnsafeTypeCodec(CodecFactory factory)
@@ -598,24 +598,24 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private sealed class DateTimeCodec : SimpleCodec<DvDateTime>
+        private sealed class DateTimeCodec : SimpleCodec<DateTime>
         {
             public DateTimeCodec(CodecFactory factory)
                 : base(factory, DateTimeType.Instance)
             {
             }
 
-            public override IValueWriter<DvDateTime> OpenWriter(Stream stream)
+            public override IValueWriter<DateTime> OpenWriter(Stream stream)
             {
                 return new Writer(this, stream);
             }
 
-            public override IValueReader<DvDateTime> OpenReader(Stream stream, int items)
+            public override IValueReader<DateTime> OpenReader(Stream stream, int items)
             {
                 return new Reader(this, stream, items);
             }
 
-            private sealed class Writer : ValueWriterBase<DvDateTime>
+            private sealed class Writer : ValueWriterBase<DateTime>
             {
                 private long _numWritten;
 
@@ -624,11 +624,9 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                 }
 
-                public override void Write(ref DvDateTime value)
+                public override void Write(ref DateTime value)
                 {
-                    var ticks = value.Ticks.RawValue;
-                    Contracts.Assert(ticks == DvInt8.RawNA || (ulong)ticks <= DvDateTime.MaxTicks);
-                    Writer.Write(ticks);
+                    Writer.Write(value.Ticks);
                     _numWritten++;
                 }
 
@@ -643,10 +641,10 @@ namespace Microsoft.ML.Runtime.Data.IO
                 }
             }
 
-            private sealed class Reader : ValueReaderBase<DvDateTime>
+            private sealed class Reader : ValueReaderBase<DateTime>
             {
                 private int _remaining;
-                private DvDateTime _value;
+                private DateTime _value;
 
                 public Reader(DateTimeCodec codec, Stream stream, int items)
                     : base(codec.Factory, stream)
@@ -657,74 +655,55 @@ namespace Microsoft.ML.Runtime.Data.IO
                 public override void MoveNext()
                 {
                     Contracts.Assert(_remaining > 0, "already consumed all values");
-                    var value = Reader.ReadInt64();
-                    Contracts.CheckDecode(value == DvInt8.RawNA || (ulong)value <= DvDateTime.MaxTicks);
-                    _value = new DvDateTime(value);
+                    _value = new DateTime(Reader.ReadInt64());
                     _remaining--;
                 }
 
-                public override void Get(ref DvDateTime value)
+                public override void Get(ref DateTime value)
                 {
                     value = _value;
                 }
             }
         }
 
-        private sealed class DateTimeZoneCodec : SimpleCodec<DvDateTimeZone>
+        private sealed class DateTimeZoneCodec : SimpleCodec<DateTimeOffset>
         {
-            private readonly MadeObjectPool<short[]> _shortBufferPool;
             private readonly MadeObjectPool<long[]> _longBufferPool;
 
             public DateTimeZoneCodec(CodecFactory factory)
                 : base(factory, DateTimeZoneType.Instance)
             {
-                _shortBufferPool = new MadeObjectPool<short[]>(() => null);
                 _longBufferPool = new MadeObjectPool<long[]>(() => null);
             }
 
-            public override IValueWriter<DvDateTimeZone> OpenWriter(Stream stream)
+            public override IValueWriter<DateTimeOffset> OpenWriter(Stream stream)
             {
                 return new Writer(this, stream);
             }
 
-            public override IValueReader<DvDateTimeZone> OpenReader(Stream stream, int items)
+            public override IValueReader<DateTimeOffset> OpenReader(Stream stream, int items)
             {
                 return new Reader(this, stream, items);
             }
 
-            private sealed class Writer : ValueWriterBase<DvDateTimeZone>
+            private sealed class Writer : ValueWriterBase<DateTimeOffset>
             {
-                private List<short> _offsets;
+                private List<long> _offsets;
                 private List<long> _ticks;
 
                 public Writer(DateTimeZoneCodec codec, Stream stream)
                     : base(codec.Factory, stream)
                 {
-                    _offsets = new List<short>();
+                    _offsets = new List<long>();
                     _ticks = new List<long>();
                 }
 
-                public override void Write(ref DvDateTimeZone value)
+                public override void Write(ref DateTimeOffset value)
                 {
                     Contracts.Assert(_offsets != null, "writer was already committed");
 
-                    var ticks = value.ClockDateTime.Ticks;
-                    var offset = value.OffsetMinutes;
-
-                    _ticks.Add(ticks.RawValue);
-                    if (ticks.IsNA)
-                    {
-                        Contracts.Assert(offset.IsNA);
-                        _offsets.Add(0);
-                    }
-                    else
-                    {
-                        Contracts.Assert(
-                            offset.RawValue >= DvDateTimeZone.MinMinutesOffset &&
-                            offset.RawValue <= DvDateTimeZone.MaxMinutesOffset);
-                        Contracts.Assert(0 <= ticks.RawValue && ticks.RawValue <= DvDateTime.MaxTicks);
-                        _offsets.Add(offset.RawValue);
-                    }
+                    _ticks.Add(value.DateTime.Ticks);
+                    _offsets.Add(value.Offset.Ticks);
                 }
 
                 public override void Commit()
@@ -732,7 +711,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Contracts.Assert(_offsets != null, "writer was already committed");
                     Contracts.Assert(Utils.Size(_offsets) == Utils.Size(_ticks));
 
-                    Writer.WriteShortStream(_offsets); // Write the offsets.
+                    Writer.WriteLongStream(_offsets); // Write the offsets.
                     Writer.WriteLongStream(_ticks); // Write the tick values.
                     _offsets = null;
                     _ticks = null;
@@ -740,16 +719,16 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 public override long GetCommitLengthEstimate()
                 {
-                    return (long)_offsets.Count * (sizeof(Int64) + sizeof(Int16));
+                    return (long)_offsets.Count * (sizeof(Int64) + sizeof(Int64));
                 }
             }
 
-            private sealed class Reader : ValueReaderBase<DvDateTimeZone>
+            private sealed class Reader : ValueReaderBase<DateTimeOffset>
             {
                 private readonly DateTimeZoneCodec _codec;
 
                 private readonly int _entries;
-                private short[] _offsets;
+                private long[] _offsets;
                 private long[] _ticks;
                 private int _index;
                 private bool _disposed;
@@ -761,20 +740,15 @@ namespace Microsoft.ML.Runtime.Data.IO
                     _entries = items;
                     _index = -1;
 
-                    _offsets = _codec._shortBufferPool.Get();
+                    _offsets = _codec._longBufferPool.Get();
                     Utils.EnsureSize(ref _offsets, _entries, false);
                     for (int i = 0; i < _entries; i++)
-                    {
-                        _offsets[i] = Reader.ReadInt16();
-                        Contracts.CheckDecode(DvDateTimeZone.MinMinutesOffset <= _offsets[i] && _offsets[i] <= DvDateTimeZone.MaxMinutesOffset);
-                    }
+                        _offsets[i] = Reader.ReadInt64();
+
                     _ticks = _codec._longBufferPool.Get();
                     Utils.EnsureSize(ref _ticks, _entries, false);
                     for (int i = 0; i < _entries; i++)
-                    {
                         _ticks[i] = Reader.ReadInt64();
-                        Contracts.CheckDecode(_ticks[i] == DvInt8.RawNA || (ulong)_ticks[i] <= DvDateTime.MaxTicks);
-                    }
                 }
 
                 public override void MoveNext()
@@ -783,17 +757,17 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Contracts.Check(++_index < _entries, "reader already read all values");
                 }
 
-                public override void Get(ref DvDateTimeZone value)
+                public override void Get(ref DateTimeOffset value)
                 {
                     Contracts.Assert(!_disposed);
-                    value = new DvDateTimeZone(_ticks[_index], _offsets[_index]);
+                    value = new DateTimeOffset(new DateTime(_ticks[_index]), new TimeSpan(_offsets[_index]));
                 }
 
                 public override void Dispose()
                 {
                     if (!_disposed)
                     {
-                        _codec._shortBufferPool.Return(_offsets);
+                        _codec._longBufferPool.Return(_offsets);
                         _codec._longBufferPool.Return(_ticks);
                         _offsets = null;
                         _ticks = null;

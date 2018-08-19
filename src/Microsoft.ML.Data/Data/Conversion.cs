@@ -15,8 +15,8 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data.Conversion
 {
     using BL = DvBool;
-    using DT = DvDateTime;
-    using DZ = DvDateTimeZone;
+    using DT = DateTime;
+    using DZ = DateTimeOffset;
     using I1 = DvInt1;
     using I2 = DvInt2;
     using I4 = DvInt4;
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
     using RawI4 = Int32;
     using RawI8 = Int64;
     using SB = StringBuilder;
-    using TS = DvTimeSpan;
+    using TS = TimeSpan;
     using TX = DvText;
     using U1 = Byte;
     using U2 = UInt16;
@@ -252,9 +252,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddIsNA<R8>(IsNA);
             AddIsNA<BL>(IsNA);
             AddIsNA<TX>(IsNA);
-            AddIsNA<TS>(IsNA);
-            AddIsNA<DT>(IsNA);
-            AddIsNA<DZ>(IsNA);
 
             AddGetNA<I1>(GetNA);
             AddGetNA<I2>(GetNA);
@@ -264,9 +261,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddGetNA<R8>(GetNA);
             AddGetNA<BL>(GetNA);
             AddGetNA<TX>(GetNA);
-            AddGetNA<TS>(GetNA);
-            AddGetNA<DT>(GetNA);
-            AddGetNA<DZ>(GetNA);
 
             AddHasNA<I1>(HasNA);
             AddHasNA<I2>(HasNA);
@@ -276,9 +270,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddHasNA<R8>(HasNA);
             AddHasNA<BL>(HasNA);
             AddHasNA<TX>(HasNA);
-            AddHasNA<TS>(HasNA);
-            AddHasNA<DT>(HasNA);
-            AddHasNA<DZ>(HasNA);
 
             AddIsDef<I1>(IsDefault);
             AddIsDef<I2>(IsDefault);
@@ -853,9 +844,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         private bool IsNA(ref R4 src) => src.IsNA();
         private bool IsNA(ref R8 src) => src.IsNA();
         private bool IsNA(ref BL src) => src.IsNA;
-        private bool IsNA(ref TS src) => src.IsNA;
-        private bool IsNA(ref DT src) => src.IsNA;
-        private bool IsNA(ref DZ src) => src.IsNA;
         private bool IsNA(ref TX src) => src.IsNA;
         #endregion IsNA
 
@@ -867,9 +855,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         private bool HasNA(ref VBuffer<R4> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA()) return true; } return false; }
         private bool HasNA(ref VBuffer<R8> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA()) return true; } return false; }
         private bool HasNA(ref VBuffer<BL> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
-        private bool HasNA(ref VBuffer<TS> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
-        private bool HasNA(ref VBuffer<DT> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
-        private bool HasNA(ref VBuffer<DZ> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
         private bool HasNA(ref VBuffer<TX> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
         #endregion HasNA
 
@@ -907,9 +892,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         private void GetNA(ref R4 value) => value = R4.NaN;
         private void GetNA(ref R8 value) => value = R8.NaN;
         private void GetNA(ref BL value) => value = BL.NA;
-        private void GetNA(ref TS value) => value = TS.NA;
-        private void GetNA(ref DT value) => value = DT.NA;
-        private void GetNA(ref DZ value) => value = DZ.NA;
         private void GetNA(ref TX value) => value = TX.NA;
         #endregion GetNA
 
@@ -1041,9 +1023,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             else if (src.IsTrue)
                 dst.Append("1");
         }
-        public void Convert(ref TS src, ref SB dst) { ClearDst(ref dst); if (!src.IsNA) dst.AppendFormat("{0:c}", (TimeSpan)src); }
-        public void Convert(ref DT src, ref SB dst) { ClearDst(ref dst); if (!src.IsNA) dst.AppendFormat("{0:o}", (DateTime)src); }
-        public void Convert(ref DZ src, ref SB dst) { ClearDst(ref dst); if (!src.IsNA) dst.AppendFormat("{0:o}", (DateTimeOffset)src); }
+        public void Convert(ref TS src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:c}", src); }
+        public void Convert(ref DT src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:o}", src); }
+        public void Convert(ref DZ src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:o}", src); }
         #endregion ToStringBuilder
 
         #region FromR4
@@ -1472,61 +1454,37 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         public bool TryParse(ref TX src, out TS dst)
         {
+            dst = default;
             if (!src.HasChars)
-            {
-                if (src.IsNA)
-                    dst = TS.NA;
-                else
-                    dst = default(TS);
                 return true;
-            }
-            TimeSpan res;
-            if (TimeSpan.TryParse(src.ToString(), CultureInfo.InvariantCulture, out res))
-            {
-                dst = new TS(res);
+
+            if (TimeSpan.TryParse(src.ToString(), CultureInfo.InvariantCulture, out dst))
                 return true;
-            }
-            dst = TS.NA;
+
             return IsStdMissing(ref src);
         }
 
         public bool TryParse(ref TX src, out DT dst)
         {
+            dst = default;
             if (!src.HasChars)
-            {
-                if (src.IsNA)
-                    dst = DvDateTime.NA;
-                else
-                    dst = default(DvDateTime);
                 return true;
-            }
-            DateTime res;
-            if (DateTime.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out res))
-            {
-                dst = new DT(res);
+
+            if (DateTime.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out dst))
                 return true;
-            }
-            dst = DvDateTime.NA;
+
             return IsStdMissing(ref src);
         }
 
         public bool TryParse(ref TX src, out DZ dst)
         {
+            dst = default;
             if (!src.HasChars)
-            {
-                if (src.IsNA)
-                    dst = DvDateTimeZone.NA;
-                else
-                    dst = default(DvDateTimeZone);
                 return true;
-            }
-            DateTimeOffset res;
-            if (DateTimeOffset.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out res))
-            {
-                dst = new DZ(res);
+
+            if (DateTimeOffset.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out dst))
                 return true;
-            }
-            dst = DvDateTimeZone.NA;
+
             return IsStdMissing(ref src);
         }
 
@@ -1804,21 +1762,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 src.AddToStringBuilder(dst);
         }
 
-        public void Convert(ref TX span, ref TS value)
-        {
-            if (!TryParse(ref span, out value))
-                Contracts.Assert(value.IsNA);
-        }
-        public void Convert(ref TX span, ref DT value)
-        {
-            if (!TryParse(ref span, out value))
-                Contracts.Assert(value.IsNA);
-        }
-        public void Convert(ref TX span, ref DZ value)
-        {
-            if (!TryParse(ref span, out value))
-                Contracts.Assert(value.IsNA);
-        }
+        public void Convert(ref TX span, ref TS value) => TryParse(ref span, out value);
+        public void Convert(ref TX span, ref DT value) => TryParse(ref span, out value);
+        public void Convert(ref TX span, ref DZ value) => TryParse(ref span, out value);
+
         #endregion FromTX
 
         #region FromBL

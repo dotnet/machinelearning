@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             RegisterSimpleCodec(new UnsafeTypeCodec<ulong>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<Single>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<Double>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvTimeSpan>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<TimeSpan>(this));
             RegisterSimpleCodec(new DvTextCodec(this));
             RegisterSimpleCodec(new BoolCodec(this));
             RegisterSimpleCodec(new DateTimeCodec(this));
