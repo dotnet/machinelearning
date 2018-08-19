@@ -282,7 +282,7 @@ namespace Microsoft.ML.Runtime.Api
                     else if (fieldType.GetElementType() == typeof(bool))
                     {
                         Ch.Assert(colType.ItemType.IsBool);
-                        return CreateConvertingVBufferSetter<bool, bool>(input, index, poke, peek, x => (bool)x);
+                        return CreateConvertingVBufferSetter<bool, bool>(input, index, poke, peek, x => x);
                     }
                     else if (fieldType.GetElementType() == typeof(int))
                     {

@@ -377,7 +377,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             Assert.Equal(0.000393, stdev, 6);
                         isWeightedGetter(ref isWeighted);
-                        //Assert.True(isWeighted == (w == 1)); @codemzs is investigating this. 
+                        Assert.True(isWeighted == (w == 1));
                     }
                     double sum = 0;
                     double weightedSum = 0;

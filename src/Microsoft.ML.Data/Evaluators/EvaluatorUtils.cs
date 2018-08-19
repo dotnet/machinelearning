@@ -1256,7 +1256,7 @@ namespace Microsoft.ML.Runtime.Data
                 else if (i == isWeightedCol)
                 {
                     env.AssertValue(weightedDvBldr);
-                    dvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { false, true} : new[] { false });
+                    dvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { false, false} : new[] { false });
                     weightedDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { true, true } : new[] { true });
                 }
                 else if (i == foldCol)

@@ -262,7 +262,7 @@ namespace Microsoft.ML.Runtime.Data
         private void GetPredictedLabelCore(Float score, ref bool value)
         {
             //Behavior for NA values is undefined.
-            value = score > _threshold ? true : false;
+            value = score > _threshold;
         }
 
         private void GetPredictedLabelCoreAsKey(Float score, ref uint value)
