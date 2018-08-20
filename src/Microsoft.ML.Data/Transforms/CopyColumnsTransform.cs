@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -72,7 +75,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be copied.</param>
         public CopyColumnsTransform(IHostEnvironment env, IDataView input, string name, string source)
-            : this(env, new Arguments(){ Column = new[] { new Column() { Source = source, Name = name }}}, input)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source, Name = name } } }, input)
         {
         }
 
@@ -161,6 +164,80 @@ namespace Microsoft.ML.Runtime.Data
             Func<int, ValueGetter<int>> del = input.GetGetter<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType);
             return (Delegate)methodInfo.Invoke(input, new object[] { col });
+        }
+    }
+
+    public sealed class CopyColumnsEstimator : IEstimator<CopyColumnsTransformer>
+    {
+        private readonly (string source, string name)[] _columnsMapping;
+
+        public CopyColumnsEstimator(string input, string output)
+        {
+            Contracts.CheckNonWhiteSpace(input, nameof(input));
+            Contracts.CheckNonWhiteSpace(output, nameof(output));
+            _columnsMapping = new (string, string)[1] { (input, output) };
+        }
+
+        public CopyColumnsEstimator((string source, string name)[] columns)
+        {
+            Contracts.CheckValue(columns, nameof(columns));
+            var newNames = new HashSet<string>();
+            foreach ((string source, string name) pair in columns)
+            {
+                if (newNames.Contains(pair.name))
+                    throw Contracts.ExceptUserArg(nameof(columns), $"New column {pair.name} specified multiple times");
+                newNames.Add(pair.name);
+            }
+            _columnsMapping = columns;
+        }
+
+        public CopyColumnsTransformer Fit(IDataView input)
+        {
+            // invoke schema validation.
+            GetOutputSchema(SchemaShape.Create(input.Schema));
+            return new CopyColumnsTransformer(_columnsMapping);
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Contracts.CheckValue(inputSchema, nameof(inputSchema));
+            Contracts.CheckValue(inputSchema.Columns, nameof(inputSchema.Columns));
+            var originDic = inputSchema.Columns.ToDictionary(x => x.Name);
+            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach ((string source, string name) pair in _columnsMapping)
+            {
+                if (originDic.ContainsKey(pair.source))
+                {
+                    var col = originDic[pair.source].CloneWithNewName(pair.name);
+                    resultDic[pair.name] = col;
+                }
+                else
+                {
+                    throw Contracts.ExceptUserArg(nameof(inputSchema), $"{pair.source} not found in {nameof(inputSchema)}");
+                }
+            }
+            var result = new SchemaShape(originDic.Values.ToArray());
+            return result;
+        }
+    }
+
+    public sealed class CopyColumnsTransformer : ITransformer
+    {
+        private readonly (string source, string name)[] _columns;
+
+        public CopyColumnsTransformer((string source, string name)[] columns)
+        {
+            _columns = columns;
+        }
+
+        public ISchema GetOutputSchema(ISchema inputSchema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataView Transform(IDataView input)
+        {
+            throw new NotImplementedException();
         }
     }
 }
