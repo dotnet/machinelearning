@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Tests.Scenarios.Api;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
-    using LinearModel = LinearPredictor;
+    using TScalarPredictor = IPredictorProducing<float>;
 
     public sealed class LoaderWrapper : IDataReader<IMultiStreamSource>, ICanSaveModel
     {
@@ -426,7 +427,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public sealed class MySdca : TrainerBase<BinaryScorerWrapper<IPredictor>, IPredictor>
+    public sealed class MySdca : TrainerBase<BinaryScorerWrapper<TScalarPredictor>, TScalarPredictor>
     {
         private readonly LinearClassificationTrainer.Arguments _args;
 
@@ -436,12 +437,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _args = args;
         }
 
-        protected override IPredictor TrainCore(TrainContext context) => new LinearClassificationTrainer(_env, _args).Train(context);
+        protected override TScalarPredictor TrainCore(TrainContext context) => new LinearClassificationTrainer(_env, _args).Train(context);
 
         public ITransformer Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
 
-        protected override BinaryScorerWrapper<IPredictor> MakeScorer(IPredictor predictor, RoleMappedData data)
-            => new BinaryScorerWrapper<IPredictor>(_env, predictor, data.Data.Schema, _featureCol, new BinaryClassifierScorer.Arguments());
+        protected override BinaryScorerWrapper<TScalarPredictor> MakeScorer(TScalarPredictor predictor, RoleMappedData data)
+            => new BinaryScorerWrapper<TScalarPredictor>(_env, predictor, data.Data.Schema, _featureCol, new BinaryClassifierScorer.Arguments());
     }
 
     public sealed class MySdcaMulticlass : TrainerBase<ScorerWrapper<IPredictor>, IPredictor>
@@ -509,7 +510,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _evaluator = new BinaryClassifierEvaluator(env, args);
         }
 
-        public BinaryClassificationMetrics Evaluate(IDataView data, string labelColumn = DefaultColumnNames.Label, 
+        public BinaryClassificationMetrics Evaluate(IDataView data, string labelColumn = DefaultColumnNames.Label,
             string probabilityColumn = DefaultColumnNames.Probability)
         {
             var ci = EvaluateUtils.GetScoreColumnInfo(_env, data.Schema, null, DefaultColumnNames.Score, MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
@@ -622,6 +623,37 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    public sealed class MyOva : TrainerBase<ScorerWrapper<OvaPredictor>, OvaPredictor>
+    {
+        private readonly IEstimator<IPredictorTransformer<TScalarPredictor>> _binaryEstimator;
+
+        public MyOva(IHostEnvironment env, IEstimator<IPredictorTransformer<TScalarPredictor>> estimator,
+            string featureColumn = DefaultColumnNames.Features, string labelColumn = DefaultColumnNames.Label)
+            : base(env, false, false, featureColumn, labelColumn)
+        {
+            _binaryEstimator = estimator;
+        }
+
+        protected override ScorerWrapper<OvaPredictor> MakeScorer(OvaPredictor predictor, RoleMappedData data)
+            => MakeScorerBasic(predictor, data);
+
+        protected override OvaPredictor TrainCore(TrainContext trainContext)
+        {
+            var trainRoles = trainContext.TrainingSet;
+            trainRoles.CheckMultiClassLabel(out var numClasses);
+
+            var predictors = new IPredictorTransformer<TScalarPredictor>[numClasses];
+            for (int iClass = 0; iClass < numClasses; iClass++)
+            {
+                var data = new LabelIndicatorTransform(_env, trainRoles.Data, iClass, "Label");
+                predictors[iClass] = _binaryEstimator.Fit(data);
+            }
+            var prs = predictors.Select(x => x.InnerModel);
+            var finalPredictor = OvaPredictor.Create(_env.Register("ova"), prs.ToArray());
+            return finalPredictor;
         }
     }
 
