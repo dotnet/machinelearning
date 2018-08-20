@@ -5,9 +5,10 @@
 using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(Stacking), typeof(Stacking.Arguments), typeof(SignatureCombiner), Stacking.UserName, Stacking.LoadName)]
@@ -16,7 +17,7 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     using TScalarPredictor = IPredictorProducing<Single>;
-    public sealed class Stacking : BaseScalarStacking<SignatureBinaryClassifierTrainer>, IBinaryOutputCombiner, ICanSaveModel
+    public sealed class Stacking : BaseScalarStacking, IBinaryOutputCombiner, ICanSaveModel
     {
         public const string UserName = "Stacking";
         public const string LoadName = "Stacking";
@@ -35,9 +36,17 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
         public sealed class Arguments : ArgumentsBase, ISupportBinaryOutputCombinerFactory
         {
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
+                Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureBinaryClassifierTrainer))]
+            [TGUI(Label = "Base predictor")]
+            public IComponentFactory<ITrainer<TScalarPredictor>> BasePredictorType;
+
+            internal override IComponentFactory<ITrainer<TScalarPredictor>> GetPredictorFactory() => BasePredictorType;
+
             public Arguments()
             {
-                BasePredictorType = new SubComponent<ITrainer<TScalarPredictor>, SignatureBinaryClassifierTrainer>("FastTreeBinaryClassification");
+                BasePredictorType = ComponentFactoryUtils.CreateFromFunction(
+                    env => new FastTreeBinaryClassificationTrainer(env, new FastTreeBinaryClassificationTrainer.Arguments()));
             }
 
             public IBinaryOutputCombiner CreateComponent(IHostEnvironment env) => new Stacking(env, this);

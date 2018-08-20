@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Data.Utilities;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -74,8 +75,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Path parser to extract column name/value pairs from the file path.", ShortName = "parser")]
             public IPartitionedPathParserFactory PathParserFactory = new ParquetPartitionedPathParserFactory();
 
-            [Argument(ArgumentType.Multiple, HelpText = "The data loader.")]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, HelpText = "The data loader.", SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
         }
 
         public sealed class Column
@@ -173,6 +174,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
             _host.CheckValue(args, nameof(args));
+            _host.CheckValue(args.Loader, nameof(args.Loader));
             _host.CheckValue(files, nameof(files));
 
             _pathParser = args.PathParserFactory.CreateComponent(_host);
@@ -180,7 +182,7 @@ namespace Microsoft.ML.Runtime.Data
 
             _files = files;
 
-            var subLoader = args.Loader.CreateInstance(_host, _files);
+            var subLoader = args.Loader.CreateComponent(_host, _files);
             _subLoaderBytes = SaveLoaderToBytes(subLoader);
 
             string relativePath = GetRelativePath(args.BasePath, files);

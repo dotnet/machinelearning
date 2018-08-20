@@ -550,7 +550,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             // REVIEW: Ideally, we'd adjust the indices once so we wouldn't need to
             // repeatedly deal with padding adjustments.
-            SseUtils.ZeroMatrixItems(Items, ColCount, ColCountPhy, indices);
+            CpuMathUtils.ZeroMatrixItems(Items, ColCount, ColCountPhy, indices);
         }
     }
 
