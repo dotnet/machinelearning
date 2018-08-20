@@ -124,10 +124,11 @@ namespace Microsoft.ML.Runtime.Data
         public const string UserName = "Categorical Transform";
 
         /// <summary>
-        /// A helper method to create <see cref="CategoricalTransform"/> for public facing API.
+        /// Convenience method for creating <see cref="CategoricalTransform"/>.
+        /// <include file = 'doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/summary' />
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="outputKind">The type of output expected.</param>

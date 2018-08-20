@@ -41,7 +41,8 @@ namespace Microsoft.ML.Runtime.Data
         internal static string RegistrationName = "CountFeatureSelectionTransform";
 
         /// <summary>
-        /// A helper method to create CountFeatureSelection transform for public facing API.
+        /// Convenience method for creating <see cref="CountFeatureSelectionTransform"/>.
+        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]/summary' />
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>

@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// Transform to drop columns with the given names. Note that if there are names that
-    /// are not in the input schema, that is not an error.
+    /// are not in the input schema, the operation will not result in an error and data will not be affected.
     /// </summary>
     public sealed class DropColumnsTransform : RowToRowMapperTransformBase
     {
@@ -238,10 +238,12 @@ namespace Microsoft.ML.Runtime.Data
         private const string KeepRegistrationName = "KeepColumns";
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Convenience constructor for creating <see cref="DropColumnsTransform"/>.
+        /// The <see cref="DropColumnsTransform"/> drops columns with the given names. Note that if there are names that
+        /// are not in the input schema, the operation will not result in an error and data will not be affected.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
         /// <param name="columnsToDrop">Name of the columns to be dropped.</param>
         public DropColumnsTransform(IHostEnvironment env, IDataView input, params string[] columnsToDrop)
          :this(env, new Arguments() { Column = columnsToDrop }, input)

@@ -536,10 +536,11 @@ namespace Microsoft.ML.Runtime.Data
         public override ISchema Schema => _bindings;
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Convenience constructor for creating <see cref="ConcatTransform"/>.
+        /// The <see cref="ConcatTransform"/> concatenates two or more columns (either scalar or vector) of same type into a single vector column.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Input columns to concatenate.</param>
         public ConcatTransform(IHostEnvironment env, IDataView input, string name, params string[] source)

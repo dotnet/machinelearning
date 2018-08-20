@@ -247,10 +247,12 @@ namespace Microsoft.ML.Runtime.Data
         private readonly ColInfoEx[] _exes;
 
         /// <summary>
-        /// A helper method to create GlobalContrastNormalizer transform for public facing API.
+        /// Convenience method for creating <see cref="LpNormNormalizerTransform"/> for Global contrast normalization (GCN).
+        /// The GCN performs the following operation on a vector X:
+        ///         Y = (s * X - M) / D, where s is a scale, M is mean and D is either L2 norm or standard deviation.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
@@ -305,10 +307,13 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// A helper method to create LpNormNormalizer transform for public facing API.
+        /// Convenience method for creating <see cref="LpNormNormalizerTransform"/> for Lp-Norm normalization.
+        /// The Lp-Norm normalizes rows individually by rescaling them to unit norm (L2, L1 or LInf).
+        /// It performs the following operation on a vector X:
+        ///         Y = (X - M) / D, where M is mean and D is either L2 norm, L1 norm or LInf norm.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         ///         /// <param name="normKind">The norm to use to normalize each sample.</param>

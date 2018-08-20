@@ -84,10 +84,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Convenience constructor for creating <see cref="BootstrapSampleTransform"/>.
+        /// The <see cref="BootstrapSampleTransform"/> performs bootstrap sampling (random sampling with replacement) over <see cref="IDataView"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="input">Input <see cref="IDataView"/></param>
         /// <param name="complement">Whether this is the out-of-bag sample, that is, all those rows that are not selected by the transform.</param>
         /// <param name="seed">The random seed. If unspecified random state will be instead derived from the environment.</param>
         /// <param name="shuffleInput">Whether we should attempt to shuffle the source data. By default on, but can be turned off for efficiency.</param>
