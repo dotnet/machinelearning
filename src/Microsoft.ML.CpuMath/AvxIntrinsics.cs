@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static Vector128<float> GetLow(in Vector256<float> x)
         {
-            return Avx.ExtractVector128(x, 0);
+            return Avx.GetLowerHalf(x);
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
