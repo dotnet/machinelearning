@@ -8,15 +8,22 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-[assembly: LoadableClass(typeof(ITransformer), typeof(TransformerChain), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(TransformerChain<ITransformer>), typeof(TransformerChain), null, typeof(SignatureLoadModel),
     "Transformer chain", TransformerChain.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
+    /// <summary>
+    /// This enum allows for 'tagging' the estimators (and subsequently transformers) in the chain to be used
+    /// 'only for training', 'for training and evaluation' etc.
+    /// Most notable example is, transformations over the label column should not be used for scoring, so the scope
+    /// should be <see cref="Training"/> or <see cref="TrainTest"/>.
+    /// </summary>
     [Flags]
     public enum TransformerScope
     {
@@ -28,7 +35,11 @@ namespace Microsoft.ML.Runtime.Data
         Everything = Training | Testing | Scoring
     }
 
-    public sealed class TransformerChain<TLastTransformer> : ITransformer, ICanSaveModel
+    /// <summary>
+    /// A chain of transformers (possibly empty) that end with a <typeparamref name="TLastTransformer"/>.
+    /// For an empty chain, <typeparamref name="TLastTransformer"/> is always <see cref="ITransformer"/>.
+    /// </summary>
+    public sealed class TransformerChain<TLastTransformer> : ITransformer, ICanSaveModel, IEnumerable<ITransformer>
     where TLastTransformer : class, ITransformer
     {
         private readonly ITransformer[] _transformers;
@@ -37,20 +48,47 @@ namespace Microsoft.ML.Runtime.Data
 
         private const string TransformDirTemplate = "Transform_{0:000}";
 
-        internal TransformerChain(ITransformer[] transformers, TransformerScope[] scopes)
+        private static VersionInfo GetVersionInfo()
         {
-            _transformers = transformers;
-            _scopes = scopes;
-            LastTransformer = transformers.LastOrDefault() as TLastTransformer;
-            Contracts.Check((transformers.Length > 0) == (LastTransformer != null));
-            Contracts.Check(transformers.Length == scopes.Length);
+            return new VersionInfo(
+                modelSignature: "XF CHAIN",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: TransformerChain.LoaderSignature);
         }
 
+        /// <summary>
+        /// Create a transformer chain by specifying transformers and their scopes.
+        /// </summary>
+        /// <param name="transformers">Transformers to be chained.</param>
+        /// <param name="scopes">Transformer scopes, parallel to <paramref name="transformers"/>.</param>
+        public TransformerChain(IEnumerable<ITransformer> transformers, IEnumerable<TransformerScope> scopes)
+        {
+            Contracts.CheckValueOrNull(transformers);
+            Contracts.CheckValueOrNull(scopes);
+
+            _transformers = transformers?.ToArray() ?? new ITransformer[0];
+            _scopes = scopes?.ToArray() ?? new TransformerScope[0];
+            LastTransformer = transformers.LastOrDefault() as TLastTransformer;
+
+            Contracts.Check((_transformers.Length > 0) == (LastTransformer != null));
+            Contracts.Check(_transformers.Length == _scopes.Length);
+        }
+
+        /// <summary>
+        /// Create a transformer chain by specifying all the transformers. The scopes are assumed to be
+        /// <see cref="TransformerScope.Everything"/>.
+        /// </summary>
+        /// <param name="transformers"></param>
         public TransformerChain(params ITransformer[] transformers)
         {
+            Contracts.CheckValueOrNull(transformers);
+
             if (Utils.Size(transformers) == 0)
             {
                 _transformers = new ITransformer[0];
+                _scopes = new TransformerScope[0];
                 LastTransformer = null;
             }
             else
@@ -64,29 +102,26 @@ namespace Microsoft.ML.Runtime.Data
 
         public ISchema GetOutputSchema(ISchema inputSchema)
         {
+            Contracts.CheckValue(inputSchema, nameof(inputSchema));
+
             var s = inputSchema;
             foreach (var xf in _transformers)
-            {
                 s = xf.GetOutputSchema(s);
-                if (s == null)
-                    return null;
-            }
             return s;
         }
 
         public IDataView Transform(IDataView input)
         {
+            Contracts.CheckValue(input, nameof(input));
+
+            // Trigger schema propagation prior to transforming.
+            // REVIEW: does this actually constitute 'early warning', given that Transform call is lazy anyway?
+            GetOutputSchema(input.Schema);
+
             var dv = input;
             foreach (var xf in _transformers)
-            {
                 dv = xf.Transform(dv);
-            }
             return dv;
-        }
-
-        public IEnumerable<ITransformer> GetParts()
-        {
-            return _transformers;
         }
 
         public TransformerChain<ITransformer> GetModelFor(TransformerScope scopeFilter)
@@ -126,6 +161,9 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        /// <summary>
+        /// The loading constructor of transformer chain. Reverse of <see cref="Save(ModelSaveContext)"/>.
+        /// </summary>
         internal TransformerChain(IHostEnvironment env, ModelLoadContext ctx)
         {
             int len = ctx.Reader.ReadInt32();
@@ -143,35 +181,39 @@ namespace Microsoft.ML.Runtime.Data
                 LastTransformer = null;
         }
 
-        private static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "XF  PIPE",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: TransformerChain.LoaderSignature);
-        }
-    }
-
-    public static class TransformerChain
-    {
-        public const string LoaderSignature = "TransformerChain";
-
-        public static ITransformer Create(IHostEnvironment env, ModelLoadContext ctx) => new TransformerChain<ITransformer>(env, ctx);
-
-        public static void SaveTo(this ITransformer transformer, IHostEnvironment env, Stream outputStream)
+        public void SaveTo(IHostEnvironment env, Stream outputStream)
         {
             using (var ch = env.Start("Saving pipeline"))
             {
                 using (var rep = RepositoryWriter.CreateNew(outputStream, ch))
                 {
                     ch.Trace("Saving transformer chain");
-                    ModelSaveContext.SaveModel(rep, transformer, LoaderSignature);
+                    ModelSaveContext.SaveModel(rep, this, TransformerChain.LoaderSignature);
                     rep.Commit();
                 }
             }
         }
+
+        public IEnumerator<ITransformer> GetEnumerator() => ((IEnumerable<ITransformer>)_transformers).GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    /// <summary>
+    /// Saving/loading routines for transformer chains.
+    /// </summary>
+    public static class TransformerChain
+    {
+        public const string LoaderSignature = "TransformerChain";
+
+        public static TransformerChain<ITransformer> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new TransformerChain<ITransformer>(env, ctx);
+
+        /// <summary>
+        /// Save any transformer to a stream by wrapping it into a transformer chain.
+        /// </summary>
+        public static void SaveTo(this ITransformer transformer, IHostEnvironment env, Stream outputStream)
+            => new TransformerChain<ITransformer>(transformer).SaveTo(env, outputStream);
 
         public static TransformerChain<ITransformer> LoadFrom(IHostEnvironment env, Stream stream)
         {

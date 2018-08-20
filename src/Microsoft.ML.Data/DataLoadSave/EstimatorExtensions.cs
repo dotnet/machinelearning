@@ -11,6 +11,9 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public static class LearningPipelineExtensions
     {
+        /// <summary>
+        /// Create a composite reader estimator by appending an estimator to a reader estimator.
+        /// </summary>
         public static CompositeReaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
             this IDataReaderEstimator<TSource, IDataReader<TSource>> start, IEstimator<TTrans> estimator)
             where TTrans : class, ITransformer
@@ -21,6 +24,9 @@ namespace Microsoft.ML.Runtime.Data
             return new CompositeReaderEstimator<TSource, ITransformer>(start).Append(estimator);
         }
 
+        /// <summary>
+        /// Create an estimator chain by appending an estimator to an estimator.
+        /// </summary>
         public static EstimatorChain<TTrans> Append<TTrans>(
             this IEstimator<ITransformer> start, IEstimator<TTrans> estimator,
             TransformerScope scope = TransformerScope.Everything)
@@ -32,6 +38,9 @@ namespace Microsoft.ML.Runtime.Data
             return new EstimatorChain<ITransformer>().Append(start).Append(estimator, scope);
         }
 
+        /// <summary>
+        /// Create a composite reader by appending a transformer to a data reader.
+        /// </summary>
         public static CompositeDataReader<TSource, TTrans> Append<TSource, TTrans>(this IDataReader<TSource> reader, TTrans transformer)
             where TTrans : class, ITransformer
         {
@@ -41,6 +50,9 @@ namespace Microsoft.ML.Runtime.Data
             return new CompositeDataReader<TSource, ITransformer>(reader).AppendTransformer(transformer);
         }
 
+        /// <summary>
+        /// Create a transformer chain by appending a transformer to a transformer.
+        /// </summary>
         public static TransformerChain<TTrans> Append<TTrans>(this ITransformer start, TTrans transformer)
             where TTrans : class, ITransformer
         {

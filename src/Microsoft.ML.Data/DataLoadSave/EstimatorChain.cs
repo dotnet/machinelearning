@@ -8,40 +8,53 @@ using System.Linq;
 
 namespace Microsoft.ML.Runtime.Data
 {
+    /// <summary>
+    /// Represents a chain (potentially empty) of estimators that end with a <typeparamref name="TLastTransformer"/>.
+    /// If the chain is empty, <typeparamref name="TLastTransformer"/> is always <see cref="ITransformer"/>.
+    /// </summary>
     public sealed class EstimatorChain<TLastTransformer> : IEstimator<TransformerChain<TLastTransformer>>
         where TLastTransformer : class, ITransformer
     {
         private readonly TransformerScope[] _scopes;
-
         private readonly IEstimator<ITransformer>[] _estimators;
         public readonly IEstimator<TLastTransformer> LastEstimator;
 
         private EstimatorChain(IEstimator<ITransformer>[] estimators, TransformerScope[] scopes)
         {
-            _estimators = estimators;
-            _scopes = scopes;
-            LastEstimator = estimators.Last() as IEstimator<TLastTransformer>;
+            Contracts.AssertValueOrNull(estimators);
+            Contracts.AssertValueOrNull(scopes);
+            Contracts.Assert(Utils.Size(estimators) == Utils.Size(scopes));
 
-            Contracts.Check(LastEstimator != null);
-            Contracts.Check(Utils.Size(estimators) == Utils.Size(scopes));
+            _estimators = estimators ?? new IEstimator<ITransformer>[0];
+            _scopes = scopes ?? new TransformerScope[0];
+            LastEstimator = estimators.LastOrDefault() as IEstimator<TLastTransformer>;
+
+            Contracts.Assert((_estimators.Length > 0) == (LastEstimator != null));
         }
 
+        /// <summary>
+        /// Create an empty estimator chain.
+        /// </summary>
         public EstimatorChain()
         {
             _estimators = new IEstimator<ITransformer>[0];
-            LastEstimator = null;
             _scopes = new TransformerScope[0];
+            LastEstimator = null;
         }
 
         public TransformerChain<TLastTransformer> Fit(IDataView input)
         {
-            var dv = input;
+            // REVIEW: before fitting, run schema propagation.
+            // Currently, it throws.
+            // GetOutputSchema(SchemaShape.Create(input.Schema);
+
+            IDataView current = input;
             var xfs = new ITransformer[_estimators.Length];
             for (int i = 0; i < _estimators.Length; i++)
             {
                 var est = _estimators[i];
-                xfs[i] = est.Fit(dv);
-                dv = xfs[i].Transform(dv);
+                xfs[i] = est.Fit(current);
+                current = xfs[i].Transform(current);
             }
 
             return new TransformerChain<TLastTransformer>(xfs, _scopes);
@@ -51,11 +64,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             var s = inputSchema;
             foreach (var est in _estimators)
-            {
                 s = est.GetOutputSchema(s);
-                if (s == null)
-                    return null;
-            }
             return s;
         }
 

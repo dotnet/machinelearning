@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -100,6 +101,13 @@ namespace Microsoft.ML.Core.Data
     }
 
     /// <summary>
+    /// Exception class for schema validation errors.
+    /// </summary>
+    public class SchemaException : Exception
+    {
+    }
+
+    /// <summary>
     /// The 'data reader' takes a certain kind of input and turns it into an <see cref="IDataView"/>.
     /// </summary>
     /// <typeparam name="TSource">The type of input the reader takes.</typeparam>
@@ -148,7 +156,7 @@ namespace Microsoft.ML.Core.Data
         /// <summary>
         /// Schema propagation for transformers.
         /// Returns the output schema of the data, if the input schema is like the one provided.
-        /// Returns <c>null</c> iff the schema is invalid (then a call to Transform with this data will fail).
+        /// Throws <see cref="SchemaException"/> iff the input schema is not valid for the transformer.
         /// </summary>
         ISchema GetOutputSchema(ISchema inputSchema);
 
@@ -175,7 +183,7 @@ namespace Microsoft.ML.Core.Data
         /// <summary>
         /// Schema propagation for estimators.
         /// Returns the output schema shape of the estimator, if the input schema shape is like the one provided.
-        /// Returns <c>null</c> iff the schema shape is invalid (then a call to <see cref="Fit"/> with this data will fail).
+        /// Throws <see cref="SchemaException"/> iff the input schema is not valid for the estimator.
         /// </summary>
         SchemaShape GetOutputSchema(SchemaShape inputSchema);
     }
