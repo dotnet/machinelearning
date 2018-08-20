@@ -249,23 +249,29 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public abstract class TrainerBase<TTransformer, TModel> : IEstimator<TTransformer>
+    public interface ITrainerEstimator<out TTransformer, out TModel>: IEstimator<TTransformer>
+        where TTransformer: IPredictorTransformer<TModel>
+        where TModel: IPredictor
+    {
+        TrainerInfo TrainerInfo { get; }
+    }
+
+    public abstract class TrainerBase<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>
         where TTransformer : ScorerWrapper<TModel>
         where TModel : IPredictor
     {
         protected readonly IHostEnvironment _env;
         protected readonly string _featureCol;
         protected readonly string _labelCol;
-        private readonly bool _cache;
-        private readonly bool _normalize;
 
-        protected TrainerBase(IHostEnvironment env, bool cache, bool normalize, string featureColumn, string labelColumn)
+        public TrainerInfo TrainerInfo { get; }
+
+        protected TrainerBase(IHostEnvironment env, TrainerInfo trainerInfo, string featureColumn, string labelColumn)
         {
             _env = env;
-            _cache = cache;
-            _normalize = normalize;
             _featureCol = featureColumn;
             _labelCol = labelColumn;
+            TrainerInfo = trainerInfo;
         }
 
         public TTransformer Fit(IDataView input)
@@ -276,13 +282,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         protected TTransformer TrainTransformer(IDataView trainSet,
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
-            var cachedTrain = _cache ? new CacheDataView(_env, trainSet, prefetch: null) : trainSet;
+            var cachedTrain = TrainerInfo.WantCaching ? new CacheDataView(_env, trainSet, prefetch: null) : trainSet;
 
             var trainRoles = new RoleMappedData(cachedTrain, label: _labelCol, feature: _featureCol);
             var emptyData = new EmptyDataView(_env, trainSet.Schema);
             IDataView normalizer = emptyData;
 
-            if (_normalize && trainRoles.Schema.FeaturesAreNormalized() == false)
+            if (TrainerInfo.NeedNormalization && trainRoles.Schema.FeaturesAreNormalized() == false)
             {
                 var view = NormalizeTransform.CreateMinMaxNormalizer(_env, trainRoles.Data, name: trainRoles.Schema.Feature.Name);
                 normalizer = ApplyTransformUtils.ApplyAllTransformsToData(_env, view, emptyData, cachedTrain);
@@ -296,7 +302,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 validRoles = null;
             else
             {
-                var cachedValid = _cache ? new CacheDataView(_env, validationSet, prefetch: null) : validationSet;
+                var cachedValid = TrainerInfo.WantCaching ? new CacheDataView(_env, validationSet, prefetch: null) : validationSet;
                 cachedValid = ApplyTransformUtils.ApplyAllTransformsToData(_env, normalizer, cachedValid);
                 validRoles = new RoleMappedData(cachedValid, label: _labelCol, feature: _featureCol);
             }
@@ -434,7 +440,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         private readonly LinearClassificationTrainer.Arguments _args;
 
         public MySdca(IHostEnvironment env, LinearClassificationTrainer.Arguments args, string featureCol, string labelCol)
-            : base(env, true, true, featureCol, labelCol)
+            : base(env, new TrainerInfo(), featureCol, labelCol)
         {
             _args = args;
         }
@@ -452,7 +458,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         private readonly SdcaMultiClassTrainer.Arguments _args;
 
         public MySdcaMulticlass(IHostEnvironment env, SdcaMultiClassTrainer.Arguments args, string featureCol, string labelCol)
-            : base(env, true, true, featureCol, labelCol)
+            : base(env, new TrainerInfo(), featureCol, labelCol)
         {
             _args = args;
         }
@@ -467,7 +473,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         private readonly AveragedPerceptronTrainer _trainer;
 
         public MyAveragedPerceptron(IHostEnvironment env, AveragedPerceptronTrainer.Arguments args, string featureCol, string labelCol)
-            : base(env, false, true, featureCol, labelCol)
+            : base(env, new TrainerInfo(caching: false), featureCol, labelCol)
         {
             _trainer = new AveragedPerceptronTrainer(env, args);
         }
@@ -630,14 +636,17 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
     public sealed class MyOva : TrainerBase<ScorerWrapper<OvaPredictor>, OvaPredictor>
     {
-        private readonly IEstimator<IPredictorTransformer<TScalarPredictor>> _binaryEstimator;
+        private readonly ITrainerEstimator<IPredictorTransformer<TScalarPredictor>, TScalarPredictor> _binaryEstimator;
 
-        public MyOva(IHostEnvironment env, IEstimator<IPredictorTransformer<TScalarPredictor>> estimator,
+        public MyOva(IHostEnvironment env, ITrainerEstimator<IPredictorTransformer<TScalarPredictor>, TScalarPredictor> estimator,
             string featureColumn = DefaultColumnNames.Features, string labelColumn = DefaultColumnNames.Label)
-            : base(env, false, false, featureColumn, labelColumn)
+            : base(env, MakeTrainerInfo(estimator), featureColumn, labelColumn)
         {
             _binaryEstimator = estimator;
         }
+
+        private static TrainerInfo MakeTrainerInfo(ITrainerEstimator<IPredictorTransformer<TScalarPredictor>, TScalarPredictor> estimator) 
+            => new TrainerInfo(estimator.TrainerInfo.NeedNormalization, estimator.TrainerInfo.NeedCalibration, false);
 
         protected override ScorerWrapper<OvaPredictor> MakeScorer(OvaPredictor predictor, RoleMappedData data)
             => MakeScorerBasic(predictor, data);
