@@ -28,4 +28,8 @@
     <NativeAssemblyReference Include="LdaNative" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.5.1" />
+  </ItemGroup>
+
 </Project>
