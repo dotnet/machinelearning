@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
@@ -27,6 +28,7 @@ using System.Linq;
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
     using TScalarPredictor = IPredictorProducing<float>;
+    using TWeightsPredictor = IPredictorWithFeatureWeights<float>;
 
     public sealed class LoaderWrapper : IDataReader<IMultiStreamSource>, ICanSaveModel
     {
@@ -427,7 +429,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public sealed class MySdca : TrainerBase<BinaryScorerWrapper<TScalarPredictor>, TScalarPredictor>
+    public sealed class MySdca : TrainerBase<BinaryScorerWrapper<TWeightsPredictor>, TWeightsPredictor>
     {
         private readonly LinearClassificationTrainer.Arguments _args;
 
@@ -437,12 +439,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _args = args;
         }
 
-        protected override TScalarPredictor TrainCore(TrainContext context) => new LinearClassificationTrainer(_env, _args).Train(context);
+        protected override TWeightsPredictor TrainCore(TrainContext context) => new LinearClassificationTrainer(_env, _args).Train(context);
 
         public ITransformer Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
 
-        protected override BinaryScorerWrapper<TScalarPredictor> MakeScorer(TScalarPredictor predictor, RoleMappedData data)
-            => new BinaryScorerWrapper<TScalarPredictor>(_env, predictor, data.Data.Schema, _featureCol, new BinaryClassifierScorer.Arguments());
+        protected override BinaryScorerWrapper<TWeightsPredictor> MakeScorer(TWeightsPredictor predictor, RoleMappedData data)
+            => new BinaryScorerWrapper<TWeightsPredictor>(_env, predictor, data.Data.Schema, _featureCol, new BinaryClassifierScorer.Arguments());
     }
 
     public sealed class MySdcaMulticlass : TrainerBase<ScorerWrapper<IPredictor>, IPredictor>
