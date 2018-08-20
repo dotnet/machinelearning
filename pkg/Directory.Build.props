@@ -26,7 +26,6 @@
     <PackageIconUrl>https://aka.ms/mlnetlogo</PackageIconUrl>
     <PackageReleaseNotes>https://aka.ms/mlnetreleasenotes</PackageReleaseNotes>
     <PackageTags>ML.NET, ML, Machine Learning</PackageTags>
-    <Title>ML.NET</Title>
   </PropertyGroup>
 
   <ItemGroup>
