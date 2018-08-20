@@ -45,6 +45,12 @@ namespace Microsoft.ML.Core.Data
                 IsKey = isKey;
                 MetadataKinds = metadataKinds;
             }
+
+            public Column CloneWithNewName(string newName)
+            {
+                Contracts.Check(newName != Name, "Should be different name");
+                return new Column(newName, Kind, ItemKind, IsKey, MetadataKinds);
+            }
         }
 
         public SchemaShape(Column[] columns)

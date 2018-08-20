@@ -170,15 +170,16 @@ namespace Microsoft.ML.Runtime.Data
     public sealed class CopyColumnsEstimator : IEstimator<CopyColumnsTransformer>
     {
         private readonly (string source, string name)[] _columnsMapping;
-
-        public CopyColumnsEstimator(string input, string output)
+        private readonly IHost _host;
+        public CopyColumnsEstimator(IHostEnvironment env, string input, string output)
         {
             Contracts.CheckNonWhiteSpace(input, nameof(input));
             Contracts.CheckNonWhiteSpace(output, nameof(output));
             _columnsMapping = new (string, string)[1] { (input, output) };
+            _host = env.Register("CopyColumnsEstimator");
         }
 
-        public CopyColumnsEstimator((string source, string name)[] columns)
+        public CopyColumnsEstimator(IHostEnvironment env, (string source, string name)[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             var newNames = new HashSet<string>();
@@ -189,13 +190,14 @@ namespace Microsoft.ML.Runtime.Data
                 newNames.Add(pair.name);
             }
             _columnsMapping = columns;
+            _host = env.Register("CopyColumnsEstimator");
         }
 
         public CopyColumnsTransformer Fit(IDataView input)
         {
             // invoke schema validation.
             GetOutputSchema(SchemaShape.Create(input.Schema));
-            return new CopyColumnsTransformer(_columnsMapping);
+            return new CopyColumnsTransformer(_host, _columnsMapping);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -221,23 +223,91 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class CopyColumnsTransformer : ITransformer
+    public sealed class CopyColumnsTransformer : ITransformer, ICanSaveModel
     {
         private readonly (string source, string name)[] _columns;
+        private readonly IHost _host;
 
-        public CopyColumnsTransformer((string source, string name)[] columns)
+        private class CopyColumnsRowMapper : IRowMapper
+        {
+            private readonly ISchema _schema;
+            private readonly HashSet<int> _originalColumnSources;
+            private (string source, string name)[] _columns;
+
+            public CopyColumnsRowMapper(ISchema schema, (string source, string name)[] columns)
+            {
+                _schema = schema;
+                _columns = columns;
+                _originalColumnSources = new HashSet<int>();
+                HashSet<string> sources = new HashSet<string>();
+                foreach (var source in columns.Select(x => x.source))
+                    sources.Add(source);
+                for (int i = 0; i < _schema.ColumnCount; i++)
+                    if (sources.Contains(_schema.GetColumnName(i)))
+                        _originalColumnSources.Add(i);
+
+            }
+
+            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            {
+                var result = new Delegate[_columns.Length];
+                int i = 0;
+                foreach (var column in _columns)
+                {
+                    // validate activeOutput.
+                    input.Schema.TryGetColumnIndex(column.source, out int colIndex);
+                    var type = input.Schema.GetColumnType(colIndex);
+
+                    result[i++] = Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
+                }
+                disposer = null;
+                return result;
+            }
+
+            private Delegate MakeGetter<T>(IRow row, int src) => row.GetGetter<T>(src);
+
+            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput) => (col) => (activeOutput(col) && _originalColumnSources.Contains(col));
+
+            public RowMapperColumnInfo[] GetOutputColumns()
+            {
+                var result = new RowMapperColumnInfo[_columns.Length];
+                // Do I need return all columns or only output???
+                for (int i = 0; i < _columns.Length; i++)
+                {
+                    _schema.TryGetColumnIndex(_columns[i].source, out int colIndex);
+                    // how to get metadata?
+                    result[i] = new RowMapperColumnInfo(_columns[i].name, _schema.GetColumnType(colIndex), null);
+                }
+                return result;
+            }
+
+            public void Save(ModelSaveContext ctx)
+            {
+                throw new NotImplementedException();
+            }
+        }
+        public CopyColumnsTransformer(IHostEnvironment env, (string source, string name)[] columns)
         {
             _columns = columns;
+            _host = env.Register("CopyColumnsTransformer");
         }
 
         public ISchema GetOutputSchema(ISchema inputSchema)
+        {
+            //Validate schema.
+            return Transform(new EmptyDataView(_host, inputSchema)).Schema;
+        }
+
+        public void Save(ModelSaveContext ctx)
         {
             throw new NotImplementedException();
         }
 
         public IDataView Transform(IDataView input)
         {
-            throw new NotImplementedException();
+            IRowMapper mapper = new CopyColumnsRowMapper(input.Schema, _columns);
+            return new RowToRowMapperTransform(_host, input, mapper);
         }
+
     }
 }
