@@ -47,6 +47,8 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 
             Parallel.ForEach(collection, (input) =>
             {
+                // We need this lock because model itself is stateful object, and probably not thread safe.
+                // See comment on top of test.
                 lock (model)
                 {
                     var prediction = model.Predict(input);
