@@ -29,10 +29,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var concat = new ConcatTransform(env, term, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
                 var trainer = new Ova(env, new Ova.Arguments
                 {
-                    PredictorType = new SimpleComponentFactory<ITrainer<IPredictorProducing<float>>>
-                              (
-                                  e => new FastTreeBinaryClassificationTrainer(e, new FastTreeBinaryClassificationTrainer.Arguments())
-                              )
+                    PredictorType = ComponentFactoryUtils.CreateFromFunction(
+                        e => new FastTreeBinaryClassificationTrainer(e, new FastTreeBinaryClassificationTrainer.Arguments()))
                 });
 
                 IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, concat, prefetch: null) : concat;

@@ -330,7 +330,7 @@ namespace Microsoft.ML.Runtime.Data
                 };
             }
 
-            return new SimpleComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>(factoryFunc);
+            return ComponentFactoryUtils.CreateFromFunction(factoryFunc);
         }
 
         /// <summary>

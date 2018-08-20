@@ -672,10 +672,10 @@ namespace Microsoft.ML.Runtime.Data
                     trainScoreArgs.Trainer = new SubComponent<ITrainer, SignatureTrainer>(args.Trainer.Kind,
                         args.Trainer.Settings);
 
-                    trainScoreArgs.Scorer = new SimpleComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>(
+                    trainScoreArgs.Scorer = ComponentFactoryUtils.CreateFromFunction<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>(
                         (e, data, mapper, trainSchema) => Create(e, scorerArgs, data, mapper, trainSchema));
 
-                    var mapperFactory = new SimpleComponentFactory<IPredictor, ISchemaBindableMapper>(
+                    var mapperFactory = ComponentFactoryUtils.CreateFromFunction<IPredictor, ISchemaBindableMapper>(
                             (e, predictor) => new TreeEnsembleFeaturizerBindableMapper(e, scorerArgs, predictor));
 
                     var labelInput = AppendLabelTransform(host, ch, input, trainScoreArgs.LabelColumn, args.LabelPermutationSeed);
