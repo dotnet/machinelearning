@@ -6,7 +6,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     public static partial class CpuMathUtils
     {
-        // REVIEW NEEDED: AVX support cannot be checked in .NET Core App 2.0, so we assume Vector128 alignment for SSE.  Is it okay?
+        // REVIEW NEEDED: AVX support cannot be checked in .NET Standard 2.0, so we assume Vector128 alignment for SSE.  Is it okay?
 
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
         private const int Vector128Alignment = 16;

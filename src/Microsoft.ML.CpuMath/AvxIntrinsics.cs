@@ -46,14 +46,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static void ZeroUpper()
-        {
-            // Currently no-op since _mm256_zeroupper is not supported (ref: https://github.com/dotnet/coreclr/pull/16955)
-            // This is a placeholder in case the intrinsic is supported later on.
-            return;
-        }
-
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static Vector128<float> GetLow(in Vector256<float> x)
         {
             return Avx.ExtractVector128(x, 0);
@@ -264,8 +256,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                     pMatCurrent += 3 * ccol;
                 }
-
-                ZeroUpper();
             }
         }
 
@@ -326,8 +316,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 8;
                     pm0 += 8 * ccol;
                 }
-
-                ZeroUpper();
             }
         }
 
@@ -440,8 +428,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pMatCurrent += 3 * crow;
                     pSrcCurrent += 4;
                 }
-
-                ZeroUpper();
             }
         }
 
@@ -509,8 +495,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     ppos++;
                 }
-
-                ZeroUpper();
             }
         }
 
@@ -535,7 +519,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scalarVector128 = Sse.SetAllVector128(scalar);
 
-                while (pDstCurrent + 4 <= pDstEnd)
+                if (pDstCurrent + 4 <= pDstEnd)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, scalarVector128);
@@ -553,8 +537,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent++;
                 }
             }
-
-            ZeroUpper();
         }
 
         public static unsafe void ScaleU(float scale, Span<float> dst)
@@ -578,7 +560,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                while (pDstCurrent + 4 <= pEnd)
+                if (pDstCurrent + 4 <= pEnd)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
 
@@ -598,8 +580,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent++;
                 }
             }
-
-            ZeroUpper();
         }
 
         public static unsafe void ScaleSrcU(float scale, Span<float> src, Span<float> dst)
@@ -625,7 +605,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                while (pDstCurrent + 4 <= pDstEnd)
+                if (pDstCurrent + 4 <= pDstEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Multiply(srcVector, scaleVector128);
@@ -645,8 +625,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent++;
                 }
             }
-
-            ZeroUpper();
         }
 
         // dst[i] = a * (dst[i] + b)
@@ -673,7 +651,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> a128 = Sse.SetAllVector128(a);
                 Vector128<float> b128 = Sse.SetAllVector128(b);
 
-                while (pDstCurrent + 4 <= pDstEnd)
+                if (pDstCurrent + 4 <= pDstEnd)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, b128);
@@ -693,8 +671,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent++;
                 }
             }
-
-            ZeroUpper();
         }
 
         public static unsafe void AddScaleU(float scale, Span<float> src, Span<float> dst)
@@ -723,7 +699,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                while (pDstCurrent + 4 <= pEnd)
+                if (pDstCurrent + 4 <= pEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -749,8 +725,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent++;
                 }
             }
-
-            ZeroUpper();
         }
 
         public static unsafe void AddScaleCopyU(float scale, Span<float> src, Span<float> dst, Span<float> result)
@@ -781,7 +755,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                while (pResCurrent + 4 <= pResEnd)
+                if (pResCurrent + 4 <= pResEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -807,8 +781,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pResCurrent++;
                 }
             }
-
-            ZeroUpper();
         }
 
         public static unsafe void AddScaleSU(float scale, Span<float> src, Span<int> idx, Span<float> dst)
@@ -839,7 +811,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                while (pIdxCurrent + 4 <= pEnd)
+                if (pIdxCurrent + 4 <= pEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Load4(pDstCurrent, pIdxCurrent);
@@ -860,8 +832,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent++;
                 }
             }
-
-            ZeroUpper();
         }
 
         public static unsafe void AddU(Span<float> src, Span<float> dst)
@@ -885,7 +855,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 8;
                 }
 
-                while (pSrcCurrent + 4 <= pEnd)
+                if (pSrcCurrent + 4 <= pEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -909,8 +879,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent++;
                 }
             }
-
-            ZeroUpper();
         }
 
         public static unsafe void AddSU(Span<float> src, Span<int> idx, Span<float> dst)
@@ -936,7 +904,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent += 8;
                 }
 
-                while (pIdxCurrent + 4 <= pEnd)
+                if (pIdxCurrent + 4 <= pEnd)
                 {
                     Vector128<float> dstVector = Load4(pDstCurrent, pIdxCurrent);
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
@@ -956,8 +924,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent++;
                 }
             }
-
-            ZeroUpper();
         }
 
         public static unsafe void MulElementWiseU(Span<float> src1, Span<float> src2, Span<float> dst)
@@ -983,7 +949,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 8;
                 }
 
-                while (pDstCurrent + 4 <= pEnd)
+                if (pDstCurrent + 4 <= pEnd)
                 {
                     Vector128<float> src1Vector = Sse.LoadVector128(pSrc1Current);
                     Vector128<float> src2Vector = Sse.LoadVector128(pSrc2Current);
@@ -1007,8 +973,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent++;
                 }
             }
-
-            ZeroUpper();
         }
 
         public static unsafe float SumU(Span<float> src)
@@ -1031,7 +995,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                if (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     result128 = Sse.Add(result128, Sse.LoadVector128(pSrcCurrent));
                     pSrcCurrent += 4;
@@ -1045,9 +1009,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent++;
                 }
 
-                float sum = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
-                ZeroUpper();
-                return sum;
+                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
             }
         }
 
@@ -1073,7 +1035,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                if (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result128 = Sse.Add(result128, Sse.Multiply(srcVector, srcVector));
@@ -1091,9 +1053,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent++;
                 }
 
-                float sum = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
-                ZeroUpper();
-                return sum;
+                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
             }
         }
 
@@ -1122,7 +1082,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> result128 = Sse.SetZeroVector128();
                 Vector128<float> meanVector128 = Sse.SetAllVector128(mean);
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                if (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Subtract(srcVector, meanVector128);
@@ -1142,9 +1102,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent++;
                 }
 
-                float sum = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
-                ZeroUpper();
-                return sum;
+                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
             }
         }
 
@@ -1172,7 +1130,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> result128 = Sse.SetZeroVector128();
                 Vector128<float> mask128 = GetAbsMask128();
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                if (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result128 = Sse.Add(result128, Sse.And(srcVector, mask128));
@@ -1190,9 +1148,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent++;
                 }
 
-                float sum = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
-                ZeroUpper();
-                return sum;
+                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
             }
         }
 
@@ -1223,7 +1179,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> meanVector128 = Sse.SetAllVector128(mean);
                 Vector128<float> mask128 = GetAbsMask128();
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                if (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Subtract(srcVector, meanVector128);
@@ -1243,9 +1199,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent++;
                 }
 
-                float sum = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
-                ZeroUpper();
-                return sum;
+                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
             }
         }
 
@@ -1273,7 +1227,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> result128 = Sse.SetZeroVector128();
                 Vector128<float> mask128 = GetAbsMask128();
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                if (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result128 = Sse.Max(result128, Sse.And(srcVector, mask128));
@@ -1291,9 +1245,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent++;
                 }
 
-                float max = Sse.ConvertToSingle(Sse.MaxScalar(result128, resultPadded));
-                ZeroUpper();
-                return max;
+                return Sse.ConvertToSingle(Sse.MaxScalar(result128, resultPadded));
             }
         }
 
@@ -1324,7 +1276,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> meanVector128 = Sse.SetAllVector128(mean);
                 Vector128<float> mask128 = GetAbsMask128();
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                if (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Subtract(srcVector, meanVector128);
@@ -1344,9 +1296,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent++;
                 }
 
-                float max = Sse.ConvertToSingle(Sse.MaxScalar(result128, resultPadded));
-                ZeroUpper();
-                return max;
+                return Sse.ConvertToSingle(Sse.MaxScalar(result128, resultPadded));
             }
         }
 
@@ -1377,7 +1327,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                if (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -1401,9 +1351,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent++;
                 }
 
-                float sum = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
-                ZeroUpper();
-                return sum;
+                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
             }
         }
 
@@ -1436,7 +1384,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
-                while (pIdxCurrent + 4 <= pIdxEnd)
+                if (pIdxCurrent + 4 <= pIdxEnd)
                 {
                     Vector128<float> srcVector = Load4(pSrcCurrent, pIdxCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -1460,9 +1408,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent++;
                 }
 
-                float sum = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
-                ZeroUpper();
-                return sum;
+                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
             }
         }
 
@@ -1493,7 +1439,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> sqDistanceVector128 = Sse.SetZeroVector128();
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                if (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> distanceVector = Sse.Subtract(Sse.LoadVector128(pSrcCurrent),
                                                                     Sse.LoadVector128(pDstCurrent));
@@ -1516,7 +1462,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent++;
                 }
 
-                ZeroUpper();
                 return norm;
             }
         }
@@ -1558,7 +1503,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> signMask128 = Sse.SetAllVector128(-0.0f); // 0x8000 0000
                 Vector128<float> xThreshold128 = Sse.SetAllVector128(threshold);
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                if (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     Vector128<float> xSrc = Sse.LoadVector128(pSrcCurrent);
 
@@ -1623,7 +1568,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> signMask128 = Sse.SetAllVector128(-0.0f); // 0x8000 0000
                 Vector128<float> xThreshold128 = Sse.SetAllVector128(threshold);
 
-                while (pIdxCurrent + 4 <= pIdxEnd)
+                if (pIdxCurrent + 4 <= pIdxEnd)
                 {
                     Vector128<float> xSrc = Sse.LoadVector128(pSrcCurrent);
 
