@@ -591,13 +591,13 @@ namespace Microsoft.ML.Runtime.Data
         private static Float DotProduct(Float[] a, int aOffset, Float[] b, int[] indices, int count)
         {
             Contracts.Assert(count <= indices.Length);
-            return SseUtils.DotProductSparse(a, aOffset, b, indices, count);
+            return CpuMathUtils.DotProductSparse(a, aOffset, b, indices, count);
 
         }
 
         private static class Mkl
         {
-            private const string DllName = "Microsoft.ML.MklImports.dll";
+            private const string DllName = "MklImports";
 
             public enum Layout
             {

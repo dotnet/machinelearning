@@ -13,16 +13,18 @@ phases:
       ${{ if ne(parameters.dockerImage, '') }}:
         _PREVIEW_VSTS_DOCKER_IMAGE: ${{ parameters.dockerImage }}
     queue:
-      parallel: 2
+      parallel: 99
       matrix:
         Build_Debug:
           _configuration: Debug
         Build_Release:
-          _configuration: Release 
+          _configuration: Release
       ${{ insert }}: ${{ parameters.queue }}
     steps:
+    - script: $(_buildScript) -$(_configuration)
+      displayName: Build
     - script: $(_buildScript) -$(_configuration) -runtests
-      displayName: Build and Test
+      displayName: Run Tests
     - task: PublishTestResults@2
       displayName: Publish Test Results
       condition: succeededOrFailed()

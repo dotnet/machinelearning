@@ -114,4 +114,11 @@
     <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <UseIntrinsics Condition="'$(UseIntrinsics)' == ''">$(Configuration.EndsWith('-Intrinsics'))</UseIntrinsics>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CustomAfterMicrosoftCommonTargets>$(RepoRoot)build\AfterCommonTargets.targets</CustomAfterMicrosoftCommonTargets>
+  </PropertyGroup>
 </Project>

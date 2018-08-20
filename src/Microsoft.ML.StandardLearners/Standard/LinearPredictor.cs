@@ -553,7 +553,7 @@ namespace Microsoft.ML.Runtime.Learners
 
     public abstract class RegressionPredictor : LinearPredictor
     {
-        internal RegressionPredictor(IHostEnvironment env, string name, ref VBuffer<Float> weights, Float bias)
+        protected RegressionPredictor(IHostEnvironment env, string name, ref VBuffer<Float> weights, Float bias)
             : base(env, name, ref weights, bias)
         {
         }

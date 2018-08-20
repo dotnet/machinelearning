@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>ML.NET additional learners making use of hardware acceleration. They use Intel Mkl.</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
+  </ItemGroup>
+
+  <ItemGroup> 
+    <Content Include="$(PackagesDir)\mlnetmkldeps\$(MlNetMklDepsPackageVersion)\LICENSE.txt" Pack="true" PackagePath=".\NOTICE.txt" /> 
+    <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+  </ItemGroup> 
+  
+</Project>
