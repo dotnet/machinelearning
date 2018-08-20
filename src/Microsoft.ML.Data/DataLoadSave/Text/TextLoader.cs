@@ -40,6 +40,19 @@ namespace Microsoft.ML.Runtime.Data
         /// </example>
         public sealed class Column
         {
+            public Column() { }
+
+            public Column(string name, DataKind? type, int index)
+               : this(name, type, new[] { new Range(index) }) { }
+
+            public Column(string name, DataKind? type = null, Range[] source = null, KeyRange keyRange = null)
+            {
+                Name = name;
+                Type = type;
+                Source = source;
+                KeyRange = keyRange;
+            }
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
             public string Name;
 
@@ -179,6 +192,14 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Range
         {
+            public Range() { }
+
+            public Range(int index)
+            {
+                Min = index;
+                Max = index;
+            }
+
             [Argument(ArgumentType.Required, HelpText = "First index in the range")]
             public int Min;
 
