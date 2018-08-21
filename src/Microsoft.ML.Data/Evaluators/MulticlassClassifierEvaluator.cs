@@ -90,17 +90,17 @@ namespace Microsoft.ML.Runtime.Data
             return new Aggregator(Host, classNames, numClasses, schema.Weight != null, _outputTopKAcc, stratName);
         }
 
-        private DvText[] GetClassNames(RoleMappedSchema schema)
+        private ReadOnlyMemory<char>[] GetClassNames(RoleMappedSchema schema)
         {
-            DvText[] names;
+            ReadOnlyMemory<char>[] names;
             // Get the label names from the score column if they exist, or use the default names.
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var mdType = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
-            var labelNames = default(VBuffer<DvText>);
+            var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (mdType != null && mdType.IsKnownSizeVector && mdType.ItemType.IsText)
             {
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref labelNames);
-                names = new DvText[labelNames.Length];
+                names = new ReadOnlyMemory<char>[labelNames.Length];
                 labelNames.CopyTo(names);
             }
             else
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Data
                 Host.Assert(Utils.Size(score) == 1);
                 Host.Assert(score[0].Type.VectorSize > 0);
                 int numClasses = score[0].Type.VectorSize;
-                names = Enumerable.Range(0, numClasses).Select(i => new DvText(i.ToString())).ToArray();
+                names = Enumerable.Range(0, numClasses).Select(i => i.ToString().AsMemory()).ToArray();
             }
             return names;
         }
@@ -135,10 +135,10 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
-            out Action<uint, DvText, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
+            out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
-            var stratVal = new List<DvText>();
+            var stratVal = new List<ReadOnlyMemory<char>>();
             var isWeighted = new List<DvBool>();
 
             var microAcc = new List<Double>();
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.Data
             var counts = new List<Double[]>();
             var weights = new List<Double[]>();
             var confStratCol = new List<uint>();
-            var confStratVal = new List<DvText>();
+            var confStratVal = new List<ReadOnlyMemory<char>>();
 
             bool hasStrats = Utils.Size(dictionaries) > 0;
             bool hasWeight = aggregator.Weighted;
@@ -219,9 +219,9 @@ namespace Microsoft.ML.Runtime.Data
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, confStratCol.ToArray());
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, confStratVal.ToArray());
                     }
-                    ValueGetter<VBuffer<DvText>> getSlotNames =
-                        (ref VBuffer<DvText> dst) =>
-                            dst = new VBuffer<DvText>(aggregator.ClassNames.Length, aggregator.ClassNames);
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
+                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                            dst = new VBuffer<ReadOnlyMemory<char>>(aggregator.ClassNames.Length, aggregator.ClassNames);
                     confDvBldr.AddColumn(MetricKinds.ColumnNames.Count, getSlotNames, NumberType.R8, counts.ToArray());
 
                     if (hasWeight)
@@ -370,9 +370,9 @@ namespace Microsoft.ML.Runtime.Data
             private long _numUnknownClassInstances;
             private long _numNegOrNonIntegerLabels;
 
-            public readonly DvText[] ClassNames;
+            public readonly ReadOnlyMemory<char>[] ClassNames;
 
-            public Aggregator(IHostEnvironment env, DvText[] classNames, int scoreVectorSize, bool weighted, int? outputTopKAcc, string stratName)
+            public Aggregator(IHostEnvironment env, ReadOnlyMemory<char>[] classNames, int scoreVectorSize, bool weighted, int? outputTopKAcc, string stratName)
                 : base(env, stratName)
             {
                 Host.Assert(outputTopKAcc == null || outputTopKAcc > 0);
@@ -486,15 +486,15 @@ namespace Microsoft.ML.Runtime.Data
                 return warnings;
             }
 
-            public void GetSlotNames(ref VBuffer<DvText> slotNames)
+            public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 var values = slotNames.Values;
                 if (Utils.Size(values) < ClassNames.Length)
-                    values = new DvText[ClassNames.Length];
+                    values = new ReadOnlyMemory<char>[ClassNames.Length];
 
                 for (int i = 0; i < ClassNames.Length; i++)
-                    values[i] = new DvText(string.Format("(class {0})", ClassNames[i]));
-                slotNames = new VBuffer<DvText>(ClassNames.Length, values);
+                    values[i] = string.Format("(class {0})", ClassNames[i]).AsMemory();
+                slotNames = new VBuffer<ReadOnlyMemory<char>>(ClassNames.Length, values);
             }
         }
     }
@@ -528,7 +528,7 @@ namespace Microsoft.ML.Runtime.Data
         private const Single Epsilon = (Single)1e-15;
 
         private readonly int _numClasses;
-        private readonly DvText[] _classNames;
+        private readonly ReadOnlyMemory<char>[] _classNames;
         private readonly ColumnType[] _types;
 
         public MultiClassPerInstanceEvaluator(IHostEnvironment env, ISchema schema, ColumnInfo scoreInfo, string labelCol)
@@ -541,13 +541,13 @@ namespace Microsoft.ML.Runtime.Data
 
             if (schema.HasSlotNames(ScoreIndex, _numClasses))
             {
-                var classNames = default(VBuffer<DvText>);
+                var classNames = default(VBuffer<ReadOnlyMemory<char>>);
                 schema.GetMetadata(MetadataUtils.Kinds.SlotNames, ScoreIndex, ref classNames);
-                _classNames = new DvText[_numClasses];
+                _classNames = new ReadOnlyMemory<char>[_numClasses];
                 classNames.CopyTo(_classNames);
             }
             else
-                _classNames = Utils.BuildArray(_numClasses, i => new DvText(i.ToString()));
+                _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
             var key = new KeyType(DataKind.U4, 0, _numClasses);
             _types[AssignedCol] = key;
@@ -570,12 +570,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckDecode(_numClasses > 0);
             if (ctx.Header.ModelVerWritten > VerInitial)
             {
-                _classNames = new DvText[_numClasses];
+                _classNames = new ReadOnlyMemory<char>[_numClasses];
                 for (int i = 0; i < _numClasses; i++)
-                    _classNames[i] = new DvText(ctx.LoadNonEmptyString());
+                    _classNames[i] = ctx.LoadNonEmptyString().AsMemory();
             }
             else
-                _classNames = Utils.BuildArray(_numClasses, i => new DvText(i.ToString()));
+                _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
             _types = new ColumnType[4];
             var key = new KeyType(DataKind.U4, 0, _numClasses);
@@ -735,19 +735,19 @@ namespace Microsoft.ML.Runtime.Data
 
             var assignedColKeyValues = new ColumnMetadataInfo(Assigned);
             var keyValueType = new VectorType(TextType.Instance, _numClasses);
-            assignedColKeyValues.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<DvText>>(keyValueType, CreateKeyValueGetter()));
+            assignedColKeyValues.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(keyValueType, CreateKeyValueGetter()));
             infos[AssignedCol] = new RowMapperColumnInfo(Assigned, _types[AssignedCol], assignedColKeyValues);
 
             infos[LogLossCol] = new RowMapperColumnInfo(LogLoss, _types[LogLossCol], null);
 
             var slotNamesType = new VectorType(TextType.Instance, _numClasses);
             var sortedScores = new ColumnMetadataInfo(SortedScores);
-            sortedScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType,
+            sortedScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
                 CreateSlotNamesGetter(_numClasses, "Score")));
             var sortedClasses = new ColumnMetadataInfo(SortedClasses);
-            sortedClasses.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType,
+            sortedClasses.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
                 CreateSlotNamesGetter(_numClasses, "Class")));
-            sortedClasses.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<DvText>>(keyValueType, CreateKeyValueGetter()));
+            sortedClasses.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(keyValueType, CreateKeyValueGetter()));
 
             infos[SortedScoresCol] = new RowMapperColumnInfo(SortedScores, _types[SortedScoresCol], sortedScores);
             infos[SortedClassesCol] = new RowMapperColumnInfo(SortedClasses, _types[SortedClassesCol], sortedClasses);
@@ -755,31 +755,31 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // REVIEW: Figure out how to avoid having the column name in each slot name.
-        private MetadataUtils.MetadataGetter<VBuffer<DvText>> CreateSlotNamesGetter(int numTopClasses, string suffix)
+        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClasses, string suffix)
         {
             return
-                (int col, ref VBuffer<DvText> dst) =>
+                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < numTopClasses)
-                        values = new DvText[numTopClasses];
+                        values = new ReadOnlyMemory<char>[numTopClasses];
                     for (int i = 1; i <= numTopClasses; i++)
-                        values[i - 1] = new DvText(string.Format("#{0} {1}", i, suffix));
-                    dst = new VBuffer<DvText>(numTopClasses, values);
+                        values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
+                    dst = new VBuffer<ReadOnlyMemory<char>>(numTopClasses, values);
                 };
         }
 
-        private MetadataUtils.MetadataGetter<VBuffer<DvText>> CreateKeyValueGetter()
+        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateKeyValueGetter()
         {
             return
-                (int col, ref VBuffer<DvText> dst) =>
+                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < _numClasses)
-                        values = new DvText[_numClasses];
+                        values = new ReadOnlyMemory<char>[_numClasses];
                     for (int i = 0; i < _numClasses; i++)
                         values[i] = _classNames[i];
-                    dst = new VBuffer<DvText>(_numClasses, values);
+                    dst = new VBuffer<ReadOnlyMemory<char>>(_numClasses, values);
                 };
         }
 

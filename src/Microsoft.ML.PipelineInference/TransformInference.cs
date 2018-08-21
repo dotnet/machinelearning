@@ -335,7 +335,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                     if (col.Type.IsText)
                     {
-                        col.GetUniqueValueCounts<DvText>(out var unique, out var _, out var _);
+                        col.GetUniqueValueCounts<ReadOnlyMemory<char>>(out var unique, out var _, out var _);
                         ch.Info("Label column '{0}' is text. Suggested auto-labeling.", col.ColumnName);
 
                         var args = new SubComponent<IDataTransform, SignatureDataTransform>("AutoLabel",
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     // Sparse Data for the Language Model Component of a Speech Recognizer" (1987), taking into account that
                     // the singleton count was estimated from a fraction of the data (and assuming the estimate is
                     // roughly the same for the entire sample).
-                    column.GetUniqueValueCounts<DvText>(out unique, out singletons, out total);
+                    column.GetUniqueValueCounts<ReadOnlyMemory<char>>(out unique, out singletons, out total);
                     var expectedUnseenValues = singletons / dataSampleFraction;
                     return expectedUnseenValues < 1000 && unique < 10000;
                 }

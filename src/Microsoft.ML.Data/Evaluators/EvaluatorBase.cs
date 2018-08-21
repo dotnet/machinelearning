@@ -167,18 +167,17 @@ namespace Microsoft.ML.Runtime.Data
                 needMorePasses = finishPass();
             }
 
-            Action<uint, DvText, TAgg> addAgg;
+            Action<uint, ReadOnlyMemory<char>, TAgg> addAgg;
             Func<Dictionary<string, IDataView>> consolidate;
             GetAggregatorConsolidationFuncs(aggregator, dictionaries, out addAgg, out consolidate);
 
             uint stratColKey = 0;
-            addAgg(stratColKey, DvText.NA, aggregator);
             for (int i = 0; i < Utils.Size(dictionaries); i++)
             {
                 var dict = dictionaries[i];
                 stratColKey++;
                 foreach (var agg in dict.GetAll())
-                    addAgg(stratColKey, new DvText(agg.StratName), agg);
+                    addAgg(stratColKey, agg.StratName.AsMemory(), agg);
             }
             return consolidate();
         }
@@ -192,21 +191,21 @@ namespace Microsoft.ML.Runtime.Data
         /// the dictionary of metric data views.
         /// </summary>
         protected abstract void GetAggregatorConsolidationFuncs(TAgg aggregator, AggregatorDictionaryBase[] dictionaries,
-            out Action<uint, DvText, TAgg> addAgg, out Func<Dictionary<string, IDataView>> consolidate);
+            out Action<uint, ReadOnlyMemory<char>, TAgg> addAgg, out Func<Dictionary<string, IDataView>> consolidate);
 
-        protected ValueGetter<VBuffer<DvText>> GetKeyValueGetter(AggregatorDictionaryBase[] dictionaries)
+        protected ValueGetter<VBuffer<ReadOnlyMemory<char>>> GetKeyValueGetter(AggregatorDictionaryBase[] dictionaries)
         {
             if (Utils.Size(dictionaries) == 0)
                 return null;
             return
-                (ref VBuffer<DvText> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < dictionaries.Length)
-                        values = new DvText[dictionaries.Length];
+                        values = new ReadOnlyMemory<char>[dictionaries.Length];
                     for (int i = 0; i < dictionaries.Length; i++)
-                        values[i] = new DvText(dictionaries[i].ColName);
-                    dst = new VBuffer<DvText>(dictionaries.Length, values, dst.Indices);
+                        values[i] = dictionaries[i].ColName.AsMemory();
+                    dst = new VBuffer<ReadOnlyMemory<char>>(dictionaries.Length, values, dst.Indices);
                 };
         }
 
@@ -296,7 +295,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var dvBldr = new ArrayDataViewBuilder(env);
                     dvBldr.AddColumn(MetricKinds.ColumnNames.WarningText, TextType.Instance,
-                        warnings.Select(s => new DvText(s)).ToArray());
+                        warnings.Select(s => s.AsMemory()).ToArray());
                     dict.Add(MetricKinds.Warnings, dvBldr.GetDataView());
                 }
             }

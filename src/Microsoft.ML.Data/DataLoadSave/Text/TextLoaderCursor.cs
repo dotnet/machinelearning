@@ -214,7 +214,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            public static void GetSomeLines(IMultiStreamSource source, int count, ref List<DvText> lines)
+            public static void GetSomeLines(IMultiStreamSource source, int count, ref List<ReadOnlyMemory<char>> lines)
             {
                 Contracts.AssertValue(source);
                 Contracts.Assert(count > 0);
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 for (int i = 0; i < batch.Infos.Length; i++)
-                    Utils.Add(ref lines, new DvText(batch.Infos[i].Text));
+                    Utils.Add(ref lines, batch.Infos[i].Text.AsMemory());
             }
 
             /// <summary>

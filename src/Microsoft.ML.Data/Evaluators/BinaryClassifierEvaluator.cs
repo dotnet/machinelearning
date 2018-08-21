@@ -168,11 +168,11 @@ namespace Microsoft.ML.Runtime.Data
             return new Aggregator(Host, classNames, schema.Weight != null, _aucCount, _auPrcCount, _threshold, _useRaw, _prCount, stratName);
         }
 
-        private DvText[] GetClassNames(RoleMappedSchema schema)
+        private ReadOnlyMemory<char>[] GetClassNames(RoleMappedSchema schema)
         {
             // Get the label names if they exist, or use the default names.
             ColumnType type;
-            var labelNames = default(VBuffer<DvText>);
+            var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (schema.Label.Type.IsKey &&
                 (type = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, schema.Label.Index)) != null &&
                 type.ItemType.IsKnownSizeVector && type.ItemType.IsText)
@@ -180,8 +180,8 @@ namespace Microsoft.ML.Runtime.Data
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, schema.Label.Index, ref labelNames);
             }
             else
-                labelNames = new VBuffer<DvText>(2, new[] { new DvText("positive"), new DvText("negative") });
-            DvText[] names = new DvText[2];
+                labelNames = new VBuffer<ReadOnlyMemory<char>>(2, new[] { "positive".AsMemory(), "negative".AsMemory() });
+            ReadOnlyMemory<char>[] names = new ReadOnlyMemory<char>[2];
             labelNames.CopyTo(names);
             return names;
         }
@@ -214,10 +214,10 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
-            out Action<uint, DvText, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
+            out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
-            var stratVal = new List<DvText>();
+            var stratVal = new List<ReadOnlyMemory<char>>();
             var isWeighted = new List<DvBool>();
             var auc = new List<Double>();
             var accuracy = new List<Double>();
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Runtime.Data
             var counts = new List<Double[]>();
             var weights = new List<Double[]>();
             var confStratCol = new List<uint>();
-            var confStratVal = new List<DvText>();
+            var confStratVal = new List<ReadOnlyMemory<char>>();
 
             var scores = new List<Single>();
             var precision = new List<Double>();
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Runtime.Data
             var weightedRecall = new List<Double>();
             var weightedFpr = new List<Double>();
             var prStratCol = new List<uint>();
-            var prStratVal = new List<DvText>();
+            var prStratVal = new List<ReadOnlyMemory<char>>();
 
             bool hasStrats = Utils.Size(dictionaries) > 0;
             bool hasWeight = aggregator.Weighted;
@@ -357,9 +357,9 @@ namespace Microsoft.ML.Runtime.Data
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, confStratCol.ToArray());
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, confStratVal.ToArray());
                     }
-                    ValueGetter<VBuffer<DvText>> getSlotNames =
-                        (ref VBuffer<DvText> dst) =>
-                            dst = new VBuffer<DvText>(aggregator.ClassNames.Length, aggregator.ClassNames);
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
+                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                            dst = new VBuffer<ReadOnlyMemory<char>>(aggregator.ClassNames.Length, aggregator.ClassNames);
                     confDvBldr.AddColumn(MetricKinds.ColumnNames.Count, getSlotNames, NumberType.R8, counts.ToArray());
 
                     if (hasWeight)
@@ -555,9 +555,9 @@ namespace Microsoft.ML.Runtime.Data
             private Single _label;
             private Single _weight;
 
-            public readonly DvText[] ClassNames;
+            public readonly ReadOnlyMemory<char>[] ClassNames;
 
-            public Aggregator(IHostEnvironment env, DvText[] classNames, bool weighted, int aucReservoirSize,
+            public Aggregator(IHostEnvironment env, ReadOnlyMemory<char>[] classNames, bool weighted, int aucReservoirSize,
                 int auPrcReservoirSize, Single threshold, bool useRaw, int prCount, string stratName)
                 : base(env, stratName)
             {

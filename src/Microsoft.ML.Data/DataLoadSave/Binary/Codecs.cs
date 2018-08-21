@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private sealed class DvTextCodec : SimpleCodec<DvText>
+        private sealed class DvTextCodec : SimpleCodec<ReadOnlyMemory<char>>
         {
             private const int MissingBit = unchecked((int)0x80000000);
             private const int LengthMask = unchecked((int)0x7FFFFFFF);
@@ -325,17 +325,17 @@ namespace Microsoft.ML.Runtime.Data.IO
             {
             }
 
-            public override IValueWriter<DvText> OpenWriter(Stream stream)
+            public override IValueWriter<ReadOnlyMemory<char>> OpenWriter(Stream stream)
             {
                 return new Writer(this, stream);
             }
 
-            public override IValueReader<DvText> OpenReader(Stream stream, int items)
+            public override IValueReader<ReadOnlyMemory<char>> OpenReader(Stream stream, int items)
             {
                 return new Reader(this, stream, items);
             }
 
-            private sealed class Writer : ValueWriterBase<DvText>
+            private sealed class Writer : ValueWriterBase<ReadOnlyMemory<char>>
             {
                 private StringBuilder _builder;
                 private List<int> _boundaries;
@@ -347,16 +347,11 @@ namespace Microsoft.ML.Runtime.Data.IO
                     _boundaries = new List<int>();
                 }
 
-                public override void Write(ref DvText value)
+                public override void Write(ref ReadOnlyMemory<char> value)
                 {
                     Contracts.Check(_builder != null, "writer was already committed");
-                    if (value.IsNA)
-                        _boundaries.Add(_builder.Length | MissingBit);
-                    else
-                    {
-                        value.AddToStringBuilder(_builder);
-                        _boundaries.Add(_builder.Length);
-                    }
+                    ReadOnlyMemoryUtils.AddToStringBuilder(_builder, value);
+                    _boundaries.Add(_builder.Length);
                 }
 
                 public override void Commit()
@@ -378,7 +373,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 }
             }
 
-            private sealed class Reader : ValueReaderBase<DvText>
+            private sealed class Reader : ValueReaderBase<ReadOnlyMemory<char>>
             {
                 private readonly int _entries;
                 private readonly int[] _boundaries;
@@ -408,14 +403,12 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Contracts.Check(++_index < _entries, "reader already read all values");
                 }
 
-                public override void Get(ref DvText value)
+                public override void Get(ref ReadOnlyMemory<char> value)
                 {
                     Contracts.Assert(_index < _entries);
                     int b = _boundaries[_index + 1];
-                    if (b < 0)
-                        value = DvText.NA;
-                    else
-                        value = new DvText(_text, _boundaries[_index] & LengthMask, b & LengthMask);
+                    //May be put an assert for b >= 0?
+                    value = _text.AsMemory().Slice(_boundaries[_index] & LengthMask, (b & LengthMask) - (_boundaries[_index] & LengthMask));
                 }
             }
         }

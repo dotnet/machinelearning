@@ -856,9 +856,9 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(hasScoreCol, "Data scored with binary ensemble does not have a score column");
             var type = binaryScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
             Assert.True(type != null && type.IsText, "Binary ensemble scored data does not have correct type of metadata.");
-            var kind = default(DvText);
+            var kind = default(ReadOnlyMemory<char>);
             binaryScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
-            Assert.True(kind.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification),
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification, kind),
                 $"Binary ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.BinaryClassification}', but is instead '{kind}'");
 
             hasScoreCol = regressionScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
@@ -866,7 +866,7 @@ namespace Microsoft.ML.Runtime.RunTests
             type = regressionScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
             Assert.True(type != null && type.IsText, "Regression ensemble scored data does not have correct type of metadata.");
             regressionScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
-            Assert.True(kind.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression),
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression, kind),
                 $"Regression ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
 
             hasScoreCol = anomalyScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
@@ -874,7 +874,7 @@ namespace Microsoft.ML.Runtime.RunTests
             type = anomalyScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
             Assert.True(type != null && type.IsText, "Anomaly detection ensemble scored data does not have correct type of metadata.");
             anomalyScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
-            Assert.True(kind.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection),
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
                 $"Anomaly detection ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
 
             var modelPath = DeleteOutputPath("SavePipe", "PipelineEnsembleModel.zip");
@@ -1017,10 +1017,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 InputFile = inputFile
             }).Data;
 
-            ValueMapper<DvText, DvBool> labelToBinary =
-                (ref DvText src, ref DvBool dst) =>
+            ValueMapper<ReadOnlyMemory<char>, DvBool> labelToBinary =
+                (ref ReadOnlyMemory<char> src, ref DvBool dst) =>
                 {
-                    if (src.EqualsStr("Sport"))
+                    if (ReadOnlyMemoryUtils.EqualsStr("Sport", src))
                         dst = DvBool.True;
                     else
                         dst = DvBool.False;
@@ -1588,16 +1588,16 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 using (var cursor = loader.GetRowCursor(col => true))
                 {
-                    DvText cat = default(DvText);
-                    DvText catValue = default(DvText);
+                    ReadOnlyMemory<char> cat = default;
+                    ReadOnlyMemory<char> catValue = default;
                     uint catKey = 0;
 
                     bool success = loader.Schema.TryGetColumnIndex("Cat", out int catCol);
                     Assert.True(success);
-                    var catGetter = cursor.GetGetter<DvText>(catCol);
+                    var catGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catCol);
                     success = loader.Schema.TryGetColumnIndex("CatValue", out int catValueCol);
                     Assert.True(success);
-                    var catValueGetter = cursor.GetGetter<DvText>(catValueCol);
+                    var catValueGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catValueCol);
                     success = loader.Schema.TryGetColumnIndex("Key", out int keyCol);
                     Assert.True(success);
                     var keyGetter = cursor.GetGetter<uint>(keyCol);
@@ -3674,18 +3674,18 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 using (var cursor = loader.GetRowCursor(col => true))
                 {
-                    DvText predictedLabel = default(DvText);
+                    ReadOnlyMemory<char> predictedLabel = default;
 
                     var success = loader.Schema.TryGetColumnIndex("PredictedLabel", out int predictedLabelCol);
                     Assert.True(success);
-                    var predictedLabelGetter = cursor.GetGetter<DvText>(predictedLabelCol);
+                    var predictedLabelGetter = cursor.GetGetter<ReadOnlyMemory<char>>(predictedLabelCol);
 
                     while (cursor.MoveNext())
                     {
                         predictedLabelGetter(ref predictedLabel);
-                        Assert.True(predictedLabel.EqualsStr("Iris-setosa")
-                            || predictedLabel.EqualsStr("Iris-versicolor")
-                            || predictedLabel.EqualsStr("Iris-virginica"));
+                        Assert.True(ReadOnlyMemoryUtils.EqualsStr("Iris-setosa", predictedLabel)
+                            || ReadOnlyMemoryUtils.EqualsStr("Iris-versicolor", predictedLabel)
+                            || ReadOnlyMemoryUtils.EqualsStr("Iris-virginica", predictedLabel));
                     }
                 }
             }

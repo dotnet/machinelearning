@@ -90,10 +90,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         if (!ShouldAddColumn(input.Data.Schema, i, null, maxScoreId))
                             continue;
                         // Do not rename the PredictedLabel column.
-                        DvText tmp = default(DvText);
+                        ReadOnlyMemory<char> tmp = default;
                         if (input.Data.Schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreValueKind, i,
                             ref tmp)
-                            && tmp.EqualsStr(MetadataUtils.Const.ScoreValueKind.PredictedLabel))
+                            && ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreValueKind.PredictedLabel, tmp))
                         {
                             continue;
                         }

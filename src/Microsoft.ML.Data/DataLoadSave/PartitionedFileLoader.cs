@@ -369,7 +369,7 @@ namespace Microsoft.ML.Runtime.Data
             private Delegate[] _getters;
             private Delegate[] _subGetters; // Cached getters of the sub-cursor.
 
-            private DvText[] _colValues; // Column values cached from the file path.
+            private ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
             private IRowCursor _subCursor; // Sub cursor of the current file.
 
             private IEnumerator<int> _fileOrder;
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 _active = Utils.BuildArray(Schema.ColumnCount, predicate);
                 _subActive = _active.Take(SubColumnCount).ToArray();
-                _colValues = new DvText[Schema.ColumnCount - SubColumnCount];
+                _colValues = new ReadOnlyMemory<char>[Schema.ColumnCount - SubColumnCount];
 
                 _subGetters = new Delegate[SubColumnCount];
                 _getters = CreateGetters();
@@ -538,13 +538,13 @@ namespace Microsoft.ML.Runtime.Data
                     var source = _parent._srcDirIndex[i];
                     if (source >= 0 && source < values.Count)
                     {
-                        _colValues[i] = new DvText(values[source]);
+                        _colValues[i] = values[source].AsMemory();
                     }
                     else if (source == FilePathColIndex)
                     {
                         // Force Unix path for consistency.
                         var cleanPath = path.Replace(@"\", @"/");
-                        _colValues[i] = new DvText(cleanPath);
+                        _colValues[i] = cleanPath.AsMemory();
                     }
                 }
             }
@@ -603,7 +603,7 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.Check(col >= 0 && col < _colValues.Length);
                 Ch.AssertValue(type);
 
-                var conv = Conversions.Instance.GetStandardConversion(TextType.Instance, type) as ValueMapper<DvText, TValue>;
+                var conv = Conversions.Instance.GetStandardConversion(TextType.Instance, type) as ValueMapper<ReadOnlyMemory<char>, TValue>;
                 if (conv == null)
                 {
                     throw Ch.Except("Invalid TValue: '{0}' of the conversion.", typeof(TValue));

@@ -89,8 +89,8 @@ namespace Microsoft.ML.Runtime.Data
 
         public static BufferBuilder<T> CreateDefault()
         {
-            if (typeof(T) == typeof(DvText))
-                return (BufferBuilder<T>)(object)new BufferBuilder<DvText>(TextCombiner.Instance);
+            if (typeof(T) == typeof(ReadOnlyMemory<char>))
+                return (BufferBuilder<T>)(object)new BufferBuilder<ReadOnlyMemory<char>>(TextCombiner.Instance);
             if (typeof(T) == typeof(float))
                 return (BufferBuilder<T>)(object)new BufferBuilder<float>(FloatAdder.Instance);
             throw Contracts.Except($"Unrecognized type '{typeof(T)}' for default {nameof(BufferBuilder<T>)}");

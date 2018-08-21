@@ -21,8 +21,8 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private readonly List<Column> _columns;
         private readonly List<string> _names;
-        private readonly Dictionary<string, ValueGetter<VBuffer<DvText>>> _getSlotNames;
-        private readonly Dictionary<string, ValueGetter<VBuffer<DvText>>> _getKeyValues;
+        private readonly Dictionary<string, ValueGetter<VBuffer<ReadOnlyMemory<char>>>> _getSlotNames;
+        private readonly Dictionary<string, ValueGetter<VBuffer<ReadOnlyMemory<char>>>> _getKeyValues;
 
         private int? RowCount
         {
@@ -41,8 +41,8 @@ namespace Microsoft.ML.Runtime.Data
 
             _columns = new List<Column>();
             _names = new List<string>();
-            _getSlotNames = new Dictionary<string, ValueGetter<VBuffer<DvText>>>();
-            _getKeyValues = new Dictionary<string, ValueGetter<VBuffer<DvText>>>();
+            _getSlotNames = new Dictionary<string, ValueGetter<VBuffer<ReadOnlyMemory<char>>>>();
+            _getKeyValues = new Dictionary<string, ValueGetter<VBuffer<ReadOnlyMemory<char>>>>();
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Constructs a new key column from an array where values are copied to output simply
         /// by being assigned.
         /// </summary>
-        public void AddColumn(string name, ValueGetter<VBuffer<DvText>> getKeyValues, ulong keyMin, int keyCount, params uint[] values)
+        public void AddColumn(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues, ulong keyMin, int keyCount, params uint[] values)
         {
             _host.CheckValue(getKeyValues, nameof(getKeyValues));
             _host.CheckParam(keyCount > 0, nameof(keyCount));
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Creates a column with slot names from arrays. The added column will be re-interpreted as a buffer.
         /// </summary>
-        public void AddColumn<T>(string name, ValueGetter<VBuffer<DvText>> getNames, PrimitiveType itemType, params T[][] values)
+        public void AddColumn<T>(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getNames, PrimitiveType itemType, params T[][] values)
         {
             _host.CheckValue(getNames, nameof(getNames));
             _host.CheckParam(itemType != null && itemType.RawType == typeof(T), nameof(itemType));
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Creates a column with slot names from arrays. The added column will be re-interpreted as a buffer and possibly sparsified.
         /// </summary>
-        public void AddColumn<T>(string name, ValueGetter<VBuffer<DvText>> getNames, PrimitiveType itemType, Combiner<T> combiner, params T[][] values)
+        public void AddColumn<T>(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getNames, PrimitiveType itemType, Combiner<T> combiner, params T[][] values)
         {
             _host.CheckValue(getNames, nameof(getNames));
             _host.CheckParam(itemType != null && itemType.RawType == typeof(T), nameof(itemType));
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Adds a VBuffer{T} valued column.
         /// </summary>
-        public void AddColumn<T>(string name, ValueGetter<VBuffer<DvText>> getNames, PrimitiveType itemType, params VBuffer<T>[] values)
+        public void AddColumn<T>(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getNames, PrimitiveType itemType, params VBuffer<T>[] values)
         {
             _host.CheckValue(getNames, nameof(getNames));
             _host.CheckParam(itemType != null && itemType.RawType == typeof(T), nameof(itemType));
@@ -196,8 +196,8 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly ColumnType[] _columnTypes;
                 private readonly string[] _names;
                 private readonly Dictionary<string, int> _name2col;
-                private readonly Dictionary<string, ValueGetter<VBuffer<DvText>>> _getSlotNamesDict;
-                private readonly Dictionary<string, ValueGetter<VBuffer<DvText>>> _getKeyValuesDict;
+                private readonly Dictionary<string, ValueGetter<VBuffer<ReadOnlyMemory<char>>>> _getSlotNamesDict;
+                private readonly Dictionary<string, ValueGetter<VBuffer<ReadOnlyMemory<char>>>> _getKeyValuesDict;
 
                 public SchemaImpl(IExceptionContext ectx, ColumnType[] columnTypes, string[] names, ArrayDataViewBuilder builder)
                 {
@@ -268,25 +268,25 @@ namespace Microsoft.ML.Runtime.Data
                     _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
 
                     if (kind == MetadataUtils.Kinds.SlotNames && _getSlotNamesDict.ContainsKey(_names[col]))
-                        MetadataUtils.Marshal<VBuffer<DvText>, TValue>(GetSlotNames, col, ref value);
+                        MetadataUtils.Marshal<VBuffer<ReadOnlyMemory<char>>, TValue>(GetSlotNames, col, ref value);
                     else if (kind == MetadataUtils.Kinds.KeyValues && _getKeyValuesDict.ContainsKey(_names[col]))
-                        MetadataUtils.Marshal<VBuffer<DvText>, TValue>(GetKeyValues, col, ref value);
+                        MetadataUtils.Marshal<VBuffer<ReadOnlyMemory<char>>, TValue>(GetKeyValues, col, ref value);
                     else
                         throw MetadataUtils.ExceptGetMetadata();
                 }
 
-                private void GetSlotNames(int col, ref VBuffer<DvText> dst)
+                private void GetSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
                 {
                     Contracts.Assert(_getSlotNamesDict.ContainsKey(_names[col]));
-                    ValueGetter<VBuffer<DvText>> get;
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> get;
                     _getSlotNamesDict.TryGetValue(_names[col], out get);
                     get(ref dst);
                 }
 
-                private void GetKeyValues(int col, ref VBuffer<DvText> dst)
+                private void GetKeyValues(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
                 {
                     Contracts.Assert(_getKeyValuesDict.ContainsKey(_names[col]));
-                    ValueGetter<VBuffer<DvText>> get;
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> get;
                     _getKeyValuesDict.TryGetValue(_names[col], out get);
                     get(ref dst);
                 }
@@ -514,16 +514,16 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// A convenience column for converting strings into textspans.
         /// </summary>
-        private sealed class StringToTextColumn : Column<string, DvText>
+        private sealed class StringToTextColumn : Column<string, ReadOnlyMemory<char>>
         {
             public StringToTextColumn(string[] values)
                 : base(TextType.Instance, values)
             {
             }
 
-            protected override void CopyOut(ref string src, ref DvText dst)
+            protected override void CopyOut(ref string src, ref ReadOnlyMemory<char> dst)
             {
-                dst = new DvText(src);
+                dst = src.AsMemory();
             }
         }
 
