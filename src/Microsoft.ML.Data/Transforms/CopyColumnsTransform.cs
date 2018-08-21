@@ -21,6 +21,9 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(CopyColumnsTransform.Summary, typeof(CopyColumnsTransform), null, typeof(SignatureLoadDataTransform),
     CopyColumnsTransform.UserName, CopyColumnsTransform.LoaderSignature)]
 
+[assembly: LoadableClass(CopyColumnsTransform.Summary, typeof(CopyColumnsTransformer), null, typeof(SignatureLoadModel),
+    CopyColumnsTransform.UserName, CopyColumnsTransformer.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.Data
 {
     public sealed class CopyColumnsTransform : OneToOneTransformBase
@@ -169,27 +172,28 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class CopyColumnsEstimator : IEstimator<CopyColumnsTransformer>
     {
-        private readonly (string source, string name)[] _columnsMapping;
+        private readonly (string Source, string Name)[] _columns;
         private readonly IHost _host;
+
         public CopyColumnsEstimator(IHostEnvironment env, string input, string output)
         {
             Contracts.CheckNonWhiteSpace(input, nameof(input));
             Contracts.CheckNonWhiteSpace(output, nameof(output));
-            _columnsMapping = new (string, string)[1] { (input, output) };
+            _columns = new (string, string)[1] { (input, output) };
             _host = env.Register("CopyColumnsEstimator");
         }
 
-        public CopyColumnsEstimator(IHostEnvironment env, (string source, string name)[] columns)
+        public CopyColumnsEstimator(IHostEnvironment env, (string Source, string Name)[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             var newNames = new HashSet<string>();
-            foreach ((string source, string name) pair in columns)
+            foreach (var column in columns)
             {
-                if (newNames.Contains(pair.name))
-                    throw Contracts.ExceptUserArg(nameof(columns), $"New column {pair.name} specified multiple times");
-                newNames.Add(pair.name);
+                if (newNames.Contains(column.Name))
+                    throw Contracts.ExceptUserArg(nameof(columns), $"New column {column.Name} specified multiple times");
+                newNames.Add(column.Name);
             }
-            _columnsMapping = columns;
+            _columns = columns;
             _host = env.Register("CopyColumnsEstimator");
         }
 
@@ -197,7 +201,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             // invoke schema validation.
             GetOutputSchema(SchemaShape.Create(input.Schema));
-            return new CopyColumnsTransformer(_host, _columnsMapping);
+            return new CopyColumnsTransformer(_host, _columns);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -206,7 +210,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(inputSchema.Columns, nameof(inputSchema.Columns));
             var originDic = inputSchema.Columns.ToDictionary(x => x.Name);
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-            foreach ((string source, string name) pair in _columnsMapping)
+            foreach ((string source, string name) pair in _columns)
             {
                 if (originDic.ContainsKey(pair.source))
                 {
@@ -225,7 +229,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class CopyColumnsTransformer : ITransformer, ICanSaveModel
     {
-        private readonly (string source, string name)[] _columns;
+        private readonly (string Source, string Name)[] _columns;
         private readonly IHost _host;
 
         private class CopyColumnsRowMapper : IRowMapper
@@ -239,7 +243,7 @@ namespace Microsoft.ML.Runtime.Data
                 _schema = schema;
                 _columns = columns;
                 _originalColumnSources = new HashSet<int>();
-                HashSet<string> sources = new HashSet<string>();
+                var sources = new HashSet<string>();
                 foreach (var source in columns.Select(x => x.source))
                     sources.Add(source);
                 for (int i = 0; i < _schema.ColumnCount; i++)
@@ -286,7 +290,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw new NotImplementedException();
             }
         }
-        public CopyColumnsTransformer(IHostEnvironment env, (string source, string name)[] columns)
+        public CopyColumnsTransformer(IHostEnvironment env, (string Source, string Name)[] columns)
         {
             _columns = columns;
             _host = env.Register("CopyColumnsTransformer");
@@ -298,9 +302,49 @@ namespace Microsoft.ML.Runtime.Data
             return Transform(new EmptyDataView(_host, inputSchema)).Schema;
         }
 
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "COPYCOLT",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature);
+        }
+
+        public const string LoaderSignature = "CopyTransform";
+
         public void Save(ModelSaveContext ctx)
         {
-            throw new NotImplementedException();
+            _host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // int: number of added columns
+            // for each added column
+            //   int: id of output column name
+            //   int: id of input column name
+            ctx.Writer.Write(_columns.Length);
+            foreach (var column in _columns)
+            {
+                ctx.SaveNonEmptyString(column.Name);
+                ctx.SaveNonEmptyString(column.Source);
+            }
+        }
+        public static CopyColumnsTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            var lenght = ctx.Reader.ReadInt32();
+            var columns = new (string Source, string Name)[lenght];
+            for (int i = 0; i < lenght; i++)
+            {
+                columns[i].Name = ctx.LoadNonEmptyString();
+                columns[i].Source = ctx.LoadNonEmptyString();
+            }
+            return new CopyColumnsTransformer(env, columns);
         }
 
         public IDataView Transform(IDataView input)
