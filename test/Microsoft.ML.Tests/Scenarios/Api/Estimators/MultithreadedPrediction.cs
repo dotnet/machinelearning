@@ -5,7 +5,6 @@
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -23,43 +22,33 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// and performant in the new API.
         /// </summary>
         [Fact]
-        void MultithreadedPrediction()
+        void New_MultithreadedPrediction()
         {
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
 
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
-                // Pipeline
-                var loader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                // Pipeline.
+                var pipeline = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
+                    .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()))
+                    .Append(new MySdca(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
-
-                // Train
-                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
-                {
-                    NumThreads = 1
-                });
-
-                var cached = new CacheDataView(env, trans, prefetch: null);
-                var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
-                var predictor = trainer.Train(new Runtime.TrainContext(trainRoles));
-
-                var scoreRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
-                IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, scoreRoles, env, trainRoles.Schema);
+                // Train.
+                var model = pipeline.Fit(new MultiFileSource(dataPath));
 
                 // Create prediction engine and test predictions.
-                var model = env.CreatePredictionEngine<SentimentData, SentimentPrediction>(scorer);
+                var engine = new MyPredictionEngine<SentimentData, SentimentPrediction>(env, model.Transformer);
 
                 // Take a couple examples out of the test data and run predictions on top.
-                var testLoader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(SentimentTestPath)));
-                var testData = testLoader.AsEnumerable<SentimentData>(env, false);
+                var testData = model.Reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))
+                    .AsEnumerable<SentimentData>(env, false);
 
                 Parallel.ForEach(testData, (input) =>
                 {
-                    lock (model)
+                    lock (engine)
                     {
-                        var prediction = model.Predict(input);
+                        var prediction = engine.Predict(input);
                     }
                 });
             }
