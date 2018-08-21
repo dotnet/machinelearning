@@ -4,26 +4,44 @@ using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Core.StrongPipe.Columns;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Core.StrongPipe
 {
-    public abstract class BlockMaker<TTupleShape>
+    /// <summary>
+    /// Utility methods for components that want to expose themselves in the idioms of the statically-typed pipelines.
+    /// These utilities are meant to be called by and useful to component authors, not users of those components.
+    /// </summary>
+    public static class PigstyUtils
     {
-        public Estimator<TTupleShape, TTupleOutShape, ITransformer> CreateTransform<TTupleOutShape>(Func<TTupleShape, TTupleOutShape> mapper)
+        /// <summary>
+        /// This is a utility method intended to be used by authors of <see cref="IDataReaderEstimator{TSource,
+        /// TReader}"/> components to provide a strongly typed <see cref="DataReaderEstimator{TIn, TTupleShape}"/>.
+        /// This analysis tool provides a standard way for readers to exploit statically typed pipelines with the
+        /// standard tuple-shape objects without having to write such code themselves.
+        /// </summary>
+        /// <param name="input">The input that will be used when invoking <paramref name="mapper"/>, which is used
+        /// either to produce the input columns.</param>
+        /// <param name="baseReconciler">All columns that are yielded by <paramref name="input"/> should produce this
+        /// single reconciler. The analysis code in this method will ensure that this is the first object to be
+        /// reconciled, before all others.</param>
+        /// <param name="mapper">The user provided delegate.</param>
+        /// <typeparam name="TReaderEstimatorInputType">The type parameter for the input type to the data reader
+        /// estimator.</typeparam>
+        /// <typeparam name="TDelegateInput">The input type of the input delegate. This might be some object out of
+        /// which one can fetch or else retrieve </typeparam>
+        /// <typeparam name="TTupleOutShape"></typeparam>
+        /// <returns></returns>
+        public static DataReaderEstimator<TReaderEstimatorInputType, TTupleOutShape>
+            HelpMe<TReaderEstimatorInputType, TDelegateInput, TTupleOutShape>(
+            TDelegateInput input,
+            ReaderReconciler<TReaderEstimatorInputType> baseReconciler,
+            Func<TDelegateInput, TTupleOutShape> mapper)
         {
             Contracts.CheckValue(mapper, nameof(mapper));
 
-            Console.WriteLine($"Called {nameof(CreateTransform)} !!!");
-
             var method = mapper.Method;
-
-            // Construct the dummy column structure, then apply the mapping.
-            var input = PipelineColumnAnalyzer.CreateAnalysisInstance<TTupleShape>();
             var output = mapper(input);
 
-            // Extract the name/value pairs out of both the input and output.
-            KeyValuePair<string, PipelineColumn>[] inPairs = PipelineColumnAnalyzer.GetNames(input, method.GetParameters()[0]);
             KeyValuePair<string, PipelineColumn>[] outPairs = PipelineColumnAnalyzer.GetNames(output, method.ReturnParameter);
 
             // Map where the key depends on the set of things in the value. The value contains the yet unresolved dependencies.
@@ -58,31 +76,24 @@ namespace Microsoft.ML.Core.StrongPipe
                     zeroDependencies.Add(col);
             }
 
-            // The input columns should have no dependencies.
-            Contracts.Assert(inPairs.All(p => !keyDependsOn.TryGetValue(p.Value, out var deps) || deps.Count == 0));
+            // Get the base input columns.
+            var baseInputs = keyDependsOn.Select(p => p.Key).Where(col => col.ReconcilerObj == baseReconciler).ToArray();
+
+            // The columns that utilize the base reconciler should have no dependencies. This could only happen if
+            // the caller of this function has introduced a situation whereby they are claiming they can reconcile
+            // to a data-reader object but still have input data dependencies, which does not make sense and
+            // indicates that there is a bug in that component code. Unfortunately we can only detect that condition,
+            // not determine exactly how it arose, but we can still do so to indicate to the user that there is a
+            // problem somewhere in the stack.
+            Contracts.CheckParam(baseInputs.All(col => keyDependsOn[col].Count == 0),
+                nameof(input), "Bug detected where column producing object was yielding columns with dependencies.");
 
             // This holds the mappings of columns to names and back. Note that while the same column could be used on
             // the *output*, e.g., you could hypothetically have `(a: r.Foo, b: r.Foo)`, we treat that as the last thing
             // that is done.
             var nameMap = new InvDictionary<string, PipelineColumn>();
 
-            // Initially we suppose we've only assigned names to the inputs.
-            var inputColToName = new Dictionary<PipelineColumn, string>();
-            foreach (var p in inPairs)
-                inputColToName[p.Value] = p.Key;
-
-            // Get the initial name map.
-            foreach (var col in zeroDependencies)
-            {
-                if (inputColToName.TryGetValue(col, out string inputName))
-                {
-                    Contracts.Assert(!nameMap.ContainsKey(col));
-                    Contracts.Assert(!nameMap.ContainsKey(inputName));
-                    nameMap[col] = inputName;
-
-                    Console.WriteLine($"Using input with name {inputName}");
-                }
-            }
+            // REVIEW: Need to generalize case where we have input names, e.g., in the below method.
 
             int tempNum = 0;
             // For all outputs, get potential name collisions with used inputs. Resolve by assigning the input a temporary name.
@@ -110,24 +121,32 @@ namespace Microsoft.ML.Core.StrongPipe
             }
 
             // First clear the inputs from zero-dependencies yet to be resolved.
-            foreach (var p in inPairs)
+            foreach (var col in baseInputs)
             {
-                zeroDependencies.Remove(p.Value); // Make more efficient...
-                if (!dependsOnKey.TryGetValue(p.Value, out var depends))
+                Contracts.Assert(zeroDependencies.Contains(col));
+                Contracts.Assert(col.ReconcilerObj == baseReconciler);
+
+                zeroDependencies.Remove(col); // Make more efficient...
+                if (!dependsOnKey.TryGetValue(col, out var depends))
                     continue;
-                Contracts.Assert(nameMap.ContainsKey(p.Value));
+                // If any of these base inputs do not have names because, for example, they do not directly appear
+                // in the outputs and otherwise do not have names, assign them a name.
+                if (!nameMap.ContainsKey(col))
+                    nameMap[col] = $"Temp_{tempNum++}";
+
                 foreach (var depender in depends)
                 {
                     var dependencies = keyDependsOn[depender];
-                    Contracts.Assert(dependencies.Contains(p.Value));
-                    dependencies.Remove(p.Value);
+                    Contracts.Assert(dependencies.Contains(col));
+                    dependencies.Remove(col);
                     if (dependencies.Count == 0)
                         zeroDependencies.Add(depender);
                 }
-                dependsOnKey.Remove(p.Value);
+                dependsOnKey.Remove(col);
             }
 
-            // REVIEW: When we generalize this we will need to have this fake reconciler be called anyway, though it will be a no-op.
+            // Call the reconciler to get the base reader estimator.
+            var readerEstimator = baseReconciler.Reconcile(baseInputs, nameMap.AsOther(baseInputs));
 
             // Next we iteratively find those columns with zero dependencies, "create" them, and if anything depends on
             // these add them to the collection of zero dependencies, etc. etc.
@@ -178,11 +197,12 @@ namespace Microsoft.ML.Core.StrongPipe
 
             if (keyDependsOn.Any(p => p.Value.Count > 0))
             {
-                // This might happen if the user does something incredibly strange, like, say, take one of the prior
-                // lambdas, assign it to a local variable, then re-use it downstream in a different lambdas. The user
-                // would have to be trying to break the system.
+                // This might happen if the user does something incredibly strange, like, say, take some prior
+                // lambda, assign a column to a local variable, then re-use it downstream in a different lambdas.
+                // The user would have to go to some extraorindary effort to do that, but nonetheless we want to
+                // fail with a semi-sensible error message.
                 throw Contracts.Except("There were some leftover columns with unresolved dependencies. " +
-                    "Did you use a " + nameof(PipelineColumn) + " from another lambda?");
+                    "Did the caller use a " + nameof(PipelineColumn) + " from another lambda?");
             }
 
             // Now do the final renaming, if any is necessary.
@@ -196,96 +216,9 @@ namespace Microsoft.ML.Core.StrongPipe
                     Console.WriteLine($"Will copy '{currentName}' to '{p.Key}'");
             }
 
-            Console.WriteLine($"Exiting {nameof(CreateTransform)} !!!");
+            Console.WriteLine($"Exiting {nameof(HelpMe)} !!!");
 
-            return new FakeEstimator<TTupleOutShape>();
-        }
-
-        private sealed class FakeEstimator<TTupleOutShape>
-            : Estimator<TTupleShape, TTupleOutShape, ITransformer>
-        {
-            protected override ITransformer FitCore(IDataView input)
-            {
-                throw new NotImplementedException();
-            }
-
-            protected override SchemaShape GetOutputSchemaCore(SchemaShape inputSchema)
-            {
-                throw new NotImplementedException();
-            }
+            return null;// new FakeEstimator<TTupleOutShape>();
         }
     }
-    internal sealed class InvDictionary<T1, T2>
-    {
-        private readonly Dictionary<T1, T2> _d12;
-        private readonly Dictionary<T2, T1> _d21;
-
-        public InvDictionary()
-        {
-            _d12 = new Dictionary<T1, T2>();
-            _d21 = new Dictionary<T2, T1>();
-        }
-
-        public bool ContainsKey(T1 k) => _d12.ContainsKey(k);
-        public bool ContainsKey(T2 k) => _d21.ContainsKey(k);
-
-        public bool TryGetValue(T1 k, out T2 v) => _d12.TryGetValue(k, out v);
-        public bool TryGetValue(T2 k, out T1 v) => _d21.TryGetValue(k, out v);
-
-        public T1 this[T2 key]
-        {
-            get => _d21[key];
-            set {
-                Contracts.CheckValue((object)key, nameof(key));
-                Contracts.CheckValue((object)value, nameof(value));
-
-                bool removeOldKey = _d12.TryGetValue(value, out var oldKey);
-                if (_d21.TryGetValue(key, out var oldValue))
-                    _d12.Remove(oldValue);
-                if (removeOldKey)
-                    _d21.Remove(oldKey);
-
-                _d12[value] = key;
-                _d21[key] = value;
-                Contracts.Assert(_d12.Count == _d21.Count);
-            }
-        }
-
-        public T2 this[T1 key]
-        {
-            get => _d12[key];
-            set {
-                Contracts.CheckValue((object)key, nameof(key));
-                Contracts.CheckValue((object)value, nameof(value));
-
-                bool removeOldKey = _d21.TryGetValue(value, out var oldKey);
-                if (_d12.TryGetValue(key, out var oldValue))
-                    _d21.Remove(oldValue);
-                if (removeOldKey)
-                    _d12.Remove(oldKey);
-
-                _d21[value] = key;
-                _d12[key] = value;
-
-                Contracts.Assert(_d12.Count == _d21.Count);
-            }
-        }
-
-        public Dictionary<T1, T2> AsOther(IEnumerable<T1> keys)
-        {
-            Dictionary<T1, T2> d = new Dictionary<T1, T2>();
-            foreach (var v in keys)
-                d[v] = _d12[v];
-            return d;
-        }
-
-        public Dictionary<T2, T1> AsOther(IEnumerable<T2> keys)
-        {
-            Dictionary<T2, T1> d = new Dictionary<T2, T1>();
-            foreach (var v in keys)
-                d[v] = _d21[v];
-            return d;
-        }
-    }
-
 }

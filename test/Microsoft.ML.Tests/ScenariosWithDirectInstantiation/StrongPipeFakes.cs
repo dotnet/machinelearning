@@ -23,9 +23,15 @@ namespace FakeStrongPipes
                 => throw new NotImplementedException();
         }
 
-        private sealed class TextReconciler : Reconciler
+        private sealed class TextReconciler : ReaderReconciler<IMultiStreamSource>
         {
             public static readonly TextReconciler Inst = new TextReconciler();
+
+            public override IDataReaderEstimator<IMultiStreamSource, IDataReader<IMultiStreamSource>> Reconcile(
+                PipelineColumn[] toOutput, Dictionary<PipelineColumn, string> outputNames)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public sealed class Context
