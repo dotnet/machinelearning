@@ -705,8 +705,8 @@ namespace Microsoft.ML.Runtime.Data
 
             if (!info.TypeSrc.ItemType.IsText)
                 return null;
-            var terms = default(VBuffer<DvText>);
-            TermMap<DvText> map = (TermMap<DvText>)_termMap[iinfo].Map;
+            var terms = default(VBuffer<ReadOnlyMemory<char>>);
+            TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
             map.GetTerms(ref terms);
             var jsonMap = new JObject();
             foreach (var kv in terms.Items())

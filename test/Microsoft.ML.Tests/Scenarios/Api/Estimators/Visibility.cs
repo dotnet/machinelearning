@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
+using System;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -40,11 +41,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Assert.True(cursor.Schema.TryGetColumnIndex("Features_TransformedText", out int transformedTextColumn));
                     Assert.True(cursor.Schema.TryGetColumnIndex("Features", out int featureColumn));
 
-                    var originalTextGettter = cursor.GetGetter<DvText>(textColumn);
-                    var transformedTextGettter = cursor.GetGetter<VBuffer<DvText>>(transformedTextColumn);
+                    var originalTextGettter = cursor.GetGetter<ReadOnlyMemory<char>>(textColumn);
+                    var transformedTextGettter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(transformedTextColumn);
                     var featureGettter = cursor.GetGetter<VBuffer<float>>(featureColumn);
-                    DvText text = default;
-                    VBuffer<DvText> transformedText = default;
+                    ReadOnlyMemory<char> text = default;
+                    VBuffer<ReadOnlyMemory<char>> transformedText = default;
                     VBuffer<float> features = default;
                     while (cursor.MoveNext())
                     {

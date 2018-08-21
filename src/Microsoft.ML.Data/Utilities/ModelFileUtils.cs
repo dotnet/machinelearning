@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -288,10 +289,10 @@ namespace Microsoft.ML.Runtime.Model
 
                 using (var cursor = loader.GetRowCursor(c => true))
                 {
-                    var roleGetter = cursor.GetGetter<DvText>(0);
-                    var colGetter = cursor.GetGetter<DvText>(1);
-                    var role = default(DvText);
-                    var col = default(DvText);
+                    var roleGetter = cursor.GetGetter<ReadOnlyMemory<char>>(0);
+                    var colGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
+                    var role = default(ReadOnlyMemory<char>);
+                    var col = default(ReadOnlyMemory<char>);
                     while (cursor.MoveNext())
                     {
                         roleGetter(ref role);
