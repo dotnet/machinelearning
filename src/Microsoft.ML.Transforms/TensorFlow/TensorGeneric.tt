@@ -1,0 +1,99 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Numerics" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Runtime.InteropServices" #>
+<#@ output extension=".cs" #>// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
+
+namespace Microsoft.ML.Transforms.TensorFlow
+{
+    internal partial class TFTensor
+    {
+        /// <summary>
+        /// Creates a tensor representing type T.
+        /// The tensor will be backed with a managed-heap-allocated T.
+        /// </summary>
+        /// <typeparam name="T">.NET type of tensor to create</typeparam>
+        /// <param name="data">value of tensor</param>
+        public static TFTensor CreateScalar<T>(T data)
+        {
+<# foreach (TypeConfiguration type in typeConfiguration) { #>
+            <#=GenerateIfStatementHeader(type)#>
+            {
+                return new TFTensor((<#=type.TypeName#>)(object)data);
+            }
+<# } #>
+            throw new NotSupportedException($"Unsupported type {typeof(T)}");
+        }
+
+        /// <summary>
+        /// Creates a tensor representing type T[].
+        /// T[] will be pinned and wrapped in a tensor.
+        /// </summary>
+        /// <typeparam name="T[]">.NET type of tensor to create</typeparam>
+        /// <param name="data">value of tensor</param>
+        /// <param name="shape">shape of tensor</param>
+        public static TFTensor Create<T>(T[] data, TFShape shape)
+        {
+<# foreach (TypeConfiguration type in typeConfiguration) { #>
+            <#=GenerateIfStatementHeader(type)#>
+            {
+                return new TFTensor(SetupTensor(TFDataType.<#=type.TFDataType#>, shape, (Array)(object)data, 0, ((Array)(object)data).Length, <#=type.Size#>));
+            }
+<# } #>
+            // note that we will get here for jagged arrays, which is intententional since we'd need to copy them.
+            throw new NotSupportedException($"Unsupported type {typeof(T)}");
+        }
+    }
+}
+
+<#+
+    public class TypeConfiguration
+    {
+        public TypeConfiguration(Type type, string tfDataType)
+        {
+            Type = type;
+            TFDataType = tfDataType;
+        }
+        public string TypeName
+        {
+            get { return Type.ToString(); } 
+        }
+        public Type Type { get; }
+        public string TFDataType { get; }
+        public int Size 
+        {
+            get { return Marshal.SizeOf(Type); }
+        }
+    }
+
+    public string GenerateIfStatementHeader(TypeConfiguration type, string lhs = "typeof(T)")
+    {
+        string keyword = (type == typeConfiguration[0]) ? "if" : "else if";
+        return $"{keyword} ({lhs} == typeof({type.TypeName}))";
+    }
+
+    public TypeConfiguration[] typeConfiguration = new []
+    {
+        new TypeConfiguration(typeof(bool), "Bool"),
+        new TypeConfiguration(typeof(byte), "UInt8"),
+        new TypeConfiguration(typeof(char), "UInt8"),
+        new TypeConfiguration(typeof(System.Numerics.Complex), "Complex128"),
+        // new TypeConfiguration(typeof(decimal), "unknown"), TF doesn't appear to have 128-bit floating-point
+        new TypeConfiguration(typeof(double),"Double"),
+        new TypeConfiguration(typeof(float), "Float"),
+        new TypeConfiguration(typeof(int), "Int32"),
+        new TypeConfiguration(typeof(long), "Int64"),
+        new TypeConfiguration(typeof(sbyte), "Int8"),
+        new TypeConfiguration(typeof(short), "Int16"),
+        new TypeConfiguration(typeof(uint), "UInt32"),
+        new TypeConfiguration(typeof(ulong), "UInt64"),
+        new TypeConfiguration(typeof(ushort), "UInt16")
+        // TODO, map other types
+    };
+#>
