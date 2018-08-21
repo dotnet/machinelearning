@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-﻿using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data;
-using System;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -20,37 +18,33 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// float vector {3:1, 25:1, 203:1, 511:1}, etc. etc.
         /// </summary>
         [Fact]
-        void Visibility()
+        void New_Visibility()
         {
             var dataPath = GetDataPath(SentimentDataPath);
-            var testDataPath = GetDataPath(SentimentTestPath);
-
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
-                // Pipeline.
-                var loader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
-
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
-                
+                var pipeline = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
+                  .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()));
+                var data = pipeline.FitAndRead(new MultiFileSource(dataPath));
                 // In order to find out available column names, you can go through schema and check
                 // column names and appropriate type for getter.
-                for( int i=0; i< trans.Schema.ColumnCount; i++)
+                for (int i = 0; i < data.Schema.ColumnCount; i++)
                 {
-                    var columnName = trans.Schema.GetColumnName(i);
-                    var columnType = trans.Schema.GetColumnType(i).RawType;
+                    var columnName = data.Schema.GetColumnName(i);
+                    var columnType = data.Schema.GetColumnType(i).RawType;
                 }
 
-                using (var cursor = trans.GetRowCursor(x => true))
+                using (var cursor = data.GetRowCursor(x => true))
                 {
                     Assert.True(cursor.Schema.TryGetColumnIndex("SentimentText", out int textColumn));
                     Assert.True(cursor.Schema.TryGetColumnIndex("Features_TransformedText", out int transformedTextColumn));
                     Assert.True(cursor.Schema.TryGetColumnIndex("Features", out int featureColumn));
-                    
-                    var originalTextGettter = cursor.GetGetter<ReadOnlyMemory<char>>(textColumn);
-                    var transformedTextGettter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(transformedTextColumn);
+
+                    var originalTextGettter = cursor.GetGetter<DvText>(textColumn);
+                    var transformedTextGettter = cursor.GetGetter<VBuffer<DvText>>(transformedTextColumn);
                     var featureGettter = cursor.GetGetter<VBuffer<float>>(featureColumn);
-                    ReadOnlyMemory<char> text = default;
-                    VBuffer<ReadOnlyMemory<char>> transformedText = default;
+                    DvText text = default;
+                    VBuffer<DvText> transformedText = default;
                     VBuffer<float> features = default;
                     while (cursor.MoveNext())
                     {

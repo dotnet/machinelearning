@@ -1,7 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-  </PropertyGroup>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Compile Remove="Scenarios\Api\AspirationalExamples.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
@@ -23,11 +24,12 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="LdaNative" />
-	<NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklImports" />
   </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="System.Memory" Version="4.5.1" />
+    <None Include="Scenarios\Api\AspirationalExamples.cs" />
   </ItemGroup>
 </Project>
