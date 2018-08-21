@@ -168,7 +168,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (type.ItemType.IsText || type.ItemType.IsKey || type.ItemType == NumberType.R4 || type.ItemType == NumberType.R8)
                 return null;
-            return "Expected Text, Key, Float or Double item type";
+            return "Expected Text, Key, R4 or R8 item type";
         }
 
         private const string RegistrationName = "Hash";
@@ -441,9 +441,9 @@ namespace Microsoft.ML.Runtime.Data
             case DataKind.U4:
                 return ComposeGetterOneCore(GetSrcGetter<uint>(input, iinfo), seed, mask);
             case DataKind.R4:
-                return ComposeGetterOneCore(GetSrcGetter<Single>(input, iinfo), seed, mask);
+                return ComposeGetterOneCore(GetSrcGetter<float>(input, iinfo), seed, mask);
             case DataKind.R8:
-                return ComposeGetterOneCore(GetSrcGetter<Double>(input, iinfo), seed, mask);
+                return ComposeGetterOneCore(GetSrcGetter<double>(input, iinfo), seed, mask);
             default:
                 Host.Assert(colType.RawKind == DataKind.U8);
                 return ComposeGetterOneCore(GetSrcGetter<ulong>(input, iinfo), seed, mask);
@@ -507,9 +507,9 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<Single> getSrc, uint seed, uint mask)
+        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<float> getSrc, uint seed, uint mask)
         {
-            Single src = 0;
+            float src = 0;
             return
                 (ref uint dst) =>
                 {
@@ -518,9 +518,9 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<Double> getSrc, uint seed, uint mask)
+        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<double> getSrc, uint seed, uint mask)
         {
-            Double src = 0;
+            double src = 0;
             return
                 (ref uint dst) =>
                 {
@@ -551,9 +551,9 @@ namespace Microsoft.ML.Runtime.Data
                 return ComposeGetterVecCore<uint>(input, iinfo, HashUnord, HashDense, HashSparse);
             case DataKind.R4:
                 // Ignoring HashSparse for I1-R8, since 0 will be hashed to a non zero value.
-                return ComposeGetterVecCore<Single>(input, iinfo, HashUnord, HashDense, HashDense);
+                return ComposeGetterVecCore<float>(input, iinfo, HashUnord, HashDense, HashDense);
             case DataKind.R8:
-                return ComposeGetterVecCore<Double>(input, iinfo, HashUnord, HashDense, HashDense);
+                return ComposeGetterVecCore<double>(input, iinfo, HashUnord, HashDense, HashDense);
             default:
                 Host.Assert(colType.ItemType.RawKind == DataKind.U8);
                 return ComposeGetterVecCore<ulong>(input, iinfo, HashUnord, HashDense, HashSparse);
@@ -629,7 +629,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref Single value, uint mask)
+        private static uint HashCore(uint seed, ref float value, uint mask)
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
             if (value.IsNA())
@@ -639,7 +639,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref Single value, int i, uint mask)
+        private static uint HashCore(uint seed, ref float value, int i, uint mask)
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
             if (value.IsNA())
@@ -649,7 +649,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref Double value, uint mask)
+        private static uint HashCore(uint seed, ref double value, uint mask)
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
             if (value.IsNA())
@@ -664,7 +664,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref Double value, int i, uint mask)
+        private static uint HashCore(uint seed, ref double value, int i, uint mask)
         {
             // If the high word is zero, this should produce the same value as the uint version.
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
@@ -771,14 +771,14 @@ namespace Microsoft.ML.Runtime.Data
                 dst[i] = HashCore(seed, src[i], mask);
         }
 
-        private static void HashUnord(int count, int[] indices, Single[] src, uint[] dst, uint seed, uint mask)
+        private static void HashUnord(int count, int[] indices, float[] src, uint[] dst, uint seed, uint mask)
         {
             AssertValid(count, src, dst);
 
             for (int i = 0; i < count; i++)
                 dst[i] = HashCore(seed, ref src[i], mask);
         }
-        private static void HashUnord(int count, int[] indices, Double[] src, uint[] dst, uint seed, uint mask)
+        private static void HashUnord(int count, int[] indices, double[] src, uint[] dst, uint seed, uint mask)
         {
             AssertValid(count, src, dst);
 
@@ -829,14 +829,14 @@ namespace Microsoft.ML.Runtime.Data
                 dst[i] = HashCore(seed, src[i], i, mask);
         }
 
-        private static void HashDense(int count, int[] indices, Single[] src, uint[] dst, uint seed, uint mask)
+        private static void HashDense(int count, int[] indices, float[] src, uint[] dst, uint seed, uint mask)
         {
             AssertValid(count, src, dst);
 
             for (int i = 0; i < count; i++)
                 dst[i] = HashCore(seed, ref src[i], i, mask);
         }
-        private static void HashDense(int count, int[] indices, Double[] src, uint[] dst, uint seed, uint mask)
+        private static void HashDense(int count, int[] indices, double[] src, uint[] dst, uint seed, uint mask)
         {
             AssertValid(count, src, dst);
 
