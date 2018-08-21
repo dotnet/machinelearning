@@ -11,8 +11,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     {
         private static string _enableAvx = Environment.GetEnvironmentVariable("COMPlus_EnableAVX");
         private static string _featureSimd = Environment.GetEnvironmentVariable("COMPlus_FeatureSIMD");
-        private static bool _useAvx = Avx.IsSupported && !string.Equals(_enableAvx, "false", StringComparison.OrdinalIgnoreCase);
-        private static bool _useSse = Sse.IsSupported && !string.Equals(_featureSimd, "false", StringComparison.OrdinalIgnoreCase);
+        private static bool _useAvx = Avx.IsSupported && !string.Equals(_enableAvx, "false", StringComparison.OrdinalIgnoreCase) && !string.Equals(_enableAvx, "0", StringComparison.OrdinalIgnoreCase);
+        private static bool _useSse = Sse.IsSupported && !string.Equals(_featureSimd, "false", StringComparison.OrdinalIgnoreCase) && !string.Equals(_enableAvx, "0", StringComparison.OrdinalIgnoreCase);
 
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
         private const int Vector128Alignment = 16;
