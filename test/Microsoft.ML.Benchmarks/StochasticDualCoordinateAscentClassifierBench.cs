@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
 using Microsoft.ML.Data;
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
@@ -21,6 +22,7 @@ namespace Microsoft.ML.Benchmarks
         private static IrisData[][] s_batches;
         private static readonly int[] s_batchSizes = new int[] { 1, 2, 5 };
         private readonly Random r = new Random(0);
+        private readonly Consumer _consumer = new Consumer();
         private static readonly IrisData s_example = new IrisData()
         {
             SepalLength = 3.3f,
@@ -28,19 +30,6 @@ namespace Microsoft.ML.Benchmarks
             PetalLength = 0.2f,
             PetalWidth = 5.1f,
         };
-
-        [Benchmark]
-        public PredictionModel<IrisData, IrisPrediction> TrainIris() => TrainCore();
-
-        [Benchmark]
-        public float[] PredictIris() => s_trainedModel.Predict(s_example).PredictedLabels;
-
-        [Benchmark]
-        public IEnumerable<IrisPrediction> PredictIrisBatchOf1() => s_trainedModel.Predict(s_batches[0]);
-        [Benchmark]
-        public IEnumerable<IrisPrediction> PredictIrisBatchOf2() => s_trainedModel.Predict(s_batches[1]);
-        [Benchmark]
-        public IEnumerable<IrisPrediction> PredictIrisBatchOf5() => s_trainedModel.Predict(s_batches[2]);
 
         [GlobalSetup]
         public void Setup()
@@ -63,6 +52,27 @@ namespace Microsoft.ML.Benchmarks
                     batch[bi] = s_example;
                 }
             }
+        }
+
+        [Benchmark]
+        public PredictionModel<IrisData, IrisPrediction> TrainIris() => TrainCore();
+
+        [Benchmark]
+        public float[] PredictIris() => s_trainedModel.Predict(s_example).PredictedLabels;
+
+        [Benchmark]
+        public void PredictIrisBatchOf1() => Consume(s_trainedModel.Predict(s_batches[0]));
+
+        [Benchmark]
+        public void PredictIrisBatchOf2() => Consume(s_trainedModel.Predict(s_batches[1]));
+
+        [Benchmark]
+        public void PredictIrisBatchOf5() => Consume(s_trainedModel.Predict(s_batches[2]));
+
+        private void Consume(IEnumerable<IrisPrediction> predictions)
+        {
+            foreach (var prediction in predictions)
+                _consumer.Consume(prediction);
         }
 
         private static PredictionModel<IrisData, IrisPrediction> TrainCore()
