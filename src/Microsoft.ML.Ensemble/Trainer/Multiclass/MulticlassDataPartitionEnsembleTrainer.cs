@@ -12,7 +12,9 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Learners;
 
 [assembly: LoadableClass(MulticlassDataPartitionEnsembleTrainer.Summary, typeof(MulticlassDataPartitionEnsembleTrainer),
     typeof(MulticlassDataPartitionEnsembleTrainer.Arguments),
@@ -28,7 +30,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     /// </summary>
     public sealed class MulticlassDataPartitionEnsembleTrainer :
         EnsembleTrainerBase<VBuffer<Single>, EnsembleMultiClassPredictor,
-        IMulticlassSubModelSelector, IMultiClassOutputCombiner, SignatureMultiClassClassifierTrainer>,
+        IMulticlassSubModelSelector, IMultiClassOutputCombiner>,
         IModelCombiner<TVectorPredictor, TVectorPredictor>
     {
         public const string LoadNameValue = "WeightedEnsembleMulticlass";
@@ -45,9 +47,18 @@ namespace Microsoft.ML.Runtime.Ensemble
             [TGUI(Label = "Output combiner", Description = "Output combiner type")]
             public ISupportMulticlassOutputCombinerFactory OutputCombiner = new MultiMedian.Arguments();
 
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMultiClassClassifierTrainer))]
+            public IComponentFactory<ITrainer<TVectorPredictor>>[] BasePredictors;
+
+            internal override IComponentFactory<ITrainer<TVectorPredictor>>[] GetPredictorFactories() => BasePredictors;
+
             public Arguments()
             {
-                BasePredictors = new[] { new SubComponent<ITrainer<TVectorPredictor>, SignatureMultiClassClassifierTrainer>("MultiClassLogisticRegression") };
+                BasePredictors = new[]
+                {
+                    ComponentFactoryUtils.CreateFromFunction(
+                        env => new MulticlassLogisticRegression(env, new MulticlassLogisticRegression.Arguments()))
+                };
             }
         }
 
