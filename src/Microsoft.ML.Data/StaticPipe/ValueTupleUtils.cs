@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Microsoft.ML.Core.StrongPipe.Columns;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using System;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Core.StrongPipe
+namespace Microsoft.ML.Data.StaticPipe
 {
     internal static class ValueTupleUtils
     {

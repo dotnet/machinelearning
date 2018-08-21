@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Core.StrongPipe.Columns;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Core.StrongPipe
+namespace Microsoft.ML.Data.StaticPipe
 {
     public abstract class BlockMaker<TTupleShape>
     {

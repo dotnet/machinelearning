@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Core.StrongPipe.Columns;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Core.StrongPipe
+namespace Microsoft.ML.Data.StaticPipe
 {
     /// <summary>
     /// Utility methods for components that want to expose themselves in the idioms of the statically-typed pipelines.

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.ML.Core.Data;
 
-namespace Microsoft.ML.Core.StrongPipe.Columns
+namespace Microsoft.ML.Data.StaticPipe.Runtime
 {
     public abstract class Reconciler
     {

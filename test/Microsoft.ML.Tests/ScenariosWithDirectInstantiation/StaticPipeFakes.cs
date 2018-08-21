@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML.Core.Data;
-using Microsoft.ML.Core.StrongPipe;
-using Microsoft.ML.Core.StrongPipe.Columns;
+using Microsoft.ML.Data.StaticPipe;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using System;
@@ -10,7 +10,7 @@ using System.Text;
 
 // Holds some classes that superficially represent classes, at least sufficiently to give the idea of the statically typed columnar estimator helper API.
 
-namespace FakeStrongPipes
+namespace FakeStaticPipes
 {
     public sealed class TextLoader
     {

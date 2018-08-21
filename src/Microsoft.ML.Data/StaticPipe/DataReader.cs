@@ -1,7 +1,7 @@
 ﻿using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Core.StrongPipe
+namespace Microsoft.ML.Data.StaticPipe
 {
     public sealed class DataReader<TIn, TTupleShape>
         : IDataReader<TIn>

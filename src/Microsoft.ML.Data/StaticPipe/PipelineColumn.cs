@@ -1,11 +1,8 @@
 ﻿using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Microsoft.ML.Core.StrongPipe.Columns
+namespace Microsoft.ML.Data.StaticPipe.Runtime
 {
     /// <summary>
     /// This class is used as a type marker for <see cref="IDataView"/> producing structures for use in the statically

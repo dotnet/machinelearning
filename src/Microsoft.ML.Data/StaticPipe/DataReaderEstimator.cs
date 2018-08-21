@@ -2,7 +2,7 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Core.StrongPipe
+namespace Microsoft.ML.Data.StaticPipe
 {
     public abstract class DataReaderEstimator<TIn, TTupleShape>
         : BlockMaker<TTupleShape>, IDataReaderEstimator<TIn, IDataReader<TIn>>

@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using FakeStrongPipes;
-using Microsoft.ML.Core.StrongPipe;
-using Microsoft.ML.Core.StrongPipe.Columns;
+using FakeStaticPipes;
+using Microsoft.ML.Data.StaticPipe;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using System;
 using System.IO;
 using Xunit;
@@ -34,9 +34,9 @@ namespace Microsoft.ML.Scenarios
         }
     }
 
-    public sealed class StrongPipe : MakeConsoleWork
+    public sealed class StaticPipe : MakeConsoleWork
     {
-        public StrongPipe(ITestOutputHelper output)
+        public StaticPipe(ITestOutputHelper output)
             : base(output)
         {
         }
