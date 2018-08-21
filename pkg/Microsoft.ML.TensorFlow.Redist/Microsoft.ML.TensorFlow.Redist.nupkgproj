@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>$(MSBuildProjectName) contains the TensorFlow C library version $(TensorFlowVersion) redistributed as a NuGet package.</PackageDescription>
+    <PackageLicenseUrl>https://github.com/tensorflow/tensorflow/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://www.tensorflow.org/install/install_c</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/tensorflow/tensorflow/releases/tag/v$(TensorFlowVersion)</PackageReleaseNotes>
+    <PackageTags>$(PackageTags) TensorFlow</PackageTags>
+    <!-- TODO: consider PackageIconUrl -->
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+  </ItemGroup>
+</Project>

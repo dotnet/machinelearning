@@ -31,6 +31,7 @@
     <TraversalBuildDependsOn>
       CreateOrUpdateCurrentVersionFile;
       RestoreProjects;
+      BuildRedist;
       BuildNative;
       $(TraversalBuildDependsOn);
       DownloadExternalTestFiles;
@@ -42,6 +43,14 @@
     <MSBuild Projects="@(Project)"
              Targets="Restore" 
              Properties="MSBuildWarningsAsMessages=NU1503" />
+  </Target>
+
+  <Target Name="BuildRedist"
+          Condition="'$(SkipRedistBuild)' != 'true'"
+          DependsOnTargets="RestoreProjects">
+    <Message Importance="High" Text="Building redist components..." />
+    <MSBuild Projects="src/Redist/build.proj"
+             Targets="Build" />
   </Target>
 
   <Target Name="BuildNative"
