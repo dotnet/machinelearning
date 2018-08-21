@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Xunit;
+using Xunit.Abstractions;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 
 namespace Microsoft.ML.CpuMath.UnitTests
@@ -18,6 +19,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         private readonly AlignedArray[] _testDstVectors;
         private readonly int _vectorAlignment = CpuMathUtils.GetVectorAlignment();
         private readonly FloatEqualityComparer _comparer;
+        private readonly FloatEqualityComparerForMatMul _matMulComparer;
 
         private const float DEFAULT_SCALE = 1.7f;
 
@@ -30,6 +32,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             _testArrays = new float[][] { testArray1, testArray2 };
             _testIndexArray = new int[9] { 0, 2, 5, 6, 8, 11, 12, 13, 14 };
             _comparer = new FloatEqualityComparer();
+            _matMulComparer = new FloatEqualityComparerForMatMul();
 
             // Padded matrices whose dimensions are multiples of 8
             float[] testMatrix1 = new float[8 * 8] { 1.96f, -2.38f, -9.76f, 13.84f, -106.37f, -26.93f, 32.45f, 3.29f,
@@ -78,7 +81,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0, 0, 0, new float[] { -416.68f, -416.68f, -416.68f, -416.68f, -416.68f, -416.68f, -416.68f, -416.68f })]
+        [InlineData(0, 0, 0, new float[] { -416.6801f, -416.6801f, -416.6801f, -416.6801f, -416.6801f, -416.6801f, -416.6801f, -416.6801f })]
         [InlineData(1, 1, 0, new float[] { 1496f, 3672f, 5848f, 8024f, 10200f, 12376f, 14552f, 16728f })]
         [InlineData(1, 0, 1, new float[] { 204f, 492f, 780f, 1068f, 1356f, 1644f, 1932f, 2220f, 2508f, 2796f, 3084f, 3372f, 3660f, 3948f, 4236f, 4524f })]
         public void MatMulATest(int matTest, int srcTest, int dstTest, float[] expected)
@@ -90,11 +93,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             CpuMathUtils.MatTimesSrc(false, false, mat, src, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
-            Assert.Equal(expected, actual, _comparer);
+            Assert.Equal(expected, actual, _matMulComparer);
         }
 
         [Theory]
-        [InlineData(0, 0, 0, new float[] { -416.68f, -415.68f, -414.68f, -413.68f, -412.68f, -411.68f, -410.68f, -409.68f })]
+        [InlineData(0, 0, 0, new float[] { -416.6801f, -415.6801f, -414.6801f, -413.6801f, -412.6801f, -411.6801f, -410.6801f, -409.6801f })]
         [InlineData(1, 1, 0, new float[] { 1496f, 3673f, 5850f, 8027f, 10204f, 12381f, 14558f, 16735f })]
         [InlineData(1, 0, 1, new float[] { 204f, 493f, 782f, 1071f, 1360f, 1649f, 1938f, 2227f, 2516f, 2805f, 3094f, 3383f, 3672f, 3961f, 4250f, 4539f })]
         public void MatMulAAddTest(int matTest, int srcTest, int dstTest, float[] expected)
@@ -106,11 +109,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             CpuMathUtils.MatTimesSrc(false, true, mat, src, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
-            Assert.Equal(expected, actual, _comparer);
+            Assert.Equal(expected, actual, _matMulComparer);
         }
 
         [Theory]
-        [InlineData(0, 0, 0, new float[] { 70.56f, -85.68f, -351.36f, 498.24f, -3829.32f, -969.48f, 1168.2f, 118.44f })]
+        [InlineData(0, 0, 0, new float[] { 70.56001f, -85.68f, -351.36f, 498.24f, -3829.32f, -969.48f, 1168.2f, 118.44f })]
         [InlineData(1, 0, 1, new float[] { 2724f, 2760f, 2796f, 2832f, 2868f, 2904f, 2940f, 2976f, 3012f, 3048f, 3084f, 3120f, 3156f, 3192f, 3228f, 3264f })]
         [InlineData(1, 1, 0, new float[] { 11016f, 11152f, 11288f, 11424f, 11560f, 11696f, 11832f, 11968f })]
         public void MatMulTranATest(int matTest, int srcTest, int dstTest, float[] expected)
@@ -122,11 +125,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             CpuMathUtils.MatTimesSrc(true, false, mat, src, dst, src.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
-            Assert.Equal(expected, actual, _comparer);
+            Assert.Equal(expected, actual, _matMulComparer);
         }
 
         [Theory]
-        [InlineData(0, 0, 0, new float[] { 70.56f, -84.68f, -349.36f, 501.24f, -3825.32f, -964.48f, 1174.2f, 125.44f })]
+        [InlineData(0, 0, 0, new float[] { 70.56001f, -84.68f, -349.36f, 501.24f, -3825.32f, -964.48f, 1174.2f, 125.44f })]
         [InlineData(1, 0, 1, new float[] { 2724f, 2761f, 2798f, 2835f, 2872f, 2909f, 2946f, 2983f, 3020f, 3057f, 3094f, 3131f, 3168f, 3205f, 3242f, 3279f })]
         [InlineData(1, 1, 0, new float[] { 11016f, 11153f, 11290f, 11427f, 11564f, 11701f, 11838f, 11975f })]
         public void MatMulTranAAddTest(int matTest, int srcTest, int dstTest, float[] expected)
@@ -138,11 +141,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             CpuMathUtils.MatTimesSrc(true, true, mat, src, dst, src.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
-            Assert.Equal(expected, actual, _comparer);
+            Assert.Equal(expected, actual, _matMulComparer);
         }
 
         [Theory]
-        [InlineData(0, 0, 0, new float[] { 38.25f, 38.25f, 38.25f, 38.25f, 38.25f, 38.25f, 38.25f, 38.25f })]
+        [InlineData(0, 0, 0, new float[] { 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f })]
         [InlineData(1, 1, 0, new float[] { 910f, 2190f, 3470f, 4750f, 6030f, 7310f, 8590f, 9870f })]
         [InlineData(1, 0, 1, new float[] { 95f, 231f, 367f, 503f, 639f, 775f, 911f, 1047f, 1183f, 1319f, 1455f, 1591f, 1727f, 1863f, 1999f, 2135f })]
         public void MatMulPATest(int matTest, int srcTest, int dstTest, float[] expected)
@@ -155,11 +158,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             CpuMathUtils.MatTimesSrc(false, false, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
-            Assert.Equal(expected, actual, _comparer);
+            Assert.Equal(expected, actual, _matMulComparer);
         }
 
         [Theory]
-        [InlineData(0, 0, 0, new float[] { 38.25f, 39.25f, 40.25f, 41.25f, 42.25f, 43.25f, 44.25f, 45.25f })]
+        [InlineData(0, 0, 0, new float[] { 38.25002f, 39.25002f, 40.25002f, 41.25002f, 42.25002f, 43.25002f, 44.25002f, 45.25002f })]
         [InlineData(1, 1, 0, new float[] { 910f, 2191f, 3472f, 4753f, 6034f, 7315f, 8596f, 9877f })]
         [InlineData(1, 0, 1, new float[] { 95f, 232f, 369f, 506f, 643f, 780f, 917f, 1054f, 1191f, 1328f, 1465f, 1602f, 1739f, 1876f, 2013f, 2150f })]
         public void MatMulPAAddTest(int matTest, int srcTest, int dstTest, float[] expected)
@@ -172,7 +175,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             CpuMathUtils.MatTimesSrc(false, true, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
-            Assert.Equal(expected, actual, _comparer);
+            Assert.Equal(expected, actual, _matMulComparer);
         }
 
         [Theory]
@@ -189,7 +192,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             CpuMathUtils.MatTimesSrc(true, false, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, src.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
-            Assert.Equal(expected, actual, _comparer);
+            Assert.Equal(expected, actual, _matMulComparer);
         }
 
         [Theory]
@@ -206,7 +209,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             CpuMathUtils.MatTimesSrc(true, true, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, src.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
-            Assert.Equal(expected, actual, _comparer);
+            Assert.Equal(expected, actual, _matMulComparer);
         }
 
         [Theory]
@@ -621,6 +624,19 @@ namespace Microsoft.ML.CpuMath.UnitTests
     }
 
     internal class FloatEqualityComparer : IEqualityComparer<float>
+    {
+        public bool Equals(float a, float b)
+        {
+            return Math.Abs(a - b) < 1e-5f;
+        }
+
+        public int GetHashCode(float a)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal class FloatEqualityComparerForMatMul : IEqualityComparer<float>
     {
         public bool Equals(float a, float b)
         {
