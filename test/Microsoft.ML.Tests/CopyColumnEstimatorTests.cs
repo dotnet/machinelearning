@@ -13,9 +13,15 @@ namespace Microsoft.ML.Tests
             public int B;
             public int C;
         }
+        class TestClassXY
+        {
+            public int X;
+            public int Y;
+        }
+
 
         [Fact]
-        void TestOne()
+        void TestWorking()
         {
             var data = new List<TestClass>() { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             using (var env = new TlcEnvironment())
@@ -44,6 +50,51 @@ namespace Microsoft.ML.Tests
                         Assert.Equal(bvalue, evalue);
                     }
                 }
+            }
+        }
+
+        [Fact]
+        void TestBadOriginalSchema()
+        {
+            var data = new List<TestClass>() { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var est = new CopyColumnsEstimator(env, new[] { ("D", "A"), ("B", "E") });
+                bool failed = false;
+                try
+                {
+                    var transformer = est.Fit(dataView);
+                }
+                catch
+                {
+                    failed = true;
+                }
+                Assert.True(failed);
+            }
+        }
+
+        [Fact]
+        void TestBadTransformSchmea()
+        {
+            var data = new List<TestClass>() { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            var xydata = new List<TestClassXY>() { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var xyDataView = ComponentCreation.CreateDataView(env, xydata);
+                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E") });
+                var transformer = est.Fit(dataView);
+                bool failed = false;
+                try
+                {
+                    var result = transformer.Transform(xyDataView);
+                }
+                catch
+                {
+                    failed = true;
+                }
+                Assert.True(failed);
             }
         }
     }
