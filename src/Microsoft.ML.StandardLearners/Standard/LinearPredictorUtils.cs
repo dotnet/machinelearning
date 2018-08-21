@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.CheckValue(writer, nameof(writer));
             Contracts.CheckValueOrNull(schema);
 
-            var featureNames = default(VBuffer<DvText>);
+            var featureNames = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref featureNames);
 
             int numNonZeroWeights = 0;
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.Learners
             StringBuilder aggregatedNodesBuilder = new StringBuilder("Nodes=");
             StringBuilder weightsBuilder = new StringBuilder("Weights=");
 
-            var featureNames = default(VBuffer<DvText>);
+            var featureNames = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref featureNames);
 
             int numNonZeroWeights = 0;
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.Learners
                         var name = featureNames.GetItemOrDefault(idx);
 
                         inputBuilder.AppendLine("[Input:" + numNonZeroWeights + "]");
-                        inputBuilder.AppendLine("Name=" + (featureNames.Count == 0 ? "Feature_" + idx : DvText.Identical(name, DvText.Empty) ? $"f{idx}" : name.ToString()));
+                        inputBuilder.AppendLine("Name=" + (featureNames.Count == 0 ? "Feature_" + idx : ReadOnlyMemoryUtils.Identical(name, String.Empty.AsMemory()) ? $"f{idx}" : name.ToString()));
                         inputBuilder.AppendLine("Transform=linear");
                         inputBuilder.AppendLine("Slope=1");
                         inputBuilder.AppendLine("Intercept=0");
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         public static IEnumerable<KeyValuePair<string, Single>> GetSortedLinearModelFeatureNamesAndWeights(Single bias,
-            ref VBuffer<Single> weights, ref VBuffer<DvText> names)
+            ref VBuffer<Single> weights, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             var orderedWeights = weights.Items()
                 .Where(weight => Math.Abs(weight.Value) >= Epsilon)
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Learners
                 int index = weight.Key;
                 var name = names.GetItemOrDefault(index);
                 list.Add(new KeyValuePair<string, Single>(
-                    DvText.Identical(name, DvText.Empty) ? $"f{index}" : name.ToString(), weight.Value));
+                    ReadOnlyMemoryUtils.Identical(name, String.Empty.AsMemory()) ? $"f{index}" : name.ToString(), weight.Value));
             }
 
             return list;
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.Learners
         public static void SaveLinearModelWeightsInKeyValuePairs(
             ref VBuffer<Float> weights, Float bias, RoleMappedSchema schema, List<KeyValuePair<string, object>> results)
         {
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref names);
 
             var pairs = GetSortedLinearModelFeatureNamesAndWeights(bias, ref weights, ref names);

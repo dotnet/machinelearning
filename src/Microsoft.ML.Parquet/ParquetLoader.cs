@@ -519,7 +519,7 @@ namespace Microsoft.ML.Runtime.Data
                     case DataType.ByteArray:
                         return CreateGetterDelegateCore<byte[], VBuffer<Byte>>(col, _parquetConversions.Conv);
                     case DataType.String:
-                        return CreateGetterDelegateCore<string, DvText>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<string, ReadOnlyMemory<char>>(col, _parquetConversions.Conv);
                     case DataType.Float:
                         return CreateGetterDelegateCore<float?, Single>(col, _parquetConversions.Conv);
                     case DataType.Double:
@@ -531,7 +531,7 @@ namespace Microsoft.ML.Runtime.Data
                     case DataType.Interval:
                         return CreateGetterDelegateCore<Interval, DvTimeSpan>(col, _parquetConversions.Conv);
                     default:
-                        return CreateGetterDelegateCore<IList, DvText>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<IList, ReadOnlyMemory<char>>(col, _parquetConversions.Conv);
                 }
             }
 
@@ -696,13 +696,13 @@ namespace Microsoft.ML.Runtime.Data
 
             public void Conv(ref decimal? src, ref Double dst) => dst = src != null ? Decimal.ToDouble((decimal)src) : Double.NaN;
 
-            public void Conv(ref string src, ref DvText dst) => dst = new DvText(src);
+            public void Conv(ref string src, ref ReadOnlyMemory<char> dst) => dst = src.AsMemory();
 
             public void Conv(ref bool? src, ref DvBool dst) => dst = src ?? DvBool.NA;
 
             public void Conv(ref DateTimeOffset src, ref DvDateTimeZone dst) => dst = src;
 
-            public void Conv(ref IList src, ref DvText dst) => dst = new DvText(ConvertListToString(src));
+            public void Conv(ref IList src, ref ReadOnlyMemory<char> dst) => dst = ConvertListToString(src).AsMemory();
 
             /// <summary>
             ///  Converts a System.Numerics.BigInteger value to a UInt128 data type value.

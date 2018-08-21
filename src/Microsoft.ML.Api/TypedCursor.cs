@@ -273,11 +273,11 @@ namespace Microsoft.ML.Runtime.Api
                 if (fieldType.IsArray)
                 {
                     Ch.Assert(colType.IsVector);
-                    // VBuffer<DvText> -> String[]
+                    // VBuffer<ReadOnlyMemory<char>> -> String[]
                     if (fieldType.GetElementType() == typeof(string))
                     {
                         Ch.Assert(colType.ItemType.IsText);
-                        return CreateConvertingVBufferSetter<DvText, string>(input, index, poke, peek, x => x.ToString());
+                        return CreateConvertingVBufferSetter<ReadOnlyMemory<char>, string>(input, index, poke, peek, x => x.ToString());
                     }
                     else if (fieldType.GetElementType() == typeof(bool))
                     {
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Runtime.Api
                 else if (colType.IsVector)
                 {
                     // VBuffer<T> -> VBuffer<T>
-                    // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<DvText>?
+                    // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
                     Ch.Assert(fieldType.IsGenericType);
                     Ch.Assert(fieldType.GetGenericTypeDefinition() == typeof(VBuffer<>));
                     Ch.Assert(fieldType.GetGenericArguments()[0] == colType.ItemType.RawType);
@@ -352,10 +352,10 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     if (fieldType == typeof(string))
                     {
-                        // DvText -> String
+                        // ReadOnlyMemory<char> -> String
                         Ch.Assert(colType.IsText);
                         Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvText, string>(input, index, poke, x => x.ToString());
+                        return CreateConvertingActionSetter<ReadOnlyMemory<char>, string>(input, index, poke, x => x.ToString());
                     }
                     else if (fieldType == typeof(bool))
                     {

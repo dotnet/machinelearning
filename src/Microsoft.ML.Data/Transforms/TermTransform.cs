@@ -432,16 +432,16 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < infos.Length; iinfo++)
             {
                 // First check whether we have a terms argument, and handle it appropriately.
-                var terms = new DvText(column[iinfo].Terms);
+                var terms = column[iinfo].Terms.AsMemory();
                 var termsArray = column[iinfo].Term;
-                if (!terms.HasChars && termsArray == null)
+                if (terms.IsEmpty && termsArray == null)
                 {
-                    terms = new DvText(args.Terms);
+                    terms = args.Terms.AsMemory();
                     termsArray = args.Term;
                 }
 
-                terms = terms.Trim();
-                if (terms.HasChars || (termsArray != null && termsArray.Length > 0))
+                terms = ReadOnlyMemoryUtils.Trim(terms);
+                if (!terms.IsEmpty || (termsArray != null && termsArray.Length > 0))
                 {
                     // We have terms! Pass it in.
                     var sortOrder = column[iinfo].Sort ?? args.Sort;
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Runtime.Data
                         throw ch.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, infos[iinfo].Name);
 
                     var bldr = Builder.Create(infos[iinfo].TypeSrc, sortOrder);
-                    if(terms.HasChars)
+                    if(!terms.IsEmpty)
                         bldr.ParseAddTermArg(ref terms, ch);
                     else
                         bldr.ParseAddTermArg(termsArray, ch);
@@ -731,8 +731,8 @@ namespace Microsoft.ML.Runtime.Data
             if (!info.TypeSrc.ItemType.IsText)
                 return false;
 
-            var terms = default(VBuffer<DvText>);
-            TermMap<DvText> map = (TermMap<DvText>)_termMap[iinfo].Map;
+            var terms = default(VBuffer<ReadOnlyMemory<char>>);
+            TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
             map.GetTerms(ref terms);
             string opType = "LabelEncoder";
             var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));

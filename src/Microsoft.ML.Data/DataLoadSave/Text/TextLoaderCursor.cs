@@ -497,7 +497,7 @@ namespace Microsoft.ML.Runtime.Data
                                 for (; ; )
                                 {
                                     // REVIEW: Avoid allocating a string for every line. This would probably require
-                                    // introducing a CharSpan type (similar to DvText but based on char[] or StringBuilder)
+                                    // introducing a CharSpan type (similar to ReadOnlyMemory but based on char[] or StringBuilder)
                                     // and implementing all the necessary conversion functionality on it. See task 3871.
                                     text = rdr.ReadLine();
                                     if (text == null)

@@ -141,14 +141,14 @@ namespace Microsoft.ML.Runtime.Data
                         switch (col)
                         {
                             case TreeIdx:
-                                MetadataUtils.Marshal<VBuffer<DvText>, TValue>(_parent.GetTreeSlotNames, col, ref value);
+                                MetadataUtils.Marshal<VBuffer<ReadOnlyMemory<char>>, TValue>(_parent.GetTreeSlotNames, col, ref value);
                                 break;
                             case LeafIdx:
-                                MetadataUtils.Marshal<VBuffer<DvText>, TValue>(_parent.GetLeafSlotNames, col, ref value);
+                                MetadataUtils.Marshal<VBuffer<ReadOnlyMemory<char>>, TValue>(_parent.GetLeafSlotNames, col, ref value);
                                 break;
                             default:
                                 Contracts.Assert(col == PathIdx);
-                                MetadataUtils.Marshal<VBuffer<DvText>, TValue>(_parent.GetPathSlotNames, col, ref value);
+                                MetadataUtils.Marshal<VBuffer<ReadOnlyMemory<char>>, TValue>(_parent.GetPathSlotNames, col, ref value);
                                 break;
                         }
                     }
@@ -478,48 +478,48 @@ namespace Microsoft.ML.Runtime.Data
             return totalLeafCount;
         }
 
-        private void GetTreeSlotNames(int col, ref VBuffer<DvText> dst)
+        private void GetTreeSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             var numTrees = _ensemble.NumTrees;
 
             var names = dst.Values;
             if (Utils.Size(names) < numTrees)
-                names = new DvText[numTrees];
+                names = new ReadOnlyMemory<char>[numTrees];
 
             for (int t = 0; t < numTrees; t++)
-                names[t] = new DvText(string.Format("Tree{0:000}", t));
+                names[t] = string.Format("Tree{0:000}", t).AsMemory();
 
-            dst = new VBuffer<DvText>(numTrees, names, dst.Indices);
+            dst = new VBuffer<ReadOnlyMemory<char>>(numTrees, names, dst.Indices);
         }
 
-        private void GetLeafSlotNames(int col, ref VBuffer<DvText> dst)
+        private void GetLeafSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             var numTrees = _ensemble.NumTrees;
 
             var names = dst.Values;
             if (Utils.Size(names) < _totalLeafCount)
-                names = new DvText[_totalLeafCount];
+                names = new ReadOnlyMemory<char>[_totalLeafCount];
 
             int i = 0;
             int t = 0;
             foreach (var tree in _ensemble.GetTrees())
             {
                 for (int l = 0; l < tree.NumLeaves; l++)
-                    names[i++] = new DvText(string.Format("Tree{0:000}Leaf{1:000}", t, l));
+                    names[i++] = string.Format("Tree{0:000}Leaf{1:000}", t, l).AsMemory();
                 t++;
             }
             _host.Assert(i == _totalLeafCount);
-            dst = new VBuffer<DvText>(_totalLeafCount, names, dst.Indices);
+            dst = new VBuffer<ReadOnlyMemory<char>>(_totalLeafCount, names, dst.Indices);
         }
 
-        private void GetPathSlotNames(int col, ref VBuffer<DvText> dst)
+        private void GetPathSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             var numTrees = _ensemble.NumTrees;
 
             var totalNodeCount = _totalLeafCount - numTrees;
             var names = dst.Values;
             if (Utils.Size(names) < totalNodeCount)
-                names = new DvText[totalNodeCount];
+                names = new ReadOnlyMemory<char>[totalNodeCount];
 
             int i = 0;
             int t = 0;
@@ -527,11 +527,11 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var numLeaves = tree.NumLeaves;
                 for (int l = 0; l < tree.NumLeaves - 1; l++)
-                    names[i++] = new DvText(string.Format("Tree{0:000}Node{1:000}", t, l));
+                    names[i++] = string.Format("Tree{0:000}Node{1:000}", t, l).AsMemory();
                 t++;
             }
             _host.Assert(i == totalNodeCount);
-            dst = new VBuffer<DvText>(totalNodeCount, names, dst.Indices);
+            dst = new VBuffer<ReadOnlyMemory<char>>(totalNodeCount, names, dst.Indices);
         }
 
         public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)

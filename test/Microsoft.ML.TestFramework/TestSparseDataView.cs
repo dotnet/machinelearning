@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using System;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -37,8 +38,8 @@ namespace Microsoft.ML.Runtime.RunTests
             GenericSparseDataView(new DvInt4[] { 1, 2, 3 }, new DvInt4[] { 1, 10, 100 });
             GenericSparseDataView(new DvBool[] { true, true, true }, new DvBool[] { false, false, false });
             GenericSparseDataView(new double[] { 1, 2, 3 }, new double[] { 1, 10, 100 });
-            GenericSparseDataView(new DvText[] { new DvText("a"), new DvText("b"), new DvText("c") },
-                                  new DvText[] { new DvText("aa"), new DvText("bb"), new DvText("cc") });
+            GenericSparseDataView(new ReadOnlyMemory<char>[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() },
+                                  new ReadOnlyMemory<char>[] { "aa".AsMemory(), "bb".AsMemory(), "cc".AsMemory() });
         }
 
         private void GenericSparseDataView<T>(T[] v1, T[] v2)
@@ -79,8 +80,8 @@ namespace Microsoft.ML.Runtime.RunTests
             GenericDenseDataView(new DvInt4[] { 1, 2, 3 }, new DvInt4[] { 1, 10, 100 });
             GenericDenseDataView(new DvBool[] { true, true, true }, new DvBool[] { false, false, false });
             GenericDenseDataView(new double[] { 1, 2, 3 }, new double[] { 1, 10, 100 });
-            GenericDenseDataView(new DvText[] { new DvText("a"), new DvText("b"), new DvText("c") },
-                                 new DvText[] { new DvText("aa"), new DvText("bb"), new DvText("cc") });
+            GenericDenseDataView(new ReadOnlyMemory<char>[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() },
+                                 new ReadOnlyMemory<char>[] { "aa".AsMemory(), "bb".AsMemory(), "cc".AsMemory() });
         }
 
         private void GenericDenseDataView<T>(T[] v1, T[] v2)

@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 {
     /// <summary>
     /// A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers.
-    /// The transform operates on text input as well as vector of tokens/text (vector of DvText).
+    /// The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).
     /// </summary>
     public sealed class TextNormalizerTransform : OneToOneTransformBase
     {
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         }
 
         internal const string Summary = "A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers." +
-            " The transform operates on text input as well as vector of tokens/text (vector of DvText).";
+            " The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).";
 
         public const string LoaderSignature = "TextNormalizerTransform";
         private static VersionInfo GetVersionInfo()
@@ -256,31 +256,31 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             return MakeGetterOne(input, iinfo);
         }
 
-        private ValueGetter<DvText> MakeGetterOne(IRow input, int iinfo)
+        private ValueGetter<ReadOnlyMemory<char>> MakeGetterOne(IRow input, int iinfo)
         {
             Contracts.Assert(Infos[iinfo].TypeSrc.IsText);
-            var getSrc = GetSrcGetter<DvText>(input, iinfo);
+            var getSrc = GetSrcGetter<ReadOnlyMemory<char>>(input, iinfo);
             Host.AssertValue(getSrc);
-            var src = default(DvText);
+            var src = default(ReadOnlyMemory<char>);
             var buffer = new StringBuilder();
             return
-                (ref DvText dst) =>
+                (ref ReadOnlyMemory<char> dst) =>
                 {
                     getSrc(ref src);
                     NormalizeSrc(ref src, ref dst, buffer);
                 };
         }
 
-        private ValueGetter<VBuffer<DvText>> MakeGetterVec(IRow input, int iinfo)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterVec(IRow input, int iinfo)
         {
-            var getSrc = GetSrcGetter<VBuffer<DvText>>(input, iinfo);
+            var getSrc = GetSrcGetter<VBuffer<ReadOnlyMemory<char>>>(input, iinfo);
             Host.AssertValue(getSrc);
-            var src = default(VBuffer<DvText>);
+            var src = default(VBuffer<ReadOnlyMemory<char>>);
             var buffer = new StringBuilder();
-            var list = new List<DvText>();
-            var temp = default(DvText);
+            var list = new List<ReadOnlyMemory<char>>();
+            var temp = default(ReadOnlyMemory<char>);
             return
-                (ref VBuffer<DvText> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     getSrc(ref src);
                     list.Clear();
@@ -295,11 +295,11 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 };
         }
 
-        private void NormalizeSrc(ref DvText src, ref DvText dst, StringBuilder buffer)
+        private void NormalizeSrc(ref ReadOnlyMemory<char> src, ref ReadOnlyMemory<char> dst, StringBuilder buffer)
         {
             Host.AssertValue(buffer);
 
-            if (!src.HasChars)
+            if (src.IsEmpty)
             {
                 dst = src;
                 return;
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             int ichMin;
             int ichLim;
-            string text = src.GetRawUnderlyingBufferInfo(out ichMin, out ichLim);
+            string text = ReadOnlyMemoryUtils.GetRawUnderlyingBufferInfo(out ichMin, out ichLim, src);
             int i = ichMin;
             int min = ichMin;
             while (i < ichLim)
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             else
             {
                 buffer.Append(text, min, len);
-                dst = new DvText(buffer.ToString());
+                dst = buffer.ToString().AsMemory();
             }
         }
 

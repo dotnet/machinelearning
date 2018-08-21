@@ -384,7 +384,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (hasSlotNames && dstLength > 0)
                     {
                         // Add slot name metadata.
-                        bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.SlotNames,
+                        bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
                             new VectorType(TextType.Instance, dstLength), GetSlotNames);
                     }
                 }
@@ -433,11 +433,11 @@ namespace Microsoft.ML.Runtime.Data
             return _exes[iinfo].TypeDst;
         }
 
-        private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+        private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref names);
             var infoEx = _exes[iinfo];
             infoEx.SlotDropper.DropSlots(ref names, ref dst);

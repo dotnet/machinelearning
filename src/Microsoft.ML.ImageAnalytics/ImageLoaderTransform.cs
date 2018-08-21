@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     /// <summary>
-    /// Transform which takes one or many columns of type <see cref="DvText"/> and loads them as <see cref="ImageType"/>
+    /// Transform which takes one or many columns of type ReadOnlyMemory and loads them as <see cref="ImageType"/>
     /// </summary>
     public sealed class ImageLoaderTransform : OneToOneTransformBase
     {
@@ -135,8 +135,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             disposer = null;
 
-            var getSrc = GetSrcGetter<DvText>(input, iinfo);
-            DvText src = default;
+            var getSrc = GetSrcGetter<ReadOnlyMemory<char>>(input, iinfo);
+            ReadOnlyMemory<char> src = default;
             ValueGetter<Bitmap> del =
                 (ref Bitmap dst) =>
                 {

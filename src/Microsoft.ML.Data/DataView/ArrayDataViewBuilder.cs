@@ -62,7 +62,7 @@ namespace Microsoft.ML.Runtime.Data
         /// by being assigned. Output values are returned simply by being assigned, so the
         /// type <typeparamref name="T"/> should be a type where assigning to a different
         /// value does not compromise the immutability of the source object (so, for example,
-        /// a scalar, string, or <c>DvText</c> would be perfectly acceptable, but a
+        /// a scalar, string, or <c>ReadOnlyMemory</c> would be perfectly acceptable, but a
         /// <c>HashSet</c> or <c>VBuffer</c> would not be).
         /// </summary>
         public void AddColumn<T>(string name, PrimitiveType type, params T[] values)
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Adds a <c>DvText</c> valued column from an array of strings.
+        /// Adds a <c>ReadOnlyMemory</c> valued column from an array of strings.
         /// </summary>
         public void AddColumn(string name, params string[] values)
         {

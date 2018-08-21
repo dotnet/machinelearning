@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.Model
         }
 
         /// <summary>
-        /// REVIEW: consider adding an overload that returns <see cref="VBuffer{DvText}"/>
+        /// REVIEW: consider adding an overload that returns ReadOnlyMemory/>
         /// Loads optionally feature names from the repository directory.
         /// Returns false iff no stream was found for feature names, iff result is set to null.
         /// </summary>

@@ -98,7 +98,7 @@ namespace Microsoft.ML.Runtime.Learners
                 return;
             }
 
-            VBuffer<DvText> labelNames = default(VBuffer<DvText>);
+            VBuffer<ReadOnlyMemory<char>> labelNames = default;
             schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelIdx, ref labelNames);
 
             // If label names is not dense or contain NA or default value, then it follows that
@@ -113,14 +113,14 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             _labelNames = new string[_numClasses];
-            DvText[] values = labelNames.Values;
+            ReadOnlyMemory<char>[] values = labelNames.Values;
 
             // This hashset is used to verify the uniqueness of label names.
             HashSet<string> labelNamesSet = new HashSet<string>();
             for (int i = 0; i < _numClasses; i++)
             {
-                DvText value = values[i];
-                if (value.IsEmpty || value.IsNA)
+                ReadOnlyMemory<char> value = values[i];
+                if (value.IsEmpty)
                 {
                     _labelNames = null;
                     break;
@@ -754,7 +754,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref names);
             for (int classNumber = 0; classNumber < _biases.Length; classNumber++)
             {
@@ -776,7 +776,7 @@ namespace Microsoft.ML.Runtime.Learners
                     var name = names.GetItemOrDefault(index);
 
                     results.Add(new KeyValuePair<string, object>(
-                        string.Format("{0}+{1}", GetLabelName(classNumber), DvText.Identical(name, DvText.Empty) ? $"f{index}" : name.ToString()),
+                        string.Format("{0}+{1}", GetLabelName(classNumber), ReadOnlyMemoryUtils.Identical(name, String.Empty.AsMemory()) ? $"f{index}" : name.ToString()),
                         value
                     ));
                 }
@@ -927,8 +927,8 @@ namespace Microsoft.ML.Runtime.Learners
         {
             var bldr = new ArrayDataViewBuilder(Host);
 
-            ValueGetter<VBuffer<DvText>> getSlotNames =
-                (ref VBuffer<DvText> dst) =>
+            ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref dst);
 
             // Add the bias and the weight columns.
@@ -949,7 +949,7 @@ namespace Microsoft.ML.Runtime.Learners
                 return null;
 
             var cols = new List<IColumn>();
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             _stats.AddStatsColumns(cols, null, schema, ref names);
             return RowColumnUtils.GetRow(null, cols.ToArray());
         }

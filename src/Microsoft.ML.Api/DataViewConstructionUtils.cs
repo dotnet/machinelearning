@@ -125,11 +125,11 @@ namespace Microsoft.ML.Runtime.Api
                     if (outputType.IsArray)
                     {
                         Ch.Assert(colType.IsVector);
-                        // String[] -> VBuffer<DvText>
+                        // String[] -> ReadOnlyMemory<char>
                         if (outputType.GetElementType() == typeof(string))
                         {
                             Ch.Assert(colType.ItemType.IsText);
-                            return CreateConvertingArrayGetterDelegate<String, DvText>(index, x => x == null ? DvText.NA : new DvText(x));
+                            return CreateConvertingArrayGetterDelegate<String, ReadOnlyMemory<char>>(index, x => { Contracts.Check(x != null); return x.AsMemory(); });
                         }
                         else if (outputType.GetElementType() == typeof(int))
                         {
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Runtime.Api
                     else if (colType.IsVector)
                     {
                         // VBuffer<T> -> VBuffer<T>
-                        // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<DvText>?
+                        // REVIEW: Do we care about accomodating VBuffer<string> -> ReadOnlyMemory<char>?
                         Ch.Assert(outputType.IsGenericType);
                         Ch.Assert(outputType.GetGenericTypeDefinition() == typeof(VBuffer<>));
                         Ch.Assert(outputType.GetGenericArguments()[0] == colType.ItemType.RawType);
@@ -204,9 +204,9 @@ namespace Microsoft.ML.Runtime.Api
                     {
                         if (outputType == typeof(string))
                         {
-                            // String -> DvText
+                            // String -> ReadOnlyMemory<char>
                             Ch.Assert(colType.IsText);
-                            return CreateConvertingGetterDelegate<String, DvText>(index, x => x == null ? DvText.NA : new DvText(x));
+                            return CreateConvertingGetterDelegate<String, ReadOnlyMemory<char>>(index, x => { Contracts.Check(x != null); return x.AsMemory(); });
                         }
                         else if (outputType == typeof(bool))
                         {
@@ -805,12 +805,12 @@ namespace Microsoft.ML.Runtime.Api
                 var itemType = typeT.GetElementType();
                 var dstItemType = typeof(TDst).GetGenericArguments()[0];
 
-                // String[] -> VBuffer<DvText>
+                // String[] -> VBuffer<ReadOnlyMemory<char>>
                 if (itemType == typeof(string))
                 {
-                    Contracts.Check(dstItemType == typeof(DvText));
+                    Contracts.Check(dstItemType == typeof(ReadOnlyMemory<char>));
 
-                    ValueGetter<VBuffer<DvText>> method = GetStringArray;
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> method = GetStringArray;
                     return method as ValueGetter<TDst>;
                 }
 
@@ -825,7 +825,7 @@ namespace Microsoft.ML.Runtime.Api
             if (MetadataType.IsVector)
             {
                 // VBuffer<T> -> VBuffer<T>
-                // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<DvText>?
+                // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
 
                 Contracts.Assert(typeT.IsGenericType);
                 Contracts.Check(typeof(TDst).IsGenericType);
@@ -845,9 +845,9 @@ namespace Microsoft.ML.Runtime.Api
             {
                 if (typeT == typeof(string))
                 {
-                    // String -> DvText
+                    // String -> ReadOnlyMemory<char>
                     Contracts.Assert(MetadataType.IsText);
-                    ValueGetter<DvText> m = GetString;
+                    ValueGetter<ReadOnlyMemory<char>> m = GetString;
                     return m as ValueGetter<TDst>;
                 }
                 // T -> T
@@ -861,14 +861,14 @@ namespace Microsoft.ML.Runtime.Api
         {
         }
 
-        private void GetStringArray(ref VBuffer<DvText> dst)
+        private void GetStringArray(ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             var value = (string[])(object)Value;
             var n = Utils.Size(value);
-            dst = new VBuffer<DvText>(n, Utils.Size(dst.Values) < n ? new DvText[n] : dst.Values, dst.Indices);
+            dst = new VBuffer<ReadOnlyMemory<char>>(n, Utils.Size(dst.Values) < n ? new ReadOnlyMemory<char>[n] : dst.Values, dst.Indices);
 
             for (int i = 0; i < n; i++)
-                dst.Values[i] = new DvText(value[i]);
+                dst.Values[i] = value[i].AsMemory();
 
         }
 
@@ -890,9 +890,9 @@ namespace Microsoft.ML.Runtime.Api
             return (ref VBuffer<TDst> dst) => castValue.CopyTo(ref dst);
         }
 
-        private void GetString(ref DvText dst)
+        private void GetString(ref ReadOnlyMemory<char> dst)
         {
-            dst = new DvText((string)(object)Value);
+            dst = ((string)(object)Value).AsMemory();
         }
 
         private void GetDirectValue<TDst>(ref TDst dst)

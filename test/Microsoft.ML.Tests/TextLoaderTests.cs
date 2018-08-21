@@ -74,7 +74,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 using (var cursor = data.GetRowCursor((a => true)))
                 {
                     var IDGetter = cursor.GetGetter<float>(0);
-                    var TextGetter = cursor.GetGetter<DvText>(1);
+                    var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
 
                     Assert.True(cursor.MoveNext());
 
@@ -82,7 +82,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IDGetter(ref ID);
                     Assert.Equal(1, ID);
 
-                    DvText Text = new DvText();
+                    ReadOnlyMemory<char> Text = new ReadOnlyMemory<char>();
                     TextGetter(ref Text);
                     Assert.Equal("This text contains comma, within quotes.", Text.ToString());
 
@@ -92,7 +92,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IDGetter(ref ID);
                     Assert.Equal(2, ID);
 
-                    Text = new DvText();
+                    Text = new ReadOnlyMemory<char>();
                     TextGetter(ref Text);
                     Assert.Equal("This text contains extra punctuations and special characters.;*<>?!@#$%^&*()_+=-{}|[]:;'", Text.ToString());
 
@@ -102,7 +102,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IDGetter(ref ID);
                     Assert.Equal(3, ID);
 
-                    Text = new DvText();
+                    Text = new ReadOnlyMemory<char>();
                     TextGetter(ref Text);
                     Assert.Equal("This text has no quotes", Text.ToString());
 
@@ -197,7 +197,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 using (var cursor = data.GetRowCursor((a => true)))
                 {
                     var IDGetter = cursor.GetGetter<float>(0);
-                    var TextGetter = cursor.GetGetter<DvText>(1);
+                    var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
 
                     Assert.True(cursor.MoveNext());
 
@@ -205,7 +205,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IDGetter(ref ID);
                     Assert.Equal(1, ID);
 
-                    DvText Text = new DvText();
+                    ReadOnlyMemory<char> Text = new ReadOnlyMemory<char>();
                     TextGetter(ref Text);
                     Assert.Equal("There is a space at the end", Text.ToString());
 
@@ -215,7 +215,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IDGetter(ref ID);
                     Assert.Equal(2, ID);
 
-                    Text = new DvText();
+                    Text = new ReadOnlyMemory<char>();
                     TextGetter(ref Text);
                     Assert.Equal("There is no space at the end", Text.ToString());
                     

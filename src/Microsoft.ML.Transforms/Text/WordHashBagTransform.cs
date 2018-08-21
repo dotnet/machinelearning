@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// A transform that turns a collection of tokenized text (vector of DvText) into numerical feature vectors
+    /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory) into numerical feature vectors
     /// using the hashing trick.
     /// </summary>
     public static class NgramHashExtractorTransform
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
         }
 
-        internal const string Summary = "A transform that turns a collection of tokenized text (vector of DvText) into numerical feature vectors using the hashing trick.";
+        internal const string Summary = "A transform that turns a collection of tokenized text (vector of ReadOnlyMemory) into numerical feature vectors using the hashing trick.";
 
         internal const string LoaderSignature = "NgramHashExtractor";
 

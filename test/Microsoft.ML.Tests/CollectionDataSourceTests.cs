@@ -94,7 +94,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 using (var cursor = data.GetRowCursor((a => true)))
                 {
                     var IDGetter = cursor.GetGetter<float>(0);
-                    var TextGetter = cursor.GetGetter<DvText>(1);
+                    var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
 
                     Assert.True(cursor.MoveNext());
 
@@ -102,7 +102,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IDGetter(ref ID);
                     Assert.Equal(1, ID);
 
-                    DvText Text = new DvText();
+                    ReadOnlyMemory<char> Text = new ReadOnlyMemory<char>();
                     TextGetter(ref Text);
                     Assert.Equal("1", Text.ToString());
 
@@ -112,7 +112,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IDGetter(ref ID);
                     Assert.Equal(2, ID);
 
-                    Text = new DvText();
+                    Text = new ReadOnlyMemory<char>();
                     TextGetter(ref Text);
                     Assert.Equal("2", Text.ToString());
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IDGetter(ref ID);
                     Assert.Equal(3, ID);
 
-                    Text = new DvText();
+                    Text = new ReadOnlyMemory<char>();
                     TextGetter(ref Text);
                     Assert.Equal("3", Text.ToString());
 
@@ -315,8 +315,8 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public bool CompareObjectValues(object x, object y, Type type)
         {
-            // By default behaviour for DvText is to be empty string, while for string is null.
-            // So if we do roundtrip string-> DvText -> string all null string become empty strings.
+            // By default behaviour for ReadOnlyMemory is to be empty string, while for string is null.
+            // So if we do roundtrip string-> ReadOnlyMemory -> string all null string become empty strings.
             // Therefore replace all null values to empty string if field is string.
             if (type == typeof(string) && x == null)
                 x = "";

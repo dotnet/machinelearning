@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Runtime;
@@ -446,7 +447,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var dvBldr = new ArrayDataViewBuilder(env);
                 var warn = $"Detected columns of variable length: {string.Join(", ", variableSizeVectorColumnNames)}." +
                     $" Consider setting collateMetrics- for meaningful per-Folds results.";
-                dvBldr.AddColumn(MetricKinds.ColumnNames.WarningText, TextType.Instance, new DvText(warn));
+                dvBldr.AddColumn(MetricKinds.ColumnNames.WarningText, TextType.Instance, warn.AsMemory());
                 warnings.Add(dvBldr.GetDataView());
             }
 
