@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         public class SentimentData
         {
             [Column("0", name: "Label")]
-            public bool Sentiment;
+            public Runtime.Data.DvBool Sentiment;
             [Column("1")]
             public string SentimentText;
         }
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         public class SentimentPrediction
         {
             [ColumnName("PredictedLabel")]
-            public bool Sentiment;
+            public Runtime.Data.DvBool Sentiment;
 
             public float Score;
         }

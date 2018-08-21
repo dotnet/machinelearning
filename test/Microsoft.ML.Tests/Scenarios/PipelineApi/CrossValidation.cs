@@ -34,7 +34,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var cv = new CrossValidator().CrossValidate<SentimentData, SentimentPrediction>(pipeline);
             var metrics = cv.BinaryClassificationMetrics[0];
             var singlePrediction = cv.PredictorModels[0].Predict(new SentimentData() { SentimentText = "Not big fan of this." });
-            Assert.True(singlePrediction.Sentiment);
+            Assert.True(singlePrediction.Sentiment.IsTrue);
         }
     }
 }
