@@ -26,8 +26,9 @@ namespace Microsoft.ML.Benchmarks
                 .Run(args, CreateCustomConfig());
 
         private static IConfig CreateCustomConfig() 
-            => DefaultConfig.Instance.With(
-                Job.ShortRun
+            => DefaultConfig.Instance
+                .With(Job.Default
+                    .WithMaxIterationCount(20)
                     .With(InProcessToolchain.Instance))
                 .With(new ClassificationMetricsColumn("AccuracyMacro", "Macro-average accuracy of the model"))
                 .With(MemoryDiagnoser.Default);
