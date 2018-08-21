@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
 using Microsoft.ML.Data;
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
@@ -11,7 +10,6 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.ML.Benchmarks
 {

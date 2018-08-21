@@ -20,22 +20,17 @@ namespace Microsoft.ML.Benchmarks
         /// execute dotnet run -c Release and choose the benchmarks you want to run
         /// </summary>
         /// <param name="args"></param>
-        static void Main(string[] args)
-        {
-            BenchmarkSwitcher
+        static void Main(string[] args) 
+            => BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(null, CreateClrVsCoreConfig());
-        }
+                .Run(args, CreateCustomConfig());
 
-        private static IConfig CreateClrVsCoreConfig()
-        {
-            var config = DefaultConfig.Instance.With(
-                Job.ShortRun.
-                With(InProcessToolchain.Instance)).
-                With(new ClassificationMetricsColumn("AccuracyMacro", "Macro-average accuracy of the model")).
-                With(MemoryDiagnoser.Default);
-            return config;
-        }
+        private static IConfig CreateCustomConfig() 
+            => DefaultConfig.Instance.With(
+                Job.ShortRun
+                    .With(InProcessToolchain.Instance))
+                .With(new ClassificationMetricsColumn("AccuracyMacro", "Macro-average accuracy of the model"))
+                .With(MemoryDiagnoser.Default);
 
         internal static string GetDataPath(string name)
             => Path.GetFullPath(Path.Combine(_dataRoot, name));
@@ -51,8 +46,8 @@ namespace Microsoft.ML.Benchmarks
 
     public class ClassificationMetricsColumn : IColumn
     {
-        string _metricName;
-        string _legend;
+        private readonly string _metricName;
+        private readonly string _legend;
 
         public ClassificationMetricsColumn(string metricName, string legend)
         {
