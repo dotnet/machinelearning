@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     func(new IntPtr(pArray));
             }
 
-            public override void Write(DvTimeSpan a, BinaryWriter writer) { writer.Write(a.Ticks.RawValue); }
+            public override void Write(DvTimeSpan a, BinaryWriter writer) { writer.Write(a.Ticks); }
             public override DvTimeSpan Read(BinaryReader reader) { return new DvTimeSpan(reader.ReadInt64()); }
         }
 

@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.Data
     public struct DvDateTime : IEquatable<DvDateTime>, IComparable<DvDateTime>
     {
         public const long MaxTicks = 3155378975999999999;
-        private readonly DvInt8 _ticks;
+        private readonly long _ticks;
 
         /// <summary>
         /// This ctor initializes _ticks to the value of sdt.Ticks, and ignores its DateTimeKind value.
@@ -32,22 +32,19 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// This ctor accepts any value for ticks, but produces an NA if ticks is out of the legal range.
         /// </summary>
-        public DvDateTime(DvInt8 ticks)
+        public DvDateTime(long ticks)
         {
-            if ((ulong)ticks.RawValue > MaxTicks)
-                _ticks = DvInt8.NA;
-            else
-                _ticks = ticks;
+            _ticks = ticks;
             AssertValid();
         }
 
         [Conditional("DEBUG")]
         internal void AssertValid()
         {
-            Contracts.Assert((ulong)_ticks.RawValue <= MaxTicks || _ticks.IsNA);
+            Contracts.Assert((ulong)_ticks <= MaxTicks);
         }
 
-        public DvInt8 Ticks
+        public long Ticks
         {
             get
             {
@@ -81,13 +78,13 @@ namespace Microsoft.ML.Runtime.Data
             get
             {
                 AssertValid();
-                return (ulong)_ticks.RawValue > MaxTicks;
+                return (ulong)_ticks > MaxTicks;
             }
         }
 
         public static DvDateTime NA
         {
-            get { return new DvDateTime(DvInt8.NA); }
+            get { return new DvDateTime(long.MinValue); }
         }
 
         public static explicit operator SysDateTime?(DvDateTime dvDt)
@@ -124,12 +121,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             AssertValid();
             Contracts.Assert(!IsNA);
-            return new SysDateTime(_ticks.RawValue);
+            return new SysDateTime(_ticks);
         }
 
         public bool Equals(DvDateTime other)
         {
-            return _ticks.RawValue == other._ticks.RawValue;
+            return _ticks == other._ticks;
         }
 
         public override bool Equals(object obj)
@@ -139,9 +136,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public int CompareTo(DvDateTime other)
         {
-            if (_ticks.RawValue == other._ticks.RawValue)
+            if (_ticks == other._ticks)
                 return 0;
-            return _ticks.RawValue < other._ticks.RawValue ? -1 : 1;
+            return _ticks < other._ticks ? -1 : 1;
         }
 
         public override int GetHashCode()
@@ -162,11 +159,11 @@ namespace Microsoft.ML.Runtime.Data
         // Stores the UTC date-time (convert to clock time by adding the offset).
         private readonly DvDateTime _dateTime;
         // Store the offset in minutes.
-        private readonly DvInt2 _offset;
+        private readonly short _offset;
 
         // This assumes (and asserts) that the dt/offset combination is valid.
         // Callers should do the validation.
-        private DvDateTimeZone(DvDateTime dt, DvInt2 offset)
+        private DvDateTimeZone(DvDateTime dt, short offset)
         {
             _dateTime = dt;
             _offset = offset;
@@ -180,13 +177,13 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="ticks">The number of clock ticks in the date time portion</param>
         /// <param name="offset">The time zone offset in minutes</param>
-        public DvDateTimeZone(DvInt8 ticks, DvInt2 offset)
+        public DvDateTimeZone(long ticks, short offset)
         {
             var dt = new DvDateTime(ticks);
-            if (dt.IsNA || offset.IsNA || MinMinutesOffset > offset.RawValue || offset.RawValue > MaxMinutesOffset)
+            if (MinMinutesOffset > offset || offset > MaxMinutesOffset)
             {
                 _dateTime = DvDateTime.NA;
-                _offset = DvInt2.NA;
+                _offset = short.MinValue;
             }
             else
             {
@@ -203,7 +200,6 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(success);
             _dateTime = ValidateDate(new DvDateTime(dto.DateTime), ref _offset);
             Contracts.Assert(!_dateTime.IsNA);
-            Contracts.Assert(!_offset.IsNA);
             AssertValid();
         }
 
@@ -217,7 +213,7 @@ namespace Microsoft.ML.Runtime.Data
             if (dt.IsNA || offset.IsNA || !TryValidateOffset(offset.Ticks, out _offset))
             {
                 _dateTime = DvDateTime.NA;
-                _offset = DvInt2.NA;
+                _offset = short.MinValue;
             }
             else
                 _dateTime = ValidateDate(dt, ref _offset);
@@ -233,20 +229,19 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="offset">The offset. This value is assumed to be validated as a legal offset:
         /// a value in whole minutes, between -14 and 14 hours.</param>
         /// <returns>The UTC DvDateTime representing the input clock time minus the offset</returns>
-        private static DvDateTime ValidateDate(DvDateTime dateTime, ref DvInt2 offset)
+        private static DvDateTime ValidateDate(DvDateTime dateTime, ref short offset)
         {
             Contracts.Assert(!dateTime.IsNA);
-            Contracts.Assert(!offset.IsNA);
 
             // Validate that both the UTC and clock times are legal.
-            Contracts.Assert(MinMinutesOffset <= offset.RawValue && offset.RawValue <= MaxMinutesOffset);
-            var offsetTicks = offset.RawValue * TicksPerMinute;
+            Contracts.Assert(MinMinutesOffset <= offset && offset <= MaxMinutesOffset);
+            var offsetTicks = offset * TicksPerMinute;
             // This operation cannot overflow because offset should have already been validated to be within
-            // 14 hours and the DateTime instance is more than that distance from the boundaries of long.
-            long utcTicks = dateTime.Ticks.RawValue - offsetTicks;
+            // 14 hours and the DateTime instance is more than that distance from the boundaries of Int64.
+            long utcTicks = dateTime.Ticks - offsetTicks;
             var dvdt = new DvDateTime(utcTicks);
             if (dvdt.IsNA)
-                offset = DvInt2.NA;
+                offset = short.MinValue;
             return dvdt;
         }
 
@@ -257,23 +252,22 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="offsetTicks"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
-        private static bool TryValidateOffset(DvInt8 offsetTicks, out DvInt2 offset)
+        private static bool TryValidateOffset(long offsetTicks, out short offset)
         {
-            if (offsetTicks.IsNA || offsetTicks.RawValue % TicksPerMinute != 0)
+            if (offsetTicks % TicksPerMinute != 0)
             {
-                offset = DvInt2.NA;
+                offset = short.MinValue;
                 return false;
             }
 
-            long mins = offsetTicks.RawValue / TicksPerMinute;
+            long mins = offsetTicks / TicksPerMinute;
             short res = (short)mins;
             if (res != mins || res > MaxMinutesOffset || res < MinMinutesOffset)
             {
-                offset = DvInt2.NA;
+                offset = short.MinValue;
                 return false;
             }
             offset = res;
-            Contracts.Assert(!offset.IsNA);
             return true;
         }
 
@@ -281,12 +275,10 @@ namespace Microsoft.ML.Runtime.Data
         private void AssertValid()
         {
             _dateTime.AssertValid();
-            if (_dateTime.IsNA)
-                Contracts.Assert(_offset.IsNA);
-            else
+            if (!_dateTime.IsNA)
             {
-                Contracts.Assert(MinMinutesOffset <= _offset.RawValue && _offset.RawValue <= MaxMinutesOffset);
-                Contracts.Assert((ulong)(_dateTime.Ticks.RawValue + _offset.RawValue * TicksPerMinute)
+                Contracts.Assert(MinMinutesOffset <= _offset && _offset <= MaxMinutesOffset);
+                Contracts.Assert((ulong)(_dateTime.Ticks + _offset * TicksPerMinute)
                     <= (ulong)DvDateTime.MaxTicks);
             }
         }
@@ -298,7 +290,7 @@ namespace Microsoft.ML.Runtime.Data
                 AssertValid();
                 if (_dateTime.IsNA)
                     return DvDateTime.NA;
-                var res = new DvDateTime(_dateTime.Ticks.RawValue + _offset.RawValue * TicksPerMinute);
+                var res = new DvDateTime(_dateTime.Ticks + _offset * TicksPerMinute);
                 Contracts.Assert(!res.IsNA);
                 return res;
             }
@@ -326,16 +318,14 @@ namespace Microsoft.ML.Runtime.Data
             get
             {
                 AssertValid();
-                if (_offset.IsNA)
-                    return DvTimeSpan.NA;
-                return new DvTimeSpan(_offset.RawValue * TicksPerMinute);
+                return new DvTimeSpan(_offset * TicksPerMinute);
             }
         }
 
         /// <summary>
         /// Gets the offset in minutes.
         /// </summary>
-        public DvInt2 OffsetMinutes
+        public short OffsetMinutes
         {
             get
             {
@@ -392,7 +382,7 @@ namespace Microsoft.ML.Runtime.Data
         // and _offset = 0.
         public static DvDateTimeZone NA
         {
-            get { return new DvDateTimeZone(DvDateTime.NA, DvInt2.NA); }
+            get { return new DvDateTimeZone(DvDateTime.NA, short.MinValue); }
         }
 
         public static explicit operator SysDateTimeOffset?(DvDateTimeZone dvDto)
@@ -427,7 +417,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             AssertValid();
             Contracts.Assert(!IsNA);
-            return new SysDateTimeOffset(ClockDateTime.GetSysDateTime(), new TimeSpan(0, _offset.RawValue, 0));
+            return new SysDateTimeOffset(ClockDateTime.GetSysDateTime(), new TimeSpan(0, _offset, 0));
         }
 
         /// <summary>
@@ -436,7 +426,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public bool Equals(DvDateTimeZone other)
         {
-            return _offset.RawValue == other._offset.RawValue && _dateTime.Equals(other._dateTime);
+            return _offset == other._offset && _dateTime.Equals(other._dateTime);
         }
 
         public override bool Equals(object obj)
@@ -456,9 +446,9 @@ namespace Microsoft.ML.Runtime.Data
             int res = _dateTime.CompareTo(other._dateTime);
             if (res != 0)
                 return res;
-            if (_offset.RawValue == other._offset.RawValue)
+            if (_offset == other._offset)
                 return 0;
-            return _offset.RawValue < other._offset.RawValue ? -1 : 1;
+            return _offset < other._offset ? -1 : 1;
         }
 
         public override int GetHashCode()
@@ -472,11 +462,11 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public struct DvTimeSpan : IEquatable<DvTimeSpan>, IComparable<DvTimeSpan>
     {
-        private readonly DvInt8 _ticks;
+        private readonly long _ticks;
 
-        public DvInt8 Ticks { get { return _ticks; } }
+        public long Ticks { get { return _ticks; } }
 
-        public DvTimeSpan(DvInt8 ticks)
+        public DvTimeSpan(long ticks)
         {
             _ticks = ticks;
         }
@@ -488,24 +478,24 @@ namespace Microsoft.ML.Runtime.Data
 
         public DvTimeSpan(SysTimeSpan? sts)
         {
-            _ticks = sts != null ? sts.GetValueOrDefault().Ticks : DvInt8.NA;
+            _ticks = sts != null ? sts.GetValueOrDefault().Ticks : long.MinValue;
         }
 
         public bool IsNA
         {
-            get { return _ticks.IsNA; }
+            get { return false; }
         }
 
         public static DvTimeSpan NA
         {
-            get { return new DvTimeSpan(DvInt8.NA); }
+            get { return new DvTimeSpan(long.MinValue); }
         }
 
         public static explicit operator SysTimeSpan?(DvTimeSpan ts)
         {
             if (ts.IsNA)
                 return null;
-            return new SysTimeSpan(ts._ticks.RawValue);
+            return new SysTimeSpan(ts._ticks);
         }
 
         public static implicit operator DvTimeSpan(SysTimeSpan sts)
@@ -522,12 +512,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (IsNA)
                 return "";
-            return new SysTimeSpan(_ticks.RawValue).ToString("c");
+            return new SysTimeSpan(_ticks).ToString("c");
         }
 
         public bool Equals(DvTimeSpan other)
         {
-            return _ticks.RawValue == other._ticks.RawValue;
+            return _ticks == other._ticks;
         }
 
         public override bool Equals(object obj)
@@ -537,9 +527,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public int CompareTo(DvTimeSpan other)
         {
-            if (_ticks.RawValue == other._ticks.RawValue)
+            if (_ticks == other._ticks)
                 return 0;
-            return _ticks.RawValue < other._ticks.RawValue ? -1 : 1;
+            return _ticks < other._ticks ? -1 : 1;
         }
 
         public override int GetHashCode()

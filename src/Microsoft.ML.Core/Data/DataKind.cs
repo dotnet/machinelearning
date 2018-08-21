@@ -187,27 +187,27 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: Make this more efficient. Should we have a global dictionary?
             if (type == typeof(sbyte))
                 kind = DataKind.I1;
-            else if (type == typeof(byte) || type == typeof(byte?))
+            else if (type == typeof(byte))
                 kind = DataKind.U1;
             else if (type == typeof(short))
                 kind = DataKind.I2;
-            else if (type == typeof(ushort) || type == typeof(ushort?))
+            else if (type == typeof(ushort))
                 kind = DataKind.U2;
             else if (type == typeof(int))
                 kind = DataKind.I4;
-            else if (type == typeof(uint) || type == typeof(uint?))
+            else if (type == typeof(uint))
                 kind = DataKind.U4;
             else if (type == typeof(long))
                 kind = DataKind.I8;
-            else if (type == typeof(ulong) || type == typeof(ulong?))
+            else if (type == typeof(ulong))
                 kind = DataKind.U8;
-            else if (type == typeof(Single) || type == typeof(Single?))
+            else if (type == typeof(Single))
                 kind = DataKind.R4;
-            else if (type == typeof(Double) || type == typeof(Double?))
+            else if (type == typeof(Double))
                 kind = DataKind.R8;
             else if (type == typeof(DvText))
                 kind = DataKind.TX;
-            else if (type == typeof(DvBool) || type == typeof(bool) || type == typeof(bool?))
+            else if (type == typeof(DvBool))
                 kind = DataKind.BL;
             else if (type == typeof(DvTimeSpan))
                 kind = DataKind.TS;

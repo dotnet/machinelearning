@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     var prediction = model.Predict(input);
                     // Verify that predictions match and scores are separated from zero.
                     Assert.Equal(input.Sentiment, prediction.Sentiment);
-                    Assert.True(input.Sentiment && prediction.Score > 1 || !input.Sentiment && prediction.Score < -1);
+                    Assert.True(input.Sentiment.IsTrue && prediction.Score > 1 || input.Sentiment.IsFalse && prediction.Score < -1);
                 }
             }
         }

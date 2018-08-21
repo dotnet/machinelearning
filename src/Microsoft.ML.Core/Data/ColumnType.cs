@@ -567,18 +567,14 @@ namespace Microsoft.ML.Runtime.Data
             get
             {
                 if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new BoolType(DataKind.BL, "Bool"), null);
+                    Interlocked.CompareExchange(ref _instance, new BoolType(), null);
                 return _instance;
             }
         }
 
-        private readonly string _name;
-
-        private BoolType(DataKind kind, string name)
-            : base(kind.ToType(), kind)
+        private BoolType()
+            : base(typeof(DvBool), DataKind.BL)
         {
-            Contracts.AssertNonEmpty(name);
-            _name = name;
         }
 
         public override bool Equals(ColumnType other)
@@ -591,7 +587,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public override string ToString()
         {
-            return _name;
+            return "Bool";
         }
     }
 

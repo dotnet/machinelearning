@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
 using Xunit.Abstractions;
 
@@ -43,14 +44,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public class SentimentData
         {
             [ColumnName("Label")]
-            public bool Sentiment;
+            public DvBool Sentiment;
             public string SentimentText;
         }
 
         public class SentimentPrediction
         {
             [ColumnName("PredictedLabel")]
-            public bool Sentiment;
+            public DvBool Sentiment;
 
             public float Score;
         }

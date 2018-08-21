@@ -26,10 +26,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MeanAggregatorOne(ch, cursor, col);
                     case DataKind.R8:
                         return new R8.MeanAggregatorOne(ch, cursor, col);
-                    case DataKind.TS:
-                        return new Long.MeanAggregatorOne<DvTimeSpan>(ch, type, cursor, col);
-                    case DataKind.DT:
-                        return new Long.MeanAggregatorOne<DvDateTime>(ch, type, cursor, col);
                     default:
                         break;
                     }
@@ -42,10 +38,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
                         return new R8.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.TS:
-                        return new Long.MinMaxAggregatorOne<DvTimeSpan>(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.DT:
-                        return new Long.MinMaxAggregatorOne<DvDateTime>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     default:
                         break;
                     }
@@ -66,10 +58,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MeanAggregatorBySlot(ch, type, cursor, col);
                     case DataKind.R8:
                         return new R8.MeanAggregatorBySlot(ch, type, cursor, col);
-                    case DataKind.TS:
-                        return new Long.MeanAggregatorBySlot<DvTimeSpan>(ch, type, cursor, col);
-                    case DataKind.DT:
-                        return new Long.MeanAggregatorBySlot<DvDateTime>(ch, type, cursor, col);
                     default:
                         break;
                     }
@@ -82,10 +70,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
                         return new R8.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.TS:
-                        return new Long.MinMaxAggregatorBySlot<DvTimeSpan>(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.DT:
-                        return new Long.MinMaxAggregatorBySlot<DvDateTime>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     default:
                         break;
                     }
@@ -102,10 +86,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MeanAggregatorAcrossSlots(ch, cursor, col);
                     case DataKind.R8:
                         return new R8.MeanAggregatorAcrossSlots(ch, cursor, col);
-                    case DataKind.TS:
-                        return new Long.MeanAggregatorAcrossSlots<DvTimeSpan>(ch, type, cursor, col);
-                    case DataKind.DT:
-                        return new Long.MeanAggregatorAcrossSlots<DvDateTime>(ch, type, cursor, col);
                     default:
                         break;
                     }
@@ -118,10 +98,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
                         return new R8.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.TS:
-                        return new Long.MinMaxAggregatorAcrossSlots<DvTimeSpan>(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.DT:
-                        return new Long.MinMaxAggregatorAcrossSlots<DvDateTime>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     default:
                         break;
                     }
@@ -877,271 +853,6 @@ namespace Microsoft.ML.Runtime.Data
                         }
                     }
                     return Stat;
-                }
-            }
-        }
-
-        private static class Long
-        {
-            private const long MaxVal = long.MaxValue;
-
-            public sealed class MeanAggregatorOne<TItem> : StatAggregator<TItem, MeanStatInt>
-            {
-                // Converts between TItem and long.
-                private Converter<TItem> _converter;
-
-                public MeanAggregatorOne(IChannel ch, ColumnType type, IRowCursor cursor, int col)
-                    : base(ch, cursor, col)
-                {
-                    _converter = CreateConverter<TItem>(type);
-                }
-
-                protected override void ProcessRow(ref TItem val)
-                {
-                    Stat.Update(_converter.ToLong(val), MaxVal);
-                }
-
-                public override object GetStat()
-                {
-                    long val = Stat.GetCurrentValue(Ch, RowCount, MaxVal);
-                    return _converter.FromLong(val);
-                }
-            }
-
-            public sealed class MeanAggregatorAcrossSlots<TItem> : StatAggregatorAcrossSlots<TItem, MeanStatInt>
-            {
-                private Converter<TItem> _converter;
-
-                public MeanAggregatorAcrossSlots(IChannel ch, ColumnType type, IRowCursor cursor, int col)
-                    : base(ch, cursor, col)
-                {
-                    _converter = CreateConverter<TItem>(type);
-                }
-
-                protected override void ProcessValue(ref TItem val)
-                {
-                    Stat.Update(_converter.ToLong(val), MaxVal);
-                }
-
-                public override object GetStat()
-                {
-                    long val = Stat.GetCurrentValue(Ch, ValueCount, MaxVal);
-                    return _converter.FromLong(val);
-                }
-            }
-
-            public sealed class MeanAggregatorBySlot<TItem> : StatAggregatorBySlot<TItem, MeanStatInt>
-            {
-                private Converter<TItem> _converter;
-
-                public MeanAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col)
-                    : base(ch, type, cursor, col)
-                {
-                    _converter = CreateConverter<TItem>(type);
-                }
-
-                protected override void ProcessValue(ref TItem val, int slot)
-                {
-                    Ch.Assert(0 <= slot && slot < Stat.Length);
-                    Stat[slot].Update(_converter.ToLong(val), MaxVal);
-                }
-
-                public override object GetStat()
-                {
-                    TItem[] stat = new TItem[Stat.Length];
-                    for (int slot = 0; slot < stat.Length; slot++)
-                    {
-                        long val = Stat[slot].GetCurrentValue(Ch, RowCount, MaxVal);
-                        stat[slot] = _converter.FromLong(val);
-                    }
-                    return stat;
-                }
-            }
-
-            public sealed class MinMaxAggregatorOne<TItem> : MinMaxAggregatorOne<TItem, long>
-            {
-                private Converter<TItem> _converter;
-
-                public MinMaxAggregatorOne(IChannel ch, ColumnType type, IRowCursor cursor, int col, bool returnMax)
-                    : base(ch, cursor, col, returnMax)
-                {
-                    Stat = ReturnMax ? -MaxVal : MaxVal;
-                    _converter = CreateConverter<TItem>(type);
-                }
-
-                protected override void ProcessValueMin(ref TItem val)
-                {
-                    var raw = _converter.ToLong(val);
-                    if (raw.HasValue && raw < Stat)
-                        Stat = raw.Value;
-                }
-
-                protected override void ProcessValueMax(ref TItem val)
-                {
-                    var raw = _converter.ToLong(val);
-                    if (raw.HasValue && raw > Stat)
-                        Stat = raw.Value;
-                }
-
-                public override object GetStat()
-                {
-                    return _converter.FromLong(Stat);
-                }
-            }
-
-            public sealed class MinMaxAggregatorAcrossSlots<TItem> : MinMaxAggregatorAcrossSlots<TItem, long>
-            {
-                private Converter<TItem> _converter;
-
-                public MinMaxAggregatorAcrossSlots(IChannel ch, ColumnType type, IRowCursor cursor, int col, bool returnMax)
-                    : base(ch, cursor, col, returnMax)
-                {
-                    Stat = ReturnMax ? -MaxVal : MaxVal;
-                    _converter = CreateConverter<TItem>(type);
-                }
-
-                protected override void ProcessValueMin(ref TItem val)
-                {
-                    var raw = _converter.ToLong(val);
-                    if (raw.HasValue && raw < Stat)
-                        Stat = raw.Value;
-                }
-
-                protected override void ProcessValueMax(ref TItem val)
-                {
-                    var raw = _converter.ToLong(val);
-                    if (raw.HasValue && raw > Stat)
-                        Stat = raw.Value;
-                }
-
-                public override object GetStat()
-                {
-                    // If sparsity occurred, fold in a zero.
-                    if (ValueCount > (ulong)ValuesProcessed)
-                    {
-                        TItem def = default(TItem);
-                        ProcValueDelegate(ref def);
-                    }
-                    return _converter.FromLong(Stat);
-                }
-            }
-
-            public sealed class MinMaxAggregatorBySlot<TItem> : MinMaxAggregatorBySlot<TItem, long>
-            {
-                private Converter<TItem> _converter;
-
-                public MinMaxAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col, bool returnMax)
-                    : base(ch, type, cursor, col, returnMax)
-                {
-                    long bound = ReturnMax ? -MaxVal : MaxVal;
-                    for (int i = 0; i < Stat.Length; i++)
-                        Stat[i] = bound;
-
-                    _converter = CreateConverter<TItem>(type);
-                }
-
-                protected override void ProcessValueMin(ref TItem val, int slot)
-                {
-                    Ch.Assert(0 <= slot && slot < Stat.Length);
-                    var raw = _converter.ToLong(val);
-                    if (raw.HasValue && raw < Stat[slot])
-                        Stat[slot] = raw.Value;
-                }
-
-                protected override void ProcessValueMax(ref TItem val, int slot)
-                {
-                    Ch.Assert(0 <= slot && slot < Stat.Length);
-                    var raw = _converter.ToLong(val);
-                    if (raw.HasValue && raw > Stat[slot])
-                        Stat[slot] = raw.Value;
-                }
-
-                public override object GetStat()
-                {
-                    TItem[] stat = new TItem[Stat.Length];
-                    // Account for defaults resulting from sparsity.
-                    for (int slot = 0; slot < Stat.Length; slot++)
-                    {
-                        if (GetValuesProcessed(slot) < RowCount)
-                        {
-                            var def = default(TItem);
-                            ProcValueDelegate(ref def, slot);
-                        }
-                        stat[slot] = _converter.FromLong(Stat[slot]);
-                    }
-                    return stat;
-                }
-            }
-
-            private static Converter<TItem> CreateConverter<TItem>(ColumnType type)
-            {
-                Contracts.AssertValue(type);
-                Contracts.Assert(typeof(TItem) == type.ItemType.RawType);
-                Converter converter;
-                if (type.ItemType.IsTimeSpan)
-                    converter = new TSConverter();
-                else if (type.ItemType.IsDateTime)
-                    converter = new DTConverter();
-                else
-                {
-                    Contracts.Assert(type.ItemType.RawKind == DataKind.I8);
-                    converter = new I8Converter();
-                }
-                return (Converter<TItem>)converter;
-            }
-
-            /// <summary>
-            /// The base class for conversions from types to long.
-            /// </summary>
-            private abstract class Converter
-            {
-            }
-
-            private abstract class Converter<T> : Converter
-            {
-                public abstract long? ToLong(T val);
-                public abstract T FromLong(long? val);
-            }
-
-            private sealed class I8Converter : Converter<long?>
-            {
-                public override long? ToLong(long? val)
-                {
-                    return val;
-                }
-
-                public override long? FromLong(long? val)
-                {
-                    Contracts.Assert(val.HasValue);
-                    return val.Value;
-                }
-            }
-
-            private sealed class TSConverter : Converter<DvTimeSpan>
-            {
-                public override long? ToLong(DvTimeSpan val)
-                {
-                    return val.Ticks.RawValue;
-                }
-
-                public override DvTimeSpan FromLong(long? val)
-                {
-                    Contracts.Assert(val.HasValue);
-                    return new DvTimeSpan(val);
-                }
-            }
-
-            private sealed class DTConverter : Converter<DvDateTime>
-            {
-                public override long? ToLong(DvDateTime val)
-                {
-                    return val.Ticks.RawValue;
-                }
-
-                public override DvDateTime FromLong(long? val)
-                {
-                    Contracts.Assert(0 <= val && val <= DvDateTime.MaxTicks);
-                    return new DvDateTime(val);
                 }
             }
         }
