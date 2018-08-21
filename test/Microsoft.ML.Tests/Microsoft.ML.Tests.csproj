@@ -26,4 +26,9 @@
 	<NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklImports" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- Grab TF#'s native bins temporarily -->
+    <PackageReference Include="TensorFlowSharp" Version="1.9.0" IncludeAssets="Native" />
+  </ItemGroup>
 </Project>
