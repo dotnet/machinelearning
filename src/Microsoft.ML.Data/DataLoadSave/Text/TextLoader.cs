@@ -45,8 +45,12 @@ namespace Microsoft.ML.Runtime.Data
             public Column(string name, DataKind? type, int index)
                : this(name, type, new[] { new Range(index) }) { }
 
-            public Column(string name, DataKind? type = null, Range[] source = null, KeyRange keyRange = null)
+            public Column(string name, DataKind? type, Range[] source, KeyRange keyRange = null)
             {
+                Contracts.CheckValue(name, nameof(name));
+                Contracts.CheckValue(source, nameof(source));
+                Contracts.CheckValueOrNull(keyRange);
+
                 Name = name;
                 Type = type;
                 Source = source;
@@ -195,9 +199,15 @@ namespace Microsoft.ML.Runtime.Data
             public Range() { }
 
             public Range(int index)
+                : this(index, index) { }
+
+            public Range(int min, int max)
             {
-                Min = index;
-                Max = index;
+                Contracts.CheckParam(min >= 0, nameof(min), "min must be non-negative.");
+                Contracts.CheckParam(max >= min, nameof(max), "max must be greater than or equal to min.");
+
+                Min = min;
+                Max = max;
             }
 
             [Argument(ArgumentType.Required, HelpText = "First index in the range")]

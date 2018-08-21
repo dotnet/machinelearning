@@ -105,19 +105,8 @@ namespace Microsoft.ML.Scenarios
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min=0, Max=0} },
-                            Type = DataKind.Num
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "SentimentText",
-                            Source = new [] { new TextLoader.Range() { Min=1, Max=1} },
-                            Type = DataKind.Text
-                        }
+                        new TextLoader.Column("Label", DataKind.Num, 0),
+                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
                     }
                 }, new MultiFileSource(dataPath));
 
