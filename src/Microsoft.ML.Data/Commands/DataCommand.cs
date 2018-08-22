@@ -118,15 +118,6 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            protected void SendTelemetryComponent(IPipe<TelemetryMessage> pipe, SubComponent sub)
-            {
-                Host.AssertValue(pipe);
-                Host.AssertValueOrNull(sub);
-
-                if (sub.IsGood())
-                    pipe.Send(TelemetryMessage.CreateTrainer(sub.Kind, sub.SubComponentSettings));
-            }
-
             protected void SendTelemetryComponent(IPipe<TelemetryMessage> pipe, IComponentFactory factory)
             {
                 Host.AssertValue(pipe);

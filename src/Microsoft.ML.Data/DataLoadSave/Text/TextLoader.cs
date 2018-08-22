@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -1120,8 +1121,8 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class LoaderHolder
         {
 #pragma warning disable 649 // never assigned
-            [Argument(ArgumentType.Multiple)]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IDataLoader> Loader;
 #pragma warning restore 649 // never assigned
         }
 
@@ -1162,11 +1163,15 @@ namespace Microsoft.ML.Runtime.Data
                 LoaderHolder h = new LoaderHolder();
                 if (!CmdParser.ParseArguments(host, "loader = " + str, h, msg => ch.Error(msg)))
                     goto LDone;
-                if (h.Loader == null || string.IsNullOrWhiteSpace(h.Loader.Kind))
+
+                ch.Assert(h.Loader == null || h.Loader is ICommandLineComponentFactory);
+                var loader = h.Loader as ICommandLineComponentFactory;
+
+                if (loader == null || string.IsNullOrWhiteSpace(loader.Name))
                     goto LDone;
 
                 // Make sure the loader binds to us.
-                var info = ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(h.Loader.Kind);
+                var info = ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(loader.Name);
                 if (info.Type != typeof(TextLoader) || info.ArgType != typeof(Arguments))
                     goto LDone;
 
@@ -1175,7 +1180,7 @@ namespace Microsoft.ML.Runtime.Data
                 var parsed = CmdParser.ParseArguments(host, CmdParser.GetSettings(ch, args, new Arguments()), argsNew);
                 ch.Assert(parsed);
                 // Copy the core arguments to the new args.
-                if (!CmdParser.ParseArguments(host, h.Loader.SubComponentSettings, argsNew, typeof(ArgumentsCore), msg => ch.Error(msg)))
+                if (!CmdParser.ParseArguments(host, loader.GetSettingsString(), argsNew, typeof(ArgumentsCore), msg => ch.Error(msg)))
                     goto LDone;
 
                 cols = argsNew.Column;
