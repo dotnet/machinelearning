@@ -17,7 +17,7 @@ using Microsoft.ML.Transforms.TensorFlow;
 [assembly: LoadableClass(TensorflowTransform.Summary, typeof(IDataTransform), typeof(TensorflowTransform.Arguments), typeof(SignatureDataTransform),
     TensorflowTransform.UserName, TensorflowTransform.ShortName)]
 
-// This is for deserialization from a binary model file.
+// This is for de-serialization from a binary model file.
 [assembly: LoadableClass(typeof(TensorflowTransform.TensorFlowMapper), null, typeof(SignatureLoadRowMapper),
     "", TensorflowTransform.TensorFlowMapper.LoaderSignature)]
 
