@@ -352,15 +352,7 @@ namespace Microsoft.ML.Runtime.Data
                         new TextLoader.Arguments()
                         {
                             Separator = "tab",
-                            Column = new[]
-                            {
-                                new TextLoader.Column()
-                                {
-                                    Name ="Term",
-                                    Type = DataKind.TX,
-                                    Source = new[] { new TextLoader.Range() { Min = 0 } }
-                                }
-                            }
+                            Column = new[] { new TextLoader.Column("Term", DataKind.TX, 0) }
                         },
                         fileSource);
                     src = "Term";
