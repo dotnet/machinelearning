@@ -180,15 +180,18 @@ namespace Microsoft.ML.Runtime.Data
 
         public CopyColumnsEstimator(IHostEnvironment env, string input, string output)
         {
-            Contracts.CheckNonWhiteSpace(input, nameof(input));
-            Contracts.CheckNonWhiteSpace(output, nameof(output));
-            _columns = new (string, string)[1] { (input, output) };
+            Contracts.CheckValue(env, nameof(env));
             _host = env.Register("CopyColumnsEstimator");
+            _host.CheckNonWhiteSpace(input, nameof(input));
+            _host.CheckNonWhiteSpace(output, nameof(output));
+            _columns = new (string, string)[1] { (input, output) };
         }
 
         public CopyColumnsEstimator(IHostEnvironment env, (string Source, string Name)[] columns)
         {
-            Contracts.CheckValue(columns, nameof(columns));
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register("CopyColumnsEstimator");
+            _host.CheckValue(columns, nameof(columns));
             var newNames = new HashSet<string>();
             foreach (var column in columns)
             {
@@ -197,27 +200,27 @@ namespace Microsoft.ML.Runtime.Data
                 newNames.Add(column.Name);
             }
             _columns = columns;
-            _host = env.Register("CopyColumnsEstimator");
         }
 
         public CopyColumnsTransformer Fit(IDataView input)
         {
-            // invoke schema validation.
+            // Invoke schema validation.
             GetOutputSchema(SchemaShape.Create(input.Schema));
             return new CopyColumnsTransformer(_host, _columns);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            Contracts.CheckValue(inputSchema, nameof(inputSchema));
-            Contracts.CheckValue(inputSchema.Columns, nameof(inputSchema.Columns));
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            _host.CheckValue(inputSchema.Columns, nameof(inputSchema.Columns));
             var originDic = inputSchema.Columns.ToDictionary(x => x.Name);
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach ((string source, string name) pair in _columns)
             {
                 if (originDic.ContainsKey(pair.source))
                 {
-                    var col = originDic[pair.source].CloneWithNewName(pair.name);
+                    var orignalColumn = originDic[pair.source];
+                    var col = new SchemaShape.Column(pair.name, orignalColumn.Kind, orignalColumn.ItemKind, orignalColumn.IsKey, orignalColumn.MetadataKinds);
                     resultDic[pair.name] = col;
                 }
                 else
@@ -225,7 +228,7 @@ namespace Microsoft.ML.Runtime.Data
                     throw Contracts.ExceptUserArg(nameof(inputSchema), $"{pair.source} not found in {nameof(inputSchema)}");
                 }
             }
-            var result = new SchemaShape(originDic.Values.ToArray());
+            var result = new SchemaShape(resultDic.Values.ToArray());
             return result;
         }
     }
@@ -237,8 +240,10 @@ namespace Microsoft.ML.Runtime.Data
 
         public CopyColumnsTransformer(IHostEnvironment env, (string Source, string Name)[] columns)
         {
-            _columns = columns;
+            Contracts.CheckValue(env, nameof(env));
             _host = env.Register("CopyColumnsTransformer");
+            _host.CheckValue(columns, nameof(columns));
+            _columns = columns;
         }
 
         public ISchema GetOutputSchema(ISchema inputSchema)
@@ -268,8 +273,8 @@ namespace Microsoft.ML.Runtime.Data
             // *** Binary format ***
             // int: number of added columns
             // for each added column
-            //   int: id of output column name
-            //   int: id of input column name
+            //   string: output column name
+            //   string: input column name
             ctx.Writer.Write(_columns.Length);
             foreach (var column in _columns)
             {
@@ -277,6 +282,7 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.SaveNonEmptyString(column.Source);
             }
         }
+
         public static CopyColumnsTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -297,8 +303,8 @@ namespace Microsoft.ML.Runtime.Data
             var mapper = new CopyColumnsRowMapper(_host, input.Schema, _columns);
             return new RowToRowMapperTransform(_host, input, mapper);
         }
-
     }
+
     public class CopyColumnsRowMapper : IRowMapper
     {
         private readonly ISchema _schema;
@@ -347,7 +353,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             var result = new RowMapperColumnInfo[_columns.Length];
             var colMap = new Dictionary<int, int>();
-            // Do I need return all columns or only output???
             for (int i = 0; i < _columns.Length; i++)
             {
                 _schema.TryGetColumnIndex(_columns[i].Source, out int colIndex);
@@ -364,7 +369,7 @@ namespace Microsoft.ML.Runtime.Data
             return result;
         }
 
-        public int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, Dictionary<int,int> colMap)
+        public int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, Dictionary<int, int> colMap)
         {
             MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
             {
