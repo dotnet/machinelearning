@@ -11,21 +11,13 @@ using System.Text;
 
 namespace Microsoft.ML.Runtime
 {
-    public interface IPredictionTransformer<TModel> : ITransformer
+    public interface IPredictionTransformer<out TModel> : ITransformer
         where TModel : IPredictor
     {
         string FeatureColumn { get; }
 
         ColumnType FeatureColumnType { get; }
 
-        TModel Model { get; }
-    }
-
-    public interface ICalibratedBinaryPredictor<TCalibrator, TModel>
-        where TCalibrator : ICalibrator
-        where TModel : IPredictorProducing<float>
-    {
-        TCalibrator Calibrator { get; }
         TModel Model { get; }
     }
 }

@@ -5,10 +5,12 @@ using System.Text;
 
 namespace Microsoft.ML.Runtime.Training
 {
-    public interface ITrainerEstimator<TTransformer, TPredictor>: IEstimator<TTransformer>
+    public interface ITrainerEstimator<out TTransformer, out TPredictor>: IEstimator<TTransformer>
         where TTransformer: IPredictionTransformer<TPredictor>
         where TPredictor: IPredictor
     {
-        TrainerInfo TrainerInfo { get; }
+        TrainerInfo Info { get; }
+
+        PredictionKind PredictionKind { get; }
     }
 }

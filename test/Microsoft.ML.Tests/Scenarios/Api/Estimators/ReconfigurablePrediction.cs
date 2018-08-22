@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Xunit;
 
@@ -35,14 +36,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs())
                     .Fit(data);
 
-                var trainer = new MySdca(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label");
+                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label");
                 var trainData = pipeline.Transform(data);
                 var model = trainer.Fit(trainData);
 
                 var scoredTest = model.Transform(pipeline.Transform(testData));
                 var metrics = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments()).Evaluate(scoredTest, "Label", "Probability");
 
-                var newModel = model.Clone(new BinaryClassifierScorer.Arguments { Threshold = 0.01f, ThresholdColumn = DefaultColumnNames.Probability });
+                var newModel = new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(env, model.Model, trainData.Schema, model.FeatureColumn, threshold: 0.01f, thresholdColumn: DefaultColumnNames.Probability);
                 var newScoredTest = newModel.Transform(pipeline.Transform(testData));
                 var newMetrics = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments { Threshold = 0.01f, UseRawScoreThreshold = false }).Evaluate(newScoredTest, "Label", "Probability");
             }
