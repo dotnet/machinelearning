@@ -24,6 +24,9 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(CopyColumnsTransform.Summary, typeof(CopyColumnsTransformer), null, typeof(SignatureLoadModel),
     CopyColumnsTransform.UserName, CopyColumnsTransformer.LoaderSignature)]
 
+[assembly: LoadableClass(CopyColumnsTransform.Summary, typeof(CopyColumnsRowMapper), null, typeof(SignatureLoadRowMapper),
+    CopyColumnsTransform.UserName, CopyColumnsRowMapper.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.Data
 {
     public sealed class CopyColumnsTransform : OneToOneTransformBase
@@ -232,64 +235,6 @@ namespace Microsoft.ML.Runtime.Data
         private readonly (string Source, string Name)[] _columns;
         private readonly IHost _host;
 
-        private class CopyColumnsRowMapper : IRowMapper
-        {
-            private readonly ISchema _schema;
-            private readonly HashSet<int> _originalColumnSources;
-            private (string source, string name)[] _columns;
-
-            public CopyColumnsRowMapper(ISchema schema, (string source, string name)[] columns)
-            {
-                _schema = schema;
-                _columns = columns;
-                _originalColumnSources = new HashSet<int>();
-                var sources = new HashSet<string>();
-                foreach (var source in columns.Select(x => x.source))
-                    sources.Add(source);
-                for (int i = 0; i < _schema.ColumnCount; i++)
-                    if (sources.Contains(_schema.GetColumnName(i)))
-                        _originalColumnSources.Add(i);
-
-            }
-
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
-            {
-                var result = new Delegate[_columns.Length];
-                int i = 0;
-                foreach (var column in _columns)
-                {
-                    // validate activeOutput.
-                    input.Schema.TryGetColumnIndex(column.source, out int colIndex);
-                    var type = input.Schema.GetColumnType(colIndex);
-
-                    result[i++] = Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
-                }
-                disposer = null;
-                return result;
-            }
-
-            private Delegate MakeGetter<T>(IRow row, int src) => row.GetGetter<T>(src);
-
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput) => (col) => (activeOutput(col) && _originalColumnSources.Contains(col));
-
-            public RowMapperColumnInfo[] GetOutputColumns()
-            {
-                var result = new RowMapperColumnInfo[_columns.Length];
-                // Do I need return all columns or only output???
-                for (int i = 0; i < _columns.Length; i++)
-                {
-                    _schema.TryGetColumnIndex(_columns[i].source, out int colIndex);
-                    // how to get metadata?
-                    result[i] = new RowMapperColumnInfo(_columns[i].name, _schema.GetColumnType(colIndex), null);
-                }
-                return result;
-            }
-
-            public void Save(ModelSaveContext ctx)
-            {
-                throw new NotImplementedException();
-            }
-        }
         public CopyColumnsTransformer(IHostEnvironment env, (string Source, string Name)[] columns)
         {
             _columns = columns;
@@ -349,9 +294,105 @@ namespace Microsoft.ML.Runtime.Data
 
         public IDataView Transform(IDataView input)
         {
-            IRowMapper mapper = new CopyColumnsRowMapper(input.Schema, _columns);
+            var mapper = new CopyColumnsRowMapper(_host, input.Schema, _columns);
             return new RowToRowMapperTransform(_host, input, mapper);
         }
 
+    }
+    public class CopyColumnsRowMapper : IRowMapper
+    {
+        private readonly ISchema _schema;
+        private readonly HashSet<int> _originalColumnSources;
+        private (string Source, string Name)[] _columns;
+        private readonly IHost _host;
+        public const string LoaderSignature = "CopyColumnsRowMapper";
+
+        public CopyColumnsRowMapper(IHostEnvironment env, ISchema schema, (string Source, string Name)[] columns)
+        {
+            _host = env.Register(LoaderSignature);
+            env.CheckValue(schema, nameof(schema));
+            env.CheckValue(columns, nameof(columns));
+            _schema = schema;
+            _columns = columns;
+            _originalColumnSources = new HashSet<int>();
+            var sources = new HashSet<string>();
+            foreach (var source in columns.Select(x => x.Source))
+                sources.Add(source);
+            for (int i = 0; i < _schema.ColumnCount; i++)
+                if (sources.Contains(_schema.GetColumnName(i)))
+                    _originalColumnSources.Add(i);
+        }
+
+        public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+        {
+            var result = new Delegate[_columns.Length];
+            int i = 0;
+            foreach (var column in _columns)
+            {
+                // validate activeOutput.
+                input.Schema.TryGetColumnIndex(column.Source, out int colIndex);
+                var type = input.Schema.GetColumnType(colIndex);
+
+                result[i++] = Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
+            }
+            disposer = null;
+            return result;
+        }
+
+        private Delegate MakeGetter<T>(IRow row, int src) => row.GetGetter<T>(src);
+
+        public Func<int, bool> GetDependencies(Func<int, bool> activeOutput) => (col) => (activeOutput(col) && _originalColumnSources.Contains(col));
+
+        public RowMapperColumnInfo[] GetOutputColumns()
+        {
+            var result = new RowMapperColumnInfo[_columns.Length];
+            // Do I need return all columns or only output???
+            for (int i = 0; i < _columns.Length; i++)
+            {
+                _schema.TryGetColumnIndex(_columns[i].Source, out int colIndex);
+                // how to get metadata?
+                result[i] = new RowMapperColumnInfo(_columns[i].Name, _schema.GetColumnType(colIndex), null);
+            }
+            return result;
+        }
+
+        public static CopyColumnsRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            var lenght = ctx.Reader.ReadInt32();
+            var columns = new (string Source, string Name)[lenght];
+            for (int i = 0; i < lenght; i++)
+            {
+                columns[i].Name = ctx.LoadNonEmptyString();
+                columns[i].Source = ctx.LoadNonEmptyString();
+            }
+            return new CopyColumnsRowMapper(env, schema, columns);
+        }
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "COPYROWM",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature);
+        }
+
+        public void Save(ModelSaveContext ctx)
+        {
+            _host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            ctx.Writer.Write(_columns.Length);
+            foreach (var column in _columns)
+            {
+                ctx.SaveNonEmptyString(column.Name);
+                ctx.SaveNonEmptyString(column.Source);
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Model;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -122,6 +123,27 @@ namespace Microsoft.ML.Tests
                     ValidateCopyColumnTransformer(result);
                 }
 
+            }
+        }
+
+        [Fact]
+        void TestOldSavingAndLoading()
+        {
+            var data = new List<TestClass>() { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E") });
+                var transformer = est.Fit(dataView);
+                var result = transformer.Transform(dataView);
+                var resultRoles = new RoleMappedData(result);
+                using (var ms = new MemoryStream()) 
+                 {
+                    TrainUtils.SaveModel(env, env.Start("saving"), ms, null, resultRoles);
+                    ms.Position = 0;
+                    var loadedView = ModelFileUtils.LoadTransforms(env, dataView, ms);
+                    ValidateCopyColumnTransformer(loadedView);
+                }
             }
         }
     }
