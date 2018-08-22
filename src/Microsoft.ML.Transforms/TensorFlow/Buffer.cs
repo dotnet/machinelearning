@@ -29,10 +29,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// will be invoked from unmanaged code.
         /// </summary>
         /// <param name="t">T.</param>
-        public MonoPInvokeCallbackAttribute (Type t) { }
+        public MonoPInvokeCallbackAttribute(Type t) { }
     }
 
-    [StructLayout (LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential)]
     internal struct LLBuffer
     {
         internal IntPtr data;
@@ -66,19 +66,19 @@ namespace Microsoft.ML.Transforms.TensorFlow
     internal class TFBuffer : TFDisposable
     {
         // extern TF_Buffer * TF_NewBufferFromString (const void *proto, size_t proto_len);
-        [DllImport (NativeBinding.TensorFlowLibrary)]
-        private static extern unsafe LLBuffer* TF_NewBufferFromString (IntPtr proto, IntPtr proto_len);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern unsafe LLBuffer* TF_NewBufferFromString(IntPtr proto, IntPtr proto_len);
 
         // extern TF_Buffer * TF_NewBuffer ();
-        [DllImport (NativeBinding.TensorFlowLibrary)]
-        private static extern unsafe LLBuffer* TF_NewBuffer ();
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern unsafe LLBuffer* TF_NewBuffer();
 
-        internal TFBuffer (IntPtr handle) : base (handle) { }
+        internal TFBuffer(IntPtr handle) : base(handle) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:TensorFlow.TFBuffer"/> class.
         /// </summary>
-        public unsafe TFBuffer () : base ((IntPtr)TF_NewBuffer ())
+        public unsafe TFBuffer() : base((IntPtr)TF_NewBuffer())
         {
         }
 
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// internal static void MyFreeFunc (IntPtr data, IntPtr length){..}
         /// </code>
         /// </remarks>
-        public delegate void BufferReleaseFunc (IntPtr data, IntPtr lenght);
+        public delegate void BufferReleaseFunc(IntPtr data, IntPtr lenght);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:TensorFlow.TFBuffer"/> by wrapping the unmanaged resource pointed by the buffer.
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// is no longer in use.   If the value is not null, the provided method will be invoked to release
         /// the data when the TFBuffer is disposed, or the contents of the buffer replaced.
         /// </remarks>
-        public unsafe TFBuffer (IntPtr buffer, long size, BufferReleaseFunc release) : base ((IntPtr)TF_NewBuffer ())
+        public unsafe TFBuffer(IntPtr buffer, long size, BufferReleaseFunc release) : base((IntPtr)TF_NewBuffer())
         {
             LLBuffer* buf = (LLBuffer*)handle;
             buf->data = buffer;
@@ -119,22 +119,22 @@ namespace Microsoft.ML.Transforms.TensorFlow
             if (release == null)
                 buf->data_deallocator = IntPtr.Zero;
             else
-                buf->data_deallocator = Marshal.GetFunctionPointerForDelegate (release);
+                buf->data_deallocator = Marshal.GetFunctionPointerForDelegate(release);
         }
 
-        [MonoPInvokeCallback (typeof (BufferReleaseFunc))]
-        internal static void FreeBlock (IntPtr data, IntPtr length)
+        [MonoPInvokeCallback(typeof(BufferReleaseFunc))]
+        internal static void FreeBlock(IntPtr data, IntPtr length)
         {
-            Marshal.FreeHGlobal (data);
+            Marshal.FreeHGlobal(data);
         }
 
         internal static IntPtr FreeBufferFunc;
         internal static BufferReleaseFunc FreeBlockDelegate;
 
-        static TFBuffer ()
+        static TFBuffer()
         {
             FreeBlockDelegate = FreeBlock;
-            FreeBufferFunc = Marshal.GetFunctionPointerForDelegate<BufferReleaseFunc> (FreeBlockDelegate);
+            FreeBufferFunc = Marshal.GetFunctionPointerForDelegate<BufferReleaseFunc>(FreeBlockDelegate);
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// This constructor makes a copy of the data into an unmanaged buffer,
         /// so the byte array is not pinned.
         /// </remarks>
-        public TFBuffer (byte [] buffer) : this (buffer, 0, buffer.Length) { }
+        public TFBuffer(byte[] buffer) : this(buffer, 0, buffer.Length) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:TensorFlow.TFBuffer"/> by making a copy of the provided byte array.
@@ -157,17 +157,17 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// This constructor makes a copy of the data into an unmanaged buffer,
         /// so the byte array is not pinned.
         /// </remarks>
-        public TFBuffer (byte [] buffer, int start, int count) : this ()
+        public TFBuffer(byte[] buffer, int start, int count) : this()
         {
             if (start < 0 || start >= buffer.Length)
-                throw new ArgumentException ("start");
+                throw new ArgumentException("start");
             if (count < 0 || count > buffer.Length - start)
-                throw new ArgumentException ("count");
+                throw new ArgumentException("count");
             unsafe
             {
                 LLBuffer* buf = LLBuffer;
-                buf->data = Marshal.AllocHGlobal (count);
-                Marshal.Copy (buffer, start, buf->data, count);
+                buf->data = Marshal.AllocHGlobal(count);
+                Marshal.Copy(buffer, start, buf->data, count);
                 buf->length = (size_t)count;
                 buf->data_deallocator = FreeBufferFunc;
             }
@@ -176,23 +176,23 @@ namespace Microsoft.ML.Transforms.TensorFlow
         internal unsafe LLBuffer* LLBuffer => (LLBuffer*)handle;
 
         // extern void TF_DeleteBuffer (TF_Buffer *);
-        [DllImport (NativeBinding.TensorFlowLibrary)]
-        private static extern unsafe void TF_DeleteBuffer (LLBuffer* buffer);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern unsafe void TF_DeleteBuffer(LLBuffer* buffer);
 
-        internal override void NativeDispose (IntPtr handle)
+        internal override void NativeDispose(IntPtr handle)
         {
-            unsafe { TF_DeleteBuffer ((LLBuffer*)handle); }
+            unsafe { TF_DeleteBuffer((LLBuffer*)handle); }
         }
 
         // extern TF_Buffer TF_GetBuffer (TF_Buffer *buffer);
-        [DllImport (NativeBinding.TensorFlowLibrary)]
-        private static extern unsafe LLBuffer TF_GetBuffer (LLBuffer* buffer);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern unsafe LLBuffer TF_GetBuffer(LLBuffer* buffer);
 
         /// <summary>
         /// Returns a byte array representing the data wrapped by this buffer.
         /// </summary>
         /// <returns>The array.</returns>
-        public byte [] ToArray ()
+        public byte[] ToArray()
         {
             if (handle == IntPtr.Zero)
                 return null;
@@ -201,8 +201,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 var lb = (LLBuffer*)handle;
 
-                var result = new byte [(int)lb->length];
-                Marshal.Copy (lb->data, result, 0, (int)lb->length);
+                var result = new byte[(int)lb->length];
+                Marshal.Copy(lb->data, result, 0, (int)lb->length);
 
                 return result;
             }

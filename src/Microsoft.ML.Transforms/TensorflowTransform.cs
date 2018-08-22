@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
 
-[assembly: LoadableClass(TensorflowTransform.Summary, typeof(TensorflowTransform), typeof(TensorflowTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(TensorflowTransform.Summary, typeof(IDataTransform), typeof(TensorflowTransform.Arguments), typeof(SignatureDataTransform),
     TensorflowTransform.UserName, TensorflowTransform.ShortName)]
 
 // This is for deserialization from a binary model file.
@@ -66,12 +66,6 @@ namespace Microsoft.ML.Transforms
                 OutputColName = outputCols;
                 (OutputColType, _tfOutputType) = GetOutputTypes(_session.Graph, OutputColName);
                 (InputColNames, InputColIndices, IsVectorInput, _tfInputShapes, _tfInputTypes) = GetInputMetaData(_session.Graph, inputColNames, inputSchema);
-            }
-
-            ~TensorFlowMapper()
-            {
-                _session.CloseSession();
-                _session.Dispose();
             }
 
             public static TensorFlowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
@@ -144,7 +138,7 @@ namespace Microsoft.ML.Transforms
                     return new TensorValueGetter<T>(input, colIndex);
             }
 
-            private ITensorValueGetter CreateTensorValueGetterVec(IRow input, TFDataType tfType, bool isVector, int colIndex, TFShape tfShape)
+            private ITensorValueGetter CreateTensorValueGetter(IRow input, TFDataType tfType, bool isVector, int colIndex, TFShape tfShape)
             {
                 var type = TFTensor.TypeFromTensorType(tfType);
                 _host.AssertValue(type);
@@ -157,7 +151,7 @@ namespace Microsoft.ML.Transforms
                 for (int j = 0; j < InputColIndices.Length; j++)
                 {
                     int colIndex = InputColIndices[j];
-                    srcTensorGetters[j] = CreateTensorValueGetterVec(input, _tfInputTypes[j], IsVectorInput[j], colIndex, _tfInputShapes[j]);
+                    srcTensorGetters[j] = CreateTensorValueGetter(input, _tfInputTypes[j], IsVectorInput[j], colIndex, _tfInputShapes[j]);
                 }
                 return srcTensorGetters;
             }
