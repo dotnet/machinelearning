@@ -30,6 +30,19 @@ namespace FakeStaticPipes
             public override IDataReaderEstimator<IMultiStreamSource, IDataReader<IMultiStreamSource>> Reconcile(
                 PipelineColumn[] toOutput, Dictionary<PipelineColumn, string> outputNames)
             {
+                return new FakeReaderEstimator<IMultiStreamSource>();
+            }
+        }
+
+        private sealed class FakeReaderEstimator<T> : IDataReaderEstimator<T, IDataReader<T>>
+        {
+            public IDataReader<T> Fit(T input)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SchemaShape GetOutputSchema()
+            {
                 throw new NotImplementedException();
             }
         }
@@ -87,26 +100,8 @@ namespace FakeStaticPipes
 
         public static DataReaderEstimator<IMultiStreamSource, TTupleShape> Create<TTupleShape>(Func<Context, TTupleShape> map)
         {
-            var meth = map.Method;
-            var p = meth.GetParameters()[0];
-
-            return new TypedEstimator<TTupleShape>(null);
-        }
-
-        private sealed class TypedEstimator<TTupleShape> : DataReaderEstimator<IMultiStreamSource, TTupleShape>
-        {
-            private readonly Estimator _estimator;
-
-            public TypedEstimator(Estimator estimator)
-            {
-                _estimator = estimator;
-            }
-
-            protected override IDataReader<IMultiStreamSource> FitCore(IMultiStreamSource input)
-                => _estimator.Fit(input);
-
-            protected override SchemaShape GetOutputSchemaCore()
-                => _estimator.GetOutputSchema();
+            var ctx = new Context();
+            return PigstyUtils.ReaderEstimatorAnalyzerHelper(ctx, TextReconciler.Inst, map);
         }
     }
 

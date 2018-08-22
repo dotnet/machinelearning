@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Data.StaticPipe
 {
@@ -32,10 +33,24 @@ namespace Microsoft.ML.Data.StaticPipe
         /// <typeparam name="TTupleOutShape"></typeparam>
         /// <returns></returns>
         public static DataReaderEstimator<TReaderEstimatorInputType, TTupleOutShape>
-            HelpMe<TReaderEstimatorInputType, TDelegateInput, TTupleOutShape>(
+            ReaderEstimatorAnalyzerHelper<TReaderEstimatorInputType, TDelegateInput, TTupleOutShape>(
             TDelegateInput input,
             ReaderReconciler<TReaderEstimatorInputType> baseReconciler,
             Func<TDelegateInput, TTupleOutShape> mapper)
+        {
+            GeneralFunctionAnalyzer(input, baseReconciler, mapper, out var typedReaderEstimator, out var est, col => null);
+            return typedReaderEstimator;
+        }
+
+        internal static void
+            GeneralFunctionAnalyzer<TReaderEstimatorInputType, TDelegateInput, TTupleOutShape>(
+            TDelegateInput input,
+            ReaderReconciler<TReaderEstimatorInputType> baseReconciler,
+            Func<TDelegateInput, TTupleOutShape> mapper,
+
+            out DataReaderEstimator<TReaderEstimatorInputType, TTupleOutShape> typedReaderEstimator,
+            out IEstimator<ITransformer> estimator,
+            Func<PipelineColumn, string> inputNameFunction)
         {
             Contracts.CheckValue(mapper, nameof(mapper));
 
@@ -93,20 +108,36 @@ namespace Microsoft.ML.Data.StaticPipe
             // that is done.
             var nameMap = new InvDictionary<string, PipelineColumn>();
 
-            // REVIEW: Need to generalize case where we have input names, e.g., in the below method.
+            // Check to see if we have any set of initial names. This is important in the case where we are mapping
+            // in an input data view.
+            foreach (var col in baseInputs)
+            {
+                string inputName = inputNameFunction(col);
+                if (inputName != null)
+                {
+                    Contracts.Assert(!nameMap.ContainsKey(col));
+                    Contracts.Assert(!nameMap.ContainsKey(inputName));
+                    nameMap[col] = inputName;
+
+                    Console.WriteLine($"Using input with name {inputName}");
+                }
+            }
+
+            // REVIEW: This ought to be a assigned earlier in the case of a copy-columns being necessary.
+            estimator = null;
 
             int tempNum = 0;
             // For all outputs, get potential name collisions with used inputs. Resolve by assigning the input a temporary name.
             foreach (var p in outPairs)
             {
                 // TODO: This should be accompanied by an actual CopyColumns estimator, once one exists!! However in the
-                // current "fake" world this does not yet exist.
+                // current "fake" world this does not yet exist. This would then be assigned to estimator.
 
                 // If the name for the output is already used by one of the inputs, and this output column does not
                 // happen to have the same name, then we need to rename that input to keep it available.
                 if (nameMap.TryGetValue(p.Key, out var inputCol) && p.Value != inputCol)
                 {
-                    Contracts.Assert(inputCol is PipelineColumnAnalyzer.IIsAnalysisColumn);
+                    Contracts.Assert(baseInputs.Contains(inputCol));
                     string tempName = $"#Temp_{tempNum++}";
                     Console.WriteLine($"Input/output name collision: Renaming '{p.Key}' to '{tempName}'");
                     nameMap[tempName] = nameMap[p.Key];
@@ -147,6 +178,7 @@ namespace Microsoft.ML.Data.StaticPipe
 
             // Call the reconciler to get the base reader estimator.
             var readerEstimator = baseReconciler.Reconcile(baseInputs, nameMap.AsOther(baseInputs));
+            Contracts.AssertValueOrNull(readerEstimator);
 
             // Next we iteratively find those columns with zero dependencies, "create" them, and if anything depends on
             // these add them to the collection of zero dependencies, etc. etc.
@@ -159,7 +191,16 @@ namespace Microsoft.ML.Data.StaticPipe
                 // reconcile a.X() and b.X() together, then reconcile c.Y(), then reconcile c.Y().X() alone. Whereas, we
                 // could have reconciled c.Y() first, then reconciled a.X(), b.X(), and c.Y().X() together.
                 var group = zeroDependencies.GroupBy(p => p.ReconcilerObj).First();
-                DataInputReconciler rec = (DataInputReconciler)group.Key;
+                // Beyond that first group that *might* be a data reader reconciler, all subsequent operations will
+                // be on where the data is already loaded and so accept data as an input, that is, they should produce
+                // an estimator. If this is not the case something seriously wonky is going on, most probably that the
+                // user tried to use a column from another source. If this is detected we can produce a sensible error
+                // message to tell them not to do this.
+                if (!(group.Key is DataInputReconciler rec))
+                {
+                    throw Contracts.Except("Columns from multiple sources were detected. " +
+                        "Did the caller use a " + nameof(PipelineColumn) + " from another delegate?");
+                }
                 PipelineColumn[] cols = group.ToArray();
                 // All dependencies should, by this time, have names.
                 Contracts.Assert(cols.SelectMany(c => c.Dependencies).All(dep => nameMap.ContainsKey(dep)));
@@ -172,7 +213,9 @@ namespace Microsoft.ML.Data.StaticPipe
 
                 var localInputNames = nameMap.AsOther(cols.SelectMany(c => c.Dependencies ?? Enumerable.Empty<PipelineColumn>()));
                 var localOutputNames = nameMap.AsOther(cols);
-                var result = rec.Reconcile(cols, localInputNames, localOutputNames);
+                var localEstimator = rec.Reconcile(cols, localInputNames, localOutputNames);
+                readerEstimator = readerEstimator?.Append(localEstimator);
+                estimator = estimator?.Append(localEstimator) ?? localEstimator;
 
                 foreach (var newCol in cols)
                 {
@@ -202,7 +245,7 @@ namespace Microsoft.ML.Data.StaticPipe
                 // The user would have to go to some extraorindary effort to do that, but nonetheless we want to
                 // fail with a semi-sensible error message.
                 throw Contracts.Except("There were some leftover columns with unresolved dependencies. " +
-                    "Did the caller use a " + nameof(PipelineColumn) + " from another lambda?");
+                    "Did the caller use a " + nameof(PipelineColumn) + " from another delegate?");
             }
 
             // Now do the final renaming, if any is necessary.
@@ -216,9 +259,27 @@ namespace Microsoft.ML.Data.StaticPipe
                     Console.WriteLine($"Will copy '{currentName}' to '{p.Key}'");
             }
 
-            Console.WriteLine($"Exiting {nameof(HelpMe)} !!!");
+            Console.WriteLine($"Exiting {nameof(ReaderEstimatorAnalyzerHelper)} !!!");
 
-            return null;// new FakeEstimator<TTupleOutShape>();
+            typedReaderEstimator = readerEstimator == null ? null :
+                new TypedEstimator<TReaderEstimatorInputType, TTupleOutShape>(readerEstimator);
+        }
+
+        private sealed class TypedEstimator<TSource, TTupleShape> : DataReaderEstimator<TSource, TTupleShape>
+        {
+            private readonly IDataReaderEstimator<TSource, IDataReader<TSource>> _estimator;
+
+            public TypedEstimator(IDataReaderEstimator<TSource, IDataReader<TSource>> estimator)
+            {
+                Contracts.AssertValue(estimator);
+                _estimator = estimator;
+            }
+
+            protected override IDataReader<TSource> FitCore(TSource input)
+                => _estimator.Fit(input);
+
+            protected override SchemaShape GetOutputSchemaCore()
+                => _estimator.GetOutputSchema();
         }
     }
 }
