@@ -346,14 +346,34 @@ namespace Microsoft.ML.Runtime.Data
         public RowMapperColumnInfo[] GetOutputColumns()
         {
             var result = new RowMapperColumnInfo[_columns.Length];
+            var colMap = new Dictionary<int, int>();
             // Do I need return all columns or only output???
             for (int i = 0; i < _columns.Length; i++)
             {
                 _schema.TryGetColumnIndex(_columns[i].Source, out int colIndex);
-                // how to get metadata?
-                result[i] = new RowMapperColumnInfo(_columns[i].Name, _schema.GetColumnType(colIndex), null);
+                colMap.Add(i, colIndex);
+                var colMetaInfo = new ColumnMetadataInfo(_columns[i].Name);
+                var types = _schema.GetMetadataTypes(colIndex);
+                var colType = _schema.GetColumnType(colIndex);
+                foreach (var type in types)
+                {
+                    Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, _schema, type.Key, type.Value, colMap);
+                }
+                result[i] = new RowMapperColumnInfo(_columns[i].Name, colType, colMetaInfo);
             }
             return result;
+        }
+
+        public int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, Dictionary<int,int> colMap)
+        {
+            MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
+            {
+                var originalCol = colMap[col];
+                schema.GetMetadata<T>(kind, originalCol, ref dst);
+            };
+            var info = new MetadataInfo<T>(ct, getter);
+            colMetaInfo.Add(kind, info);
+            return 0;
         }
 
         public static CopyColumnsRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
