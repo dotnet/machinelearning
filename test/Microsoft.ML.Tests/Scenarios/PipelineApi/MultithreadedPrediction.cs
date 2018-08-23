@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var collection = new List<SentimentData>();
             int numExamples = 100;
             for (int i = 0; i < numExamples; i++)
-                collection.Add(new SentimentData() { SentimentText = "Let's predict this one!" });
+                collection.Add(new SentimentData() { SentimentText = "Let's predict this one!".AsMemory() });
 
             Parallel.ForEach(collection, (input) =>
             {

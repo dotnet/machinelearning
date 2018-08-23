@@ -160,14 +160,14 @@ namespace Microsoft.ML.Runtime.Data
                         Contracts.Assert(ichCur <= ichLim);
                         if (ichCur >= ichLim)
                         {
-                            yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
+                            yield return outerBuffer.AsMemory().Slice(ichMinLocal, ichCur - ichMinLocal);
                             yield break;
                         }
                         if (text[ichCur] == chSep)
                             break;
                     }
 
-                    yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
+                    yield return outerBuffer.AsMemory().Slice(ichMinLocal, ichCur - ichMinLocal);
 
                     // Skip the separator.
                     ichCur++;
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.Data
                         Contracts.Assert(ichCur <= ichLim);
                         if (ichCur >= ichLim)
                         {
-                            yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
+                            yield return outerBuffer.AsMemory().Slice(ichMinLocal, ichCur - ichMinLocal);
                             yield break;
                         }
                         // REVIEW: Can this be faster?
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Runtime.Data
                             break;
                     }
 
-                    yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
+                    yield return outerBuffer.AsMemory().Slice(ichMinLocal, ichCur - ichMinLocal);
 
                     // Skip the separator.
                     ichCur++;
@@ -233,8 +233,8 @@ namespace Microsoft.ML.Runtime.Data
 
             // Note that we don't use any fields of "this" here in case one
             // of the out parameters is the same as "this".
-            left = memory.Slice(ichMin, ichCur - ichMin);
-            right = memory.Slice(ichCur + 1, ichLim - ichCur - 1);
+            left = outerBuffer.AsMemory().Slice(ichMin, ichCur - ichMin);
+            right = outerBuffer.AsMemory().Slice(ichCur + 1, ichLim - ichCur - 1);
             return true;
         }
 
@@ -297,8 +297,8 @@ namespace Microsoft.ML.Runtime.Data
 
             // Note that we don't use any fields of "this" here in case one
             // of the out parameters is the same as "this".
-            left = memory.Slice(ichMin, ichCur - ichMin);
-            right = memory.Slice(ichCur + 1, ichLim - ichCur - 1);
+            left = outerBuffer.AsMemory().Slice(ichMin, ichCur - ichMin);
+            right = outerBuffer.AsMemory().Slice(ichCur + 1, ichLim - ichCur - 1);
             return true;
         }
 
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Runtime.Data
                 ichMin++;
             while (ichMin < ichLim && outerBuffer[ichLim - 1] == ' ')
                 ichLim--;
-            return memory.Slice(ichMin, ichLim - ichMin);
+            return outerBuffer.AsMemory().Slice(ichMin, ichLim - ichMin);
         }
 
         /// <summary>
@@ -342,7 +342,7 @@ namespace Microsoft.ML.Runtime.Data
             while (ichMin < ichLim && char.IsWhiteSpace(outerBuffer[ichLim - 1]))
                 ichLim--;
 
-            return memory.Slice(ichMin, ichLim - ichMin);
+            return outerBuffer.AsMemory().Slice(ichMin, ichLim - ichMin);
         }
 
         /// <summary>
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Runtime.Data
             while (ichMin < ichLim && char.IsWhiteSpace(outerBuffer[ichLim - 1]))
                 ichLim--;
 
-            return memory.Slice(ichMin, ichLim - ichMin);
+            return outerBuffer.AsMemory().Slice(ichMin, ichLim - ichMin);
         }
 
         /// <summary>

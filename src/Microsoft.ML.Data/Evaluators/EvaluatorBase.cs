@@ -172,6 +172,7 @@ namespace Microsoft.ML.Runtime.Data
             GetAggregatorConsolidationFuncs(aggregator, dictionaries, out addAgg, out consolidate);
 
             uint stratColKey = 0;
+            addAgg(stratColKey, default, aggregator);
             for (int i = 0; i < Utils.Size(dictionaries); i++)
             {
                 var dict = dictionaries[i];

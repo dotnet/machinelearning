@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -49,7 +50,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         private class InputData
         {
             [Column(ordinal: "1")]
-            public string F1;
+            public ReadOnlyMemory<char> F1;
         }
 
         private class TransformedData
@@ -68,7 +69,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Add(new ML.Data.TextLoader(_dataPath).CreateFrom<InputData>(useHeader: false));
             pipeline.Add(new CategoricalHashOneHotVectorizer("F1") { HashBits = 10, Seed = 314489979, OutputKind = CategoricalTransformOutputKind.Bag });
             var model = pipeline.Train<InputData, TransformedData>();
-            var predictionModel = model.Predict(new InputData() { F1 = "5" });
+            var predictionModel = model.Predict(new InputData() { F1 = "5".AsMemory() });
 
             Assert.NotNull(predictionModel);
             Assert.NotNull(predictionModel.TransformedF1);

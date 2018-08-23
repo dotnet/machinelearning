@@ -456,7 +456,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckParam(typeof(T) == itemType.RawType, nameof(itemType), "Generic type does not match the item type");
 
             var numIdvs = views.Length;
-            var slotNames = new Dictionary<ReadOnlyMemory<char>, int>();
+            var slotNames = new Dictionary<string, int>();
             var maps = new int[numIdvs][];
             var slotNamesCur = default(VBuffer<ReadOnlyMemory<char>>);
             var typeSrc = new ColumnType[numIdvs];
@@ -477,14 +477,14 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var kvp in slotNamesCur.Items(true))
                 {
                     var index = kvp.Key;
-                    var name = kvp.Value;
+                    var name = kvp.Value.ToString();
                     if (!slotNames.ContainsKey(name))
                         slotNames[name] = slotNames.Count;
                     map[index] = slotNames[name];
                 }
             }
 
-            var reconciledSlotNames = new VBuffer<ReadOnlyMemory<char>>(slotNames.Count, slotNames.Keys.ToArray());
+            var reconciledSlotNames = new VBuffer<ReadOnlyMemory<char>>(slotNames.Count, slotNames.Keys.Select(k => k.AsMemory()).ToArray());
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter =
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {

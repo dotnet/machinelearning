@@ -6,6 +6,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Models;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi
@@ -33,7 +34,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 
             var cv = new CrossValidator().CrossValidate<SentimentData, SentimentPrediction>(pipeline);
             var metrics = cv.BinaryClassificationMetrics[0];
-            var singlePrediction = cv.PredictorModels[0].Predict(new SentimentData() { SentimentText = "Not big fan of this." });
+            var singlePrediction = cv.PredictorModels[0].Predict(new SentimentData() { SentimentText = "Not big fan of this.".AsMemory() });
             Assert.True(singlePrediction.Sentiment);
         }
     }

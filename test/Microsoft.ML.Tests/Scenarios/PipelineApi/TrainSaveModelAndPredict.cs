@@ -5,6 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi
@@ -34,7 +35,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             DeleteOutputPath(modelName);
             await model.WriteAsync(modelName);
             var loadedModel = await PredictionModel.ReadAsync<SentimentData, SentimentPrediction>(modelName);
-            var singlePrediction = loadedModel.Predict(new SentimentData() { SentimentText = "Not big fan of this." });
+            var singlePrediction = loadedModel.Predict(new SentimentData() { SentimentText = "Not big fan of this.".AsMemory() });
             Assert.True(singlePrediction.Sentiment);
 
         }

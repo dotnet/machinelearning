@@ -464,7 +464,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
                     ReadOnlyMemory<char> fold = default;
 
-                    // Get the verage.
+                    // Get the average.
                     b = cursor.MoveNext();
                     Assert.True(b);
                     double avg = 0;
@@ -833,7 +833,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     {
                         ReadOnlyMemory<char> name = default;
                         getter(ref name);
-                        Assert.Subset(new HashSet<ReadOnlyMemory<char>>() { "Private".AsMemory(), "?".AsMemory(), "Federal-gov".AsMemory() }, new HashSet<ReadOnlyMemory<char>>() { name });
+                        Assert.Subset(new HashSet<string>() { "Private", "?", "Federal-gov" }, new HashSet<string>() { name.ToString() });
                         if (cursor.Position > 4)
                             break;
                     }

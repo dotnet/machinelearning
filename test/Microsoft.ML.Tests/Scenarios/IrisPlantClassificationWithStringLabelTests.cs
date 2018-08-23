@@ -7,6 +7,7 @@ using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -139,7 +140,7 @@ namespace Microsoft.ML.Scenarios
             public float PetalWidth;
 
             [Column("4", name: "Label")]
-            public string IrisPlantType;
+            public ReadOnlyMemory<char> IrisPlantType;
         }
     }
 }

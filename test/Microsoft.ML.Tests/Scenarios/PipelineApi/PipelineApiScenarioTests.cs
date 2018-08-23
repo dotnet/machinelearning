@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.TestFramework;
+using System;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         public class IrisData : IrisDataNoLabel
         {
             [Column("0")]
-            public string Label;
+            public ReadOnlyMemory<char> Label;
         }
 
         public class IrisDataNoLabel
@@ -49,7 +50,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             [Column("0", name: "Label")]
             public bool Sentiment;
             [Column("1")]
-            public string SentimentText;
+            public ReadOnlyMemory<char> SentimentText;
         }
 
         public class SentimentPrediction
