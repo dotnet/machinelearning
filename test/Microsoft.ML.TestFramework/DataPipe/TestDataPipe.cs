@@ -22,9 +22,11 @@ namespace Microsoft.ML.Runtime.RunTests
         private static Float[] dataFloat = new Float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
                 Single.MaxValue, Single.Epsilon, Single.NegativeInfinity, Single.PositiveInfinity };
         private static uint[] resultsFloat = new uint[] { 21, 21, 16, 16, 31, 17, 0, 23, 24, 15, 10, 7 };
+        private static uint[] resultsFloatSparse = new uint[] { 21, 21, 16, 21, 21 };
         private static Double[] dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
                 Double.MaxValue, Double.Epsilon, Double.NegativeInfinity, Double.PositiveInfinity };
         private static uint[] resultsDouble = new uint[] { 21, 21, 31, 17, 10, 15, 0, 16, 21, 15, 6, 30 };
+        private static uint[] resultsDoubleSparse = new uint[] { 21, 21, 31, 21, 21 };
 
         [Fact]
         public void TestHashTransformFloat()
@@ -38,6 +40,22 @@ namespace Microsoft.ML.Runtime.RunTests
             var data = new[] { dataFloat };
             var results = new[] { resultsFloat };
             TestHashTransformVectorHelper(data, results, NumberType.R4);
+        }
+
+        [Fact]
+        public void TestHashTransformFloatSparseVector()
+        {
+            var data = new VBuffer<Single>(5, 3, new float[] { -0.0f, 0, 1 }, new[] { 0, 1, 2 });
+            var results = new[] { resultsFloatSparse };
+            TestHashTransformVectorHelper(data, results, NumberType.R4);
+        }
+
+        [Fact]
+        public void TestHashTransformDoubleSparseVector()
+        {
+            var data = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 1, 2 });
+            var results = new[] { resultsDoubleSparse };
+            TestHashTransformVectorHelper(data, results, NumberType.R8);
         }
 
         [Fact]
@@ -86,8 +104,19 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var builder = new ArrayDataViewBuilder(Env);
             builder.AddColumn("F1V", type, data);
-            var srcView = builder.GetDataView();
+            TestHashTransformVectorHelper(builder, results);
+        }
 
+        private void TestHashTransformVectorHelper<T>(VBuffer<T> data, uint[][] results, NumberType type)
+        {
+            var builder = new ArrayDataViewBuilder(Env);
+            builder.AddColumn("F1V", type, data);
+            TestHashTransformVectorHelper(builder, results);
+        }
+
+        private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
+        {
+            var srcView = builder.GetDataView();
             HashTransform.Column col = new HashTransform.Column();
             col.Source = "F1V";
             col.HashBits = 5;
@@ -106,15 +135,15 @@ namespace Microsoft.ML.Runtime.RunTests
                     resultGetter(ref resultRow);
 
                     Assert.True(resultRow.Length == r.Length);
-                    for(int i = 0; i < r.Length; i++)
+                    for (int i = 0; i < r.Length; i++)
                         Assert.True(resultRow.GetItemOrDefault(i) == r[i]);
                 }
             }
         }
     }
-        /// <summary>
-        /// A class for non-baseline data pipe tests.
-        /// </summary>
+    /// <summary>
+    /// A class for non-baseline data pipe tests.
+    /// </summary>
     public sealed partial class TestDataPipeNoBaseline : TestDataViewBase
     {
         [Fact]

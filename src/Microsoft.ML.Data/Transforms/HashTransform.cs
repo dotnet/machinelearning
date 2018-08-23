@@ -168,7 +168,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (type.ItemType.IsText || type.ItemType.IsKey || type.ItemType == NumberType.R4 || type.ItemType == NumberType.R8)
                 return null;
-            return "Expected Text, Key, R4 or R8 item type";
+            return "Expected Text, Key, Single or Double item type";
         }
 
         private const string RegistrationName = "Hash";
@@ -549,11 +549,11 @@ namespace Microsoft.ML.Runtime.Data
                 return ComposeGetterVecCore<ushort>(input, iinfo, HashUnord, HashDense, HashSparse);
             case DataKind.U4:
                 return ComposeGetterVecCore<uint>(input, iinfo, HashUnord, HashDense, HashSparse);
+            // There is no HashSparse for I1-R8, since 0 will be hashed to a non zero value.
             case DataKind.R4:
-                // Ignoring HashSparse for I1-R8, since 0 will be hashed to a non zero value.
-                return ComposeGetterVecCore<float>(input, iinfo, HashUnord, HashDense, HashDense);
+                return ComposeGetterVecCore<float>(input, iinfo, HashUnord, HashDense, null);
             case DataKind.R8:
-                return ComposeGetterVecCore<double>(input, iinfo, HashUnord, HashDense, HashDense);
+                return ComposeGetterVecCore<double>(input, iinfo, HashUnord, HashDense, null);
             default:
                 Host.Assert(colType.ItemType.RawKind == DataKind.U8);
                 return ComposeGetterVecCore<ulong>(input, iinfo, HashUnord, HashDense, HashSparse);
@@ -572,6 +572,8 @@ namespace Microsoft.ML.Runtime.Data
             var seed = ex.HashSeed;
             var len = Infos[iinfo].TypeSrc.VectorSize;
             var src = default(VBuffer<T>);
+            T[] denseValues = null;
+            int expectedSrcLength = Infos[iinfo].TypeSrc.VectorSize;
 
             if (!ex.Ordered)
             {
@@ -586,13 +588,23 @@ namespace Microsoft.ML.Runtime.Data
                     if (len > 0 && src.Length != len)
                         throw Host.Except("Hash transform expected {0} slots, but got {1}", len, src.Length);
 
-                    var hashes = dst.Values;
-                    if (Utils.Size(hashes) < src.Count)
-                        hashes = new uint[src.Count];
-
-                    if (src.IsDense)
+                    T[] values = src.Values;
+                    // force-densify the input in case hasherSparse is not provided
+                    if (!src.IsDense && hasherSparse.Target == null)
                     {
-                        hasherDense(src.Count, null, src.Values, hashes, seed, mask);
+                        if (denseValues == null)
+                            denseValues = new T[expectedSrcLength];
+                        values = denseValues;
+                        src.CopyTo(values);
+                    }
+
+                    var hashes = dst.Values;
+                    if (Utils.Size(hashes) < values.Length)
+                        hashes = new uint[values.Length];
+
+                    if (src.IsDense || hasherSparse.Target == null)
+                    {
+                        hasherDense(values.Length, null, values, hashes, seed, mask);
                         dst = new VBuffer<uint>(src.Length, hashes, dst.Indices);
                         return;
                     }
