@@ -34,7 +34,10 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public DvDateTime(long ticks)
         {
-            _ticks = ticks;
+            if ((ulong)ticks > MaxTicks)
+                _ticks = long.MinValue;
+            else
+                _ticks = ticks;
             AssertValid();
         }
 
@@ -82,10 +85,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static DvDateTime NA
-        {
-            get { return new DvDateTime(long.MinValue); }
-        }
+        public static DvDateTime NA => new DvDateTime(long.MinValue);
 
         public static explicit operator SysDateTime?(DvDateTime dvDt)
         {
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.Data
         public DvDateTimeZone(long ticks, short offset)
         {
             var dt = new DvDateTime(ticks);
-            if (MinMinutesOffset > offset || offset > MaxMinutesOffset)
+            if (dt.IsNA || offset == short.MinValue || MinMinutesOffset > offset || offset > MaxMinutesOffset)
             {
                 _dateTime = DvDateTime.NA;
                 _offset = short.MinValue;
@@ -200,6 +200,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(success);
             _dateTime = ValidateDate(new DvDateTime(dto.DateTime), ref _offset);
             Contracts.Assert(!_dateTime.IsNA);
+            Contracts.Assert(_offset != short.MinValue);
             AssertValid();
         }
 
@@ -254,7 +255,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <returns></returns>
         private static bool TryValidateOffset(long offsetTicks, out short offset)
         {
-            if (offsetTicks % TicksPerMinute != 0)
+            if (offsetTicks == short.MinValue || offsetTicks % TicksPerMinute != 0)
             {
                 offset = short.MinValue;
                 return false;
@@ -268,6 +269,7 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
             offset = res;
+            Contracts.Assert(offset != short.MinValue);
             return true;
         }
 
@@ -275,7 +277,10 @@ namespace Microsoft.ML.Runtime.Data
         private void AssertValid()
         {
             _dateTime.AssertValid();
-            if (!_dateTime.IsNA)
+            _dateTime.AssertValid();
+            if (_dateTime.IsNA)
+                Contracts.Assert(_offset == short.MinValue);
+            else
             {
                 Contracts.Assert(MinMinutesOffset <= _offset && _offset <= MaxMinutesOffset);
                 Contracts.Assert((ulong)(_dateTime.Ticks + _offset * TicksPerMinute)
@@ -318,6 +323,8 @@ namespace Microsoft.ML.Runtime.Data
             get
             {
                 AssertValid();
+                if (_offset == short.MinValue)
+                    return DvTimeSpan.NA;
                 return new DvTimeSpan(_offset * TicksPerMinute);
             }
         }
@@ -483,7 +490,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool IsNA
         {
-            get { return false; }
+            get { return _ticks == long.MinValue; }
         }
 
         public static DvTimeSpan NA
