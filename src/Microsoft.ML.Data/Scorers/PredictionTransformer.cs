@@ -12,6 +12,12 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(BinaryPredictionTransformer<IPredictorProducing<float>>), typeof(BinaryPredictionTransformer), null, typeof(SignatureLoadModel),
     "", BinaryPredictionTransformer.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>), typeof(MulticlassPredictionTransformer), null, typeof(SignatureLoadModel),
+    "", MulticlassPredictionTransformer.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(RegressionPredictionTransformer<IPredictorProducing<float>>), typeof(RegressionPredictionTransformer), null, typeof(SignatureLoadModel),
+    "", RegressionPredictionTransformer.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.Data
 {
     public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>, ICanSaveModel
@@ -141,8 +147,13 @@ namespace Microsoft.ML.Runtime.Data
         public BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), ctx)
         {
+            // *** Binary format ***
+            // <base info>
+            // float: scorer threshold
+            // id of string: scorer threshold column
+
             Threshold = ctx.Reader.ReadSingle();
-            ThresholdColumn = ctx.LoadStringOrNull();
+            ThresholdColumn = ctx.LoadString();
 
             var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
             var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
@@ -167,7 +178,7 @@ namespace Microsoft.ML.Runtime.Data
             base.SaveCore(ctx);
 
             ctx.Writer.Write(Threshold);
-            ctx.SaveStringOrNull(ThresholdColumn);
+            ctx.SaveString(ThresholdColumn);
         }
 
         private static VersionInfo GetVersionInfo()
@@ -185,12 +196,31 @@ namespace Microsoft.ML.Runtime.Data
         where TModel : class, IPredictorProducing<VBuffer<float>>
     {
         private readonly MultiClassClassifierScorer _scorer;
+        private readonly string _trainLabelColumn;
 
-        public MulticlassPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn, string labelColumn, MultiClassClassifierScorer.Arguments args)
+        public MulticlassPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn, string labelColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
+            Host.CheckValueOrNull(labelColumn);
+
+            _trainLabelColumn = labelColumn;
             var schema = new RoleMappedSchema(inputSchema, labelColumn, featureColumn);
+            var args = new MultiClassClassifierScorer.Arguments();
             _scorer = new MultiClassClassifierScorer(Host, args, new EmptyDataView(Host, inputSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        public MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), ctx)
+        {
+            // *** Binary format ***
+            // <base info>
+            // id of string: train label column
+
+            _trainLabelColumn = ctx.LoadStringOrNull();
+
+            var schema = new RoleMappedSchema(TrainSchema, _trainLabelColumn, FeatureColumn);
+            var args = new MultiClassClassifierScorer.Arguments();
+            _scorer = new MultiClassClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
         public override IDataView Transform(IDataView input)
@@ -206,7 +236,10 @@ namespace Microsoft.ML.Runtime.Data
 
             // *** Binary format ***
             // <base info>
+            // id of string: train label column
             base.SaveCore(ctx);
+
+            ctx.SaveStringOrNull(_trainLabelColumn);
         }
 
         private static VersionInfo GetVersionInfo()
@@ -230,6 +263,13 @@ namespace Microsoft.ML.Runtime.Data
         {
             var schema = new RoleMappedSchema(inputSchema, null, featureColumn);
             _scorer = new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, inputSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        internal RegressionPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<TModel>)), ctx)
+        {
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            _scorer = new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
         public override IDataView Transform(IDataView input)
@@ -270,10 +310,16 @@ namespace Microsoft.ML.Runtime.Data
     internal static class MulticlassPredictionTransformer
     {
         public const string LoaderSignature = "MulticlassPredXfer";
+
+        public static MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env, ctx);
     }
 
     internal static class RegressionPredictionTransformer
     {
         public const string LoaderSignature = "RegressionPredXfer";
+
+        public static RegressionPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new RegressionPredictionTransformer<IPredictorProducing<float>>(env, ctx);
     }
 }
