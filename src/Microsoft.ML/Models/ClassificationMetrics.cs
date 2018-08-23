@@ -15,7 +15,6 @@ namespace Microsoft.ML.Models
     /// </summary>
     public sealed class ClassificationMetrics
     {
-        public static ClassificationMetrics Empty = new ClassificationMetrics();
         private ClassificationMetrics()
         {
         }

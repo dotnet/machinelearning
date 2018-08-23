@@ -23,7 +23,6 @@ namespace Microsoft.ML.Benchmarks
         public void Setup()
         {
             s_dataPath = Program.GetDataPath("adult.train");
-            StochasticDualCoordinateAscentClassifierBench.s_metrics = Models.ClassificationMetrics.Empty;
         }
 
         private static IPredictor TrainKMeansAndLRCore()
@@ -92,30 +91,6 @@ namespace Microsoft.ML.Benchmarks
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 return trainer.Train(trainRoles);
             }
-        }
-
-        public class IrisData
-        {
-            [Column("0")]
-            public float Label;
-
-            [Column("1")]
-            public float SepalLength;
-
-            [Column("2")]
-            public float SepalWidth;
-
-            [Column("3")]
-            public float PetalLength;
-
-            [Column("4")]
-            public float PetalWidth;
-        }
-
-        public class IrisPrediction
-        {
-            [ColumnName("Score")]
-            public float[] PredictedLabels;
         }
     }
 }

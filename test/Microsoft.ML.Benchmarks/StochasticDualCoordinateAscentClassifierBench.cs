@@ -103,63 +103,64 @@ namespace Microsoft.ML.Benchmarks
             {
                 // Pipeline
                 var loader = new TextLoader(env,
-                new TextLoader.Arguments()
-                {
-                    AllowQuoting = false,
-                    AllowSparse = false,
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
+                    new TextLoader.Arguments()
                     {
-                        new TextLoader.Column()
+                        AllowQuoting = false,
+                        AllowSparse = false,
+                        Separator = "tab",
+                        HasHeader = true,
+                        Column = new[]
                         {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min=0, Max=0} },
-                            Type = DataKind.Num
+                            new TextLoader.Column()
+                            {
+                                Name = "Label",
+                                Source = new [] { new TextLoader.Range() { Min=0, Max=0} },
+                                Type = DataKind.Num
+                            },
+
+                            new TextLoader.Column()
+                            {
+                                Name = "SentimentText",
+                                Source = new [] { new TextLoader.Range() { Min=1, Max=1} },
+                                Type = DataKind.Text
+                            }
+                        }
+                    }, new MultiFileSource(dataPath));
+
+                var text = TextTransform.Create(env,
+                    new TextTransform.Arguments()
+                    {
+                        Column = new TextTransform.Column
+                        {
+                            Name = "WordEmbeddings",
+                            Source = new[] { "SentimentText" }
                         },
+                        KeepDiacritics = false,
+                        KeepPunctuations = false,
+                        TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
+                        OutputTokens = true,
+                        StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
+                        VectorNormalizer = TextTransform.TextNormKind.None,
+                        CharFeatureExtractor = null,
+                        WordFeatureExtractor = null,
+                    }, loader);
 
-                        new TextLoader.Column()
-                        {
-                            Name = "SentimentText",
-                            Source = new [] { new TextLoader.Range() { Min=1, Max=1} },
-                            Type = DataKind.Text
-                        }
-                    }
-                }, new MultiFileSource(dataPath));
-
-                var text = TextTransform.Create(env, new TextTransform.Arguments()
-                {
-                    Column = new TextTransform.Column
+                var trans = new WordEmbeddingsTransform(env, 
+                    new WordEmbeddingsTransform.Arguments()
                     {
-                        Name = "WordEmbeddings",
-                        Source = new[] { "SentimentText" }
-                    },
-                    KeepDiacritics = false,
-                    KeepPunctuations = false,
-                    TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
-                    OutputTokens = true,
-                    StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                    VectorNormalizer = TextTransform.TextNormKind.None,
-                    CharFeatureExtractor = null,
-                    WordFeatureExtractor = null,
-                },
-                loader);
-
-                var trans = new WordEmbeddingsTransform(env, new WordEmbeddingsTransform.Arguments()
-                {
-                    Column = new WordEmbeddingsTransform.Column[1]
-                    {
-                        new WordEmbeddingsTransform.Column
+                        Column = new WordEmbeddingsTransform.Column[1]
                         {
-                            Name = "Features",
-                            Source = "WordEmbeddings_TransformedText"
-                        }
-                    },
-                    ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
-                }, text);
+                            new WordEmbeddingsTransform.Column
+                            {
+                                Name = "Features",
+                                Source = "WordEmbeddings_TransformedText"
+                            }
+                        },
+                        ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
+                    }, text);
+
                 // Train
                 var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { MaxIterations = 20 });
-
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 return trainer.Train(trainRoles);
             }
