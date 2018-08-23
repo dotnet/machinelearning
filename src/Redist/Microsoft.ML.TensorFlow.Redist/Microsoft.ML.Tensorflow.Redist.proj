@@ -1,10 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Restore;Build">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-
-    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
-    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
   </PropertyGroup>
   
   <ItemGroup>
@@ -35,9 +33,7 @@
       <!-- DownloadFilesFromUrl requires Url metadata is set and ignores the identity of the item -->
       <_downloadFiles Include="@(TensorFlowArchive)" Url="%(Identity)" DestinationFile="%(DownloadFile)" />
     </ItemGroup>
-    <DownloadFilesFromUrl Items="@(_downloadFiles)">
-      <Output TaskParameter="FilesCreated" ItemName="FileWrites" />
-    </DownloadFilesFromUrl>
+    <DownloadFilesFromUrl Items="@(_downloadFiles)" />
   </Target>
   
   <UsingTask TaskName="GenerateChecksums" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
@@ -51,9 +47,6 @@
       <_filesToCheckSum Include="@(TensorFlowArchive->'%(DownloadFile)')" DestinationPath="%(DownloadShaFile)" />
     </ItemGroup>
     <GenerateChecksums Items="@(_filesToCheckSum)" />
-    <ItemGroup>
-      <FileWrites Include="@(TensorFlowArchive->'%(DownloadShaFile)')" />
-    </ItemGroup>
 
     <!-- If specified we'll update the checked in SHAs with the downloaded ones. -->
     <Copy Condition="'$(UpdateSHA)' == 'true'"
@@ -75,24 +68,13 @@
     <!-- The archives are valid, lets extract them, ensuring an empty directory -->
     <RemoveDir Directories="@(TensorFlowArchive->'%(ExtractDirectory)')" />
     <MakeDir Directories="@(TensorFlowArchive->'%(ExtractDirectory)')" />
-    <ZipFileExtractToDirectory Condition="'%(FileExtension)' == '.zip'"
+    <ZipFileExtractToDirectory Condition="'%(TensorFlowArchive.FileExtension)' == '.zip'"
                                SourceArchive="%(TensorFlowArchive.DownloadFile)"
                                DestinationDirectory="%(TensorFlowArchive.ExtractDirectory)"
                                OverwriteDestination="true" />
-    <Exec Condition="'%(FileExtension)' == '.tar.gz'"
+    <Exec Condition="'%(TensorFlowArchive.FileExtension)' == '.tar.gz'"
           Command="tar -xzmf &quot;%(TensorFlowArchive.DownloadFile)&quot; -C &quot;%(TensorFlowArchive.ExtractDirectory)&quot;" />
     <Touch Files="@(TensorFlowArchive->'%(ExtractSemaphore)')" AlwaysCreate="true" />
-
-    <ItemGroup>
-      <FileWrites Include="%(TensorFlowArchive.ExtractDirectory)\**\*" />
-    </ItemGroup>
-  </Target>
-
-  <!-- Clean up empty directories left behind by clean, since it otherwise would not do this -->
-  <Target Name="CleanExtractDirectories"
-          BeforeTargets="AfterClean"
-          DependsOnTargets="PrepareArchives">
-    <RemoveDir Directories="@(TensorFlowArchive->'%(ExtractDirectory)')" />
   </Target>
 
   <!-- Select the files we want to copy out of each archive. -->
@@ -119,15 +101,14 @@
   <Target Name="CopyFilesFromArchive"
           DependsOnTargets="GetFilesFromArchive">
     <Copy SourceFiles="@(FilesFromArchive)"
-          DestinationFiles="@(FilesFromArchive->'%(TargetPath)')">
-      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
-    </Copy>
+          DestinationFiles="@(FilesFromArchive->'%(TargetPath)')" />
   </Target>
 
-  <!-- Define CoreCompile to do the work of downloading and copying assets -->
-  <Target Name="CoreCompile"
+  <!-- Define Build to do the work of downloading and copying assets -->
+  <Target Name="Build"
           DependsOnTargets="CopyFilesFromArchive" />
 
-  <!-- required by common targets -->
-  <Target Name="CreateManifestResourceNames" />
+  <Target Name="Clean">
+    <RemoveDir Directories="$(IntermediateOutputPath)" />
+  </Target>
 </Project>
