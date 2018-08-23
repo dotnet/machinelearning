@@ -10,7 +10,7 @@ using System.IO;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Scenarios
+namespace Microsoft.ML.StaticPipelineTesting
 {
 
     public abstract class MakeConsoleWork : IDisposable
