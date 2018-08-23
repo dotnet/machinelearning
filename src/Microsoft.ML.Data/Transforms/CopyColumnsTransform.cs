@@ -35,13 +35,9 @@ namespace Microsoft.ML.Runtime.Data
         private readonly (string Source, string Name)[] _columns;
         private readonly IHost _host;
 
-        public CopyColumnsEstimator(IHostEnvironment env, string input, string output)
+        public CopyColumnsEstimator(IHostEnvironment env, string input, string output) :
+            this(env, new (string, string)[1] { (input, output) })
         {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register("CopyColumnsEstimator");
-            _host.CheckNonWhiteSpace(input, nameof(input));
-            _host.CheckNonWhiteSpace(output, nameof(output));
-            _columns = new (string, string)[1] { (input, output) };
         }
 
         public CopyColumnsEstimator(IHostEnvironment env, params (string Source, string Name)[] columns)
@@ -70,17 +66,17 @@ namespace Microsoft.ML.Runtime.Data
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-            foreach ((string source, string name) pair in _columns)
+            foreach (var column in _columns)
             {
-                var originalColumn = inputSchema.FindColumn(pair.source);
+                var originalColumn = inputSchema.FindColumn(column.Source);
                 if (originalColumn != null)
                 {
-                    var col = new SchemaShape.Column(pair.name, originalColumn.Kind, originalColumn.ItemKind, originalColumn.IsKey, originalColumn.MetadataKinds);
-                    resultDic[pair.name] = col;
+                    var col = new SchemaShape.Column(column.Name, originalColumn.Kind, originalColumn.ItemKind, originalColumn.IsKey, originalColumn.MetadataKinds);
+                    resultDic[column.Name] = col;
                 }
                 else
                 {
-                    throw Contracts.ExceptUserArg(nameof(inputSchema), $"{pair.source} not found in {nameof(inputSchema)}");
+                    throw _host.ExceptUserArg(nameof(inputSchema), $"{column.Source} not found in {nameof(inputSchema)}");
                 }
             }
             return new SchemaShape(resultDic.Values.ToArray());
@@ -106,7 +102,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
         }
-        public CopyColumnsTransformer(IHostEnvironment env, (string Source, string Name)[] columns)
+
+        public CopyColumnsTransformer(IHostEnvironment env, params (string Source, string Name)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -220,7 +217,7 @@ namespace Microsoft.ML.Runtime.Data
     internal class CopyColumnsRowMapper : IRowMapper
     {
         private readonly ISchema _schema;
-        private readonly HashSet<int> _originalColumnSources;
+        private readonly Dictionary<int, int> _colMap;
         private (string Source, string Name)[] _columns;
         private readonly IHost _host;
         public const string LoaderSignature = "CopyColumnsRowMapper";
@@ -264,13 +261,15 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(columns, nameof(columns));
             _schema = schema;
             _columns = columns;
-            _originalColumnSources = new HashSet<int>();
-            var sources = new HashSet<string>();
-            foreach (var source in columns.Select(x => x.Source))
-                sources.Add(source);
-            for (int i = 0; i < _schema.ColumnCount; i++)
-                if (sources.Contains(_schema.GetColumnName(i)))
-                    _originalColumnSources.Add(i);
+            _colMap = new Dictionary<int, int>();
+            for (int i = 0; i < _columns.Length; i++)
+            {
+                if (!_schema.TryGetColumnIndex(_columns[i].Source, out int colIndex))
+                {
+                    throw _host.ExceptUserArg(nameof(schema), $"{_columns[i].Source} not found in {nameof(schema)}");
+                }
+                _colMap.Add(i, colIndex);
+            }
         }
 
         public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
@@ -295,24 +294,24 @@ namespace Microsoft.ML.Runtime.Data
 
         public Func<int, bool> GetDependencies(Func<int, bool> activeOutput) => (col) =>
         {
-            return (activeOutput(col) && _originalColumnSources.Contains(col));
+            if (!_colMap.ContainsKey(col))
+                return false;
+            return (activeOutput(_colMap[col]));
         };
 
         public RowMapperColumnInfo[] GetOutputColumns()
         {
             var result = new RowMapperColumnInfo[_columns.Length];
-            var colMap = new Dictionary<int, int>();
             for (int i = 0; i < _columns.Length; i++)
             {
                 _schema.TryGetColumnIndex(_columns[i].Source, out int colIndex);
-                colMap.Add(i, colIndex);
                 //REVIEW: Metadata need to be switched to IRow instead of ColumMetadataInfo
                 var colMetaInfo = new ColumnMetadataInfo(_columns[i].Name);
                 var types = _schema.GetMetadataTypes(colIndex);
                 var colType = _schema.GetColumnType(colIndex);
                 foreach (var type in types)
                 {
-                    Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, _schema, type.Key, type.Value, colMap);
+                    Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, _schema, type.Key, type.Value, _colMap);
                 }
                 result[i] = new RowMapperColumnInfo(_columns[i].Name, colType, colMetaInfo);
             }

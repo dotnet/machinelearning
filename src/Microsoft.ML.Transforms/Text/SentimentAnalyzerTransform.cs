@@ -79,20 +79,17 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             // 2. Copy source column to a column with the name expected by the pretrained model featurization
             // transform pipeline.
-            input = CopyColumnsTransformer.Create(env, new CopyColumnsTransformer.Arguments()
-            {
-                Column = new[] { new CopyColumnsTransformer.Column() { Source = args.Source, Name = ModelInputColumnName } }
-            }, input);
+            var copyTransformer = new CopyColumnsTransformer(env, (args.Source, ModelInputColumnName));
+
+            input = copyTransformer.Transform(input);
 
             // 3. Apply the pretrained model and its featurization transform pipeline.
             input = LoadTransforms(env, input, file);
 
             // 4. Copy the output column from the pretrained model to a temporary column.
             var scoreTempName = input.Schema.GetTempColumnName("sa_out");
-            input = CopyColumnsTransformer.Create(env, new CopyColumnsTransformer.Arguments()
-            {
-                Column = new [] { new CopyColumnsTransformer.Column() {  Name = scoreTempName, Source = ModelScoreColumnName } }
-            }, input);
+            copyTransformer = new CopyColumnsTransformer(env, (ModelScoreColumnName, scoreTempName));
+            input = copyTransformer.Transform(input);
 
             // 5. Drop all the columns created by the pretrained model, including the expected input column
             // and the output column, which we have copied to a temporary column in (4).
@@ -104,10 +101,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             input = UnaliasIfNeeded(env, input, aliased);
 
             // 7. Copy the temporary column with the score we created in (4) to a column with the user-specified destination name.
-            input = CopyColumnsTransformer.Create(env, new CopyColumnsTransformer.Arguments()
-            {
-                Column = new[] { new CopyColumnsTransformer.Column() { Name = args.Name, Source = scoreTempName } }
-            }, input);
+            copyTransformer = new CopyColumnsTransformer(env, (scoreTempName, args.Name));
+            input = copyTransformer.Transform(input);
 
             // 8. Drop the temporary column with the score created in (4).
             return new DropColumnsTransform(env, new DropColumnsTransform.Arguments() { Column = new[] { scoreTempName } }, input);
@@ -148,7 +143,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             input = CopyColumnsTransformer.Create(env, new CopyColumnsTransformer.Arguments()
             {
-                Column = hiddenNames.Select(pair => new CopyColumnsTransformer.Column() {  Name = pair.Key, Source = pair.Value }).ToArray()
+                Column = hiddenNames.Select(pair => new CopyColumnsTransformer.Column() { Name = pair.Key, Source = pair.Value }).ToArray()
             }, input);
 
             return new DropColumnsTransform(env, new DropColumnsTransform.Arguments()

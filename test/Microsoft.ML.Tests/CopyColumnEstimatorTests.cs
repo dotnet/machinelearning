@@ -27,6 +27,7 @@ namespace Microsoft.ML.Tests
 
         class TestMetaClass
         {
+            public int NotUsed;
             public string Term;
         }
 
@@ -52,14 +53,16 @@ namespace Microsoft.ML.Tests
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var est = new CopyColumnsEstimator(env, new[] { ("D", "A"), ("B", "E") });
+                var failed = false;
                 try
                 {
                     var transformer = est.Fit(dataView);
                 }
                 catch
                 {
-                    Assert.True(false);
+                    failed = true;
                 }
+                Assert.True(failed);
             }
         }
 
@@ -74,14 +77,16 @@ namespace Microsoft.ML.Tests
                 var xyDataView = ComponentCreation.CreateDataView(env, xydata);
                 var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E") });
                 var transformer = est.Fit(dataView);
+                var failed = false;
                 try
                 {
                     var result = transformer.Transform(xyDataView);
                 }
                 catch
                 {
-                    Assert.True(false);
+                    failed = true;
                 }
+                Assert.True(failed);
             }
         }
 
@@ -130,7 +135,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestMetadataCopy()
         {
-            var data = new[] { new TestMetaClass() { Term = "A" }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
+            var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);

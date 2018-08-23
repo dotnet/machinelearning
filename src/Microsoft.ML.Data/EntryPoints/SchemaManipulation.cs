@@ -48,7 +48,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var host = env.Register("CopyColumns");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
-
             var xf = CopyColumnsTransformer.Create(env, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }

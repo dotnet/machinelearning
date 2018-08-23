@@ -81,7 +81,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     // Rename all the score columns.
                     int colMax;
                     var maxScoreId = input.Data.Schema.GetMaxMetadataKind(out colMax, MetadataUtils.Kinds.ScoreColumnSetId);
-                    var copyCols = new List<CopyColumnsTransformer.Column>();
+                    var copyCols = new List<(string Source, string Name)>();
                     for (int i = 0; i < input.Data.Schema.ColumnCount; i++)
                     {
                         if (input.Data.Schema.IsHidden(i))
@@ -98,10 +98,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         }
                         var source = input.Data.Schema.GetColumnName(i);
                         var name = source + "." + positiveClass;
-                        copyCols.Add(new CopyColumnsTransformer.Column() { Name = name, Source = source });
+                        copyCols.Add((source, name));
                     }
 
-                    var copyColumn = CopyColumnsTransformer.Create(env, new CopyColumnsTransformer.Arguments() { Column = copyCols.ToArray() }, input.Data);
+                    var copyColumn = new CopyColumnsTransformer(env, copyCols.ToArray()).Transform(input.Data);
                     var dropColumn = new DropColumnsTransform(env, new DropColumnsTransform.Arguments() { Column = copyCols.Select(c => c.Source).ToArray() }, copyColumn);
                     return new CommonOutputs.TransformOutput { Model = new TransformModel(env, dropColumn, input.Data), OutputData = dropColumn };
                 }

@@ -925,18 +925,9 @@ namespace Microsoft.ML.Runtime.Data
 
         private IDataView ChangeTopKAccColumnName(IDataView input)
         {
-            var cpyArgs = new CopyColumnsTransformer.Arguments
-            {
-                Column = new[]
-                {
-                    new CopyColumnsTransformer.Column()
-                    {
-                        Name=string.Format(TopKAccuracyFormat, _outputTopKAcc),
-                        Source=MultiClassClassifierEvaluator.TopKAccuracy
-                    }
-                }
-            };
-            input = CopyColumnsTransformer.Create(Host, cpyArgs, input);
+            input = new CopyColumnsTransformer(Host, new[] {
+                    (MultiClassClassifierEvaluator.TopKAccuracy,string.Format(TopKAccuracyFormat, _outputTopKAcc))
+                }).Transform(input);
             var dropArgs = new DropColumnsTransform.Arguments
             {
                 Column = new[] { MultiClassClassifierEvaluator.TopKAccuracy }
