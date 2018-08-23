@@ -22,7 +22,6 @@ namespace Microsoft.ML.Runtime.Internal
 namespace Microsoft.ML.Runtime
 #endif
 {
-    using System.Runtime.Serialization;
     using Conditional = System.Diagnostics.ConditionalAttribute;
     using Debug = System.Diagnostics.Debug;
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Models;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
@@ -43,7 +44,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var scoredTest = model.Transform(pipeline.Transform(testData));
                 var metrics = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments()).Evaluate(scoredTest, "Label", "Probability");
 
-                var newModel = new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(env, model.Model, trainData.Schema, model.FeatureColumn, threshold: 0.01f, thresholdColumn: DefaultColumnNames.Probability);
+                var newModel = new BinaryPredictionTransformer<IPredictorProducing<float>>(env, model.Model, trainData.Schema, model.FeatureColumn, threshold: 0.01f, thresholdColumn: DefaultColumnNames.Probability);
                 var newScoredTest = newModel.Transform(pipeline.Transform(testData));
                 var newMetrics = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments { Threshold = 0.01f, UseRawScoreThreshold = false }).Evaluate(newScoredTest, "Label", "Probability");
             }

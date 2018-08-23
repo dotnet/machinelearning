@@ -44,21 +44,18 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// The information about the trainer: whether it benefits from normalization, caching etc.
         /// </summary>
-        public TrainerInfo Info { get; }
+        public abstract TrainerInfo Info { get; }
 
         public abstract PredictionKind PredictionKind { get; }
 
-        public TrainerEstimatorBase(IHost host, TrainerInfo trainerInfo,
-            SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = null)
+        public TrainerEstimatorBase(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = null)
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
-            Host.CheckValue(trainerInfo, nameof(trainerInfo));
             Host.CheckValue(feature, nameof(feature));
             Host.CheckValueOrNull(label);
             Host.CheckValueOrNull(weight);
 
-            Info = trainerInfo;
             FeatureColumn = feature;
             LabelColumn = label;
             WeightColumn = weight;

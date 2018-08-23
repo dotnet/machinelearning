@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Learners
         where TModel : IPredictor
     {
         public StochasticTrainerBase(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = null)
-            : base(host, new TrainerInfo(), feature, label, weight)
+            : base(host, feature, label, weight)
         {
         }
 
@@ -23,6 +23,9 @@ namespace Microsoft.ML.Runtime.Learners
         /// Whether data is to be shuffled every epoch.
         /// </summary>
         protected abstract bool ShuffleData { get; }
+
+        private static readonly TrainerInfo _info = new TrainerInfo();
+        public override TrainerInfo Info => _info;
 
         protected override TModel TrainModelCore(TrainContext context)
         {

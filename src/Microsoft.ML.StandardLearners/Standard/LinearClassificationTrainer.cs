@@ -1358,7 +1358,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed class LinearClassificationTrainer : SdcaTrainerBase<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>, ParameterMixingCalibratedPredictor>
+    public sealed class LinearClassificationTrainer : SdcaTrainerBase<BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
     {
         public const string LoadNameValue = "SDCA";
         public const string UserNameValue = "Fast Linear (SA-SDCA)";
@@ -1392,7 +1392,9 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected override SchemaShape.Column[] OutputColumns { get; }
 
-        public override PredictionKind PredictionKind => throw new NotImplementedException();
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+
+        public override TrainerInfo Info { get; }
 
         public LinearClassificationTrainer(IHostEnvironment env, Arguments args,
             string featureColumn, string labelColumn, string weightColumn = null)
@@ -1400,6 +1402,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             _loss = args.LossFunction.CreateComponent(env);
             Loss = _loss;
+            Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             _args = args;
             _positiveInstanceWeight = _args.PositiveInstanceWeight;
             OutputColumns = new[]
@@ -1444,7 +1447,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, DataKind.R4, false, new string[0]);
         }
 
-        protected override ParameterMixingCalibratedPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        protected override TScalarPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
@@ -1455,6 +1458,8 @@ namespace Microsoft.ML.Runtime.Learners
                 Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
 
             var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias[0]);
+            if (!(_loss is LogLoss))
+                return predictor;
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 
@@ -1469,10 +1474,10 @@ namespace Microsoft.ML.Runtime.Learners
             weightSetCount = 1;
         }
 
-        protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, ISchema trainSchema)
-            => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, ISchema trainSchema)
+            => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> Train(IDataView trainData, IDataView validationData) => TrainTransformer(trainData, validationData);
+        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IDataView validationData) => TrainTransformer(trainData, validationData);
     }
 
     public sealed class StochasticGradientDescentClassificationTrainer :
