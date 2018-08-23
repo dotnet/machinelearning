@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.Data
         public CopyColumnsEstimator(IHostEnvironment env, params (string Source, string Name)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register("CopyColumnsEstimator");
+            _host = env.Register(nameof(CopyColumnsEstimator));
             _host.CheckValue(columns, nameof(columns));
             var newNames = new HashSet<string>();
             foreach (var column in columns)
@@ -244,9 +244,9 @@ namespace Microsoft.ML.Runtime.Data
             //   string: output column name
             //   string: input column name
 
-            var lenght = ctx.Reader.ReadInt32();
-            var columns = new (string Source, string Name)[lenght];
-            for (int i = 0; i < lenght; i++)
+            var length = ctx.Reader.ReadInt32();
+            var columns = new (string Source, string Name)[length];
+            for (int i = 0; i < length; i++)
             {
                 columns[i].Name = ctx.LoadNonEmptyString();
                 columns[i].Source = ctx.LoadNonEmptyString();
