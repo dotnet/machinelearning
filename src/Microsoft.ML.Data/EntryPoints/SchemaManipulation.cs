@@ -41,15 +41,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.ColumnCopier", Desc = "Duplicates columns from the dataset", UserName = CopyColumnsTransform.UserName, ShortName = CopyColumnsTransform.ShortName)]
-        public static CommonOutputs.TransformOutput CopyColumns(IHostEnvironment env, CopyColumnsTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.ColumnCopier", Desc = "Duplicates columns from the dataset", UserName = CopyColumnsTransformer.UserName, ShortName = CopyColumnsTransformer.ShortName)]
+        public static CommonOutputs.TransformOutput CopyColumns(IHostEnvironment env, CopyColumnsTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CopyColumns");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = new CopyColumnsTransform(env, input, input.Data);
+            var xf = CopyColumnsTransformer.Create(env, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 

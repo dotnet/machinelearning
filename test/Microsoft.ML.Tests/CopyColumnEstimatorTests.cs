@@ -2,7 +2,7 @@
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,6 +18,7 @@ namespace Microsoft.ML.Tests
             public int B;
             public int C;
         }
+
         class TestClassXY
         {
             public int X;
@@ -40,30 +41,6 @@ namespace Microsoft.ML.Tests
                 var transformer = est.Fit(dataView);
                 var result = transformer.Transform(dataView);
                 ValidateCopyColumnTransformer(result);
-            }
-        }
-
-        private void ValidateCopyColumnTransformer(IDataView result)
-        {
-            using (var cursor = result.GetRowCursor(x => true))
-            {
-                DvInt4 avalue = 0;
-                DvInt4 bvalue = 0;
-                DvInt4 dvalue = 0;
-                DvInt4 evalue = 0;
-                var aGetter = cursor.GetGetter<DvInt4>(0);
-                var bGetter = cursor.GetGetter<DvInt4>(1);
-                var dGetter = cursor.GetGetter<DvInt4>(3);
-                var eGetter = cursor.GetGetter<DvInt4>(4);
-                while (cursor.MoveNext())
-                {
-                    aGetter(ref avalue);
-                    bGetter(ref bvalue);
-                    dGetter(ref dvalue);
-                    eGetter(ref evalue);
-                    Assert.Equal(avalue, dvalue);
-                    Assert.Equal(bvalue, evalue);
-                }
             }
         }
 
@@ -169,17 +146,9 @@ namespace Microsoft.ML.Tests
                 var transformer = est.Fit(term);
                 var result = transformer.Transform(term);
                 result.Schema.TryGetColumnIndex("T", out int termIndex);
-                var termTypes = result.Schema.GetMetadataTypes(termIndex);
-
                 result.Schema.TryGetColumnIndex("T1", out int copyIndex);
-                var copyTypes = result.Schema.GetMetadataTypes(copyIndex);
-
-
                 var names1 = default(VBuffer<DvText>);
                 var names2 = default(VBuffer<DvText>);
-
-                var t1 = result.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, termIndex);
-                var t2 = result.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, copyIndex);
                 var type1 = result.Schema.GetColumnType(termIndex);
                 int size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
                 var type2 = result.Schema.GetColumnType(copyIndex);
@@ -188,11 +157,45 @@ namespace Microsoft.ML.Tests
                 Assert.True(CompareVec(ref names1, ref names2, size, DvText.Identical));
             }
         }
-        protected bool CompareVec<T>(ref VBuffer<T> v1, ref VBuffer<T> v2, int size, Func<T, T, bool> fn)
+
+        [Fact]
+        void TestCommandLine()
+        {
+            using (var env = new TlcEnvironment())
+            {
+                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=copy{col=B:A} in=f:\1.txt" }), (int)0);
+            }
+        }
+
+        private void ValidateCopyColumnTransformer(IDataView result)
+        {
+            using (var cursor = result.GetRowCursor(x => true))
+            {
+                DvInt4 avalue = 0;
+                DvInt4 bvalue = 0;
+                DvInt4 dvalue = 0;
+                DvInt4 evalue = 0;
+                var aGetter = cursor.GetGetter<DvInt4>(0);
+                var bGetter = cursor.GetGetter<DvInt4>(1);
+                var dGetter = cursor.GetGetter<DvInt4>(3);
+                var eGetter = cursor.GetGetter<DvInt4>(4);
+                while (cursor.MoveNext())
+                {
+                    aGetter(ref avalue);
+                    bGetter(ref bvalue);
+                    dGetter(ref dvalue);
+                    eGetter(ref evalue);
+                    Assert.Equal(avalue, dvalue);
+                    Assert.Equal(bvalue, evalue);
+                }
+            }
+        }
+        private bool CompareVec<T>(ref VBuffer<T> v1, ref VBuffer<T> v2, int size, Func<T, T, bool> fn)
         {
             return CompareVec(ref v1, ref v2, size, (i, x, y) => fn(x, y));
         }
-        protected bool CompareVec<T>(ref VBuffer<T> v1, ref VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
+
+        private bool CompareVec<T>(ref VBuffer<T> v1, ref VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
         {
             Contracts.Assert(size == 0 || v1.Length == size);
             Contracts.Assert(size == 0 || v2.Length == size);
