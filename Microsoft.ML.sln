@@ -113,6 +113,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TensorFlow", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.LibraryAnalyzer", "tools-local\Microsoft.ML.LibraryAnalyzer\Microsoft.ML.LibraryAnalyzer.csproj", "{D1E539E5-1A15-410A-8FA1-E1FBBBE5DF94}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Analyzer", "tools-local\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj", "{D1E539E5-1A15-410A-8FA1-E1FBBBE5DF94}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StaticPipelineTesting", "test\Microsoft.ML.StaticPipelineTesting\Microsoft.ML.StaticPipelineTesting.csproj", "{8B38BF24-35F4-4787-A9C5-22D35987106E}"
 EndProject
 Global

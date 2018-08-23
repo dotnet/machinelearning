@@ -5,7 +5,7 @@
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
 using Xunit;
 
-namespace Microsoft.ML.CodeAnalyzer.Tests
+namespace Microsoft.ML.CodeAnalyzer.Tests.Code
 {
     public sealed class TypeParamNameTest : DiagnosticVerifier<TypeParamNameAnalyzer>
     {

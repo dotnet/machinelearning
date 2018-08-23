@@ -9,7 +9,7 @@ using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.CodeAnalyzer.Tests
+namespace Microsoft.ML.CodeAnalyzer.Tests.Code
 {
     public sealed class ContractsCheckTest : DiagnosticVerifier<ContractsCheckAnalyzer>
     {
