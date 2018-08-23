@@ -33,6 +33,7 @@
       <!-- DownloadFilesFromUrl requires Url metadata is set and ignores the identity of the item -->
       <_downloadFiles Include="@(TensorFlowArchive)" Url="%(Identity)" DestinationFile="%(DownloadFile)" />
     </ItemGroup>
+    <Message Importance="High" Text="Downloading '%(_downloadFiles.Url)' to '%(_downloadFiles.DestinationFile)'." />
     <DownloadFilesFromUrl Items="@(_downloadFiles)" />
   </Target>
   
@@ -73,6 +74,7 @@
                                DestinationDirectory="%(TensorFlowArchive.ExtractDirectory)"
                                OverwriteDestination="true" />
 
+    <Message Importance="High" Condition="'%(TensorFlowArchive.FileExtension)' == '.tar.gz'" Text="Decompressing '%(TensorFlowArchive.DownloadFile)' to '%(TensorFlowArchive.ExtractDirectory)'." />
     <Exec Condition="'%(TensorFlowArchive.FileExtension)' == '.tar.gz'"
           WorkingDirectory="%(TensorFlowArchive.ExtractDirectory)"
           Command="tar -xzmf &quot;$([MSBuild]::MakeRelative('%(TensorFlowArchive.ExtractDirectory)', '%(TensorFlowArchive.DownloadFile)'))&quot;" />
@@ -106,6 +108,7 @@
 
   <Target Name="CopyFilesFromArchive"
           DependsOnTargets="GetFilesFromArchive">
+    <Message Importance="High" Text="@(FilesFromArchive) -> %(FilesFromArchive.TargetPath)" />
     <Copy SourceFiles="@(FilesFromArchive)"
           DestinationFiles="@(FilesFromArchive->'%(TargetPath)')" />
   </Target>
