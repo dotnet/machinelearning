@@ -22,6 +22,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private const int Vector256Alignment = 32;
 
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static bool HasCompatibleAlignment(AlignedArray alignedArray)
         {
             Contracts.AssertValue(alignedArray);
@@ -29,6 +30,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             return (alignedArray.CbAlign % Vector256Alignment) == 0;
         }
 
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static unsafe float* GetAlignedBase(AlignedArray alignedArray, float* unalignedBase)
         {
             Contracts.AssertValue(alignedArray);

@@ -29,6 +29,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
         private const int Vector128Alignment = 16;
 
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static bool HasCompatibleAlignment(AlignedArray alignedArray)
         {
             Contracts.AssertValue(alignedArray);
@@ -36,6 +37,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             return (alignedArray.CbAlign % Vector128Alignment) == 0;
         }
 
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static unsafe float* GetAlignedBase(AlignedArray alignedArray, float* unalignedBase)
         {
             Contracts.AssertValue(alignedArray);
