@@ -255,7 +255,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <returns></returns>
         private static bool TryValidateOffset(long offsetTicks, out short offset)
         {
-            if (offsetTicks == short.MinValue || offsetTicks % TicksPerMinute != 0)
+            if (offsetTicks == long.MinValue || offsetTicks % TicksPerMinute != 0)
             {
                 offset = short.MinValue;
                 return false;
