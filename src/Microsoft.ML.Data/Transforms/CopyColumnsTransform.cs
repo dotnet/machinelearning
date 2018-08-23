@@ -217,7 +217,8 @@ namespace Microsoft.ML.Runtime.Data
     internal class CopyColumnsRowMapper : IRowMapper
     {
         private readonly ISchema _schema;
-        private readonly Dictionary<int, int> _colMap;
+        private readonly Dictionary<int, int> _colNewToOldMapping;
+        private readonly Dictionary<int, int> _colOldToNewMapping;
         private (string Source, string Name)[] _columns;
         private readonly IHost _host;
         public const string LoaderSignature = "CopyColumnsRowMapper";
@@ -261,21 +262,21 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(columns, nameof(columns));
             _schema = schema;
             _columns = columns;
-            _colMap = new Dictionary<int, int>();
+            _colNewToOldMapping = new Dictionary<int, int>();
             for (int i = 0; i < _columns.Length; i++)
             {
                 if (!_schema.TryGetColumnIndex(_columns[i].Source, out int colIndex))
                 {
                     throw _host.ExceptParam(nameof(schema), $"{_columns[i].Source} not found in {nameof(schema)}");
                 }
-                _colMap.Add(i, colIndex);
+                _colNewToOldMapping.Add(i, colIndex);
+                _colOldToNewMapping.Add(i, colIndex);
             }
         }
 
         public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
         {
-            if (input.Schema != _schema)
-                throw _host.ExceptParam(nameof(input), "Incoming schema is different from original one");
+            _host.Assert(input.Schema == _schema);
             var result = new Delegate[_columns.Length];
             int i = 0;
             foreach (var column in _columns)
@@ -294,9 +295,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public Func<int, bool> GetDependencies(Func<int, bool> activeOutput) => (col) =>
         {
-            if (!_colMap.ContainsKey(col))
+            if (!_colOldToNewMapping.ContainsKey(col))
                 return false;
-            return (activeOutput(_colMap[col]));
+            return (activeOutput(_colOldToNewMapping[col]));
         };
 
         public RowMapperColumnInfo[] GetOutputColumns()
@@ -311,7 +312,7 @@ namespace Microsoft.ML.Runtime.Data
                 var colType = _schema.GetColumnType(colIndex);
                 foreach (var type in types)
                 {
-                    Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, _schema, type.Key, type.Value, _colMap);
+                    Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, _schema, type.Key, type.Value, _colNewToOldMapping);
                 }
                 result[i] = new RowMapperColumnInfo(_columns[i].Name, colType, colMetaInfo);
             }
