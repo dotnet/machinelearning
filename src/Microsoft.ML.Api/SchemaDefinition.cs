@@ -329,10 +329,11 @@ namespace Microsoft.ML.Runtime.Api
 
         public enum Direction
         {
-            Read = 0,
-            Write = 1,
+            Read = 1,
+            Write = 2,
             Both = Read | Write
         }
+
         /// <summary>
         /// Create a schema definition by enumerating all public fields of the given type.
         /// </summary>
