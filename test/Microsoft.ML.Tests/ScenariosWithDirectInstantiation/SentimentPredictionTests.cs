@@ -8,6 +8,11 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -166,7 +171,6 @@ namespace Microsoft.ML.Scenarios
                 Assert.Equal(1.0, (double)summary[0].Value, 1);
             }
         }
-
         private BinaryClassificationMetrics EvaluateBinary(IHostEnvironment env, IDataView scoredData)
         {
             var dataEval = new RoleMappedData(scoredData, label: "Label", feature: "Features", opt: true);
