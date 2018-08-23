@@ -263,6 +263,7 @@ namespace Microsoft.ML.Runtime.Data
             _schema = schema;
             _columns = columns;
             _colNewToOldMapping = new Dictionary<int, int>();
+            _colOldToNewMapping = new Dictionary<int, int>();
             for (int i = 0; i < _columns.Length; i++)
             {
                 if (!_schema.TryGetColumnIndex(_columns[i].Source, out int colIndex))
