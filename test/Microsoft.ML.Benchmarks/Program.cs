@@ -28,9 +28,10 @@ namespace Microsoft.ML.Benchmarks
         private static IConfig CreateCustomConfig() 
             => DefaultConfig.Instance
                 .With(Job.Default
+                    .WithWarmupCount(1) // 1 warmup iteration is enough for the benchmarks we have here
                     .WithMaxIterationCount(20)
                     .With(InProcessToolchain.Instance))
-                .With(new ClassificationMetricsColumn("AccuracyMacro", "Macro-average accuracy of the model"))
+                .With(new ClassificationMetricsColumn(nameof(ClassificationMetrics.AccuracyMacro), "Macro-average accuracy of the model"))
                 .With(MemoryDiagnoser.Default);
 
         internal static string GetDataPath(string name)
