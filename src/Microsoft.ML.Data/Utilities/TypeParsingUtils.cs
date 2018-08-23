@@ -85,6 +85,15 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class KeyRange
     {
+        public KeyRange() { }
+
+        public KeyRange(ulong min, ulong? max = null, bool contiguous = true)
+        {
+            Min = min;
+            Max = max;
+            Contiguous = contiguous;
+        }
+
         [Argument(ArgumentType.AtMostOnce, HelpText = "First index in the range")]
         public ulong Min;
 
