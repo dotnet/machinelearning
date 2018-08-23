@@ -40,6 +40,23 @@ namespace Microsoft.ML.Runtime.Data
         /// </example>
         public sealed class Column
         {
+            public Column() { }
+
+            public Column(string name, DataKind? type, int index)
+               : this(name, type, new[] { new Range(index) }) { }
+
+            public Column(string name, DataKind? type, Range[] source, KeyRange keyRange = null)
+            {
+                Contracts.CheckValue(name, nameof(name));
+                Contracts.CheckValue(source, nameof(source));
+                Contracts.CheckValueOrNull(keyRange);
+
+                Name = name;
+                Type = type;
+                Source = source;
+                KeyRange = keyRange;
+            }
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
             public string Name;
 
@@ -179,6 +196,20 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Range
         {
+            public Range() { }
+
+            public Range(int index)
+                : this(index, index) { }
+
+            public Range(int min, int max)
+            {
+                Contracts.CheckParam(min >= 0, nameof(min), "min must be non-negative.");
+                Contracts.CheckParam(max >= min, nameof(max), "max must be greater than or equal to min.");
+
+                Min = min;
+                Max = max;
+            }
+
             [Argument(ArgumentType.Required, HelpText = "First index in the range")]
             public int Min;
 

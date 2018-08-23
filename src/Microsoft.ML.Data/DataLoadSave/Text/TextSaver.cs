@@ -491,13 +491,13 @@ namespace Microsoft.ML.Runtime.Data.IO
             {
                 var key = type.ItemType.AsKey;
                 if (!key.Contiguous)
-                    keyRange = new KeyRange() { Min = key.Min, Contiguous = false };
+                    keyRange = new KeyRange(key.Min, contiguous: false);
                 else if (key.Count == 0)
-                    keyRange = new KeyRange() { Min = key.Min };
+                    keyRange = new KeyRange(key.Min);
                 else
                 {
                     Contracts.Assert(key.Count >= 1);
-                    keyRange = new KeyRange() { Min = key.Min, Max = key.Min + (ulong)(key.Count - 1) };
+                    keyRange = new KeyRange(key.Min, key.Min + (ulong)(key.Count - 1));
                 }
                 kind = key.RawKind;
             }
