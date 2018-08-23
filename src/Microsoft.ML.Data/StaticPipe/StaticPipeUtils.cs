@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
@@ -12,7 +16,7 @@ namespace Microsoft.ML.Data.StaticPipe
     /// Utility methods for components that want to expose themselves in the idioms of the statically-typed pipelines.
     /// These utilities are meant to be called by and useful to component authors, not users of those components.
     /// </summary>
-    public static class PigstyUtils
+    public static class StaticPipeUtils
     {
         /// <summary>
         /// This is a utility method intended to be used by authors of <see cref="IDataReaderEstimator{TSource,

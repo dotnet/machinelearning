@@ -1,10 +1,20 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Data.StaticPipe.Runtime
 {
+    /// <summary>
+    /// An object for <see cref="PipelineColumn"/> instances to indicate to the analysis code for static pipelines that
+    /// they should be considered a single group of columns (through equality on the reconcilers), as well as how to
+    /// actually create the underlying dynamic structures, whether an <see cref="IDataReaderEstimator{TSource, TReader}"/>
+    /// (for the <see cref="ReaderReconciler{TREaderIn}"/>) or a <see cref="IEstimator{TTransformer}"/>
+    /// (for the <see cref="DataInputReconciler"/>).
+    /// </summary>
     public abstract class Reconciler
     {
         private protected Reconciler() { }
@@ -34,7 +44,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     /// <summary>
     /// Reconciler for column groups intended to resolve to an <see cref="IEstimator{TTransformer}"/>. This type of
     /// reconciler will work with <see cref="BlockMaker{TTupleShape}.CreateTransform{TTupleOutShape}(Func{TTupleShape, TTupleOutShape})"/>
-    /// or other functions that involve hte creation of transforms.
+    /// or other functions that involve the creation of transforms.
     /// </summary>
     public abstract class DataInputReconciler : Reconciler
     {
