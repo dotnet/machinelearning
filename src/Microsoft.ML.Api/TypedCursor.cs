@@ -329,30 +329,7 @@ namespace Microsoft.ML.Runtime.Api
                         Ch.Assert(peek == null);
                         return CreateConvertingActionSetter<DvBool, bool?>(input, index, poke, x => (bool?)x);
                     }
-                    else if (fieldType == typeof(int))
-                    {
-                        Ch.Assert(colType == NumberType.I4);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<int, int>(input, index, poke, x => x);
-                    }
-                    else if (fieldType == typeof(short))
-                    {
-                        Ch.Assert(colType == NumberType.I2);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<short, short>(input, index, poke, x => x);
-                    }
-                    else if (fieldType == typeof(long))
-                    {
-                        Ch.Assert(colType == NumberType.I8);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<long, long>(input, index, poke, x => x);
-                    }
-                    else if (fieldType == typeof(sbyte))
-                    {
-                        Ch.Assert(colType == NumberType.I1);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<sbyte, sbyte>(input, index, poke, x => x);
-                    }
+
                     // T -> T
                     if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Nullable<>))
                         Ch.Assert(colType.RawType == Nullable.GetUnderlyingType(fieldType));
