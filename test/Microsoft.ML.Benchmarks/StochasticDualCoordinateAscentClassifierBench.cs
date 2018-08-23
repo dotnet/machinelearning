@@ -13,6 +13,8 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -98,6 +100,8 @@ namespace Microsoft.ML.Benchmarks
 
         private static IPredictor TrainSentimentCore()
         {
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture; // the input file contains numbers with `.` decimal separator
+
             var dataPath = s_sentimentDataPath;
             using (var env = new TlcEnvironment(seed: 1))
             {
