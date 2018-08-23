@@ -76,7 +76,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    throw _host.ExceptUserArg(nameof(inputSchema), $"{column.Source} not found in {nameof(inputSchema)}");
+                    throw _host.ExceptParam(nameof(inputSchema), $"{column.Source} not found in {nameof(inputSchema)}");
                 }
             }
             return new SchemaShape(resultDic.Values.ToArray());
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!_schema.TryGetColumnIndex(_columns[i].Source, out int colIndex))
                 {
-                    throw _host.ExceptUserArg(nameof(schema), $"{_columns[i].Source} not found in {nameof(schema)}");
+                    throw _host.ExceptParam(nameof(schema), $"{_columns[i].Source} not found in {nameof(schema)}");
                 }
                 _colMap.Add(i, colIndex);
             }

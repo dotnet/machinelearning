@@ -57,12 +57,11 @@ namespace Microsoft.ML.Tests
                 try
                 {
                     var transformer = est.Fit(dataView);
+                    Assert.False(true);
                 }
                 catch
                 {
-                    failed = true;
                 }
-                Assert.True(failed);
             }
         }
 
@@ -81,12 +80,11 @@ namespace Microsoft.ML.Tests
                 try
                 {
                     var result = transformer.Transform(xyDataView);
+                    Assert.False(true);
                 }
                 catch
                 {
-                    failed = true;
                 }
-                Assert.True(failed);
             }
         }
 
