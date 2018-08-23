@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
             _columns = new (string, string)[1] { (input, output) };
         }
 
-        public CopyColumnsEstimator(IHostEnvironment env, (string Source, string Name)[] columns)
+        public CopyColumnsEstimator(IHostEnvironment env, params (string Source, string Name)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("CopyColumnsEstimator");
@@ -69,15 +69,13 @@ namespace Microsoft.ML.Runtime.Data
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            _host.CheckValue(inputSchema.Columns, nameof(inputSchema.Columns));
-            var originDic = inputSchema.Columns.ToDictionary(x => x.Name);
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach ((string source, string name) pair in _columns)
             {
-                if (originDic.ContainsKey(pair.source))
+                var originalColumn = inputSchema.FindColumn(pair.source);
+                if (originalColumn != null)
                 {
-                    var orignalColumn = originDic[pair.source];
-                    var col = new SchemaShape.Column(pair.name, orignalColumn.Kind, orignalColumn.ItemKind, orignalColumn.IsKey, orignalColumn.MetadataKinds);
+                    var col = new SchemaShape.Column(pair.name, originalColumn.Kind, originalColumn.ItemKind, originalColumn.IsKey, originalColumn.MetadataKinds);
                     resultDic[pair.name] = col;
                 }
                 else
@@ -85,8 +83,7 @@ namespace Microsoft.ML.Runtime.Data
                     throw Contracts.ExceptUserArg(nameof(inputSchema), $"{pair.source} not found in {nameof(inputSchema)}");
                 }
             }
-            var result = new SchemaShape(resultDic.Values.ToArray());
-            return result;
+            return new SchemaShape(resultDic.Values.ToArray());
         }
     }
 
@@ -94,11 +91,25 @@ namespace Microsoft.ML.Runtime.Data
     {
         private readonly (string Source, string Name)[] _columns;
         private readonly IHost _host;
+        public const string LoaderSignature = "CopyTransform";
+        private const string RegistrationName = "CopyColumns";
+        public const string Summary = "Copy a source column to a new column.";
+        public const string UserName = "Copy Columns Transform";
+        public const string ShortName = "Copy";
 
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "COPYCOLT",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature);
+        }
         public CopyColumnsTransformer(IHostEnvironment env, (string Source, string Name)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register("CopyColumnsTransformer");
+            _host = env.Register(RegistrationName);
             _host.CheckValue(columns, nameof(columns));
             _columns = columns;
         }
@@ -128,34 +139,50 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
         }
 
-        public const string Summary = "Copy a source column to a new column.";
-        public const string UserName = "Copy Columns Transform";
-        public const string ShortName = "Copy";
-
-        public const string LoaderSignature = "CopyTransform";
-        private static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "COPYCOLT",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
-        }
-
-        private const string RegistrationName = "CopyColumns";
         public static IDataView Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             env.CheckValue(input, nameof(input));
-            var transformer = CopyColumnsTransformer.Create(env, ctx);
+            var transformer = Create(env, ctx);
             return transformer.Transform(input);
         }
+
+        public static CopyColumnsTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+
+            // *** Binary format ***
+            // int: number of added columns
+            // for each added column
+            //   string: output column name
+            //   string: input column name
+
+            var length = ctx.Reader.ReadInt32();
+            var columns = new (string Source, string Name)[length];
+            for (int i = 0; i < length; i++)
+            {
+                columns[i].Name = ctx.LoadNonEmptyString();
+                columns[i].Source = ctx.LoadNonEmptyString();
+            }
+            return new CopyColumnsTransformer(env, columns);
+        }
+
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            var transformer = new CopyColumnsTransformer(env, args.Column.Select(x => (x.Source, x.Name)).ToArray());
+            return transformer.CreateRowToRowMapper(input);
+        }
+
         public ISchema GetOutputSchema(ISchema inputSchema)
         {
-            //Validate schema.
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            // Validate schema.
             return Transform(new EmptyDataView(_host, inputSchema)).Schema;
         }
 
@@ -178,31 +205,8 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static CopyColumnsTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            var lenght = ctx.Reader.ReadInt32();
-            var columns = new (string Source, string Name)[lenght];
-            for (int i = 0; i < lenght; i++)
-            {
-                columns[i].Name = ctx.LoadNonEmptyString();
-                columns[i].Source = ctx.LoadNonEmptyString();
-            }
-            return new CopyColumnsTransformer(env, columns);
-        }
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
-            var transformer = new CopyColumnsTransformer(env, args.Column.Select(x => (x.Source, x.Name)).ToArray());
-            return transformer.CreateRowToRowMapper(input);
-        }
-
         private RowToRowMapperTransform CreateRowToRowMapper(IDataView input)
         {
-
             var mapper = new CopyColumnsRowMapper(_host, input.Schema, _columns);
             return new RowToRowMapperTransform(_host, input, mapper);
         }
@@ -213,13 +217,45 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public class CopyColumnsRowMapper : IRowMapper
+    internal class CopyColumnsRowMapper : IRowMapper
     {
         private readonly ISchema _schema;
         private readonly HashSet<int> _originalColumnSources;
         private (string Source, string Name)[] _columns;
         private readonly IHost _host;
         public const string LoaderSignature = "CopyColumnsRowMapper";
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "COPYROWM",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature);
+        }
+
+        public static CopyColumnsRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+
+            // *** Binary format ***
+            // int: number of added columns
+            // for each added column
+            //   string: output column name
+            //   string: input column name
+
+            var lenght = ctx.Reader.ReadInt32();
+            var columns = new (string Source, string Name)[lenght];
+            for (int i = 0; i < lenght; i++)
+            {
+                columns[i].Name = ctx.LoadNonEmptyString();
+                columns[i].Source = ctx.LoadNonEmptyString();
+            }
+            return new CopyColumnsRowMapper(env, schema, columns);
+        }
 
         public CopyColumnsRowMapper(IHostEnvironment env, ISchema schema, (string Source, string Name)[] columns)
         {
@@ -239,6 +275,8 @@ namespace Microsoft.ML.Runtime.Data
 
         public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
         {
+            if (input.Schema != _schema)
+                throw _host.ExceptParam(nameof(input), "Incoming schema is different from original one");
             var result = new Delegate[_columns.Length];
             int i = 0;
             foreach (var column in _columns)
@@ -255,7 +293,10 @@ namespace Microsoft.ML.Runtime.Data
 
         private Delegate MakeGetter<T>(IRow row, int src) => row.GetGetter<T>(src);
 
-        public Func<int, bool> GetDependencies(Func<int, bool> activeOutput) => (col) => (activeOutput(col) && _originalColumnSources.Contains(col));
+        public Func<int, bool> GetDependencies(Func<int, bool> activeOutput) => (col) =>
+        {
+            return (activeOutput(col) && _originalColumnSources.Contains(col));
+        };
 
         public RowMapperColumnInfo[] GetOutputColumns()
         {
@@ -265,6 +306,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 _schema.TryGetColumnIndex(_columns[i].Source, out int colIndex);
                 colMap.Add(i, colIndex);
+                //REVIEW: Metadata need to be switched to IRow instead of ColumMetadataInfo
                 var colMetaInfo = new ColumnMetadataInfo(_columns[i].Name);
                 var types = _schema.GetMetadataTypes(colIndex);
                 var colType = _schema.GetColumnType(colIndex);
@@ -277,7 +319,7 @@ namespace Microsoft.ML.Runtime.Data
             return result;
         }
 
-        public int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, Dictionary<int, int> colMap)
+        private int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, Dictionary<int, int> colMap)
         {
             MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
             {
@@ -289,36 +331,17 @@ namespace Microsoft.ML.Runtime.Data
             return 0;
         }
 
-        public static CopyColumnsRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            var lenght = ctx.Reader.ReadInt32();
-            var columns = new (string Source, string Name)[lenght];
-            for (int i = 0; i < lenght; i++)
-            {
-                columns[i].Name = ctx.LoadNonEmptyString();
-                columns[i].Source = ctx.LoadNonEmptyString();
-            }
-            return new CopyColumnsRowMapper(env, schema, columns);
-        }
-
-        private static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "COPYROWM",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
-        }
-
         public void Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // int: number of added columns
+            // for each added column
+            //   string: output column name
+            //   string: input column name
 
             ctx.Writer.Write(_columns.Length);
             foreach (var column in _columns)
