@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
                 var engine = new MyPredictionEngine<IrisDataNoLabel, IrisPrediction>(env, model);
 
-                var testLoader = new TextLoader(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 var testData = testLoader.AsEnumerable<IrisData>(env, false);
                 foreach (var input in testData.Take(20))
                 {
