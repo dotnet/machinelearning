@@ -289,26 +289,6 @@ namespace Microsoft.ML.Runtime.Api
                         Ch.Assert(colType.ItemType.IsBool);
                         return CreateConvertingVBufferSetter<DvBool, bool?>(input, index, poke, peek, x => (bool?)x);
                     }
-                    else if (fieldType.GetElementType() == typeof(int))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I4);
-                        return CreateConvertingVBufferSetter<int, int>(input, index, poke, peek, x => (int)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(short))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I2);
-                        return CreateConvertingVBufferSetter<short, short>(input, index, poke, peek, x => x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(long))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I8);
-                        return CreateConvertingVBufferSetter<long, long>(input, index, poke, peek, x => x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(sbyte))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I1);
-                        return CreateConvertingVBufferSetter<sbyte, sbyte>(input, index, poke, peek, x => x);
-                    }
 
                     // VBuffer<T> -> T[]
                     if (fieldType.GetElementType().IsGenericType && fieldType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))

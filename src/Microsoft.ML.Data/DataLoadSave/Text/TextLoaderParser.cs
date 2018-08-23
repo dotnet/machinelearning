@@ -994,7 +994,15 @@ namespace Microsoft.ML.Runtime.Data
 
                                 // Note that Convert throws exception the text is unparsable.
                                 int csrc = default;
-                                Conversion.Conversions.Instance.Convert(ref spanT, ref csrc);
+                                try
+                                {
+                                    Conversions.Instance.Convert(ref spanT, ref csrc);
+                                }
+                                catch
+                                {
+                                    Contracts.Assert(csrc == default);
+                                }
+
                                 if (csrc <= 0)
                                 {
                                     _stats.LogBadFmt(ref scan, "Bad dimensionality or ambiguous sparse item. Use sparse=- for non-sparse file, and/or quote the value.");

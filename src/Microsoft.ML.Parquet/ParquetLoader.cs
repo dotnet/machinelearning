@@ -499,21 +499,21 @@ namespace Microsoft.ML.Runtime.Data
                     case DataType.Byte:
                         return CreateGetterDelegateCore<byte, byte>(col, _parquetConversions.Conv);
                     case DataType.SignedByte:
-                        return CreateGetterDelegateCore<sbyte, sbyte>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<sbyte?, sbyte>(col, _parquetConversions.Conv);
                     case DataType.UnsignedByte:
                         return CreateGetterDelegateCore<byte, byte>(col, _parquetConversions.Conv);
                     case DataType.Short:
-                        return CreateGetterDelegateCore<short, short>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<short?, short>(col, _parquetConversions.Conv);
                     case DataType.UnsignedShort:
                         return CreateGetterDelegateCore<ushort, ushort>(col, _parquetConversions.Conv);
                     case DataType.Int16:
-                        return CreateGetterDelegateCore<short, short>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<short?, short>(col, _parquetConversions.Conv);
                     case DataType.UnsignedInt16:
                         return CreateGetterDelegateCore<ushort, ushort>(col, _parquetConversions.Conv);
                     case DataType.Int32:
-                        return CreateGetterDelegateCore<int, int>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<int?, int>(col, _parquetConversions.Conv);
                     case DataType.Int64:
-                        return CreateGetterDelegateCore<long, long>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<long?, long>(col, _parquetConversions.Conv);
                     case DataType.Int96:
                         return CreateGetterDelegateCore<BigInteger, UInt128>(col, _parquetConversions.Conv);
                     case DataType.ByteArray:
@@ -678,17 +678,17 @@ namespace Microsoft.ML.Runtime.Data
 
             public void Conv(ref byte[] src, ref VBuffer<Byte> dst) => dst = src != null ? new VBuffer<byte>(src.Length, src) : new VBuffer<byte>(0, new byte[0]);
 
-            public void Conv(ref sbyte src, ref sbyte dst) => dst = src;
+            public void Conv(ref sbyte? src, ref sbyte dst) => dst = (sbyte)src;
 
             public void Conv(ref byte src, ref byte dst) => dst = src;
 
-            public void Conv(ref short src, ref short dst) => dst = src;
+            public void Conv(ref short? src, ref short dst) => dst = (short)src;
 
             public void Conv(ref ushort src, ref ushort dst) => dst = src;
 
-            public void Conv(ref int src, ref int dst) => dst = src;
+            public void Conv(ref int? src, ref int dst) => dst = (int)src;
 
-            public void Conv(ref long src, ref long dst) => dst = src;
+            public void Conv(ref long? src, ref long dst) => dst = (long)src;
 
             public void Conv(ref float? src, ref Single dst) => dst = src ?? Single.NaN;
 

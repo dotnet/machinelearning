@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.RunTests
             // E is to check a sparse scalar column.
             builder.AddColumn("E", NumberType.U4, GenerateHelper(rowCount, 0.1, rgen, () => (uint)rgen.Next(int.MinValue, int.MaxValue)));
             // F is to check a dense-ish scalar column.
-            builder.AddColumn("F", NumberType.I4, GenerateHelper(rowCount, 0.8, rgen, () => (int)rgen.Next()));
+            builder.AddColumn("F", NumberType.I4, GenerateHelper(rowCount, 0.8, rgen, () => rgen.Next()));
 
             IDataView view = builder.GetDataView();
 

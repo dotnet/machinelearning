@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
             var model = pipeline.Train<SentimentData, SentimentPrediction>();
             var singlePrediction = model.Predict(new SentimentData() { SentimentText = "Not big fan of this." });
-            Assert.True(singlePrediction.Sentiment.IsTrue);
+            Assert.True(singlePrediction.Sentiment);
         }
 
         private static TextFeaturizer MakeSentimentTextTransform()

@@ -10,32 +10,6 @@ namespace Microsoft.ML.Runtime.RunTests
 {
     public sealed class DvTypeTests
     {
-        [Fact]
-        public void TestComparableInt32()
-        {
-            const int count = 100;
-
-            var rand = RandomUtils.Create(42);
-            var values = new int?[2 * count];
-            for (int i = 0; i < count; i++)
-            {
-                var v = values[i] = rand.Next();
-                values[values.Length - i - 1] = v;
-            }
-
-            // Assign two NA's at random.
-            int iv1 = rand.Next(values.Length);
-            int iv2 = rand.Next(values.Length - 1);
-            if (iv2 >= iv1)
-                iv2++;
-            values[iv1] = null;
-            values[iv2] = null;
-            Array.Sort(values);
-
-            Assert.True(!values[0].HasValue);
-            Assert.True(!values[1].HasValue);
-            Assert.True(values[2].HasValue);
-        }
 
         [Fact]
         public void TestComparableDvText()

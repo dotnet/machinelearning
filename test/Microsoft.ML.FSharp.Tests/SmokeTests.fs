@@ -72,7 +72,7 @@ module SmokeTest1 =
 
     type SentimentPrediction() =
         [<ColumnName("PredictedLabel"); DefaultValue>]
-        val mutable Sentiment : Microsoft.ML.Runtime.Data.DvBool
+        val mutable Sentiment : bool
 
     [<Fact>]
     let ``FSharp-Sentiment-Smoke-Test`` () =
@@ -125,7 +125,7 @@ module SmokeTest1 =
             |> model.Predict
 
         let predictionResults = [ for p in predictions -> p.Sentiment ]
-        Assert.Equal<Microsoft.ML.Runtime.Data.DvBool list>(predictionResults, [ Microsoft.ML.Runtime.Data.DvBool.False; Microsoft.ML.Runtime.Data.DvBool.True; Microsoft.ML.Runtime.Data.DvBool.True ])
+        Assert.Equal<bool list>(predictionResults, [ false; true; true ])
 
 module SmokeTest2 = 
 
@@ -140,7 +140,7 @@ module SmokeTest2 =
     [<CLIMutable>]
     type SentimentPrediction =
         { [<ColumnName("PredictedLabel")>] 
-           Sentiment : Microsoft.ML.Runtime.Data.DvBool }
+           Sentiment : bool }
 
     [<Fact>]
     let ``FSharp-Sentiment-Smoke-Test`` () =
@@ -193,7 +193,7 @@ module SmokeTest2 =
             |> model.Predict
 
         let predictionResults = [ for p in predictions -> p.Sentiment ]
-        Assert.Equal<Microsoft.ML.Runtime.Data.DvBool list>(predictionResults, [ Microsoft.ML.Runtime.Data.DvBool.False; Microsoft.ML.Runtime.Data.DvBool.True; Microsoft.ML.Runtime.Data.DvBool.True ])
+        Assert.Equal<bool list>(predictionResults, [ false; true; true ])
 
 module SmokeTest3 = 
 
@@ -206,7 +206,7 @@ module SmokeTest3 =
 
     type SentimentPrediction() =
         [<ColumnName("PredictedLabel")>] 
-        member val Sentiment = Microsoft.ML.Runtime.Data.DvBool.False with get, set
+        member val Sentiment = false with get, set
 
     [<Fact>]
     let ``FSharp-Sentiment-Smoke-Test`` () =
@@ -259,5 +259,5 @@ module SmokeTest3 =
             |> model.Predict
 
         let predictionResults = [ for p in predictions -> p.Sentiment ]
-        Assert.Equal<Microsoft.ML.Runtime.Data.DvBool list>(predictionResults, [ Microsoft.ML.Runtime.Data.DvBool.False; Microsoft.ML.Runtime.Data.DvBool.True; Microsoft.ML.Runtime.Data.DvBool.True ])
+        Assert.Equal<bool list>(predictionResults, [ false; true; true ])
 

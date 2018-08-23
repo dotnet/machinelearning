@@ -1277,12 +1277,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out I1 dst)
         {
-            long? res;
-            bool f = TryParseSigned(I1.MaxValue, ref src, out res);
-            Contracts.Check(f && res.HasValue);
-            Contracts.Assert((I1)res == res);
+            TryParseSigned(I1.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
+            Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
             dst = (I1)res;
-            return f;
+            return true;
         }
 
         /// <summary>
@@ -1291,12 +1290,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out I2 dst)
         {
-            long? res;
-            bool f = TryParseSigned(I2.MaxValue, ref src, out res);
-            Contracts.Check(f && res.HasValue);
-            Contracts.Assert(!res.HasValue || (I2)res == res);
+            TryParseSigned(I2.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
+            Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
             dst = (I2)res;
-            return f;
+            return true;
         }
 
         /// <summary>
@@ -1305,12 +1303,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out I4 dst)
         {
-            long? res;
-            bool f = TryParseSigned(I4.MaxValue, ref src, out res);
-            Contracts.Check(f && res.HasValue);
-            Contracts.Assert(!res.HasValue || (I4)res == res);
+            TryParseSigned(I4.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to int32.");
+            Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
             dst = (I4)res;
-            return f;
+            return true;
         }
 
         /// <summary>
@@ -1319,11 +1316,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out I8 dst)
         {
-            long? res;
-            bool f = TryParseSigned(I8.MaxValue, ref src, out res);
-            Contracts.Check(f && res.HasValue);
+            TryParseSigned(I8.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
             dst = (I8)res;
-            return f;
+            return true;
         }
 
         /// <summary>
@@ -1365,7 +1361,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// When it returns false, result is set to the NA value. The result can be NA on true return,
         /// since some representations of NA are not considered parse failure.
         /// </summary>
-        private bool TryParseSigned(long max, ref TX span, out long? result)
+        private void TryParseSigned(long max, ref TX span, out long? result)
         {
             Contracts.Assert(max > 0);
             Contracts.Assert((max & (max + 1)) == 0);
@@ -1376,7 +1372,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                     result = null;
                 else
                     result = 0;
-                return true;
+                return;
             }
 
             int ichMin;
@@ -1388,34 +1384,34 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             {
                 if (span.Length == 1 ||
                     !TryParseNonNegative(text, ichMin + 1, ichLim, out val) ||
-                    val > max)
+                    val > (max + 1))
                 {
                     result = null;
-                    return false;
+                    return;
                 }
                 Contracts.Assert(val >= 0);
                 result = -(long)val;
-                Contracts.Assert(long.MinValue < result && result <= 0);
-                return true;
+                Contracts.Assert(long.MinValue <= result && result <= 0);
+                return;
             }
 
             if (!TryParseNonNegative(text, ichMin, ichLim, out val))
             {
                 // Check for acceptable NA forms: ? NaN NA and N/A.
                 result = null;
-                return IsStdMissing(ref span);
+                return;
             }
 
             Contracts.Assert(val >= 0);
             if (val > max)
             {
                 result = null;
-                return false;
+                return;
             }
 
             result = (long)val;
             Contracts.Assert(0 <= result && result <= long.MaxValue);
-            return true;
+            return;
         }
 
         /// <summary>
@@ -1505,36 +1501,32 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         // These map unparsable and overflow values to "NA", which is null.
         private I1 ParseI1(ref TX src)
         {
-            long? res;
-            bool f = TryParseSigned(I1.MaxValue, ref src, out res);
-            Contracts.Check(f && res.HasValue);
-            Contracts.Assert((I1)res == res);
+            TryParseSigned(I1.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
+            Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
             return (I1)res;
         }
 
         private I2 ParseI2(ref TX src)
         {
-            long? res;
-            bool f = TryParseSigned(I2.MaxValue, ref src, out res);
-            Contracts.Check(f && res.HasValue);
-            Contracts.Assert((I2)res == res);
+            TryParseSigned(I2.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
+            Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
             return (I2)res;
         }
 
         private I4 ParseI4(ref TX src)
         {
-            long? res;
-            bool f = TryParseSigned(I4.MaxValue, ref src, out res);
-            Contracts.Check(f && res.HasValue);
-            Contracts.Assert((I4)res == res);
+            TryParseSigned(I4.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to int.");
+            Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
             return (I4)res;
         }
 
         private I8 ParseI8(ref TX src)
         {
-            long? res;
-            bool f = TryParseSigned(I8.MaxValue, ref src, out res);
-            Contracts.Assert(f || !res.HasValue);
+            TryParseSigned(I8.MaxValue, ref src, out long? res);
+            Contracts.Assert(res.HasValue, "Value could not be parsed from text to long.");
             return res.Value;
         }
 
