@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System;
 
@@ -15,11 +16,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // The count of bytes in Vector256<T>, corresponding to _cbAlign in AlignedArray
         private const int Vector256Alignment = 32;
 
+        // The count of bytes in a 32-bit float, corresponding to _cbAlign in AlignedArray
+        private const int FloatAlignment = 4;
+
+        // If neither AVX nor SSE is supported, return basic alignment for a 4-byte float.
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         public static int GetVectorAlignment()
-        {
-            // Assumes SSE support on machines that run ML.NET.
-            return Avx.IsSupported ? Vector256Alignment : Vector128Alignment;
-        }
+            => Avx.IsSupported ? Vector256Alignment : (Sse.IsSupported ? Vector128Alignment : FloatAlignment);
 
         public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
         {

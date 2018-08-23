@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             Contracts.AssertValue(a);
             Contracts.Assert(a.Size > 0);
-            return a.CbAlign == Vector128Alignment;
+            return (a.CbAlign % Vector128Alignment) == 0;
         }
 
         private static unsafe float* Ptr(AlignedArray a, float* p)
