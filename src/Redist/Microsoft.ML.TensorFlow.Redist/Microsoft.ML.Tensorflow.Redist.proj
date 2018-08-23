@@ -72,8 +72,10 @@
                                SourceArchive="%(TensorFlowArchive.DownloadFile)"
                                DestinationDirectory="%(TensorFlowArchive.ExtractDirectory)"
                                OverwriteDestination="true" />
+
     <Exec Condition="'%(TensorFlowArchive.FileExtension)' == '.tar.gz'"
-          Command="tar -xzmf &quot;%(TensorFlowArchive.DownloadFile)&quot; -C &quot;%(TensorFlowArchive.ExtractDirectory)&quot;" />
+          WorkingDirectory="%(TensorFlowArchive.ExtractDirectory)"
+          Command="tar -xzmf &quot;$([MSBuild]::MakeRelative('%(TensorFlowArchive.ExtractDirectory)', '%(TensorFlowArchive.DownloadFile)'))&quot;" />
     <Touch Files="@(TensorFlowArchive->'%(ExtractSemaphore)')" AlwaysCreate="true" />
   </Target>
 
