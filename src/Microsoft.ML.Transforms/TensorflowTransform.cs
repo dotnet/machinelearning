@@ -21,6 +21,8 @@ using Microsoft.ML.Transforms.TensorFlow;
 [assembly: LoadableClass(typeof(TensorflowTransform.TensorFlowMapper), null, typeof(SignatureLoadRowMapper),
     "", TensorflowTransform.TensorFlowMapper.LoaderSignature)]
 
+[assembly: EntryPointModule(typeof(TensorflowTransform))]
+
 namespace Microsoft.ML.Transforms
 {
     public static class TensorflowTransform
@@ -352,6 +354,21 @@ namespace Microsoft.ML.Transforms
                 _vBuffer.CopyToDense(ref _vBufferDense);
                 return TFTensor.Create(_vBufferDense.Values, _tfShape);
             }
+        }
+
+        [TlcModule.EntryPoint(Name = "Transforms.TensorFlowScorer", Desc = Summary, UserName = UserName, ShortName = ShortName)]
+        public static CommonOutputs.TransformOutput Convert(IHostEnvironment env, Arguments input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(input, nameof(input));
+
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "TensorFlow", input);
+            var view = Create(h, input, input.Data);
+            return new CommonOutputs.TransformOutput()
+            {
+                Model = new TransformModel(h, view, input.Data),
+                OutputData = view
+            };
         }
     }
 }
