@@ -388,7 +388,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Transforms.CopyColumnsTransformColumn
+                                new ML.Transforms.CopyColumnsTransformerColumn
                                 {
                                     Name = dest,
                                     Source = source
@@ -485,7 +485,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Transforms.CopyColumnsTransformColumn
+                                new ML.Transforms.CopyColumnsTransformerColumn
                                 {
                                     Name = dest,
                                     Source = source
@@ -1444,7 +1444,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Transforms.CopyColumnsTransformColumn
+                                new ML.Transforms.CopyColumnsTransformerColumn
                                 {
                                     Name = DefaultColumnNames.Name,
                                     Source = columnNameQuoted.ToString()
