@@ -27,14 +27,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
 
                 // Pipeline.
-                var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs())
+                var pipeline = new TextLoader(env, MakeSentimentTextLoaderArgs())
+                    .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()))
                     .Append(new MySdca(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
 
                 // Train.
-                var model = pipeline.Fit(reader.Read(new MultiFileSource(dataPath)));
+                var readerModel = pipeline.Fit(new MultiFileSource(dataPath));
 
                 // Evaluate on the test set.
-                var dataEval = model.Transform(reader.Read(new MultiFileSource(testDataPath)));
+                var dataEval = readerModel.Read(new MultiFileSource(testDataPath));
                 var evaluator = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { });
                 var metrics = evaluator.Evaluate(dataEval);
             }
