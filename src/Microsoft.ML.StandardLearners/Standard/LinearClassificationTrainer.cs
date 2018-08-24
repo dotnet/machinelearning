@@ -1422,7 +1422,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.AssertValue(labelCol);
 
             Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "BL, R8, R4 or a Key", labelCol.GetTypeString());
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "BL, R8, R4 or a Key", labelCol.GetTypeString());
 
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();
@@ -1444,7 +1444,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
         {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, DataKind.R4, false, new string[0]);
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, DataKind.R4, false);
         }
 
         protected override TScalarPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)

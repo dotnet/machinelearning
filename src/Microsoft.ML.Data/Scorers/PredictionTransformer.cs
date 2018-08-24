@@ -23,6 +23,9 @@ namespace Microsoft.ML.Runtime.Data
     public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>, ICanSaveModel
         where TModel : class, IPredictor
     {
+        private const string DirModel = "Model";
+        private const string DirTransSchema = "TrainSchema";
+
         protected readonly IHost Host;
         protected readonly ISchemaBindableMapper BindableMapper;
         protected readonly ISchema TrainSchema;
@@ -41,9 +44,8 @@ namespace Microsoft.ML.Runtime.Data
 
             Model = model;
             FeatureColumn = featureColumn;
-            trainSchema.TryGetColumnIndex(featureColumn, out int col);
-            if (col < 0)
-                throw Host.ExceptSchemaMismatch(nameof(featureColumn), "feature", featureColumn);
+            if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
+                throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
             FeatureColumnType = trainSchema.GetColumnType(col);
 
             TrainSchema = trainSchema;
@@ -54,15 +56,17 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host = host;
 
-            ctx.LoadModel<TModel, SignatureLoadModel>(host, out TModel model, "Model");
+            ctx.LoadModel<TModel, SignatureLoadModel>(host, out TModel model, DirModel);
             Model = model;
 
             // *** Binary format ***
             // model: prediction model.
             // stream: empty data view that contains train schema.
             // id of string: feature column.
+
+            // Clone the stream with the schema into memory.
             var ms = new MemoryStream();
-            ctx.TryLoadBinaryStream("TrainSchema", reader =>
+            ctx.TryLoadBinaryStream(DirTransSchema, reader =>
             {
                 reader.BaseStream.CopyTo(ms);
             });
@@ -72,9 +76,8 @@ namespace Microsoft.ML.Runtime.Data
             TrainSchema = loader.Schema;
 
             FeatureColumn = ctx.LoadString();
-            TrainSchema.TryGetColumnIndex(FeatureColumn, out int col);
-            if (col < 0)
-                throw Host.ExceptSchemaMismatch(nameof(FeatureColumn), "feature", FeatureColumn);
+            if (!TrainSchema.TryGetColumnIndex(FeatureColumn, out int col))
+                throw Host.ExceptSchemaMismatch(nameof(FeatureColumn), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn);
             FeatureColumnType = TrainSchema.GetColumnType(col);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
@@ -84,11 +87,10 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            inputSchema.TryGetColumnIndex(FeatureColumn, out int col);
-            if (col < 0)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumn, FeatureColumnType.ToString(), null);
+            if (!inputSchema.TryGetColumnIndex(FeatureColumn, out int col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), null);
             if (!inputSchema.GetColumnType(col).Equals(FeatureColumnType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumn, FeatureColumnType.ToString(), inputSchema.GetColumnType(col).ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), inputSchema.GetColumnType(col).ToString());
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
@@ -109,8 +111,8 @@ namespace Microsoft.ML.Runtime.Data
             // stream: empty data view that contains train schema.
             // id of string: feature column.
 
-            ctx.SaveModel(Model, "Model");
-            ctx.SaveBinaryStream("TrainSchema", writer =>
+            ctx.SaveModel(Model, DirModel);
+            ctx.SaveBinaryStream(DirTransSchema, writer =>
             {
                 using (var ch = Host.Start("Saving train schema"))
                 {

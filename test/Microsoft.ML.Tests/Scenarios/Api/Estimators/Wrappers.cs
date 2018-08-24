@@ -191,7 +191,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public string FeatureColumn => _featureColumn;
 
-        public ColumnType FeatureColumnType => throw new NotImplementedException();
+        public ColumnType FeatureColumnType => throw _env.ExceptNotSupp();
     }
 
     public class BinaryScorerWrapper<TModel> : ScorerWrapper<TModel>
