@@ -148,7 +148,7 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckParam(0 < args.MinDocuments, nameof(args.MinDocuments), "Must be positive.");
 
             Args = args;
-            Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false);
+            Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false, supportValid: true);
             _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
             _entropyCoefficient = Args.EntropyCoefficient * 1e-6;
 
@@ -269,8 +269,9 @@ namespace Microsoft.ML.Runtime.FastTree
                 _objectiveFunction = CreateObjectiveFunction();
                 var sumWeights = HasWeights ? TrainSet.SampleWeights.Sum() : 0;
 
-                pch.SetHeader(new ProgressHeader("iterations"), e => e.SetProgress(0, 0, iterations));
-                for (int iteration = 0; iteration < iterations; iteration++)
+                int iteration = 0;
+                pch.SetHeader(new ProgressHeader("iterations"), e => e.SetProgress(0, iteration, iterations));
+                for (int i = iteration; iteration < iterations; iteration++)
                 {
                     using (Timer.Time(TimerEvent.Iteration))
                     {
