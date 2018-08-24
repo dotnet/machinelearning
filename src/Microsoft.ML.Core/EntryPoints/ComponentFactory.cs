@@ -77,6 +77,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         /// <summary>
+        /// Creates a component factory when we take two extra parameters (and an
+        /// <see cref="IHostEnvironment"/>) that simply wraps a delegate which creates the component.
+        /// </summary>
+        public static IComponentFactory<TArg1, TArg2, TComponent> CreateFromFunction<TArg1, TArg2, TComponent>(Func<IHostEnvironment, TArg1, TArg2, TComponent> factory)
+        {
+            return new SimpleComponentFactory<TArg1, TArg2, TComponent>(factory);
+        }
+
+        /// <summary>
         /// Creates a component factory when we take three extra parameters (and an
         /// <see cref="IHostEnvironment"/>) that simply wraps a delegate which creates the component.
         /// </summary>
@@ -121,6 +130,26 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1)
             {
                 return _factory(env, argument1);
+            }
+        }
+
+        /// <summary>
+        /// A class for creating a component when we take one extra parameter
+        /// (and an <see cref="IHostEnvironment"/>) that simply wraps a delegate which
+        /// creates the component.
+        /// </summary>
+        private sealed class SimpleComponentFactory<TArg1, TArg2, TComponent> : IComponentFactory<TArg1, TArg2, TComponent>
+        {
+            private readonly Func<IHostEnvironment, TArg1, TArg2, TComponent> _factory;
+
+            public SimpleComponentFactory(Func<IHostEnvironment, TArg1, TArg2, TComponent> factory)
+            {
+                _factory = factory;
+            }
+
+            public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2)
+            {
+                return _factory(env, argument1, argument2);
             }
         }
 

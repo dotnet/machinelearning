@@ -166,7 +166,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            var predictor = TrainUtils.Train(Host, ch, data, trainer, _info.LoadNames[0], validData,
+            var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
                 Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor);
 
             IDataLoader testPipe;
