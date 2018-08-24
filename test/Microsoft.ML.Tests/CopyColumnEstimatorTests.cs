@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E") });
+                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
                 var result = transformer.Transform(dataView);
                 ValidateCopyColumnTransformer(result);
@@ -53,7 +53,6 @@ namespace Microsoft.ML.Tests
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var est = new CopyColumnsEstimator(env, new[] { ("D", "A"), ("B", "E") });
-                var failed = false;
                 try
                 {
                     var transformer = est.Fit(dataView);
@@ -74,9 +73,8 @@ namespace Microsoft.ML.Tests
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var xyDataView = ComponentCreation.CreateDataView(env, xydata);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E") });
+                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
-                var failed = false;
                 try
                 {
                     var result = transformer.Transform(xyDataView);
@@ -95,7 +93,7 @@ namespace Microsoft.ML.Tests
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E") });
+                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
                 using (var ms = new MemoryStream())
                 {
@@ -116,7 +114,7 @@ namespace Microsoft.ML.Tests
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E") });
+                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
                 var result = transformer.Transform(dataView);
                 var resultRoles = new RoleMappedData(result);
@@ -174,18 +172,22 @@ namespace Microsoft.ML.Tests
                 DvInt4 bvalue = 0;
                 DvInt4 dvalue = 0;
                 DvInt4 evalue = 0;
+                DvInt4 fvalue = 0;
                 var aGetter = cursor.GetGetter<DvInt4>(0);
                 var bGetter = cursor.GetGetter<DvInt4>(1);
                 var dGetter = cursor.GetGetter<DvInt4>(3);
                 var eGetter = cursor.GetGetter<DvInt4>(4);
+                var fGetter = cursor.GetGetter<DvInt4>(5);
                 while (cursor.MoveNext())
                 {
                     aGetter(ref avalue);
                     bGetter(ref bvalue);
                     dGetter(ref dvalue);
                     eGetter(ref evalue);
+                    fGetter(ref fvalue);
                     Assert.Equal(avalue, dvalue);
                     Assert.Equal(bvalue, evalue);
+                    Assert.Equal(avalue, fvalue);
                 }
             }
         }
@@ -251,3 +253,4 @@ namespace Microsoft.ML.Tests
         }
     }
 }
+

@@ -218,7 +218,6 @@ namespace Microsoft.ML.Runtime.Data
     {
         private readonly ISchema _schema;
         private readonly Dictionary<int, int> _colNewToOldMapping;
-        private readonly Dictionary<int, int> _colOldToNewMapping;
         private (string Source, string Name)[] _columns;
         private readonly IHost _host;
         public const string LoaderSignature = "CopyColumnsRowMapper";
@@ -263,7 +262,6 @@ namespace Microsoft.ML.Runtime.Data
             _schema = schema;
             _columns = columns;
             _colNewToOldMapping = new Dictionary<int, int>();
-            _colOldToNewMapping = new Dictionary<int, int>();
             for (int i = 0; i < _columns.Length; i++)
             {
                 if (!_schema.TryGetColumnIndex(_columns[i].Source, out int colIndex))
@@ -271,7 +269,6 @@ namespace Microsoft.ML.Runtime.Data
                     throw _host.ExceptParam(nameof(schema), $"{_columns[i].Source} not found in {nameof(schema)}");
                 }
                 _colNewToOldMapping.Add(i, colIndex);
-                _colOldToNewMapping.Add(i, colIndex);
             }
         }
 
@@ -294,12 +291,14 @@ namespace Microsoft.ML.Runtime.Data
 
         private Delegate MakeGetter<T>(IRow row, int src) => row.GetGetter<T>(src);
 
-        public Func<int, bool> GetDependencies(Func<int, bool> activeOutput) => (col) =>
+        public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
         {
-            if (!_colOldToNewMapping.ContainsKey(col))
-                return false;
-            return (activeOutput(_colOldToNewMapping[col]));
-        };
+            var active = new bool[_schema.ColumnCount];
+            foreach (var pair in _colNewToOldMapping)
+                if (activeOutput(pair.Key))
+                    active[pair.Value] = true;
+            return col => active[col];
+        }
 
         public RowMapperColumnInfo[] GetOutputColumns()
         {
