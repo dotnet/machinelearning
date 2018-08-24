@@ -10,9 +10,10 @@
     <None Remove="BenchmarkDotNet.Artifacts\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.10.14" />
+    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
   </ItemGroup>
