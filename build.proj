@@ -55,7 +55,7 @@
 
   <Target Name="BuildNative"
           Condition="'$(SkipNativeBuild)' != 'true'"
-          DependsOnTargets="RestoreProjects">
+          DependsOnTargets="RestoreProjects;BuildRedist">
     <Message Importance="High" Text="Building native components..." />
     <MSBuild Projects="src/Native/build.proj"
              Targets="Build" />

@@ -9,11 +9,14 @@
     <TensorFlowConfig Include="windows" FileExtension=".zip" FilesFromArchive="lib\tensorflow.dll;include\tensorflow\c\LICENSE" Runtime="win-x64"/>
     <TensorFlowConfig Include="linux" FileExtension=".tar.gz" FilesFromArchive="lib\libtensorflow.so;lib\libtensorflow_framework.so" Runtime="linux-x64" />
     <TensorFlowConfig Include="darwin" FileExtension=".tar.gz" FilesFromArchive="lib\libtensorflow.so;lib\libtensorflow_framework.so" Runtime="osx-x64" />
-    <TensorFlowArchive Include="@(TensorFlowConfig->'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-%(Identity)-x86_64-$(TensorFlowVersion)%(FileExtension)')" />
   </ItemGroup>
 
   <Target Name="PrepareArchives">
     <ItemGroup>
+      <!-- although we could extract all archives on all machines, mac requires a fixup which can only be run on mac 
+           so we split these per-rid and join during the official build packaging.  -->
+      <TensorFlowArchive Condition="'$(PackageRid)' == '%(Runtime)'"
+                         Include="@(TensorFlowConfig->'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-%(Identity)-x86_64-$(TensorFlowVersion)%(FileExtension)')" />
       <!-- set up metdata used by all targets -->
       <TensorFlowArchive DownloadFile="$(IntermediateOutputPath)%(FileName)%(Extension)"
                          DownloadShaFile="$(IntermediateOutputPath)%(FileName)%(Extension).sha"
@@ -88,7 +91,7 @@
       <!-- batch rather than transform so that we can split FilesFromArchive metadata -->
       <_fileFromArchive Include="%(TensorFlowArchive.FilesFromArchive)" ExtractDirectory="%(TensorFlowArchive.ExtractDirectory)" Runtime="%(TensorFlowArchive.Runtime)" />
       <_fileFromArchive DestinationFile="%(FileName)%(Extension)"/>
-      <!-- rename the .so to .dylib -->
+      <!-- rename the .so to .dylib since CORECLR's DLLImport convention requires dylib -->
       <_fileFromArchive Condition="'%(Runtime)' == 'osx-x64'" DestinationFile="%(FileName).dylib" />
       <_fileFromArchive PackagePath="runtimes\%(_fileFromArchive.Runtime)\native\%(_fileFromArchive.DestinationFile)" />
 
@@ -96,13 +99,13 @@
       <_fileFromArchive Condition="'%(DestinationFile)' == 'LICENSE'" PackagePath="%(_fileFromArchive.DestinationFile)" Runtime="" />
 
       <!-- copy to packaging location -->
-      <FilesFromArchive Include="%(_fileFromArchive.ExtractDirectory)\%(_fileFromArchive.Identity)" 
-                        TargetPath="$(PackageAssetsPath)$(MSBuildProjectName)\%(_fileFromArchive.PackagePath)" />
+      <FilesFromArchive Include="@(_fileFromArchive->'%(ExtractDirectory)\%(Identity)')" 
+                        TargetPath="$(PackageAssetsPath)$(MSBuildProjectName)\%(PackagePath)" />
 
       <!-- copy to NativeAssets location, only for current RID, so that they may be used by tests -->
       <FilesFromArchive Condition="'$(PackageRID)' == '%(_fileFromArchive.Runtime)'"
-                        Include="%(_fileFromArchive.ExtractDirectory)\%(_fileFromArchive.Identity)" 
-                        TargetPath="$(NativeAssetsBuiltPath)\%(_fileFromArchive.DestinationFile)" />
+                        Include="@(_fileFromArchive->'%(ExtractDirectory)\%(Identity)')" 
+                        TargetPath="$(NativeAssetsBuiltPath)\%(DestinationFile)" />
     </ItemGroup>
   </Target>
 
@@ -111,6 +114,10 @@
     <Message Importance="High" Text="@(FilesFromArchive) -> %(FilesFromArchive.TargetPath)" />
     <Copy SourceFiles="@(FilesFromArchive)"
           DestinationFiles="@(FilesFromArchive->'%(TargetPath)')" />
+
+    <!-- fix up the renamed libtensorflow, this can only run on mac -->
+    <Exec Condition="'%(Runtime)' == 'osx-x64' AND '%(FilesFromArchive.FileName)' == 'libtensorflow'"
+          Command="install_name_tool -change @rpath/libtensorflow_framework.so @rpath/libtensorflow_framework.dylib &quot;%(FilesFromArchive.TargetPath)&quot;" />
   </Target>
 
   <!-- Define Build to do the work of downloading and copying assets -->
