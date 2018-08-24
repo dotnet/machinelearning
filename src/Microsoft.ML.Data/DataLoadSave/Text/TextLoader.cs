@@ -1260,7 +1260,7 @@ namespace Microsoft.ML.Runtime.Data
             => (IDataLoader)new TextLoader(env, args, files).Read(files);
 
         /// <summary>
-        /// Convenience method to read a text data file into a <see cref="IDataView"/>.
+        /// Convenience method to create a <see cref="TextLoader"/> and use it to read a specified file.
         /// </summary>
         public static IDataView ReadFile(IHostEnvironment env, Arguments args, IMultiStreamSource fileSource)
             => new TextLoader(env, args, fileSource).Read(fileSource);
