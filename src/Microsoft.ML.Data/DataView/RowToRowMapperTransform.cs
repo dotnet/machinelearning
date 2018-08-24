@@ -15,13 +15,31 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
+    public interface IColumnInfo
+    {
+        /// <summary>
+        /// The name of a column. This string should always be non-empty.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
+        /// The type of the column.
+        /// </summary>
+        ColumnType Type { get; }
+
+        /// <summary>
+        /// The metadata for a column, or <c>null</c> if this column has no metadata.
+        /// </summary>
+        IRow Metadata { get; }
+    }
+
     public sealed class RowMapperColumnInfo
     {
         public readonly string Name;
         public readonly ColumnType ColType;
-        public readonly ColumnMetadataInfo Metadata;
+        public readonly IRow Metadata;
 
-        public RowMapperColumnInfo(string name, ColumnType type, ColumnMetadataInfo metadata)
+        public RowMapperColumnInfo(string name, ColumnType type, IRow metadata)
         {
             Name = name;
             ColType = type;
@@ -79,30 +97,47 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class ColumnMetadataInfo
+    public sealed class ColumnMetadataInfo : RowColumnUtils.DefaultCounted, IRow
     {
         public readonly string Name;
-        private readonly Dictionary<string, MetadataInfo> _infos;
+        private readonly List<(string Kind, MetadataInfo Metadata)> _infos;
+        private SimpleSchema _schema;
 
         public ColumnMetadataInfo(string name)
         {
             Contracts.CheckNonWhiteSpace(name, nameof(name));
 
             Name = name;
-            _infos = new Dictionary<string, MetadataInfo>();
+            _infos = new List<(string Name, MetadataInfo Metadata)>();
+            _schema = new SimpleSchema(null);
         }
 
         public void Add(string kind, MetadataInfo info)
         {
-            if (_infos.ContainsKey(kind))
+            if (_infos.Any(x => x.Kind == kind))
                 throw Contracts.Except("Already contains metadata of kind '{0}'", kind);
-            _infos.Add(kind, info);
+            _infos.Add((kind, info));
+            _schema = new SimpleSchema(null, _infos.Select(x => new KeyValuePair<string, ColumnType>(x.Kind, x.Metadata.Type)).ToArray());
         }
 
-        public Dictionary<string, MetadataInfo> Infos()
+        public ISchema Schema => _schema;
+
+        public ValueGetter<TValue> GetGetter<TValue>(int col)
         {
-            return _infos;
+            Contracts.CheckParam(0 <= col && col < _infos.Count, nameof(col));
+            var typedMeta = _infos[col].Metadata as MetadataInfo<TValue>;
+            if (typedMeta == null)
+                throw MetadataUtils.ExceptGetMetadata();
+
+            var getter = typedMeta.Getter;
+            ValueGetter<TValue> result = (ref TValue value) =>
+            {
+                getter(col, ref value);
+            };
+            return result;
         }
+
+        public bool IsColumnActive(int col) => true;
     }
 
     /// <summary>
@@ -172,28 +207,45 @@ namespace Microsoft.ML.Runtime.Data
 
             protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int iinfo)
             {
-                return _parent._md.GetMetadataTypes(iinfo);
+                Contracts.Assert(0 <= iinfo && iinfo < OutputColInfos.Length);
+                // REVIEW: An IRow can have collisions in names, whereas there is no notion of this in metadata types.
+                // Since I intend to remove this soon anyway and the number of usages of this will be very low, I am just going
+                // to tolerate the potential for strangeness here, since it will practically never arise until we reorganize
+                // the whole thing.
+                var meta = OutputColInfos[iinfo].Metadata;
+                if (meta == null)
+                    yield break;
+                var schema = meta.Schema;
+                for (int i = 0; i < schema.ColumnCount; ++i)
+                    yield return new KeyValuePair<string, ColumnType>(schema.GetColumnName(i), schema.GetColumnType(i));
             }
 
             protected override ColumnType GetMetadataTypeCore(string kind, int iinfo)
             {
-                return _parent._md.GetMetadataTypeOrNull(kind, iinfo);
+                Contracts.Assert(0 <= iinfo && iinfo < OutputColInfos.Length);
+                var meta = OutputColInfos[iinfo].Metadata;
+                int mcol;
+                if (meta == null || !meta.Schema.TryGetColumnIndex(kind, out mcol))
+                    return null;
+                return meta.Schema.GetColumnType(mcol);
             }
 
             protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
             {
-                _parent._md.GetMetadata(_parent.Host, kind, iinfo, ref value);
+                Contracts.Assert(0 <= iinfo && iinfo < OutputColInfos.Length);
+                var meta = OutputColInfos[iinfo].Metadata;
+                int mcol;
+                if (meta == null || !meta.Schema.TryGetColumnIndex(kind, out mcol))
+                    throw MetadataUtils.ExceptGetMetadata();
+                // REVIEW: Again, since this is a shim, not going to sweat the potential for inappropriate exception message.
+                meta.GetGetter<TValue>(mcol)(ref value);
             }
 
-            public bool TryGetInfoIndex(string name, out int iinfo)
-            {
-                return TryGetColumnIndexCore(name, out iinfo);
-            }
+            public bool TryGetInfoIndex(string name, out int iinfo) => TryGetColumnIndexCore(name, out iinfo);
         }
 
         private readonly IRowMapper _mapper;
         private readonly Bindings _bindings;
-        private readonly MetadataDispatcher _md;
 
         public const string RegistrationName = "RowToRowMapperTransform";
         public const string LoaderSignature = "RowToRowMapper";
@@ -215,7 +267,6 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(mapper, nameof(mapper));
             _mapper = mapper;
             _bindings = new Bindings(input.Schema, this);
-            CreateMetadata(_bindings.OutputColInfos.Select(info => info.Metadata), _bindings, out _md);
         }
 
         private RowToRowMapperTransform(IHost host, ModelLoadContext ctx, IDataView input)
@@ -226,7 +277,6 @@ namespace Microsoft.ML.Runtime.Data
 
             ctx.LoadModel<IRowMapper, SignatureLoadRowMapper>(host, out _mapper, "Mapper", input.Schema);
             _bindings = new Bindings(input.Schema, this);
-            CreateMetadata(_mapper.GetOutputColumns().Select(info => info.Metadata), _bindings, out _md);
         }
 
         public static RowToRowMapperTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -249,37 +299,6 @@ namespace Microsoft.ML.Runtime.Data
             // _mapper
 
             ctx.SaveModel(_mapper, "Mapper");
-        }
-
-        private static void CreateMetadata(IEnumerable<ColumnMetadataInfo> infos, Bindings bindings, out MetadataDispatcher md)
-        {
-            Contracts.AssertValue(bindings);
-
-            md = new MetadataDispatcher(bindings.InfoCount);
-            foreach (var colInfo in infos)
-            {
-                if (colInfo == null)
-                    continue;
-                int iinfo;
-                var found = bindings.TryGetInfoIndex(colInfo.Name, out iinfo);
-                Contracts.Assert(found);
-                using (var bldr = md.BuildMetadata(iinfo))
-                {
-                    foreach (var info in colInfo.Infos())
-                    {
-                        Action<MetadataDispatcher.Builder, string, MetadataInfo<int>> del = AddGetter;
-                        var meth =
-                            del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(info.Value.Type.RawType);
-                        meth.Invoke(null, new object[] { bldr, info.Key, info.Value });
-                    }
-                }
-            }
-            md.Seal();
-        }
-
-        private static void AddGetter<T>(MetadataDispatcher.Builder bldr, string kind, MetadataInfo<T> info)
-        {
-            bldr.AddGetter(kind, info.Type, info.Getter);
         }
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
