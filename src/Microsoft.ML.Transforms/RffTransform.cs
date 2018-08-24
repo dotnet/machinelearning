@@ -40,12 +40,12 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
             public int NewDim = Defaults.NewDim;
 
-            [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureFourierDistributionSampler))]
+            [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureFourierDistributionSampler))]
             public IComponentFactory<Float, IFourierDistributionSampler> MatrixGenerator =
                 ComponentFactoryUtils.CreateFromFunction<Float, IFourierDistributionSampler>(
                     (env, avgDist) => new GaussianFourierSampler(env, new GaussianFourierSampler.Arguments(), avgDist));
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "create two features for every random Fourier frequency? (one for cos and one for sin)")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool UseSin = Defaults.UseSin;
 
             [Argument(ArgumentType.LastOccurenceWins,
@@ -422,6 +422,8 @@ namespace Microsoft.ML.Runtime.Data
                     var sub = args.Column[iinfo].MatrixGenerator;
                     if (sub == null)
                         sub = args.MatrixGenerator;
+                    // create a dummy generator in order to get its type.
+                    // REVIEW this should be refactored. See https://github.com/dotnet/machinelearning/issues/699
                     var matrixGenerator = sub.CreateComponent(host, 1);
                     bool gaussian = matrixGenerator is GaussianFourierSampler;
 
