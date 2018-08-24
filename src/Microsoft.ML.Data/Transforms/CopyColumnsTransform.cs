@@ -214,7 +214,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    internal class CopyColumnsRowMapper : IRowMapper
+    internal sealed class CopyColumnsRowMapper : IRowMapper
     {
         private readonly ISchema _schema;
         private readonly Dictionary<int, int> _colNewToOldMapping;
