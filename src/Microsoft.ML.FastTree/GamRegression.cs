@@ -11,16 +11,16 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 
-[assembly: LoadableClass(typeof(RegressionGamPredictor), null, typeof(SignatureLoadModel),
-    "GAM Regression Predictor",
-    RegressionGamPredictor.LoaderSignature)]
-
 [assembly: LoadableClass(RegressionGamTrainer.Summary,
     typeof(RegressionGamTrainer), typeof(RegressionGamTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     RegressionGamTrainer.UserNameValue,
     RegressionGamTrainer.LoadNameValue,
     RegressionGamTrainer.ShortName, DocName = "trainer/GAM.md")]
+
+[assembly: LoadableClass(typeof(RegressionGamPredictor), null, typeof(SignatureLoadModel),
+    "GAM Regression Predictor",
+    RegressionGamPredictor.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.FastTree
 {

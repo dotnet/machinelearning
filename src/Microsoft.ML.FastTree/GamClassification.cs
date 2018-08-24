@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Float = System.Single;
 
 [assembly: LoadableClass(BinaryClassificationGamTrainer.Summary,
     typeof(BinaryClassificationGamTrainer), typeof(BinaryClassificationGamTrainer.Arguments),
@@ -21,14 +22,12 @@ using Microsoft.ML.Runtime.Training;
     BinaryClassificationGamTrainer.LoadNameValue,
     BinaryClassificationGamTrainer.ShortName, DocName = "trainer/GAM.md")]
 
-[assembly: LoadableClass(typeof(BinaryClassGamPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(IPredictorProducing<Float>), typeof(BinaryClassGamPredictor), null, typeof(SignatureLoadModel),
     "GAM Binary Class Predictor",
     BinaryClassGamPredictor.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.FastTree
 {
-    using Float = System.Single;
-
     public sealed class BinaryClassificationGamTrainer :
     GamTrainerBase<BinaryClassificationGamTrainer.Arguments, IPredictorProducing<Float>>
     {
