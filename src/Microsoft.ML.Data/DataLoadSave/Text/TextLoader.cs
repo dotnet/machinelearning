@@ -986,7 +986,10 @@ namespace Microsoft.ML.Runtime.Data
             _host = env.Register(RegistrationName);
 
             _host.CheckValue(args, nameof(args));
-            _host.CheckValue(dataSample, nameof(dataSample));
+            _host.CheckValueOrNull(dataSample);
+
+            if (dataSample == null)
+                dataSample = new MultiFileSource(null);
 
             IMultiStreamSource headerFile = null;
             if (!string.IsNullOrWhiteSpace(args.HeaderFile))
