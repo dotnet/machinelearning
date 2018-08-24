@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     {
                         new TextLoader.Column("Label", DataKind.R4, 0),
                         new TextLoader.Column("Features", DataKind.R4, 
-                            new [] { new TextLoader.Range() { Min = 1, Max = 9} })
+                            new [] { new TextLoader.Range(1, 9) })
                     }
                 },
 
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         new TextLoader.Column("Label", type: null, 0),
                         new TextLoader.Column("F1", DataKind.Text, 1),
                         new TextLoader.Column("F2", DataKind.I4, 2),
-                        new TextLoader.Column("Rest", source: new [] { new TextLoader.Range() { Min = 3, Max = 9} })
+                        new TextLoader.Column("Rest", type: null, new [] { new TextLoader.Range(3, 9) })
                     }
                 },
 
@@ -1181,8 +1181,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[]
                     {
                         new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Features", DataKind.R4, 
-                            new [] { new TextLoader.Range() { Min = 1, Max = 4} })
+                        new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) })
                     }
                 },
 
@@ -3423,8 +3422,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[]
                     {
                         new TextLoader.Column("Label", type: null, 0),
-                        new TextLoader.Column("Features", DataKind.Num,
-                            new [] { new TextLoader.Range() { Min = 1, Max = 9} })
+                        new TextLoader.Column("Features", DataKind.Num, new [] { new TextLoader.Range(1, 9) })
                     }
                 },
 
@@ -3500,12 +3498,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     HasHeader = false,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Features",
-                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 784} },
-                            Type = Runtime.Data.DataKind.R4
-                        }
+                        new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 784) })
                     }
                 },
 

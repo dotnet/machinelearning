@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// </summary>
 
         [Fact]
-        void IntrospectiveTraining()
+        public void IntrospectiveTraining()
         {
             var dataPath = GetDataPath(SentimentDataPath);
 
