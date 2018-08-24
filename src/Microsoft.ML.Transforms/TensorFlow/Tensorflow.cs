@@ -1472,6 +1472,11 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 TF_SessionRun(handle, runOptions == null ? null : runOptions.LLBuffer, inputs, ivals, iLen, outputs, ovals, oLen, topers, tLen, runMetadata == null ? null : runMetadata.LLBuffer, cstatus.handle);
             }
             cstatus.CheckMaybeRaise(status);
+
+            // Ensure that the input tensors remain rooted, so that the GC won't collect & run finalizers between
+            // when they are copied to ivals and TF_SessionRun is called.
+            GC.KeepAlive(inputValues);
+
             var result = new TFTensor[oLen];
             for (int i = 0; i < oLen; i++)
             {
