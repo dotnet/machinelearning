@@ -554,7 +554,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     // Train.
-                    var predictor = TrainUtils.Train(host, ch, trainData, trainer, _trainer.Kind, validData,
+                    var predictor = TrainUtils.Train(host, ch, trainData, trainer, validData,
                         _calibrator, _maxCalibrationExamples, _cacheData, _inputPredictor);
 
                     // Score.
