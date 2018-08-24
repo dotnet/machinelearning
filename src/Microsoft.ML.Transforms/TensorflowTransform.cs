@@ -273,11 +273,11 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Required, HelpText = "This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more detail(s).", ShortName = "ModelDir", SortOrder = 0)]
             public string ModelFile;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", SortOrder = 1)]
-            public string[] Inputs;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 1)]
+            public string[] InputColumns;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the output", SortOrder = 2)]
-            public string Output;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the output", ShortName = "output", SortOrder = 2)]
+            public string OutputColumn;
         }
 
         public const string Summary = "Transforms the data using the tenorflow model.";
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string name, params string[] source)
         {
-            return Create(env, new Arguments() { Inputs = source, Output = name, ModelFile = modelFile }, input);
+            return Create(env, new Arguments() { InputColumns = source, OutputColumn = name, ModelFile = modelFile }, input);
         }
 
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -303,14 +303,14 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
             host.CheckValue(args, nameof(args));
-            host.CheckUserArg(Utils.Size(args.Inputs) > 0, nameof(args.Inputs));
-            for (int i = 0; i < args.Inputs.Length; i++)
-                host.CheckNonWhiteSpace(args.Inputs[i], nameof(args.Inputs));
+            host.CheckUserArg(Utils.Size(args.InputColumns) > 0, nameof(args.InputColumns));
+            for (int i = 0; i < args.InputColumns.Length; i++)
+                host.CheckNonWhiteSpace(args.InputColumns[i], nameof(args.InputColumns));
             host.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
             host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
 
             var modelBytes = File.ReadAllBytes(args.ModelFile);
-            var mapper = new TensorFlowMapper(host, input.Schema, modelBytes, args.Inputs, args.Output);
+            var mapper = new TensorFlowMapper(host, input.Schema, modelBytes, args.InputColumns, args.OutputColumn);
             return new RowToRowMapperTransform(host, input, mapper);
         }
 
