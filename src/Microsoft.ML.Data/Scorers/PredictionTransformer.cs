@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     public sealed class BinaryPredictionTransformer<TModel> : PredictionTransformerBase<TModel>
-    where TModel : class, IPredictorProducing<float>
+        where TModel : class, IPredictorProducing<float>
     {
         private readonly BinaryClassifierScorer _scorer;
 
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     public sealed class RegressionPredictionTransformer<TModel> : PredictionTransformerBase<TModel>
-    where TModel : class, IPredictorProducing<float>
+        where TModel : class, IPredictorProducing<float>
     {
         private readonly GenericScorer _scorer;
 
