@@ -276,13 +276,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             _host.Assert(input.Schema == _schema);
             var result = new Delegate[_columns.Length];
-            int i = 0;
-            foreach (var column in _columns)
+            for (int i = 0; i < _columns.Length; i++)
             {
-                // validate activeOutput.
-                input.Schema.TryGetColumnIndex(column.Source, out int colIndex);
+                if (!activeOutput(i))
+                    continue;
+                input.Schema.TryGetColumnIndex(_columns[i].Source, out int colIndex);
                 var type = input.Schema.GetColumnType(colIndex);
-
                 result[i++] = Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
             }
             disposer = null;
