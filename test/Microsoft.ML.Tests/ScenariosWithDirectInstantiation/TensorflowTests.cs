@@ -24,7 +24,7 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TensorflowTransformMatrixMultiplicationTest()
         {
-            var model_location = GetDataPath("model_matmul/frozen_saved_model.pb");
+            var model_location = "model_matmul/frozen_saved_model.pb";
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TensorflowTransformMNISTConvTest()
         {
-            var model_location = GetDataPath("mnist_model/frozen_saved_model.pb");
+            var model_location = "mnist_model/frozen_saved_model.pb";
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 var dataPath = GetDataPath("Train-Tiny-28x28.txt");

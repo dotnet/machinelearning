@@ -32,6 +32,7 @@
     <None Include="Scenarios\Api\AspirationalExamples.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsft.ML.TensorFlow.TestModels" Version="0.0.1-test" />
     <!-- Grab TF#'s native bins temporarily -->
     <PackageReference Include="TensorFlowSharp" Version="1.9.0" IncludeAssets="Native" />
   </ItemGroup>
