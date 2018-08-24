@@ -177,7 +177,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            var predictor = TrainUtils.Train(Host, ch, data, trainer, _info.LoadNames[0], validData,
+            var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
                 Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor);
 
             using (var file = Host.CreateOutputFile(Args.OutputModelFile))
@@ -228,28 +228,27 @@ namespace Microsoft.ML.Runtime.Data
 #pragma warning restore MSML_ContractsNameUsesNameof
         }
 
-        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name,
+        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer,
             ICalibratorTrainerFactory calibrator, int maxCalibrationExamples)
         {
             var caliTrainer = calibrator?.CreateComponent(env);
-            return TrainCore(env, ch, data, trainer, name, null, caliTrainer, maxCalibrationExamples, false);
+            return TrainCore(env, ch, data, trainer, null, caliTrainer, maxCalibrationExamples, false);
         }
 
-        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name, RoleMappedData validData,
+        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, RoleMappedData validData,
             IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null)
         {
             ICalibratorTrainer caliTrainer = calibrator?.CreateComponent(env);
-            return TrainCore(env, ch, data, trainer, name, validData, caliTrainer, maxCalibrationExamples, cacheData, inputPredictor);
+            return TrainCore(env, ch, data, trainer, validData, caliTrainer, maxCalibrationExamples, cacheData, inputPredictor);
         }
 
-        private static IPredictor TrainCore(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name, RoleMappedData validData,
+        private static IPredictor TrainCore(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, RoleMappedData validData,
             ICalibratorTrainer calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
             ch.CheckValue(data, nameof(data));
             ch.CheckValue(trainer, nameof(trainer));
-            ch.CheckNonEmpty(name, nameof(name));
             ch.CheckValueOrNull(validData);
             ch.CheckValueOrNull(inputPredictor);
 
