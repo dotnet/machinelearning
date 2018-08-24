@@ -43,7 +43,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     ConvergenceTolerance = 1f
                 });
 
-
                 var metrics = new List<BinaryClassificationMetrics>();
                 for (int fold = 0; fold < numFolds; fold++)
                 {

@@ -51,8 +51,7 @@ namespace Microsoft.ML.TestFramework
             var txtArgs = new Runtime.Data.TextLoader.Arguments();
             bool parsed = CmdParser.ParseArguments(s_environment, dataSchema, txtArgs);
             s_environment.Assert(parsed);
-            var data = Runtime.Data.TextLoader.ReadFile(s_environment, txtArgs, new MultiFileSource(dataPath));
-            return data;
+            return Runtime.Data.TextLoader.ReadFile(s_environment, txtArgs, new MultiFileSource(dataPath));
         }
 
         private static ITransformModel CreateKcHousePricePredictorModel(string dataPath)
