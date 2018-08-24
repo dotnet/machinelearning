@@ -282,7 +282,7 @@ namespace Microsoft.ML.Runtime.Data
                     continue;
                 input.Schema.TryGetColumnIndex(_columns[i].Source, out int colIndex);
                 var type = input.Schema.GetColumnType(colIndex);
-                result[i++] = Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
+                result[i] = Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
             }
             disposer = null;
             return result;
