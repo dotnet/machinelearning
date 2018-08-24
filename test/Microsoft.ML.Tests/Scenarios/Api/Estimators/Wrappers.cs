@@ -226,29 +226,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public class MyTextLoader : IDataReaderEstimator<IMultiStreamSource, LoaderWrapper>
-    {
-        private readonly TextLoader.Arguments _args;
-        private readonly IHostEnvironment _env;
-
-        public MyTextLoader(IHostEnvironment env, TextLoader.Arguments args)
-        {
-            _env = env;
-            _args = args;
-        }
-
-        public LoaderWrapper Fit(IMultiStreamSource input)
-        {
-            return new LoaderWrapper(_env, x => TextLoader.ReadFile(_env, _args, x));
-        }
-
-        public SchemaShape GetOutputSchema()
-        {
-            var emptyData = TextLoader.ReadFile(_env, _args, new MultiFileSource(null));
-            return SchemaShape.Create(emptyData.Schema);
-        }
-    }
-
     public interface ITrainerEstimator<out TTransformer, out TModel>: IEstimator<TTransformer>
         where TTransformer: IPredictorTransformer<TModel>
         where TModel: IPredictor

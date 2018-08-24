@@ -23,9 +23,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(SentimentDataPath);
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
-                var pipeline = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
-                  .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()));
-                var data = pipeline.FitAndRead(new MultiFileSource(dataPath));
+                var data = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+
+                var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs());
+                data = pipeline.FitAndTransform(data);
                 // In order to find out available column names, you can go through schema and check
                 // column names and appropriate type for getter.
                 for (int i = 0; i < data.Schema.ColumnCount; i++)

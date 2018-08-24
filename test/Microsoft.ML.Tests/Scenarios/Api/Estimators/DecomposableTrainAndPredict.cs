@@ -26,8 +26,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(IrisDataPath);
             using (var env = new TlcEnvironment())
             {
-                var data = new MyTextLoader(env, MakeIrisTextLoaderArgs())
-                    .FitAndRead(new MultiFileSource(dataPath));
+                var data = new TextLoader(env, MakeIrisTextLoaderArgs())
+                    .Read(new MultiFileSource(dataPath));
 
                 var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Append(new MyTermTransform(env, "Label"), TransformerScope.TrainTest)

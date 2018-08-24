@@ -25,8 +25,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(IrisDataPath);
             using (var env = new TlcEnvironment())
             {
-                var data = new MyTextLoader(env, MakeIrisTextLoaderArgs())
-                    .FitAndRead(new MultiFileSource(dataPath));
+                var data = new TextLoader(env, MakeIrisTextLoaderArgs())
+                    .Read(new MultiFileSource(dataPath));
 
                 Action<IrisData, IrisData> action = (i, j) =>
                 {

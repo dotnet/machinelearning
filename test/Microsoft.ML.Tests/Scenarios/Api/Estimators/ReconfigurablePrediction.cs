@@ -25,8 +25,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
-                var dataReader = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Fit(new MultiFileSource(dataPath));
+                var dataReader = new TextLoader(env, MakeSentimentTextLoaderArgs());
 
                 var data = dataReader.Read(new MultiFileSource(dataPath));
                 var testData = dataReader.Read(new MultiFileSource(testDataPath));
