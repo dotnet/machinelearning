@@ -7571,6 +7571,14 @@ namespace Microsoft.ML
             public double CatL2 { get; set; } = 10d;
 
             /// <summary>
+            /// Execution device for training (CPU or GPU).
+            /// NOTE: GPU training requires compatible build of LightGBM as described here:
+            /// https://github.com/Microsoft/LightGBM/blob/master/docs/Installation-Guide.rst#build-gpu-version
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public LightGbmExecutionDevice ExecutionDevice { get; set; } = new LightGbmCpuExecutionDevice();
+
+            /// <summary>
             /// Parallel LightGBM Learning Algorithm
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
@@ -7773,6 +7781,14 @@ namespace Microsoft.ML
             [TlcModule.Range(Min = 0d)]
             [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
             public double CatL2 { get; set; } = 10d;
+
+            /// <summary>
+            /// Execution device for training (CPU or GPU).
+            /// NOTE: GPU training requires compatible build of LightGBM as described here:
+            /// https://github.com/Microsoft/LightGBM/blob/master/docs/Installation-Guide.rst#build-gpu-version
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public LightGbmExecutionDevice ExecutionDevice { get; set; } = new LightGbmCpuExecutionDevice();
 
             /// <summary>
             /// Parallel LightGBM Learning Algorithm
@@ -7979,6 +7995,14 @@ namespace Microsoft.ML
             public double CatL2 { get; set; } = 10d;
 
             /// <summary>
+            /// Execution device for training (CPU or GPU).
+            /// NOTE: GPU training requires compatible build of LightGBM as described here:
+            /// https://github.com/Microsoft/LightGBM/blob/master/docs/Installation-Guide.rst#build-gpu-version
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public LightGbmExecutionDevice ExecutionDevice { get; set; } = new LightGbmCpuExecutionDevice();
+
+            /// <summary>
             /// Parallel LightGBM Learning Algorithm
             /// </summary>
             [JsonConverter(typeof(ComponentSerializer))]
@@ -8181,6 +8205,14 @@ namespace Microsoft.ML
             [TlcModule.Range(Min = 0d)]
             [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
             public double CatL2 { get; set; } = 10d;
+
+            /// <summary>
+            /// Execution device for training (CPU or GPU).
+            /// NOTE: GPU training requires compatible build of LightGBM as described here:
+            /// https://github.com/Microsoft/LightGBM/blob/master/docs/Installation-Guide.rst#build-gpu-version
+            /// </summary>
+            [JsonConverter(typeof(ComponentSerializer))]
+            public LightGbmExecutionDevice ExecutionDevice { get; set; } = new LightGbmCpuExecutionDevice();
 
             /// <summary>
             /// Parallel LightGBM Learning Algorithm
@@ -16955,8 +16987,42 @@ namespace Microsoft.ML
             internal override string ComponentName => "AutoMlState";
         }
 
-        public abstract class BoosterParameterFunction : ComponentKind {}
+        public abstract class LightGbmExecutionDevice : ComponentKind { }
 
+        /// <summary>
+        /// LightGBM CPU execution device
+        /// </summary>
+        public sealed class LightGbmCpuExecutionDevice : LightGbmExecutionDevice
+        {
+            internal override string ComponentName => "cpu_device";
+        }
+
+        /// <summary>
+        /// LightGBM GPU execution device.
+        /// NOTE: Requires build of LightGBM that supports GPU as described here:
+        /// https://github.com/Microsoft/LightGBM/blob/master/docs/Installation-Guide.rst#build-gpu-version
+        /// </summary>
+        public sealed class LightGbmGpuExecutionDevice : LightGbmExecutionDevice
+        {
+            /// <summary>
+            /// OpenCL platform ID. Usually each GPU vendor exposes one OpenCL platform. -1 means the system-wide default platform.
+            /// </summary>
+            public int PlatformId { get; set; } = -1;
+
+            /// <summary>
+            /// OpenCL device ID in the specified platform. Each GPU in the selected platform has a unique device ID. -1 means the default device in the selected platform.
+            /// </summary>
+            public int DeviceId { get; set; } = -1;
+
+            /// <summary>
+            /// Use double precision math on GPU?
+            /// </summary>
+            public bool UseDoublePrecision { get; set; } = false;
+
+            internal override string ComponentName => "gpu_device";
+        }
+
+        public abstract class BoosterParameterFunction : ComponentKind {}
 
 
         /// <summary>
