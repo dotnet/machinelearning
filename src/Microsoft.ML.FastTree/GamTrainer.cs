@@ -331,8 +331,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainSet.Flocks[flockIndex].Trust(subFeatureIndex), 0);
 
             // Adjust the model
-            if (_leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].Gain > 0)
-                ConvertTreeToGraph(globalFeatureIndex, iteration);
+            ConvertTreeToGraph(globalFeatureIndex, iteration, _leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].Gain > 0);
         }
 
         /// <summary>
@@ -550,14 +549,19 @@ namespace Microsoft.ML.Runtime.FastTree
             }
         }
 
-        private void ConvertTreeToGraph(int globalFeatureIndex, int iteration)
+        private void ConvertTreeToGraph(int globalFeatureIndex, int iteration, bool useSplitValues)
         {
-            SplitInfo splitinfo = _leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex];
-
-            _splitPoint[globalFeatureIndex][iteration] = splitinfo.Threshold;
+            // Always define the graph
             _splitValue[globalFeatureIndex][iteration] = new double[2]; // Easily extend to variable-length trees
-            _splitValue[globalFeatureIndex][iteration][0] = Args.LearningRates * splitinfo.LteOutput;
-            _splitValue[globalFeatureIndex][iteration][1] = Args.LearningRates * splitinfo.GTOutput;
+
+            // But only fill it in if some criteria were met
+            if (useSplitValues)
+            {
+                SplitInfo splitinfo = _leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex];
+                _splitPoint[globalFeatureIndex][iteration] = splitinfo.Threshold;
+                _splitValue[globalFeatureIndex][iteration][0] = Args.LearningRates * splitinfo.LteOutput;
+                _splitValue[globalFeatureIndex][iteration][1] = Args.LearningRates * splitinfo.GTOutput;
+            }
         }
 
         private void InitializeGamHistograms()
