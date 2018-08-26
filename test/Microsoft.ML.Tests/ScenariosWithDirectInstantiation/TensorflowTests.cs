@@ -5,11 +5,11 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Transforms;
-using System;
 using System.Collections.Generic;
+using System.IO;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -168,6 +168,57 @@ namespace Microsoft.ML.Scenarios
         {
             [ColumnName("Score")]
             public float[] PredictedLabels;
+        }
+
+        [Fact(Skip = "Fails in Input name")]
+        public void TensorflowTransformCifar()
+        {
+            var model_location =  GetDataPath("cifar_convnet_model/frozen_graph.pb");
+
+            using (var env = new TlcEnvironment())
+            {
+                var imageHeight = 32;
+                var imageWidth = 32;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var images = new ImageLoaderTransform(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = new ImageResizerTransform(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+
+                var pixels = new ImagePixelExtractorTransform(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "global_step", UseAlpha=true}
+                    }
+                }, cropped);
+
+
+                IDataView trans = TensorflowTransform.Create(env, pixels, model_location, "softmax_tensor", "global_step");
+
+                //trans.Schema.TryGetColumnIndex("myOutput:0", out int output);
+                //using (var cursor = trans.GetRowCursor(col => col == output))
+                //{
+                //    var buffer = default(VBuffer<float>);
+                //    var getter = cursor.GetGetter<VBuffer<float>>(output);
+                //    while (cursor.MoveNext())
+                //    {
+                //        getter(ref buffer);
+                //        System.Console.WriteLine($"buffer length={buffer.Length}, values={buffer.Values}");
+                //    }
+                //}
+            }
         }
     }
 }
