@@ -310,7 +310,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public EvalMetricType EvalMetric = EvalMetricType.DefaultMetric;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
-        [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false})]
+        [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
         public bool? UseSoftmax;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Rounds of early stopping, 0 will disable it.",
@@ -321,10 +321,10 @@ namespace Microsoft.ML.Runtime.LightGBM
         [TGUI(Label = "Ranking Label Gain")]
         public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function. Used only in binary and multiclassova " +
-            "classification and in lambdarank applications", ShortName = "sigmoid")]
-        [TGUI(Label = "Sigmoid")]
-        public double Sigmoid = 1;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function. Used only in " + nameof(LightGbmBinaryTrainer) + ", " + nameof(LightGbmMulticlassTrainer) +
+            " and in " + nameof(LightGbmRankingTrainer) + ".", ShortName = "sigmoid")]
+        [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
+        public double Sigmoid = 0.5;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of entries in a batch when loading data.", Hide = true)]
         public int BatchSize = 1 << 20;
@@ -370,13 +370,13 @@ namespace Microsoft.ML.Runtime.LightGBM
             var boosterParams = Booster.CreateComponent(host);
             boosterParams.UpdateParameters(res);
 
-            res[GetArgName(nameof(MaxBin))] = MaxBin.ToString();
+            res[GetArgName(nameof(MaxBin))] = MaxBin;
 
             res["verbose"] = Silent ? "-1" : "1";
             if (NThread.HasValue)
-                res["nthread"] = NThread.Value.ToString();
+                res["nthread"] = NThread.Value;
 
-            res["seed"] = host.Rand.Next().ToString();
+            res["seed"] = host.Rand.Next();
 
             string metric = null;
             switch (EvalMetric)

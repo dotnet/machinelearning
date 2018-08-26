@@ -1,4 +1,4 @@
 LightGBMMC
 Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	/iter	/lr	/nl	/mil	/nt	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.973333	0.973333	0.479483	56.35555	10	0.2	20	10	1	LightGBMMC	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=LightGBMMC{nt=1 iter=10 v=- lr=0.2 mil=10 nl=20} dout=%Output% loader=Text{col=Label:U4[0-4]:0 col=Features:1-4} data=%Data% out=%Output% seed=1	/iter:10;/lr:0.2;/nl:20;/mil:10;/nt:1	
+0.973333	0.973333	0.196675	82.09792	10	0.2	20	10	1	LightGBMMC	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=LightGBMMC{nt=1 iter=10 v=- lr=0.2 mil=10 nl=20} dout=%Output% loader=Text{col=Label:U4[0-4]:0 col=Features:1-4} data=%Data% out=%Output% seed=1	/iter:10;/lr:0.2;/nl:20;/mil:10;/nt:1	
 

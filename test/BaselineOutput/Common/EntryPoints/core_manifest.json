@@ -11118,14 +11118,14 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": 1.0
+          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -11613,14 +11613,14 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": 1.0
+          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -12108,14 +12108,14 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": 1.0
+          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -12603,14 +12603,14 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": 1.0
+          "Default": 0.5
         },
         {
           "Name": "BatchSize",

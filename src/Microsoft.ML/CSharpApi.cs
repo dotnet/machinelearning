@@ -7526,9 +7526,9 @@ namespace Microsoft.ML
             public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
             /// <summary>
-            /// Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications
+            /// Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.
             /// </summary>
-            public double Sigmoid { get; set; } = 1d;
+            public double Sigmoid { get; set; } = 0.5d;
 
             /// <summary>
             /// Number of entries in a batch when loading data.
@@ -7735,9 +7735,9 @@ namespace Microsoft.ML
             public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
             /// <summary>
-            /// Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications
+            /// Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.
             /// </summary>
-            public double Sigmoid { get; set; } = 1d;
+            public double Sigmoid { get; set; } = 0.5d;
 
             /// <summary>
             /// Number of entries in a batch when loading data.
@@ -7944,9 +7944,9 @@ namespace Microsoft.ML
             public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
             /// <summary>
-            /// Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications
+            /// Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.
             /// </summary>
-            public double Sigmoid { get; set; } = 1d;
+            public double Sigmoid { get; set; } = 0.5d;
 
             /// <summary>
             /// Number of entries in a batch when loading data.
@@ -8153,9 +8153,9 @@ namespace Microsoft.ML
             public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
             /// <summary>
-            /// Parameter for the sigmoid function. Used only in binary and multiclassova classification and in lambdarank applications
+            /// Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.
             /// </summary>
-            public double Sigmoid { get; set; } = 1d;
+            public double Sigmoid { get; set; } = 0.5d;
 
             /// <summary>
             /// Number of entries in a batch when loading data.
