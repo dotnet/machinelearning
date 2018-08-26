@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(SdcaMultiClassTrainer.Summary, typeof(SdcaMultiClassTrainer), typeof(SdcaMultiClassTrainer.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -26,11 +27,9 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    using TVectorPredictor = IPredictorProducing<VBuffer<Float>>;
-
     // SDCA linear multiclass trainer.
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
-    public class SdcaMultiClassTrainer : SdcaTrainerBase<TVectorPredictor>
+    public class SdcaMultiClassTrainer : SdcaTrainerBase<MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>, MulticlassLogisticRegressionPredictor>
     {
         public const string LoadNameValue = "SDCAMC";
         public const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
@@ -47,14 +46,55 @@ namespace Microsoft.ML.Runtime.Learners
         private readonly Arguments _args;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        protected override SchemaShape.Column[] OutputColumns { get; }
 
-        public SdcaMultiClassTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, LoadNameValue)
+        public SdcaMultiClassTrainer(IHostEnvironment env, Arguments args,
+            string featureColumn, string labelColumn, string weightColumn = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
         {
             _loss = args.LossFunction.CreateComponent(env);
-            base.Loss = _loss;
-            NeedShuffle = args.Shuffle;
+            Loss = _loss;
             _args = args;
+            OutputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, DataKind.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, DataKind.U4, true)
+            };
+        }
+
+        public SdcaMultiClassTrainer(IHostEnvironment env, Arguments args)
+            : this(env, args, args.FeatureColumn, args.LabelColumn)
+        {
+        }
+
+        protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
+        {
+            Contracts.AssertValue(labelCol);
+
+            Action error =
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "R8, R4 or a Key", labelCol.GetTypeString());
+
+            if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
+                error();
+            if (!labelCol.IsKey && labelCol.ItemKind != DataKind.R4 && labelCol.ItemKind != DataKind.R8)
+                error();
+        }
+
+        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, DataKind.R4, false);
+        }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, DataKind.U4, true);
+        }
+
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, DataKind.R4, false);
         }
 
         /// <inheritdoc/>
@@ -339,7 +379,7 @@ namespace Microsoft.ML.Runtime.Learners
             return converged;
         }
 
-        protected override TVectorPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        protected override MulticlassLogisticRegressionPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
         {
             Host.CheckValue(weights, nameof(weights));
             Host.CheckValue(bias, nameof(bias));
@@ -364,6 +404,9 @@ namespace Microsoft.ML.Runtime.Learners
         {
             return cursor.Weight;
         }
+
+        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> MakeTransformer(MulticlassLogisticRegressionPredictor model, ISchema trainSchema)
+            => new MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
     }
 
     /// <summary>
