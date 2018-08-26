@@ -121,8 +121,8 @@ namespace Microsoft.ML.Benchmarks
             }
         }
 
-        [GlobalSetup]
-        public void Setup()
+        [GlobalSetup(Targets = new string[] { nameof(PredictIris), nameof(PredictIrisBatchOf1), nameof(PredictIrisBatchOf2), nameof(PredictIrisBatchOf5) })]
+        public void SetupPredictBenchmarks()
         {
             _trainedModel = Train(_dataPath);
             IrisPrediction prediction = _trainedModel.Predict(_example);
