@@ -1273,10 +1273,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         /// <summary>
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
-        /// On failure, it sets dst to the NA value.
+        /// On failure, it sets dst to the default value.
         /// </summary>
         public bool TryParse(ref TX src, out I1 dst)
         {
+            dst = default;
             TryParseSigned(I1.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
             Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
@@ -1286,10 +1287,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         /// <summary>
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
-        /// On failure, it sets dst to the NA value.
+        /// On failure, it sets dst to the default value.
         /// </summary>
         public bool TryParse(ref TX src, out I2 dst)
         {
+            dst = default;
             TryParseSigned(I2.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
             Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
@@ -1299,10 +1301,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         /// <summary>
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
-        /// On failure, it sets dst to the NA value.
+        /// On failure, it sets dst to the defualt value.
         /// </summary>
         public bool TryParse(ref TX src, out I4 dst)
         {
+            dst = default;
             TryParseSigned(I4.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to int32.");
             Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
@@ -1312,10 +1315,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         /// <summary>
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
-        /// On failure, it sets dst to the NA value.
+        /// On failure, it sets dst to the default value.
         /// </summary>
         public bool TryParse(ref TX src, out I8 dst)
         {
+            dst = default;
             TryParseSigned(I8.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
             dst = (I8)res;
@@ -1368,23 +1372,19 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             if (!span.HasChars)
             {
-                if (span.IsNA)
-                    result = null;
-                else
-                    result = 0;
+                result = default(long);
                 return;
             }
 
             int ichMin;
             int ichLim;
             string text = span.GetRawUnderlyingBufferInfo(out ichMin, out ichLim);
-
-            long val;
+            ulong val;
             if (span[0] == '-')
             {
                 if (span.Length == 1 ||
-                    !TryParseNonNegative(text, ichMin + 1, ichLim, out val) ||
-                    val > (max + 1))
+                    !TryParseCore(text, ichMin + 1, ichLim, out val) ||
+                    (val > ((ulong)max + 1)))
                 {
                     result = null;
                     return;
@@ -1395,21 +1395,21 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 return;
             }
 
-            if (!TryParseNonNegative(text, ichMin, ichLim, out val))
-            {
-                // Check for acceptable NA forms: ? NaN NA and N/A.
-                result = null;
-                return;
-            }
-
-            Contracts.Assert(val >= 0);
-            if (val > max)
+            long sVal;
+            if (!TryParseNonNegative(text, ichMin, ichLim, out sVal))
             {
                 result = null;
                 return;
             }
 
-            result = (long)val;
+            Contracts.Assert(sVal >= 0);
+            if (sVal > max)
+            {
+                result = null;
+                return;
+            }
+
+            result = (long)sVal;
             Contracts.Assert(0 <= result && result <= long.MaxValue);
             return;
         }
@@ -1498,7 +1498,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             return IsStdMissing(ref src);
         }
 
-        // These map unparsable and overflow values to "NA", which is null.
+        // These throw an exception for unparsable and overflow values.
         private I1 ParseI1(ref TX src)
         {
             TryParseSigned(I1.MaxValue, ref src, out long? res);
@@ -1526,7 +1526,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         private I8 ParseI8(ref TX src)
         {
             TryParseSigned(I8.MaxValue, ref src, out long? res);
-            Contracts.Assert(res.HasValue, "Value could not be parsed from text to long.");
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
             return res.Value;
         }
 

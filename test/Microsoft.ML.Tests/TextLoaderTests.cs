@@ -7,13 +7,139 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
 using System;
+using System.IO;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
+    public class TextLoaderTestPipe : TestDataPipeBase
+    {
+        public TextLoaderTestPipe(ITestOutputHelper output)
+            : base(output)
+        {
+
+        }
+
+        [Fact]
+        public void TestTextLoaderDataTypes()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "TextInput.txt");
+            File.WriteAllLines(pathData, new string[] {
+                "127,-32768,-2147483648,-9223372036854775808",
+                "-128,32767,2147483647,9223372036854775807",
+                ",,,"
+            });
+
+            try
+            {
+                var data = TestCore(pathData, true,
+                    new[] {
+                    "loader=Text{col=DvInt1:I1:0 col=DvInt2:I2:1 col=DvInt4:I4:2 col=DvInt8:I8:3 sep=comma}",
+                    }, logCurs: true);
+
+                using (var cursor = data.GetRowCursor((a => true)))
+                {
+                    var col1 = cursor.GetGetter<sbyte>(0);
+                    var col2 = cursor.GetGetter<short>(1);
+                    var col3 = cursor.GetGetter<int>(2);
+                    var col4 = cursor.GetGetter<long>(3);
+
+                    Assert.True(cursor.MoveNext());
+
+                    sbyte[] sByteTargets = new sbyte[] { 127, -128, default};
+                    short[] shortTargets = new short[] { -32768, 32767, default };
+                    int[] intTargets = new int[] { -2147483648, 2147483647, default };
+                    long[] longTargets = new long[] { -9223372036854775808, 9223372036854775807, default };
+
+                    int i = 0;
+                    for (; i < sByteTargets.Length; i++)
+                    {
+                        sbyte sbyteValue = -1;
+                        col1(ref sbyteValue);
+                        Assert.Equal(sByteTargets[i], sbyteValue);
+
+                        short shortValue = -1;
+                        col2(ref shortValue);
+                        Assert.Equal(shortTargets[i], shortValue);
+
+                        int intValue = -1;
+                        col3(ref intValue);
+                        Assert.Equal(intTargets[i], intValue);
+
+                        long longValue = -1;
+                        col4(ref longValue);
+                        Assert.Equal(longTargets[i], longValue);
+
+                        if (i < sByteTargets.Length - 1)
+                            Assert.True(cursor.MoveNext());
+                        else
+                            Assert.False(cursor.MoveNext());
+                    }
+
+                    Assert.Equal(i, sByteTargets.Length);
+                }
+            }
+            catch
+            {
+                Assert.True(false, "Test failed.");
+            }
+        }
+
+        [Fact]
+        public void TestTextLoaderInvalidLongMin()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "TextInput.txt");
+            File.WriteAllLines(pathData, new string[] {
+                "-9223372036854775809"
+
+            });
+
+            try
+            {
+                var data = TestCore(pathData, true,
+                    new[] {
+                    "loader=Text{col=DvInt8:I8:0 sep=comma}",
+                    }, logCurs: true);
+            }
+            catch(Exception ex)
+            {
+                Assert.Equal("Value could not be parsed from text to long.", ex.Message);
+                return;
+            }
+
+            Assert.True(false, "Test failed.");
+        }
+
+        [Fact]
+        public void TestTextLoaderInvalidLongMax()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "TextInput.txt");
+            File.WriteAllLines(pathData, new string[] {
+                "9223372036854775808"
+
+            });
+
+            try
+            {
+                var data = TestCore(pathData, true,
+                    new[] {
+                    "loader=Text{col=DvInt8:I8:0 sep=comma}",
+                    }, logCurs: true);
+            }
+            catch (Exception ex)
+            {
+                Assert.Equal("Value could not be parsed from text to long.", ex.Message);
+                return;
+            }
+
+            Assert.True(false, "Test failed.");
+        }
+    }
+
     public class TextLoaderTests : BaseTestClass
     {
         public TextLoaderTests(ITestOutputHelper output)
@@ -21,7 +147,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
 
         }
-
+        
         [Fact]
         public void ConstructorDoesntThrow()
         {
