@@ -8,7 +8,12 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Reports;
+using BenchmarkDotNet.Toolchains;
+using BenchmarkDotNet.Toolchains.CsProj;
+using BenchmarkDotNet.Toolchains.DotNetCli;
 using BenchmarkDotNet.Toolchains.InProcess;
+using BenchmarkDotNet.Validators;
+using Microsoft.ML.Benchmarks.Harness;
 using System.IO;
 using Microsoft.ML.Models;
 
@@ -29,10 +34,21 @@ namespace Microsoft.ML.Benchmarks
             => DefaultConfig.Instance
                 .With(Job.Default
                     .WithMaxIterationCount(20)
-                    .With(InProcessToolchain.Instance))
                 .With(new ClassificationMetricsColumn("AccuracyMacro", "Macro-average accuracy of the model"))
+                    .With(CreateToolchain()))
                 .With(MemoryDiagnoser.Default);
 
+        private static IToolchain CreateToolchain()
+        {
+            var csProj = CsProjCoreToolchain.Current.Value;
+            var tfm = NetCoreAppSettings.Current.Value.TargetFrameworkMoniker;
+
+            return new Toolchain(
+                tfm, 
+                new ProjectGenerator(tfm), 
+                csProj.Builder, 
+                csProj.Executor);
+        }
         internal static string GetDataPath(string name)
             => Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "Input", name);
     }
