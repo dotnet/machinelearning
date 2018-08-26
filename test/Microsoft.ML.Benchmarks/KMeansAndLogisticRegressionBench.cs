@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
@@ -14,21 +12,11 @@ namespace Microsoft.ML.Benchmarks
 {
     public class KMeansAndLogisticRegressionBench
     {
-        private static string s_dataPath;
+        private readonly string _dataPath = Program.GetDataPath("adult.train");
 
         [Benchmark]
-        public IPredictor TrainKMeansAndLR() => TrainKMeansAndLRCore();
-
-        [GlobalSetup]
-        public void Setup()
+        public IPredictor TrainKMeansAndLR()
         {
-            s_dataPath = Program.GetDataPath("adult.train");
-        }
-
-        private static IPredictor TrainKMeansAndLRCore()
-        {
-            string dataPath = s_dataPath;
-
             using (var env = new TlcEnvironment(seed: 1))
             {
                 // Pipeline
@@ -67,7 +55,7 @@ namespace Microsoft.ML.Benchmarks
                                 Type = DataKind.R4
                             }
                         }
-                    }, new MultiFileSource(dataPath));
+                    }, new MultiFileSource(_dataPath));
 
                 IDataTransform trans = CategoricalTransform.Create(env, new CategoricalTransform.Arguments
                 {
