@@ -12,10 +12,11 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Microsoft.ML.Benchmarks
 {
-    public class StochasticDualCoordinateAscentClassifierBench
+    public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
         private readonly string _dataPath = Program.GetDataPath("iris.txt");
         private readonly string _sentimentDataPath = Program.GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -32,8 +33,15 @@ namespace Microsoft.ML.Benchmarks
 
         private PredictionModel<IrisData, IrisPrediction> _trainedModel;
         private IrisData[][] _batches;
+        private ClassificationMetrics _metrics;
 
-        internal static ClassificationMetrics s_metrics;
+        protected override IEnumerable<Metric> GetMetrics()
+        {
+            if (_metrics != null)
+                yield return new Metric(
+                    nameof(ClassificationMetrics.AccuracyMacro),
+                    _metrics.AccuracyMacro.ToString("0.##", CultureInfo.InvariantCulture));
+        }
 
         [Benchmark]
         public PredictionModel<IrisData, IrisPrediction> TrainIris() => Train(_dataPath);
@@ -129,7 +137,7 @@ namespace Microsoft.ML.Benchmarks
 
             var testData = new Data.TextLoader(_dataPath).CreateFrom<IrisData>(useHeader: true);
             var evaluator = new ClassificationEvaluator();
-            s_metrics = evaluator.Evaluate(_trainedModel, testData);
+            _metrics = evaluator.Evaluate(_trainedModel, testData);
 
             _batches = new IrisData[_batchSizes.Length][];
             for (int i = 0; i < _batches.Length; i++)
