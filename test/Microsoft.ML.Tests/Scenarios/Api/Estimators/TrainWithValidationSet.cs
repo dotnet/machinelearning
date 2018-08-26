@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Learners;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -31,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var validData = reader.Read(new MultiFileSource(validationDataPath));
 
                 // Train model with validation set.
-                var trainer = new MySdca(env, new Runtime.Learners.LinearClassificationTrainer.Arguments(), "Features", "Label");
+                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments(), "Features", "Label");
                 var model = trainer.Train(trainData, validData);
             }
         }

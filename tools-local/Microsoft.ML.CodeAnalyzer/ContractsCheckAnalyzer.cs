@@ -82,7 +82,7 @@ namespace Microsoft.ML.CodeAnalyzer
             "Check", "CheckUserArg", "CheckParam", "CheckParamValue", "CheckRef", "CheckValue",
             "CheckNonEmpty", "CheckNonWhiteSpace", "CheckDecode", "CheckIO", "CheckAlive", "CheckValueOrNull",
             "Except", "ExceptUserArg", "ExceptParam", "ExceptParamValue", "ExceptValue", "ExceptEmpty",
-            "ExceptWhiteSpace", "ExceptDecode", "ExceptIO", "ExceptNotImpl", "ExceptNotSupp",
+            "ExceptWhiteSpace", "ExceptDecode", "ExceptIO", "ExceptNotImpl", "ExceptNotSupp", "ExceptSchemaMismatch"
         });
 
         public override void Initialize(AnalysisContext context)
