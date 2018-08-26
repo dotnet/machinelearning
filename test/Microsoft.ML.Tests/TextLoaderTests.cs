@@ -29,8 +29,8 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             string pathData = DeleteOutputPath("SavePipe", "TextInput.txt");
             File.WriteAllLines(pathData, new string[] {
-                "127,-32768,-2147483648,-9223372036854775808",
-                "-128,32767,2147483647,9223372036854775807",
+                string.Format("{0},{1},{2},{3}", sbyte.MinValue, short.MinValue, int.MinValue, long.MinValue),
+                string.Format("{0},{1},{2},{3}", sbyte.MaxValue, short.MaxValue, int.MaxValue, long.MaxValue),
                 ",,,"
             });
 
@@ -50,10 +50,10 @@ namespace Microsoft.ML.EntryPoints.Tests
 
                     Assert.True(cursor.MoveNext());
 
-                    sbyte[] sByteTargets = new sbyte[] { 127, -128, default};
-                    short[] shortTargets = new short[] { -32768, 32767, default };
-                    int[] intTargets = new int[] { -2147483648, 2147483647, default };
-                    long[] longTargets = new long[] { -9223372036854775808, 9223372036854775807, default };
+                    sbyte[] sByteTargets = new sbyte[] { sbyte.MinValue, sbyte.MaxValue, default};
+                    short[] shortTargets = new short[] { short.MinValue, short.MaxValue, default };
+                    int[] intTargets = new int[] { int.MinValue, int.MaxValue, default };
+                    long[] longTargets = new long[] { long.MinValue, long.MaxValue, default };
 
                     int i = 0;
                     for (; i < sByteTargets.Length; i++)
