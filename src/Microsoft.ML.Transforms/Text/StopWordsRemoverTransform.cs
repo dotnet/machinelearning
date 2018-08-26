@@ -7,6 +7,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -566,8 +567,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the stopwords", ShortName = "data", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string DataFile;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the stopwords", ShortName = "stopwordsCol", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string StopwordsColumn;
@@ -622,12 +623,16 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         private const string RegistrationName = "CustomStopWordsRemover";
 
         private static IDataLoader LoadStopwords(IHostEnvironment env, IChannel ch, string dataFile,
-            SubComponent<IDataLoader, SignatureDataLoader> loader, ref string stopwordsCol)
+            IComponentFactory<IMultiStreamSource, IDataLoader> loader, ref string stopwordsCol)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
+
+            MultiFileSource fileSource = new MultiFileSource(dataFile);
+            IDataLoader dataLoader;
+
             // First column using the file.
-            if (!loader.IsGood())
+            if (loader == null)
             {
                 // Determine the default loader from the extension.
                 var ext = Path.GetExtension(dataFile);
@@ -639,11 +644,11 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     ch.CheckUserArg(!string.IsNullOrWhiteSpace(stopwordsCol), nameof(Arguments.StopwordsColumn),
                         "stopwordsColumn should be specified");
                     if (isBinary)
-                        loader = new SubComponent<IDataLoader, SignatureDataLoader>("BinaryLoader");
+                        dataLoader = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
                     else
                     {
                         ch.Assert(isTranspose);
-                        loader = new SubComponent<IDataLoader, SignatureDataLoader>("TransposeLoader");
+                        dataLoader = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
                     }
                 }
                 else
@@ -653,13 +658,27 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         ch.Warning("{0} should not be specified when default loader is TextLoader. Ignoring stopwordsColumn={0}",
                             stopwordsCol);
                     }
-                    loader = new SubComponent<IDataLoader, SignatureDataLoader>("TextLoader", "sep=tab col=Stopwords:TX:0");
+                    dataLoader = new TextLoader(
+                        env,
+                        new TextLoader.Arguments()
+                        {
+                            Separator = "tab",
+                            Column = new[]
+                            {
+                                new TextLoader.Column("Stopwords", DataKind.TX, 0)
+                            }
+                        },
+                        fileSource);
                     stopwordsCol = "Stopwords";
                 }
+                ch.AssertNonEmpty(stopwordsCol);
             }
-            ch.AssertNonEmpty(stopwordsCol);
+            else
+            {
+                dataLoader = loader.CreateComponent(env, fileSource);
+            }
 
-            return loader.CreateInstance(env, new MultiFileSource(dataFile));
+            return dataLoader;
         }
 
         private void LoadStopWords(IHostEnvironment env, IChannel ch, ArgumentsBase loaderArgs, out NormStr.Pool stopWordsMap)
@@ -669,7 +688,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             ch.AssertValue(loaderArgs);
 
             if ((!string.IsNullOrEmpty(loaderArgs.Stopwords) || Utils.Size(loaderArgs.Stopword) > 0) &&
-                (!string.IsNullOrWhiteSpace(loaderArgs.DataFile) || loaderArgs.Loader.IsGood() ||
+                (!string.IsNullOrWhiteSpace(loaderArgs.DataFile) || loaderArgs.Loader != null ||
                     !string.IsNullOrWhiteSpace(loaderArgs.StopwordsColumn)))
             {
                 ch.Warning("Explicit stopwords list specified. Data file arguments will be ignored");

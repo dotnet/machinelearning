@@ -12,6 +12,15 @@
     <WarningsNotAsErrors>$(WarningsNotAsErrors);1591</WarningsNotAsErrors>
 
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\Source.ruleset</CodeAnalysisRuleSet>
+
+    <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x64</TargetArchitecture>
+    
+    <NativeAssetsBuiltPath>$(BaseOutputPath)$(TargetArchitecture).$(Configuration)\Native</NativeAssetsBuiltPath>
+
+    <PackageRid Condition="'$(OS)' == 'Windows_NT'">win</PackageRid>
+    <PackageRid Condition="'$(OS)' != 'Windows_NT'">linux</PackageRid>
+    <PackageRid Condition="$([MSBuild]::IsOSPlatform('osx'))">osx</PackageRid>
+    <PackageRid>$(PackageRid)-$(TargetArchitecture)</PackageRid>
   </PropertyGroup>
 
   <ItemGroup>
