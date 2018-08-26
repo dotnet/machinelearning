@@ -59,7 +59,7 @@ namespace Microsoft.ML.Benchmarks
         }
 
         [Benchmark]
-        public IPredictor TrainSentiment()
+        public void TrainSentiment()
         {
             using (var env = new TlcEnvironment(seed: 1))
             {
@@ -125,7 +125,8 @@ namespace Microsoft.ML.Benchmarks
                 var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { MaxIterations = 20 });
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
 
-                return trainer.Train(trainRoles);
+                var predicted = trainer.Train(trainRoles);
+                _consumer.Consume(predicted); 
             }
         }
 

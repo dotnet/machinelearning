@@ -4,6 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
@@ -15,7 +16,7 @@ namespace Microsoft.ML.Benchmarks
         private readonly string _dataPath = Program.GetInvariantCultureDataPath("adult.train");
 
         [Benchmark]
-        public IPredictor TrainKMeansAndLR()
+        public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
         {
             using (var env = new TlcEnvironment(seed: 1))
             {
@@ -77,6 +78,7 @@ namespace Microsoft.ML.Benchmarks
                 // Train
                 var trainer = new LogisticRegression(env, new LogisticRegression.Arguments() { EnforceNonNegativity = true, OptTol = 1e-3f });
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
+
                 return trainer.Train(trainRoles);
             }
         }
