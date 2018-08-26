@@ -34,15 +34,7 @@ namespace Microsoft.ML.Benchmarks
                 .With(MemoryDiagnoser.Default);
 
         internal static string GetDataPath(string name)
-            => Path.GetFullPath(Path.Combine(_dataRoot, name));
-
-        static readonly string _dataRoot;
-        static Program()
-        {
-            var currentAssemblyLocation = new FileInfo(typeof(Program).Assembly.Location);
-            var rootDir = currentAssemblyLocation.Directory.Parent.Parent.Parent.Parent.FullName;
-            _dataRoot = Path.Combine(rootDir, "test", "data");
-        }
+            => Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "Input", name);
     }
 
     public class ClassificationMetricsColumn : IColumn
