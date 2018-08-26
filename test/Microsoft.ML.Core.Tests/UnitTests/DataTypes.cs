@@ -47,8 +47,9 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 mapper(ref src, ref dst);
             }
-            catch
+            catch(Exception ex)
             {
+                Assert.Equal("Value could not be parsed from text to sbyte.", ex.Message);
                 error = true;
             }
 
@@ -62,8 +63,9 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 mapper(ref src, ref dst);
             }
-            catch
+            catch(Exception ex)
             {
+                Assert.Equal("Value could not be parsed from text to sbyte.", ex.Message);
                 error = true;
             }
 
@@ -105,8 +107,9 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 mapper(ref src, ref dst);
             }
-            catch
+            catch(Exception ex)
             {
+                Assert.Equal("Value could not be parsed from text to short.", ex.Message);
                 error = true;
             }
 
@@ -120,8 +123,9 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 mapper(ref src, ref dst);
             }
-            catch
+            catch (Exception ex)
             {
+                Assert.Equal("Value could not be parsed from text to short.", ex.Message);
                 error = true;
             }
 
@@ -163,8 +167,9 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 mapper(ref src, ref dst);
             }
-            catch
+            catch (Exception ex)
             {
+                Assert.Equal("Value could not be parsed from text to int.", ex.Message);
                 error = true;
             }
 
@@ -178,8 +183,9 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 mapper(ref src, ref dst);
             }
-            catch
+            catch (Exception ex)
             {
+                Assert.Equal("Value could not be parsed from text to int.", ex.Message);
                 error = true;
             }
 
@@ -227,8 +233,9 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 mapper(ref src, ref dst);
             }
-            catch
+            catch (Exception ex)
             {
+                Assert.Equal("Value could not be parsed from text to long.", ex.Message);
                 error = true;
             }
 
