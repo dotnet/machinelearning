@@ -10,7 +10,9 @@ using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Toolchains.DotNetCli;
 using Microsoft.ML.Benchmarks.Harness;
+using System.Globalization;
 using System.IO;
+using System.Threading;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -45,7 +47,12 @@ namespace Microsoft.ML.Benchmarks
                 csProj.Executor);
         }
 
-        internal static string GetDataPath(string name)
-            => Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "Input", name);
+        internal static string GetInvariantCultureDataPath(string name)
+        {
+            // enforce Neutral Language as "en-us" because the input data files use dot as decimal separator (and it fails for cultures with ",")
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
+            return Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "Input", name);
+        }
     }
 }
