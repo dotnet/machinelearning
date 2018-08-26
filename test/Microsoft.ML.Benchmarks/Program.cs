@@ -36,6 +36,9 @@ namespace Microsoft.ML.Benchmarks
                 .With(new ExtraMetricColumn())
                 .With(MemoryDiagnoser.Default);
 
+        /// <summary>
+        /// we need our own toolchain because MSBuild by default does not copy recursive native dependencies to the output
+        /// </summary>
         private static IToolchain CreateToolchain()
         {
             var csProj = CsProjCoreToolchain.Current.Value;
