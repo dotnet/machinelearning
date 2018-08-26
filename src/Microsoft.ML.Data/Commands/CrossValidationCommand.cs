@@ -28,8 +28,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr")]
             public SubComponent<ITrainer, SignatureTrainer> Trainer = new SubComponent<ITrainer, SignatureTrainer>("AveragedPerceptron");
 
-            [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SortOrder = 101)]
-            public SubComponent<IDataScorerTransform, SignatureDataScorer> Scorer;
+            [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SortOrder = 101, SignatureType = typeof(SignatureDataScorer))]
+            public IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> Scorer;
 
             [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", NullName = "<Auto>", SortOrder = 102)]
             public SubComponent<IMamlEvaluator, SignatureMamlEvaluator> Evaluator;
@@ -76,8 +76,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The validation data file", ShortName = "valid")]
             public string ValidationFile;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>")]
-            public SubComponent<ICalibratorTrainer, SignatureCalibrator> Calibrator = new SubComponent<ICalibratorTrainer, SignatureCalibrator>("PlattCalibration");
+            [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
+            public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of instances to train the calibrator", ShortName = "numcali")]
             public int MaxCalibrationExamples = 1000000000;
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Runtime.Data
                         new[]
                         {
                             new KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>(
-                                "", new SimpleComponentFactory<IDataView, IDataTransform>(
+                                "", ComponentFactoryUtils.CreateFromFunction<IDataView, IDataTransform>(
                                     (env, input) =>
                                     {
                                         var args = new GenerateNumberTransform.Arguments();
@@ -383,9 +383,9 @@ namespace Microsoft.ML.Runtime.Data
             private readonly string _splitColumn;
             private readonly int _numFolds;
             private readonly SubComponent<ITrainer, SignatureTrainer> _trainer;
-            private readonly SubComponent<IDataScorerTransform, SignatureDataScorer> _scorer;
+            private readonly IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> _scorer;
             private readonly SubComponent<IMamlEvaluator, SignatureMamlEvaluator> _evaluator;
-            private readonly SubComponent<ICalibratorTrainer, SignatureCalibrator> _calibrator;
+            private readonly IComponentFactory<ICalibratorTrainer> _calibrator;
             private readonly int _maxCalibrationExamples;
             private readonly bool _useThreads;
             private readonly bool? _cacheData;
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Runtime.Data
             Arguments args,
             Func<IHostEnvironment, IChannel, IDataView, ITrainer, RoleMappedData> createExamples,
             Func<IHostEnvironment, IChannel, IDataView, RoleMappedData, IDataView, RoleMappedData> applyTransformsToTestData,
-            SubComponent<IDataScorerTransform, SignatureDataScorer> scorer,
+            IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> scorer,
             SubComponent<IMamlEvaluator, SignatureMamlEvaluator> evaluator,
             Func<IDataView> getValidationDataView = null,
             Func<IHostEnvironment, IChannel, IDataView, RoleMappedData, IDataView, RoleMappedData> applyTransformsToValidationData = null,
@@ -554,16 +554,17 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     // Train.
-                    var predictor = TrainUtils.Train(host, ch, trainData, trainer, _trainer.Kind, validData,
+                    var predictor = TrainUtils.Train(host, ch, trainData, trainer, validData,
                         _calibrator, _maxCalibrationExamples, _cacheData, _inputPredictor);
 
                     // Score.
                     ch.Trace("Scoring and evaluating");
-                    var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, _scorer);
+                    ch.Assert(_scorer == null || _scorer is ICommandLineComponentFactory, "CrossValidationCommand should only be used from the command line.");
+                    var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerFactorySettings: _scorer as ICommandLineComponentFactory);
                     ch.AssertValue(bindable);
                     var mapper = bindable.Bind(host, testData.Schema);
-                    var scorerComp = _scorer.IsGood() ? _scorer : ScoreUtils.GetScorerComponent(mapper);
-                    IDataScorerTransform scorePipe = scorerComp.CreateInstance(host, testData.Data, mapper, trainData.Schema);
+                    var scorerComp = _scorer ?? ScoreUtils.GetScorerComponent(mapper);
+                    IDataScorerTransform scorePipe = scorerComp.CreateComponent(host, testData.Data, mapper, trainData.Schema);
 
                     // Save per-fold model.
                     string modelFileName = ConstructPerFoldName(_outputModelFile, fold);
