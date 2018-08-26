@@ -43,19 +43,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
-                            Type = Runtime.Data.DataKind.R4
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "Features",
-                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 9} },
-                            Type = Runtime.Data.DataKind.R4
-                        }
+                        new TextLoader.Column("Label", DataKind.R4, 0),
+                        new TextLoader.Column("Features", DataKind.R4, 
+                            new [] { new TextLoader.Range(1, 9) })
                     }
                 },
 
@@ -74,31 +64,10 @@ namespace Microsoft.ML.Runtime.RunTests
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} }
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "F1",
-                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 1} },
-                            Type = Runtime.Data.DataKind.Text
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "F2",
-                            Source = new [] { new TextLoader.Range() { Min = 2, Max = 2} },
-                            Type = Runtime.Data.DataKind.I4
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "Rest",
-                            Source = new [] { new TextLoader.Range() { Min = 3, Max = 9} }
-                        }
+                        new TextLoader.Column("Label", type: null, 0),
+                        new TextLoader.Column("F1", DataKind.Text, 1),
+                        new TextLoader.Column("F2", DataKind.I4, 2),
+                        new TextLoader.Column("Rest", type: null, new [] { new TextLoader.Range(3, 9) })
                     }
                 },
 
@@ -998,19 +967,8 @@ namespace Microsoft.ML.Runtime.RunTests
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
-                            Type = Runtime.Data.DataKind.TX
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "Text",
-                            Source = new [] { new TextLoader.Range() { Min = 3, Max = 3} },
-                            Type = Runtime.Data.DataKind.TX
-                        }
+                        new TextLoader.Column("Label", DataKind.TX, 0),
+                        new TextLoader.Column("Text", DataKind.TX, 3)
                     }
                 },
 
@@ -1222,19 +1180,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
-                            Type = Runtime.Data.DataKind.R4
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "Features",
-                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 4} },
-                            Type = Runtime.Data.DataKind.R4
-                        }
+                        new TextLoader.Column("Label", DataKind.R4, 0),
+                        new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) })
                     }
                 },
 
@@ -3474,18 +3421,8 @@ namespace Microsoft.ML.Runtime.RunTests
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "Features",
-                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 9} },
-                            Type = Runtime.Data.DataKind.Num
-                        }
+                        new TextLoader.Column("Label", type: null, 0),
+                        new TextLoader.Column("Features", DataKind.Num, new [] { new TextLoader.Range(1, 9) })
                     }
                 },
 
@@ -3561,12 +3498,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     HasHeader = false,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Features",
-                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 784} },
-                            Type = Runtime.Data.DataKind.R4
-                        }
+                        new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 784) })
                     }
                 },
 
@@ -3774,12 +3706,8 @@ namespace Microsoft.ML.Runtime.RunTests
                     SeparatorChars = new []{' '},
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Text",
-                            Source = new [] { new TextLoader.Range() { Min = 0, VariableEnd=true, ForceVector=true} },
-                            Type = DataKind.Text
-                        }
+                        new TextLoader.Column("Text", DataKind.Text,
+                            new [] { new TextLoader.Range() { Min = 0, VariableEnd=true, ForceVector=true} })
                     }
                 },
                 InputFile = inputFile,
