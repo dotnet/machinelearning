@@ -125,7 +125,7 @@ namespace Microsoft.ML.Benchmarks
         public void SetupPredictBenchmarks()
         {
             _trainedModel = Train(_dataPath);
-            IrisPrediction prediction = _trainedModel.Predict(_example);
+            _consumer.Consume(_trainedModel.Predict(_example));
 
             var testData = new Data.TextLoader(_dataPath).CreateFrom<IrisData>(useHeader: true);
             var evaluator = new ClassificationEvaluator();
