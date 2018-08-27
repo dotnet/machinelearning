@@ -327,6 +327,7 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
+        [Flags]
         public enum Direction
         {
             Read = 1,
