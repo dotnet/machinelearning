@@ -669,11 +669,13 @@ namespace Microsoft.ML.Runtime.Data.IO
         private sealed class DateTimeOffsetCodec : SimpleCodec<DateTimeOffset>
         {
             private readonly MadeObjectPool<long[]> _longBufferPool;
+            private readonly MadeObjectPool<short[]> _shortBufferPool;
 
             public DateTimeOffsetCodec(CodecFactory factory)
                 : base(factory, DateTimeOffsetType.Instance)
             {
                 _longBufferPool = new MadeObjectPool<long[]>(() => null);
+                _shortBufferPool = new MadeObjectPool<short[]>(() => null);
             }
 
             public override IValueWriter<DateTimeOffset> OpenWriter(Stream stream)
@@ -688,13 +690,13 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             private sealed class Writer : ValueWriterBase<DateTimeOffset>
             {
-                private List<long> _offsets;
+                private List<short> _offsets;
                 private List<long> _ticks;
 
                 public Writer(DateTimeOffsetCodec codec, Stream stream)
                     : base(codec.Factory, stream)
                 {
-                    _offsets = new List<long>();
+                    _offsets = new List<short>();
                     _ticks = new List<long>();
                 }
 
@@ -703,7 +705,13 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Contracts.Assert(_offsets != null, "writer was already committed");
 
                     _ticks.Add(value.DateTime.Ticks);
-                    _offsets.Add(value.Offset.Ticks);
+
+                    //DateTimeOffset exposes its offset as a TimeSpan, but internally it uses short and in minutes.
+                    //https://github.com/dotnet/coreclr/blob/9499b08eefd895158c3f3c7834e185a73619128d/src/System.Private.CoreLib/shared/System/DateTimeOffset.cs#L51-L53
+                    //https://github.com/dotnet/coreclr/blob/9499b08eefd895158c3f3c7834e185a73619128d/src/System.Private.CoreLib/shared/System/DateTimeOffset.cs#L286-L292
+                    //From everything we find online(ISO8601, RFC3339, SQL Server doc,
+                    //the offset supports the range -14 to 14 hours, and only supports minute precision.
+                    _offsets.Add((short)(value.Offset.Ticks / TimeSpan.TicksPerMinute));
                 }
 
                 public override void Commit()
@@ -711,7 +719,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Contracts.Assert(_offsets != null, "writer was already committed");
                     Contracts.Assert(Utils.Size(_offsets) == Utils.Size(_ticks));
 
-                    Writer.WriteLongStream(_offsets); // Write the offsets.
+                    Writer.WriteShortStream(_offsets); // Write the offsets.
                     Writer.WriteLongStream(_ticks); // Write the tick values.
                     _offsets = null;
                     _ticks = null;
@@ -719,7 +727,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 public override long GetCommitLengthEstimate()
                 {
-                    return (long)_offsets.Count * (sizeof(Int64) + sizeof(Int64));
+                    return (long)_offsets.Count * (sizeof(short) + sizeof(Int64));
                 }
             }
 
@@ -728,7 +736,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 private readonly DateTimeOffsetCodec _codec;
 
                 private readonly int _entries;
-                private long[] _offsets;
+                private short[] _offsets;
                 private long[] _ticks;
                 private int _index;
                 private bool _disposed;
@@ -740,10 +748,10 @@ namespace Microsoft.ML.Runtime.Data.IO
                     _entries = items;
                     _index = -1;
 
-                    _offsets = _codec._longBufferPool.Get();
+                    _offsets = _codec._shortBufferPool.Get();
                     Utils.EnsureSize(ref _offsets, _entries, false);
                     for (int i = 0; i < _entries; i++)
-                        _offsets[i] = Reader.ReadInt64();
+                        _offsets[i] = Reader.ReadInt16();
 
                     _ticks = _codec._longBufferPool.Get();
                     Utils.EnsureSize(ref _ticks, _entries, false);
@@ -760,14 +768,14 @@ namespace Microsoft.ML.Runtime.Data.IO
                 public override void Get(ref DateTimeOffset value)
                 {
                     Contracts.Assert(!_disposed);
-                    value = new DateTimeOffset(new DateTime(_ticks[_index]), new TimeSpan(_offsets[_index]));
+                    value = new DateTimeOffset(new DateTime(_ticks[_index]), new TimeSpan(_offsets[_index] * TimeSpan.TicksPerMinute));
                 }
 
                 public override void Dispose()
                 {
                     if (!_disposed)
                     {
-                        _codec._longBufferPool.Return(_offsets);
+                        _codec._shortBufferPool.Return(_offsets);
                         _codec._longBufferPool.Return(_ticks);
                         _offsets = null;
                         _ticks = null;

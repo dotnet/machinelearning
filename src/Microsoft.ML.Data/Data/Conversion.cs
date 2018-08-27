@@ -1456,35 +1456,48 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             dst = default;
             if (!src.HasChars)
+            {
+                Contracts.Check(!src.IsNA, "Missing values cannot be converted to boolean value.");
                 return true;
+            }
 
             if (TimeSpan.TryParse(src.ToString(), CultureInfo.InvariantCulture, out dst))
                 return true;
 
-            return IsStdMissing(ref src);
+            Contracts.Check(!IsStdMissing(ref src), "Missing values cannot be converted to boolean value.");
+            return true;
         }
 
         public bool TryParse(ref TX src, out DT dst)
         {
             dst = default;
-            Contracts.Check(src.HasChars, "Missing or empty valyes cannot be converted to boolean value.");
+            if (!src.HasChars)
+            {
+                Contracts.Check(!src.IsNA, "Missing values cannot be converted to boolean value.");
+                return true;
+            }
 
             if (DateTime.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out dst))
                 return true;
 
-            return IsStdMissing(ref src);
+            Contracts.Check(!IsStdMissing(ref src), "Missing values cannot be converted to boolean value.");
+            return true;
         }
 
         public bool TryParse(ref TX src, out DZ dst)
         {
             dst = default;
             if (!src.HasChars)
+            {
+                Contracts.Check(!src.IsNA, "Missing values cannot be converted to boolean value.");
                 return true;
+            }
 
             if (DateTimeOffset.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out dst))
                 return true;
 
-            return IsStdMissing(ref src);
+            Contracts.Check(!IsStdMissing(ref src), "Missing values cannot be converted to boolean value.");
+            return true;
         }
 
         // These map unparsable and overflow values to "NA", which is the value Ix.MinValue. Note that this NA
