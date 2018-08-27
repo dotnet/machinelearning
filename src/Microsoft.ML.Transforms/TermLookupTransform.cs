@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -55,8 +56,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The data file containing the terms", ShortName = "data", SortOrder = 2)]
             public string DataFile;
 
-            [Argument(ArgumentType.Multiple, HelpText = "The data loader", NullName = "<Auto>")]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, HelpText = "The data loader", NullName = "<Auto>", SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the text column containing the terms", ShortName = "term")]
             public string TermColumn;
@@ -343,14 +344,25 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // This method is called if only a datafile is specified, without a loader/term and value columns.
-        // It determines the type of the Value column and returns the appropriate TextLoader subcomponent.
-        private static SubComponent<IDataLoader, SignatureDataLoader> GetLoaderSubComponent(string filename, bool keyValues, IHost host)
+        // It determines the type of the Value column and returns the appropriate TextLoader component factory.
+        private static IComponentFactory<IMultiStreamSource, IDataLoader> GetLoaderFactory(string filename, bool keyValues, IHost host)
         {
             Contracts.AssertValue(host);
 
             // If the user specified non-key values, we define the value column to be numeric.
             if (!keyValues)
-                return new SubComponent<IDataLoader, SignatureDataLoader>("Text", "col=Term:TX:0", "col=Value:Num:1");
+                return ComponentFactoryUtils.CreateFromFunction<IMultiStreamSource, IDataLoader>(
+                    (env, files) => new TextLoader(
+                        env,
+                        new TextLoader.Arguments()
+                        {
+                            Column = new[]
+                            {
+                                new TextLoader.Column("Term", DataKind.TX, 0),
+                                new TextLoader.Column("Value", DataKind.Num, 1)
+                            }
+                        },
+                        files));
 
             // If the user specified key values, we scan the values to determine the range of the key type.
             ulong min = ulong.MaxValue;
@@ -420,15 +432,33 @@ namespace Microsoft.ML.Runtime.Data
                 throw host.Except(e, "Failed to parse the lookup file '{0}' in TermLookupTransform", filename);
             }
 
-            string settings;
+            TextLoader.Column valueColumn = new TextLoader.Column("Value", DataKind.U4, 1);
             if (max - min < (ulong)int.MaxValue)
-                settings = string.Format("col=Value:U4[{0}-{1}]:1", min, max);
+            {
+                valueColumn.KeyRange = new KeyRange(min, max);
+            }
             else if (max - min < (ulong)uint.MaxValue)
-                settings = string.Format("col=Value:U4[{0}-*]:1", min);
+            {
+                valueColumn.KeyRange = new KeyRange(min);
+            }
             else
-                settings = string.Format("col=Value:U8[{0}-*]:1", min);
+            {
+                valueColumn.Type = DataKind.U8;
+                valueColumn.KeyRange = new KeyRange(min);
+            }
 
-            return new SubComponent<IDataLoader, SignatureDataLoader>("Text", "col=Term:TXT:0", settings);
+            return ComponentFactoryUtils.CreateFromFunction<IMultiStreamSource, IDataLoader>(
+                   (env, files) => new TextLoader(
+                       env,
+                       new TextLoader.Arguments()
+                       {
+                           Column = new[]
+                           {
+                                new TextLoader.Column("Term", DataKind.TX, 0),
+                                valueColumn
+                           }
+                       },
+                       files));
         }
 
         // This saves the lookup data as a byte array encoded as a binary .idv file.
@@ -439,7 +469,7 @@ namespace Microsoft.ML.Runtime.Data
             host.AssertValue(args);
 
             string dataFile = args.DataFile;
-            SubComponent<IDataLoader, SignatureDataLoader> loader = args.Loader;
+            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = args.Loader;
             string termColumn;
             string valueColumn;
             if (!string.IsNullOrEmpty(args.TermColumn))
@@ -451,13 +481,13 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 var ext = Path.GetExtension(dataFile);
-                if (loader.IsGood() || string.Equals(ext, ".idv", StringComparison.OrdinalIgnoreCase))
+                if (loaderFactory != null || string.Equals(ext, ".idv", StringComparison.OrdinalIgnoreCase))
                     throw host.ExceptUserArg(nameof(args.TermColumn), "Term and value columns needed.");
-                loader = GetLoaderSubComponent(args.DataFile, args.KeyValues, host);
+                loaderFactory = GetLoaderFactory(args.DataFile, args.KeyValues, host);
                 termColumn = "Term";
                 valueColumn = "Value";
             }
-            return GetBytesOne(host, dataFile, loader, termColumn, valueColumn);
+            return GetBytesOne(host, dataFile, loaderFactory, termColumn, valueColumn);
         }
 
         private static byte[] GetBytesFromDataView(IHost host, IDataView lookup, string termColumn, string valueColumn)
@@ -497,7 +527,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static byte[] GetBytesOne(IHost host, string dataFile, SubComponent<IDataLoader, SignatureDataLoader> sub,
+        private static byte[] GetBytesOne(IHost host, string dataFile, IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory,
             string termColumn, string valueColumn)
         {
             Contracts.AssertValue(host);
@@ -505,7 +535,9 @@ namespace Microsoft.ML.Runtime.Data
             host.AssertNonEmpty(termColumn);
             host.AssertNonEmpty(valueColumn);
 
-            if (!sub.IsGood())
+            IMultiStreamSource fileSource = new MultiFileSource(dataFile);
+            IDataLoader loader;
+            if (loaderFactory == null)
             {
                 // REVIEW: Should there be defaults for loading from text?
                 var ext = Path.GetExtension(dataFile);
@@ -514,11 +546,21 @@ namespace Microsoft.ML.Runtime.Data
                 if (!isBinary && !isTranspose)
                     throw host.ExceptUserArg(nameof(Arguments.Loader), "must specify the loader");
                 host.Assert(isBinary != isTranspose); // One or the other must be true.
-                sub = new SubComponent<IDataLoader, SignatureDataLoader>(isBinary ? "BinaryLoader" : "TransposeLoader");
+                if (isBinary)
+                {
+                    loader = new BinaryLoader(host, new BinaryLoader.Arguments(), fileSource);
+                }
+                else
+                {
+                    loader = new TransposeLoader(host, new TransposeLoader.Arguments(), fileSource);
+                }
             }
-            var ldr = sub.CreateInstance(host, new MultiFileSource(dataFile));
+            else
+            {
+                loader = loaderFactory.CreateComponent(host, fileSource);
+            }
 
-            return GetBytesFromDataView(host, ldr, termColumn, valueColumn);
+            return GetBytesFromDataView(host, loader, termColumn, valueColumn);
         }
 
         private static BinaryLoader GetLoader(IHostEnvironment env, byte[] bytes)

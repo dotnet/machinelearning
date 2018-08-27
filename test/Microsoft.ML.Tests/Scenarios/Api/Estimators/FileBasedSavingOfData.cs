@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Learners;
@@ -33,11 +34,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 using (var file = env.CreateOutputFile("i.idv"))
                     trainData.SaveAsBinary(env, file.CreateWriteStream());
 
-                var trainer = new MySdca(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label");
+                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label");
                 var loadedTrainData = new BinaryLoader(env, new BinaryLoader.Arguments(), new MultiFileSource("i.idv"));
 
                 // Train.
-                var model = trainer.Train(loadedTrainData);
+                var model = trainer.Train(new RoleMappedData(loadedTrainData, DefaultColumnNames.Label, DefaultColumnNames.Features));
                 DeleteOutputPath("i.idv");
             }
         }

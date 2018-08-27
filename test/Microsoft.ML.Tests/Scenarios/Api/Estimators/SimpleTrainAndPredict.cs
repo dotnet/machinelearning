@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var data = reader.Read(new MultiFileSource(dataPath));
                 // Pipeline.
                 var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs())
-                    .Append(new MySdca(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
+                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
 
                 // Train.
                 var model = pipeline.Fit(data);

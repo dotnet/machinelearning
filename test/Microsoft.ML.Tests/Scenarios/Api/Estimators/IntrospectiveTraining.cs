@@ -41,14 +41,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     .Read(new MultiFileSource(dataPath));
 
                 var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs())
-                    .Append(new MySdca(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
+                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
 
                 // Train.
                 var model = pipeline.Fit(data);
 
                 // Get feature weights.
                 VBuffer<float> weights = default;
-                model.LastTransformer.InnerModel.GetFeatureWeights(ref weights);
+                model.LastTransformer.Model.GetFeatureWeights(ref weights);
             }
         }
     }
