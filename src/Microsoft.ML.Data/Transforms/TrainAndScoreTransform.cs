@@ -233,7 +233,7 @@ namespace Microsoft.ML.Runtime.Data
                 string feat;
                 string group;
                 var data = CreateDataFromArgs(ch, input, args, out feat, out group);
-                var predictor = TrainUtils.Train(host, ch, data, trainer, args.Trainer.Kind, null,
+                var predictor = TrainUtils.Train(host, ch, data, trainer, null,
                     args.Calibrator, args.MaxCalibrationExamples, null);
 
                 ch.Done();
