@@ -77,7 +77,7 @@ namespace Microsoft.ML.Scenarios
                 var testDataPath = GetDataPath("MNIST.Test.tiny.txt");
 
                 // Pipeline
-                var loader = new TextLoader(env,
+                IDataLoader loader = new TextLoader(env,
                 new TextLoader.Arguments()
                 {
                     Separator = "tab",
