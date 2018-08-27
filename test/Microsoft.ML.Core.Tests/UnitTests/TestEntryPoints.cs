@@ -426,12 +426,12 @@ namespace Microsoft.ML.Runtime.RunTests
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
 
-                individualScores[i] = CopyColumnsTransformer.Create(Env,
-                    new CopyColumnsTransformer.Arguments()
+                individualScores[i] = CopyColumnsTransform.Create(Env,
+                    new CopyColumnsTransform.Arguments()
                     {
                         Column = new[]
                         {
-                            new CopyColumnsTransformer.Column()
+                            new CopyColumnsTransform.Column()
                             {
                                 Name = MetadataUtils.Const.ScoreValueKind.Score + i,
                                 Source = MetadataUtils.Const.ScoreValueKind.Score
