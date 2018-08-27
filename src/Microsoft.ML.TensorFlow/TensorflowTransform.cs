@@ -36,14 +36,14 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private readonly TFSession _session;
 
-            public readonly string[] InputColNames;
-            public readonly int[] InputColIndices;
-            public readonly bool[] IsVectorInput;
+            private readonly string[] _inputColNames;
+            private readonly int[] _inputColIndices;
+            private readonly bool[] _isVectorInput;
             private readonly TFShape[] _tfInputShapes;
             private readonly TFDataType[] _tfInputTypes;
 
-            public readonly string OutputColName;
-            public readonly ColumnType OutputColType;
+            private readonly string _outputColName;
+            private readonly ColumnType _outputColType;
             private readonly TFDataType _tfOutputType;
 
             public const string LoaderSignature = "TFMapper";
@@ -65,9 +65,9 @@ namespace Microsoft.ML.Transforms
 
                 _session = LoadTFSession(modelBytes, null);
 
-                OutputColName = outputCols;
-                (OutputColType, _tfOutputType) = GetOutputTypes(_session.Graph, OutputColName);
-                (InputColNames, InputColIndices, IsVectorInput, _tfInputShapes, _tfInputTypes) = GetInputMetaData(_session.Graph, inputColNames, inputSchema);
+                _outputColName = outputCols;
+                (_outputColType, _tfOutputType) = GetOutputTypes(_session.Graph, _outputColName);
+                (_inputColNames, _inputColIndices, _isVectorInput, _tfInputShapes, _tfInputTypes) = GetInputMetaData(_session.Graph, inputColNames, inputSchema);
             }
 
             public static TensorFlowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
@@ -105,12 +105,12 @@ namespace Microsoft.ML.Transforms
                 {
                     w.WriteByteArray(buffer.ToArray());
                 });
-                Contracts.AssertNonEmpty(InputColNames);
-                ctx.Writer.Write(InputColNames.Length);
-                foreach (var colName in InputColNames)
+                Contracts.AssertNonEmpty(_inputColNames);
+                ctx.Writer.Write(_inputColNames.Length);
+                foreach (var colName in _inputColNames)
                     ctx.SaveNonEmptyString(colName);
 
-                ctx.SaveNonEmptyString(OutputColName);
+                ctx.SaveNonEmptyString(_outputColName);
             }
 
             private TFSession LoadTFSession(byte[] modelBytes, string modelArg)
@@ -149,11 +149,11 @@ namespace Microsoft.ML.Transforms
 
             private ITensorValueGetter[] GetTensorValueGetters(IRow input)
             {
-                var srcTensorGetters = new ITensorValueGetter[InputColIndices.Length];
-                for (int j = 0; j < InputColIndices.Length; j++)
+                var srcTensorGetters = new ITensorValueGetter[_inputColIndices.Length];
+                for (int j = 0; j < _inputColIndices.Length; j++)
                 {
-                    int colIndex = InputColIndices[j];
-                    srcTensorGetters[j] = CreateTensorValueGetter(input, _tfInputTypes[j], IsVectorInput[j], colIndex, _tfInputShapes[j]);
+                    int colIndex = _inputColIndices[j];
+                    srcTensorGetters[j] = CreateTensorValueGetter(input, _tfInputTypes[j], _isVectorInput[j], colIndex, _tfInputShapes[j]);
                 }
                 return srcTensorGetters;
             }
@@ -161,8 +161,8 @@ namespace Microsoft.ML.Transforms
             private Delegate MakeGetter(IRow input)
             {
                 var type = TFTensor.TypeFromTensorType(_tfOutputType);
-                _host.Assert(type == OutputColType.ItemType.RawType);
-                return Utils.MarshalInvoke(MakeGetter<int>, type, input, OutputColType);
+                _host.Assert(type == _outputColType.ItemType.RawType);
+                return Utils.MarshalInvoke(MakeGetter<int>, type, input, _outputColType);
             }
 
             private Delegate MakeGetter<T>(IRow input, ColumnType columnType)
@@ -175,19 +175,19 @@ namespace Microsoft.ML.Transforms
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                 {
                     var runner = _session.GetRunner();
-                    for (int i = 0; i < InputColIndices.Length; i++)
+                    for (int i = 0; i < _inputColIndices.Length; i++)
                     {
-                        var inputName = InputColNames[i];
+                        var inputName = _inputColNames[i];
                         runner.AddInput(inputName, srcTensorGetters[i].GetTensor());
                     }
 
-                    var tensors = runner.Fetch(OutputColName).Run();
+                    var tensors = runner.Fetch(_outputColName).Run();
 
                     Contracts.Assert(tensors.Length > 0);
 
                     var values = dst.Values;
-                    if (Utils.Size(values) < OutputColType.VectorSize)
-                        values = new T[OutputColType.VectorSize];
+                    if (Utils.Size(values) < _outputColType.VectorSize)
+                        values = new T[_outputColType.VectorSize];
 
                     TensorFlowUtils.FetchData<T>(tensors[0].Data, values);
                     dst = new VBuffer<T>(values.Length, values, dst.Indices);
@@ -210,13 +210,13 @@ namespace Microsoft.ML.Transforms
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                return col => activeOutput(0) && InputColIndices.Any(i => i == col);
+                return col => activeOutput(0) && _inputColIndices.Any(i => i == col);
             }
 
             public RowMapperColumnInfo[] GetOutputColumns()
             {
                 var info = new RowMapperColumnInfo[1];
-                info[0] = new RowMapperColumnInfo(OutputColName, OutputColType, null);
+                info[0] = new RowMapperColumnInfo(_outputColName, _outputColType, null);
                 return info;
             }
 
@@ -240,28 +240,34 @@ namespace Microsoft.ML.Transforms
                 var colNames = new string[source.Length];
                 var inputColIndices = new int[source.Length];
                 var isInputVector = new bool[source.Length];
-                for (int j = 0; j < source.Length; j++)
+                for (int i = 0; i < source.Length; i++)
                 {
-                    colNames[j] = source[j];
-                    if (!inputSchema.TryGetColumnIndex(colNames[j], out inputColIndices[j]))
-                        throw Contracts.Except($"Column '{colNames[j]}' does not exist");
+                    colNames[i] = source[i];
+                    if (!inputSchema.TryGetColumnIndex(colNames[i], out inputColIndices[i]))
+                        throw Contracts.Except($"Column '{colNames[i]}' does not exist");
 
-                    isInputVector[j] = inputSchema.GetColumnType(inputColIndices[j]).IsVector;
-
-                    var tfoutput = new TFOutput(graph[colNames[j]]);
-
+                    var tfoutput = new TFOutput(graph[colNames[i]]);
                     if (!TensorFlowUtils.IsTypeSupported(tfoutput.OutputType))
-                        throw Contracts.Except($"Input type '{tfoutput.OutputType}' of input column '{colNames[j]}' is not supported in TensorFlow");
+                        throw Contracts.Except($"Input type '{tfoutput.OutputType}' of input column '{colNames[i]}' is not supported in TensorFlow");
 
-                    tfShapes[j] = graph.GetTensorShape(tfoutput);
-                    tfTypes[j] = tfoutput.OutputType;
+                    tfShapes[i] = graph.GetTensorShape(tfoutput);
+                    var type = inputSchema.GetColumnType(inputColIndices[i]);
+                    var shape = tfShapes[i].ToIntArray();
+                    int valCount = 1;
+                    for (int j = 1; j < shape.Length; j++)
+                        valCount *= shape[j];
+                    if (type.ValueCount != valCount)
+                        throw Contracts.Except($"The size of model input '{colNames[i]}' does not match its size in the input data.");
+                    isInputVector[i] = type.IsVector;
 
-                    var l = new long[tfShapes[j].NumDimensions];
-                    for (int ishape = 0; ishape < tfShapes[j].NumDimensions; ishape++)
+                    tfTypes[i] = tfoutput.OutputType;
+
+                    var l = new long[tfShapes[i].NumDimensions];
+                    for (int ishape = 0; ishape < tfShapes[i].NumDimensions; ishape++)
                     {
-                        l[ishape] = tfShapes[j][ishape] == -1 ? 1 : tfShapes[j][ishape];
+                        l[ishape] = tfShapes[i][ishape] == -1 ? 1 : tfShapes[i][ishape];
                     }
-                    tfShapes[j] = new TFShape(l);
+                    tfShapes[i] = new TFShape(l);
                 }
                 return (colNames, inputColIndices, isInputVector, tfShapes, tfTypes);
             }

@@ -18,9 +18,12 @@ namespace Microsoft.ML.Scenarios
     {
         private class TestData
         {
+            [VectorType(4)]
             public float[] a;
+            [VectorType(4)]
             public float[] b;
         }
+
         [Fact]
         public void TensorFlowTransformMatrixMultiplicationTest()
         {
