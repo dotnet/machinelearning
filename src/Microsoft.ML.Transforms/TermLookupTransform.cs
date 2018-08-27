@@ -352,7 +352,7 @@ namespace Microsoft.ML.Runtime.Data
             // If the user specified non-key values, we define the value column to be numeric.
             if (!keyValues)
                 return ComponentFactoryUtils.CreateFromFunction<IMultiStreamSource, IDataLoader>(
-                    (env, files) => new TextLoader(
+                    (env, files) => TextLoader.Create(
                         env,
                         new TextLoader.Arguments()
                         {
@@ -448,7 +448,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             return ComponentFactoryUtils.CreateFromFunction<IMultiStreamSource, IDataLoader>(
-                   (env, files) => new TextLoader(
+                   (env, files) => TextLoader.Create(
                        env,
                        new TextLoader.Arguments()
                        {
