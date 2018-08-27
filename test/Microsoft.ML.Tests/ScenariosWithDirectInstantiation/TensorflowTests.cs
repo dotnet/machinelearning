@@ -170,10 +170,10 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
-        [Fact(Skip = "Fails in Input name")]
+        [Fact(Skip = "Skip till we figure out why false positive (H=28, W=28) passes")]
         public void TensorflowTransformCifar()
         {
-            var model_location =  GetDataPath("cifar_convnet_model/frozen_graph.pb");
+            var model_location =  GetDataPath("cifar_save8/frozen_model.pb");
 
             using (var env = new TlcEnvironment())
             {
@@ -200,24 +200,24 @@ namespace Microsoft.ML.Scenarios
                 var pixels = new ImagePixelExtractorTransform(env, new ImagePixelExtractorTransform.Arguments()
                 {
                     Column = new ImagePixelExtractorTransform.Column[1]{
-                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "global_step", UseAlpha=true}
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=true}
                     }
                 }, cropped);
 
 
-                IDataView trans = TensorflowTransform.Create(env, pixels, model_location, "softmax_tensor", "global_step");
+                IDataView trans = TensorflowTransform.Create(env, pixels, model_location, "Output", "Input");
 
-                //trans.Schema.TryGetColumnIndex("myOutput:0", out int output);
-                //using (var cursor = trans.GetRowCursor(col => col == output))
-                //{
-                //    var buffer = default(VBuffer<float>);
-                //    var getter = cursor.GetGetter<VBuffer<float>>(output);
-                //    while (cursor.MoveNext())
-                //    {
-                //        getter(ref buffer);
-                //        System.Console.WriteLine($"buffer length={buffer.Length}, values={buffer.Values}");
-                //    }
-                //}
+                trans.Schema.TryGetColumnIndex("Output", out int output);
+                using (var cursor = trans.GetRowCursor(col => col == output))
+                {
+                    var buffer = default(VBuffer<float>);
+                    var getter = cursor.GetGetter<VBuffer<float>>(output);
+                    while (cursor.MoveNext())
+                    {
+                        getter(ref buffer);
+                        Assert.Equal(10, buffer.Length);
+                    }
+                }
             }
         }
     }
