@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             //   byte: scaling kind
 
             int cbFloat = ctx.Reader.ReadInt32();
-            ch.CheckDecode(cbFloat == sizeof(Single));
+            _host.CheckDecode(cbFloat == sizeof(Single));
 
             int n = ctx.Reader.ReadInt32();
 
@@ -245,56 +245,52 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
         }
 
-        public static ImageResizerTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
-            ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model",
-                ch =>
-                {
-                    // *** Binary format ***
-                    // int: sizeof(Float)
-                    // <remainder handled in ctors>
-                    return new ImageResizerTransform(h, ctx, input);
-                });
+            env.CheckValue(ctx, nameof(ctx));
+            env.CheckValue(input, nameof(input));
+
+            var transformer = new ImageResizerTransform(env, ctx);
+            return new RowToRowMapperTransform(env, input, transformer.MakeRowMapper(input.Schema));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        public void Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: sizeof(Float)
-            // <base>
+            // int: sizeof(float)
+            // int: number of added columns
+            // for each added column
+            //   int: id of output column name
+            //   int: id of input column name
+
             // for each added column
             //   int: width
             //   int: height
             //   byte: scaling kind
-            ctx.Writer.Write(sizeof(Single));
-            SaveBase(ctx);
 
-            _host.Assert(_columns.Length == Infos.Length);
+            ctx.Writer.Write(sizeof(Single));
+
+            ctx.Writer.Write(_columns.Length);
             for (int i = 0; i < _columns.Length; i++)
             {
-                var ex = _columns[i];
-                ctx.Writer.Write(ex.Width);
-                ctx.Writer.Write(ex.Height);
-                _host.Assert((ResizingKind)(byte)ex.Scale == ex.Scale);
-                ctx.Writer.Write((byte)ex.Scale);
-                _host.Assert((Anchor)(byte)ex.Anchor == ex.Anchor);
-                ctx.Writer.Write((byte)ex.Anchor);
+                ctx.SaveNonEmptyString(_columns[i].Output);
+                ctx.SaveNonEmptyString(_columns[i].Input);
             }
-        }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            _host.Check(0 <= iinfo && iinfo < Infos.Length);
-            return _columns[iinfo].Type;
+            foreach (var col in _columns)
+            {
+                ctx.Writer.Write(col.Width);
+                ctx.Writer.Write(col.Height);
+                _host.Assert((ResizingKind)(byte)col.Scale == col.Scale);
+                ctx.Writer.Write((byte)col.Scale);
+                _host.Assert((Anchor)(byte)col.Anchor == col.Anchor);
+                ctx.Writer.Write((byte)col.Anchor);
+            }
         }
 
         protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
@@ -414,6 +410,16 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 };
 
             return del;
+        }
+
+        public ISchema GetOutputSchema(ISchema inputSchema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataView Transform(IDataView input)
+        {
+            throw new NotImplementedException();
         }
     }
 }
