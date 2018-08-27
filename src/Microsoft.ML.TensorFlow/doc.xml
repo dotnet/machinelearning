@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <members>
+    
+    <member name="TensorflowTransform">
+      <summary>
+        Extracts hidden layers' values from a pre-trained Tensorflow model.
+      </summary>
+      <remarks>
+        The TensorflowTransform extracts the specified output from the operation computed on the graph (given the input(s)) using a pre-trained <a href="https://www.tensorflow.org">Tensorflow</a> model.
+        The transform takes an input the tensorflow model together with the names of inputs to the model and name of operation for which output values has to extracted from the model.
+      </remarks>
+    </member>
+    <example name="TensorflowTransform">
+      <example>
+        <code language="csharp">
+          pipeline.Add(new TensorFlowScorer()
+          {
+            ModelFile = &quot;path&quot;;
+            InputColumns = new []{&quot;input1&quot;, &quot;input2&quot; ... };
+            OutputColumn = &quot;output&quot;
+          }
+        </code>
+      </example>
+    </example>
+    
+  </members>
+</doc>
