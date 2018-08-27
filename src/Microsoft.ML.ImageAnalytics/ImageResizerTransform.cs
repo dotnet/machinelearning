@@ -172,7 +172,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         // Public constructor corresponding to SignatureDataTransform.
-        public IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
             int n = ctx.Reader.ReadInt32();
 
-            var names = new (string input, string output)[n];
+            var names = new(string input, string output)[n];
             for (int i = 0; i < n; i++)
             {
                 var output = ctx.LoadNonEmptyString();
@@ -255,9 +255,11 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return new RowToRowMapperTransform(env, input, transformer.MakeRowMapper(input.Schema));
         }
 
-        public void Save(ModelSaveContext ctx)
+        public void Save(ModelSaveContext ctx) => SaveContents(_host, ctx, _columns);
+
+        private static void SaveContents(IHostEnvironment env, ModelSaveContext ctx, ColumnInfo[] columns)
         {
-            _host.CheckValue(ctx, nameof(ctx));
+            env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
@@ -275,151 +277,228 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
             ctx.Writer.Write(sizeof(Single));
 
-            ctx.Writer.Write(_columns.Length);
-            for (int i = 0; i < _columns.Length; i++)
+            ctx.Writer.Write(columns.Length);
+            for (int i = 0; i < columns.Length; i++)
             {
-                ctx.SaveNonEmptyString(_columns[i].Output);
-                ctx.SaveNonEmptyString(_columns[i].Input);
+                ctx.SaveNonEmptyString(columns[i].Output);
+                ctx.SaveNonEmptyString(columns[i].Input);
             }
 
-            foreach (var col in _columns)
+            foreach (var col in columns)
             {
                 ctx.Writer.Write(col.Width);
                 ctx.Writer.Write(col.Height);
-                _host.Assert((ResizingKind)(byte)col.Scale == col.Scale);
+                env.Assert((ResizingKind)(byte)col.Scale == col.Scale);
                 ctx.Writer.Write((byte)col.Scale);
-                _host.Assert((Anchor)(byte)col.Anchor == col.Anchor);
+                env.Assert((Anchor)(byte)col.Anchor == col.Anchor);
                 ctx.Writer.Write((byte)col.Anchor);
             }
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            _host.AssertValueOrNull(ch);
-            _host.AssertValue(input);
-            _host.Assert(0 <= iinfo && iinfo < Infos.Length);
-
-            var src = default(Bitmap);
-            var getSrc = GetSrcGetter<Bitmap>(input, iinfo);
-            var ex = _columns[iinfo];
-
-            disposer =
-                () =>
-                {
-                    if (src != null)
-                    {
-                        src.Dispose();
-                        src = null;
-                    }
-                };
-
-            ValueGetter<Bitmap> del =
-                (ref Bitmap dst) =>
-                {
-                    if (dst != null)
-                        dst.Dispose();
-
-                    getSrc(ref src);
-                    if (src == null || src.Height <= 0 || src.Width <= 0)
-                        return;
-                    if (src.Height == ex.Height && src.Width == ex.Width)
-                    {
-                        dst = src;
-                        return;
-                    }
-
-                    int sourceWidth = src.Width;
-                    int sourceHeight = src.Height;
-                    int sourceX = 0;
-                    int sourceY = 0;
-                    int destX = 0;
-                    int destY = 0;
-                    int destWidth = 0;
-                    int destHeight = 0;
-                    float aspect = 0;
-                    float widthAspect = 0;
-                    float heightAspect = 0;
-
-                    widthAspect = (float)ex.Width / sourceWidth;
-                    heightAspect = (float)ex.Height / sourceHeight;
-
-                    if (ex.Scale == ResizingKind.IsoPad)
-                    {
-                        widthAspect = (float)ex.Width / sourceWidth;
-                        heightAspect = (float)ex.Height / sourceHeight;
-                        if (heightAspect < widthAspect)
-                        {
-                            aspect = heightAspect;
-                            destX = (int)((ex.Width - (sourceWidth * aspect)) / 2);
-                        }
-                        else
-                        {
-                            aspect = widthAspect;
-                            destY = (int)((ex.Height - (sourceHeight * aspect)) / 2);
-                        }
-
-                        destWidth = (int)(sourceWidth * aspect);
-                        destHeight = (int)(sourceHeight * aspect);
-                    }
-                    else
-                    {
-                        if (heightAspect < widthAspect)
-                        {
-                            aspect = widthAspect;
-                            switch (ex.Anchor)
-                            {
-                                case Anchor.Top:
-                                    destY = 0;
-                                    break;
-                                case Anchor.Bottom:
-                                    destY = (int)(ex.Height - (sourceHeight * aspect));
-                                    break;
-                                default:
-                                    destY = (int)((ex.Height - (sourceHeight * aspect)) / 2);
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            aspect = heightAspect;
-                            switch (ex.Anchor)
-                            {
-                                case Anchor.Left:
-                                    destX = 0;
-                                    break;
-                                case Anchor.Right:
-                                    destX = (int)(ex.Width - (sourceWidth * aspect));
-                                    break;
-                                default:
-                                    destX = (int)((ex.Width - (sourceWidth * aspect)) / 2);
-                                    break;
-                            }
-                        }
-
-                        destWidth = (int)(sourceWidth * aspect);
-                        destHeight = (int)(sourceHeight * aspect);
-                    }
-                    dst = new Bitmap(ex.Width, ex.Height);
-                    var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
-                    var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
-                    using (var g = Graphics.FromImage(dst))
-                    {
-                        g.DrawImage(src, destRectangle, srcRectangle, GraphicsUnit.Pixel);
-                    }
-                    _host.Assert(dst.Width == ex.Width && dst.Height == ex.Height);
-                };
-
-            return del;
-        }
-
         public ISchema GetOutputSchema(ISchema inputSchema)
         {
-            throw new NotImplementedException();
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+
+            return Transform(new EmptyDataView(_host, inputSchema)).Schema;
         }
 
         public IDataView Transform(IDataView input)
         {
-            throw new NotImplementedException();
+            var mapper = MakeRowMapper(input.Schema);
+            return new RowToRowMapperTransform(_host, input, mapper);
         }
+
+        private IRowMapper MakeRowMapper(ISchema schema)
+            => new Mapper(_host, _columns, schema);
+
+        private static void CheckInput(IExceptionContext ctx, ISchema inputSchema, string input, out int srcCol)
+        {
+            Contracts.AssertValueOrNull(ctx);
+            Contracts.AssertValue(inputSchema);
+            Contracts.AssertNonEmpty(input);
+
+            if (!inputSchema.TryGetColumnIndex(input, out srcCol))
+                throw ctx.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
+            if (inputSchema.GetColumnType(srcCol) is ImageType)
+                throw ctx.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "image", inputSchema.GetColumnType(srcCol).ToString());
+        }
+
+        internal sealed class Mapper : IRowMapper
+        {
+            private readonly IHost _host;
+            private readonly ColumnInfo[] _columns;
+            private readonly ISchema _inputSchema;
+            private readonly Dictionary<int, int> _colMapNewToOld;
+
+            public Mapper(IHostEnvironment env, ColumnInfo[] columns, ISchema inputSchema)
+            {
+                Contracts.AssertValue(env);
+                _host = env.Register(nameof(Mapper));
+                _host.AssertValue(columns);
+                _host.AssertValue(inputSchema);
+
+                _colMapNewToOld = new Dictionary<int, int>();
+                for (int i = 0; i < columns.Length; i++)
+                {
+                    CheckInput(_host, inputSchema, columns[i].Input, out int srcCol);
+                    _colMapNewToOld.Add(i, srcCol);
+                }
+                _columns = columns;
+                _inputSchema = inputSchema;
+            }
+
+            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            {
+                _host.Assert(input.Schema == _inputSchema);
+                var result = new Delegate[_columns.Length];
+                var disposers = new Action[_columns.Length];
+                for (int i = 0; i < _columns.Length; i++)
+                {
+                    if (!activeOutput(i))
+                        continue;
+                    int srcCol = _colMapNewToOld[i];
+                    result[i] = MakeGetter(input, i, out disposers[i]);
+                }
+                disposer = () =>
+                {
+                    foreach (var act in disposers)
+                        act();
+                };
+                return result;
+            }
+
+            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            {
+                var active = new bool[_inputSchema.ColumnCount];
+                foreach (var pair in _colMapNewToOld)
+                    if (activeOutput(pair.Key))
+                        active[pair.Value] = true;
+                return col => active[col];
+            }
+
+            public RowMapperColumnInfo[] GetOutputColumns()
+                => _columns.Select(x => new RowMapperColumnInfo(x.Output, x.Type, null)).ToArray();
+
+            public void Save(ModelSaveContext ctx) => SaveContents(_host, ctx, _columns);
+
+            private Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                _host.AssertValue(input);
+                _host.Assert(0 <= iinfo && iinfo < _columns.Length);
+
+                var src = default(Bitmap);
+                var getSrc = input.GetGetter<Bitmap>(_colMapNewToOld[iinfo]);
+                var ex = _columns[iinfo];
+
+                disposer =
+                    () =>
+                    {
+                        if (src != null)
+                        {
+                            src.Dispose();
+                            src = null;
+                        }
+                    };
+
+                ValueGetter<Bitmap> del =
+                    (ref Bitmap dst) =>
+                    {
+                        if (dst != null)
+                            dst.Dispose();
+
+                        getSrc(ref src);
+                        if (src == null || src.Height <= 0 || src.Width <= 0)
+                            return;
+                        if (src.Height == ex.Height && src.Width == ex.Width)
+                        {
+                            dst = src;
+                            return;
+                        }
+
+                        int sourceWidth = src.Width;
+                        int sourceHeight = src.Height;
+                        int sourceX = 0;
+                        int sourceY = 0;
+                        int destX = 0;
+                        int destY = 0;
+                        int destWidth = 0;
+                        int destHeight = 0;
+                        float aspect = 0;
+                        float widthAspect = 0;
+                        float heightAspect = 0;
+
+                        widthAspect = (float)ex.Width / sourceWidth;
+                        heightAspect = (float)ex.Height / sourceHeight;
+
+                        if (ex.Scale == ResizingKind.IsoPad)
+                        {
+                            widthAspect = (float)ex.Width / sourceWidth;
+                            heightAspect = (float)ex.Height / sourceHeight;
+                            if (heightAspect < widthAspect)
+                            {
+                                aspect = heightAspect;
+                                destX = (int)((ex.Width - (sourceWidth * aspect)) / 2);
+                            }
+                            else
+                            {
+                                aspect = widthAspect;
+                                destY = (int)((ex.Height - (sourceHeight * aspect)) / 2);
+                            }
+
+                            destWidth = (int)(sourceWidth * aspect);
+                            destHeight = (int)(sourceHeight * aspect);
+                        }
+                        else
+                        {
+                            if (heightAspect < widthAspect)
+                            {
+                                aspect = widthAspect;
+                                switch (ex.Anchor)
+                                {
+                                    case Anchor.Top:
+                                        destY = 0;
+                                        break;
+                                    case Anchor.Bottom:
+                                        destY = (int)(ex.Height - (sourceHeight * aspect));
+                                        break;
+                                    default:
+                                        destY = (int)((ex.Height - (sourceHeight * aspect)) / 2);
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                aspect = heightAspect;
+                                switch (ex.Anchor)
+                                {
+                                    case Anchor.Left:
+                                        destX = 0;
+                                        break;
+                                    case Anchor.Right:
+                                        destX = (int)(ex.Width - (sourceWidth * aspect));
+                                        break;
+                                    default:
+                                        destX = (int)((ex.Width - (sourceWidth * aspect)) / 2);
+                                        break;
+                                }
+                            }
+
+                            destWidth = (int)(sourceWidth * aspect);
+                            destHeight = (int)(sourceHeight * aspect);
+                        }
+                        dst = new Bitmap(ex.Width, ex.Height);
+                        var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
+                        var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
+                        using (var g = Graphics.FromImage(dst))
+                        {
+                            g.DrawImage(src, destRectangle, srcRectangle, GraphicsUnit.Pixel);
+                        }
+                        _host.Assert(dst.Width == ex.Width && dst.Height == ex.Height);
+                    };
+
+                return del;
+            }
+        }
+
     }
 }
