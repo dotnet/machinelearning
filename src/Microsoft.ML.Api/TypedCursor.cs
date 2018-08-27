@@ -279,11 +279,6 @@ namespace Microsoft.ML.Runtime.Api
                         Ch.Assert(colType.ItemType.IsText);
                         return CreateConvertingVBufferSetter<DvText, string>(input, index, poke, peek, x => x.ToString());
                     }
-                    else if (fieldType.GetElementType() == typeof(bool))
-                    {
-                        Ch.Assert(colType.ItemType.IsBool);
-                        return CreateConvertingVBufferSetter<bool, bool>(input, index, poke, peek, x => x);
-                    }
                     else if (fieldType.GetElementType() == typeof(int))
                     {
                         Ch.Assert(colType.ItemType == NumberType.I4);
@@ -351,12 +346,6 @@ namespace Microsoft.ML.Runtime.Api
                         Ch.Assert(colType.IsText);
                         Ch.Assert(peek == null);
                         return CreateConvertingActionSetter<DvText, string>(input, index, poke, x => x.ToString());
-                    }
-                    else if (fieldType == typeof(bool))
-                    {
-                        Ch.Assert(colType.IsBool);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<bool, bool>(input, index, poke, x => x);
                     }
                     else if (fieldType == typeof(int))
                     {

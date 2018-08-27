@@ -367,21 +367,18 @@ namespace Microsoft.ML.Runtime.Data
                 indices.Add(srcLength);
 
                 int ii = 0;
-                // Assigns values correctly depending on the sense.
-                bool hit = sense;
-                bool miss = !sense;
                 for (int i = 0; i < srcLength; i++)
                 {
                     Host.Assert(0 <= i && i <= indices[ii]);
                     if (i == indices[ii])
                     {
-                        dstValues[i] = hit;
+                        dstValues[i] = sense;
                         ii++;
                         Host.Assert(ii < indices.Count);
                         Host.Assert(indices[ii - 1] < indices[ii]);
                     }
                     else
-                        dstValues[i] = miss;
+                        dstValues[i] = !sense;
                 }
 
                 dst = new VBuffer<bool>(srcLength, dstValues, dstIndices);

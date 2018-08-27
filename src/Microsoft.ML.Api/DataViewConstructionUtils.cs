@@ -171,11 +171,6 @@ namespace Microsoft.ML.Runtime.Api
                             Ch.Assert(colType.ItemType == NumberType.I1);
                             return CreateConvertingArrayGetterDelegate<sbyte?, DvInt1>(index, x => x ?? DvInt1.NA);
                         }
-                        else if (outputType.GetElementType() == typeof(bool))
-                        {
-                            Ch.Assert(colType.ItemType.IsBool);
-                            return CreateConvertingArrayGetterDelegate<bool, bool>(index, x => x);
-                        }
 
                         // T[] -> VBuffer<T>
                         if (outputType.GetElementType().IsGenericType && outputType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
@@ -202,12 +197,6 @@ namespace Microsoft.ML.Runtime.Api
                             // String -> DvText
                             Ch.Assert(colType.IsText);
                             return CreateConvertingGetterDelegate<String, DvText>(index, x => x == null ? DvText.NA : new DvText(x));
-                        }
-                        else if (outputType == typeof(bool))
-                        {
-                            // Bool -> Bool.
-                            Ch.Assert(colType.IsBool);
-                            return CreateConvertingGetterDelegate<bool, bool>(index, x => x);
                         }
                         else if (outputType == typeof(int))
                         {

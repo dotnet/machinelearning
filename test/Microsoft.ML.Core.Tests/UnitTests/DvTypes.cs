@@ -51,13 +51,13 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(values[1].IsNA);
             Assert.True(values[2].IsEmpty);
 
-            Assert.True((values[0] == values[1]).IsNA);
-            Assert.True((values[0] != values[1]).IsNA);
+            Assert.True(!(values[0] == values[1]));
+            Assert.True(!(values[0] != values[1]));
             Assert.True(values[0].Equals(values[1]));
             Assert.True(values[0].CompareTo(values[1]) == 0);
 
-            Assert.True((values[1] == values[2]).IsNA);
-            Assert.True((values[1] != values[2]).IsNA);
+            Assert.True(!(values[1] == values[2]));
+            Assert.True(!(values[1] != values[2]));
             Assert.True(!values[1].Equals(values[2]));
             Assert.True(values[1].CompareTo(values[2]) < 0);
         }

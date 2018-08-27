@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.ML.Runtime.Data.Conversion
 {
@@ -1033,7 +1032,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             ClearDst(ref dst);
             if (!src)
                 dst.Append("0");
-            else if (src)
+            else
                 dst.Append("1");
         }
         public void Convert(ref TS src, ref SB dst) { ClearDst(ref dst); if (!src.IsNA) dst.AppendFormat("{0:c}", (TimeSpan)src); }
