@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             Int64 = 3
         }
 
-        private const string DllName = "lib_lightgbm";
+        private const string DllName = "Lightgbm";
 
         #region API Array
 
