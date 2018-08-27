@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(IrisDataPath);
             using (var env = new TlcEnvironment())
             {
-                var loader = new TextLoader(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 Action<IrisData, IrisData> action = (i, j) =>
                 {
                     j.Label = i.Label;
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var keyToValue = new KeyToValueTransform(env, scorer, "PredictedLabel");
                 var model = env.CreatePredictionEngine<IrisData, IrisPrediction>(keyToValue);
 
-                var testLoader = new TextLoader(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 var testData = testLoader.AsEnumerable<IrisData>(env, false);
                 foreach (var input in testData.Take(20))
                 {

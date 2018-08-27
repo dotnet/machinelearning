@@ -27,11 +27,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
-                // Pipeline.
-                var pipeline = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()));
-
-                var trainData = pipeline.Fit(new MultiFileSource(dataPath)).Read(new MultiFileSource(dataPath));
+                var trainData = new TextLoader(env, MakeSentimentTextLoaderArgs())
+                    .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()))
+                    .FitAndRead(new MultiFileSource(dataPath));
 
                 using (var file = env.CreateOutputFile("i.idv"))
                     trainData.SaveAsBinary(env, file.CreateWriteStream());
