@@ -1467,8 +1467,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParse(ref TX src, out DT dst)
         {
             dst = default;
-            if (!src.HasChars)
-                return true;
+            Contracts.Check(src.HasChars, "Missing or empty valyes cannot be converted to boolean value.");
 
             if (DateTime.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out dst))
                 return true;

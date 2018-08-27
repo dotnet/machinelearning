@@ -188,7 +188,7 @@ namespace Microsoft.ML.Data
                 kind = DataKind.TS;
             else if (type == typeof(DateTime))
                 kind = DataKind.DT;
-            else if (type == typeof(DateTimeOffset) || type == typeof(TimeZoneInfo))
+            else if (type == typeof(DateTimeOffset))
                 kind = DataKind.DZ;
             else if (type == typeof(UInt128))
                 kind = DataKind.UG;

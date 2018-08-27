@@ -120,47 +120,38 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Whether this type is the standard timespan type.
+        /// Whether this type is the standard <see cref="TimeSpan"/> type.
         /// </summary>
         public bool IsTimeSpan
         {
             get
             {
-                if (!(this is TimeSpanType))
-                    return false;
-                // TimeSpanType is a singleton.
-                Contracts.Assert(this == TimeSpanType.Instance);
-                return true;
+                Contracts.Assert((this == TimeSpanType.Instance) == (this is TimeSpanType));
+                return this is TimeSpanType;
             }
         }
 
         /// <summary>
-        /// Whether this type is a DateTime.
+        /// Whether this type is a <see cref="DateTime"/>.
         /// </summary>
         public bool IsDateTime
         {
             get
             {
-                if (!(this is DateTimeType))
-                    return false;
-                // DateTimeType is a singleton.
-                Contracts.Assert(this == DateTimeType.Instance);
-                return true;
+                Contracts.Assert((this == DateTimeType.Instance) == (this is DateTimeType));
+                return this is DateTimeType;
             }
         }
 
         /// <summary>
-        /// Whether this type is a DateTimeOffset.
+        /// Whether this type is a <see cref="DateTimeOffset"/>
         /// </summary>
         public bool IsDateTimeZone
         {
             get
             {
-                if (!(this is DateTimeOffsetType))
-                    return false;
-                // DateTimeOffsetType is a singleton.
-                Contracts.Assert(this == DateTimeOffsetType.Instance);
-                return true;
+                Contracts.Assert((this == DateTimeOffsetType.Instance) == (this is DateTimeOffsetType));
+                return this is DateTimeOffsetType;
             }
         }
 
