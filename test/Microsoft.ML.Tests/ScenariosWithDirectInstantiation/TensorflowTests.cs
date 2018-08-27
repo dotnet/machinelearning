@@ -170,9 +170,8 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
-<<<<<<< HEAD
         [Fact(Skip = "Skip till we figure out why false positive (H=28, W=28) passes")]
-        public void TensorflowTransformCifar()
+        public void TensorFlowTransformCifar()
         {
             var model_location =  GetDataPath("cifar_save8/frozen_model.pb");
 
@@ -206,7 +205,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorflowTransform.Create(env, pixels, model_location, "Output", "Input");
+                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, "Output", "Input");
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
