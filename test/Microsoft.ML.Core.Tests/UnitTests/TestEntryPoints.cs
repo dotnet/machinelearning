@@ -426,7 +426,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
 
-                individualScores[i] = new CopyColumnsTransform(Env,
+                individualScores[i] = CopyColumnsTransform.Create(Env,
                     new CopyColumnsTransform.Arguments()
                     {
                         Column = new[]

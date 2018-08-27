@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(IrisDataPath);
             using (var env = new TlcEnvironment())
             {
-                var loader = new TextLoader(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 var term = new TermTransform(env, loader, "Label");
                 var concat = new ConcatTransform(env, term, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
                 var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var keyToValue = new KeyToValueTransform(env, newScorer, "PredictedLabel");
                 var model = env.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(keyToValue);
 
-                var testLoader = new TextLoader(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 var testData = testLoader.AsEnumerable<IrisDataNoLabel>(env, false);
                 foreach (var input in testData.Take(20))
                 {

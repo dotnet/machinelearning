@@ -35,9 +35,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public const string LoaderSignature = "LoaderWrapper";
 
         private readonly IHostEnvironment _env;
-        private readonly Func<IMultiStreamSource, IDataLoader> _loaderFactory;
+        private readonly Func<IMultiStreamSource, IDataView> _loaderFactory;
 
-        public LoaderWrapper(IHostEnvironment env, Func<IMultiStreamSource, IDataLoader> loaderFactory)
+        public LoaderWrapper(IHostEnvironment env, Func<IMultiStreamSource, IDataView> loaderFactory)
         {
             _env = env;
             _loaderFactory = loaderFactory;
@@ -222,29 +222,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             var scorer = _xf as IDataScorerTransform;
             return new BinaryScorerWrapper<TModel>(_env, Model, scorer.Source.Schema, _featureColumn, scorerArgs);
-        }
-    }
-
-    public class MyTextLoader : IDataReaderEstimator<IMultiStreamSource, LoaderWrapper>
-    {
-        private readonly TextLoader.Arguments _args;
-        private readonly IHostEnvironment _env;
-
-        public MyTextLoader(IHostEnvironment env, TextLoader.Arguments args)
-        {
-            _env = env;
-            _args = args;
-        }
-
-        public LoaderWrapper Fit(IMultiStreamSource input)
-        {
-            return new LoaderWrapper(_env, x => new TextLoader(_env, _args, x));
-        }
-
-        public SchemaShape GetOutputSchema()
-        {
-            var emptyData = new TextLoader(_env, _args, new MultiFileSource(null));
-            return SchemaShape.Create(emptyData.Schema);
         }
     }
 
