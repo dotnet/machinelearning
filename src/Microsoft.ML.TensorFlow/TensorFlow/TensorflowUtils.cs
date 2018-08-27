@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {
-    internal partial class TensorflowUtils
+    internal partial class TensorFlowUtils
     {
         internal static PrimitiveType Tf2MlNetType(TFDataType type)
         {
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 case TFDataType.String:
                     return TextType.Instance;
                 default:
-                    throw new NotSupportedException("Tensorflow type not supported.");
+                    throw new NotSupportedException("TensorFlow type not supported.");
             }
         }
 
