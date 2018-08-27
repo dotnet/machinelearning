@@ -14,25 +14,25 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
 
-[assembly: LoadableClass(TensorflowTransform.Summary, typeof(IDataTransform), typeof(TensorflowTransform.Arguments), typeof(SignatureDataTransform),
-    TensorflowTransform.UserName, TensorflowTransform.ShortName)]
+[assembly: LoadableClass(TensorFlowTransform.Summary, typeof(IDataTransform), typeof(TensorFlowTransform.Arguments), typeof(SignatureDataTransform),
+    TensorFlowTransform.UserName, TensorFlowTransform.ShortName)]
 
 // This is for de-serialization from a binary model file.
-[assembly: LoadableClass(typeof(TensorflowTransform.TensorFlowMapper), null, typeof(SignatureLoadRowMapper),
-    "", TensorflowTransform.TensorFlowMapper.LoaderSignature)]
+[assembly: LoadableClass(typeof(TensorFlowTransform.TensorFlowMapper), null, typeof(SignatureLoadRowMapper),
+    "", TensorFlowTransform.TensorFlowMapper.LoaderSignature)]
 
-[assembly: EntryPointModule(typeof(TensorflowTransform))]
+[assembly: EntryPointModule(typeof(TensorFlowTransform))]
 
 namespace Microsoft.ML.Transforms
 {
-    public static class TensorflowTransform
+    public static class TensorFlowTransform
     {
         internal sealed class TensorFlowMapper : IRowMapper
         {
             private readonly IHost _host;
 
             /// <summary>
-            /// Tensorflow session object
+            /// TensorFlow session object
             /// </summary>
             private readonly TFSession _session;
 
@@ -189,8 +189,8 @@ namespace Microsoft.ML.Transforms
                     if (Utils.Size(values) < OutputColType.VectorSize)
                         values = new T[OutputColType.VectorSize];
 
-                    TensorflowUtils.FetchData<T>(tensors[0].Data, values);
-                    dst = new VBuffer<T>(values.Length, values);
+                    TensorFlowUtils.FetchData<T>(tensors[0].Data, values);
+                    dst = new VBuffer<T>(values.Length, values, dst.Indices);
                 };
                 return valuegetter;
             }
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms
                 for (int k = 0; k < shape.NumDimensions; k++)
                     dims[k] = (int)(shape[k] == -1 ? 1 : shape[k]);
 
-                var type = TensorflowUtils.Tf2MlNetType(tfoutput.OutputType);
+                var type = TensorFlowUtils.Tf2MlNetType(tfoutput.OutputType);
                 return (new VectorType(type, dims), tfoutput.OutputType);
             }
 
@@ -250,8 +250,8 @@ namespace Microsoft.ML.Transforms
 
                     var tfoutput = new TFOutput(graph[colNames[j]]);
 
-                    if (!TensorflowUtils.IsTypeSupported(tfoutput.OutputType))
-                        throw Contracts.Except($"Input type '{tfoutput.OutputType}' of input column '{colNames[j]}' is not supported in Tensorflow");
+                    if (!TensorFlowUtils.IsTypeSupported(tfoutput.OutputType))
+                        throw Contracts.Except($"Input type '{tfoutput.OutputType}' of input column '{colNames[j]}' is not supported in TensorFlow");
 
                     tfShapes[j] = graph.GetTensorShape(tfoutput);
                     tfTypes[j] = tfoutput.OutputType;
@@ -280,19 +280,19 @@ namespace Microsoft.ML.Transforms
             public string OutputColumn;
         }
 
-        public const string Summary = "Transforms the data using the tenorflow model.";
-        public const string UserName = "TensorflowTransform";
+        public const string Summary = "Transforms the data using the TensorFlow model.";
+        public const string UserName = "TensorFlowTransform";
         public const string ShortName = "TFTransform";
-        private const string RegistrationName = "TensorflowTransform";
+        private const string RegistrationName = "TensorFlowTransform";
 
         /// <summary>
         /// Convenience constructor for public facing API.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="modelFile">This is the frozen tensorflow model file. https://www.tensorflow.org/mobile/prepare_models </param>
-        /// <param name="name">Name of the output column. Keep it same as in the Tensorflow model.</param>
-        /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
+        /// <param name="modelFile">This is the frozen TensorFlow model file. https://www.tensorflow.org/mobile/prepare_models </param>
+        /// <param name="name">Name of the output column. Keep it same as in the TensorFlow model.</param>
+        /// <param name="source">Name of the input column(s). Keep it same as in the TensorFlow model.</param>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string name, params string[] source)
         {
             return Create(env, new Arguments() { InputColumns = source, OutputColumn = name, ModelFile = modelFile }, input);

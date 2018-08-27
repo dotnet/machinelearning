@@ -21833,8 +21833,8 @@
     },
     {
       "Name": "Transforms.TensorFlowScorer",
-      "Desc": "Transforms the data using the tenorflow model.",
-      "FriendlyName": "TensorflowTransform",
+      "Desc": "Transforms the data using the TensorFlow model.",
+      "FriendlyName": "TensorFlowTransform",
       "ShortName": "TFTransform",
       "Inputs": [
         {

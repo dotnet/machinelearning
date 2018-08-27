@@ -22,7 +22,7 @@ namespace Microsoft.ML.Scenarios
             public float[] b;
         }
         [Fact]
-        public void TensorflowTransformMatrixMultiplicationTest()
+        public void TensorFlowTransformMatrixMultiplicationTest()
         {
             var model_location = "model_matmul/frozen_saved_model.pb";
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Scenarios
                                          b = new[] { 3.0f, 3.0f,
                                                      3.0f, 3.0f } } }));
 
-                var trans = TensorflowTransform.Create(env, loader, model_location, "c", "a", "b");
+                var trans = TensorFlowTransform.Create(env, loader, model_location, "c", "a", "b");
 
                 using (var cursor = trans.GetRowCursor(a => true))
                 {
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
-        public void TensorflowTransformMNISTConvTest()
+        public void TensorFlowTransformMNISTConvTest()
         {
             var model_location = "mnist_model/frozen_saved_model.pb";
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
@@ -100,9 +100,9 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                IDataView trans = TensorflowTransform.Create(env, loader, model_location, "Softmax", "Placeholder");
+                IDataView trans = TensorFlowTransform.Create(env, loader, model_location, "Softmax", "Placeholder");
                 trans = new ConcatTransform(env, trans, "reshape_input", "Placeholder");
-                trans = TensorflowTransform.Create(env, trans, model_location, "dense/Relu", "reshape_input");
+                trans = TensorFlowTransform.Create(env, trans, model_location, "dense/Relu", "reshape_input");
                 trans = new ConcatTransform(env, trans, "Features", "Softmax", "dense/Relu");
 
                 var trainer = new LightGbmMulticlassTrainer(env, new LightGbmArguments());
@@ -170,6 +170,7 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
+<<<<<<< HEAD
         [Fact(Skip = "Skip till we figure out why false positive (H=28, W=28) passes")]
         public void TensorflowTransformCifar()
         {
