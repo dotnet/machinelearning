@@ -316,10 +316,10 @@ namespace Microsoft.ML.Runtime.Data
             // file, then we assume the user knows what they're doing and do not attempt to convert
             // to the desired type ourselves.
             bool autoConvert = false;
-            IDataLoader loader;
+            IDataView termData;
             if (loaderFactory != null)
             {
-                loader = loaderFactory.CreateComponent(env, fileSource);
+                termData = loaderFactory.CreateComponent(env, fileSource);
             }
             else
             {
@@ -333,11 +333,11 @@ namespace Microsoft.ML.Runtime.Data
                     ch.CheckUserArg(!string.IsNullOrWhiteSpace(src), nameof(args.TermsColumn),
                         "Must be specified");
                     if (isBinary)
-                        loader = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
+                        termData = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
                     else
                     {
                         ch.Assert(isTranspose);
-                        loader = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
+                        termData = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
                     }
                 }
                 else
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Runtime.Data
                             "{0} should not be specified when default loader is TextLoader. Ignoring {0}={1}",
                             nameof(Arguments.TermsColumn), src);
                     }
-                    loader = new TextLoader(env,
+                    termData = TextLoader.ReadFile(env,
                         new TextLoader.Arguments()
                         {
                             Separator = "tab",
@@ -362,18 +362,18 @@ namespace Microsoft.ML.Runtime.Data
             ch.AssertNonEmpty(src);
 
             int colSrc;
-            if (!loader.Schema.TryGetColumnIndex(src, out colSrc))
+            if (!termData.Schema.TryGetColumnIndex(src, out colSrc))
                 throw ch.ExceptUserArg(nameof(args.TermsColumn), "Unknown column '{0}'", src);
-            var typeSrc = loader.Schema.GetColumnType(colSrc);
+            var typeSrc = termData.Schema.GetColumnType(colSrc);
             if (!autoConvert && !typeSrc.Equals(bldr.ItemType))
                 throw ch.ExceptUserArg(nameof(args.TermsColumn), "Must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
 
-            using (var cursor = loader.GetRowCursor(col => col == colSrc))
+            using (var cursor = termData.GetRowCursor(col => col == colSrc))
             using (var pch = env.StartProgressChannel("Building term dictionary from file"))
             {
                 var header = new ProgressHeader(new[] { "Total Terms" }, new[] { "examples" });
                 var trainer = Trainer.Create(cursor, colSrc, autoConvert, int.MaxValue, bldr);
-                double rowCount = loader.GetRowCount(true) ?? double.NaN;
+                double rowCount = termData.GetRowCount(true) ?? double.NaN;
                 long rowCur = 0;
                 pch.SetHeader(header,
                     e =>

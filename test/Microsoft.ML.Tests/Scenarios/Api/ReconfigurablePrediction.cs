@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Models;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Xunit;
 
@@ -26,7 +28,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
 
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
 
@@ -38,7 +40,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 var cached = new CacheDataView(env, trans, prefetch: null);
                 var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
-                var predictor = trainer.Train(new Runtime.TrainContext(trainRoles));
+                IPredictor predictor = trainer.Train(new Runtime.TrainContext(trainRoles));
+                using (var ch = env.Start("Calibrator training"))
+                {
+                    predictor = CalibratorUtils.TrainCalibrator(env, ch, new PlattCalibratorTrainer(env), int.MaxValue, predictor, trainRoles);
+                }
+
                 var scoreRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, scoreRoles, env, trainRoles.Schema);
 

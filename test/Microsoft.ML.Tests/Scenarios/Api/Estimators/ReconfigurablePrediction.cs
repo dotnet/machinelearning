@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Models;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Xunit;
 
@@ -25,8 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
-                var dataReader = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Fit(new MultiFileSource(dataPath));
+                var dataReader = new TextLoader(env, MakeSentimentTextLoaderArgs());
 
                 var data = dataReader.Read(new MultiFileSource(dataPath));
                 var testData = dataReader.Read(new MultiFileSource(testDataPath));
@@ -35,14 +36,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs())
                     .Fit(data);
 
-                var trainer = new MySdca(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label");
+                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label");
                 var trainData = pipeline.Transform(data);
                 var model = trainer.Fit(trainData);
 
                 var scoredTest = model.Transform(pipeline.Transform(testData));
                 var metrics = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments()).Evaluate(scoredTest, "Label", "Probability");
 
-                var newModel = model.Clone(new BinaryClassifierScorer.Arguments { Threshold = 0.01f, ThresholdColumn = DefaultColumnNames.Probability });
+                var newModel = new BinaryPredictionTransformer<IPredictorProducing<float>>(env, model.Model, trainData.Schema, model.FeatureColumn, threshold: 0.01f, thresholdColumn: DefaultColumnNames.Probability);
                 var newScoredTest = newModel.Transform(pipeline.Transform(testData));
                 var newMetrics = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments { Threshold = 0.01f, UseRawScoreThreshold = false }).Evaluate(newScoredTest, "Label", "Probability");
             }

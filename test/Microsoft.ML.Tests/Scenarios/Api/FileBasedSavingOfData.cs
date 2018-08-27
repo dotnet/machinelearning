@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
                 
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
                 var saver = new BinarySaver(env, new BinarySaver.Arguments());
