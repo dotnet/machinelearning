@@ -709,8 +709,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     //DateTimeOffset exposes its offset as a TimeSpan, but internally it uses short and in minutes.
                     //https://github.com/dotnet/coreclr/blob/9499b08eefd895158c3f3c7834e185a73619128d/src/System.Private.CoreLib/shared/System/DateTimeOffset.cs#L51-L53
                     //https://github.com/dotnet/coreclr/blob/9499b08eefd895158c3f3c7834e185a73619128d/src/System.Private.CoreLib/shared/System/DateTimeOffset.cs#L286-L292
-                    //From everything we find online(ISO8601, RFC3339, SQL Server doc,
-                    //the offset supports the range -14 to 14 hours, and only supports minute precision.
+                    //From everything online(ISO8601, RFC3339, SQL Server doc, the offset supports the range -14 to 14 hours, and only supports minute precision.
                     _offsets.Add((short)(value.Offset.Ticks / TimeSpan.TicksPerMinute));
                 }
 
