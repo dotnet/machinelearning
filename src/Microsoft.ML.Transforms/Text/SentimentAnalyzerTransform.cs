@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             // 2. Copy source column to a column with the name expected by the pretrained model featurization
             // transform pipeline.
-            var copyTransformer = new CopyColumnsTransformer(env, (args.Source, ModelInputColumnName));
+            var copyTransformer = new CopyColumnsTransform(env, (args.Source, ModelInputColumnName));
 
             input = copyTransformer.Transform(input);
 
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             // 4. Copy the output column from the pretrained model to a temporary column.
             var scoreTempName = input.Schema.GetTempColumnName("sa_out");
-            copyTransformer = new CopyColumnsTransformer(env, (ModelScoreColumnName, scoreTempName));
+            copyTransformer = new CopyColumnsTransform(env, (ModelScoreColumnName, scoreTempName));
             input = copyTransformer.Transform(input);
 
             // 5. Drop all the columns created by the pretrained model, including the expected input column
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             input = UnaliasIfNeeded(env, input, aliased);
 
             // 7. Copy the temporary column with the score we created in (4) to a column with the user-specified destination name.
-            copyTransformer = new CopyColumnsTransformer(env, (scoreTempName, args.Name));
+            copyTransformer = new CopyColumnsTransform(env, (scoreTempName, args.Name));
             input = copyTransformer.Transform(input);
 
             // 8. Drop the temporary column with the score created in (4).
@@ -130,9 +130,9 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             hiddenNames = toHide.Select(colName =>
                 new KeyValuePair<string, string>(colName, input.Schema.GetTempColumnName(colName))).ToArray();
-            return CopyColumnsTransformer.Create(env, new CopyColumnsTransformer.Arguments()
+            return CopyColumnsTransform.Create(env, new CopyColumnsTransform.Arguments()
             {
-                Column = hiddenNames.Select(pair => new CopyColumnsTransformer.Column() { Name = pair.Value, Source = pair.Key }).ToArray()
+                Column = hiddenNames.Select(pair => new CopyColumnsTransform.Column() { Name = pair.Value, Source = pair.Key }).ToArray()
             }, input);
         }
 
@@ -141,9 +141,9 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             if (Utils.Size(hiddenNames) == 0)
                 return input;
 
-            input = CopyColumnsTransformer.Create(env, new CopyColumnsTransformer.Arguments()
+            input = CopyColumnsTransform.Create(env, new CopyColumnsTransform.Arguments()
             {
-                Column = hiddenNames.Select(pair => new CopyColumnsTransformer.Column() { Name = pair.Key, Source = pair.Value }).ToArray()
+                Column = hiddenNames.Select(pair => new CopyColumnsTransform.Column() { Name = pair.Key, Source = pair.Value }).ToArray()
             }, input);
 
             return new DropColumnsTransform(env, new DropColumnsTransform.Arguments()

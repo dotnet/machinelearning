@@ -14,33 +14,33 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(CopyColumnsTransformer.Summary, typeof(IDataTransform), typeof(CopyColumnsTransformer),
-    typeof(CopyColumnsTransformer.Arguments), typeof(SignatureDataTransform),
-    CopyColumnsTransformer.UserName, "CopyColumns", "CopyColumnsTransform", CopyColumnsTransformer.ShortName,
+[assembly: LoadableClass(CopyColumnsTransform.Summary, typeof(IDataTransform), typeof(CopyColumnsTransform),
+    typeof(CopyColumnsTransform.Arguments), typeof(SignatureDataTransform),
+    CopyColumnsTransform.UserName, "CopyColumns", "CopyColumnsTransform", CopyColumnsTransform.ShortName,
     DocName = "transform/CopyColumnsTransformer.md")]
 
-[assembly: LoadableClass(CopyColumnsTransformer.Summary, typeof(IDataView), typeof(CopyColumnsTransformer), null, typeof(SignatureLoadDataTransform),
-    CopyColumnsTransformer.UserName, CopyColumnsTransformer.LoaderSignature)]
+[assembly: LoadableClass(CopyColumnsTransform.Summary, typeof(IDataView), typeof(CopyColumnsTransform), null, typeof(SignatureLoadDataTransform),
+    CopyColumnsTransform.UserName, CopyColumnsTransform.LoaderSignature)]
 
-[assembly: LoadableClass(CopyColumnsTransformer.Summary, typeof(CopyColumnsTransformer), null, typeof(SignatureLoadModel),
-    CopyColumnsTransformer.UserName, CopyColumnsTransformer.LoaderSignature)]
+[assembly: LoadableClass(CopyColumnsTransform.Summary, typeof(CopyColumnsTransform), null, typeof(SignatureLoadModel),
+    CopyColumnsTransform.UserName, CopyColumnsTransform.LoaderSignature)]
 
-[assembly: LoadableClass(CopyColumnsTransformer.Summary, typeof(CopyColumnsRowMapper), null, typeof(SignatureLoadRowMapper),
-    CopyColumnsTransformer.UserName, CopyColumnsRowMapper.LoaderSignature)]
+[assembly: LoadableClass(CopyColumnsTransform.Summary, typeof(CopyColumnsRowMapper), null, typeof(SignatureLoadRowMapper),
+    CopyColumnsTransform.UserName, CopyColumnsRowMapper.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public sealed class CopyColumnsEstimator : IEstimator<CopyColumnsTransformer>
+    public sealed class CopyColumnsEstimator : IEstimator<CopyColumnsTransform>
     {
         private readonly (string Source, string Name)[] _columns;
         private readonly IHost _host;
 
         public CopyColumnsEstimator(IHostEnvironment env, string input, string output) :
-            this(env, new (string, string)[1] { (input, output) })
+            this(env, (input, output))
         {
         }
 
-        public CopyColumnsEstimator(IHostEnvironment env, params (string Source, string Name)[] columns)
+        public CopyColumnsEstimator(IHostEnvironment env, params (string source, string name)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(CopyColumnsEstimator));
@@ -48,18 +48,17 @@ namespace Microsoft.ML.Runtime.Data
             var newNames = new HashSet<string>();
             foreach (var column in columns)
             {
-                if (newNames.Contains(column.Name))
-                    throw Contracts.ExceptUserArg(nameof(columns), $"New column {column.Name} specified multiple times");
-                newNames.Add(column.Name);
+                if (!newNames.Add(column.name))
+                    throw Contracts.ExceptUserArg(nameof(columns), $"New column {column.name} specified multiple times");
             }
             _columns = columns;
         }
 
-        public CopyColumnsTransformer Fit(IDataView input)
+        public CopyColumnsTransform Fit(IDataView input)
         {
             // Invoke schema validation.
             GetOutputSchema(SchemaShape.Create(input.Schema));
-            return new CopyColumnsTransformer(_host, _columns);
+            return new CopyColumnsTransform(_host, _columns);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -83,7 +82,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class CopyColumnsTransformer : ITransformer, ICanSaveModel
+    public sealed class CopyColumnsTransform : ITransformer, ICanSaveModel
     {
         private readonly (string Source, string Name)[] _columns;
         private readonly IHost _host;
@@ -103,7 +102,7 @@ namespace Microsoft.ML.Runtime.Data
                 loaderSignature: LoaderSignature);
         }
 
-        public CopyColumnsTransformer(IHostEnvironment env, params (string Source, string Name)[] columns)
+        public CopyColumnsTransform(IHostEnvironment env, params (string Source, string Name)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -146,7 +145,7 @@ namespace Microsoft.ML.Runtime.Data
             return transformer.Transform(input);
         }
 
-        public static CopyColumnsTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static CopyColumnsTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -165,14 +164,14 @@ namespace Microsoft.ML.Runtime.Data
                 columns[i].Name = ctx.LoadNonEmptyString();
                 columns[i].Source = ctx.LoadNonEmptyString();
             }
-            return new CopyColumnsTransformer(env, columns);
+            return new CopyColumnsTransform(env, columns);
         }
 
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
-            var transformer = new CopyColumnsTransformer(env, args.Column.Select(x => (x.Source, x.Name)).ToArray());
+            var transformer = new CopyColumnsTransform(env, args.Column.Select(x => (x.Source, x.Name)).ToArray());
             return transformer.CreateRowToRowMapper(input);
         }
 

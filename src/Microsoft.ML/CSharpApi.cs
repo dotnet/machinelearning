@@ -10757,7 +10757,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        public sealed partial class CopyColumnsTransformerColumn : OneToOneColumn<CopyColumnsTransformerColumn>, IOneToOneColumn
+        public sealed partial class CopyColumnsTransformColumn : OneToOneColumn<CopyColumnsTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -10805,15 +10805,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.CopyColumnsTransformerColumn>() : new List<Microsoft.ML.Transforms.CopyColumnsTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformerColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.CopyColumnsTransformerColumn>() : new List<Microsoft.ML.Transforms.CopyColumnsTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformerColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10821,7 +10821,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public CopyColumnsTransformerColumn[] Column { get; set; }
+            public CopyColumnsTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
