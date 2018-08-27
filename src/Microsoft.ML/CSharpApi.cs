@@ -15900,7 +15900,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Transforms the data using the tenorflow model.
+        /// Transforms the data using the TensorFlow model.
         /// </summary>
         public sealed partial class TensorFlowScorer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {

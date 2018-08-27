@@ -190,7 +190,7 @@ namespace Microsoft.ML.Transforms
                         values = new T[OutputColType.VectorSize];
 
                     TensorFlowUtils.FetchData<T>(tensors[0].Data, values);
-                    dst = new VBuffer<T>(values.Length, values);
+                    dst = new VBuffer<T>(values.Length, values, dst.Indices);
                 };
                 return valuegetter;
             }
