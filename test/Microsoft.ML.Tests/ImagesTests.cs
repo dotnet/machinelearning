@@ -31,7 +31,8 @@ namespace Microsoft.ML.Tests
                 var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
 
                 var pipe = new ImageLoaderEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
-                    .Append(new ImageResizerEstimator(env, "ImageReal", "ImageReal", 100, 100));
+                    .Append(new ImageResizerEstimator(env, "ImageReal", "ImageReal", 100, 100))
+                    .Append(new ImagePixelExtractorEstimator(env, "ImageReal", "ImagePixels"));
 
                 var model = pipe.Fit(data);
 
@@ -73,13 +74,6 @@ namespace Microsoft.ML.Tests
                         new ImageResizerTransform.Column() {  Name= "ImageCropped", Source = "ImageReal", ImageHeight =100, ImageWidth = 100, Resizing = ImageResizerTransform.ResizingKind.IsoPad}
                     }
                 }, images);
-
-                var fh = env.CreateOutputFile("model.zip");
-                using (var ch = env.Start("save"))
-                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(cropped));
-
-                cropped = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
-                DeleteOutputPath("model.zip");
 
                 cropped.Schema.TryGetColumnIndex("ImagePath", out int pathColumn);
                 cropped.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
@@ -179,19 +173,29 @@ namespace Microsoft.ML.Tests
                     }
                 }, images);
 
-                var pixels = new ImagePixelExtractorTransform(env, new ImagePixelExtractorTransform.Arguments()
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
                 {
                     Column = new ImagePixelExtractorTransform.Column[1]{
                         new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "ImagePixels", UseAlpha=true}
                     }
                 }, cropped);
 
-                var backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+                IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
                 {
                     Column = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
                 }, pixels);
+
+                var fname = nameof(TestBackAndForthConversion) + "_model.zip";
+
+                var fh = env.CreateOutputFile(fname);
+                using (var ch = env.Start("save"))
+                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+
+                backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+                DeleteOutputPath(fname);
+
 
                 backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
                 backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);

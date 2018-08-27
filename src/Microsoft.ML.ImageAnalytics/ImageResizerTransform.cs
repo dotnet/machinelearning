@@ -177,7 +177,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             _columns = columns.ToArray();
         }
 
-        // Public constructor corresponding to SignatureDataTransform.
+        // Factory method for SignatureDataTransform.
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -251,6 +251,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
         }
 
+        // Factory method for SignatureLoadDataTransform.
         public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -265,7 +266,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         private static void SaveContents(IHostEnvironment env, ModelSaveContext ctx, ColumnInfo[] columns)
         {
+            Contracts.AssertValue(env);
             env.CheckValue(ctx, nameof(ctx));
+            Contracts.AssertValue(columns);
+
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
@@ -314,6 +318,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         public IDataView Transform(IDataView input)
         {
+            _host.CheckValue(input, nameof(input));
+
             var mapper = MakeRowMapper(input.Schema);
             return new RowToRowMapperTransform(_host, input, mapper);
         }
