@@ -356,8 +356,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             //   int: id of output column name
             //   int: id of input column name
 
-            // foreach added column
-            //   ColInfo
+            // for each added column
+            //   ColumnInfo
 
             int n = ctx.Reader.ReadInt32();
 
@@ -402,8 +402,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             //   int: id of output column name
             //   int: id of input column name
 
-            // foreach added column
-            //   ColInfo
+            // for each added column
+            //   ColumnInfo
 
             ctx.Writer.Write(columns.Length);
             for (int i = 0; i < columns.Length; i++)
