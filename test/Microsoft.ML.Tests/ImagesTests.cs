@@ -30,14 +30,19 @@ namespace Microsoft.ML.Tests
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
 
-                var loader = new ImageLoaderTransform(env, imageFolder, ("ImagePath", "ImageReal"));
+                var pipe = new ImageLoaderEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
+                    .Append(new ImageResizerEstimator(env, "ImageReal", "ImageReal", 100, 100));
+
+                var model = pipe.Fit(data);
+
                 using (var file = env.CreateTempFile())
                 {
                     using (var fs = file.CreateWriteStream())
-                        loader.SaveTo(env, fs);
-                    var loader2 = TransformerChain.LoadFrom(env, file.OpenReadStream());
-                    var newCols = ((ImageLoaderTransform)loader2.LastTransformer).Columns;
-                    var oldCols = loader.Columns;
+                        model.SaveTo(env, fs);
+                    var model2 = TransformerChain.LoadFrom(env, file.OpenReadStream());
+
+                    var newCols = ((ImageLoaderTransform)model2.First()).Columns;
+                    var oldCols = ((ImageLoaderTransform)model.First()).Columns;
                     Assert.True(newCols
                         .Zip(oldCols, (x, y) => x == y)
                         .All(x => x));
@@ -62,7 +67,7 @@ namespace Microsoft.ML.Tests
                     ImageFolder = imageFolder
                 }, data);
 
-                IDataView cropped = new ImageResizerTransform(env, new ImageResizerTransform.Arguments()
+                IDataView cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
                 {
                     Column = new ImageResizerTransform.Column[1]{
                         new ImageResizerTransform.Column() {  Name= "ImageCropped", Source = "ImageReal", ImageHeight =100, ImageWidth = 100, Resizing = ImageResizerTransform.ResizingKind.IsoPad}
@@ -114,7 +119,7 @@ namespace Microsoft.ML.Tests
                     },
                     ImageFolder = imageFolder
                 }, data);
-                var cropped = new ImageResizerTransform(env, new ImageResizerTransform.Arguments()
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
                 {
                     Column = new ImageResizerTransform.Column[1]{
                         new ImageResizerTransform.Column() {  Name= "ImageCropped", Source = "ImageReal", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
@@ -167,7 +172,7 @@ namespace Microsoft.ML.Tests
                     },
                     ImageFolder = imageFolder
                 }, data);
-                var cropped = new ImageResizerTransform(env, new ImageResizerTransform.Arguments()
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
                 {
                     Column = new ImageResizerTransform.Column[1]{
                         new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}

@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
         public static CommonOutputs.TransformOutput ImageResizer(IHostEnvironment env, ImageResizerTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageResizerTransform", input);
-            var xf = new ImageResizerTransform(h, input, input.Data);
+            var xf = ImageResizerTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

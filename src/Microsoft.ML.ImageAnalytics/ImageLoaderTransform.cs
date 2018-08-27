@@ -49,41 +49,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         public abstract SchemaShape GetOutputSchema(SchemaShape inputSchema);
     }
 
-    public sealed class ImageLoaderEstimator : TrivialEstimator<ImageLoaderTransform>
-    {
-        private readonly ImageType _imageType;
-
-        public ImageLoaderEstimator(IHostEnvironment env, string imageFolder, params (string input, string output)[] columns)
-            : this(env, new ImageLoaderTransform(env, imageFolder, columns))
-        {
-        }
-
-        public ImageLoaderEstimator(IHostEnvironment env, ImageLoaderTransform transformer)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoaderEstimator)), transformer)
-        {
-            _imageType = new ImageType();
-        }
-
-        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
-            foreach (var (input, output) in Transformer.Columns)
-            {
-                var col = inputSchema.FindColumn(input);
-
-                if (input == null)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-                if (!col.ItemType.IsText || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, TextType.Instance.ToString(), col.GetTypeString());
-
-                result[output] = new SchemaShape.Column(output, SchemaShape.Column.VectorKind.Scalar, _imageType, false);
-            }
-
-            return new SchemaShape(result.Values);
-        }
-    }
-
     /// <summary>
     /// Transform which takes one or many columns of type <see cref="DvText"/> and loads them as <see cref="ImageType"/>
     /// </summary>
@@ -361,6 +326,41 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 => _columns.Select(x => new RowMapperColumnInfo(x.output, _imageType, null)).ToArray();
 
             public void Save(ModelSaveContext ctx) => SaveContents(ctx, _imageFolder, _columns);
+        }
+    }
+
+    public sealed class ImageLoaderEstimator : TrivialEstimator<ImageLoaderTransform>
+    {
+        private readonly ImageType _imageType;
+
+        public ImageLoaderEstimator(IHostEnvironment env, string imageFolder, params (string input, string output)[] columns)
+            : this(env, new ImageLoaderTransform(env, imageFolder, columns))
+        {
+        }
+
+        public ImageLoaderEstimator(IHostEnvironment env, ImageLoaderTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoaderEstimator)), transformer)
+        {
+            _imageType = new ImageType();
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var (input, output) in Transformer.Columns)
+            {
+                var col = inputSchema.FindColumn(input);
+
+                if (col == null)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
+                if (!col.ItemType.IsText || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, TextType.Instance.ToString(), col.GetTypeString());
+
+                result[output] = new SchemaShape.Column(output, SchemaShape.Column.VectorKind.Scalar, _imageType, false);
+            }
+
+            return new SchemaShape(result.Values);
         }
     }
 }
