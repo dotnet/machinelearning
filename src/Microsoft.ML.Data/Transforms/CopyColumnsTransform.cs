@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.Data
                 loaderSignature: LoaderSignature);
         }
 
-        public CopyColumnsTransform(IHostEnvironment env, params (string Source, string Name)[] columns)
+        public CopyColumnsTransform(IHostEnvironment env, params (string source, string name)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Runtime.Data
             return new CopyColumnsRowMapper(env, schema, columns);
         }
 
-        public CopyColumnsRowMapper(IHostEnvironment env, ISchema schema, (string Source, string Name)[] columns)
+        public CopyColumnsRowMapper(IHostEnvironment env, ISchema schema, (string source, string name)[] columns)
         {
             _host = env.Register(LoaderSignature);
             env.CheckValue(schema, nameof(schema));
