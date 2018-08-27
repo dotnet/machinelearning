@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -26,7 +29,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
     /// <summary>
     /// Transform which takes one or many columns of <see cref="ImageType"/> and resize them to provided height and width.
     /// </summary>
-    public sealed class ImageResizerTransform : OneToOneTransformBase
+    public sealed class ImageResizerTransform : ITransformer, ICanSaveModel
     {
         public enum ResizingKind : byte
         {
@@ -98,23 +101,30 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         /// <summary>
-        /// Extra information for each column (in addition to ColumnInfo).
+        /// Information for each column pair.
         /// </summary>
-        private sealed class ColInfoEx
+        public sealed class ColumnInfo
         {
+            public readonly string Input;
+            public readonly string Output;
+
             public readonly int Width;
             public readonly int Height;
             public readonly ResizingKind Scale;
             public readonly Anchor Anchor;
             public readonly ColumnType Type;
 
-            public ColInfoEx(int width, int height, ResizingKind scale, Anchor anchor)
+            public ColumnInfo(string input, string output, int width, int height, ResizingKind scale, Anchor anchor)
             {
+                Contracts.CheckNonEmpty(input, nameof(input));
+                Contracts.CheckNonEmpty(output, nameof(output));
                 Contracts.CheckUserArg(width > 0, nameof(Column.ImageWidth));
                 Contracts.CheckUserArg(height > 0, nameof(Column.ImageHeight));
                 Contracts.CheckUserArg(Enum.IsDefined(typeof(ResizingKind), scale), nameof(Column.Resizing));
                 Contracts.CheckUserArg(Enum.IsDefined(typeof(Anchor), anchor), nameof(Column.CropAnchor));
 
+                Input = input;
+                Output = output;
                 Width = width;
                 Height = height;
                 Scale = scale;
@@ -141,57 +151,98 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         private const string RegistrationName = "ImageScaler";
 
-        // This is parallel to Infos.
-        private readonly ColInfoEx[] _exes;
+        private readonly IHost _host;
+        private readonly ColumnInfo[] _columns;
+
+        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+
+        public ImageResizerTransform(IHostEnvironment env, string inputColumn, string outputColumn,
+            int imageWidth, int imageHeight, ResizingKind resizing = ResizingKind.IsoCrop, Anchor cropAnchor = Anchor.Center)
+            : this(env, new ColumnInfo(inputColumn, outputColumn, imageWidth, imageHeight, resizing, cropAnchor))
+        {
+        }
+
+        public ImageResizerTransform(IHostEnvironment env, params ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(RegistrationName);
+            _host.CheckValue(columns, nameof(columns));
+
+            _columns = columns.ToArray();
+        }
 
         // Public constructor corresponding to SignatureDataTransform.
-        public ImageResizerTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column, input, t => t is ImageType ? null : "Expected Image type")
+        public IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
 
-            _exes = new ColInfoEx[Infos.Length];
-            for (int i = 0; i < _exes.Length; i++)
+            env.CheckValue(args.Column, nameof(args.Column));
+
+            var cols = new ColumnInfo[args.Column.Length];
+            for (int i = 0; i < cols.Length; i++)
             {
                 var item = args.Column[i];
-                _exes[i] = new ColInfoEx(
+                cols[i] = new ColumnInfo(
+                    item.Source ?? item.Name,
+                    item.Name,
                     item.ImageWidth ?? args.ImageWidth,
                     item.ImageHeight ?? args.ImageHeight,
                     item.Resizing ?? args.Resizing,
                     item.CropAnchor ?? args.CropAnchor);
             }
-            Metadata.Seal();
+
+            var transformer = new ImageResizerTransform(env, cols);
+            return new RowToRowMapperTransform(env, input, transformer.MakeRowMapper(input.Schema));
         }
 
-        private ImageResizerTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, t => t is ImageType ? null : "Expected Image type")
+        public ImageResizerTransform(IHostEnvironment env, ModelLoadContext ctx)
         {
-            Host.AssertValue(ctx);
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(RegistrationName);
+
+            _host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
 
             // *** Binary format ***
-            // <prefix handled in static Create method>
-            // <base>
+            // int: sizeof(float)
+            // int: number of added columns
+            // for each added column
+            //   int: id of output column name
+            //   int: id of input column name
+
             // for each added column
             //   int: width
             //   int: height
             //   byte: scaling kind
-            Host.AssertNonEmpty(Infos);
 
-            _exes = new ColInfoEx[Infos.Length];
-            for (int i = 0; i < _exes.Length; i++)
+            int cbFloat = ctx.Reader.ReadInt32();
+            ch.CheckDecode(cbFloat == sizeof(Single));
+
+            int n = ctx.Reader.ReadInt32();
+
+            var names = new (string input, string output)[n];
+            for (int i = 0; i < n; i++)
+            {
+                var output = ctx.LoadNonEmptyString();
+                var input = ctx.LoadNonEmptyString();
+                names[i] = (input, output);
+            }
+
+            _columns = new ColumnInfo[n];
+            for (int i = 0; i < n; i++)
             {
                 int width = ctx.Reader.ReadInt32();
-                Host.CheckDecode(width > 0);
+                _host.CheckDecode(width > 0);
                 int height = ctx.Reader.ReadInt32();
-                Host.CheckDecode(height > 0);
+                _host.CheckDecode(height > 0);
                 var scale = (ResizingKind)ctx.Reader.ReadByte();
-                Host.CheckDecode(Enum.IsDefined(typeof(ResizingKind), scale));
+                _host.CheckDecode(Enum.IsDefined(typeof(ResizingKind), scale));
                 var anchor = (Anchor)ctx.Reader.ReadByte();
-                Host.CheckDecode(Enum.IsDefined(typeof(Anchor), anchor));
-                _exes[i] = new ColInfoEx(width, height, scale, anchor);
+                _host.CheckDecode(Enum.IsDefined(typeof(Anchor), anchor));
+                _columns[i] = new ColumnInfo(names[i].input, names[i].output, width, height, scale, anchor);
             }
-            Metadata.Seal();
         }
 
         public static ImageResizerTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -207,15 +258,13 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     // *** Binary format ***
                     // int: sizeof(Float)
                     // <remainder handled in ctors>
-                    int cbFloat = ctx.Reader.ReadInt32();
-                    ch.CheckDecode(cbFloat == sizeof(Single));
                     return new ImageResizerTransform(h, ctx, input);
                 });
         }
 
         public override void Save(ModelSaveContext ctx)
         {
-            Host.CheckValue(ctx, nameof(ctx));
+            _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
@@ -229,34 +278,34 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             ctx.Writer.Write(sizeof(Single));
             SaveBase(ctx);
 
-            Host.Assert(_exes.Length == Infos.Length);
-            for (int i = 0; i < _exes.Length; i++)
+            _host.Assert(_columns.Length == Infos.Length);
+            for (int i = 0; i < _columns.Length; i++)
             {
-                var ex = _exes[i];
+                var ex = _columns[i];
                 ctx.Writer.Write(ex.Width);
                 ctx.Writer.Write(ex.Height);
-                Host.Assert((ResizingKind)(byte)ex.Scale == ex.Scale);
+                _host.Assert((ResizingKind)(byte)ex.Scale == ex.Scale);
                 ctx.Writer.Write((byte)ex.Scale);
-                Host.Assert((Anchor)(byte)ex.Anchor == ex.Anchor);
+                _host.Assert((Anchor)(byte)ex.Anchor == ex.Anchor);
                 ctx.Writer.Write((byte)ex.Anchor);
             }
         }
 
         protected override ColumnType GetColumnTypeCore(int iinfo)
         {
-            Host.Check(0 <= iinfo && iinfo < Infos.Length);
-            return _exes[iinfo].Type;
+            _host.Check(0 <= iinfo && iinfo < Infos.Length);
+            return _columns[iinfo].Type;
         }
 
         protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
         {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
+            _host.AssertValueOrNull(ch);
+            _host.AssertValue(input);
+            _host.Assert(0 <= iinfo && iinfo < Infos.Length);
 
             var src = default(Bitmap);
             var getSrc = GetSrcGetter<Bitmap>(input, iinfo);
-            var ex = _exes[iinfo];
+            var ex = _columns[iinfo];
 
             disposer =
                 () =>
@@ -361,7 +410,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     {
                         g.DrawImage(src, destRectangle, srcRectangle, GraphicsUnit.Pixel);
                     }
-                    Host.Assert(dst.Width == ex.Width && dst.Height == ex.Height);
+                    _host.Assert(dst.Width == ex.Width && dst.Height == ex.Height);
                 };
 
             return del;
