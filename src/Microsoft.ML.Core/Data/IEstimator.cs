@@ -30,18 +30,18 @@ namespace Microsoft.ML.Core.Data
 
             public readonly string Name;
             public readonly VectorKind Kind;
-            public readonly DataKind ItemKind;
+            public readonly ColumnType ItemType;
             public readonly bool IsKey;
             public readonly string[] MetadataKinds;
 
-            public Column(string name, VectorKind vecKind, DataKind itemKind, bool isKey, string[] metadataKinds = null)
+            public Column(string name, VectorKind vecKind, ColumnType itemType, bool isKey, string[] metadataKinds = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValueOrNull(metadataKinds);
 
                 Name = name;
                 Kind = vecKind;
-                ItemKind = itemKind;
+                ItemType = itemType;
                 IsKey = isKey;
                 MetadataKinds = metadataKinds ?? new string[0];
             }
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Core.Data
             /// requirement.
             ///
             /// Namely, it returns true iff:
-            ///  - The <see cref="Name"/>, <see cref="Kind"/>, <see cref="ItemKind"/>, <see cref="IsKey"/> fields match.
+            ///  - The <see cref="Name"/>, <see cref="Kind"/>, <see cref="ItemType"/>, <see cref="IsKey"/> fields match.
             ///  - The <see cref="MetadataKinds"/> of <paramref name="inputColumn"/> is a superset of our <see cref="MetadataKinds"/>.
             /// </summary>
             public bool IsCompatibleWith(Column inputColumn)
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Core.Data
                     return false;
                 if (Kind != inputColumn.Kind)
                     return false;
-                if (ItemKind != inputColumn.ItemKind)
+                if (!ItemType.Equals(inputColumn.ItemType))
                     return false;
                 if (IsKey != inputColumn.IsKey)
                     return false;
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Core.Data
 
             public string GetTypeString()
             {
-                string result = ItemKind.ToString();
+                string result = ItemType.ToString();
                 if (IsKey)
                     result = $"Key<{result}>";
                 if (Kind == VectorKind.Vector)
@@ -110,13 +110,13 @@ namespace Microsoft.ML.Core.Data
                     else
                         vecKind = Column.VectorKind.Scalar;
 
-                    var kind = type.ItemType.RawKind;
+                    var itemKind = type.ItemType.RawKind;
                     var isKey = type.ItemType.IsKey;
 
                     var metadataNames = schema.GetMetadataTypes(iCol)
                         .Select(kvp => kvp.Key)
                         .ToArray();
-                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, kind, isKey, metadataNames));
+                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, PrimitiveType.FromKind(itemKind), isKey, metadataNames));
                 }
             }
             return new SchemaShape(cols.ToArray());

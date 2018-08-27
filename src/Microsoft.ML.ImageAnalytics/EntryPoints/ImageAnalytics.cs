@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
         public static CommonOutputs.TransformOutput ImageLoader(IHostEnvironment env, ImageLoaderTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageLoaderTransform", input);
-            var xf = new ImageLoaderTransform(h, input, input.Data);
+            var xf = ImageLoaderTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
