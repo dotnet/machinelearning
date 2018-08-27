@@ -2028,5 +2028,14 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(outputPath.CheckEqualityNormalized());
             Done();
         }
+
+        [Fact]
+        public void DataTypes()
+        {
+            string idvPath = GetDataPath("datatypes.idv");
+            OutputPath textOutputPath = CreateOutputPath("datatypes.txt");
+            TestCore("savedata", idvPath, "loader=binary", "saver=text", textOutputPath.Arg("dout"));
+            Assert.True(textOutputPath.CheckEquality());
+        }
     }
 }
