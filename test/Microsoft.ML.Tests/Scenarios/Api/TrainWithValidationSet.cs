@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
 
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
                 var trainData = trans;
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // to create another loader, or to save the loader to model file and then reload.
 
                 // A new one is not always feasible, but this time it is.
-                var validLoader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(validationDataPath));
+                var validLoader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(validationDataPath));
                 var validData = ApplyTransformUtils.ApplyAllTransformsToData(env, trainData, validLoader);
 
                 // Cache both datasets.
