@@ -542,25 +542,74 @@ namespace Microsoft.ML.Runtime.Data
             switch (colType.ItemType.RawKind)
             {
             case DataKind.Text:
-                return ComposeGetterVecCore<DvText>(input, iinfo, HashUnord, HashSparse, HashUnord, HashDense);
+                return ComposeGetterVecCore<DvText>(input, iinfo, HashUnord, HashDense, HashSparse);
             case DataKind.U1:
-                return ComposeGetterVecCore<byte>(input, iinfo, HashUnord, HashSparse, HashUnord, HashDense);
+                return ComposeGetterVecCore<byte>(input, iinfo, HashUnord, HashDense, HashSparse);
             case DataKind.U2:
-                return ComposeGetterVecCore<ushort>(input, iinfo, HashUnord, HashSparse, HashUnord, HashDense);
+                return ComposeGetterVecCore<ushort>(input, iinfo, HashUnord, HashDense, HashSparse);
             case DataKind.U4:
-                return ComposeGetterVecCore<uint>(input, iinfo, HashUnord, HashSparse, HashUnord, HashDense);
+                return ComposeGetterVecCore<uint>(input, iinfo, HashUnord, HashDense, HashSparse);
             case DataKind.R4:
-                return ComposeGetterVecCore<float>(input, iinfo, HashSparseUnord, null, HashUnord, HashDense);
+                return ComposeGetterVecCoreFloat<float>(input, iinfo, HashSparseUnord, HashUnord, HashDense);
             case DataKind.R8:
-                return ComposeGetterVecCore<double>(input, iinfo, HashSparseUnord, null, HashUnord, HashDense);
+                return ComposeGetterVecCoreFloat<double>(input, iinfo, HashSparseUnord, HashUnord, HashDense);
             default:
                 Host.Assert(colType.ItemType.RawKind == DataKind.U8);
-                return ComposeGetterVecCore<ulong>(input, iinfo, HashUnord, HashSparse, HashUnord, HashDense);
+                return ComposeGetterVecCore<ulong>(input, iinfo, HashUnord, HashDense, HashSparse);
             }
         }
 
         private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T>(IRow input, int iinfo,
-            HashLoop<T> hasherSparseUnord, HashLoop<T> hasherSparseOrdered, HashLoop<T> hasherDenseUnord, HashLoop<T> hasherDenseOrdered)
+             HashLoop<T> hasherUnord, HashLoop<T> hasherDense, HashLoop<T> hasherSparse)
+        {
+            Host.Assert(Infos[iinfo].TypeSrc.IsVector);
+            Host.Assert(Infos[iinfo].TypeSrc.ItemType.RawType == typeof(T));
+
+            var getSrc = GetSrcGetter<VBuffer<T>>(input, iinfo);
+            var ex = _exes[iinfo];
+            var mask = (1U << ex.HashBits) - 1;
+            var seed = ex.HashSeed;
+            var len = Infos[iinfo].TypeSrc.VectorSize;
+            var src = default(VBuffer<T>);
+
+            if (!ex.Ordered)
+            {
+                hasherDense = hasherUnord;
+                hasherSparse = hasherUnord;
+            }
+
+            return
+                (ref VBuffer<uint> dst) =>
+                {
+                    getSrc(ref src);
+                    if (len > 0 && src.Length != len)
+                        throw Host.Except("Hash transform expected {0} slots, but got {1}", len, src.Length);
+
+                    var hashes = dst.Values;
+                    if (Utils.Size(hashes) < src.Count)
+                        hashes = new uint[src.Count];
+
+                    if (src.IsDense)
+                    {
+                        hasherDense(src.Count, null, src.Values, hashes, seed, mask);
+                        dst = new VBuffer<uint>(src.Length, hashes, dst.Indices);
+                        return;
+                    }
+
+                    hasherSparse(src.Count, src.Indices, src.Values, hashes, seed, mask);
+                    var indices = dst.Indices;
+                    if (src.Count > 0)
+                    {
+                        if (Utils.Size(indices) < src.Count)
+                            indices = new int[src.Count];
+                        Array.Copy(src.Indices, indices, src.Count);
+                    }
+                    dst = new VBuffer<uint>(src.Length, src.Count, hashes, indices);
+                };
+        }
+
+        private ValueGetter<VBuffer<uint>> ComposeGetterVecCoreFloat<T>(IRow input, int iinfo,
+            HashLoop<T> hasherSparseUnord, HashLoop<T> hasherDenseUnord, HashLoop<T> hasherDenseOrdered)
         {
             Host.Assert(Infos[iinfo].TypeSrc.IsVector);
             Host.Assert(Infos[iinfo].TypeSrc.ItemType.RawType == typeof(T));
@@ -573,6 +622,7 @@ namespace Microsoft.ML.Runtime.Data
             var src = default(VBuffer<T>);
             T[] denseValues = null;
             int expectedSrcLength = Infos[iinfo].TypeSrc.VectorSize;
+            HashLoop<T> hasherDense = ex.Ordered ? hasherDenseOrdered : hasherDenseUnord;
 
             return
                 (ref VBuffer<uint> dst) =>
@@ -583,8 +633,10 @@ namespace Microsoft.ML.Runtime.Data
 
                     T[] values = src.Values;
                     var srcIsDense = src.IsDense;
-                    // force-densify the input in case of float / double and ordered hash.
-                    if (!srcIsDense && ex.Ordered && (typeof(T) == typeof(float) || typeof(T) == typeof(double)))
+                    var hashes = dst.Values;
+
+                    // force-densify the input in case of ordered hash.
+                    if (!srcIsDense && ex.Ordered)
                     {
                         if (denseValues == null)
                             denseValues = new T[expectedSrcLength];
@@ -593,48 +645,24 @@ namespace Microsoft.ML.Runtime.Data
                         srcIsDense = true;
                     }
 
-                    var hashes = dst.Values;
-                    if (Utils.Size(hashes) < values.Length)
-                        hashes = new uint[values.Length];
-
                     if (srcIsDense)
                     {
-                        if (ex.Ordered)
-                            hasherDenseOrdered(values.Length, null, values, hashes, seed, mask);
-                        else
-                            hasherDenseUnord(values.Length, null, values, hashes, seed, mask);
-                        dst = new VBuffer<uint>(src.Length, hashes, dst.Indices);
+                        if (Utils.Size(hashes) < values.Length)
+                            hashes = new uint[values.Length];
+                        hasherDense(values.Length, null, values, hashes, seed, mask);
+                        dst = new VBuffer<uint>(values.Length, hashes, dst.Indices);
                         return;
                     }
 
-                    // source is sparse at this point.
-                    // force-densify the output in case of float / double and unordered hash.
-                    if (!ex.Ordered && (typeof(T) == typeof(float) || typeof(T) == typeof(double)))
-                    {
-                        if (Utils.Size(hashes) < expectedSrcLength)
-                            hashes = new uint[expectedSrcLength];
-                        hasherSparseUnord(expectedSrcLength, src.Indices, values, hashes, seed, mask);
-                        dst = new VBuffer<uint>(expectedSrcLength, hashes, src.Indices);
-                    }
-                    else
-                    {
-                        if (ex.Ordered)
-                            hasherSparseOrdered(values.Length, src.Indices, values, hashes, seed, mask);
-                        else
-                            hasherSparseUnord(values.Length, src.Indices, values, hashes, seed, mask);
-                        var indices = dst.Indices;
-                        if (values.Length > 0)
-                        {
-                            if (Utils.Size(indices) < values.Length)
-                                indices = new int[values.Length];
-                            Array.Copy(src.Indices, indices, values.Length);
-                        }
-                        dst = new VBuffer<uint>(values.Length, src.Count, hashes, indices);
-                    }
+                    // source is sparse at this point and hash is unordered
+                    if (Utils.Size(hashes) < expectedSrcLength)
+                        hashes = new uint[expectedSrcLength];
+                    hasherSparseUnord(expectedSrcLength, src.Indices, values, hashes, seed, mask);
+                    dst = new VBuffer<uint>(expectedSrcLength, hashes, dst.Indices);
                 };
         }
 
-#region Core Hash functions, with and without index
+        #region Core Hash functions, with and without index
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint HashCore(uint seed, ref DvText value, uint mask)
         {
@@ -931,7 +959,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (Utils.Size(indices) <= j || indices[j] > i)
                     dst[i] = zeroHash;
                 else if (indices[j] == i)
-                    dst[i] = HashCore(seed, ref src[j], mask);
+                    dst[i] = HashCore(seed, ref src[j++], mask);
                 else
                     Contracts.Assert(false, "this should have never happened.");
             }
