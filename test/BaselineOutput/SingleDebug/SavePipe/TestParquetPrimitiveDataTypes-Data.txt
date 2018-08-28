@@ -1,0 +1,21 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Id:I4:0
+#@   col=Timestamp:DZ:1
+#@   col=Message:TX:2
+#@   col=Data:TX:3
+#@   col=IsDeleted:BL:4
+#@   col=Amount:R4:5
+#@   col=TotalAmount:R8:6
+#@   col=Counter:I8:7
+#@   col=Amount2:R8:8
+#@   col=Flag:U1:9
+#@   col=Flag2:I1:10
+#@   col=Flag3:I2:11
+#@   col=Flag4:U2:12
+#@   col=Flag5:TS:13
+#@ }
+Id	Timestamp	Message	Data	IsDeleted	Amount	TotalAmount	Counter	Amount2	Flag	Flag2	Flag3	Flag4	Flag5
+1	"2000-01-01T01:01:01.0000000+00:00"	Record1	SomeData3	0	125.4	400	300000	3331313	3	-3	-600	600	"3100.00:00:00.1000000"
+1	"2000-12-31T23:59:59.9990000+00:00"	Record2	SomeData4	0	126.4	500	400000	4331313	4	-4	-700	700	

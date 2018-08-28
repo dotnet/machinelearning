@@ -1,0 +1,16 @@
+---- ParquetLoader ----
+14 columns:
+  Id: I4
+  Timestamp: DateTimeZone
+  Message: Text
+  Data: Text
+  IsDeleted: Bool
+  Amount: R4
+  TotalAmount: R8
+  Counter: I8
+  Amount2: R8
+  Flag: U1
+  Flag2: I1
+  Flag3: I2
+  Flag4: U2
+  Flag5: TimeSpan
