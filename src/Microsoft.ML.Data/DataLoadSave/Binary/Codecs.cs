@@ -655,7 +655,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                 public override void MoveNext()
                 {
                     Contracts.Assert(_remaining > 0, "already consumed all values");
-                    _value = new DateTime(Reader.ReadInt64());
+                    var ticks = Reader.ReadInt64();
+                    _value = new DateTime(ticks == long.MinValue ? default : ticks);
                     _remaining--;
                 }
 
@@ -767,7 +768,9 @@ namespace Microsoft.ML.Runtime.Data.IO
                 public override void Get(ref DateTimeOffset value)
                 {
                     Contracts.Assert(!_disposed);
-                    value = new DateTimeOffset(new DateTime(_ticks[_index]), new TimeSpan(_offsets[_index] * TimeSpan.TicksPerMinute));
+                    var ticks = _ticks[_index];
+                    var offset = _offsets[_index];
+                    value = new DateTimeOffset(new DateTime(ticks == long.MinValue ? default : ticks), new TimeSpan(0, offset == short.MinValue ? default : offset, 0));
                 }
 
                 public override void Dispose()

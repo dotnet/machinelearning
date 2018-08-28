@@ -237,7 +237,11 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             }
 
             public override void Write(TimeSpan a, BinaryWriter writer) { writer.Write(a.Ticks); }
-            public override TimeSpan Read(BinaryReader reader) { return new TimeSpan(reader.ReadInt64()); }
+            public override TimeSpan Read(BinaryReader reader)
+            {
+                var ticks = reader.ReadInt64();
+                return new TimeSpan(ticks == long.MinValue ? default : ticks);
+            }
         }
 
         private sealed class UgUnsafeTypeOps : UnsafeTypeOps<UInt128>
