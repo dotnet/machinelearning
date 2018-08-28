@@ -225,9 +225,9 @@ namespace Microsoft.ML.Transforms
                 var tfoutput = new TFOutput(graph[columnName]);
                 var shape = graph.GetTensorShape(tfoutput);
 
-                int[] dims = new int[shape.NumDimensions];
-                for (int k = 0; k < shape.NumDimensions; k++)
-                    dims[k] = (int)(shape[k] == -1 ? 1 : shape[k]);
+                int[] dims = new int[shape.NumDimensions - 1];
+                for (int k = 1; k < shape.NumDimensions; k++)
+                    dims[k - 1] = (int)shape[k];
 
                 var type = TensorFlowUtils.Tf2MlNetType(tfoutput.OutputType);
                 return (new VectorType(type, dims), tfoutput.OutputType);
