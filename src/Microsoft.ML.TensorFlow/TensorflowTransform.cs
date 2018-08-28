@@ -27,6 +27,7 @@ namespace Microsoft.ML.Transforms
 {
     public static class TensorFlowTransform
     {
+        /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
         internal sealed class TensorFlowMapper : IRowMapper
         {
             private readonly IHost _host;
