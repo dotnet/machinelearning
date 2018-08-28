@@ -51,12 +51,12 @@ namespace Microsoft.ML.StaticPipelineTesting
                 numericFeatures: ctx.LoadFloat(2, 9)
                 ));
 
-            var transform = text.CreateTransform(r => (
+            var transform = text.CreateEstimator(r => (
                 r.label,
                 features: r.numericFeatures.ConcatWith(r.text.Tokenize().Dictionarize().BagVectorize())
                 ));
 
-            var train = transform.CreateTransform(r => (
+            var train = transform.CreateEstimator(r => (
                 r.label.TrainLinearClassification(r.features)
             ));
         }
@@ -70,12 +70,12 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // We apply the text featurizer transform to "sentimentText" producing the column "features".
 
-            var transformation = text.CreateTransform(r =>
+            var transformation = text.CreateEstimator(r =>
                 (r.label, features: r.sentimentText.TextFeaturizer()));
 
             // We apply a learner to learn "label" given "features", which will in turn produce
             // float "score", float "probability", and boolean "predictedLabel".
-            var training = transformation.CreateTransform(r =>
+            var training = transformation.CreateEstimator(r =>
                 r.label.TrainLinearClassification(r.features));
 
         }

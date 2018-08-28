@@ -20,39 +20,42 @@ namespace Microsoft.ML.Data.StaticPipe
     {
         /// <summary>
         /// This is a utility method intended to be used by authors of <see cref="IDataReaderEstimator{TSource,
-        /// TReader}"/> components to provide a strongly typed <see cref="DataReaderEstimator{TIn, TTupleShape}"/>.
+        /// TReader}"/> components to provide a strongly typed <see cref="DataReaderEstimator{TIn, TTupleShape, TDataReader}"/>.
         /// This analysis tool provides a standard way for readers to exploit statically typed pipelines with the
         /// standard tuple-shape objects without having to write such code themselves.
         /// </summary>
+        /// <param name="env">Estimators will be instantiated with this environment</param>
+        /// /// <param name="ch">Some minor debugging information will be passed along to this channel</param>
         /// <param name="input">The input that will be used when invoking <paramref name="mapper"/>, which is used
         /// either to produce the input columns.</param>
         /// <param name="baseReconciler">All columns that are yielded by <paramref name="input"/> should produce this
         /// single reconciler. The analysis code in this method will ensure that this is the first object to be
         /// reconciled, before all others.</param>
         /// <param name="mapper">The user provided delegate.</param>
-        /// <typeparam name="TReaderEstimatorInputType">The type parameter for the input type to the data reader
-        /// estimator.</typeparam>
+        /// <typeparam name="TIn">The type parameter for the input type to the data reader estimator.</typeparam>
         /// <typeparam name="TDelegateInput">The input type of the input delegate. This might be some object out of
         /// which one can fetch or else retrieve </typeparam>
         /// <typeparam name="TTupleOutShape"></typeparam>
         /// <returns></returns>
-        public static DataReaderEstimator<TReaderEstimatorInputType, TTupleOutShape>
-            ReaderEstimatorAnalyzerHelper<TReaderEstimatorInputType, TDelegateInput, TTupleOutShape>(
+        public static DataReaderEstimator<TIn, TTupleOutShape, IDataReader<TIn>>
+            ReaderEstimatorAnalyzerHelper<TIn, TDelegateInput, TTupleOutShape>(
+            IHostEnvironment env,
+            IChannel ch,
             TDelegateInput input,
-            ReaderReconciler<TReaderEstimatorInputType> baseReconciler,
+            ReaderReconciler<TIn> baseReconciler,
             Func<TDelegateInput, TTupleOutShape> mapper)
         {
-            GeneralFunctionAnalyzer(input, baseReconciler, mapper, out var typedReaderEstimator, out var est, col => null);
-            return typedReaderEstimator;
+            var readerEstimator = GeneralFunctionAnalyzer(env, ch, input, baseReconciler, mapper, out var est, col => null);
+            return new DataReaderEstimator<TIn, TTupleOutShape, IDataReader<TIn>>(env, readerEstimator);
         }
 
-        internal static void
-            GeneralFunctionAnalyzer<TReaderEstimatorInputType, TDelegateInput, TTupleOutShape>(
+        internal static IDataReaderEstimator<TIn, IDataReader<TIn>>
+            GeneralFunctionAnalyzer<TIn, TDelegateInput, TTupleOutShape>(
+            IHostEnvironment env,
+            IChannel ch,
             TDelegateInput input,
-            ReaderReconciler<TReaderEstimatorInputType> baseReconciler,
+            ReaderReconciler<TIn> baseReconciler,
             Func<TDelegateInput, TTupleOutShape> mapper,
-
-            out DataReaderEstimator<TReaderEstimatorInputType, TTupleOutShape> typedReaderEstimator,
             out IEstimator<ITransformer> estimator,
             Func<PipelineColumn, string> inputNameFunction)
         {
@@ -75,7 +78,7 @@ namespace Microsoft.ML.Data.StaticPipe
             while (toVisit.Count > 0)
             {
                 var col = toVisit.Dequeue();
-                Contracts.CheckParam(col != null, nameof(mapper), "The delegate seems to have null columns returned somewhere in the pipe");
+                ch.CheckParam(col != null, nameof(mapper), "The delegate seems to have null columns returned somewhere in the pipe");
                 if (keyDependsOn.ContainsKey(col))
                     continue; // Already visited.
 
@@ -104,7 +107,7 @@ namespace Microsoft.ML.Data.StaticPipe
             // indicates that there is a bug in that component code. Unfortunately we can only detect that condition,
             // not determine exactly how it arose, but we can still do so to indicate to the user that there is a
             // problem somewhere in the stack.
-            Contracts.CheckParam(baseInputs.All(col => keyDependsOn[col].Count == 0),
+            ch.CheckParam(baseInputs.All(col => keyDependsOn[col].Count == 0),
                 nameof(input), "Bug detected where column producing object was yielding columns with dependencies.");
 
             // This holds the mappings of columns to names and back. Note that while the same column could be used on
@@ -119,33 +122,32 @@ namespace Microsoft.ML.Data.StaticPipe
                 string inputName = inputNameFunction(col);
                 if (inputName != null)
                 {
-                    Contracts.Assert(!nameMap.ContainsKey(col));
-                    Contracts.Assert(!nameMap.ContainsKey(inputName));
+                    ch.Assert(!nameMap.ContainsKey(col));
+                    ch.Assert(!nameMap.ContainsKey(inputName));
                     nameMap[col] = inputName;
 
-                    Console.WriteLine($"Using input with name {inputName}");
+                    ch.Trace($"Using input with name {inputName}");
                 }
             }
 
             // REVIEW: This ought to be a assigned earlier in the case of a copy-columns being necessary.
             estimator = null;
+            var toCopy = new List<(string src, string dst)>();
 
             int tempNum = 0;
             // For all outputs, get potential name collisions with used inputs. Resolve by assigning the input a temporary name.
             foreach (var p in outPairs)
             {
-                // TODO: This should be accompanied by an actual CopyColumns estimator, once one exists!! However in the
-                // current "fake" world this does not yet exist. This would then be assigned to estimator.
-
                 // If the name for the output is already used by one of the inputs, and this output column does not
                 // happen to have the same name, then we need to rename that input to keep it available.
                 if (nameMap.TryGetValue(p.Key, out var inputCol) && p.Value != inputCol)
                 {
-                    Contracts.Assert(baseInputs.Contains(inputCol));
+                    ch.Assert(baseInputs.Contains(inputCol));
                     string tempName = $"#Temp_{tempNum++}";
-                    Console.WriteLine($"Input/output name collision: Renaming '{p.Key}' to '{tempName}'");
+                    ch.Trace($"Input/output name collision: Renaming '{p.Key}' to '{tempName}'");
+                    toCopy.Add((p.Key, tempName));
                     nameMap[tempName] = nameMap[p.Key];
-                    Contracts.Assert(!nameMap.ContainsKey(p.Key));
+                    ch.Assert(!nameMap.ContainsKey(p.Key));
                 }
                 // If we already have a name for this output column, maybe it is used elsewhere. (This can happen when
                 // the only thing done with an input is we rename it, or output it twice, or something like this.) In
@@ -155,11 +157,15 @@ namespace Microsoft.ML.Data.StaticPipe
                     nameMap[p.Key] = p.Value;
             }
 
+            // If any renamings were necessary, create the CopyColumns estimator.
+            if (toCopy.Count > 0)
+                estimator = new CopyColumnsEstimator(env, toCopy.ToArray());
+
             // First clear the inputs from zero-dependencies yet to be resolved.
             foreach (var col in baseInputs)
             {
-                Contracts.Assert(zeroDependencies.Contains(col));
-                Contracts.Assert(col.ReconcilerObj == baseReconciler);
+                ch.Assert(zeroDependencies.Contains(col));
+                ch.Assert(col.ReconcilerObj == baseReconciler);
 
                 zeroDependencies.Remove(col); // Make more efficient...
                 if (!dependsOnKey.TryGetValue(col, out var depends))
@@ -172,7 +178,7 @@ namespace Microsoft.ML.Data.StaticPipe
                 foreach (var depender in depends)
                 {
                     var dependencies = keyDependsOn[depender];
-                    Contracts.Assert(dependencies.Contains(col));
+                    ch.Assert(dependencies.Contains(col));
                     dependencies.Remove(col);
                     if (dependencies.Count == 0)
                         zeroDependencies.Add(depender);
@@ -182,7 +188,7 @@ namespace Microsoft.ML.Data.StaticPipe
 
             // Call the reconciler to get the base reader estimator.
             var readerEstimator = baseReconciler.Reconcile(baseInputs, nameMap.AsOther(baseInputs));
-            Contracts.AssertValueOrNull(readerEstimator);
+            ch.AssertValueOrNull(readerEstimator);
 
             // Next we iteratively find those columns with zero dependencies, "create" them, and if anything depends on
             // these add them to the collection of zero dependencies, etc. etc.
@@ -202,12 +208,12 @@ namespace Microsoft.ML.Data.StaticPipe
                 // message to tell them not to do this.
                 if (!(group.Key is DataInputReconciler rec))
                 {
-                    throw Contracts.Except("Columns from multiple sources were detected. " +
+                    throw ch.Except("Columns from multiple sources were detected. " +
                         "Did the caller use a " + nameof(PipelineColumn) + " from another delegate?");
                 }
                 PipelineColumn[] cols = group.ToArray();
                 // All dependencies should, by this time, have names.
-                Contracts.Assert(cols.SelectMany(c => c.Dependencies).All(dep => nameMap.ContainsKey(dep)));
+                ch.Assert(cols.SelectMany(c => c.Dependencies).All(dep => nameMap.ContainsKey(dep)));
                 foreach (var newCol in cols)
                 {
                     if (!nameMap.ContainsKey(newCol))
@@ -248,11 +254,12 @@ namespace Microsoft.ML.Data.StaticPipe
                 // lambda, assign a column to a local variable, then re-use it downstream in a different lambdas.
                 // The user would have to go to some extraorindary effort to do that, but nonetheless we want to
                 // fail with a semi-sensible error message.
-                throw Contracts.Except("There were some leftover columns with unresolved dependencies. " +
+                throw ch.Except("There were some leftover columns with unresolved dependencies. " +
                     "Did the caller use a " + nameof(PipelineColumn) + " from another delegate?");
             }
 
             // Now do the final renaming, if any is necessary.
+            toCopy.Clear();
             foreach (var p in outPairs)
             {
                 // TODO: Right now we just write stuff out. Once the copy-columns estimator is in place
@@ -260,30 +267,100 @@ namespace Microsoft.ML.Data.StaticPipe
                 Contracts.Assert(nameMap.ContainsKey(p.Value));
                 string currentName = nameMap[p.Value];
                 if (currentName != p.Key)
-                    Console.WriteLine($"Will copy '{currentName}' to '{p.Key}'");
+                {
+                    ch.Trace($"Will copy '{currentName}' to '{p.Key}'");
+                    toCopy.Add((currentName, p.Key));
+                }
             }
 
-            Console.WriteLine($"Exiting {nameof(ReaderEstimatorAnalyzerHelper)} !!!");
+            // If any final renamings were necessary, insert the appropriate CopyColumns transform.
+            if (toCopy.Count > 0)
+            {
+                var copyEstimator = new CopyColumnsEstimator(env, toCopy.ToArray());
+                if (estimator == null)
+                    estimator = copyEstimator;
+                else
+                    estimator = estimator.Append(copyEstimator);
+            }
 
-            typedReaderEstimator = readerEstimator == null ? null :
-                new TypedEstimator<TReaderEstimatorInputType, TTupleOutShape>(readerEstimator);
+            ch.Trace($"Exiting {nameof(ReaderEstimatorAnalyzerHelper)}");
+
+            return readerEstimator;
         }
 
-        private sealed class TypedEstimator<TSource, TTupleShape> : DataReaderEstimator<TSource, TTupleShape>
+        internal sealed class InvDictionary<T1, T2>
         {
-            private readonly IDataReaderEstimator<TSource, IDataReader<TSource>> _estimator;
+            private readonly Dictionary<T1, T2> _d12;
+            private readonly Dictionary<T2, T1> _d21;
 
-            public TypedEstimator(IDataReaderEstimator<TSource, IDataReader<TSource>> estimator)
+            public InvDictionary()
             {
-                Contracts.AssertValue(estimator);
-                _estimator = estimator;
+                _d12 = new Dictionary<T1, T2>();
+                _d21 = new Dictionary<T2, T1>();
             }
 
-            protected override IDataReader<TSource> FitCore(TSource input)
-                => _estimator.Fit(input);
+            public bool ContainsKey(T1 k) => _d12.ContainsKey(k);
+            public bool ContainsKey(T2 k) => _d21.ContainsKey(k);
 
-            protected override SchemaShape GetOutputSchemaCore()
-                => _estimator.GetOutputSchema();
+            public bool TryGetValue(T1 k, out T2 v) => _d12.TryGetValue(k, out v);
+            public bool TryGetValue(T2 k, out T1 v) => _d21.TryGetValue(k, out v);
+
+            public T1 this[T2 key]
+            {
+                get => _d21[key];
+                set
+                {
+                    Contracts.CheckValue((object)key, nameof(key));
+                    Contracts.CheckValue((object)value, nameof(value));
+
+                    bool removeOldKey = _d12.TryGetValue(value, out var oldKey);
+                    if (_d21.TryGetValue(key, out var oldValue))
+                        _d12.Remove(oldValue);
+                    if (removeOldKey)
+                        _d21.Remove(oldKey);
+
+                    _d12[value] = key;
+                    _d21[key] = value;
+                    Contracts.Assert(_d12.Count == _d21.Count);
+                }
+            }
+
+            public T2 this[T1 key]
+            {
+                get => _d12[key];
+                set
+                {
+                    Contracts.CheckValue((object)key, nameof(key));
+                    Contracts.CheckValue((object)value, nameof(value));
+
+                    bool removeOldKey = _d21.TryGetValue(value, out var oldKey);
+                    if (_d12.TryGetValue(key, out var oldValue))
+                        _d21.Remove(oldValue);
+                    if (removeOldKey)
+                        _d12.Remove(oldKey);
+
+                    _d21[value] = key;
+                    _d12[key] = value;
+
+                    Contracts.Assert(_d12.Count == _d21.Count);
+                }
+            }
+
+            public Dictionary<T1, T2> AsOther(IEnumerable<T1> keys)
+            {
+                Dictionary<T1, T2> d = new Dictionary<T1, T2>();
+                foreach (var v in keys)
+                    d[v] = _d12[v];
+                return d;
+            }
+
+            public Dictionary<T2, T1> AsOther(IEnumerable<T2> keys)
+            {
+                Dictionary<T2, T1> d = new Dictionary<T2, T1>();
+                foreach (var v in keys)
+                    d[v] = _d21[v];
+                return d;
+            }
         }
     }
 }

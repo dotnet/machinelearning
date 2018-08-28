@@ -2,44 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Data.StaticPipe
 {
-    public abstract class DataReaderEstimator<TIn, TTupleShape>
-        : BlockMaker<TTupleShape>, IDataReaderEstimator<TIn, IDataReader<TIn>>
+    public sealed class DataReaderEstimator<TIn, TTupleShape, TDataReader> : BlockMaker<TTupleShape>
+        where TDataReader : class, IDataReader<TIn>
     {
-        IDataReader<TIn> IDataReaderEstimator<TIn, IDataReader<TIn>>.Fit(TIn input)
-            => FitCore(input);
+        public IDataReaderEstimator<TIn, TDataReader> Wrapped { get; }
 
-        protected abstract IDataReader<TIn> FitCore(TIn input);
-
-        SchemaShape IDataReaderEstimator<TIn, IDataReader<TIn>>.GetOutputSchema()
-            => GetOutputSchemaCore();
-
-        protected abstract SchemaShape GetOutputSchemaCore();
+        public DataReaderEstimator(IHostEnvironment env, IDataReaderEstimator<TIn, TDataReader> estimator)
+            : base(env)
+        {
+            Env.CheckValue(estimator, nameof(estimator));
+            Wrapped = estimator;
+        }
 
         public DataReader<TIn, TTupleShape> Fit(TIn input)
         {
-            var reader = FitCore(input);
-            return new DataReader<TIn, TTupleShape>(reader);
+            Contracts.Assert(nameof(Fit) == nameof(IDataReaderEstimator<TIn, TDataReader>.Fit));
+
+            var reader = Wrapped.Fit(input);
+            return new DataReader<TIn, TTupleShape>(Env, reader);
         }
-    }
 
-    public abstract class Estimator<TTupleInShape, TTupleOutShape, TTransformer>
-        : BlockMaker<TTupleOutShape>, IEstimator<TTransformer>
-        where TTransformer : ITransformer
-    {
-        TTransformer IEstimator<TTransformer>.Fit(IDataView input)
-            => FitCore(input);
+        public DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>> Append<TNewOut, TTrans>(Estimator<TTupleShape, TNewOut, TTrans> est)
+            where TTrans : class, ITransformer
+        {
+            Contracts.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
 
-        protected abstract TTransformer FitCore(IDataView input);
-
-        SchemaShape IEstimator<TTransformer>.GetOutputSchema(SchemaShape inputSchema)
-            => GetOutputSchemaCore(inputSchema);
-
-        protected abstract SchemaShape GetOutputSchemaCore(SchemaShape inputSchema);
+            var readerEst = Wrapped.Append(est.Wrapped);
+            return new DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>>(Env, readerEst);
+        }
     }
 }

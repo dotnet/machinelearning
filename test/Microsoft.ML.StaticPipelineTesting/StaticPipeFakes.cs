@@ -98,10 +98,10 @@ namespace FakeStaticPipes
             }
         }
 
-        public static DataReaderEstimator<IMultiStreamSource, TTupleShape> Create<TTupleShape>(Func<Context, TTupleShape> map)
+        public static DataReaderEstimator<IMultiStreamSource, TTupleShape, IDataReader<IMultiStreamSource>> Create<TTupleShape>(Func<Context, TTupleShape> map)
         {
             var ctx = new Context();
-            return StaticPipeUtils.ReaderEstimatorAnalyzerHelper(ctx, TextReconciler.Inst, map);
+            return StaticPipeUtils.ReaderEstimatorAnalyzerHelper(null, null, ctx, TextReconciler.Inst, map);
         }
     }
 

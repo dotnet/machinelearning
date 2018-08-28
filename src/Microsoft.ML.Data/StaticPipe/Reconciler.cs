@@ -21,12 +21,12 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     }
 
     /// <summary>
-    /// Reconciler for column groups intended to resolve to a new <see cref="IDataReaderEstimator{TSource, TReader}"/>.
+    /// Reconciler for column groups intended to resolve to a new <see cref="IDataReaderEstimator{TSource, TReader}"/>
+    /// or <see cref="IDataReader{TSource}"/>.
     /// </summary>
-    /// <typeparam name="TREaderIn">The type of object returned through the reconciler. This is intended to
-    /// be either an <see cref="IEstimator{TTransformer}"/> or <see cref="IDataReaderEstimator{TSource, TReader}"/>
+    /// <typeparam name="TIn">The input type of the <see cref="IDataReaderEstimator{TSource, TReader}"/>
     /// object.</typeparam>
-    public abstract class ReaderReconciler<TREaderIn> : Reconciler
+    public abstract class ReaderReconciler<TIn> : Reconciler
     {
         public ReaderReconciler() : base() { }
 
@@ -37,13 +37,13 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         /// <param name="toOutput">The columns that the reconciler should output</param>
         /// <param name="outputNames"></param>
         /// <returns></returns>
-        public abstract IDataReaderEstimator<TREaderIn, IDataReader<TREaderIn>> Reconcile(
+        public abstract IDataReaderEstimator<TIn, IDataReader<TIn>> Reconcile(
             PipelineColumn[] toOutput, Dictionary<PipelineColumn, string> outputNames);
     }
 
     /// <summary>
     /// Reconciler for column groups intended to resolve to an <see cref="IEstimator{TTransformer}"/>. This type of
-    /// reconciler will work with <see cref="BlockMaker{TTupleShape}.CreateTransform{TTupleOutShape}(Func{TTupleShape, TTupleOutShape})"/>
+    /// reconciler will work with <see cref="BlockMaker{TTupleShape}.CreateEstimator{TTupleOutShape}(Func{TTupleShape, TTupleOutShape})"/>
     /// or other functions that involve the creation of transforms.
     /// </summary>
     public abstract class DataInputReconciler : Reconciler

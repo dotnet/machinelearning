@@ -5,6 +5,7 @@
     <IncludeInPackage>Microsoft.ML</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>CORECLR</DefineConstants>
+    <BaseIntermediateOutputPath>..\..\bin\obj\AnyCPU.Debug\Microsoft.ML.Data</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

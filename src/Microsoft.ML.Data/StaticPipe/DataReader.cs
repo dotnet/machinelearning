@@ -3,21 +3,51 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Data.StaticPipe
 {
     public sealed class DataReader<TIn, TTupleShape>
-        : IDataReader<TIn>
+        : BlockMaker<TTupleShape>
     {
-        private readonly IDataReader<TIn> _inner;
+        public IDataReader<TIn> Wrapped { get; }
 
-        ISchema IDataReader<TIn>.GetOutputSchema() => _inner.GetOutputSchema();
-        IDataView IDataReader<TIn>.Read(TIn input) => _inner.Read(input);
-
-        internal DataReader(IDataReader<TIn> inner)
+        public DataReader(IHostEnvironment env, IDataReader<TIn> reader)
+            : base(env)
         {
-            _inner = inner;
+            Wrapped = reader;
+        }
+
+        public DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>> Append<TNewOut, TTrans>(Estimator<TTupleShape, TNewOut, TTrans> estimator)
+            where TTrans : class, ITransformer
+        {
+            Contracts.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
+
+            var readerEst = Wrapped.Append(estimator.Wrapped);
+            return new DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>>(Env, readerEst);
+        }
+
+        public DataReader<TIn, TNewTupleShape> Append<TNewTupleShape, TTransformer>(Transformer<TTupleShape, TNewTupleShape, TTransformer> transformer)
+            where TTransformer : class, ITransformer
+        {
+            Env.CheckValue(transformer, nameof(transformer));
+            Env.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
+
+            var reader = Wrapped.Append(transformer.Wrapped);
+            return new DataReader<TIn, TNewTupleShape>(Env, reader);
+        }
+
+        public DataView<TTupleShape> Read(TIn input)
+        {
+            // We cannot check the value of input since it may not be a reference type, and it is not clear
+            // that there is an absolute case for insisting that the input type be a reference type, and much
+            // less further that null inputs will never be correct. So we rely on the wrapping object to make
+            // that determination.
+            Env.Assert(nameof(Read) == nameof(IDataReader<TIn>.Read));
+
+            var data = Wrapped.Read(input);
+            return new DataView<TTupleShape>(Env, data);
         }
     }
 }
