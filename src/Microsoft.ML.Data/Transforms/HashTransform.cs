@@ -930,8 +930,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (Utils.Size(indices) <= j || indices[j] > i)
                     dst[i] = zeroHash;
-                else if (indices[j++] == i)
-                    dst[i] = HashCore(seed, ref src[i], mask);
+                else if (indices[j] == i)
+                    dst[i] = HashCore(seed, ref src[j], mask);
                 else
                     Contracts.Assert(false, "this should have never happened.");
             }
@@ -951,8 +951,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (Utils.Size(indices) <= j || indices[j] > i)
                     dst[i] = zeroHash;
-                else if (indices[j++] == i)
-                    dst[i] = HashCore(seed, ref src[i], mask);
+                else if (indices[j] == i)
+                    dst[i] = HashCore(seed, ref src[j++], mask);
                 else
                     Contracts.Assert(false, "this should have never happened.");
             }

@@ -22,11 +22,16 @@ namespace Microsoft.ML.Runtime.RunTests
         private static Float[] dataFloat = new Float[] { -0.0f, 0,  1, -1,  2, -2, Single.NaN, Single.MinValue,
                 Single.MaxValue, Single.Epsilon, Single.NegativeInfinity, Single.PositiveInfinity };
         private static uint[] resultsFloat = new uint[] { 21, 21, 16, 16, 31, 17, 0, 23, 24, 15, 10, 7 };
-        private static uint[] resultsFloatSparse = new uint[] { 21, 21, 16, 21, 21 };
+
+        private static VBuffer<Single> dataFloatSparse = new VBuffer<Single>(5, 3, new float[] { -0.0f, 0, 1 }, new[] { 0, 3, 4 });
+        private static uint[] resultsFloatSparse = new uint[] { 21, 21, 21, 21, 16 };
+
         private static Double[] dataDouble = new Double[]   { -0.0, 0, 1, -1,  2, -2, Double.NaN, Double.MinValue,
                 Double.MaxValue, Double.Epsilon, Double.NegativeInfinity, Double.PositiveInfinity };
         private static uint[] resultsDouble = new uint[] { 21, 21, 31, 17, 10, 15, 0, 16, 21, 15, 6, 30 };
-        private static uint[] resultsDoubleSparse = new uint[] { 21, 21, 31, 21, 21 };
+
+        private static VBuffer<Double> dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
+        private static uint[] resultsDoubleSparse = new uint[] { 21, 21, 21, 21, 31 };
 
         [Fact]
         public void TestHashTransformFloat()
@@ -45,17 +50,15 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestHashTransformFloatSparseVector()
         {
-            var data = new VBuffer<Single>(5, 3, new float[] { -0.0f, 0, 1 }, new[] { 0, 1, 2 });
             var results = new[] { resultsFloatSparse };
-            TestHashTransformVectorHelper(data, results, NumberType.R4);
+            TestHashTransformVectorHelper(dataFloatSparse, results, NumberType.R4);
         }
 
         [Fact]
         public void TestHashTransformDoubleSparseVector()
         {
-            var data = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 1, 2 });
             var results = new[] { resultsDoubleSparse };
-            TestHashTransformVectorHelper(data, results, NumberType.R8);
+            TestHashTransformVectorHelper(dataDoubleSparse, results, NumberType.R8);
         }
 
         [Fact]
