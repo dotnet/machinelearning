@@ -27,8 +27,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
 
-                var data = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
-                    .FitAndRead(new MultiFileSource(dataPath));
+                var data = new TextLoader(env, MakeSentimentTextLoaderArgs())
+                    .Read(new MultiFileSource(dataPath));
                 // Pipeline.
                 var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs())
                         .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments

@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(IrisDataPath);
             using (var env = new TlcEnvironment())
             {
-                var loader = new TextLoader(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 var term = new TermTransform(env, loader, "Label");
                 var concat = new ConcatTransform(env, term, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
                 var trainer = new Ova(env, new Ova.Arguments

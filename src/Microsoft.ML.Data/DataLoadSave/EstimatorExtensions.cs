@@ -25,6 +25,19 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Create a composite reader estimator by appending an estimator to a reader.
+        /// </summary>
+        public static CompositeReaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
+            this IDataReader<TSource> start, IEstimator<TTrans> estimator)
+            where TTrans : class, ITransformer
+        {
+            Contracts.CheckValue(start, nameof(start));
+            Contracts.CheckValue(estimator, nameof(estimator));
+
+            return new TrivialReaderEstimator<TSource, IDataReader<TSource>>(start).Append(estimator);
+        }
+
+        /// <summary>
         /// Create an estimator chain by appending an estimator to an estimator.
         /// </summary>
         public static EstimatorChain<TTrans> Append<TTrans>(

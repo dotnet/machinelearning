@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML.Runtime.Command;
@@ -2026,6 +2027,19 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(res == 0);
             }
             Assert.True(outputPath.CheckEqualityNormalized());
+            Done();
+        }
+
+        [Fact]
+        public void DataTypes()
+        {
+            //Skip for linux because DATE/TIME format is different.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return;
+
+            string idvPath = GetDataPath("datatypes.idv");
+            OutputPath textOutputPath = CreateOutputPath("datatypes.txt");
+            TestCore("savedata", idvPath, "loader=binary", "saver=text", textOutputPath.Arg("dout"));
             Done();
         }
     }

@@ -25,8 +25,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(IrisDataPath);
             using (var env = new TlcEnvironment())
             {
-                var data = new MyTextLoader(env, MakeIrisTextLoaderArgs())
-                    .FitAndRead(new MultiFileSource(dataPath));
+                var data = new TextLoader(env, MakeIrisTextLoaderArgs())
+                    .Read(new MultiFileSource(dataPath));
 
                 Action<IrisData, IrisData> action = (i, j) =>
                 {
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
                 var engine = new MyPredictionEngine<IrisData, IrisPrediction>(env, model);
 
-                var testLoader = new TextLoader(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 var testData = testLoader.AsEnumerable<IrisData>(env, false);
                 foreach (var input in testData.Take(20))
                 {
