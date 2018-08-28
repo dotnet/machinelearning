@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.ImageAnalytics;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(ImageGrayscaleTransform), null, typeof(SignatureLoadModel),
     ImageGrayscaleTransform.UserName, ImageGrayscaleTransform.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageGrayscaleTransform.Mapper), null, typeof(SignatureLoadRowMapper),
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageGrayscaleTransform), null, typeof(SignatureLoadRowMapper),
     ImageGrayscaleTransform.UserName, ImageGrayscaleTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.ImageAnalytics
@@ -36,7 +37,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
     /// Transform which takes one or many columns of <see cref="ImageType"/> type in IDataView and
     /// convert them to greyscale representation of the same image.
     /// </summary>
-    public sealed class ImageGrayscaleTransform : ITransformer, ICanSaveModel
+    public sealed class ImageGrayscaleTransform : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -76,18 +77,12 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         private const string RegistrationName = "ImageGrayscale";
-        private readonly IHost _host;
-        private readonly (string input, string output)[] _columns;
 
-        public (string input, string output)[] Columns => _columns;
+        public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
         public ImageGrayscaleTransform(IHostEnvironment env, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(RegistrationName);
-            _host.CheckValue(columns, nameof(columns));
-
-            _columns = columns.ToArray();
         }
 
         // Factory method for SignatureDataTransform.
@@ -96,67 +91,44 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
+            env.CheckValue(args.Column, nameof(args.Column));
 
-            var transformer = new ImageGrayscaleTransform(env, args.Column.Select(x => (x.Source ?? x.Name, x.Name)).ToArray());
-            return new RowToRowMapperTransform(env, input, transformer.MakeRowMapper(input.Schema));
+            return new ImageGrayscaleTransform(env, args.Column.Select(x => (x.Source ?? x.Name, x.Name)).ToArray())
+                .MakeDataTransform(input);
         }
 
-        public ImageGrayscaleTransform(IHostEnvironment env, ModelLoadContext ctx)
+        public static ImageGrayscaleTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(RegistrationName);
-            _host.CheckValue(ctx, nameof(ctx));
+            var host = env.Register(RegistrationName);
+            host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            return new ImageGrayscaleTransform(host, ctx);
+        }
 
-            // *** Binary format ***
-            // int: number of added columns
-            // for each added column
-            //   int: id of output column name
-            //   int: id of input column name
-
-            int n = ctx.Reader.ReadInt32();
-            _columns = new (string input, string output)[n];
-            for (int i = 0; i < n; i++)
-            {
-                string output = ctx.LoadNonEmptyString();
-                string input = ctx.LoadNonEmptyString();
-                _columns[i] = (input, output);
-            }
+        private ImageGrayscaleTransform(IHost host, ModelLoadContext ctx)
+            : base(host, ctx)
+        {
         }
 
         // Factory method for SignatureLoadDataTransform.
         public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+
+        public override void Save(ModelSaveContext ctx)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            env.CheckValue(input, nameof(input));
-
-            var transformer = new ImageGrayscaleTransform(env, ctx);
-            return new RowToRowMapperTransform(env, input, transformer.MakeRowMapper(input.Schema));
-        }
-
-        public void Save(ModelSaveContext ctx) => SaveContents(_host, ctx, _columns);
-
-        private static void SaveContents(IHostEnvironment env, ModelSaveContext ctx, (string input, string output)[] columns)
-        {
-            Contracts.AssertValue(env);
-            env.CheckValue(ctx, nameof(ctx));
-            Contracts.AssertValue(columns);
+            Host.CheckValue(ctx, nameof(ctx));
 
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: number of added columns
-            // for each added column
-            //   int: id of output column name
-            //   int: id of input column name
-
-            ctx.Writer.Write(columns.Length);
-            for (int i = 0; i < columns.Length; i++)
-            {
-                ctx.SaveNonEmptyString(columns[i].output);
-                ctx.SaveNonEmptyString(columns[i].input);
-            }
+            // <base>
+            base.SaveColumns(ctx);
         }
 
         private static readonly ColorMatrix _grayscaleColorMatrix = new ColorMatrix(
@@ -169,114 +141,35 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     new float[] {0, 0, 0, 0, 1}
                 });
 
-        private IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(_host, _columns, schema);
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+            => new Mapper(this, schema);
 
-        private static void CheckInput(IExceptionContext ctx, ISchema inputSchema, string input, out int srcCol)
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
-            Contracts.AssertValueOrNull(ctx);
-            Contracts.AssertValue(inputSchema);
-            Contracts.AssertNonEmpty(input);
-
-            if (!inputSchema.TryGetColumnIndex(input, out srcCol))
-                throw ctx.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
             if (!(inputSchema.GetColumnType(srcCol) is ImageType))
-                throw ctx.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "image", inputSchema.GetColumnType(srcCol).ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "image", inputSchema.GetColumnType(srcCol).ToString());
         }
 
-        public ISchema GetOutputSchema(ISchema inputSchema)
+        private sealed class Mapper : MapperBase
         {
-            _host.CheckValue(inputSchema, nameof(inputSchema));
+            private ImageGrayscaleTransform _parent;
 
-            // Check that all the input columns are present and are images.
-            foreach (var column in _columns)
-                CheckInput(_host, inputSchema, column.input, out int col);
-
-            return Transform(new EmptyDataView(_host, inputSchema)).Schema;
-        }
-
-        public IDataView Transform(IDataView input)
-        {
-            _host.CheckValue(input, nameof(input));
-
-            var mapper = MakeRowMapper(input.Schema);
-            return new RowToRowMapperTransform(_host, input, mapper);
-        }
-
-        internal sealed class Mapper : IRowMapper
-        {
-            private readonly IHost _host;
-            private readonly (string input, string output)[] _columns;
-            private readonly ISchema _inputSchema;
-            private readonly Dictionary<int, int> _colMapNewToOld;
-
-            public Mapper(IHostEnvironment env, (string input, string output)[] columns, ISchema inputSchema)
+            public Mapper(ImageGrayscaleTransform parent, ISchema inputSchema)
+                :base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                Contracts.AssertValue(env);
-                _host = env.Register(nameof(Mapper));
-                _host.AssertValue(columns);
-                _host.AssertValue(inputSchema);
-
-                _colMapNewToOld = new Dictionary<int, int>();
-                for (int i = 0; i < columns.Length; i++)
-                {
-                    CheckInput(_host, inputSchema, columns[i].input, out int srcCol);
-                    _colMapNewToOld.Add(i, srcCol);
-                }
-                _columns = columns;
-                _inputSchema = inputSchema;
+                _parent = parent;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            public override RowMapperColumnInfo[] GetOutputColumns()
+                => _parent.ColumnPairs.Select((x, idx) => new RowMapperColumnInfo(x.output, InputSchema.GetColumnType(ColMapNewToOld[idx]), null)).ToArray();
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
-                var active = new bool[_inputSchema.ColumnCount];
-                foreach (var pair in _colMapNewToOld)
-                    if (activeOutput(pair.Key))
-                        active[pair.Value] = true;
-                return col => active[col];
-            }
-
-            public RowMapperColumnInfo[] GetOutputColumns()
-                => _columns.Select((x, idx) => new RowMapperColumnInfo(x.output, _inputSchema.GetColumnType(_colMapNewToOld[idx]), null)).ToArray();
-
-            public void Save(ModelSaveContext ctx) => SaveContents(_host, ctx, _columns);
-
-            public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            {
-                Contracts.CheckValue(env, nameof(env));
-                env.CheckValue(ctx, nameof(ctx));
-                env.CheckValue(inputSchema, nameof(inputSchema));
-                var transformer = new ImageGrayscaleTransform(env, ctx);
-                return transformer.MakeRowMapper(inputSchema);
-            }
-
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
-            {
-                _host.Assert(input.Schema == _inputSchema);
-                var result = new Delegate[_columns.Length];
-                var disposers = new Action[_columns.Length];
-                for (int i = 0; i < _columns.Length; i++)
-                {
-                    if (!activeOutput(i))
-                        continue;
-                    int srcCol = _colMapNewToOld[i];
-                    result[i] = MakeGetter(input, i, out disposers[i]);
-                }
-                disposer = () =>
-                {
-                    foreach (var act in disposers)
-                        act();
-                };
-                return result;
-            }
-
-            private Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
-            {
-                _host.AssertValue(input);
-                _host.Assert(0 <= iinfo && iinfo < _columns.Length);
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 var src = default(Bitmap);
-                var getSrc = input.GetGetter<Bitmap>(_colMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<Bitmap>(ColMapNewToOld[iinfo]);
 
                 disposer =
                     () =>
@@ -314,10 +207,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
     }
 
-    public sealed class ImageGrayscaleEstimator: TrivialEstimator<ImageGrayscaleTransform>
+    public sealed class ImageGrayscaleEstimator : TrivialEstimator<ImageGrayscaleTransform>
     {
         public ImageGrayscaleEstimator(IHostEnvironment env, params (string input, string output)[] columns)
-            :base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageGrayscaleEstimator)), new ImageGrayscaleTransform(env, columns))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageGrayscaleEstimator)), new ImageGrayscaleTransform(env, columns))
         {
         }
 

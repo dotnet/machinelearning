@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public abstract class OneToOneTransformerBase: ITransformer
+    public abstract class OneToOneTransformerBase: ITransformer, ICanSaveModel
     {
         protected readonly IHost Host;
         protected readonly (string input, string output)[] ColumnPairs;
@@ -18,7 +18,17 @@ namespace Microsoft.ML.Runtime.Data
         protected OneToOneTransformerBase(IHost host, (string input, string output)[] columns)
         {
             Contracts.AssertValue(host);
-            Contracts.AssertValue(columns);
+            host.CheckValue(columns, nameof(columns));
+
+            var newNames = new HashSet<string>();
+            foreach (var column in columns)
+            {
+                host.CheckNonEmpty(column.input, nameof(columns));
+                host.CheckNonEmpty(column.output, nameof(columns));
+
+                if (!newNames.Add(column.output))
+                    throw Contracts.ExceptParam(nameof(columns), $"Output column '{column.output}' specified multiple times");
+            }
 
             Host = host;
             ColumnPairs = columns;
@@ -42,6 +52,8 @@ namespace Microsoft.ML.Runtime.Data
                 ColumnPairs[i] = (input, output);
             }
         }
+
+        public abstract void Save(ModelSaveContext ctx);
 
         protected void SaveColumns(ModelSaveContext ctx)
         {
@@ -76,7 +88,7 @@ namespace Microsoft.ML.Runtime.Data
             // By default, there are no extra checks.
         }
 
-        protected abstract MapperBase MakeRowMapper(ISchema schema);
+        protected abstract IRowMapper MakeRowMapper(ISchema schema);
 
         public ISchema GetOutputSchema(ISchema inputSchema)
         {
@@ -89,9 +101,9 @@ namespace Microsoft.ML.Runtime.Data
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        public IDataView Transform(IDataView input) => MakeTransform(input);
+        public IDataView Transform(IDataView input) => MakeDataTransform(input);
 
-        protected RowToRowMapperTransform MakeTransform(IDataView input)
+        protected RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
             return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema));
@@ -132,7 +144,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public abstract RowMapperColumnInfo[] GetOutputColumns();
 
-            public void Save(ModelSaveContext ctx) => _parent.SaveColumns(ctx);
+            public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
             public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {

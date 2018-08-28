@@ -25,14 +25,14 @@ using System.Text;
 
 [assembly: LoadableClass(typeof(ImageLoaderTransform), null, typeof(SignatureLoadModel), "", ImageLoaderTransform.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageLoaderTransform.Mapper), null, typeof(SignatureLoadRowMapper), "", ImageLoaderTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageLoaderTransform), null, typeof(SignatureLoadRowMapper), "", ImageLoaderTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
     /// <summary>
     /// Transform which takes one or many columns of type <see cref="DvText"/> and loads them as <see cref="ImageType"/>
     /// </summary>
-    public sealed class ImageLoaderTransform : ITransformer, ICanSaveModel
+    public sealed class ImageLoaderTransform : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -67,31 +67,20 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         internal const string UserName = "Image Loader Transform";
         public const string LoaderSignature = "ImageLoaderTransform";
 
-        private readonly string _imageFolder;
-        private readonly (string input, string output)[] _columns;
-        private readonly IHost _host;
+        public readonly string ImageFolder;
 
-        public IReadOnlyCollection<(string input, string output)> Columns => _columns.AsReadOnly();
+        public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
         public ImageLoaderTransform(IHostEnvironment env, string imageFolder, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoaderTransform)), columns)
         {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(ImageLoaderTransform));
-            _host.CheckValueOrNull(imageFolder);
-            _host.CheckValue(columns, nameof(columns));
+            ImageFolder = imageFolder;
+        }
 
-            _imageFolder = imageFolder;
-
-            var newNames = new HashSet<string>();
-            foreach (var column in columns)
-            {
-                _host.CheckNonEmpty(column.input, nameof(columns));
-                _host.CheckNonEmpty(column.output, nameof(columns));
-
-                if (!newNames.Add(column.output))
-                    throw Contracts.ExceptParam(nameof(columns), $"Output column '{column.output}' specified multiple times");
-            }
-            _columns = columns;
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
+        {
+            return new ImageLoaderTransform(env, args.ImageFolder, args.Column.Select(x => (x.Source ?? x.Name, x.Name)).ToArray())
+                .MakeDataTransform(data);
         }
 
         public static ImageLoaderTransform Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -100,84 +89,46 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             env.CheckValue(ctx, nameof(ctx));
 
             ctx.CheckAtModel(GetVersionInfo());
+            return new ImageLoaderTransform(env.Register(nameof(ImageLoaderTransform)), ctx);
+        }
 
+        private ImageLoaderTransform(IHost host, ModelLoadContext ctx)
+            : base(host, ctx)
+        {
             // *** Binary format ***
-            // int: number of added columns
-            // for each added column
-            //   int: id of output column name
-            //   int: id of input column name
+            // <base>
             // int: id of image folder
 
-            int n = ctx.Reader.ReadInt32();
-            var columns = new (string input, string output)[n];
-            for (int i = 0; i < n; i++)
-            {
-                string output = ctx.LoadNonEmptyString();
-                string input = ctx.LoadNonEmptyString();
-                columns[i] = (input, output);
-            }
-
-            string imageFolder = ctx.LoadStringOrNull();
-
-            return new ImageLoaderTransform(env, imageFolder, columns);
+            ImageFolder = ctx.LoadStringOrNull();
         }
 
+        // Factory method for SignatureLoadDataTransform.
         public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            env.CheckValue(input, nameof(input));
-
-            var transformer = Create(env, ctx);
-            return transformer.CreateDataTransform(input);
-        }
-
-        public ISchema GetOutputSchema(ISchema inputSchema)
-        {
-            _host.CheckValue(inputSchema, nameof(inputSchema));
-
-            // Check that all the input columns are present and are scalar texts.
-            foreach (var (input, output) in _columns)
-                CheckInput(_host, inputSchema, input, out int col);
-
-            return Transform(new EmptyDataView(_host, inputSchema)).Schema;
-        }
-
-        private static void CheckInput(IExceptionContext ctx, ISchema inputSchema, string input, out int srcCol)
-        {
-            Contracts.AssertValueOrNull(ctx);
-            Contracts.AssertValue(inputSchema);
-            Contracts.AssertNonEmpty(input);
-
-            if (!inputSchema.TryGetColumnIndex(input, out srcCol))
-                throw ctx.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
             if (!inputSchema.GetColumnType(srcCol).IsText)
-                throw ctx.ExceptSchemaMismatch(nameof(inputSchema), "input", input, TextType.Instance.ToString(), inputSchema.GetColumnType(srcCol).ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextType.Instance.ToString(), inputSchema.GetColumnType(srcCol).ToString());
         }
 
-        public IDataView Transform(IDataView input) => CreateDataTransform(input);
-
-        public void Save(ModelSaveContext ctx) => SaveContents(ctx, _imageFolder, _columns);
-
-        private static void SaveContents(ModelSaveContext ctx, string imageFolder, (string input, string output)[] columns)
+        public override void Save(ModelSaveContext ctx)
         {
+            Host.CheckValue(ctx, nameof(ctx));
+
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: number of added columns
-            // for each added column
-            //   int: id of output column name
-            //   int: id of input column name
+            // <base>
             // int: id of image folder
 
-            ctx.Writer.Write(columns.Length);
-            foreach (var (input, output) in columns)
-            {
-                ctx.SaveNonEmptyString(output);
-                ctx.SaveNonEmptyString(input);
-            }
-            ctx.SaveStringOrNull(imageFolder);
+            base.SaveColumns(ctx);
+            ctx.SaveStringOrNull(ImageFolder);
         }
 
         private static VersionInfo GetVersionInfo()
@@ -191,81 +142,28 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 loaderSignature: LoaderSignature);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, ImageLoaderTransform.Arguments args, IDataView data)
-        {
-            return new ImageLoaderTransform(env, args.ImageFolder, args.Column.Select(x => (x.Source ?? x.Name, x.Name)).ToArray())
-                .CreateDataTransform(data);
-        }
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+            => new Mapper(this, schema);
 
-        private IDataTransform CreateDataTransform(IDataView input)
+        private sealed class Mapper : MapperBase
         {
-            _host.CheckValue(input, nameof(input));
-
-            var mapper = new Mapper(_host, _imageFolder, _columns, input.Schema);
-            return new RowToRowMapperTransform(_host, input, mapper);
-        }
-
-        internal sealed class Mapper : IRowMapper
-        {
-            private readonly IHost _host;
-            private readonly string _imageFolder;
-            private readonly (string input, string output)[] _columns;
-            private readonly Dictionary<int, int> _colMapNewToOld;
-            private readonly ISchema _inputSchema;
+            private readonly ImageLoaderTransform _parent;
             private readonly ImageType _imageType;
 
-            public Mapper(IHostEnvironment env, string imageFolder, (string input, string output)[] columns, ISchema schema)
+            public Mapper(ImageLoaderTransform parent, ISchema inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                Contracts.CheckValue(env, nameof(env));
-                _host = env.Register(nameof(Mapper));
-                _host.CheckValueOrNull(imageFolder);
-                _host.CheckValue(columns, nameof(columns));
-                _host.CheckValue(schema, nameof(schema));
-
-                _colMapNewToOld = new Dictionary<int, int>();
-                for (int i = 0; i < columns.Length; i++)
-                {
-                    CheckInput(_host, schema, columns[i].input, out int srcCol);
-                    _colMapNewToOld.Add(i, srcCol);
-                }
-
-                _imageFolder = imageFolder;
-                _columns = columns;
-                _inputSchema = schema;
                 _imageType = new ImageType();
+                _parent = parent;
             }
 
-            public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
-                Contracts.CheckValue(env, nameof(env));
-                env.CheckValue(ctx, nameof(ctx));
-                env.CheckValue(schema, nameof(schema));
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
-                var xf = ImageLoaderTransform.Create(env, ctx);
-                return new Mapper(env, xf._imageFolder, xf._columns, schema);
-            }
-
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
-            {
-                _host.Assert(input.Schema == _inputSchema);
-                var result = new Delegate[_columns.Length];
-                for (int i = 0; i < _columns.Length; i++)
-                {
-                    if (!activeOutput(i))
-                        continue;
-                    int srcCol = _colMapNewToOld[i];
-                    result[i] = MakeGetter(input, i);
-                }
                 disposer = null;
-                return result;
-            }
-
-            private Delegate MakeGetter(IRow input, int iinfo)
-            {
-                _host.AssertValue(input);
-                _host.Assert(0 <= iinfo && iinfo < _columns.Length);
-
-                var getSrc = input.GetGetter<DvText>(_colMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<DvText>(ColMapNewToOld[iinfo]);
                 DvText src = default;
                 ValueGetter<Bitmap> del =
                     (ref Bitmap dst) =>
@@ -284,8 +182,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             try
                             {
                                 string path = src.ToString();
-                                if (!string.IsNullOrWhiteSpace(_imageFolder))
-                                    path = Path.Combine(_imageFolder, path);
+                                if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
+                                    path = Path.Combine(_parent.ImageFolder, path);
                                 dst = new Bitmap(path);
                             }
                             catch (Exception)
@@ -303,19 +201,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 return del;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
-            {
-                var active = new bool[_inputSchema.ColumnCount];
-                foreach (var pair in _colMapNewToOld)
-                    if (activeOutput(pair.Key))
-                        active[pair.Value] = true;
-                return col => active[col];
-            }
-
-            public RowMapperColumnInfo[] GetOutputColumns()
-                => _columns.Select(x => new RowMapperColumnInfo(x.output, _imageType, null)).ToArray();
-
-            public void Save(ModelSaveContext ctx) => SaveContents(ctx, _imageFolder, _columns);
+            public override RowMapperColumnInfo[] GetOutputColumns()
+                => _parent.ColumnPairs.Select(x => new RowMapperColumnInfo(x.output, _imageType, null)).ToArray();
         }
     }
 
