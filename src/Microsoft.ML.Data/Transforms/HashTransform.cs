@@ -583,8 +583,8 @@ namespace Microsoft.ML.Runtime.Data
 
                     T[] values = src.Values;
                     var srcIsDense = src.IsDense;
-                    // force-densify the input in case hasherSparseOrdered is not provided
-                    if (!srcIsDense && hasherSparseOrdered == null)
+                    // force-densify the input in case of float / double and ordered hash.
+                    if (!srcIsDense && ex.Ordered && (typeof(T) == typeof(float) || typeof(T) == typeof(double)))
                     {
                         if (denseValues == null)
                             denseValues = new T[expectedSrcLength];
@@ -607,10 +607,10 @@ namespace Microsoft.ML.Runtime.Data
                         return;
                     }
 
-                    // source is sparse here
-                    if (!ex.Ordered && hasherSparseOrdered == null)
+                    // source is sparse at this point.
+                    // force-densify the output in case of float / double and unordered hash.
+                    if (!ex.Ordered && (typeof(T) == typeof(float) || typeof(T) == typeof(double)))
                     {
-                        // force-densify the output
                         if (Utils.Size(hashes) < expectedSrcLength)
                             hashes = new uint[expectedSrcLength];
                         hasherSparseUnord(expectedSrcLength, src.Indices, values, hashes, seed, mask);
@@ -918,8 +918,9 @@ namespace Microsoft.ML.Runtime.Data
 
         private static void HashSparseUnord(int count, int[] indices, float[] src, uint[] dst, uint seed, uint mask)
         {
-            AssertValid(count, src, dst);
-            Contracts.Assert(count <= Utils.Size(indices));
+            Contracts.Assert(count >= 0);
+            Contracts.Assert(count >= Utils.Size(indices));
+            Contracts.Assert(count == Utils.Size(dst));
 
             float zero = 0.0f;
             uint zeroHash = HashCore(seed, ref zero, mask);
@@ -927,7 +928,7 @@ namespace Microsoft.ML.Runtime.Data
             int j = 0;
             for (int i = 0; i < count; i++)
             {
-                if (indices[j] > i)
+                if (Utils.Size(indices) <= j || indices[j] > i)
                     dst[i] = zeroHash;
                 else if (indices[j++] == i)
                     dst[i] = HashCore(seed, ref src[i], mask);
@@ -938,8 +939,9 @@ namespace Microsoft.ML.Runtime.Data
 
         private static void HashSparseUnord(int count, int[] indices, double[] src, uint[] dst, uint seed, uint mask)
         {
-            AssertValid(count, src, dst);
-            Contracts.Assert(count <= Utils.Size(indices));
+            Contracts.Assert(count >= 0);
+            Contracts.Assert(count >= Utils.Size(indices));
+            Contracts.Assert(count == Utils.Size(dst));
 
             double zero = 0.0;
             uint zeroHash = HashCore(seed, ref zero, mask);
@@ -947,7 +949,7 @@ namespace Microsoft.ML.Runtime.Data
             int j = 0;
             for (int i = 0; i < count; i++)
             {
-                if (indices[j] > i)
+                if (Utils.Size(indices) <= j || indices[j] > i)
                     dst[i] = zeroHash;
                 else if (indices[j++] == i)
                     dst[i] = HashCore(seed, ref src[i], mask);
