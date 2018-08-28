@@ -634,7 +634,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             for (int i = 1; i < values.Length; i++)
             {
-                if (!(values[i] >= prev))
+                if (values[i] < prev)
                     return false;
 
                 prev = values[i];
