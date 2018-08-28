@@ -818,6 +818,12 @@ namespace Microsoft.ML.Runtime.Data
                 Schema.TryGetColumnIndex(Infos[i].Source, out int colIndex);
                 var colMetaInfo = new ColumnMetadataInfo(Infos[i].Name);
                 _termMap[i].AddMetadata(colMetaInfo);
+
+                foreach (var type in Schema.GetMetadataTypes(colIndex).Where(x => x.Key == MetadataUtils.Kinds.SlotNames))
+                {
+                        Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, Schema, type.Key, type.Value, _colNewToOldMapping);
+                }
+
                 KeyType keyType = _termMap[i].Map.OutputType;
                 Host.Assert(keyType.KeyCount > 0);
                 ColumnType colType;
