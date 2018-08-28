@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
         [Conditional("DEBUG")]
         internal void AssertValid()
         {
-            Contracts.Assert((ulong)_ticks <= MaxTicks);
+            Contracts.Assert((ulong)_ticks <= MaxTicks || _ticks == long.MinValue);
         }
 
         public long Ticks

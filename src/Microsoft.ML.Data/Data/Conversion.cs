@@ -1278,6 +1278,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParse(ref TX src, out I1 dst)
         {
             dst = default;
+            if (src.IsNA)
+            {
+                dst = I1.MinValue;
+                return true;
+            }
+
             TryParseSigned(I1.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
             Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
@@ -1292,6 +1298,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParse(ref TX src, out I2 dst)
         {
             dst = default;
+            if (src.IsNA)
+            {
+                dst = I2.MinValue;
+                return true;
+            }
+
             TryParseSigned(I2.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
             Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
@@ -1306,6 +1318,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParse(ref TX src, out I4 dst)
         {
             dst = default;
+            if (src.IsNA)
+            {
+                dst = I4.MinValue;
+                return true;
+            }
+
             TryParseSigned(I4.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to int32.");
             Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
@@ -1320,6 +1338,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParse(ref TX src, out I8 dst)
         {
             dst = default;
+            if (src.IsNA)
+            {
+                dst = I8.MinValue;
+                return true;
+            }
+
             TryParseSigned(I8.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
             dst = (I8)res;
@@ -1369,7 +1393,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             Contracts.Assert(max > 0);
             Contracts.Assert((max & (max + 1)) == 0);
-            Contracts.Check(!span.IsNA, "Missing text value cannot be converted to signed numbers.");
 
             if (!span.HasChars)
             {
@@ -1502,6 +1525,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         // These throw an exception for unparsable and overflow values.
         private I1 ParseI1(ref TX src)
         {
+            if (src.IsNA)
+                return I1.MinValue;
+
             TryParseSigned(I1.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
             Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
@@ -1510,6 +1536,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private I2 ParseI2(ref TX src)
         {
+            if (src.IsNA)
+                return I2.MinValue;
+
             TryParseSigned(I2.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
             Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
@@ -1518,6 +1547,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private I4 ParseI4(ref TX src)
         {
+            if (src.IsNA)
+                return I4.MinValue;
+
             TryParseSigned(I4.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to int.");
             Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
@@ -1526,6 +1558,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private I8 ParseI8(ref TX src)
         {
+            if (src.IsNA)
+                return I8.MinValue;
+
             TryParseSigned(I8.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
             return res.Value;

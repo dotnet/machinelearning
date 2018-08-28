@@ -83,30 +83,6 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
         [Fact]
-        public void TestTextLoaderDataTypesMissing()
-        {
-            string pathData = DeleteOutputPath("SavePipe", "TextInput.txt");
-            File.WriteAllLines(pathData, new string[] {
-                ",,,"
-            });
-
-            try
-            {
-                TestCore(pathData, true,
-                    new[] {
-                "loader=Text{col=DvInt1:I1:0 col=DvInt2:I2:1 col=DvInt4:I4:2 col=DvInt8:I8:3 sep=comma}",
-                    }, logCurs: true);
-            }
-            catch(Exception ex)
-            {
-                Assert.Equal("Missing text value cannot be converted to signed numbers.", ex.Message);
-                return;
-            }
-
-            Assert.True(false, "Test failed.");
-        }
-
-        [Fact]
         public void TestTextLoaderInvalidLongMin()
         {
             string pathData = DeleteOutputPath("SavePipe", "TextInput.txt");
