@@ -24,10 +24,6 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestParquetPrimitiveDataTypes()
         {
-            //Skip for linux because DATE/TIME format is different.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return;
-
             string pathData = GetDataPath(@"Parquet", "alltypes.parquet");
             TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" });
             Done();
