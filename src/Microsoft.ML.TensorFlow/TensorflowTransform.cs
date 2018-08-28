@@ -46,6 +46,7 @@ namespace Microsoft.ML.Transforms
             private readonly ColumnType _outputColType;
             private readonly TFDataType _tfOutputType;
 
+            private const int BatchSize = 1;
             public const string LoaderSignature = "TFMapper";
             private static VersionInfo GetVersionInfo()
             {
@@ -234,7 +235,7 @@ namespace Microsoft.ML.Transforms
                 var tfoutput = new TFOutput(graph[columnName]);
                 var shape = graph.GetTensorShape(tfoutput);
 
-                int[] dims = shape.ToIntArray().Skip(shape[0] == -1 ? 1 : 0).ToArray();
+                int[] dims = shape.ToIntArray().Skip(shape[0] == -1 ? BatchSize : 0).ToArray();
                 var type = TensorFlowUtils.Tf2MlNetType(tfoutput.OutputType);
                 return (new VectorType(type, dims), tfoutput.OutputType);
             }
@@ -259,7 +260,7 @@ namespace Microsoft.ML.Transforms
                     tfShapes[i] = graph.GetTensorShape(tfoutput);
                     var type = inputSchema.GetColumnType(inputColIndices[i]);
                     var shape = tfShapes[i].ToIntArray();
-                    int valCount = tfShapes[i].ToIntArray().Skip(tfShapes[i][0] == -1 ? 1 : 0).Aggregate((x, y) => x * y);
+                    int valCount = tfShapes[i].ToIntArray().Skip(tfShapes[i][0] == -1 ? BatchSize : 0).Aggregate((x, y) => x * y);
                     if (type.ValueCount != valCount)
                         throw Contracts.Except($"The size of model input '{colNames[i]}' does not match its size in the input data.");
                     isInputVector[i] = type.IsVector;
@@ -269,7 +270,7 @@ namespace Microsoft.ML.Transforms
                     var l = new long[tfShapes[i].NumDimensions];
                     for (int ishape = 0; ishape < tfShapes[i].NumDimensions; ishape++)
                     {
-                        l[ishape] = tfShapes[i][ishape] == -1 ? 1 : tfShapes[i][ishape];
+                        l[ishape] = tfShapes[i][ishape] == -1 ? BatchSize : tfShapes[i][ishape];
                     }
                     tfShapes[i] = new TFShape(l);
                 }
