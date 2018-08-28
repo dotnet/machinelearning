@@ -9,6 +9,19 @@
       <remarks>
         The TensorflowTransform extracts the specified output from the operation computed on the graph (given the input(s)) using a pre-trained <a href="https://www.tensorflow.org">Tensorflow</a> model.
         The transform takes an input the tensorflow model together with the names of inputs to the model and name of operation for which output values has to extracted from the model.
+
+        The TensorflowTransform has following assumptions regrading the input, output and processing of data.
+        <list type="number">
+          <item>
+            The transform currently accepts the <a href="https://www.tensorflow.org/mobile/prepare_models">frozen TensorFlow model</a> file as input.
+          </item>
+          <item>The transform supports scoring only one example at a time.</item>
+          <item>The name of input column(s) should match the name of input(s) in tensorflow model.</item>
+          <item>The name of the output column should match one of the operations in the tensorflow graph.</item>
+          <item>
+            Upon success, the transform will introduced a new column in <see cref="IDataView"/> based on the name of output column specified.
+          </item>
+        </list>
       </remarks>
     </member>
     <example name="TensorflowTransform">
