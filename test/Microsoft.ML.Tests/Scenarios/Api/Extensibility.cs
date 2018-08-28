@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     j.SepalWidth = i.SepalWidth;
                 };
                 var lambda = LambdaTransform.CreateMap(env, loader, action);
-                var term = new TermTransform(env, lambda, "Label");
+                var term = new TermTransform(env, lambda, "Label").Transform(lambda);
                 var concat = new ConcatTransform(env, term, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
 
                 var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 });

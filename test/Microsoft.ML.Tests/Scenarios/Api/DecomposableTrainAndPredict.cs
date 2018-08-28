@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new TlcEnvironment())
             {
                 var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
-                var term = new TermTransform(env, loader, "Label");
+                var term = new TermTransform(env, loader, "Label").Transform(loader);
                 var concat = new ConcatTransform(env, term, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
                 var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
 

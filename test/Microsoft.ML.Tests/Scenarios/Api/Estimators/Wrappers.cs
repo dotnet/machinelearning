@@ -325,33 +325,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public class MyTermTransform : IEstimator<TransformWrapper>
-    {
-        private readonly IHostEnvironment _env;
-        private readonly string _column;
-        private readonly string _srcColumn;
-
-        public MyTermTransform(IHostEnvironment env, string column, string srcColumn = null)
-        {
-            _env = env;
-            _column = column;
-            _srcColumn = srcColumn;
-        }
-
-        public TransformWrapper Fit(IDataView input)
-        {
-            var xf = new TermTransform(_env, input, _column, _srcColumn);
-            var empty = new EmptyDataView(_env, input.Schema);
-            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
-            return new TransformWrapper(_env, chunk);
-        }
-
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class MyConcatTransform : IEstimator<TransformWrapper>
     {
         private readonly IHostEnvironment _env;
@@ -587,7 +560,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        private static TrainerInfo MakeTrainerInfo(ITrainerEstimator<IPredictionTransformer<TScalarPredictor>, TScalarPredictor> estimator) 
+        private static TrainerInfo MakeTrainerInfo(ITrainerEstimator<IPredictionTransformer<TScalarPredictor>, TScalarPredictor> estimator)
             => new TrainerInfo(estimator.Info.NeedNormalization, estimator.Info.NeedCalibration, false);
 
         protected override ScorerWrapper<OvaPredictor> MakeScorer(OvaPredictor predictor, RoleMappedData data)
