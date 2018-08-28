@@ -31,7 +31,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             File.WriteAllLines(pathData, new string[] {
                 string.Format("{0},{1},{2},{3}", sbyte.MinValue, short.MinValue, int.MinValue, long.MinValue),
                 string.Format("{0},{1},{2},{3}", sbyte.MaxValue, short.MaxValue, int.MaxValue, long.MaxValue),
-                ",,,"
+                "\"\",\"\",\"\",\"\""
             });
 
             var data = TestCore(pathData, true,
@@ -80,6 +80,30 @@ namespace Microsoft.ML.EntryPoints.Tests
 
                 Assert.Equal(i, sByteTargets.Length);
             }
+        }
+
+        [Fact]
+        public void TestTextLoaderDataTypesMissing()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "TextInput.txt");
+            File.WriteAllLines(pathData, new string[] {
+                ",,,"
+            });
+
+            try
+            {
+                TestCore(pathData, true,
+                    new[] {
+                "loader=Text{col=DvInt1:I1:0 col=DvInt2:I2:1 col=DvInt4:I4:2 col=DvInt8:I8:3 sep=comma}",
+                    }, logCurs: true);
+            }
+            catch(Exception ex)
+            {
+                Assert.Equal("Missing text value cannot be converted to signed numbers.", ex.Message);
+                return;
+            }
+
+            Assert.True(false, "Test failed.");
         }
 
         [Fact]
