@@ -132,13 +132,15 @@ namespace Microsoft.ML.Core.Data
                     else
                         vecKind = Column.VectorKind.Scalar;
 
-                    var itemKind = type.ItemType.RawKind;
+                    ColumnType itemType = type.ItemType;
+                    if (type.ItemType.IsKey)
+                        itemType = PrimitiveType.FromKind(type.ItemType.RawKind);
                     var isKey = type.ItemType.IsKey;
 
                     var metadataNames = schema.GetMetadataTypes(iCol)
                         .Select(kvp => kvp.Key)
                         .ToArray();
-                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, PrimitiveType.FromKind(itemKind), isKey, metadataNames));
+                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, itemType, isKey, metadataNames));
                 }
             }
             return new SchemaShape(cols.ToArray());

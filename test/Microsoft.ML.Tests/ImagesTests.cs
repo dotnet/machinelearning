@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
 using System.Drawing;
 using System.IO;
@@ -15,10 +16,30 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public class ImageTests : BaseTestClass
+    public class ImageTests : TestDataPipeBase
     {
         public ImageTests(ITestOutputHelper output) : base(output)
         {
+        }
+
+        [Fact]
+        public void TestEstimatorChain()
+        {
+            using (var env = new TlcEnvironment())
+            {
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var invalidData = env.CreateLoader("Text{col=ImagePath:R4:0}", new MultiFileSource(dataFile));
+
+                var pipe = new ImageLoaderEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
+                    .Append(new ImageResizerEstimator(env, "ImageReal", "ImageReal", 100, 100))
+                    .Append(new ImagePixelExtractorEstimator(env, "ImageReal", "ImagePixels"))
+                    .Append(new ImageGrayscaleEstimator(env, ("ImageReal", "ImageGray")));
+
+                TestEstimatorCore(pipe, data, null, invalidData);
+            }
+            Done();
         }
 
         [Fact]
@@ -51,6 +72,7 @@ namespace Microsoft.ML.Tests
                         .All(x => x));
                 }
             }
+            Done();
         }
 
         [Fact]
@@ -95,6 +117,7 @@ namespace Microsoft.ML.Tests
                     }
                 }
             }
+            Done();
         }
 
         [Fact]
@@ -157,6 +180,7 @@ namespace Microsoft.ML.Tests
                     }
                 }
             }
+            Done();
         }
 
         [Fact]
@@ -231,6 +255,7 @@ namespace Microsoft.ML.Tests
                     }
                 }
             }
+            Done();
         }
     }
 }
