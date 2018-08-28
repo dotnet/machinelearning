@@ -152,7 +152,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestParquetPrimitiveDataTypes()
         {
-            string pathData = GetDataPath(@"..\data\Parquet", "alltypes.parquet");
+            string pathData = GetDataPath(@"Parquet", "alltypes.parquet");
             TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" });
             Done();
         }
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestParquetNull()
         {
-            string pathData = GetDataPath(@"..\data\Parquet", "test-null.parquet");
+            string pathData = GetDataPath(@"Parquet", "test-null.parquet");
             TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" }, forceDense: true);
             Done();
         }
