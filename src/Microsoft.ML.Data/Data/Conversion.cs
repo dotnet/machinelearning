@@ -1612,8 +1612,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out BL dst)
         {
-            // NA text fails.
-            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to boolean value.");
+            // NA text -> default.
+            if (src.IsNA)
+            {
+                dst = default;
+                return true;
+            }
 
             char ch;
             switch (src.Length)
@@ -1717,8 +1721,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             }
 
             dst = false;
-            Contracts.Check(!IsStdMissing(ref src), "Missing text value cannot be converted to boolean value.");
-            return true;
+            return IsStdMissing(ref src);
         }
 
         private bool TryParse(ref TX src, out TX dst)
