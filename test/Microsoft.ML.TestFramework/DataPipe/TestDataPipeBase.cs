@@ -295,13 +295,13 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // Note that we don't pass in "args", but pass in a default args so we test
             // the auto-schema parsing.
-            var loader = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(pathData));
-            if (!CheckMetadataTypes(loader.Schema))
+            var loadedData = TextLoader.ReadFile(env, new TextLoader.Arguments(), new MultiFileSource(pathData));
+            if (!CheckMetadataTypes(loadedData.Schema))
                 Failed();
 
-            if (!CheckSameSchemas(view.Schema, loader.Schema, exactTypes: false, keyNames: false))
+            if (!CheckSameSchemas(view.Schema, loadedData.Schema, exactTypes: false, keyNames: false))
                 return Failed();
-            if (!CheckSameValues(view, loader, exactTypes: false, exactDoubles: false, checkId: false))
+            if (!CheckSameValues(view, loadedData, exactTypes: false, exactDoubles: false, checkId: false))
                 return Failed();
             return true;
         }

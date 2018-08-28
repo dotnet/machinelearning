@@ -29,7 +29,7 @@ namespace Microsoft.ML.Scenarios
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = new TextLoader(env,
+                var loader = TextLoader.ReadFile(env,
                 new TextLoader.Arguments()
                 {
                     Separator = "tab",
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Scenarios
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = new TextLoader(env,
+                var loader = TextLoader.ReadFile(env,
                 new TextLoader.Arguments()
                 {
                     Separator = "tab",

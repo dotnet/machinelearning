@@ -352,7 +352,7 @@ namespace Microsoft.ML.Runtime.Data
             // If the user specified non-key values, we define the value column to be numeric.
             if (!keyValues)
                 return ComponentFactoryUtils.CreateFromFunction<IMultiStreamSource, IDataLoader>(
-                    (env, files) => new TextLoader(
+                    (env, files) => TextLoader.Create(
                         env,
                         new TextLoader.Arguments()
                         {
@@ -372,8 +372,8 @@ namespace Microsoft.ML.Runtime.Data
                 var txtArgs = new TextLoader.Arguments();
                 bool parsed = CmdParser.ParseArguments(host, "col=Term:TX:0 col=Value:TX:1", txtArgs);
                 host.Assert(parsed);
-                var txtLoader = new TextLoader(host, txtArgs, new MultiFileSource(filename));
-                using (var cursor = txtLoader.GetRowCursor(c => true))
+                var data = TextLoader.ReadFile(host, txtArgs, new MultiFileSource(filename));
+                using (var cursor = data.GetRowCursor(c => true))
                 {
                     var getTerm = cursor.GetGetter<DvText>(0);
                     var getVal = cursor.GetGetter<DvText>(1);
@@ -448,7 +448,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             return ComponentFactoryUtils.CreateFromFunction<IMultiStreamSource, IDataLoader>(
-                   (env, files) => new TextLoader(
+                   (env, files) => TextLoader.Create(
                        env,
                        new TextLoader.Arguments()
                        {

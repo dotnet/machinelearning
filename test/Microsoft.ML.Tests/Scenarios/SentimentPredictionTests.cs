@@ -223,16 +223,16 @@ namespace Microsoft.ML.Scenarios
         private void ValidateBinaryMetricsLightGBM(BinaryClassificationMetrics metrics)
         {
 
-            Assert.Equal(.6111, metrics.Accuracy, 4);
-            Assert.Equal(.8, metrics.Auc, 1);
-            Assert.Equal(0.88, metrics.Auprc, 2);
+            Assert.Equal(0.61111111111111116, metrics.Accuracy, 4);
+            Assert.Equal(0.83950617283950613, metrics.Auc, 1);
+            Assert.Equal(0.88324268324268318, metrics.Auprc, 2);
             Assert.Equal(1, metrics.Entropy, 3);
             Assert.Equal(.72, metrics.F1Score, 4);
             Assert.Equal(0.96456100297125325, metrics.LogLoss, 4);
             Assert.Equal(3.5438997028746755, metrics.LogLossReduction, 4);
             Assert.Equal(1, metrics.NegativePrecision, 3);
-            Assert.Equal(.222, metrics.NegativeRecall, 3);
-            Assert.Equal(.562, metrics.PositivePrecision, 3);
+            Assert.Equal(0.22222222222222221, metrics.NegativeRecall, 3);
+            Assert.Equal(0.5625, metrics.PositivePrecision, 3);
             Assert.Equal(1, metrics.PositiveRecall);
 
             var matrix = metrics.ConfusionMatrix;
