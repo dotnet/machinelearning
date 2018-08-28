@@ -818,7 +818,13 @@ namespace Microsoft.ML.Runtime.Data
                 Schema.TryGetColumnIndex(Infos[i].Source, out int colIndex);
                 var colMetaInfo = new ColumnMetadataInfo(Infos[i].Name);
                 _termMap[i].AddMetadata(colMetaInfo);
-                var colType = _termMap[i].Map.OutputType;
+                KeyType keyType = _termMap[i].Map.OutputType;
+                Host.Assert(keyType.KeyCount > 0);
+                ColumnType colType;
+                if (Infos[i].TypeSrc.IsVector)
+                    colType = new VectorType(keyType, Infos[i].TypeSrc.AsVector);
+                else
+                    colType = keyType;
                 result[i] = new RowMapperColumnInfo(Infos[i].Name, colType, colMetaInfo);
             }
             return result;

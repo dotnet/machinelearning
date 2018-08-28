@@ -1033,9 +1033,10 @@ namespace Microsoft.ML.Runtime.Data
                         var info = _parent.Infos[_iinfo];
                         T src = default(T);
                         Contracts.Assert(!info.TypeSrc.IsVector);
+                        //IVAN _iinfo should be change to proper index!
                         input.Schema.TryGetColumnIndex(info.Source, out int colIndex);
                         Host.Assert(input.IsColumnActive(colIndex));
-                        ValueGetter<T> getSrc = input.GetGetter<T>(colIndex);
+                        var getSrc = input.GetGetter<T>(colIndex);
                         ValueGetter<uint> retVal =
                             (ref uint dst) =>
                             {
@@ -1055,7 +1056,9 @@ namespace Microsoft.ML.Runtime.Data
                         var info = _parent.Infos[_iinfo];
                         // First test whether default maps to default. If so this is sparsity preserving.
                         //IVAN _iinfo should be change to proper index!
-                        ValueGetter<VBuffer<T>> getSrc = input.GetGetter<VBuffer<T>>(_iinfo);
+                        input.Schema.TryGetColumnIndex(info.Source, out int colIndex);
+                        Host.Assert(input.IsColumnActive(colIndex));
+                        var getSrc = input.GetGetter<VBuffer<T>>(colIndex);
                         VBuffer<T> src = default(VBuffer<T>);
                         ValueGetter<VBuffer<uint>> retVal;
                         // REVIEW: Consider whether possible or reasonable to not use a builder here.
