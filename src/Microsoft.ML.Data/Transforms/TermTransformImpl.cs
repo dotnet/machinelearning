@@ -561,7 +561,7 @@ namespace Microsoft.ML.Runtime.Data
         internal abstract class TermMap
         {
             private static volatile MemoryStreamPool _codecFactoryPool;
-            private static  volatile CodecFactory _codecFactory;
+            private static volatile CodecFactory _codecFactory;
             private static object _factoryLock = new object();
 
             private static CodecFactory CodecFactory(IHostEnvironment env)
@@ -1033,8 +1033,9 @@ namespace Microsoft.ML.Runtime.Data
                         var info = _parent.Infos[_iinfo];
                         T src = default(T);
                         Contracts.Assert(!info.TypeSrc.IsVector);
-                        //IVAN _iinfo should be change to proper index!
-                        ValueGetter<T> getSrc = input.GetGetter<T>(_iinfo);
+                        input.Schema.TryGetColumnIndex(info.Source, out int colIndex);
+                        Host.Assert(input.IsColumnActive(colIndex));
+                        ValueGetter<T> getSrc = input.GetGetter<T>(colIndex);
                         ValueGetter<uint> retVal =
                             (ref uint dst) =>
                             {
@@ -1184,8 +1185,6 @@ namespace Microsoft.ML.Runtime.Data
                         var columnType = new VectorType(TextType.Instance, TypedMap.OutputType.KeyCount);
                         var info = new MetadataInfo<VBuffer<DvText>>(columnType, getter);
                         colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
-                        /*bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.KeyValues,
-                            new VectorType(TextType.Instance, TypedMap.OutputType.KeyCount), getter);*/
                     }
                     else
                     {
@@ -1198,8 +1197,6 @@ namespace Microsoft.ML.Runtime.Data
                         var columnType = new VectorType(TypedMap.ItemType, TypedMap.OutputType.KeyCount);
                         var info = new MetadataInfo<VBuffer<T>>(columnType, getter);
                         colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
-                        /*bldr.AddGetter<VBuffer<T>>(MetadataUtils.Kinds.KeyValues,
-                            new VectorType(TypedMap.ItemType, TypedMap.OutputType.KeyCount), getter);*/
                     }
                 }
             }
@@ -1287,8 +1284,6 @@ namespace Microsoft.ML.Runtime.Data
                         var columnType = new VectorType(TextType.Instance, TypedMap.OutputType.KeyCount);
                         var info = new MetadataInfo<VBuffer<DvText>>(columnType, mgetter);
                         colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
-                        /*bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.KeyValues,
-                            new VectorType(TextType.Instance, TypedMap.OutputType.KeyCount), mgetter);*/
                     }
                     else
                     {
@@ -1302,8 +1297,6 @@ namespace Microsoft.ML.Runtime.Data
                         var columnType = new VectorType(srcMetaType.ItemType.AsPrimitive, TypedMap.OutputType.KeyCount);
                         var info = new MetadataInfo<VBuffer<TMeta>>(columnType, mgetter);
                         colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
-                        /*bldr.AddGetter<VBuffer<TMeta>>(MetadataUtils.Kinds.KeyValues,
-                            new VectorType(srcMetaType.ItemType.AsPrimitive, TypedMap.OutputType.KeyCount), mgetter);*/
                     }
                     return true;
                 }

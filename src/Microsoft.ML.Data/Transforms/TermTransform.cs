@@ -39,7 +39,7 @@ namespace Microsoft.ML.Runtime.Data
     // * The Key value is the one-based index of the item in the dictionary.
     // * Not found is assigned the value zero.
     /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
-    public sealed partial class TermTransform :ITransformer, ICanSaveModel
+    public sealed partial class TermTransform : ITransformer, ICanSaveModel
     {
         internal readonly IHost Host;
 
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
         public TermTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : this(env, args, Contracts.CheckRef(args, nameof(args)).Column,  input)
+            : this(env, args, Contracts.CheckRef(args, nameof(args)).Column, input)
         {
         }
 
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Public constructor for compositional forms.
         /// </summary>
-        public TermTransform(IHostEnvironment env,ArgumentsBase args, ColumnBase[] column,  IDataView input)
+        public TermTransform(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
         {
             Host = env.Register(nameof(TermTransform));
             Host.CheckValue(args, nameof(args));
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static IDataTransform Create (IHostEnvironment env, ArgumentsBase args, ColumnBase[] column,  IDataView input)
+        public static IDataTransform Create(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         //IVAN: FIGURE OUT HOW IT WILL WORK IN NEW WORLD
-         private JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColInfo info, JToken srcToken)
+        private JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColInfo info, JToken srcToken)
         {
             Contracts.AssertValue(ctx);
             Contracts.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -792,9 +792,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!activeOutput(i))
                     continue;
-                input.Schema.TryGetColumnIndex(Infos[i].Source, out int colIndex);
                 var type = _termMap[i].Map.OutputType;
-                result[i] = Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
+                result[i] = Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, i);
             }
             disposer = null;
             return result;
@@ -844,6 +843,5 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SetVersionInfo(GetVersionInfo());
             TermTransform.Save(ctx, Host, _columns, _termMap.Select(x => x.Map).ToArray(), TextMetadata);
         }
-
     }
 }
