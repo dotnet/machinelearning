@@ -732,6 +732,12 @@ namespace Microsoft.ML.Runtime.Data.IO
         private const ulong ReaderVersion = MissingTextVersion;
 
         /// <summary>
+        /// The first version that removes DvTypes and uses .NET standard
+        /// data types.
+        /// </summary>
+        private const ulong StandardDataTypesVersion = 0x0001000100010006;
+
+        /// <summary>
         /// The first version of the format that accomodated DvText.NA.
         /// </summary>
         private const ulong MissingTextVersion = 0x0001000100010005;
@@ -1090,10 +1096,10 @@ namespace Microsoft.ML.Runtime.Data.IO
                 throw _host.Except("Cannot read version {0} data, earliest that can be handled is {1}",
                     Header.VersionToString(header.CompatibleVersion), Header.VersionToString(MetadataVersion));
             }
-            if (header.CompatibleVersion > ReaderVersion)
+            if (header.CompatibleVersion > StandardDataTypesVersion)
             {
                 throw _host.Except("Cannot read version {0} data, latest that can be handled is {1}",
-                    Header.VersionToString(header.CompatibleVersion), Header.VersionToString(ReaderVersion));
+                    Header.VersionToString(header.CompatibleVersion), Header.VersionToString(StandardDataTypesVersion));
             }
 
             _host.CheckDecode(header.RowCount >= 0, "Row count cannot be negative");
