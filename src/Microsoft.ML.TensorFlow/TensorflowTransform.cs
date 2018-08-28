@@ -27,7 +27,6 @@ namespace Microsoft.ML.Transforms
 {
     public static class TensorFlowTransform
     {
-        /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
         internal sealed class TensorFlowMapper : IRowMapper
         {
             private readonly IHost _host;
@@ -63,8 +62,13 @@ namespace Microsoft.ML.Transforms
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register("TensorFlowMapper");
                 _host.CheckValue(inputSchema, nameof(inputSchema));
+                _host.CheckNonEmpty(modelBytes, nameof(modelBytes));
+                _host.CheckNonEmpty(inputColNames, nameof(inputColNames));
+                _host.CheckNonEmpty(outputCols, nameof(outputCols));
 
                 _session = LoadTFSession(modelBytes, null);
+                _host.CheckValue(_session.Graph[outputCols], nameof(outputCols), "Output does not exist in the model");
+                _host.Check(inputColNames.All(name => _session.Graph[name] != null), "One of the input does not exist in the model");
 
                 _outputColName = outputCols;
                 (_outputColType, _tfOutputType) = GetOutputTypes(_session.Graph, _outputColName);
@@ -223,13 +227,14 @@ namespace Microsoft.ML.Transforms
 
             private static (ColumnType, TFDataType) GetOutputTypes(TFGraph graph, string columnName)
             {
+                Contracts.AssertValue(graph);
+                Contracts.AssertNonEmpty(columnName);
+                Contracts.AssertValue(graph[columnName]);
+
                 var tfoutput = new TFOutput(graph[columnName]);
                 var shape = graph.GetTensorShape(tfoutput);
 
-                int[] dims = new int[shape.NumDimensions - 1];
-                for (int k = 1; k < shape.NumDimensions; k++)
-                    dims[k - 1] = (int)shape[k];
-
+                int[] dims = shape.ToIntArray().Skip(shape[0] == -1 ? 1 : 0).ToArray();
                 var type = TensorFlowUtils.Tf2MlNetType(tfoutput.OutputType);
                 return (new VectorType(type, dims), tfoutput.OutputType);
             }
@@ -254,9 +259,7 @@ namespace Microsoft.ML.Transforms
                     tfShapes[i] = graph.GetTensorShape(tfoutput);
                     var type = inputSchema.GetColumnType(inputColIndices[i]);
                     var shape = tfShapes[i].ToIntArray();
-                    int valCount = 1;
-                    for (int j = 1; j < shape.Length; j++)
-                        valCount *= shape[j];
+                    int valCount = tfShapes[i].ToIntArray().Skip(tfShapes[i][0] == -1 ? 1 : 0).Aggregate((x, y) => x * y);
                     if (type.ValueCount != valCount)
                         throw Contracts.Except($"The size of model input '{colNames[i]}' does not match its size in the input data.");
                     isInputVector[i] = type.IsVector;
@@ -305,6 +308,7 @@ namespace Microsoft.ML.Transforms
             return Create(env, new Arguments() { InputColumns = source, OutputColumn = name, ModelFile = modelFile }, input);
         }
 
+        /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
