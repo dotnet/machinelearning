@@ -43,13 +43,9 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        protected void Save(ModelSaveContext ctx) => SaveContents(Host, ctx, ColumnPairs);
-
-        private static void SaveContents(IHostEnvironment env, ModelSaveContext ctx, (string input, string output)[] columns)
+        protected void SaveColumns(ModelSaveContext ctx)
         {
-            Contracts.AssertValue(env);
-            env.CheckValue(ctx, nameof(ctx));
-            Contracts.AssertValue(columns);
+            Host.CheckValue(ctx, nameof(ctx));
 
             // *** Binary format ***
             // int: number of added columns
@@ -57,11 +53,11 @@ namespace Microsoft.ML.Runtime.Data
             //   int: id of output column name
             //   int: id of input column name
 
-            ctx.Writer.Write(columns.Length);
-            for (int i = 0; i < columns.Length; i++)
+            ctx.Writer.Write(ColumnPairs.Length);
+            for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                ctx.SaveNonEmptyString(columns[i].output);
-                ctx.SaveNonEmptyString(columns[i].input);
+                ctx.SaveNonEmptyString(ColumnPairs[i].output);
+                ctx.SaveNonEmptyString(ColumnPairs[i].input);
             }
         }
 
@@ -77,10 +73,29 @@ namespace Microsoft.ML.Runtime.Data
 
         protected virtual void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
-            // By default, no extra checks.
+            // By default, there are no extra checks.
         }
 
         protected abstract MapperBase MakeRowMapper(ISchema schema);
+
+        public ISchema GetOutputSchema(ISchema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            // Check that all the input columns are present and correct.
+            for (int i = 0; i < ColumnPairs.Length; i++)
+                CheckInput(inputSchema, i, out int col);
+
+            return Transform(new EmptyDataView(Host, inputSchema)).Schema;
+        }
+
+        public IDataView Transform(IDataView input) => MakeTransform(input);
+
+        protected RowToRowMapperTransform MakeTransform(IDataView input)
+        {
+            Host.CheckValue(input, nameof(input));
+            return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema));
+        }
 
         protected abstract class MapperBase: IRowMapper
         {
@@ -108,8 +123,8 @@ namespace Microsoft.ML.Runtime.Data
             }
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                var active = new bool[_inputSchema.ColumnCount];
-                foreach (var pair in _colMapNewToOld)
+                var active = new bool[InputSchema.ColumnCount];
+                foreach (var pair in ColMapNewToOld)
                     if (activeOutput(pair.Key))
                         active[pair.Value] = true;
                 return col => active[col];
@@ -117,7 +132,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public abstract RowMapperColumnInfo[] GetOutputColumns();
 
-            public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+            public void Save(ModelSaveContext ctx) => _parent.SaveColumns(ctx);
 
             public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
