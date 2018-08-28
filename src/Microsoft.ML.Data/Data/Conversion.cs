@@ -876,7 +876,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         private bool IsDefault(ref R4 src) => src == 0;
         private bool IsDefault(ref R8 src) => src == 0;
         private bool IsDefault(ref TX src) => src.IsEmpty;
-        private bool IsDefault(ref BL src) => !src;
+        private bool IsDefault(ref BL src) => src == default;
         private bool IsDefault(ref U1 src) => src == 0;
         private bool IsDefault(ref U2 src) => src == 0;
         private bool IsDefault(ref U4 src) => src == 0;
