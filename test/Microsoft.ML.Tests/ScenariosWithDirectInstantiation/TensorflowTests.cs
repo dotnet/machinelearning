@@ -173,10 +173,10 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
-        [Fact(Skip = "Skip till we figure out why false positive (H=28, W=28) passes")]
+        [Fact]
         public void TensorFlowTransformCifar()
         {
-            var model_location =  GetDataPath("cifar_save8/frozen_model.pb");
+            var model_location =  "cifar_model/frozen_model.pb";
 
             using (var env = new TlcEnvironment())
             {
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Scenarios
                 var pixels = new ImagePixelExtractorTransform(env, new ImagePixelExtractorTransform.Arguments()
                 {
                     Column = new ImagePixelExtractorTransform.Column[1]{
-                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=true}
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
                     }
                 }, cropped);
 
