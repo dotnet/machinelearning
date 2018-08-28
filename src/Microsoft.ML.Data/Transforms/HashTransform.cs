@@ -950,17 +950,17 @@ namespace Microsoft.ML.Runtime.Data
                 dst[i] = HashCore(seed, src[i], indices[i], mask);
         }
 
-        private static void HashSparseUnord(int count, int[] indices, float[] src, uint[] dst, int dstLength, uint seed, uint mask)
+        private static void HashSparseUnord(int count, int[] indices, float[] src, uint[] dst, int dstCount, uint seed, uint mask)
         {
             AssertValid(count, src, dst);
-            Contracts.Assert(count <= dstLength);
-            Contracts.Assert(dstLength <= Utils.Size(dst));
+            Contracts.Assert(count <= dstCount);
+            Contracts.Assert(dstCount <= Utils.Size(dst));
 
             float zero = 0.0f;
             uint zeroHash = HashCore(seed, ref zero, mask);
 
             int j = 0;
-            for (int i = 0; i < dstLength; i++)
+            for (int i = 0; i < dstCount; i++)
             {
                 if (count <= j || indices[j] > i)
                     dst[i] = zeroHash;
@@ -971,17 +971,17 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static void HashSparseUnord(int count, int[] indices, double[] src, uint[] dst, int dstLength, uint seed, uint mask)
+        private static void HashSparseUnord(int count, int[] indices, double[] src, uint[] dst, int dstCount, uint seed, uint mask)
         {
             AssertValid(count, src, dst);
-            Contracts.Assert(count <= dstLength);
-            Contracts.Assert(dstLength <= Utils.Size(dst));
+            Contracts.Assert(count <= dstCount);
+            Contracts.Assert(dstCount <= Utils.Size(dst));
 
             double zero = 0.0;
             uint zeroHash = HashCore(seed, ref zero, mask);
 
             int j = 0;
-            for (int i = 0; i < dstLength; i++)
+            for (int i = 0; i < dstCount; i++)
             {
                 if (count <= j || indices[j] > i)
                     dst[i] = zeroHash;
