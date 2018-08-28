@@ -51,6 +51,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Sonoma only supports desktop. Permit the use of the desktop assembly by suppressing NU1701. -->
+    <PackageReference Include="Microsoft.ML.Scoring" Version="1.0.3" NoWarn="NU1701" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
