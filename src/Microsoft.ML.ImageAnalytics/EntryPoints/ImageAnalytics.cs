@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
         public static CommonOutputs.TransformOutput ImagePixelExtractor(IHostEnvironment env, ImagePixelExtractorTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImagePixelExtractorTransform", input);
-            var xf = new ImagePixelExtractorTransform(h, input, input.Data);
+            var xf = ImagePixelExtractorTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

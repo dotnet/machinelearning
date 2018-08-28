@@ -23,6 +23,12 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(ImageResizerTransform.Summary, typeof(ImageResizerTransform), null, typeof(SignatureLoadDataTransform),
     ImageResizerTransform.UserName, ImageResizerTransform.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(ImageResizerTransform), null, typeof(SignatureLoadModel),
+    ImageResizerTransform.UserName, ImageResizerTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageResizerTransform.Mapper), null, typeof(SignatureLoadRowMapper),
+    ImageResizerTransform.UserName, ImageResizerTransform.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
@@ -171,7 +177,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             _columns = columns.ToArray();
         }
 
-        // Public constructor corresponding to SignatureDataTransform.
+        // Factory method for SignatureDataTransform.
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -222,7 +228,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
             int n = ctx.Reader.ReadInt32();
 
-            var names = new(string input, string output)[n];
+            var names = new (string input, string output)[n];
             for (int i = 0; i < n; i++)
             {
                 var output = ctx.LoadNonEmptyString();
@@ -245,6 +251,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
         }
 
+        // Factory method for SignatureLoadDataTransform.
         public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -259,7 +266,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         private static void SaveContents(IHostEnvironment env, ModelSaveContext ctx, ColumnInfo[] columns)
         {
+            Contracts.AssertValue(env);
             env.CheckValue(ctx, nameof(ctx));
+            Contracts.AssertValue(columns);
+
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
@@ -275,7 +285,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             //   int: height
             //   byte: scaling kind
 
-            ctx.Writer.Write(sizeof(Single));
+            ctx.Writer.Write(sizeof(float));
 
             ctx.Writer.Write(columns.Length);
             for (int i = 0; i < columns.Length; i++)
@@ -299,11 +309,17 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
 
+            // Check that all the input columns are present and are images.
+            foreach (var column in _columns)
+                CheckInput(_host, inputSchema, column.Input, out int col);
+
             return Transform(new EmptyDataView(_host, inputSchema)).Schema;
         }
 
         public IDataView Transform(IDataView input)
         {
+            _host.CheckValue(input, nameof(input));
+
             var mapper = MakeRowMapper(input.Schema);
             return new RowToRowMapperTransform(_host, input, mapper);
         }
@@ -319,7 +335,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
             if (!inputSchema.TryGetColumnIndex(input, out srcCol))
                 throw ctx.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-            if (inputSchema.GetColumnType(srcCol) is ImageType)
+            if (!(inputSchema.GetColumnType(srcCol) is ImageType))
                 throw ctx.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "image", inputSchema.GetColumnType(srcCol).ToString());
         }
 
@@ -380,6 +396,15 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 => _columns.Select(x => new RowMapperColumnInfo(x.Output, x.Type, null)).ToArray();
 
             public void Save(ModelSaveContext ctx) => SaveContents(_host, ctx, _columns);
+
+            public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            {
+                Contracts.CheckValue(env, nameof(env));
+                env.CheckValue(ctx, nameof(ctx));
+                env.CheckValue(inputSchema, nameof(inputSchema));
+                var transformer = new ImageResizerTransform(env, ctx);
+                return transformer.MakeRowMapper(inputSchema);
+            }
 
             private Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
@@ -499,6 +524,43 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 return del;
             }
         }
+    }
 
+    public sealed class ImageResizerEstimator : TrivialEstimator<ImageResizerTransform>
+    {
+        public ImageResizerEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+            int imageWidth, int imageHeight, ImageResizerTransform.ResizingKind resizing = ImageResizerTransform.ResizingKind.IsoCrop, ImageResizerTransform.Anchor cropAnchor = ImageResizerTransform.Anchor.Center)
+            : this(env, new ImageResizerTransform(env, inputColumn, outputColumn, imageWidth, imageHeight, resizing, cropAnchor))
+        {
+        }
+
+        public ImageResizerEstimator(IHostEnvironment env, params ImageResizerTransform.ColumnInfo[] columns)
+            : this(env, new ImageResizerTransform(env, columns))
+        {
+        }
+
+        public ImageResizerEstimator(IHostEnvironment env, ImageResizerTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageResizerEstimator)), transformer)
+        {
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in Transformer.Columns)
+            {
+                var col = inputSchema.FindColumn(colInfo.Input);
+
+                if (col == null)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, new ImageType().ToString(), col.GetTypeString());
+
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Scalar, colInfo.Type, false);
+            }
+
+            return new SchemaShape(result.Values);
+        }
     }
 }
