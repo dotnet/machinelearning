@@ -71,11 +71,26 @@ namespace Microsoft.ML.Runtime.RunTests
 
             Assert.True(error);
 
-            //5. Missing value as empty string in text to sbyte.
+            //5. Empty string in text to sbyte.
             src = default;
             dst = -1;
             mapper(ref src, ref dst);
             Assert.Equal(default, dst);
+
+            //6. Missing value as empty string in text to sbyte.
+            src = DvText.NA;
+            dst = -1;
+            try
+            {
+                mapper(ref src, ref dst);
+            }
+            catch (Exception ex)
+            {
+                Assert.Equal("Missing text value cannot be converted to signed numbers.", ex.Message);
+                error = true;
+            }
+
+            Assert.True(error);
         }
 
         [Fact]
@@ -136,6 +151,21 @@ namespace Microsoft.ML.Runtime.RunTests
             dst = -1;
             mapper(ref src, ref dst);
             Assert.Equal(default, dst);
+
+            //6. Empty string in text to sbyte.
+            src = DvText.NA;
+            dst = -1;
+            try
+            {
+                mapper(ref src, ref dst);
+            }
+            catch (Exception ex)
+            {
+                Assert.Equal("Missing text value cannot be converted to signed numbers.", ex.Message);
+                error = true;
+            }
+
+            Assert.True(error);
         }
 
         [Fact]
@@ -196,6 +226,21 @@ namespace Microsoft.ML.Runtime.RunTests
             dst = -1;
             mapper(ref src, ref dst);
             Assert.Equal(default, dst);
+
+            //6. Empty string in text to sbyte.
+            src = DvText.NA;
+            dst = -1;
+            try
+            {
+                mapper(ref src, ref dst);
+            }
+            catch (Exception ex)
+            {
+                Assert.Equal("Missing text value cannot be converted to signed numbers.", ex.Message);
+                error = true;
+            }
+
+            Assert.True(error);
         }
 
         [Fact]
@@ -246,6 +291,21 @@ namespace Microsoft.ML.Runtime.RunTests
             dst = -1;
             mapper(ref src, ref dst);
             Assert.Equal(default, dst);
+
+            //6. Empty string in text to sbyte.
+            src = DvText.NA;
+            dst = -1;
+            try
+            {
+                mapper(ref src, ref dst);
+            }
+            catch (Exception ex)
+            {
+                Assert.Equal("Missing text value cannot be converted to signed numbers.", ex.Message);
+                error = true;
+            }
+
+            Assert.True(error);
         }
 
         public ValueMapper<TSrc, TDst> GetMapper<TSrc, TDst>()

@@ -34,58 +34,51 @@ namespace Microsoft.ML.EntryPoints.Tests
                 ",,,"
             });
 
-            try
-            {
-                var data = TestCore(pathData, true,
-                    new[] {
-                    "loader=Text{col=DvInt1:I1:0 col=DvInt2:I2:1 col=DvInt4:I4:2 col=DvInt8:I8:3 sep=comma}",
-                    }, logCurs: true);
+            var data = TestCore(pathData, true,
+                new[] {
+                "loader=Text{col=DvInt1:I1:0 col=DvInt2:I2:1 col=DvInt4:I4:2 col=DvInt8:I8:3 sep=comma}",
+                }, logCurs: true);
 
-                using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursor((a => true)))
+            {
+                var col1 = cursor.GetGetter<sbyte>(0);
+                var col2 = cursor.GetGetter<short>(1);
+                var col3 = cursor.GetGetter<int>(2);
+                var col4 = cursor.GetGetter<long>(3);
+
+                Assert.True(cursor.MoveNext());
+
+                sbyte[] sByteTargets = new sbyte[] { sbyte.MinValue, sbyte.MaxValue, default};
+                short[] shortTargets = new short[] { short.MinValue, short.MaxValue, default };
+                int[] intTargets = new int[] { int.MinValue, int.MaxValue, default };
+                long[] longTargets = new long[] { long.MinValue, long.MaxValue, default };
+
+                int i = 0;
+                for (; i < sByteTargets.Length; i++)
                 {
-                    var col1 = cursor.GetGetter<sbyte>(0);
-                    var col2 = cursor.GetGetter<short>(1);
-                    var col3 = cursor.GetGetter<int>(2);
-                    var col4 = cursor.GetGetter<long>(3);
+                    sbyte sbyteValue = -1;
+                    col1(ref sbyteValue);
+                    Assert.Equal(sByteTargets[i], sbyteValue);
 
-                    Assert.True(cursor.MoveNext());
+                    short shortValue = -1;
+                    col2(ref shortValue);
+                    Assert.Equal(shortTargets[i], shortValue);
 
-                    sbyte[] sByteTargets = new sbyte[] { sbyte.MinValue, sbyte.MaxValue, default};
-                    short[] shortTargets = new short[] { short.MinValue, short.MaxValue, default };
-                    int[] intTargets = new int[] { int.MinValue, int.MaxValue, default };
-                    long[] longTargets = new long[] { long.MinValue, long.MaxValue, default };
+                    int intValue = -1;
+                    col3(ref intValue);
+                    Assert.Equal(intTargets[i], intValue);
 
-                    int i = 0;
-                    for (; i < sByteTargets.Length; i++)
-                    {
-                        sbyte sbyteValue = -1;
-                        col1(ref sbyteValue);
-                        Assert.Equal(sByteTargets[i], sbyteValue);
+                    long longValue = -1;
+                    col4(ref longValue);
+                    Assert.Equal(longTargets[i], longValue);
 
-                        short shortValue = -1;
-                        col2(ref shortValue);
-                        Assert.Equal(shortTargets[i], shortValue);
-
-                        int intValue = -1;
-                        col3(ref intValue);
-                        Assert.Equal(intTargets[i], intValue);
-
-                        long longValue = -1;
-                        col4(ref longValue);
-                        Assert.Equal(longTargets[i], longValue);
-
-                        if (i < sByteTargets.Length - 1)
-                            Assert.True(cursor.MoveNext());
-                        else
-                            Assert.False(cursor.MoveNext());
-                    }
-
-                    Assert.Equal(i, sByteTargets.Length);
+                    if (i < sByteTargets.Length - 1)
+                        Assert.True(cursor.MoveNext());
+                    else
+                        Assert.False(cursor.MoveNext());
                 }
-            }
-            catch
-            {
-                Assert.True(false, "Test failed.");
+
+                Assert.Equal(i, sByteTargets.Length);
             }
         }
 

@@ -1369,6 +1369,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             Contracts.Assert(max > 0);
             Contracts.Assert((max & (max + 1)) == 0);
+            Contracts.Check(!span.IsNA, "Missing text value cannot be converted to signed numbers.");
 
             if (!span.HasChars)
             {
