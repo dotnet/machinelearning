@@ -32,8 +32,10 @@ namespace Microsoft.ML.Tests
 
                 var pipe = new ImageLoaderEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
                     .Append(new ImageResizerEstimator(env, "ImageReal", "ImageReal", 100, 100))
-                    .Append(new ImagePixelExtractorEstimator(env, "ImageReal", "ImagePixels"));
+                    .Append(new ImagePixelExtractorEstimator(env, "ImageReal", "ImagePixels"))
+                    .Append(new ImageGrayscaleEstimator(env, ("ImageReal", "ImageGray")));
 
+                pipe.GetOutputSchema(Core.Data.SchemaShape.Create(data.Schema));
                 var model = pipe.Fit(data);
 
                 using (var file = env.CreateTempFile())
@@ -120,12 +122,21 @@ namespace Microsoft.ML.Tests
                     }
                 }, images);
 
-                var grey = new ImageGrayscaleTransform(env, new ImageGrayscaleTransform.Arguments()
+                IDataView grey = ImageGrayscaleTransform.Create(env, new ImageGrayscaleTransform.Arguments()
                 {
                     Column = new ImageGrayscaleTransform.Column[1]{
                         new ImageGrayscaleTransform.Column() {  Name= "ImageGrey", Source = "ImageCropped"}
                     }
                 }, cropped);
+
+                var fname = nameof(TestGreyscaleTransformImages) + "_model.zip";
+
+                var fh = env.CreateOutputFile(fname);
+                using (var ch = env.Start("save"))
+                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(grey));
+
+                grey = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+                DeleteOutputPath(fname);
 
                 grey.Schema.TryGetColumnIndex("ImageGrey", out int greyColumn);
                 using (var cursor = grey.GetRowCursor((x) => true))

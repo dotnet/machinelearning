@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
         public static CommonOutputs.TransformOutput ImageGrayscale(IHostEnvironment env, ImageGrayscaleTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageGrayscaleTransform", input);
-            var xf = new ImageGrayscaleTransform(h, input, input.Data);
+            var xf = ImageGrayscaleTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
