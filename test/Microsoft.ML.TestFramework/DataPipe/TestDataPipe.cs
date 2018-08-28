@@ -145,24 +145,4 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(false, "The LDA transform does not throw expected error on empty documents.");
         }
     }
-
-    public sealed partial class TestDataPipe : TestDataPipeBase
-    {
-
-        [Fact]
-        public void TestParquetPrimitiveDataTypes()
-        {
-            string pathData = GetDataPath(@"..\data\Parquet", "alltypes.parquet");
-            TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" });
-            Done();
-        }
-
-        [Fact]
-        public void TestParquetNull()
-        {
-            string pathData = GetDataPath(@"..\data\Parquet", "test-null.parquet");
-            TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" }, forceDense: true);
-            Done();
-        }
-    }
 }
