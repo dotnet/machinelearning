@@ -28,16 +28,38 @@ namespace Microsoft.ML.Core.Data
                 VariableVector
             }
 
+            /// <summary>
+            /// The column name.
+            /// </summary>
             public readonly string Name;
+
+            /// <summary>
+            /// The type of the column: scalar, fixed vector or variable vector.
+            /// </summary>
             public readonly VectorKind Kind;
+
+            /// <summary>
+            /// The 'raw' type of column item: must be a primitive type or a structured type.
+            /// </summary>
             public readonly ColumnType ItemType;
+            /// <summary>
+            /// The flag whether the column is actually a key. If yes, <see cref="ItemType"/> is representing
+            /// the underlying primitive type.
+            /// </summary>
             public readonly bool IsKey;
+            /// <summary>
+            /// The metadata kinds that are present for this column.
+            /// </summary>
             public readonly string[] MetadataKinds;
 
             public Column(string name, VectorKind vecKind, ColumnType itemType, bool isKey, string[] metadataKinds = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValueOrNull(metadataKinds);
+                Contracts.CheckParam(!itemType.IsKey, nameof(itemType), "Item type cannot be a key");
+                Contracts.CheckParam(!itemType.IsVector, nameof(itemType), "Item type cannot be a vector");
+
+                Contracts.CheckParam(!isKey || KeyType.IsValidDataKind(itemType.RawKind), nameof(itemType), "The item type must be valid for a key");
 
                 Name = name;
                 Kind = vecKind;

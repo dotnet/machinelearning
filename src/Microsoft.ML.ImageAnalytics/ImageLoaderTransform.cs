@@ -29,26 +29,6 @@ using System.Linq;
 
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
-    public abstract class TrivialEstimator<TTransformer> : IEstimator<TTransformer>
-        where TTransformer : class, ITransformer
-    {
-        protected readonly IHost Host;
-        protected readonly TTransformer Transformer;
-
-        protected TrivialEstimator(IHost host, TTransformer transformer)
-        {
-            Contracts.AssertValue(host);
-
-            Host = host;
-            Host.CheckValue(transformer, nameof(transformer));
-            Transformer = transformer;
-        }
-
-        public TTransformer Fit(IDataView input) => Transformer;
-
-        public abstract SchemaShape GetOutputSchema(SchemaShape inputSchema);
-    }
-
     /// <summary>
     /// Transform which takes one or many columns of type <see cref="DvText"/> and loads them as <see cref="ImageType"/>
     /// </summary>
