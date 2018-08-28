@@ -542,26 +542,25 @@ namespace Microsoft.ML.Runtime.Data
             switch (colType.ItemType.RawKind)
             {
             case DataKind.Text:
-                return ComposeGetterVecCore<DvText>(input, iinfo, HashUnord, HashDense, HashSparse);
+                return ComposeGetterVecCore<DvText>(input, iinfo, HashUnord, HashSparse, HashUnord, HashDense);
             case DataKind.U1:
-                return ComposeGetterVecCore<byte>(input, iinfo, HashUnord, HashDense, HashSparse);
+                return ComposeGetterVecCore<byte>(input, iinfo, HashUnord, HashSparse, HashUnord, HashDense);
             case DataKind.U2:
-                return ComposeGetterVecCore<ushort>(input, iinfo, HashUnord, HashDense, HashSparse);
+                return ComposeGetterVecCore<ushort>(input, iinfo, HashUnord, HashSparse, HashUnord, HashDense);
             case DataKind.U4:
-                return ComposeGetterVecCore<uint>(input, iinfo, HashUnord, HashDense, HashSparse);
-            // There is no HashSparse for I1-R8, since 0 will be hashed to a non zero value.
+                return ComposeGetterVecCore<uint>(input, iinfo, HashUnord, HashSparse, HashUnord, HashDense);
             case DataKind.R4:
-                return ComposeGetterVecCore<float>(input, iinfo, HashUnord, HashDense, null);
+                return ComposeGetterVecCore<float>(input, iinfo, HashSparseUnord, null, HashUnord, HashDense);
             case DataKind.R8:
-                return ComposeGetterVecCore<double>(input, iinfo, HashUnord, HashDense, null);
+                return ComposeGetterVecCore<double>(input, iinfo, HashSparseUnord, null, HashUnord, HashDense);
             default:
                 Host.Assert(colType.ItemType.RawKind == DataKind.U8);
-                return ComposeGetterVecCore<ulong>(input, iinfo, HashUnord, HashDense, HashSparse);
+                return ComposeGetterVecCore<ulong>(input, iinfo, HashUnord, HashSparse, HashUnord, HashDense);
             }
         }
 
         private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T>(IRow input, int iinfo,
-            HashLoop<T> hasherUnord, HashLoop<T> hasherDense, HashLoop<T> hasherSparse)
+            HashLoop<T> hasherSparseUnord, HashLoop<T> hasherSparseOrdered, HashLoop<T> hasherDenseUnord, HashLoop<T> hasherDenseOrdered)
         {
             Host.Assert(Infos[iinfo].TypeSrc.IsVector);
             Host.Assert(Infos[iinfo].TypeSrc.ItemType.RawType == typeof(T));
@@ -575,12 +574,6 @@ namespace Microsoft.ML.Runtime.Data
             T[] denseValues = null;
             int expectedSrcLength = Infos[iinfo].TypeSrc.VectorSize;
 
-            if (!ex.Ordered)
-            {
-                hasherDense = hasherUnord;
-                hasherSparse = hasherUnord;
-            }
-
             return
                 (ref VBuffer<uint> dst) =>
                 {
@@ -589,35 +582,55 @@ namespace Microsoft.ML.Runtime.Data
                         throw Host.Except("Hash transform expected {0} slots, but got {1}", len, src.Length);
 
                     T[] values = src.Values;
-                    // force-densify the input in case hasherSparse is not provided
-                    if (!src.IsDense && hasherSparse.Target == null)
+                    var srcIsDense = src.IsDense;
+                    // force-densify the input in case hasherSparseOrdered is not provided
+                    if (!srcIsDense && hasherSparseOrdered == null)
                     {
                         if (denseValues == null)
                             denseValues = new T[expectedSrcLength];
                         values = denseValues;
                         src.CopyTo(values);
+                        srcIsDense = true;
                     }
 
                     var hashes = dst.Values;
                     if (Utils.Size(hashes) < values.Length)
                         hashes = new uint[values.Length];
 
-                    if (src.IsDense || hasherSparse.Target == null)
+                    if (srcIsDense)
                     {
-                        hasherDense(values.Length, null, values, hashes, seed, mask);
+                        if (ex.Ordered)
+                            hasherDenseOrdered(values.Length, null, values, hashes, seed, mask);
+                        else
+                            hasherDenseUnord(values.Length, null, values, hashes, seed, mask);
                         dst = new VBuffer<uint>(src.Length, hashes, dst.Indices);
                         return;
                     }
 
-                    hasherSparse(src.Count, src.Indices, src.Values, hashes, seed, mask);
-                    var indices = dst.Indices;
-                    if (src.Count > 0)
+                    // source is sparse here
+                    if (!ex.Ordered && hasherSparseOrdered == null)
                     {
-                        if (Utils.Size(indices) < src.Count)
-                            indices = new int[src.Count];
-                        Array.Copy(src.Indices, indices, src.Count);
+                        // force-densify the output
+                        if (Utils.Size(hashes) < expectedSrcLength)
+                            hashes = new uint[expectedSrcLength];
+                        hasherSparseUnord(expectedSrcLength, src.Indices, values, hashes, seed, mask);
+                        dst = new VBuffer<uint>(expectedSrcLength, hashes, src.Indices);
                     }
-                    dst = new VBuffer<uint>(src.Length, src.Count, hashes, indices);
+                    else
+                    {
+                        if (ex.Ordered)
+                            hasherSparseOrdered(values.Length, src.Indices, values, hashes, seed, mask);
+                        else
+                            hasherSparseUnord(values.Length, src.Indices, values, hashes, seed, mask);
+                        var indices = dst.Indices;
+                        if (values.Length > 0)
+                        {
+                            if (Utils.Size(indices) < values.Length)
+                                indices = new int[values.Length];
+                            Array.Copy(src.Indices, indices, values.Length);
+                        }
+                        dst = new VBuffer<uint>(values.Length, src.Count, hashes, indices);
+                    }
                 };
         }
 
@@ -800,7 +813,7 @@ namespace Microsoft.ML.Runtime.Data
 
         #endregion Unordered Loop: ignore indices
 
-        #region Dense Loop: ignore indices
+#region Dense Loop: ignore indices
         private static void HashDense(int count, int[] indices, DvText[] src, uint[] dst, uint seed, uint mask)
         {
             AssertValid(count, src, dst);
@@ -901,6 +914,46 @@ namespace Microsoft.ML.Runtime.Data
 
             for (int i = 0; i < count; i++)
                 dst[i] = HashCore(seed, src[i], indices[i], mask);
+        }
+
+        private static void HashSparseUnord(int count, int[] indices, float[] src, uint[] dst, uint seed, uint mask)
+        {
+            AssertValid(count, src, dst);
+            Contracts.Assert(count <= Utils.Size(indices));
+
+            float zero = 0.0f;
+            uint zeroHash = HashCore(seed, ref zero, mask);
+
+            int j = 0;
+            for (int i = 0; i < count; i++)
+            {
+                if (indices[j] > i)
+                    dst[i] = zeroHash;
+                else if (indices[j++] == i)
+                    dst[i] = HashCore(seed, ref src[i], mask);
+                else
+                    Contracts.Assert(false, "this should have never happened.");
+            }
+        }
+
+        private static void HashSparseUnord(int count, int[] indices, double[] src, uint[] dst, uint seed, uint mask)
+        {
+            AssertValid(count, src, dst);
+            Contracts.Assert(count <= Utils.Size(indices));
+
+            double zero = 0.0;
+            uint zeroHash = HashCore(seed, ref zero, mask);
+
+            int j = 0;
+            for (int i = 0; i < count; i++)
+            {
+                if (indices[j] > i)
+                    dst[i] = zeroHash;
+                else if (indices[j++] == i)
+                    dst[i] = HashCore(seed, ref src[i], mask);
+                else
+                    Contracts.Assert(false, "this should have never happened.");
+            }
         }
 
 #endregion Sparse Loop: use indices
