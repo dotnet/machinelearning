@@ -56,13 +56,13 @@ namespace Microsoft.ML.Runtime.Data.IO
             RegisterSimpleCodec(new UnsafeTypeCodec<Double>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<DvTimeSpan>(this));
             RegisterSimpleCodec(new DvTextCodec(this));
-            RegisterSimpleCodec(new OldBoolCodec(this));
+            RegisterSimpleCodec(new BoolCodec(this));
             RegisterSimpleCodec(new DateTimeCodec(this));
             RegisterSimpleCodec(new DateTimeZoneCodec(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<UInt128>(this));
 
             // Register the old boolean reading codec.
-            var oldBool = new BoolCodec(this);
+            var oldBool = new OldBoolCodec(this);
             RegisterOtherCodec("DvBool", oldBool.GetCodec);
             RegisterOtherCodec("VBuffer", GetVBufferCodec);
             RegisterOtherCodec("Key", GetKeyCodec);

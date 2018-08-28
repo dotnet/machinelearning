@@ -421,16 +421,16 @@ namespace Microsoft.ML.Runtime.Data.IO
         }
 
         /// <summary>
-        /// This is an older boolean code that reads from a form that serialized
-        /// 1 bit per value. The new encoding (implemented by a different codec)
+        /// This is a boolean code that reads from a form that serialized
+        /// 1 bit per value. The old encoding (implemented by a different codec)
         /// uses 2 bits per value so NA values can be supported.
         /// </summary>
-        private sealed class OldBoolCodec : SimpleCodec<bool>
+        private sealed class BoolCodec : SimpleCodec<bool>
         {
             // *** Binary block format ***
             // Packed bits.
 
-            public OldBoolCodec(CodecFactory factory)
+            public BoolCodec(CodecFactory factory)
                 : base(factory, BoolType.Instance)
             {
             }
@@ -447,12 +447,12 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             private sealed class Writer : ValueWriterBase<bool>
             {
-                // Pack 16 values into 32 bits.
+                // Pack 8 values into 8 bits.
                 private byte _currentBits;
                 private long _numWritten;
                 private byte _currentIndex;
 
-                public Writer(OldBoolCodec codec, Stream stream)
+                public Writer(BoolCodec codec, Stream stream)
                     : base(codec.Factory, stream)
                 {
                 }
@@ -503,7 +503,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 private int _currentIndex;
                 private int _remaining;
 
-                public Reader(OldBoolCodec codec, Stream stream, int items)
+                public Reader(BoolCodec codec, Stream stream, int items)
                     : base(codec.Factory, stream)
                 {
                     _remaining = items;
@@ -529,12 +529,12 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private sealed class BoolCodec : SimpleCodec<bool>
+        private sealed class OldBoolCodec : SimpleCodec<bool>
         {
             // *** Binary block format ***
             // Pack 16 values into 32 bits, with 00 for false, 01 for true and 10 for NA.
 
-            public BoolCodec(CodecFactory factory)
+            public OldBoolCodec(CodecFactory factory)
                 : base(factory, BoolType.Instance)
             {
             }
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 private int _currentSlot;
                 private int _remaining;
 
-                public Reader(BoolCodec codec, Stream stream, int items)
+                public Reader(OldBoolCodec codec, Stream stream, int items)
                     : base(codec.Factory, stream)
                 {
                     _remaining = items;
