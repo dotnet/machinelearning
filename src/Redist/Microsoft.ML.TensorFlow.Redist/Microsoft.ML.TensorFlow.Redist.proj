@@ -97,13 +97,15 @@
       <_fileFromArchive Condition="'%(Runtime)' == 'osx-x64' AND '%(Extension)' == '.so'" DestinationFile="%(FileName).dylib" />
       <_fileFromArchive PackagePath="runtimes\%(_fileFromArchive.Runtime)\native\%(_fileFromArchive.DestinationFile)" />
 
-      <!-- LICENSE from the package is actually THIRD_PARTY_NOTICES, we download the LICENSE from GitHub directly -->
+      <!-- LICENSE from the package is actually THIRD_PARTY_NOTICES-->
       <_fileFromArchive Condition="'%(DestinationFile)' == 'LICENSE'" PackagePath="THIRD_PARTY_NOTICES.txt" Runtime="" />
-      <_fileFromArchive Include="$(IntermediateOutputPath)LICENSE" PackagePath="LICENSE.txt" Runtime="" />
 
       <!-- copy to packaging location -->
       <FilesFromArchive Include="@(_fileFromArchive->'%(ExtractDirectory)\%(Identity)')" 
                         TargetPath="$(PackageAssetsPath)$(MSBuildProjectName)\%(PackagePath)" />
+      <!-- include LICENSE that was downloaded from GitHub -->
+      <FilesFromArchive Include="$(IntermediateOutputPath)\LICENSE"
+                        TargetPath="$(PackageAssetsPath)$(MSBuildProjectName)\LICENSE.txt" />
 
       <!-- copy to NativeAssets location, only for current RID, so that they may be used by tests -->
       <FilesFromArchive Condition="'$(PackageRID)' == '%(_fileFromArchive.Runtime)'"
@@ -119,7 +121,7 @@
           DestinationFiles="@(FilesFromArchive->'%(TargetPath)')" />
 
     <!-- fix up the renamed libtensorflow, this can only run on mac -->
-    <Exec Condition="'%(Runtime)' == 'osx-x64' AND '%(FilesFromArchive.FileName)' == 'libtensorflow'"
+    <Exec Condition="'%(FilesFromArchive.Runtime)' == 'osx-x64' AND '%(FilesFromArchive.FileName)' == 'libtensorflow'"
           Command="install_name_tool -change @rpath/libtensorflow_framework.so @rpath/libtensorflow_framework.dylib &quot;%(FilesFromArchive.TargetPath)&quot;" />
   </Target>
 
