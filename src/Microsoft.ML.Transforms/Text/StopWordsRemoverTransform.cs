@@ -658,7 +658,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         ch.Warning("{0} should not be specified when default loader is TextLoader. Ignoring stopwordsColumn={0}",
                             stopwordsCol);
                     }
-                    dataLoader = new TextLoader(
+                    dataLoader = TextLoader.Create(
                         env,
                         new TextLoader.Arguments()
                         {

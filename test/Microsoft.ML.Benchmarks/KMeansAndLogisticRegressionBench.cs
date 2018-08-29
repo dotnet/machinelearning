@@ -31,7 +31,7 @@ namespace Microsoft.ML.Benchmarks
             using (var env = new TlcEnvironment(seed: 1))
             {
                 // Pipeline
-                var loader = new TextLoader(env,
+                var loader = TextLoader.ReadFile(env,
                     new TextLoader.Arguments()
                     {
                         HasHeader = true,
