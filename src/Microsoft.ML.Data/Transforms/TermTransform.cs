@@ -44,6 +44,53 @@ namespace Microsoft.ML.Runtime.Data
     /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
     public sealed partial class TermTransform : ITransformer, ICanSaveModel
     {
+        public abstract class ColumnBase : OneToOneColumn
+        {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep when auto-training", ShortName = "max")]
+            public int? MaxNumTerms;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string Terms;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public string[] Term;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
+                "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').")]
+            public SortOrder? Sort;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", Hide = true)]
+            public bool? TextKeyValues;
+
+            protected override bool TryUnparseCore(StringBuilder sb)
+            {
+                Contracts.AssertValue(sb);
+                // REVIEW: This pattern isn't robust enough. If a new field is added, this code needs
+                // to be updated accordingly, or it will break. The only protection we have against this
+                // is unit tests....
+                if (MaxNumTerms != null || !string.IsNullOrEmpty(Terms) || Sort != null || TextKeyValues != null)
+                    return false;
+                return base.TryUnparseCore(sb);
+            }
+        }
+
+        public sealed class Column : ColumnBase
+        {
+            public static Column Parse(string str)
+            {
+                var res = new Column();
+                if (res.TryParse(str))
+                    return res;
+                return null;
+            }
+
+            public bool TryUnparse(StringBuilder sb)
+            {
+                Contracts.AssertValue(sb);
+                return TryUnparseCore(sb);
+            }
+        }
+
         /// <summary>
         /// Controls how the order of the output keys.
         /// </summary>
@@ -100,53 +147,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
-        }
-
-        public abstract class ColumnBase : OneToOneColumn
-        {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep when auto-training", ShortName = "max")]
-            public int? MaxNumTerms;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string Terms;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public string[] Term;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
-                "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').")]
-            public SortOrder? Sort;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", Hide = true)]
-            public bool? TextKeyValues;
-
-            protected override bool TryUnparseCore(StringBuilder sb)
-            {
-                Contracts.AssertValue(sb);
-                // REVIEW: This pattern isn't robust enough. If a new field is added, this code needs
-                // to be updated accordingly, or it will break. The only protection we have against this
-                // is unit tests....
-                if (MaxNumTerms != null || !string.IsNullOrEmpty(Terms) || Sort != null || TextKeyValues != null)
-                    return false;
-                return base.TryUnparseCore(sb);
-            }
-        }
-
-        public sealed class Column : ColumnBase
-        {
-            public static Column Parse(string str)
-            {
-                var res = new Column();
-                if (res.TryParse(str))
-                    return res;
-                return null;
-            }
-
-            public bool TryUnparse(StringBuilder sb)
-            {
-                Contracts.AssertValue(sb);
-                return TryUnparseCore(sb);
-            }
         }
 
         internal readonly IHost Host;
