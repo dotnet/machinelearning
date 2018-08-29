@@ -53,10 +53,12 @@ namespace Microsoft.ML.Data.StaticPipe
             {
                 public Rec() : base() { }
 
-                public override IDataReaderEstimator<int, IDataReader<int>> Reconcile(PipelineColumn[] toOutput, Dictionary<PipelineColumn, string> outputNames)
+                public override IDataReaderEstimator<int, IDataReader<int>> Reconcile(
+                    IHostEnvironment env, PipelineColumn[] toOutput, IReadOnlyDictionary<PipelineColumn, string> outputNames)
                 {
+                    Contracts.AssertValue(env);
                     foreach (var col in toOutput)
-                        Contracts.Assert(col is IIsAnalysisColumn);
+                        env.Assert(col is IIsAnalysisColumn);
                     return null;
                 }
             }

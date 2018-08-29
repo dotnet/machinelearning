@@ -201,15 +201,21 @@ namespace Microsoft.ML.Runtime.Data
             public Range() { }
 
             public Range(int index)
-                : this(index, index) { }
-
-            public Range(int min, int max)
             {
-                Contracts.CheckParam(min >= 0, nameof(min), "min must be non-negative.");
-                Contracts.CheckParam(max >= min, nameof(max), "max must be greater than or equal to min.");
+                Contracts.CheckParam(index >= 0, nameof(index), "Must be non-negative");
+                Min = index;
+                Max = index;
+            }
+
+            public Range(int min, int? max)
+            {
+                Contracts.CheckParam(min >= 0, nameof(min), "Must be non-negative");
+                Contracts.CheckParam(!(max < min), nameof(max), "If specified, must be greater than or equal to " + nameof(min));
 
                 Min = min;
                 Max = max;
+                ForceVector = true;
+                AutoEnd = max == null;
             }
 
             [Argument(ArgumentType.Required, HelpText = "First index in the range")]

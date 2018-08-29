@@ -1250,38 +1250,5 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 #endif
-
-        /// <summary>
-        /// On demand open up new streams over a source of bytes.
-        /// </summary>
-        protected internal sealed class BytesSource : IMultiStreamSource
-        {
-            private readonly byte[] _data;
-
-            public BytesSource(byte[] data)
-            {
-                Contracts.AssertValue(data);
-                _data = data;
-            }
-
-            public int Count { get { return 1; } }
-
-            public string GetPathOrNull(int index)
-            {
-                Contracts.Check(index == 0);
-                return null;
-            }
-
-            public Stream Open(int index)
-            {
-                Contracts.Check(index == 0);
-                return new MemoryStream(_data, writable: false);
-            }
-
-            public TextReader OpenTextReader(int index)
-            {
-                return new StreamReader(Open(index));
-            }
-        }
     }
 }

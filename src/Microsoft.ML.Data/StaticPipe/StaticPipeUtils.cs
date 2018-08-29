@@ -187,7 +187,7 @@ namespace Microsoft.ML.Data.StaticPipe
             }
 
             // Call the reconciler to get the base reader estimator.
-            var readerEstimator = baseReconciler.Reconcile(baseInputs, nameMap.AsOther(baseInputs));
+            var readerEstimator = baseReconciler.Reconcile(env, baseInputs, nameMap.AsOther(baseInputs));
             ch.AssertValueOrNull(readerEstimator);
 
             // Next we iteratively find those columns with zero dependencies, "create" them, and if anything depends on
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Data.StaticPipe
 
                 var localInputNames = nameMap.AsOther(cols.SelectMany(c => c.Dependencies ?? Enumerable.Empty<PipelineColumn>()));
                 var localOutputNames = nameMap.AsOther(cols);
-                var localEstimator = rec.Reconcile(cols, localInputNames, localOutputNames);
+                var localEstimator = rec.Reconcile(env, cols, localInputNames, localOutputNames);
                 readerEstimator = readerEstimator?.Append(localEstimator);
                 estimator = estimator?.Append(localEstimator) ?? localEstimator;
 
@@ -346,7 +346,7 @@ namespace Microsoft.ML.Data.StaticPipe
                 }
             }
 
-            public Dictionary<T1, T2> AsOther(IEnumerable<T1> keys)
+            public IReadOnlyDictionary<T1, T2> AsOther(IEnumerable<T1> keys)
             {
                 Dictionary<T1, T2> d = new Dictionary<T1, T2>();
                 foreach (var v in keys)
@@ -354,7 +354,7 @@ namespace Microsoft.ML.Data.StaticPipe
                 return d;
             }
 
-            public Dictionary<T2, T1> AsOther(IEnumerable<T2> keys)
+            public IReadOnlyDictionary<T2, T1> AsOther(IEnumerable<T2> keys)
             {
                 Dictionary<T2, T1> d = new Dictionary<T2, T1>();
                 foreach (var v in keys)

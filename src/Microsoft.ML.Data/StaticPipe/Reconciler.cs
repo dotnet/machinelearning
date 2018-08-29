@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data.StaticPipe.Runtime
 {
@@ -34,11 +35,12 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         /// Returns a data-reader estimator. Note that there are no input names because the columns from a data-reader
         /// estimator should have no dependencies.
         /// </summary>
-        /// <param name="toOutput">The columns that the reconciler should output</param>
-        /// <param name="outputNames"></param>
+        /// <param name="env">The host environment to use to create the data-reader estimator</param>
+        /// <param name="toOutput">The columns that the object created by the reconciler should output</param>
+        /// <param name="outputNames">A map containing</param>
         /// <returns></returns>
         public abstract IDataReaderEstimator<TIn, IDataReader<TIn>> Reconcile(
-            PipelineColumn[] toOutput, Dictionary<PipelineColumn, string> outputNames);
+            IHostEnvironment env, PipelineColumn[] toOutput, IReadOnlyDictionary<PipelineColumn, string> outputNames);
     }
 
     /// <summary>
@@ -53,13 +55,15 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         /// <summary>
         /// Returns an estimator.
         /// </summary>
-        /// <param name="toOutput"></param>
-        /// <param name="inputNames"></param>
-        /// <param name="outputNames"></param>
+        /// <param name="env">The host environment to use to create the estimator</param>
+        /// <param name="toOutput">The columns that the object created by the reconciler should output</param>
+        /// <param name="inputNames">The columns that the object created by the reconciler should output</param>
+        /// <param name="outputNames">The </param>
         /// <returns></returns>
         public abstract IEstimator<ITransformer> Reconcile(
+            IHostEnvironment env,
             PipelineColumn[] toOutput,
-            Dictionary<PipelineColumn, string> inputNames,
-            Dictionary<PipelineColumn, string> outputNames);
+            IReadOnlyDictionary<PipelineColumn, string> inputNames,
+            IReadOnlyDictionary<PipelineColumn, string> outputNames);
     }
 }
