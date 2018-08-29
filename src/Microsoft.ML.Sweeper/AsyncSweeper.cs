@@ -10,6 +10,7 @@ using System.Threading.Tasks.Dataflow;
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper;
 
@@ -152,8 +153,8 @@ namespace Microsoft.ML.Runtime.Sweeper
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Base sweeper", ShortName = "sweeper")]
-            public SubComponent<ISweeper, SignatureSweeper> Sweeper;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Base sweeper", ShortName = "sweeper", SignatureType = typeof(SignatureSweeper))]
+            public IComponentFactory<ISweeper> Sweeper;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Sweep batch size", ShortName = "batchsize")]
             public int BatchSize = 5;
@@ -193,13 +194,13 @@ namespace Microsoft.ML.Runtime.Sweeper
         public DeterministicSweeperAsync(IHostEnvironment env, Arguments args)
         {
             _host = env.Register("DeterministicSweeperAsync", args.RandomSeed);
-            _host.CheckUserArg(args.Sweeper.IsGood(), nameof(args.Sweeper), "Please specify a sweeper");
+            _host.CheckValue(args.Sweeper, nameof(args.Sweeper), "Please specify a sweeper");
             _host.CheckUserArg(args.BatchSize > 0, nameof(args.BatchSize), "Batch size must be positive");
             _host.CheckUserArg(args.Relaxation >= 0, nameof(args.Relaxation), "Synchronization relaxation must be non-negative");
             _host.CheckUserArg(args.Relaxation <= args.BatchSize, nameof(args.Relaxation),
                 "Synchronization relaxation cannot be larger than batch size");
             _batchSize = args.BatchSize;
-            _baseSweeper = args.Sweeper.CreateInstance(_host);
+            _baseSweeper = args.Sweeper.CreateComponent(_host);
             _host.CheckUserArg(!(_baseSweeper is NelderMeadSweeper) || args.Relaxation == 0, nameof(args.Relaxation),
                 "Nelder-Mead requires full synchronization (relaxation = 0)");
 
