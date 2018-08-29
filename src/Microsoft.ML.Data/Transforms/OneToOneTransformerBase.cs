@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public abstract class OneToOneTransformerBase: ITransformer, ICanSaveModel
+    public abstract class OneToOneTransformerBase : ITransformer, ICanSaveModel
     {
         protected readonly IHost Host;
         protected readonly (string input, string output)[] ColumnPairs;
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Data
             return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema));
         }
 
-        protected abstract class MapperBase: IRowMapper
+        protected abstract class MapperBase : IRowMapper
         {
             protected readonly IHost Host;
             protected readonly Dictionary<int, int> ColMapNewToOld;
@@ -172,6 +172,6 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             protected abstract Delegate MakeGetter(IRow input, int iinfo, out Action disposer);
-            }
         }
+    }
 }

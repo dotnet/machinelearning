@@ -41,12 +41,8 @@ namespace Microsoft.ML.Runtime.RunTests
                     action();
                     Assert.False(true);
                 }
-                catch (ArgumentOutOfRangeException)
-                {
-                }
-                catch (InvalidOperationException)
-                {
-                }
+                catch (ArgumentOutOfRangeException) { }
+                catch (InvalidOperationException) { }
             };
 
             // Schema propagation tests for estimator.
@@ -78,11 +74,20 @@ namespace Microsoft.ML.Runtime.RunTests
             Action<IDataView> checkOnData = (IDataView data) =>
             {
                 var schema = transformer.GetOutputSchema(data.Schema);
+
+                // Loaded transformer needs to have the same schema propagation.
                 CheckSameSchemas(schema, loadedTransformer.GetOutputSchema(data.Schema));
+
                 var scoredTrain = transformer.Transform(data);
                 var scoredTrain2 = loadedTransformer.Transform(data);
+
+                // The schema of the transformed data must match the schema provided by schema propagation.
                 CheckSameSchemas(schema, scoredTrain.Schema);
 
+                // The schema and data of scored dataset must be identical between loaded
+                // and original transformer.
+                // This in turn means that the schema of loaded transformer matches for 
+                // Transform and GetOutputSchema calls.
                 CheckSameSchemas(scoredTrain.Schema, scoredTrain2.Schema);
                 CheckSameValues(scoredTrain, scoredTrain2);
             };
