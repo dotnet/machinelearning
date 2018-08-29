@@ -16,7 +16,7 @@ using Microsoft.ML.Runtime.Sweeper;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace RunTests
+namespace Microsoft.ML.Sweeper.RunTests
 {
     using Float = System.Single;
 
@@ -26,23 +26,16 @@ namespace RunTests
         {
         }
 
-        [Fact]
-        public void TestLongValueSweep()
+        [Theory]
+        [InlineData("bla", 10, 20, false, 10, 1000, "15")]
+        [InlineData("bla", 10, 1000, true, 10, 1000, "99")]
+        [InlineData("bla", 10, 1000, true, 10, 3, "99")]
+        public void TestLongValueSweep(string name, int min, int max, bool logBase, int stepSize, int numSteps, string valueText)
         {
-            var paramSweep = new LongValueGenerator(new LongParamArguments() { Name = "bla", Min = 10, Max = 20 });
-            var value = paramSweep.CreateFromNormalized(0.5);
-            Assert.Equal("bla", value.Name);
-            Assert.Equal("15", value.ValueText);
-
-            paramSweep = new LongValueGenerator(new LongParamArguments() { Name = "bla", Min = 10, Max = 1000, LogBase = true, StepSize = 10 });
-            value = paramSweep.CreateFromNormalized(0.5);
-            Assert.Equal("bla", value.Name);
-            Assert.Equal("99", value.ValueText);
-
-            paramSweep = new LongValueGenerator(new LongParamArguments() { Name = "bla", Min = 10, Max = 1000, LogBase = true, NumSteps = 3 });
-            value = paramSweep.CreateFromNormalized(0.5);
-            Assert.Equal("bla", value.Name);
-            Assert.Equal("99", value.ValueText);
+            var paramSweep = new LongValueGenerator(new LongParamArguments() { Name = name, Min = min, Max = max, LogBase = logBase, StepSize = stepSize, NumSteps = numSteps });
+            IParameterValue value = paramSweep.CreateFromNormalized(0.5);
+            Assert.Equal(name, value.Name);
+            Assert.Equal(valueText, value.ValueText);
         }
 
         [Fact]
@@ -50,33 +43,26 @@ namespace RunTests
         {
             var paramSweep = new LongValueGenerator(new LongParamArguments() { Name = "bla", Min = 0, Max = 17 });
             var value = new LongParameterValue("bla", 5);
-            var normalizedValue = paramSweep.NormalizeValue(value);
-            var unNormalizedValue = paramSweep.CreateFromNormalized(normalizedValue);
-            Assert.True(unNormalizedValue.ValueText == "5");
+            float normalizedValue = paramSweep.NormalizeValue(value);
+            IParameterValue unNormalizedValue = paramSweep.CreateFromNormalized(normalizedValue);
+            Assert.Equal("5", unNormalizedValue.ValueText);
 
-            var param = paramSweep.CreateFromNormalized(0.345);
-            var unNormalizedParam = paramSweep.NormalizeValue(param);
-            Assert.True(param.ValueText == "5");
-            Assert.True(unNormalizedParam == (Float)5 / 17);
+            IParameterValue param = paramSweep.CreateFromNormalized(0.345);
+            float unNormalizedParam = paramSweep.NormalizeValue(param);
+            Assert.Equal("5", param.ValueText);
+            Assert.Equal((Float)5 / 17, unNormalizedParam);
         }
 
-        [Fact]
-        public void TestFloatValueSweep()
+        [Theory]
+        [InlineData("bla", 10, 20, false, 10, 1000, "15")]
+        [InlineData("bla", 10, 1000, true, 10, 1000, "100")]
+        [InlineData("bla", 10, 1000, true, 10, 3, "100")]
+        public void TestFloatValueSweep(string name, int min, int max, bool logBase, int stepSize, int numSteps, string valueText)
         {
-            var paramSweep = new FloatValueGenerator(new FloatParamArguments() { Name = "bla", Min = 10, Max = 20 });
-            var value = paramSweep.CreateFromNormalized(0.5);
-            Assert.Equal("bla", value.Name);
-            Assert.Equal("15", value.ValueText);
-
-            paramSweep = new FloatValueGenerator(new FloatParamArguments() { Name = "bla", Min = 10, Max = 1000, LogBase = true, StepSize = 10 });
-            value = paramSweep.CreateFromNormalized(0.5);
-            Assert.Equal("bla", value.Name);
-            Assert.Equal("100", value.ValueText);
-
-            paramSweep = new FloatValueGenerator(new FloatParamArguments() { Name = "bla", Min = 10, Max = 1000, LogBase = true, NumSteps = 3 });
-            value = paramSweep.CreateFromNormalized(0.5);
-            Assert.Equal("bla", value.Name);
-            Assert.Equal("100", value.ValueText);
+            var paramSweep = new FloatValueGenerator(new FloatParamArguments() { Name = name, Min = min, Max = max, LogBase = logBase, StepSize = stepSize, NumSteps = numSteps });
+            IParameterValue value = paramSweep.CreateFromNormalized(0.5);
+            Assert.Equal(name, value.Name);
+            Assert.Equal(valueText, value.ValueText);
         }
 
         [Fact]
@@ -87,22 +73,21 @@ namespace RunTests
             var normalizedValue = (Float)random.NextDouble();
             var value = (FloatParameterValue)paramSweep.CreateFromNormalized(normalizedValue);
             var originalNormalizedValue = paramSweep.NormalizeValue(value);
-            Assert.True(normalizedValue == originalNormalizedValue);
+            Assert.Equal(normalizedValue, originalNormalizedValue);
 
             var originalValue = (FloatParameterValue)paramSweep.CreateFromNormalized(normalizedValue);
-            Assert.True(originalValue.Value == value.Value);
+            Assert.Equal(originalValue.Value, value.Value);
         }
 
-        [Fact]
-        public void TestDiscreteValueSweep()
+        [Theory]
+        [InlineData(0.5, "bar")]
+        [InlineData(0.75, "baz")]
+        public void TestDiscreteValueSweep(double normalizedValue, string expected)
         {
             var paramSweep = new DiscreteValueGenerator(new DiscreteParamArguments() { Name = "bla", Values = new[] { "foo", "bar", "baz" } });
-            var value = paramSweep.CreateFromNormalized(0.5);
+            var value = paramSweep.CreateFromNormalized(normalizedValue);
             Assert.Equal("bla", value.Name);
-            Assert.Equal("bar", value.ValueText);
-            value = paramSweep.CreateFromNormalized(0.75);
-            Assert.Equal("bla", value.Name);
-            Assert.Equal("baz", value.ValueText);
+            Assert.Equal(expected, value.ValueText);
         }
 
         [Fact]
@@ -112,10 +97,11 @@ namespace RunTests
             using (var env = new TlcEnvironment(42))
             {
                 args.SweptParameters = new[]
-            {
-                new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=foo", "min=10", "max=20"),
-                new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=bar", "min=100", "max=200"),
-            };
+                {
+                    new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=foo", "min=10", "max=20"),
+                    new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=bar", "min=100", "max=200"),
+                };
+
                 var sweeper = new UniformRandomSweeper(env, args);
                 var initialList = sweeper.ProposeSweeps(5, new List<RunResult>());
                 Assert.Equal(5, initialList.Length);
@@ -137,7 +123,7 @@ namespace RunTests
                         }
                         else
                         {
-                            // Assert.Fail("Wrong parameter");
+                            Assert.True(false, "Wrong parameter");
                         }
                     }
                 }
@@ -185,43 +171,6 @@ namespace RunTests
                 CheckAsyncSweeperResult(paramSets);
             }
         }
-
-        /*
-        [Fact]
-        public void TestSimpleSweeperAsyncParallel()
-        {
-            var random = new Random(42);
-            using (var env = new TlcEnvironment(42))
-            {
-                var args = new LowDiscrepancyRandomSweeper.Arguments();
-                args.SweptParameters = new[] {
-                    new SubComponent<IValueGenerator, SignatureSweeperParameter>("fp", "name=foo", "min=1", "max=5"),
-                    new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=bar", "min=1", "max=1000", "logbase+"),
-                };
-                var sweeper = new SimpleAsyncSweeper(env, args);
-                int sweeps = 100;
-
-                var paramSets = new List<ParameterSet>();
-                var options = new ParallelOptions();
-                options.MaxDegreeOfParallelism = 4;
-                paramSets.Clear();
-                object mlock = new object();
-                var r = Parallel.For(0, sweeps, options, (int i) =>
-                {
-                    var task = sweeper.Propose();
-                    Assert.True(task.IsCompleted);
-                    lock (mlock)
-                        paramSets.Add(task.Result.ParameterSet);
-                    Thread.Sleep(100);
-                    var result = new RunResult(task.Result.ParameterSet, 0.42, true);
-                    sweeper.Update(task.Result.Id, result);
-                });
-                Contracts.Assert(r.IsCompleted);
-                Assert.Equal(sweeps, paramSets.Count);
-                CheckAsyncSweeperResult(paramSets);
-            }
-        }
-        */
         
         [Fact]
         public void TestDeterministicSweeperAsyncCancellation()
@@ -330,7 +279,7 @@ namespace RunTests
             var random = new Random(42);
             using (var env = new TlcEnvironment(42))
             {
-                var batchSize = 5;
+                int batchSize = 5;
                 int sweeps = 20;
                 var paramSets = new List<ParameterSet>();
                 var args = new DeterministicSweeperAsync.Arguments();
@@ -367,13 +316,13 @@ namespace RunTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "The test is not able to load ldrandpl")]
         public void TestNelderMeadSweeperAsync()
         {
             var random = new Random(42);
             using (var env = new TlcEnvironment(42))
             {
-                var batchSize = 5;
+                int batchSize = 5;
                 int sweeps = 40;
                 var paramSets = new List<ParameterSet>();
                 var args = new DeterministicSweeperAsync.Arguments();
@@ -425,13 +374,256 @@ namespace RunTests
                     }
                     else
                     {
-                      //  Assert.Fail("Wrong parameter");
+                        Assert.True(false, "Wrong parameter");
                     }
                 }
             }
         }
 
-        /*
+        [Fact]
+        public void TestRandomGridSweeper()
+        {
+            var args = new RandomGridSweeper.Arguments();
+            using (var env = new TlcEnvironment(42))
+            {
+                args.SweptParameters = new[] {
+                    new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=foo", "min=10", "max=20", "numsteps=3"),
+                    new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=bar", "min=100", "max=10000", "logbase+", "stepsize=10"),
+                };
+                var sweeper = new RandomGridSweeper(env, args);
+                var initialList = sweeper.ProposeSweeps(5, new List<RunResult>());
+                Assert.Equal(5, initialList.Length);
+                var gridPoint = new bool[3][] {
+                    new bool[3],
+                    new bool[3],
+                    new bool[3]
+                };
+                int i = 0;
+                int j = 0;
+                foreach (var parameterSet in initialList)
+                {
+                    foreach (var parameterValue in parameterSet)
+                    {
+                        if (parameterValue.Name == "foo")
+                        {
+                            var val = long.Parse(parameterValue.ValueText);
+                            Assert.True(val == 10 || val == 15 || val == 20);
+                            i = (val == 10) ? 0 : (val == 15) ? 1 : 2;
+                        }
+                        else if (parameterValue.Name == "bar")
+                        {
+                            var val = long.Parse(parameterValue.ValueText);
+                            Assert.True(val == 100 || val == 1000 || val == 10000);
+                            j = (val == 100) ? 0 : (val == 1000) ? 1 : 2;
+                        }
+                        else
+                        {
+                            Assert.True(false, "Wrong parameter");
+                        }
+                    }
+                    Assert.False(gridPoint[i][j]);
+                    gridPoint[i][j] = true;
+                }
+
+                var nextList = sweeper.ProposeSweeps(5, initialList.Select(p => new RunResult(p)));
+                Assert.Equal(4, nextList.Length);
+                foreach (var parameterSet in nextList)
+                {
+                    foreach (var parameterValue in parameterSet)
+                    {
+                        if (parameterValue.Name == "foo")
+                        {
+                            var val = long.Parse(parameterValue.ValueText);
+                            Assert.True(val == 10 || val == 15 || val == 20);
+                            i = (val == 10) ? 0 : (val == 15) ? 1 : 2;
+                        }
+                        else if (parameterValue.Name == "bar")
+                        {
+                            var val = long.Parse(parameterValue.ValueText);
+                            Assert.True(val == 100 || val == 1000 || val == 10000);
+                            j = (val == 100) ? 0 : (val == 1000) ? 1 : 2;
+                        }
+                        else
+                        {
+                            Assert.True(false, "Wrong parameter");
+                        }
+                    }
+                    Assert.False(gridPoint[i][j]);
+                    gridPoint[i][j] = true;
+                }
+
+                gridPoint = new bool[3][] {
+                    new bool[3],
+                    new bool[3],
+                    new bool[3]
+                };
+                var lastList = sweeper.ProposeSweeps(10, null);
+                Assert.Equal(9, lastList.Length);
+                foreach (var parameterSet in lastList)
+                {
+                    foreach (var parameterValue in parameterSet)
+                    {
+                        if (parameterValue.Name == "foo")
+                        {
+                            var val = long.Parse(parameterValue.ValueText);
+                            Assert.True(val == 10 || val == 15 || val == 20);
+                            i = (val == 10) ? 0 : (val == 15) ? 1 : 2;
+                        }
+                        else if (parameterValue.Name == "bar")
+                        {
+                            var val = long.Parse(parameterValue.ValueText);
+                            Assert.True(val == 100 || val == 1000 || val == 10000);
+                            j = (val == 100) ? 0 : (val == 1000) ? 1 : 2;
+                        }
+                        else
+                        {
+                            Assert.True(false, "Wrong parameter");
+                        }
+                    }
+                    Assert.False(gridPoint[i][j]);
+                    gridPoint[i][j] = true;
+                }
+                Assert.True(gridPoint.All(bArray => bArray.All(b => b)));
+            }
+        }
+
+        [Fact(Skip = "The test is not able to load ldrandpl")]
+        public void TestNelderMeadSweeper()
+        {
+            var random = new Random(42);
+            var args = new NelderMeadSweeper.Arguments();
+            using (var env = new TlcEnvironment(42))
+            {
+                args.SweptParameters = new[] {
+                    new SubComponent("fp", "name=foo", "min=1", "max=5"),
+                    new SubComponent("lp", "name=bar", "min=1", "max=1000", "logbase+"),
+                };
+                var sweeper = new NelderMeadSweeper(env, args);
+                var sweeps = sweeper.ProposeSweeps(5, new List<RunResult>());
+                Assert.Equal(3, sweeps.Length);
+
+                var results = new List<IRunResult>();
+                for (int i = 1; i < 10; i++)
+                {
+                    foreach (var parameterSet in sweeps)
+                    {
+                        foreach (var parameterValue in parameterSet)
+                        {
+                            if (parameterValue.Name == "foo")
+                            {
+                                var val = Float.Parse(parameterValue.ValueText, CultureInfo.InvariantCulture);
+                                Assert.True(val >= 1);
+                                Assert.True(val <= 5);
+                            }
+                            else if (parameterValue.Name == "bar")
+                            {
+                                var val = long.Parse(parameterValue.ValueText);
+                                Assert.True(val >= 1);
+                                Assert.True(val <= 1000);
+                            }
+                            else
+                            {
+                                Assert.True(false, "Wrong parameter");
+                            }
+                        }
+                        results.Add(new RunResult(parameterSet, random.NextDouble(), true));
+                    }
+
+                    sweeps = sweeper.ProposeSweeps(5, results);
+                }
+                Assert.True(sweeps.Length <= 5);
+            }
+        }
+
+#if !PORTED
+        [Fact]
+        public void TestSmacSweeper()
+        {
+            RunMTAThread(() =>
+            {
+                var random = new Random(42);
+                var args = new SmacSweeper.Arguments();
+                using (var env = new TlcEnvironment(42))
+                {
+                    int maxInitSweeps = 5;
+                    args.NumberInitialPopulation = 20;
+                    args.SweptParameters = new[] {
+                        new SubComponent<IValueGenerator, SignatureSweeperParameter>("fp", "name=foo", "min=1", "max=5"),
+                        new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=bar", "min=1", "max=1000", "logbase+"),
+                    };
+                    var sweeper = new SmacSweeper(env, args);
+                    var results = new List<IRunResult>();
+                    var sweeps = sweeper.ProposeSweeps(maxInitSweeps, results);
+                    Assert.Equal(Math.Min(args.NumberInitialPopulation, maxInitSweeps), sweeps.Length);
+
+                    for (int i = 1; i < 10; i++)
+                    {
+                        foreach (var parameterSet in sweeps)
+                        {
+                            foreach (var parameterValue in parameterSet)
+                            {
+                                if (parameterValue.Name == "foo")
+                                {
+                                    var val = Float.Parse(parameterValue.ValueText, CultureInfo.InvariantCulture);
+                                    Assert.True(val >= 1);
+                                    Assert.True(val <= 5);
+                                }
+                                else if (parameterValue.Name == "bar")
+                                {
+                                    var val = long.Parse(parameterValue.ValueText);
+                                    Assert.True(val >= 1);
+                                    Assert.True(val <= 1000);
+                                }
+                                else
+                                {
+                                    Assert.True(false, "Wrong parameter");
+                                }
+                            }
+                            results.Add(new RunResult(parameterSet, random.NextDouble(), true));
+                        }
+
+                        sweeps = sweeper.ProposeSweeps(5, results);
+                    }
+                    Assert.True(sweeps.Length == 5);
+                }
+            });
+        }
+
+        [Fact]
+        public void TestSimpleSweeperAsyncParallel()
+        {
+            var random = new Random(42);
+            using (var env = new TlcEnvironment(42))
+            {
+                var args = new LowDiscrepancyRandomSweeper.Arguments();
+                args.SweptParameters = new[] {
+                    new SubComponent<IValueGenerator, SignatureSweeperParameter>("fp", "name=foo", "min=1", "max=5"),
+                    new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=bar", "min=1", "max=1000", "logbase+"),
+                };
+                var sweeper = new SimpleAsyncSweeper(env, args);
+                int sweeps = 100;
+
+                var paramSets = new List<ParameterSet>();
+                var options = new ParallelOptions();
+                options.MaxDegreeOfParallelism = 4;
+                paramSets.Clear();
+                object mlock = new object();
+                var r = Parallel.For(0, sweeps, options, (int i) =>
+                {
+                    var task = sweeper.Propose();
+                    Assert.True(task.IsCompleted);
+                    lock (mlock)
+                        paramSets.Add(task.Result.ParameterSet);
+                    Thread.Sleep(100);
+                    var result = new RunResult(task.Result.ParameterSet, 0.42, true);
+                    sweeper.Update(task.Result.Id, result);
+                });
+                Contracts.Assert(r.IsCompleted);
+                Assert.Equal(sweeps, paramSets.Count);
+                CheckAsyncSweeperResult(paramSets);
+            }
+        }
+
         [Fact]
         public void TestSobolRandomSweeper()
         {
@@ -504,214 +696,6 @@ namespace RunTests
                 }
             }
         }
-        */
-
-        [Fact]
-        public void TestRandomGridSweeper()
-        {
-            var args = new RandomGridSweeper.Arguments();
-            using (var env = new TlcEnvironment(42))
-            {
-                args.SweptParameters = new[] {
-                    new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=foo", "min=10", "max=20", "numsteps=3"),
-                    new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=bar", "min=100", "max=10000", "logbase+", "stepsize=10"),
-                };
-                var sweeper = new RandomGridSweeper(env, args);
-                var initialList = sweeper.ProposeSweeps(5, new List<RunResult>());
-                Assert.Equal(5, initialList.Length);
-                var gridPoint = new bool[3][] {
-                    new bool[3],
-                    new bool[3],
-                    new bool[3]
-                };
-                int i = 0;
-                int j = 0;
-                foreach (var parameterSet in initialList)
-                {
-                    foreach (var parameterValue in parameterSet)
-                    {
-                        if (parameterValue.Name == "foo")
-                        {
-                            var val = long.Parse(parameterValue.ValueText);
-                            Assert.True(val == 10 || val == 15 || val == 20);
-                            i = (val == 10) ? 0 : (val == 15) ? 1 : 2;
-                        }
-                        else if (parameterValue.Name == "bar")
-                        {
-                            var val = long.Parse(parameterValue.ValueText);
-                            Assert.True(val == 100 || val == 1000 || val == 10000);
-                            j = (val == 100) ? 0 : (val == 1000) ? 1 : 2;
-                        }
-                        else
-                        {
-                           // Assert.Fail("Wrong parameter");
-                        }
-                    }
-                    Assert.False(gridPoint[i][j]);
-                    gridPoint[i][j] = true;
-                }
-
-                var nextList = sweeper.ProposeSweeps(5, initialList.Select(p => new RunResult(p)));
-                Assert.Equal(4, nextList.Length);
-                foreach (var parameterSet in nextList)
-                {
-                    foreach (var parameterValue in parameterSet)
-                    {
-                        if (parameterValue.Name == "foo")
-                        {
-                            var val = long.Parse(parameterValue.ValueText);
-                            Assert.True(val == 10 || val == 15 || val == 20);
-                            i = (val == 10) ? 0 : (val == 15) ? 1 : 2;
-                        }
-                        else if (parameterValue.Name == "bar")
-                        {
-                            var val = long.Parse(parameterValue.ValueText);
-                            Assert.True(val == 100 || val == 1000 || val == 10000);
-                            j = (val == 100) ? 0 : (val == 1000) ? 1 : 2;
-                        }
-                        else
-                        {
-                         //   Assert.Fail("Wrong parameter");
-                        }
-                    }
-                    Assert.False(gridPoint[i][j]);
-                    gridPoint[i][j] = true;
-                }
-
-                gridPoint = new bool[3][] {
-                    new bool[3],
-                    new bool[3],
-                    new bool[3]
-                };
-                var lastList = sweeper.ProposeSweeps(10, null);
-                Assert.Equal(9, lastList.Length);
-                foreach (var parameterSet in lastList)
-                {
-                    foreach (var parameterValue in parameterSet)
-                    {
-                        if (parameterValue.Name == "foo")
-                        {
-                            var val = long.Parse(parameterValue.ValueText);
-                            Assert.True(val == 10 || val == 15 || val == 20);
-                            i = (val == 10) ? 0 : (val == 15) ? 1 : 2;
-                        }
-                        else if (parameterValue.Name == "bar")
-                        {
-                            var val = long.Parse(parameterValue.ValueText);
-                            Assert.True(val == 100 || val == 1000 || val == 10000);
-                            j = (val == 100) ? 0 : (val == 1000) ? 1 : 2;
-                        }
-                        else
-                        {
-                           // Assert.Fail("Wrong parameter");
-                        }
-                    }
-                    Assert.False(gridPoint[i][j]);
-                    gridPoint[i][j] = true;
-                }
-                Assert.True(gridPoint.All(bArray => bArray.All(b => b)));
-            }
-        }
-
-        [Fact]
-        public void TestNelderMeadSweeper()
-        {
-            var random = new Random(42);
-            var args = new NelderMeadSweeper.Arguments();
-            using (var env = new TlcEnvironment(42))
-            {
-                args.SweptParameters = new[] {
-                    new SubComponent("fp", "name=foo", "min=1", "max=5"),
-                    new SubComponent("lp", "name=bar", "min=1", "max=1000", "logbase+"),
-                };
-                var sweeper = new NelderMeadSweeper(env, args);
-                var sweeps = sweeper.ProposeSweeps(5, new List<RunResult>());
-                Assert.Equal(3, sweeps.Length);
-
-                var results = new List<IRunResult>();
-                for (int i = 1; i < 10; i++)
-                {
-                    foreach (var parameterSet in sweeps)
-                    {
-                        foreach (var parameterValue in parameterSet)
-                        {
-                            if (parameterValue.Name == "foo")
-                            {
-                                var val = Float.Parse(parameterValue.ValueText, CultureInfo.InvariantCulture);
-                                Assert.True(val >= 1);
-                                Assert.True(val <= 5);
-                            }
-                            else if (parameterValue.Name == "bar")
-                            {
-                                var val = long.Parse(parameterValue.ValueText);
-                                Assert.True(val >= 1);
-                                Assert.True(val <= 1000);
-                            }
-                            else
-                            {
-                                //Assert.Fail("Wrong parameter");
-                            }
-                        }
-                        results.Add(new RunResult(parameterSet, random.NextDouble(), true));
-                    }
-
-                    sweeps = sweeper.ProposeSweeps(5, results);
-                }
-                Assert.True(sweeps.Length <= 5);
-            }
-        }
-
-        [Fact]
-        public void TestSmacSweeper()
-        {
-            RunMTAThread(() =>
-            {
-                var random = new Random(42);
-                var args = new SmacSweeper.Arguments();
-                using (var env = new TlcEnvironment(42))
-                {
-                    int maxInitSweeps = 5;
-                    args.NumberInitialPopulation = 20;
-                    args.SweptParameters = new[] {
-                        new SubComponent<IValueGenerator, SignatureSweeperParameter>("fp", "name=foo", "min=1", "max=5"),
-                        new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=bar", "min=1", "max=1000", "logbase+"),
-                    };
-                    var sweeper = new SmacSweeper(env, args);
-                    var results = new List<IRunResult>();
-                    var sweeps = sweeper.ProposeSweeps(maxInitSweeps, results);
-                    Assert.Equal(Math.Min(args.NumberInitialPopulation, maxInitSweeps), sweeps.Length);
-
-                    for (int i = 1; i < 10; i++)
-                    {
-                        foreach (var parameterSet in sweeps)
-                        {
-                            foreach (var parameterValue in parameterSet)
-                            {
-                                if (parameterValue.Name == "foo")
-                                {
-                                    var val = Float.Parse(parameterValue.ValueText, CultureInfo.InvariantCulture);
-                                    Assert.True(val >= 1);
-                                    Assert.True(val <= 5);
-                                }
-                                else if (parameterValue.Name == "bar")
-                                {
-                                    var val = long.Parse(parameterValue.ValueText);
-                                    Assert.True(val >= 1);
-                                    Assert.True(val <= 1000);
-                                }
-                                else
-                                {
-                                 //   Assert.Fail("Wrong parameter");
-                                }
-                            }
-                            results.Add(new RunResult(parameterSet, random.NextDouble(), true));
-                        }
-
-                        sweeps = sweeper.ProposeSweeps(5, results);
-                    }
-                    Assert.True(sweeps.Length == 5);
-                }
-            });
-        }
+#endif
     }
 }
