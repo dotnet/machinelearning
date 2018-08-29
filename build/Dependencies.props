@@ -7,7 +7,7 @@
     <SystemCodeDomPackageVersion>4.4.0</SystemCodeDomPackageVersion>
     <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
     <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
-    <LightGBMPackageVersion>2.1.2.6</LightGBMPackageVersion>
+    <LightGBMPackageVersion>2.1.2.4</LightGBMPackageVersion>
     <MlNetMklDepsPackageVersion>0.0.0.5</MlNetMklDepsPackageVersion>
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
     <BenchmarkDotNetVersion>0.11.0</BenchmarkDotNetVersion>
