@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -13,19 +16,24 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(ImagePixelExtractorTransform.Summary, typeof(ImagePixelExtractorTransform), typeof(ImagePixelExtractorTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(ImagePixelExtractorTransform.Summary, typeof(IDataTransform), typeof(ImagePixelExtractorTransform), typeof(ImagePixelExtractorTransform.Arguments), typeof(SignatureDataTransform),
     ImagePixelExtractorTransform.UserName, "ImagePixelExtractorTransform", "ImagePixelExtractor")]
 
-[assembly: LoadableClass(ImagePixelExtractorTransform.Summary, typeof(ImagePixelExtractorTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(ImagePixelExtractorTransform.Summary, typeof(IDataTransform), typeof(ImagePixelExtractorTransform), null, typeof(SignatureLoadDataTransform),
+    ImagePixelExtractorTransform.UserName, ImagePixelExtractorTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(ImagePixelExtractorTransform), null, typeof(SignatureLoadModel),
+    ImagePixelExtractorTransform.UserName, ImagePixelExtractorTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ImagePixelExtractorTransform), null, typeof(SignatureLoadRowMapper),
     ImagePixelExtractorTransform.UserName, ImagePixelExtractorTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
-    // REVIEW: Rewrite as LambdaTransform to simplify.
     /// <summary>
     /// Transform which takes one or many columns of <see cref="ImageType"/> and convert them into vector representation.
     /// </summary>
-    public sealed class ImagePixelExtractorTransform : OneToOneTransformBase
+    public sealed class ImagePixelExtractorTransform : OneToOneTransformerBase, ICanSaveModel
     {
         public class Column : OneToOneColumn
         {
@@ -110,24 +118,28 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// Which color channels are extracted. Note that these values are serialized so should not be modified.
         /// </summary>
         [Flags]
-        private enum ColorBits : byte
+        public enum ColorBits : byte
         {
             Alpha = 0x01,
             Red = 0x02,
             Green = 0x04,
             Blue = 0x08,
 
+            Rgb = Red | Green | Blue,
             All = Alpha | Red | Green | Blue
         }
 
-        private sealed class ColInfoEx
+        public sealed class ColumnInfo
         {
+            public readonly string Input;
+            public readonly string Output;
+
             public readonly ColorBits Colors;
             public readonly byte Planes;
 
             public readonly bool Convert;
-            public readonly Single Offset;
-            public readonly Single Scale;
+            public readonly float Offset;
+            public readonly float Scale;
             public readonly bool Interleave;
 
             public bool Alpha { get { return (Colors & ColorBits.Alpha) != 0; } }
@@ -135,8 +147,14 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             public bool Green { get { return (Colors & ColorBits.Green) != 0; } }
             public bool Blue { get { return (Colors & ColorBits.Blue) != 0; } }
 
-            public ColInfoEx(Column item, Arguments args)
+            internal ColumnInfo(Column item, Arguments args)
             {
+                Contracts.CheckValue(item, nameof(item));
+                Contracts.CheckValue(args, nameof(args));
+
+                Input = item.Source ?? item.Name;
+                Output = item.Name;
+
                 if (item.UseAlpha ?? args.UseAlpha) { Colors |= ColorBits.Alpha; Planes++; }
                 if (item.UseRed ?? args.UseRed) { Colors |= ColorBits.Red; Planes++; }
                 if (item.UseGreen ?? args.UseGreen) { Colors |= ColorBits.Green; Planes++; }
@@ -160,9 +178,56 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 }
             }
 
-            public ColInfoEx(ModelLoadContext ctx)
+            public ColumnInfo(string input, string output, ColorBits colors = ColorBits.Rgb, bool interleave = false)
+                : this(input, output, colors, interleave, false, 1f, 0f)
             {
+            }
+
+            public ColumnInfo(string input, string output, ColorBits colors = ColorBits.Rgb, bool interleave = false, float scale = 1f, float offset = 0f)
+                : this(input, output, colors, interleave, true, scale, offset)
+            {
+            }
+
+            private ColumnInfo(string input, string output, ColorBits colors, bool interleave, bool convert, float scale, float offset)
+            {
+                Contracts.CheckNonEmpty(input, nameof(input));
+                Contracts.CheckNonEmpty(output, nameof(output));
+
+                Input = input;
+                Output = output;
+                Colors = colors;
+
+                if ((Colors & ColorBits.Alpha) == ColorBits.Alpha) Planes++;
+                if ((Colors & ColorBits.Red) == ColorBits.Red) Planes++;
+                if ((Colors & ColorBits.Green) == ColorBits.Green) Planes++;
+                if ((Colors & ColorBits.Blue) == ColorBits.Blue) Planes++;
+                Contracts.CheckParam(Planes > 0, nameof(colors), "Need to use at least one color plane");
+
+                Interleave = interleave;
+
+                Convert = convert;
+                if (!Convert)
+                {
+                    Offset = 0;
+                    Scale = 1;
+                }
+                else
+                {
+                    Offset = offset;
+                    Scale = scale;
+                    Contracts.CheckParam(FloatUtils.IsFinite(Offset), nameof(offset));
+                    Contracts.CheckParam(FloatUtils.IsFiniteNonZero(Scale), nameof(scale));
+                }
+            }
+
+            internal ColumnInfo(string input, string output, ModelLoadContext ctx)
+            {
+                Contracts.AssertNonEmpty(input);
+                Contracts.AssertNonEmpty(output);
                 Contracts.AssertValue(ctx);
+
+                Input = input;
+                Output = output;
 
                 // *** Binary format ***
                 // byte: colors
@@ -193,7 +258,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             public void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
-
 #if DEBUG
                 // This code is used in deserialization - assert that it matches what we computed above.
                 int planes = (int)Colors;
@@ -237,305 +301,368 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         private const string RegistrationName = "ImagePixelExtractor";
 
-        private readonly ColInfoEx[] _exes;
-        private readonly VectorType[] _types;
+        private readonly ColumnInfo[] _columns;
 
-        // Public constructor corresponding to SignatureDataTransform.
-        public ImagePixelExtractorTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input,
-                t => t is ImageType ? null : "Expected Image type")
+        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+
+        public ImagePixelExtractorTransform(IHostEnvironment env, string inputColumn, string outputColumn,
+            ColorBits colors = ColorBits.Rgb, bool interleave = false)
+            : this(env, new ColumnInfo(inputColumn, outputColumn, colors, interleave))
         {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
-
-            _exes = new ColInfoEx[Infos.Length];
-            for (int i = 0; i < _exes.Length; i++)
-            {
-                var item = args.Column[i];
-                _exes[i] = new ColInfoEx(item, args);
-            }
-
-            _types = ConstructTypes(true);
         }
 
-        private ImagePixelExtractorTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, t => t is ImageType ? null : "Expected Image type")
+        public ImagePixelExtractorTransform(IHostEnvironment env, params ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
-            Host.AssertValue(ctx);
-
-            // *** Binary format ***
-            // <prefix handled in static Create method>
-            // <base>
-            // foreach added column
-            //   ColInfoEx
-            Host.AssertNonEmpty(Infos);
-            _exes = new ColInfoEx[Infos.Length];
-            for (int i = 0; i < _exes.Length; i++)
-                _exes[i] = new ColInfoEx(ctx);
-
-            _types = ConstructTypes(false);
+            _columns = columns.ToArray();
         }
 
-        public static ImagePixelExtractorTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(columns, nameof(columns));
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
+        }
+
+        // SignatureDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            env.CheckValue(args.Column, nameof(args.Column));
+
+            var columns = new ColumnInfo[args.Column.Length];
+            for (int i = 0; i < columns.Length; i++)
+            {
+                var item = args.Column[i];
+                columns[i] = new ColumnInfo(item, args);
+            }
+
+            var transformer = new ImagePixelExtractorTransform(env, columns);
+            return new RowToRowMapperTransform(env, input, transformer.MakeRowMapper(input.Schema));
+        }
+
+        public static ImagePixelExtractorTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register(RegistrationName);
+            host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return h.Apply("Loading Model",
-                ch =>
-                {
-                    // *** Binary format ***
-                    // int: sizeof(Float)
-                    // <remainder handled in ctors>
-                    int cbFloat = ctx.Reader.ReadInt32();
-                    ch.CheckDecode(cbFloat == sizeof(Single));
-                    return new ImagePixelExtractorTransform(h, ctx, input);
-                });
+            return new ImagePixelExtractorTransform(host, ctx);
         }
+
+        private ImagePixelExtractorTransform(IHost host, ModelLoadContext ctx)
+            : base(host, ctx)
+        {
+            // *** Binary format ***
+            // <base>
+
+            // for each added column
+            //   ColumnInfo
+
+            _columns = new ColumnInfo[ColumnPairs.Length];
+            for (int i = 0; i < _columns.Length; i++)
+                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, ctx);
+        }
+
+        // Factory method for SignatureLoadDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
+
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: sizeof(Float)
             // <base>
-            // foreach added column
-            //   ColInfoEx
-            ctx.Writer.Write(sizeof(Single));
-            SaveBase(ctx);
 
-            Host.Assert(_exes.Length == Infos.Length);
-            for (int i = 0; i < _exes.Length; i++)
-                _exes[i].Save(ctx);
+            // for each added column
+            //   ColumnInfo
+
+            base.SaveColumns(ctx);
+
+            foreach (ColumnInfo info in _columns)
+                info.Save(ctx);
         }
 
-        private VectorType[] ConstructTypes(bool user)
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+            => new Mapper(this, schema);
+
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
-            var types = new VectorType[Infos.Length];
-            for (int i = 0; i < Infos.Length; i++)
+            var inputColName = _columns[col].Input;
+            var imageType = inputSchema.GetColumnType(srcCol) as ImageType;
+            if (imageType == null)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema.GetColumnType(srcCol).ToString());
+            if (imageType.Height <= 0 || imageType.Width <= 0)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "known-size image", "unknown-size image");
+            if ((long)imageType.Height * imageType.Width > int.MaxValue / 4)
+                throw Host.Except("Image dimensions are too large");
+        }
+
+        private sealed class Mapper : MapperBase
+        {
+            private readonly ImagePixelExtractorTransform _parent;
+            private readonly VectorType[] _types;
+
+            public Mapper(ImagePixelExtractorTransform parent, ISchema inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                var info = Infos[i];
-                var ex = _exes[i];
-                Host.Assert(ex.Planes > 0);
-
-                var type = Source.Schema.GetColumnType(info.Source) as ImageType;
-                Host.Assert(type != null);
-                if (type.Height <= 0 || type.Width <= 0)
-                {
-                    // REVIEW: Could support this case by making the destination column be variable sized.
-                    // However, there's no mechanism to communicate the dimensions through with the pixel data.
-                    string name = Source.Schema.GetColumnName(info.Source);
-                    throw user ?
-                        Host.ExceptUserArg(nameof(Arguments.Column), "Column '{0}' does not have known size", name) :
-                        Host.Except("Column '{0}' does not have known size", name);
-                }
-                int height = type.Height;
-                int width = type.Width;
-                Host.Assert(height > 0);
-                Host.Assert(width > 0);
-                Host.Assert((long)height * width <= int.MaxValue / 4);
-
-                if (ex.Interleave)
-                    types[i] = new VectorType(ex.Convert ? NumberType.Float : NumberType.U1, height, width, ex.Planes);
-                else
-                    types[i] = new VectorType(ex.Convert ? NumberType.Float : NumberType.U1, ex.Planes, height, width);
+                _parent = parent;
+                _types = ConstructTypes();
             }
-            Metadata.Seal();
-            return types;
-        }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Assert(0 <= iinfo & iinfo < Infos.Length);
-            return _types[iinfo];
-        }
+            public override RowMapperColumnInfo[] GetOutputColumns()
+                => _parent._columns.Select((x, idx) => new RowMapperColumnInfo(x.Output, _types[idx], null)).ToArray();
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
 
-            if (_exes[iinfo].Convert)
-                return GetGetterCore<Single>(input, iinfo, out disposer);
-            return GetGetterCore<byte>(input, iinfo, out disposer);
-        }
+                if (_parent._columns[iinfo].Convert)
+                    return GetGetterCore<Single>(input, iinfo, out disposer);
+                return GetGetterCore<byte>(input, iinfo, out disposer);
+            }
 
-        //REVIEW Rewrite it to where TValue : IConvertible
-        private ValueGetter<VBuffer<TValue>> GetGetterCore<TValue>(IRow input, int iinfo, out Action disposer)
-        {
-            var type = _types[iinfo];
-            Host.Assert(type.DimCount == 3);
+            //REVIEW Rewrite it to where TValue : IConvertible
+            private ValueGetter<VBuffer<TValue>> GetGetterCore<TValue>(IRow input, int iinfo, out Action disposer)
+            {
+                var type = _types[iinfo];
+                Contracts.Assert(type.DimCount == 3);
 
-            var ex = _exes[iinfo];
+                var ex = _parent._columns[iinfo];
 
-            int planes = ex.Interleave ? type.GetDim(2) : type.GetDim(0);
-            int height = ex.Interleave ? type.GetDim(0) : type.GetDim(1);
-            int width = ex.Interleave ? type.GetDim(1) : type.GetDim(2);
+                int planes = ex.Interleave ? type.GetDim(2) : type.GetDim(0);
+                int height = ex.Interleave ? type.GetDim(0) : type.GetDim(1);
+                int width = ex.Interleave ? type.GetDim(1) : type.GetDim(2);
 
-            int size = type.ValueCount;
-            Host.Assert(size > 0);
-            Host.Assert(size == planes * height * width);
-            int cpix = height * width;
+                int size = type.ValueCount;
+                Contracts.Assert(size > 0);
+                Contracts.Assert(size == planes * height * width);
+                int cpix = height * width;
 
-            var getSrc = GetSrcGetter<Bitmap>(input, iinfo);
-            var src = default(Bitmap);
+                var getSrc = input.GetGetter<Bitmap>(ColMapNewToOld[iinfo]);
+                var src = default(Bitmap);
 
-            disposer =
-                () =>
-                {
-                    if (src != null)
+                disposer =
+                    () =>
                     {
-                        src.Dispose();
-                        src = null;
-                    }
-                };
+                        if (src != null)
+                        {
+                            src.Dispose();
+                            src = null;
+                        }
+                    };
 
-            return
-                (ref VBuffer<TValue> dst) =>
-                {
-                    getSrc(ref src);
-                    Contracts.AssertValueOrNull(src);
-
-                    if (src == null)
+                return
+                    (ref VBuffer<TValue> dst) =>
                     {
-                        dst = new VBuffer<TValue>(size, 0, dst.Values, dst.Indices);
-                        return;
-                    }
+                        getSrc(ref src);
+                        Contracts.AssertValueOrNull(src);
 
-                    Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                    Host.Check(src.Height == height && src.Width == width);
+                        if (src == null)
+                        {
+                            dst = new VBuffer<TValue>(size, 0, dst.Values, dst.Indices);
+                            return;
+                        }
 
-                    var values = dst.Values;
-                    if (Utils.Size(values) < size)
-                        values = new TValue[size];
+                        Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                        Host.Check(src.Height == height && src.Width == width);
 
-                    Single offset = ex.Offset;
-                    Single scale = ex.Scale;
-                    Host.Assert(scale != 0);
+                        var values = dst.Values;
+                        if (Utils.Size(values) < size)
+                            values = new TValue[size];
 
-                    var vf = values as Single[];
-                    var vb = values as byte[];
-                    Host.Assert(vf != null || vb != null);
-                    bool needScale = offset != 0 || scale != 1;
-                    Host.Assert(!needScale || vf != null);
+                        float offset = ex.Offset;
+                        float scale = ex.Scale;
+                        Contracts.Assert(scale != 0);
 
-                    bool a = ex.Alpha;
-                    bool r = ex.Red;
-                    bool g = ex.Green;
-                    bool b = ex.Blue;
+                        var vf = values as float[];
+                        var vb = values as byte[];
+                        Contracts.Assert(vf != null || vb != null);
+                        bool needScale = offset != 0 || scale != 1;
+                        Contracts.Assert(!needScale || vf != null);
 
-                    int h = height;
-                    int w = width;
+                        bool a = ex.Alpha;
+                        bool r = ex.Red;
+                        bool g = ex.Green;
+                        bool b = ex.Blue;
 
-                    if (ex.Interleave)
-                    {
-                        int idst = 0;
-                        for (int y = 0; y < h; ++y)
-                            for (int x = 0; x < w; x++)
-                            {
-                                var pb = src.GetPixel(y, x);
-                                if (vb != null)
+                        int h = height;
+                        int w = width;
+
+                        if (ex.Interleave)
+                        {
+                            int idst = 0;
+                            for (int y = 0; y < h; ++y)
+                                for (int x = 0; x < w; x++)
                                 {
-                                    if (a) { vb[idst++] = (byte)0; }
-                                    if (r) { vb[idst++] = pb.R; }
-                                    if (g) { vb[idst++] = pb.G; }
-                                    if (b) { vb[idst++] = pb.B; }
+                                    var pb = src.GetPixel(y, x);
+                                    if (vb != null)
+                                    {
+                                        if (a) { vb[idst++] = (byte)0; }
+                                        if (r) { vb[idst++] = pb.R; }
+                                        if (g) { vb[idst++] = pb.G; }
+                                        if (b) { vb[idst++] = pb.B; }
+                                    }
+                                    else if (!needScale)
+                                    {
+                                        if (a) { vf[idst++] = 0.0f; }
+                                        if (r) { vf[idst++] = pb.R; }
+                                        if (g) { vf[idst++] = pb.G; }
+                                        if (b) { vf[idst++] = pb.B; }
+                                    }
+                                    else
+                                    {
+                                        if (a) { vf[idst++] = 0.0f; }
+                                        if (r) { vf[idst++] = (pb.R - offset) * scale; }
+                                        if (g) { vf[idst++] = (pb.B - offset) * scale; }
+                                        if (b) { vf[idst++] = (pb.G - offset) * scale; }
+                                    }
                                 }
-                                else if (!needScale)
+                            Contracts.Assert(idst == size);
+                        }
+                        else
+                        {
+                            int idstMin = 0;
+                            if (ex.Alpha)
+                            {
+                                // The image only has rgb but we need to supply alpha as well, so fake it up,
+                                // assuming that it is 0xFF.
+                                if (vf != null)
                                 {
-                                    if (a) { vf[idst++] = 0.0f; }
-                                    if (r) { vf[idst++] = pb.R; }
-                                    if (g) { vf[idst++] = pb.G; }
-                                    if (b) { vf[idst++] = pb.B; }
+                                    Single v = (0xFF - offset) * scale;
+                                    for (int i = 0; i < cpix; i++)
+                                        vf[i] = v;
                                 }
                                 else
                                 {
-                                    if (a) { vf[idst++] = 0.0f; }
-                                    if (r) { vf[idst++] = (pb.R - offset) * scale; }
-                                    if (g) { vf[idst++] = (pb.B - offset) * scale; }
-                                    if (b) { vf[idst++] = (pb.G - offset) * scale; }
+                                    for (int i = 0; i < cpix; i++)
+                                        vb[i] = 0xFF;
+                                }
+                                idstMin = cpix;
+
+                                // We've preprocessed alpha, avoid it in the
+                                // scan operation below.
+                                a = false;
+                            }
+
+                            for (int y = 0; y < h; ++y)
+                            {
+                                int idstBase = idstMin + y * w;
+
+                                // Note that the bytes are in order BGR[A]. We arrange the layers in order ARGB.
+                                if (vb != null)
+                                {
+                                    for (int x = 0; x < w; x++, idstBase++)
+                                    {
+                                        var pb = src.GetPixel(x, y);
+                                        int idst = idstBase;
+                                        if (a) { vb[idst] = pb.A; idst += cpix; }
+                                        if (r) { vb[idst] = pb.R; idst += cpix; }
+                                        if (g) { vb[idst] = pb.G; idst += cpix; }
+                                        if (b) { vb[idst] = pb.B; idst += cpix; }
+                                    }
+                                }
+                                else if (!needScale)
+                                {
+                                    for (int x = 0; x < w; x++, idstBase++)
+                                    {
+                                        var pb = src.GetPixel(x, y);
+                                        int idst = idstBase;
+                                        if (a) { vf[idst] = pb.A; idst += cpix; }
+                                        if (r) { vf[idst] = pb.R; idst += cpix; }
+                                        if (g) { vf[idst] = pb.G; idst += cpix; }
+                                        if (b) { vf[idst] = pb.B; idst += cpix; }
+                                    }
+                                }
+                                else
+                                {
+                                    for (int x = 0; x < w; x++, idstBase++)
+                                    {
+                                        var pb = src.GetPixel(x, y);
+                                        int idst = idstBase;
+                                        if (a) { vf[idst] = (pb.A - offset) * scale; idst += cpix; }
+                                        if (r) { vf[idst] = (pb.R - offset) * scale; idst += cpix; }
+                                        if (g) { vf[idst] = (pb.G - offset) * scale; idst += cpix; }
+                                        if (b) { vf[idst] = (pb.B - offset) * scale; idst += cpix; }
+                                    }
                                 }
                             }
-                        Host.Assert(idst == size);
-                    }
+                        }
+
+                        dst = new VBuffer<TValue>(size, values, dst.Indices);
+                    };
+            }
+
+            private VectorType[] ConstructTypes()
+            {
+                var types = new VectorType[_parent._columns.Length];
+                for (int i = 0; i < _parent._columns.Length; i++)
+                {
+                    var column = _parent._columns[i];
+                    Contracts.Assert(column.Planes > 0);
+
+                    var type = InputSchema.GetColumnType(ColMapNewToOld[i]) as ImageType;
+                    Contracts.Assert(type != null);
+
+                    int height = type.Height;
+                    int width = type.Width;
+                    Contracts.Assert(height > 0);
+                    Contracts.Assert(width > 0);
+                    Contracts.Assert((long)height * width <= int.MaxValue / 4);
+
+                    if (column.Interleave)
+                        types[i] = new VectorType(column.Convert ? NumberType.Float : NumberType.U1, height, width, column.Planes);
                     else
-                    {
-                        int idstMin = 0;
-                        if (ex.Alpha)
-                        {
-                            // The image only has rgb but we need to supply alpha as well, so fake it up,
-                            // assuming that it is 0xFF.
-                            if (vf != null)
-                            {
-                                Single v = (0xFF - offset) * scale;
-                                for (int i = 0; i < cpix; i++)
-                                    vf[i] = v;
-                            }
-                            else
-                            {
-                                for (int i = 0; i < cpix; i++)
-                                    vb[i] = 0xFF;
-                            }
-                            idstMin = cpix;
+                        types[i] = new VectorType(column.Convert ? NumberType.Float : NumberType.U1, column.Planes, height, width);
+                }
+                return types;
+            }
+        }
+    }
 
-                            // We've preprocessed alpha, avoid it in the
-                            // scan operation below.
-                            a = false;
-                        }
+    public sealed class ImagePixelExtractorEstimator : TrivialEstimator<ImagePixelExtractorTransform>
+    {
+        public ImagePixelExtractorEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+                ImagePixelExtractorTransform.ColorBits colors = ImagePixelExtractorTransform.ColorBits.Rgb, bool interleave = false)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractorEstimator)), new ImagePixelExtractorTransform(env, inputColumn, outputColumn, colors, interleave))
+        {
+        }
 
-                        for (int y = 0; y < h; ++y)
-                        {
-                            int idstBase = idstMin + y * w;
+        public ImagePixelExtractorEstimator(IHostEnvironment env, params ImagePixelExtractorTransform.ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractorEstimator)), new ImagePixelExtractorTransform(env, columns))
+        {
+        }
 
-                            // Note that the bytes are in order BGR[A]. We arrange the layers in order ARGB.
-                            if (vb != null)
-                            {
-                                for (int x = 0; x < w; x++, idstBase++)
-                                {
-                                    var pb = src.GetPixel(x, y);
-                                    int idst = idstBase;
-                                    if (a) { vb[idst] = pb.A; idst += cpix; }
-                                    if (r) { vb[idst] = pb.R; idst += cpix; }
-                                    if (g) { vb[idst] = pb.G; idst += cpix; }
-                                    if (b) { vb[idst] = pb.B; idst += cpix; }
-                                }
-                            }
-                            else if (!needScale)
-                            {
-                                for (int x = 0; x < w; x++, idstBase++)
-                                {
-                                    var pb = src.GetPixel(x, y);
-                                    int idst = idstBase;
-                                    if (a) { vf[idst] = pb.A; idst += cpix; }
-                                    if (r) { vf[idst] = pb.R; idst += cpix; }
-                                    if (g) { vf[idst] = pb.G; idst += cpix; }
-                                    if (b) { vf[idst] = pb.B; idst += cpix; }
-                                }
-                            }
-                            else
-                            {
-                                for (int x = 0; x < w; x++, idstBase++)
-                                {
-                                    var pb = src.GetPixel(x, y);
-                                    int idst = idstBase;
-                                    if (a) { vf[idst] = (pb.A - offset) * scale; idst += cpix; }
-                                    if (r) { vf[idst] = (pb.R - offset) * scale; idst += cpix; }
-                                    if (g) { vf[idst] = (pb.G - offset) * scale; idst += cpix; }
-                                    if (b) { vf[idst] = (pb.B - offset) * scale; idst += cpix; }
-                                }
-                            }
-                        }
-                    }
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in Transformer.Columns)
+            {
+                var col = inputSchema.FindColumn(colInfo.Input);
 
-                    dst = new VBuffer<TValue>(size, values, dst.Indices);
-                };
+                if (col == null)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, new ImageType().ToString(), col.GetTypeString());
+
+                var itemType = colInfo.Convert ? NumberType.R4 : NumberType.U1;
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, itemType, false);
+            }
+
+            return new SchemaShape(result.Values);
         }
     }
 }

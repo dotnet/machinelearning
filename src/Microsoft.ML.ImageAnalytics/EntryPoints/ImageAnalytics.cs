@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
         public static CommonOutputs.TransformOutput ImageLoader(IHostEnvironment env, ImageLoaderTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageLoaderTransform", input);
-            var xf = new ImageLoaderTransform(h, input, input.Data);
+            var xf = ImageLoaderTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
         public static CommonOutputs.TransformOutput ImageResizer(IHostEnvironment env, ImageResizerTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageResizerTransform", input);
-            var xf = new ImageResizerTransform(h, input, input.Data);
+            var xf = ImageResizerTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
         public static CommonOutputs.TransformOutput ImagePixelExtractor(IHostEnvironment env, ImagePixelExtractorTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImagePixelExtractorTransform", input);
-            var xf = new ImagePixelExtractorTransform(h, input, input.Data);
+            var xf = ImagePixelExtractorTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
         public static CommonOutputs.TransformOutput ImageGrayscale(IHostEnvironment env, ImageGrayscaleTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageGrayscaleTransform", input);
-            var xf = new ImageGrayscaleTransform(h, input, input.Data);
+            var xf = ImageGrayscaleTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
