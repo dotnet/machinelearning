@@ -1,5 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
 
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML</IncludeInPackage>
@@ -69,5 +70,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+  <!-- sonoma attempts to prevent refrence from non-64-bit projects, override the target that does this-->
+  <Target Name="Microsoft_ML_Scoring_CheckPrerequisites"/>
 
 </Project>
