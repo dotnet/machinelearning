@@ -35,13 +35,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             Contracts.AssertValue(alignedArray);
             float* alignedBase = unalignedBase + alignedArray.GetBase((long)unalignedBase);
-            Contracts.Assert(((long)alignedBase & (Vector256Alignment - 1)) == 0);
+            Contracts.Assert(((long)alignedBase % Vector256Alignment) == 0);
             return alignedBase;
         }
-
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static Vector128<float> GetLow(in Vector256<float> x)
-            => Avx.GetLowerHalf(x);
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static Vector128<float> GetHigh(in Vector256<float> x)
@@ -54,7 +50,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static unsafe void Store8(in Vector256<float> x, float* dst, int* idx)
         {
-            Vector128<float> tmp = GetLow(in x);
+            Vector128<float> tmp = Avx.GetLowerHalf(in x);
             Sse.StoreScalar(dst + idx[0], tmp);
             tmp = SseIntrinsics.Rotate(in tmp);
             Sse.StoreScalar(dst + idx[1], tmp);
@@ -162,7 +158,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     res2 = Avx.HorizontalAdd(res2, res3);
                     res0 = Avx.HorizontalAdd(res0, res2);
 
-                    Vector128<float> sum = Sse.Add(GetLow(in res0), GetHigh(in res0));
+                    Vector128<float> sum = Sse.Add(Avx.GetLowerHalf(in res0), GetHigh(in res0));
                     if (add)
                     {
                         sum = Sse.Add(sum, Sse.LoadAlignedVector128(pDstCurrent));
@@ -907,7 +903,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result256 = VectorSum256(in result256);
-                Vector128<float> resultPadded = Sse.AddScalar(GetLow(result256), GetHigh(result256));
+                Vector128<float> resultPadded = Sse.AddScalar(Avx.GetLowerHalf(result256), GetHigh(result256));
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
@@ -947,7 +943,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result256 = VectorSum256(in result256);
-                Vector128<float> resultPadded = Sse.AddScalar(GetLow(result256), GetHigh(result256));
+                Vector128<float> resultPadded = Sse.AddScalar(Avx.GetLowerHalf(result256), GetHigh(result256));
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
@@ -993,7 +989,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result256 = VectorSum256(in result256);
-                Vector128<float> resultPadded = Sse.AddScalar(GetLow(result256), GetHigh(result256));
+                Vector128<float> resultPadded = Sse.AddScalar(Avx.GetLowerHalf(result256), GetHigh(result256));
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
                 Vector128<float> meanVector128 = Sse.SetAllVector128(mean);
@@ -1040,7 +1036,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result256 = VectorSum256(in result256);
-                Vector128<float> resultPadded = Sse.AddScalar(GetLow(result256), GetHigh(result256));
+                Vector128<float> resultPadded = Sse.AddScalar(Avx.GetLowerHalf(result256), GetHigh(result256));
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
@@ -1086,7 +1082,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result256 = VectorSum256(in result256);
-                Vector128<float> resultPadded = Sse.AddScalar(GetLow(result256), GetHigh(result256));
+                Vector128<float> resultPadded = Sse.AddScalar(Avx.GetLowerHalf(result256), GetHigh(result256));
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
                 Vector128<float> meanVector128 = Sse.SetAllVector128(mean);
@@ -1133,7 +1129,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result256 = VectorMax256(in result256);
-                Vector128<float> resultPadded = Sse.MaxScalar(GetLow(result256), GetHigh(result256));
+                Vector128<float> resultPadded = Sse.MaxScalar(Avx.GetLowerHalf(result256), GetHigh(result256));
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
@@ -1179,7 +1175,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result256 = VectorMax256(in result256);
-                Vector128<float> resultPadded = Sse.MaxScalar(GetLow(result256), GetHigh(result256));
+                Vector128<float> resultPadded = Sse.MaxScalar(Avx.GetLowerHalf(result256), GetHigh(result256));
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
                 Vector128<float> meanVector128 = Sse.SetAllVector128(mean);
@@ -1231,7 +1227,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result256 = VectorSum256(in result256);
-                Vector128<float> resultPadded = Sse.AddScalar(GetLow(result256), GetHigh(result256));
+                Vector128<float> resultPadded = Sse.AddScalar(Avx.GetLowerHalf(result256), GetHigh(result256));
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
@@ -1288,7 +1284,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result256 = VectorSum256(in result256);
-                Vector128<float> resultPadded = Sse.AddScalar(GetLow(result256), GetHigh(result256));
+                Vector128<float> resultPadded = Sse.AddScalar(Avx.GetLowerHalf(result256), GetHigh(result256));
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
@@ -1343,7 +1339,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 sqDistanceVector256 = VectorSum256(in sqDistanceVector256);
-                Vector128<float> sqDistanceVectorPadded = Sse.AddScalar(GetLow(sqDistanceVector256), GetHigh(sqDistanceVector256));
+                Vector128<float> sqDistanceVectorPadded = Sse.AddScalar(Avx.GetLowerHalf(sqDistanceVector256), GetHigh(sqDistanceVector256));
 
                 Vector128<float> sqDistanceVector128 = Sse.SetZeroVector128();
 
