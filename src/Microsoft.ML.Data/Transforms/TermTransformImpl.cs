@@ -6,9 +6,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -16,111 +14,6 @@ namespace Microsoft.ML.Runtime.Data
 {
     public sealed partial class TermTransform
     {
-        /// <summary>
-        /// Controls how the order of the output keys.
-        /// </summary>
-        public enum SortOrder : byte
-        {
-            Occurrence = 0,
-            Value = 1,
-            // REVIEW: We can think about having a frequency order option. What about
-            // other things, like case insensitive (where appropriate), culturally aware, etc.?
-        }
-
-        public static class Defaults
-        {
-            public const int MaxNumTerms = 1000000;
-            public const SortOrder Sort = SortOrder.Occurrence;
-        }
-
-        public abstract class ArgumentsBase : TransformInputBase
-        {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
-            public int MaxNumTerms = Defaults.MaxNumTerms;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string Terms;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", SortOrder = 106, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public string[] Term;
-
-            [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the terms", ShortName = "data", SortOrder = 110, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string DataFile;
-
-            [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 111, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
-            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the terms", ShortName = "termCol", SortOrder = 112, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string TermsColumn;
-
-            // REVIEW: The behavior of sorting when doing term on an input key value is to sort on the key numbers themselves,
-            // that is, to maintain the relative order of the key values. The alternative is that, for these, we would sort on the key
-            // value metadata, if present. Both sets of behavior seem potentially valuable.
-
-            // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
-            [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
-                "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').", SortOrder = 113)]
-            public SortOrder Sort = Defaults.Sort;
-
-            // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
-            // assume key-values will be string? Once we correct these things perhaps we can see about removing it.
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", SortOrder = 114, Hide = true)]
-            public bool TextKeyValues;
-        }
-
-        public sealed class Arguments : ArgumentsBase
-        {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
-        }
-
-        public abstract class ColumnBase : OneToOneColumn
-        {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep when auto-training", ShortName = "max")]
-            public int? MaxNumTerms;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string Terms;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public string[] Term;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
-                "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').")]
-            public SortOrder? Sort;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", Hide = true)]
-            public bool? TextKeyValues;
-
-            protected override bool TryUnparseCore(StringBuilder sb)
-            {
-                Contracts.AssertValue(sb);
-                // REVIEW: This pattern isn't robust enough. If a new field is added, this code needs
-                // to be updated accordingly, or it will break. The only protection we have against this
-                // is unit tests....
-                if (MaxNumTerms != null || !string.IsNullOrEmpty(Terms) || Sort != null || TextKeyValues != null)
-                    return false;
-                return base.TryUnparseCore(sb);
-            }
-        }
-
-        public sealed class Column : ColumnBase
-        {
-            public static Column Parse(string str)
-            {
-                var res = new Column();
-                if (res.TryParse(str))
-                    return res;
-                return null;
-            }
-
-            public bool TryUnparse(StringBuilder sb)
-            {
-                Contracts.AssertValue(sb);
-                return TryUnparseCore(sb);
-            }
-        }
-
         /// <summary>
         /// These are objects shared by both the scalar and vector implementations of <see cref="Trainer"/>
         /// to accumulate individual scalar objects, and facilitate the creation of a <see cref="TermMap"/>.

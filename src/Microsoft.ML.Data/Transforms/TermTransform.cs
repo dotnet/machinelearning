@@ -4,8 +4,10 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
@@ -15,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using static Microsoft.ML.Runtime.Data.TermTransform;
 
 [assembly: LoadableClass(TermTransform.Summary, typeof(IDataTransform), typeof(TermTransform),
@@ -41,6 +44,111 @@ namespace Microsoft.ML.Runtime.Data
     /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
     public sealed partial class TermTransform : ITransformer, ICanSaveModel
     {
+        /// <summary>
+        /// Controls how the order of the output keys.
+        /// </summary>
+        public enum SortOrder : byte
+        {
+            Occurrence = 0,
+            Value = 1,
+            // REVIEW: We can think about having a frequency order option. What about
+            // other things, like case insensitive (where appropriate), culturally aware, etc.?
+        }
+
+        public static class Defaults
+        {
+            public const int MaxNumTerms = 1000000;
+            public const SortOrder Sort = SortOrder.Occurrence;
+        }
+
+        public abstract class ArgumentsBase : TransformInputBase
+        {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
+            public int MaxNumTerms = Defaults.MaxNumTerms;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string Terms;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", SortOrder = 106, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public string[] Term;
+
+            [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the terms", ShortName = "data", SortOrder = 110, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string DataFile;
+
+            [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 111, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the terms", ShortName = "termCol", SortOrder = 112, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string TermsColumn;
+
+            // REVIEW: The behavior of sorting when doing term on an input key value is to sort on the key numbers themselves,
+            // that is, to maintain the relative order of the key values. The alternative is that, for these, we would sort on the key
+            // value metadata, if present. Both sets of behavior seem potentially valuable.
+
+            // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
+            [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
+                "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').", SortOrder = 113)]
+            public SortOrder Sort = Defaults.Sort;
+
+            // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
+            // assume key-values will be string? Once we correct these things perhaps we can see about removing it.
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", SortOrder = 114, Hide = true)]
+            public bool TextKeyValues;
+        }
+
+        public sealed class Arguments : ArgumentsBase
+        {
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
+            public Column[] Column;
+        }
+
+        public abstract class ColumnBase : OneToOneColumn
+        {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep when auto-training", ShortName = "max")]
+            public int? MaxNumTerms;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string Terms;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public string[] Term;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
+                "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').")]
+            public SortOrder? Sort;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", Hide = true)]
+            public bool? TextKeyValues;
+
+            protected override bool TryUnparseCore(StringBuilder sb)
+            {
+                Contracts.AssertValue(sb);
+                // REVIEW: This pattern isn't robust enough. If a new field is added, this code needs
+                // to be updated accordingly, or it will break. The only protection we have against this
+                // is unit tests....
+                if (MaxNumTerms != null || !string.IsNullOrEmpty(Terms) || Sort != null || TextKeyValues != null)
+                    return false;
+                return base.TryUnparseCore(sb);
+            }
+        }
+
+        public sealed class Column : ColumnBase
+        {
+            public static Column Parse(string str)
+            {
+                var res = new Column();
+                if (res.TryParse(str))
+                    return res;
+                return null;
+            }
+
+            public bool TryUnparse(StringBuilder sb)
+            {
+                Contracts.AssertValue(sb);
+                return TryUnparseCore(sb);
+            }
+        }
+
         internal readonly IHost Host;
 
         private ColInfo[] _infos;
@@ -123,34 +231,30 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public void CreateInfos(SourceNameColumnBase[] column, ISchema input)
+        //REVIEW: This and static method below need to go to base class as it get created.
+        private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
+
+        internal static ColInfo[] CreateInfos(IHostEnvironment env, (string source, string name)[] columns, ISchema schema, Func<ColumnType, string> testType)
         {
-            Host.CheckUserArg(Utils.Size(column) > 0, nameof(column));
-            Host.AssertValue(input);
-            /*host.AssertValueOrNull(transInput);
-            host.AssertValueOrNull(testType);*/
+            env.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
+            env.AssertValue(schema);
+            env.AssertValueOrNull(testType);
 
-            _infos = new ColInfo[column.Length];
-            for (int i = 0; i < column.Length; i++)
+            var infos = new ColInfo[columns.Length];
+            for (int i = 0; i < columns.Length; i++)
             {
-                var item = column[i];
-                Host.CheckUserArg(item.TrySanitize(), nameof(OneToOneColumn.Name), "Invalid new column name");
-
-                int colSrc;
-                if (!input.TryGetColumnIndex(item.Source, out colSrc))
-                    throw Host.ExceptUserArg(nameof(OneToOneColumn.Source), "Source column '{0}' not found", item.Source);
-
-                var type = input.GetColumnType(colSrc);
-                /*if (testType != null)
+                if (!schema.TryGetColumnIndex(columns[i].source, out int colSrc))
+                    throw env.ExceptUserArg(nameof(columns), "Source column '{0}' not found", columns[i].source);
+                var type = schema.GetColumnType(colSrc);
+                if (testType != null)
                 {
                     string reason = testType(type);
                     if (reason != null)
-                        throw host.ExceptUserArg(nameof(OneToOneColumn.Source), InvalidTypeErrorFormat, item.Source, type, reason);
-                }*/
-
-                //var slotType = transInput == null ? null : transInput.GetSlotType(colSrc);
-                _infos[i] = new ColInfo(item.Name, item.Source, type);
+                        throw env.ExceptUserArg(nameof(columns), InvalidTypeErrorFormat, columns[i].source, type, reason);
+                }
+                infos[i] = new ColInfo(columns[i].name, columns[i].source, type);
             }
+            return infos;
         }
 
         /// <summary>
@@ -160,10 +264,10 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host = env.Register(nameof(TermTransform));
             Host.CheckValue(args, nameof(args));
-            CreateInfos(column, input.Schema);
+            _columns = column.Select(x => (x.Source, x.Name)).ToArray();
+            _infos = CreateInfos(env, _columns, input.Schema, TestIsKnownDataKind);
             Host.AssertNonEmpty(_infos);
             Host.Assert(_infos.Length == Utils.Size(column));
-            _columns = column.Select(x => (x.Source, x.Name)).ToArray();
             using (var ch = Host.Start("Training"))
             {
                 _unboundMaps = Train(Host, ch, _infos, args, column, input);
@@ -239,28 +343,28 @@ namespace Microsoft.ML.Runtime.Data
             var termMap = new TermMap[length];
             bool b = ctx.TryProcessSubModel(dir,
             c =>
-{
-    // *** Binary format ***
-    // int: number of term maps (should equal number of columns)
-    // for each term map:
-    //   byte: code identifying the term map type (0 text, 1 codec)
-    //   <data>: type specific format, see TermMap save/load methods
+            {
+                // *** Binary format ***
+                // int: number of term maps (should equal number of columns)
+                // for each term map:
+                //   byte: code identifying the term map type (0 text, 1 codec)
+                //   <data>: type specific format, see TermMap save/load methods
 
-    env.CheckValue(c, nameof(ctx));
-    c.CheckAtModel(GetTermManagerVersionInfo());
-    int cmap = c.Reader.ReadInt32();
-    env.CheckDecode(cmap == length);
-    if (c.Header.ModelVerWritten >= VerManagerNonTextTypesSupported)
-    {
-        for (int i = 0; i < length; ++i)
-            termMap[i] = TermMap.Load(c, env);
-    }
-    else
-    {
-        for (int i = 0; i < length; ++i)
-            termMap[i] = TermMap.TextImpl.Create(c, env);
-    }
-});
+                env.CheckValue(c, nameof(ctx));
+                c.CheckAtModel(GetTermManagerVersionInfo());
+                int cmap = c.Reader.ReadInt32();
+                env.CheckDecode(cmap == length);
+                if (c.Header.ModelVerWritten >= VerManagerNonTextTypesSupported)
+                {
+                    for (int i = 0; i < length; ++i)
+                        termMap[i] = TermMap.Load(c, env);
+                }
+                else
+                {
+                    for (int i = 0; i < length; ++i)
+                        termMap[i] = TermMap.TextImpl.Create(c, env);
+                }
+            });
 #pragma warning disable MSML_NoMessagesForLoadContext // Vaguely useful.
             if (!b)
                 throw env.ExceptDecode("Missing {0} model", dir);
@@ -268,9 +372,9 @@ namespace Microsoft.ML.Runtime.Data
             boundMap = termMap;
         }
 
-        private static string TestIsKnownDataKind(ColumnType type)
+        internal static string TestIsKnownDataKind(ColumnType type)
         {
-            if (type.ItemType.RawKind != default(DataKind) && (type.IsVector || type.IsPrimitive))
+            if (type.ItemType.RawKind != default && (type.IsVector || type.IsPrimitive))
                 return null;
             return "Expected standard type or a vector of standard type";
         }
@@ -705,25 +809,10 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 _colNewToOldMapping.Add(i, colIndex);
             }
-            Infos = new ColInfo[columns.Length];
+            Infos = CreateInfos(env, columns, schema, TermTransform.TestIsKnownDataKind);
             _types = new ColumnType[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
-                var item = columns[i];
-                int colSrc;
-                if (!schema.TryGetColumnIndex(item.source, out colSrc))
-                    throw Host.ExceptUserArg(nameof(OneToOneColumn.Source), "Source column '{0}' not found", item.source);
-
-                var type = schema.GetColumnType(colSrc);
-                /*if (testType != null)
-                {
-                    string reason = testType(type);
-                    if (reason != null)
-                        throw host.ExceptUserArg(nameof(OneToOneColumn.Source), InvalidTypeErrorFormat, item.Source, type, reason);
-                }*/
-
-                //var slotType = transInput == null ? null : transInput.GetSlotType(colSrc);
-                Infos[i] = new ColInfo(item.name, item.source, type);
                 KeyType keyType = unboundMaps[i].OutputType;
                 Host.Assert(keyType.KeyCount > 0);
                 ColumnType colType;
@@ -875,7 +964,6 @@ namespace Microsoft.ML.Runtime.Data
             ctx.DeclareVar(toDeclare.ToArray());
         }
 
-        //IVAN: FIGURE OUT HOW IT WILL WORK IN NEW WORLD
         private JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColInfo info, JToken srcToken)
         {
             Contracts.AssertValue(ctx);

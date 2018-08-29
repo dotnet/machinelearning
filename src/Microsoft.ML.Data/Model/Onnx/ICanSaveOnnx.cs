@@ -17,6 +17,10 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         bool CanSaveOnnx { get; }
     }
+
+    /// <summary>
+    /// This component know how to save himself in ONNX format.
+    /// </summary>
     public interface ISaveAsOnnx
     {
         /// <summary>

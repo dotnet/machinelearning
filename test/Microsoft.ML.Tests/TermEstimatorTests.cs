@@ -196,22 +196,6 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
-        void OldSaveLoad()
-        {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            using (var env = new TlcEnvironment())
-            {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-
-                using (var ms = File.OpenRead("term.zip"))
-                {
-                    var loadedView = ModelFileUtils.LoadTransforms(env, dataView, ms);
-                    ValidateTermTransformer(loadedView);
-                }
-            }
-        }
-
         private void ValidateTermTransformer(IDataView result)
         {
             using (var cursor = result.GetRowCursor(x => true))

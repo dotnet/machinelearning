@@ -191,7 +191,6 @@ namespace Microsoft.ML.Runtime.Data
             {
                 return TryGetColumnIndexCore(name, out iinfo);
             }
-
         }
 
         private readonly IRowMapper _mapper;
@@ -328,17 +327,13 @@ namespace Microsoft.ML.Runtime.Data
         public void SaveAsOnnx(OnnxContext ctx)
         {
             if (_mapper is ISaveAsOnnx onnx)
-            {
                 onnx.SaveAsOnnx(ctx);
-            }
         }
 
         public void SaveAsPfa(BoundPfaContext ctx)
         {
             if (_mapper is ISaveAsPfa onnx)
-            {
                 onnx.SaveAsPfa(ctx);
-            }
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
@@ -346,11 +341,6 @@ namespace Microsoft.ML.Runtime.Data
             Func<int, bool> predicateInput;
             var active = _bindings.GetActive(predicate, out predicateInput);
             return predicateInput;
-        }
-
-        private int MapColumnIndex(out bool isSrc, int col)
-        {
-            return _bindings.MapColumnIndex(out isSrc, col);
         }
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
@@ -373,9 +363,9 @@ namespace Microsoft.ML.Runtime.Data
                 return new Row(input, this, Schema, getters);
             }
         }
+
         private sealed class Row : IRow
         {
-            private readonly ISchema _schema;
             private readonly IRow _input;
             private readonly Delegate[] _getters;
 
@@ -385,20 +375,20 @@ namespace Microsoft.ML.Runtime.Data
 
             public long Position { get { return _input.Position; } }
 
-            public ISchema Schema { get { return _schema; } }
+            public ISchema Schema { get; }
 
             public Row(IRow input, RowToRowMapperTransform parent, ISchema schema, Delegate[] getters)
             {
                 _input = input;
                 _parent = parent;
-                _schema = schema;
+                Schema = schema;
                 _getters = getters;
             }
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 bool isSrc;
-                int index = _parent.MapColumnIndex(out isSrc, col);
+                int index = _parent._bindings.MapColumnIndex(out isSrc, col);
                 if (isSrc)
                     return _input.GetGetter<TValue>(index);
 
@@ -417,7 +407,7 @@ namespace Microsoft.ML.Runtime.Data
             public bool IsColumnActive(int col)
             {
                 bool isSrc;
-                int index = _parent.MapColumnIndex(out isSrc, col);
+                int index = _parent._bindings.MapColumnIndex(out isSrc, col);
                 if (isSrc)
                     return _input.IsColumnActive((index));
                 return _getters[index] != null;

@@ -19,6 +19,9 @@ namespace Microsoft.ML.Runtime.Model.Pfa
         bool CanSavePfa { get; }
     }
 
+    /// <summary>
+    /// This component know how to save himself in Pfa format.
+    /// </summary>
     public interface ISaveAsPfa
     {
         /// <summary>
