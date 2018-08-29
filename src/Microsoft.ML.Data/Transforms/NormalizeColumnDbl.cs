@@ -1255,7 +1255,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static partial class MinMaxUtils
+        internal static partial class MinMaxUtils
         {
             public static void ComputeScaleAndOffset(bool fixZero, TFloat max, TFloat min, out TFloat scale, out TFloat offset)
             {
@@ -1422,12 +1422,10 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                public static IColumnFunctionBuilder Create(MinMaxArguments args, IHost host, int icol, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(long lim, bool fix, IHost host, int icol, ColumnType srcType,
                     ValueGetter<TFloat> getter)
                 {
-                    var lim = args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = args.Column[icol].FixZero ?? args.FixZero;
+                    host.CheckUserArg(lim > 1, nameof(lim), "Must be greater than 1");
                     return new MinMaxOneColumnFunctionBuilder(host, lim, fix, getter);
                 }
 
@@ -1474,12 +1472,10 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                public static IColumnFunctionBuilder Create(MinMaxArguments args, IHost host, int icol, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(long lim, bool fix, IHost host, int icol, ColumnType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    var lim = args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = args.Column[icol].FixZero ?? args.FixZero;
+                    host.CheckUserArg(lim > 1, nameof(lim), "Must be greater than 1");
                     var cv = srcType.ValueCount;
                     return new MinMaxVecColumnFunctionBuilder(host, cv, lim, fix, getter);
                 }

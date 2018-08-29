@@ -960,7 +960,7 @@ namespace Microsoft.ML.Runtime.Data
             protected abstract bool AcceptColumnValue(ref VBuffer<TFloat> buffer);
         }
 
-        private static partial class MinMaxUtils
+        internal static partial class MinMaxUtils
         {
             public static IColumnFunctionBuilder CreateBuilder(MinMaxArguments args, IHost host,
                 int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
@@ -968,21 +968,31 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
+                var maxTrainingExamples = args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples;
+                host.CheckUserArg(maxTrainingExamples > 1, nameof(ColumnBase.MaxTrainingExamples), "Must be greater than 1");
+                bool fixZero = args.Column[icol].FixZero ?? args.FixZero;
+
+                return CreateBuilder(maxTrainingExamples, fixZero, host, icol, srcIndex, srcType, cursor);
+            }
+
+            public static IColumnFunctionBuilder CreateBuilder(long maxTrainingExamples, bool fixZero, IHost host,
+                int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
+            {
                 if (srcType.IsNumber)
                 {
                     if (srcType == NumberType.R4)
-                        return Sng.MinMaxOneColumnFunctionBuilder.Create(args, host, icol, srcType, cursor.GetGetter<Single>(srcIndex));
+                        return Sng.MinMaxOneColumnFunctionBuilder.Create(maxTrainingExamples, fixZero, host, icol, srcType, cursor.GetGetter<Single>(srcIndex));
                     if (srcType == NumberType.R8)
-                        return Dbl.MinMaxOneColumnFunctionBuilder.Create(args, host, icol, srcType, cursor.GetGetter<Double>(srcIndex));
+                        return Dbl.MinMaxOneColumnFunctionBuilder.Create(maxTrainingExamples, fixZero, host, icol, srcType, cursor.GetGetter<Double>(srcIndex));
                 }
                 if (srcType.IsVector && srcType.ItemType.IsNumber)
                 {
                     if (srcType.ItemType == NumberType.R4)
-                        return Sng.MinMaxVecColumnFunctionBuilder.Create(args, host, icol, srcType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                        return Sng.MinMaxVecColumnFunctionBuilder.Create(maxTrainingExamples, fixZero, host, icol, srcType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
                     if (srcType.ItemType == NumberType.R8)
-                        return Dbl.MinMaxVecColumnFunctionBuilder.Create(args, host, icol, srcType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                        return Dbl.MinMaxVecColumnFunctionBuilder.Create(maxTrainingExamples, fixZero, host, icol, srcType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
                 }
-                throw host.ExceptUserArg(nameof(args.Column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", args.Column[icol].Source, srcType.ToString());
+                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", srcType.ToString());
             }
         }
 
