@@ -262,10 +262,10 @@ namespace Microsoft.ML.Transforms
                     {
                         int valCount = shape.Aggregate((x, y) => x * y);
                         if (type.ValueCount != valCount)
-                            throw Contracts.Except($"The size of model input '{colNames[i]}' does not match its size in the input data.");
+                            throw Contracts.Except($"Input shape mismatch: Input '{colNames[i]}' has shape {tfShapes[i].ToString()}, but input data is of length {valCount}.");
                     }
                     else if (shape.Select((dim, j) => dim != type.AsVector.GetDim(j)).Any(b => b))
-                        throw Contracts.Except($"The shape of model input '{colNames[i]}' does not match its shape in the input data.");
+                        throw Contracts.Except($"Input shape mismatch: Input '{colNames[i]}' has shape {tfShapes[i].ToString()}, but input data is {type.AsVector.ToString()}.");
 
                     isInputVector[i] = type.IsVector;
 
