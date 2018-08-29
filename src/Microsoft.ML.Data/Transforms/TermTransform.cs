@@ -654,65 +654,13 @@ namespace Microsoft.ML.Runtime.Data
         {
             return CreateRowToRowMapper(input);
         }
-
-        //IVAN: FIGURE OUT HOW IT WILL WORK IN NEW WORLD
-        private JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColInfo info, JToken srcToken)
-        {
-            Contracts.AssertValue(ctx);
-            Contracts.Assert(0 <= iinfo && iinfo < _infos.Length);
-            Contracts.Assert(_infos[iinfo] == info);
-            Contracts.AssertValue(srcToken);
-            //Contracts.Assert(CanSavePfa);
-
-            if (!info.TypeSrc.ItemType.IsText)
-                return null;
-            var terms = default(VBuffer<DvText>);
-            TermMap<DvText> map = (TermMap<DvText>)_unboundMaps[iinfo];
-            map.GetTerms(ref terms);
-            var jsonMap = new JObject();
-            foreach (var kv in terms.Items())
-                jsonMap[kv.Value.ToString()] = kv.Key;
-            string cellName = ctx.DeclareCell(
-                "TermMap", PfaUtils.Type.Map(PfaUtils.Type.Int), jsonMap);
-            JObject cellRef = PfaUtils.Cell(cellName);
-
-            if (info.TypeSrc.IsVector)
-            {
-                var funcName = ctx.GetFreeFunctionName("mapTerm");
-                ctx.Pfa.AddFunc(funcName, new JArray(PfaUtils.Param("term", PfaUtils.Type.String)),
-                    PfaUtils.Type.Int, PfaUtils.If(PfaUtils.Call("map.containsKey", cellRef, "term"), PfaUtils.Index(cellRef, "term"), -1));
-                var funcRef = PfaUtils.FuncRef("u." + funcName);
-                return PfaUtils.Call("a.map", srcToken, funcRef);
-            }
-            return PfaUtils.If(PfaUtils.Call("map.containsKey", cellRef, srcToken), PfaUtils.Index(cellRef, srcToken), -1);
-        }
-
-        //IVAN: FIGURE OUT HOW IT WILL WORK IN NEW WORLD
-        private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
-        {
-            if (!info.TypeSrc.ItemType.IsText)
-                return false;
-
-            var terms = default(VBuffer<DvText>);
-            TermMap<DvText> map = (TermMap<DvText>)_unboundMaps[iinfo];
-            map.GetTerms(ref terms);
-            string opType = "LabelEncoder";
-            var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            node.AddAttribute("classes_strings", terms.DenseValues());
-            node.AddAttribute("default_int64", -1);
-            //default_string needs to be an empty string but there is a BUG in Lotus that
-            //throws a validation error when default_string is empty. As a work around, set
-            //default_string to a space.
-            node.AddAttribute("default_string", " ");
-            return true;
-        }
-
     }
 
-    internal sealed class TermRowMapper : IRowMapper
+    internal sealed class TermRowMapper : IRowMapper, ISaveAsOnnx
     {
         internal readonly ISchema Schema;
         private readonly Dictionary<int, int> _colNewToOldMapping;
+        private readonly ColumnType[] _types;
         private readonly (string Source, string Name)[] _columns;
         internal readonly IHost Host;
         public const string LoaderSignature = "TermRowMapper";
@@ -758,6 +706,7 @@ namespace Microsoft.ML.Runtime.Data
                 _colNewToOldMapping.Add(i, colIndex);
             }
             Infos = new ColInfo[columns.Length];
+            _types = new ColumnType[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
                 var item = columns[i];
@@ -775,6 +724,14 @@ namespace Microsoft.ML.Runtime.Data
 
                 //var slotType = transInput == null ? null : transInput.GetSlotType(colSrc);
                 Infos[i] = new ColInfo(item.name, item.source, type);
+                KeyType keyType = unboundMaps[i].OutputType;
+                Host.Assert(keyType.KeyCount > 0);
+                ColumnType colType;
+                if (Infos[i].TypeSrc.IsVector)
+                    colType = new VectorType(keyType, Infos[i].TypeSrc.AsVector);
+                else
+                    colType = keyType;
+                _types[i] = colType;
             }
             TextMetadata = textMetadata;
             _termMap = new BoundTermMap[unboundMaps.Length];
@@ -821,17 +778,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 foreach (var type in Schema.GetMetadataTypes(colIndex).Where(x => x.Key == MetadataUtils.Kinds.SlotNames))
                 {
-                        Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, Schema, type.Key, type.Value, _colNewToOldMapping);
+                    Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, Schema, type.Key, type.Value, _colNewToOldMapping);
                 }
-
-                KeyType keyType = _termMap[i].Map.OutputType;
-                Host.Assert(keyType.KeyCount > 0);
-                ColumnType colType;
-                if (Infos[i].TypeSrc.IsVector)
-                    colType = new VectorType(keyType, Infos[i].TypeSrc.AsVector);
-                else
-                    colType = keyType;
-                result[i] = new RowMapperColumnInfo(Infos[i].Name, colType, colMetaInfo);
+                result[i] = new RowMapperColumnInfo(Infos[i].Name, _types[i], colMetaInfo);
             }
             return result;
         }
@@ -854,6 +803,108 @@ namespace Microsoft.ML.Runtime.Data
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
             TermTransform.Save(ctx, Host, _columns, _termMap.Select(x => x.Map).ToArray(), TextMetadata);
+        }
+
+        private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+        {
+            if (!info.TypeSrc.ItemType.IsText)
+                return false;
+
+            var terms = default(VBuffer<DvText>);
+            TermMap<DvText> map = (TermMap<DvText>)_termMap[iinfo].Map;
+            map.GetTerms(ref terms);
+            string opType = "LabelEncoder";
+            var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+            node.AddAttribute("classes_strings", terms.DenseValues());
+            node.AddAttribute("default_int64", -1);
+            //default_string needs to be an empty string but there is a BUG in Lotus that
+            //throws a validation error when default_string is empty. As a work around, set
+            //default_string to a space.
+            node.AddAttribute("default_string", " ");
+            return true;
+        }
+
+        public void SaveAsOnnx(OnnxContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+
+            for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
+            {
+                ColInfo info = Infos[iinfo];
+                string sourceColumnName = info.Source;
+                if (!ctx.ContainsColumn(sourceColumnName))
+                {
+                    ctx.RemoveColumn(info.Name, false);
+                    continue;
+                }
+
+                if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
+                    ctx.AddIntermediateVariable(_types[iinfo], info.Name)))
+                {
+                    ctx.RemoveColumn(info.Name, true);
+                }
+            }
+        }
+
+        public void SaveAsPfa(BoundPfaContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+
+            var toHide = new List<string>();
+            var toDeclare = new List<KeyValuePair<string, JToken>>();
+
+            for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
+            {
+                var info = Infos[iinfo];
+                var srcName = info.Source;
+                string srcToken = ctx.TokenOrNullForName(srcName);
+                if (srcToken == null)
+                {
+                    toHide.Add(info.Name);
+                    continue;
+                }
+                var result = SaveAsPfaCore(ctx, iinfo, info, srcToken);
+                if (result == null)
+                {
+                    toHide.Add(info.Name);
+                    continue;
+                }
+                toDeclare.Add(new KeyValuePair<string, JToken>(info.Name, result));
+            }
+            ctx.Hide(toHide.ToArray());
+            ctx.DeclareVar(toDeclare.ToArray());
+        }
+
+        //IVAN: FIGURE OUT HOW IT WILL WORK IN NEW WORLD
+        private JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColInfo info, JToken srcToken)
+        {
+            Contracts.AssertValue(ctx);
+            Contracts.Assert(0 <= iinfo && iinfo < Infos.Length);
+            Contracts.Assert(Infos[iinfo] == info);
+            Contracts.AssertValue(srcToken);
+            //Contracts.Assert(CanSavePfa);
+
+            if (!info.TypeSrc.ItemType.IsText)
+                return null;
+            var terms = default(VBuffer<DvText>);
+            TermMap<DvText> map = (TermMap<DvText>)_termMap[iinfo].Map;
+            map.GetTerms(ref terms);
+            var jsonMap = new JObject();
+            foreach (var kv in terms.Items())
+                jsonMap[kv.Value.ToString()] = kv.Key;
+            string cellName = ctx.DeclareCell(
+                "TermMap", PfaUtils.Type.Map(PfaUtils.Type.Int), jsonMap);
+            JObject cellRef = PfaUtils.Cell(cellName);
+
+            if (info.TypeSrc.IsVector)
+            {
+                var funcName = ctx.GetFreeFunctionName("mapTerm");
+                ctx.Pfa.AddFunc(funcName, new JArray(PfaUtils.Param("term", PfaUtils.Type.String)),
+                    PfaUtils.Type.Int, PfaUtils.If(PfaUtils.Call("map.containsKey", cellRef, "term"), PfaUtils.Index(cellRef, "term"), -1));
+                var funcRef = PfaUtils.FuncRef("u." + funcName);
+                return PfaUtils.Call("a.map", srcToken, funcRef);
+            }
+            return PfaUtils.If(PfaUtils.Call("map.containsKey", cellRef, srcToken), PfaUtils.Index(cellRef, srcToken), -1);
         }
     }
 }

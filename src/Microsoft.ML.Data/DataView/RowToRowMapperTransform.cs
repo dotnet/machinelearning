@@ -9,6 +9,8 @@ using System.Reflection;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Model.Onnx;
+using Microsoft.ML.Runtime.Model.Pfa;
 
 [assembly: LoadableClass(typeof(RowToRowMapperTransform), null, typeof(SignatureLoadDataTransform),
     "", RowToRowMapperTransform.LoaderSignature)]
@@ -110,7 +112,7 @@ namespace Microsoft.ML.Runtime.Data
     /// It does so with the help of an <see cref="IRowMapper"/>, that is given a schema in its constructor, and has methods
     /// to get the dependencies on input columns and the getters for the output columns, given an active set of output columns.
     /// </summary>
-    public sealed class RowToRowMapperTransform : RowToRowTransformBase
+    public sealed class RowToRowMapperTransform : RowToRowTransformBase, ITransformCanSaveOnnx, ITransformCanSavePfa
     {
         private sealed class Bindings : ColumnBindingsBase
         {
@@ -208,6 +210,10 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         public override ISchema Schema { get { return _bindings; } }
+
+        public bool CanSaveOnnx => _mapper is ISaveAsOnnx onnxMapper ? true : false;
+
+        public bool CanSavePfa => _mapper is ISaveAsOnnx pfaMapper ? true : false;
 
         public RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper)
             : base(env, RegistrationName, input)
@@ -316,6 +322,22 @@ namespace Microsoft.ML.Runtime.Data
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = new RowCursor(Host, inputs[i], this, active);
             return cursors;
+        }
+
+        public void SaveAsOnnx(OnnxContext ctx)
+        {
+            if (_mapper is ISaveAsOnnx onnx)
+            {
+                onnx.SaveAsOnnx(ctx);
+            }
+        }
+
+        public void SaveAsPfa(BoundPfaContext ctx)
+        {
+            if (_mapper is ISaveAsPfa onnx)
+            {
+                onnx.SaveAsPfa(ctx);
+            }
         }
 
         private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
