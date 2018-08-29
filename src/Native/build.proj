@@ -18,7 +18,7 @@
   
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <GenerateVersionSourceFile>true</GenerateVersionSourceFile>
-    <NativeVersionSourceFile>$(BaseIntermediateOutputPath)version.c</NativeVersionSourceFile>
+    <NativeVersionSourceFile>$(RootIntermediateOutputPath)version.c</NativeVersionSourceFile>
   </PropertyGroup>
  
   <PropertyGroup  Condition="'$(OS)' == 'Windows_NT'">
