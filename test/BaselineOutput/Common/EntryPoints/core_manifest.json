@@ -21888,7 +21888,7 @@
         {
           "Name": "ModelFile",
           "Type": "String",
-          "Desc": "This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more detail(s).",
+          "Desc": "This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
           "Aliases": [
             "ModelDir"
           ],

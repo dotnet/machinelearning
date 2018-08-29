@@ -14,8 +14,8 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
 
-[assembly: LoadableClass(TensorFlowTransform.Summary, typeof(IDataTransform), typeof(TensorFlowTransform.Arguments), typeof(SignatureDataTransform),
-    TensorFlowTransform.UserName, TensorFlowTransform.ShortName)]
+[assembly: LoadableClass(TensorFlowTransform.Summary, typeof(IDataTransform), typeof(TensorFlowTransform),
+    typeof(TensorFlowTransform.Arguments), typeof(SignatureDataTransform), TensorFlowTransform.UserName, TensorFlowTransform.ShortName)]
 
 // This is for de-serialization from a binary model file.
 [assembly: LoadableClass(typeof(TensorFlowTransform.TensorFlowMapper), null, typeof(SignatureLoadRowMapper),
@@ -58,20 +58,20 @@ namespace Microsoft.ML.Transforms
                     loaderSignature: LoaderSignature);
             }
 
-            public TensorFlowMapper(IHostEnvironment env, ISchema inputSchema, byte[] modelBytes, string[] inputColNames, string outputCols)
+            public TensorFlowMapper(IHostEnvironment env, ISchema inputSchema, byte[] modelBytes, string[] inputColNames, string outputColName)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register("TensorFlowMapper");
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 _host.CheckNonEmpty(modelBytes, nameof(modelBytes));
                 _host.CheckNonEmpty(inputColNames, nameof(inputColNames));
-                _host.CheckNonEmpty(outputCols, nameof(outputCols));
+                _host.CheckNonEmpty(outputColName, nameof(outputColName));
 
                 _session = LoadTFSession(modelBytes, null);
-                _host.CheckValue(_session.Graph[outputCols], nameof(outputCols), "Output does not exist in the model");
+                _host.CheckValue(_session.Graph[outputColName], nameof(outputColName), "Output does not exist in the model");
                 _host.Check(inputColNames.All(name => _session.Graph[name] != null), "One of the input does not exist in the model");
 
-                _outputColName = outputCols;
+                _outputColName = outputColName;
                 (_outputColType, _tfOutputType) = GetOutputTypes(_session.Graph, _outputColName);
                 (_inputColNames, _inputColIndices, _isVectorInput, _tfInputShapes, _tfInputTypes) = GetInputMetaData(_session.Graph, inputColNames, inputSchema);
             }
@@ -221,9 +221,7 @@ namespace Microsoft.ML.Transforms
 
             public RowMapperColumnInfo[] GetOutputColumns()
             {
-                var info = new RowMapperColumnInfo[1];
-                info[0] = new RowMapperColumnInfo(_outputColName, _outputColType, null);
-                return info;
+                return new[] { new RowMapperColumnInfo(_outputColName, _outputColType, null) };
             }
 
             private static (ColumnType, TFDataType) GetOutputTypes(TFGraph graph, string columnName)
@@ -287,7 +285,7 @@ namespace Microsoft.ML.Transforms
         public sealed class Arguments : TransformInputBase
         {
 
-            [Argument(ArgumentType.Required, HelpText = "This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more detail(s).", ShortName = "ModelDir", SortOrder = 0)]
+            [Argument(ArgumentType.Required, HelpText = "This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", ShortName = "ModelDir", SortOrder = 0)]
             public string ModelFile;
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 1)]
@@ -375,7 +373,7 @@ namespace Microsoft.ML.Transforms
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.TensorFlowScorer", Desc = Summary, UserName = UserName, ShortName = ShortName)]
-        public static CommonOutputs.TransformOutput Convert(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.TransformOutput TensorFlowScorer(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
