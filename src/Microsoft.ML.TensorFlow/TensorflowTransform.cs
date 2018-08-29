@@ -259,10 +259,16 @@ namespace Microsoft.ML.Transforms
 
                     tfShapes[i] = graph.GetTensorShape(tfoutput);
                     var type = inputSchema.GetColumnType(inputColIndices[i]);
-                    var shape = tfShapes[i].ToIntArray();
-                    int valCount = tfShapes[i].ToIntArray().Skip(tfShapes[i][0] == -1 ? BatchSize : 0).Aggregate((x, y) => x * y);
-                    if (type.ValueCount != valCount)
-                        throw Contracts.Except($"The size of model input '{colNames[i]}' does not match its size in the input data.");
+                    var shape = tfShapes[i].ToIntArray().Skip(tfShapes[i][0] == -1 ? BatchSize : 0);
+                    if (type.AsVector.DimCount == 1)
+                    {
+                        int valCount = shape.Aggregate((x, y) => x * y);
+                        if (type.ValueCount != valCount)
+                            throw Contracts.Except($"The size of model input '{colNames[i]}' does not match its size in the input data.");
+                    }
+                    else if (shape.Select((dim, j) => dim != type.AsVector.GetDim(j)).Any(b => b))
+                        throw Contracts.Except($"The shape of model input '{colNames[i]}' does not match its shape in the input data.");
+
                     isInputVector[i] = type.IsVector;
 
                     tfTypes[i] = tfoutput.OutputType;
