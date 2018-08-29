@@ -9,9 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper.Algorithms;
-using Microsoft.ML.Runtime.FastTree.Internal;
 
 [assembly: LoadableClass(typeof(KdoSweeper), typeof(KdoSweeper.Arguments), typeof(SignatureSweeper),
     "KDO Sweeper", "KDOSweeper", "KDO")]
@@ -39,8 +40,8 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p")]
-            public SubComponent<IValueGenerator, SignatureSweeperParameter>[] SweptParameters;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
+            public IComponentFactory<IValueGenerator>[] SweptParameters;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
             public int RandomSeed;
@@ -99,7 +100,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
 
             _args = args;
             _host.CheckUserArg(Utils.Size(args.SweptParameters) > 0, nameof(args.SweptParameters), "KDO sweeper needs at least one parameter to sweep over");
-            _sweepParameters = args.SweptParameters.Select(p => p.CreateInstance(_host)).ToArray();
+            _sweepParameters = args.SweptParameters.Select(p => p.CreateComponent(_host)).ToArray();
             _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.ArgumentsBase(), _sweepParameters);
             _redundantSweeper = new UniformRandomSweeper(env, new SweeperBase.ArgumentsBase { Retries = 0 }, _sweepParameters);
             _spu = new SweeperProbabilityUtils(_host);
@@ -144,7 +145,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
                 // I'm not sure if this is too much detail, but it might be.
                 string errorMessage = $"Error: Sweep run results are missing metric values. \n\n" +
                                       $"NOTE: Default metric of 'AUC' only viable for binary classification problems. \n" +
-                                      $"Please include an evaluator (ev) subcomponent with an appropriate metric specified for your task type.\n\n" +
+                                      $"Please include an evaluator (ev) component with an appropriate metric specified for your task type.\n\n" +
                                        "Example RSP using alternate metric (i.e., AccuracyMicro):\nrunner=Local{\n\tev=Tlc{m=AccuracyMicro}\n\tpattern={...etc...}\n}";
                 throw _host.Except(new Exception(errorMessage), errorMessage);
             }
