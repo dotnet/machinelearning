@@ -58,6 +58,7 @@ namespace Microsoft.ML.Scenarios
                 Assert.NotNull(trans);
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
+                var numRows = 0;
                 using (var cursor = trans.GetRowCursor(col => col == output))
                 {
                     var buffer = default(VBuffer<float>);
@@ -66,8 +67,10 @@ namespace Microsoft.ML.Scenarios
                     {
                         getter(ref buffer);
                         Assert.Equal(10, buffer.Length);
+                        numRows += 1;
                     }
                 }
+                Assert.Equal(3, numRows);
             }
         }
     }
