@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static unsafe void Store8(in Vector256<float> x, float* dst, int* idx)
         {
-            Vector128<float> tmp = Avx.GetLowerHalf(in x);
+            Vector128<float> tmp = Avx.GetLowerHalf(x);
             Sse.StoreScalar(dst + idx[0], tmp);
             tmp = SseIntrinsics.Rotate(in tmp);
             Sse.StoreScalar(dst + idx[1], tmp);
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     res2 = Avx.HorizontalAdd(res2, res3);
                     res0 = Avx.HorizontalAdd(res0, res2);
 
-                    Vector128<float> sum = Sse.Add(Avx.GetLowerHalf(in res0), GetHigh(in res0));
+                    Vector128<float> sum = Sse.Add(Avx.GetLowerHalf(res0), GetHigh(in res0));
                     if (add)
                     {
                         sum = Sse.Add(sum, Sse.LoadAlignedVector128(pDstCurrent));
