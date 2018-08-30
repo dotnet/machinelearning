@@ -14,7 +14,7 @@ The datasets are provided under the original terms that Microsoft received such 
 >
 >Original readme: https://meta.wikimedia.org/wiki/Research:Detox
 
-### UCI Adult Dataset 
+### UCI Adult Dataset
 
 >Dua, D. and Karra Taniskidou, E. (2017). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
 >
@@ -26,9 +26,9 @@ Redistributing the dataset "breast-cancer.txt" with attribution:
 
 > O. L. Mangasarian and W. H. Wolberg: "Cancer diagnosis via linear programming", SIAM News, Volume 23, Number 5, September 1990, pp 1 & 18.
 >
->  Original source: http://ftp.cs.wisc.edu:80/math-prog/cpo-dataset/machine-learn/cancer/cancer1/datacum
+> Original source: http://ftp.cs.wisc.edu:80/math-prog/cpo-dataset/machine-learn/cancer/cancer1/datacum
 >
->  Original readme: http://ftp.cs.wisc.edu/math-prog/cpo-dataset/machine-learn/cancer/cancer1/data.doc
+> Original readme: http://ftp.cs.wisc.edu/math-prog/cpo-dataset/machine-learn/cancer/cancer1/data.doc
 
 ### MNIST
 
@@ -38,8 +38,34 @@ Redistributing the dataset "breast-cancer.txt" with attribution:
 
 ### NYC Taxi Fare
 
-Redistributing the dataset "taxi-fare-test.csv", "taxi-fare-train.csv" with attribution:
+> Redistributing the dataset "taxi-fare-test.csv", "taxi-fare-train.csv" with attribution:
+>
+> Original source: http://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml
+>
+> The dataset is provided under terms provided by City of New York: https://opendata.cityofnewyork.us/overview/#termsofuse.
 
-Original source: http://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml
+### WIKIPEDIA IMAGES
 
-The dataset is provided under terms provided by City of New York: https://opendata.cityofnewyork.us/overview/#termsofuse.
+#### Banana and cross section
+
+> Image provided under CC BY-NC. Redistributing the image "Banana-and-cross-section.jpg" with attribution:
+>
+> Original Source: https://commons.wikimedia.org/wiki/File:Banana_and_cross_section.jpg
+>
+> More Information: https://commons.wikimedia.org/wiki/File:Banana_and_cross_section.jpg
+
+#### Hot dog with mustard
+
+> Image provided under CC0. Redistributing the image "Hot-dog-with-mustard.png" with attribution:
+>
+> Original Source: https://upload.wikimedia.org/wikipedia/commons/b/b1/Hot_dog_with_mustard.png
+>
+> More Information: https://visualsonline.cancer.gov/details.cfm?imageid=2669
+
+#### Bright red tomato and cross section02
+
+> Image provided under CC BY-NC. Redistributing the image "Bright-red-tomato-and-cross-section02.jpg" with attribution:
+>
+> Original Source: https://upload.wikimedia.org/wikipedia/commons/8/88/Bright_red_tomato_and_cross_section02.jpg
+>
+> More Information: https://commons.wikimedia.org/wiki/File:Bright_red_tomato_and_cross_section02.jpg
