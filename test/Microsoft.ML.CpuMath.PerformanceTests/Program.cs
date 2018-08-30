@@ -13,7 +13,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         private static IConfig CreateCustomConfig()
             => DefaultConfig.Instance
-                .With(Job.ShortRun
+                .With(Job.Default
                     .With(InProcessToolchain.Instance));
     }
 }
