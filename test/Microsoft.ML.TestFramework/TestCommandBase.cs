@@ -2034,8 +2034,13 @@ namespace Microsoft.ML.Runtime.RunTests
         public void DataTypes()
         {
             string idvPath = GetDataPath("datatypes.idv");
+            OutputPath intermediateData = CreateOutputPath("intermediateDatatypes.idv");
             OutputPath textOutputPath = CreateOutputPath("datatypes.txt");
             TestCore("savedata", idvPath, "loader=binary", "saver=text", textOutputPath.Arg("dout"));
+            _step++;
+            TestCore("savedata", idvPath, "loader=binary", "saver=binary", intermediateData.ArgOnly("dout"));
+            _step++;
+            TestCore("savedata", intermediateData.Path, "loader=binary", "saver=text", textOutputPath.Arg("dout"));
             Done();
         }
     }
