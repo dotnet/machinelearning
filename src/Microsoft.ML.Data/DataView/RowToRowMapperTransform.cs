@@ -15,24 +15,6 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public interface IColumnInfo
-    {
-        /// <summary>
-        /// The name of a column. This string should always be non-empty.
-        /// </summary>
-        string Name { get; }
-
-        /// <summary>
-        /// The type of the column.
-        /// </summary>
-        ColumnType Type { get; }
-
-        /// <summary>
-        /// The metadata for a column, or <c>null</c> if this column has no metadata.
-        /// </summary>
-        IRow Metadata { get; }
-    }
-
     public sealed class RowMapperColumnInfo
     {
         public readonly string Name;
