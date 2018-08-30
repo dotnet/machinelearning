@@ -13,136 +13,91 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
     {
         [Benchmark]
         public void AddScalarU()
-        {
-            AvxIntrinsics.AddScalarU(DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
-        }
+            => AvxIntrinsics.AddScalarU(DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
 
         [Benchmark]
         public void ScaleU()
-        {
-            AvxIntrinsics.ScaleU(DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
-        }
+            => AvxIntrinsics.ScaleU(DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
 
         [Benchmark]
         public void ScaleSrcU()
-        {
-            AvxIntrinsics.ScaleSrcU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
-        }
+            => AvxIntrinsics.ScaleSrcU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
 
         [Benchmark]
         public void ScaleAddU()
-        {
-            AvxIntrinsics.ScaleAddU(DEFAULT_SCALE, DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
-        }
+            => AvxIntrinsics.ScaleAddU(DEFAULT_SCALE, DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
 
         [Benchmark]
         public void AddScaleU()
-        {
-            AvxIntrinsics.AddScaleU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
-        }
+            => AvxIntrinsics.AddScaleU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
 
         [Benchmark]
         public void AddScaleSU()
-        {
-            AvxIntrinsics.AddScaleSU(DEFAULT_SCALE, new Span<float>(src), new Span<int>(idx, 0, IDXLEN), new Span<float>(dst));
-        }
+            => AvxIntrinsics.AddScaleSU(DEFAULT_SCALE, new Span<float>(src), new Span<int>(idx, 0, IDXLEN), new Span<float>(dst));
 
         [Benchmark]
         public void AddScaleCopyU()
-        {
-            AvxIntrinsics.AddScaleCopyU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN), new Span<float>(result, 0, LEN));
-        }
+            => AvxIntrinsics.AddScaleCopyU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN), new Span<float>(result, 0, LEN));
 
         [Benchmark]
         public void AddU()
-        {
-            AvxIntrinsics.AddU(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
-        }
+            => AvxIntrinsics.AddU(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
 
         [Benchmark]
         public void AddSU()
-        {
-            AvxIntrinsics.AddSU(new Span<float>(src), new Span<int>(idx, 0, IDXLEN), new Span<float>(dst));
-        }
-
+            => AvxIntrinsics.AddSU(new Span<float>(src), new Span<int>(idx, 0, IDXLEN), new Span<float>(dst));
 
         [Benchmark]
         public void MulElementWiseU()
-        {
-            AvxIntrinsics.MulElementWiseU(new Span<float>(src1, 0, LEN), new Span<float>(src2, 0, LEN),
+            => AvxIntrinsics.MulElementWiseU(new Span<float>(src1, 0, LEN), new Span<float>(src2, 0, LEN),
                                             new Span<float>(dst, 0, LEN));
-        }
 
         [Benchmark]
         public float SumU()
-        {
-            return AvxIntrinsics.SumU(new Span<float>(src, 0, LEN));
-        }
+            => AvxIntrinsics.SumU(new Span<float>(src, 0, LEN));
 
         [Benchmark]
         public float SumSqU()
-        {
-            return AvxIntrinsics.SumSqU(new Span<float>(src, 0, LEN));
-        }
+            => AvxIntrinsics.SumSqU(new Span<float>(src, 0, LEN));
 
         [Benchmark]
         public float SumSqDiffU()
-        {
-            return AvxIntrinsics.SumSqDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
-        }
+            => AvxIntrinsics.SumSqDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
 
        [Benchmark]
         public float SumAbsU()
-        {
-            return AvxIntrinsics.SumAbsU(new Span<float>(src, 0, LEN));
-        }
+            => AvxIntrinsics.SumAbsU(new Span<float>(src, 0, LEN));
 
         [Benchmark]
         public float SumAbsDiffU()
-        {
-            return AvxIntrinsics.SumAbsDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
-        }
+            => AvxIntrinsics.SumAbsDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
 
         [Benchmark]
         public float MaxAbsU()
-        {
-            return AvxIntrinsics.MaxAbsU(new Span<float>(src, 0, LEN));
-        }
+            => AvxIntrinsics.MaxAbsU(new Span<float>(src, 0, LEN));
 
         [Benchmark]
         public float MaxAbsDiffU()
-        {
-            return AvxIntrinsics.MaxAbsDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
-        }
+            => AvxIntrinsics.MaxAbsDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
 
         [Benchmark]
         public float DotU()
-        {
-            return AvxIntrinsics.DotU(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
-        }
+            => AvxIntrinsics.DotU(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
 
         [Benchmark]
         public float DotSU()
-        {
-            return AvxIntrinsics.DotSU(new Span<float>(src), new Span<float>(dst), new Span<int>(idx, 0, IDXLEN));
-        }
+            => AvxIntrinsics.DotSU(new Span<float>(src), new Span<float>(dst), new Span<int>(idx, 0, IDXLEN));
 
         [Benchmark]
         public float Dist2()
-        {
-            return AvxIntrinsics.Dist2(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
-        }
+            => AvxIntrinsics.Dist2(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
 
         [Benchmark]
         public void SdcaL1UpdateU()
-        {
-            AvxIntrinsics.SdcaL1UpdateU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), DEFAULT_SCALE, new Span<float>(dst, 0, LEN), new Span<float>(result, 0, LEN));
-        }
+            => AvxIntrinsics.SdcaL1UpdateU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), DEFAULT_SCALE, new Span<float>(dst, 0, LEN), new Span<float>(result, 0, LEN));
 
         [Benchmark]
         public void SdcaL1UpdateSU()
-        {
-            AvxIntrinsics.SdcaL1UpdateSU(DEFAULT_SCALE, new Span<float>(src, 0, IDXLEN), new Span<int>(idx, 0, IDXLEN), DEFAULT_SCALE, new Span<float>(dst), new Span<float>(result));
-        }
+            => AvxIntrinsics.SdcaL1UpdateSU(DEFAULT_SCALE, new Span<float>(src, 0, IDXLEN), new Span<int>(idx, 0, IDXLEN), DEFAULT_SCALE, new Span<float>(dst), new Span<float>(result));
     }
 }
