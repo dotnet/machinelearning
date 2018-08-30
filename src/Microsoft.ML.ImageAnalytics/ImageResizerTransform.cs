@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -20,13 +23,19 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(ImageResizerTransform.Summary, typeof(ImageResizerTransform), null, typeof(SignatureLoadDataTransform),
     ImageResizerTransform.UserName, ImageResizerTransform.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(ImageResizerTransform), null, typeof(SignatureLoadModel),
+    ImageResizerTransform.UserName, ImageResizerTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageResizerTransform), null, typeof(SignatureLoadRowMapper),
+    ImageResizerTransform.UserName, ImageResizerTransform.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     /// <summary>
     /// Transform which takes one or many columns of <see cref="ImageType"/> and resize them to provided height and width.
     /// </summary>
-    public sealed class ImageResizerTransform : OneToOneTransformBase
+    public sealed class ImageResizerTransform : OneToOneTransformerBase
     {
         public enum ResizingKind : byte
         {
@@ -98,23 +107,30 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         /// <summary>
-        /// Extra information for each column (in addition to ColumnInfo).
+        /// Information for each column pair.
         /// </summary>
-        private sealed class ColInfoEx
+        public sealed class ColumnInfo
         {
+            public readonly string Input;
+            public readonly string Output;
+
             public readonly int Width;
             public readonly int Height;
             public readonly ResizingKind Scale;
             public readonly Anchor Anchor;
             public readonly ColumnType Type;
 
-            public ColInfoEx(int width, int height, ResizingKind scale, Anchor anchor)
+            public ColumnInfo(string input, string output, int width, int height, ResizingKind scale, Anchor anchor)
             {
+                Contracts.CheckNonEmpty(input, nameof(input));
+                Contracts.CheckNonEmpty(output, nameof(output));
                 Contracts.CheckUserArg(width > 0, nameof(Column.ImageWidth));
                 Contracts.CheckUserArg(height > 0, nameof(Column.ImageHeight));
                 Contracts.CheckUserArg(Enum.IsDefined(typeof(ResizingKind), scale), nameof(Column.Resizing));
                 Contracts.CheckUserArg(Enum.IsDefined(typeof(Anchor), anchor), nameof(Column.CropAnchor));
 
+                Input = input;
+                Output = output;
                 Width = width;
                 Height = height;
                 Scale = scale;
@@ -133,53 +149,87 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return new VersionInfo(
                 modelSignature: "IMGSCALF",
                 //verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002, // Swith from OpenCV to Bitmap
-                verReadableCur: 0x00010002,
-                verWeCanReadBack: 0x00010002,
+                //verWrittenCur: 0x00010002, // Swith from OpenCV to Bitmap
+                verWrittenCur: 0x00010003, // No more sizeof(float)
+                verReadableCur: 0x00010003,
+                verWeCanReadBack: 0x00010003,
                 loaderSignature: LoaderSignature);
         }
 
         private const string RegistrationName = "ImageScaler";
 
-        // This is parallel to Infos.
-        private readonly ColInfoEx[] _exes;
+        private readonly ColumnInfo[] _columns;
 
-        // Public constructor corresponding to SignatureDataTransform.
-        public ImageResizerTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column, input, t => t is ImageType ? null : "Expected Image type")
+        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+
+        public ImageResizerTransform(IHostEnvironment env, string inputColumn, string outputColumn,
+            int imageWidth, int imageHeight, ResizingKind resizing = ResizingKind.IsoCrop, Anchor cropAnchor = Anchor.Center)
+            : this(env, new ColumnInfo(inputColumn, outputColumn, imageWidth, imageHeight, resizing, cropAnchor))
         {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+        }
 
-            _exes = new ColInfoEx[Infos.Length];
-            for (int i = 0; i < _exes.Length; i++)
+        public ImageResizerTransform(IHostEnvironment env, params ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
+        {
+            _columns = columns.ToArray();
+        }
+
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(columns, nameof(columns));
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
+        }
+
+        // Factory method for SignatureDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            env.CheckValue(args.Column, nameof(args.Column));
+
+            var cols = new ColumnInfo[args.Column.Length];
+            for (int i = 0; i < cols.Length; i++)
             {
                 var item = args.Column[i];
-                _exes[i] = new ColInfoEx(
+                cols[i] = new ColumnInfo(
+                    item.Source ?? item.Name,
+                    item.Name,
                     item.ImageWidth ?? args.ImageWidth,
                     item.ImageHeight ?? args.ImageHeight,
                     item.Resizing ?? args.Resizing,
                     item.CropAnchor ?? args.CropAnchor);
             }
-            Metadata.Seal();
+
+            return new ImageResizerTransform(env, cols).MakeDataTransform(input);
         }
 
-        private ImageResizerTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, t => t is ImageType ? null : "Expected Image type")
+        public static ImageResizerTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
-            Host.AssertValue(ctx);
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register(RegistrationName);
 
+            host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+
+            return new ImageResizerTransform(host, ctx);
+        }
+
+        private ImageResizerTransform(IHost host, ModelLoadContext ctx)
+            : base(host, ctx)
+        {
             // *** Binary format ***
-            // <prefix handled in static Create method>
             // <base>
+
             // for each added column
             //   int: width
             //   int: height
             //   byte: scaling kind
-            Host.AssertNonEmpty(Infos);
+            //   byte: anchor
 
-            _exes = new ColInfoEx[Infos.Length];
-            for (int i = 0; i < _exes.Length; i++)
+            _columns = new ColumnInfo[ColumnPairs.Length];
+            for (int i = 0; i < ColumnPairs.Length; i++)
             {
                 int width = ctx.Reader.ReadInt32();
                 Host.CheckDecode(width > 0);
@@ -189,182 +239,224 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 Host.CheckDecode(Enum.IsDefined(typeof(ResizingKind), scale));
                 var anchor = (Anchor)ctx.Reader.ReadByte();
                 Host.CheckDecode(Enum.IsDefined(typeof(Anchor), anchor));
-                _exes[i] = new ColInfoEx(width, height, scale, anchor);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, width, height, scale, anchor);
             }
-            Metadata.Seal();
         }
 
-        public static ImageResizerTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
-            ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model",
-                ch =>
-                {
-                    // *** Binary format ***
-                    // int: sizeof(Float)
-                    // <remainder handled in ctors>
-                    int cbFloat = ctx.Reader.ReadInt32();
-                    ch.CheckDecode(cbFloat == sizeof(Single));
-                    return new ImageResizerTransform(h, ctx, input);
-                });
-        }
+        // Factory method for SignatureLoadDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
+
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: sizeof(Float)
             // <base>
+
             // for each added column
             //   int: width
             //   int: height
             //   byte: scaling kind
-            ctx.Writer.Write(sizeof(Single));
-            SaveBase(ctx);
+            //   byte: anchor
 
-            Host.Assert(_exes.Length == Infos.Length);
-            for (int i = 0; i < _exes.Length; i++)
+            base.SaveColumns(ctx);
+
+            foreach (var col in _columns)
             {
-                var ex = _exes[i];
-                ctx.Writer.Write(ex.Width);
-                ctx.Writer.Write(ex.Height);
-                Host.Assert((ResizingKind)(byte)ex.Scale == ex.Scale);
-                ctx.Writer.Write((byte)ex.Scale);
-                Host.Assert((Anchor)(byte)ex.Anchor == ex.Anchor);
-                ctx.Writer.Write((byte)ex.Anchor);
+                ctx.Writer.Write(col.Width);
+                ctx.Writer.Write(col.Height);
+                Contracts.Assert((ResizingKind)(byte)col.Scale == col.Scale);
+                ctx.Writer.Write((byte)col.Scale);
+                Contracts.Assert((Anchor)(byte)col.Anchor == col.Anchor);
+                ctx.Writer.Write((byte)col.Anchor);
             }
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+            => new Mapper(this, schema);
+
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
-            Host.Check(0 <= iinfo && iinfo < Infos.Length);
-            return _exes[iinfo].Type;
+            if (!(inputSchema.GetColumnType(srcCol) is ImageType))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[col].Input, "image", inputSchema.GetColumnType(srcCol).ToString());
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+        private sealed class Mapper : MapperBase
         {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
+            private readonly ImageResizerTransform _parent;
 
-            var src = default(Bitmap);
-            var getSrc = GetSrcGetter<Bitmap>(input, iinfo);
-            var ex = _exes[iinfo];
+            public Mapper(ImageResizerTransform parent, ISchema inputSchema)
+                :base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+            {
+                _parent = parent;
+            }
 
-            disposer =
-                () =>
-                {
-                    if (src != null)
+            public override RowMapperColumnInfo[] GetOutputColumns()
+                => _parent._columns.Select(x => new RowMapperColumnInfo(x.Output, x.Type, null)).ToArray();
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
+
+                var src = default(Bitmap);
+                var getSrc = input.GetGetter<Bitmap>(ColMapNewToOld[iinfo]);
+                var info = _parent._columns[iinfo];
+
+                disposer =
+                    () =>
                     {
-                        src.Dispose();
-                        src = null;
-                    }
-                };
-
-            ValueGetter<Bitmap> del =
-                (ref Bitmap dst) =>
-                {
-                    if (dst != null)
-                        dst.Dispose();
-
-                    getSrc(ref src);
-                    if (src == null || src.Height <= 0 || src.Width <= 0)
-                        return;
-                    if (src.Height == ex.Height && src.Width == ex.Width)
-                    {
-                        dst = src;
-                        return;
-                    }
-
-                    int sourceWidth = src.Width;
-                    int sourceHeight = src.Height;
-                    int sourceX = 0;
-                    int sourceY = 0;
-                    int destX = 0;
-                    int destY = 0;
-                    int destWidth = 0;
-                    int destHeight = 0;
-                    float aspect = 0;
-                    float widthAspect = 0;
-                    float heightAspect = 0;
-
-                    widthAspect = (float)ex.Width / sourceWidth;
-                    heightAspect = (float)ex.Height / sourceHeight;
-
-                    if (ex.Scale == ResizingKind.IsoPad)
-                    {
-                        widthAspect = (float)ex.Width / sourceWidth;
-                        heightAspect = (float)ex.Height / sourceHeight;
-                        if (heightAspect < widthAspect)
+                        if (src != null)
                         {
-                            aspect = heightAspect;
-                            destX = (int)((ex.Width - (sourceWidth * aspect)) / 2);
+                            src.Dispose();
+                            src = null;
+                        }
+                    };
+
+                ValueGetter<Bitmap> del =
+                    (ref Bitmap dst) =>
+                    {
+                        if (dst != null)
+                            dst.Dispose();
+
+                        getSrc(ref src);
+                        if (src == null || src.Height <= 0 || src.Width <= 0)
+                            return;
+                        if (src.Height == info.Height && src.Width == info.Width)
+                        {
+                            dst = src;
+                            return;
+                        }
+
+                        int sourceWidth = src.Width;
+                        int sourceHeight = src.Height;
+                        int sourceX = 0;
+                        int sourceY = 0;
+                        int destX = 0;
+                        int destY = 0;
+                        int destWidth = 0;
+                        int destHeight = 0;
+                        float aspect = 0;
+                        float widthAspect = 0;
+                        float heightAspect = 0;
+
+                        widthAspect = (float)info.Width / sourceWidth;
+                        heightAspect = (float)info.Height / sourceHeight;
+
+                        if (info.Scale == ResizingKind.IsoPad)
+                        {
+                            widthAspect = (float)info.Width / sourceWidth;
+                            heightAspect = (float)info.Height / sourceHeight;
+                            if (heightAspect < widthAspect)
+                            {
+                                aspect = heightAspect;
+                                destX = (int)((info.Width - (sourceWidth * aspect)) / 2);
+                            }
+                            else
+                            {
+                                aspect = widthAspect;
+                                destY = (int)((info.Height - (sourceHeight * aspect)) / 2);
+                            }
+
+                            destWidth = (int)(sourceWidth * aspect);
+                            destHeight = (int)(sourceHeight * aspect);
                         }
                         else
                         {
-                            aspect = widthAspect;
-                            destY = (int)((ex.Height - (sourceHeight * aspect)) / 2);
-                        }
-
-                        destWidth = (int)(sourceWidth * aspect);
-                        destHeight = (int)(sourceHeight * aspect);
-                    }
-                    else
-                    {
-                        if (heightAspect < widthAspect)
-                        {
-                            aspect = widthAspect;
-                            switch (ex.Anchor)
+                            if (heightAspect < widthAspect)
                             {
-                                case Anchor.Top:
-                                    destY = 0;
-                                    break;
-                                case Anchor.Bottom:
-                                    destY = (int)(ex.Height - (sourceHeight * aspect));
-                                    break;
-                                default:
-                                    destY = (int)((ex.Height - (sourceHeight * aspect)) / 2);
-                                    break;
+                                aspect = widthAspect;
+                                switch (info.Anchor)
+                                {
+                                    case Anchor.Top:
+                                        destY = 0;
+                                        break;
+                                    case Anchor.Bottom:
+                                        destY = (int)(info.Height - (sourceHeight * aspect));
+                                        break;
+                                    default:
+                                        destY = (int)((info.Height - (sourceHeight * aspect)) / 2);
+                                        break;
+                                }
                             }
-                        }
-                        else
-                        {
-                            aspect = heightAspect;
-                            switch (ex.Anchor)
+                            else
                             {
-                                case Anchor.Left:
-                                    destX = 0;
-                                    break;
-                                case Anchor.Right:
-                                    destX = (int)(ex.Width - (sourceWidth * aspect));
-                                    break;
-                                default:
-                                    destX = (int)((ex.Width - (sourceWidth * aspect)) / 2);
-                                    break;
+                                aspect = heightAspect;
+                                switch (info.Anchor)
+                                {
+                                    case Anchor.Left:
+                                        destX = 0;
+                                        break;
+                                    case Anchor.Right:
+                                        destX = (int)(info.Width - (sourceWidth * aspect));
+                                        break;
+                                    default:
+                                        destX = (int)((info.Width - (sourceWidth * aspect)) / 2);
+                                        break;
+                                }
                             }
+
+                            destWidth = (int)(sourceWidth * aspect);
+                            destHeight = (int)(sourceHeight * aspect);
                         }
+                        dst = new Bitmap(info.Width, info.Height);
+                        var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
+                        var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
+                        using (var g = Graphics.FromImage(dst))
+                        {
+                            g.DrawImage(src, destRectangle, srcRectangle, GraphicsUnit.Pixel);
+                        }
+                        Contracts.Assert(dst.Width == info.Width && dst.Height == info.Height);
+                    };
 
-                        destWidth = (int)(sourceWidth * aspect);
-                        destHeight = (int)(sourceHeight * aspect);
-                    }
-                    dst = new Bitmap(ex.Width, ex.Height);
-                    var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
-                    var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
-                    using (var g = Graphics.FromImage(dst))
-                    {
-                        g.DrawImage(src, destRectangle, srcRectangle, GraphicsUnit.Pixel);
-                    }
-                    Host.Assert(dst.Width == ex.Width && dst.Height == ex.Height);
-                };
+                return del;
+            }
+        }
+    }
 
-            return del;
+    public sealed class ImageResizerEstimator : TrivialEstimator<ImageResizerTransform>
+    {
+        public ImageResizerEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+            int imageWidth, int imageHeight, ImageResizerTransform.ResizingKind resizing = ImageResizerTransform.ResizingKind.IsoCrop, ImageResizerTransform.Anchor cropAnchor = ImageResizerTransform.Anchor.Center)
+            : this(env, new ImageResizerTransform(env, inputColumn, outputColumn, imageWidth, imageHeight, resizing, cropAnchor))
+        {
+        }
+
+        public ImageResizerEstimator(IHostEnvironment env, params ImageResizerTransform.ColumnInfo[] columns)
+            : this(env, new ImageResizerTransform(env, columns))
+        {
+        }
+
+        public ImageResizerEstimator(IHostEnvironment env, ImageResizerTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageResizerEstimator)), transformer)
+        {
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in Transformer.Columns)
+            {
+                var col = inputSchema.FindColumn(colInfo.Input);
+
+                if (col == null)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, new ImageType().ToString(), col.GetTypeString());
+
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Scalar, colInfo.Type, false);
+            }
+
+            return new SchemaShape(result.Values);
         }
     }
 }
