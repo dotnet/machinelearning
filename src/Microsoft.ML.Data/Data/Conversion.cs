@@ -1196,7 +1196,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// Utility to assist in parsing key-type values. The min and max values define
         /// the legal input value bounds. The output dst value is "normalized" so min is
         /// mapped to 1, max is mapped to 1 + (max - min).
-        /// Missing values are mapped to zero with a true return.
+        /// Exception is thrown for missing values.
         /// Unparsable or out of range values are mapped to zero with a false return.
         /// </summary>
         public bool TryParseKey(ref TX src, U8 min, U8 max, out U8 dst)
