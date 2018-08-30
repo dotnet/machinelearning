@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
     /// <summary>
     /// Transform which takes one or many columns of <see cref="ImageType"/> and convert them into vector representation.
     /// </summary>
-    public sealed class ImagePixelExtractorTransform : OneToOneTransformerBase, ICanSaveModel
+    public sealed class ImagePixelExtractorTransform : OneToOneTransformerBase
     {
         public class Column : OneToOneColumn
         {
