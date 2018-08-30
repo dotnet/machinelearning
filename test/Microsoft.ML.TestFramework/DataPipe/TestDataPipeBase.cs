@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -17,6 +19,108 @@ namespace Microsoft.ML.Runtime.RunTests
 {
     public abstract partial class TestDataPipeBase : TestDataViewBase
     {
+        /// <summary>
+        /// 'Workout test' for an estimator.
+        /// Checks the following traits:
+        /// - the estimator is applicable to the validFitInput, and not applicable to validTransformInput and invalidInput;
+        /// - the fitted transformer is applicable to validFitInput and validTransformInput, and not applicable to invalidInput;
+        /// - fitted transformer can be saved and re-loaded into the transformer with the same behavior.
+        /// - schema propagation for fitted transformer conforms to schema propagation of estimator.
+        /// </summary>
+        protected void TestEstimatorCore(IEstimator<ITransformer> estimator,
+            IDataView validFitInput, IDataView validTransformInput = null, IDataView invalidInput = null)
+        {
+            Contracts.AssertValue(estimator);
+            Contracts.AssertValue(validFitInput);
+            Contracts.AssertValueOrNull(validTransformInput);
+            Contracts.AssertValueOrNull(invalidInput);
+            Action<Action> mustFail = (Action action) =>
+            {
+                try
+                {
+                    action();
+                    Assert.False(true);
+                }
+                catch (ArgumentOutOfRangeException) { }
+                catch (InvalidOperationException) { }
+            };
+
+            // Schema propagation tests for estimator.
+            var outSchemaShape = estimator.GetOutputSchema(SchemaShape.Create(validFitInput.Schema));
+            if (validTransformInput != null)
+            {
+                mustFail(() => estimator.GetOutputSchema(SchemaShape.Create(validTransformInput.Schema)));
+                mustFail(() => estimator.Fit(validTransformInput));
+            }
+
+            if (invalidInput != null)
+            {
+                mustFail(() => estimator.GetOutputSchema(SchemaShape.Create(invalidInput.Schema)));
+                mustFail(() => estimator.Fit(invalidInput));
+            }
+
+            var transformer = estimator.Fit(validFitInput);
+            // Save and reload.
+            string modelPath = GetOutputPath(TestName + "-model.zip");
+            using (var fs = File.Create(modelPath))
+                transformer.SaveTo(Env, fs);
+
+            ITransformer loadedTransformer;
+            using (var fs = File.OpenRead(modelPath))
+                loadedTransformer = TransformerChain.LoadFrom(Env, fs);
+            DeleteOutputPath(modelPath);
+
+            // Run on train data.
+            Action<IDataView> checkOnData = (IDataView data) =>
+            {
+                var schema = transformer.GetOutputSchema(data.Schema);
+
+                // Loaded transformer needs to have the same schema propagation.
+                CheckSameSchemas(schema, loadedTransformer.GetOutputSchema(data.Schema));
+
+                var scoredTrain = transformer.Transform(data);
+                var scoredTrain2 = loadedTransformer.Transform(data);
+
+                // The schema of the transformed data must match the schema provided by schema propagation.
+                CheckSameSchemas(schema, scoredTrain.Schema);
+
+                // The schema and data of scored dataset must be identical between loaded
+                // and original transformer.
+                // This in turn means that the schema of loaded transformer matches for 
+                // Transform and GetOutputSchema calls.
+                CheckSameSchemas(scoredTrain.Schema, scoredTrain2.Schema);
+                CheckSameValues(scoredTrain, scoredTrain2);
+            };
+
+            checkOnData(validFitInput);
+
+            if (validTransformInput != null)
+                checkOnData(validTransformInput);
+
+            if (invalidInput != null)
+            {
+                mustFail(() => transformer.GetOutputSchema(invalidInput.Schema));
+                mustFail(() => transformer.Transform(invalidInput));
+                mustFail(() => loadedTransformer.GetOutputSchema(invalidInput.Schema));
+                mustFail(() => loadedTransformer.Transform(invalidInput));
+            }
+
+            // Schema verification between estimator and transformer.
+            var scoredTrainSchemaShape = SchemaShape.Create(transformer.GetOutputSchema(validFitInput.Schema));
+            CheckSameSchemaShape(outSchemaShape, scoredTrainSchemaShape);
+        }
+
+        private void CheckSameSchemaShape(SchemaShape first, SchemaShape second)
+        {
+            Assert.True(first.Columns.Length == second.Columns.Length);
+            var sortedCols1 = first.Columns.OrderBy(x => x.Name);
+            var sortedCols2 = second.Columns.OrderBy(x => x.Name);
+
+            Assert.True(sortedCols1.Zip(sortedCols2,
+                (x, y) => x.IsCompatibleWith(y) && y.IsCompatibleWith(x))
+                .All(x => x));
+        }
+
         // REVIEW: incorporate the testing for re-apply logic here?
         /// <summary>
         /// Create PipeDataLoader from the given args, save it, re-load it, verify that the data of
@@ -878,41 +982,44 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 switch (type.RawKind)
                 {
-                case DataKind.I1:
-                    return GetComparerOne<DvInt1>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U1:
-                    return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
-                case DataKind.I2:
-                    return GetComparerOne<DvInt2>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U2:
-                    return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
-                case DataKind.I4:
-                    return GetComparerOne<DvInt4>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U4:
-                    return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
-                case DataKind.I8:
-                    return GetComparerOne<DvInt8>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U8:
-                    return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
-                case DataKind.R4:
-                    return GetComparerOne<Single>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                case DataKind.R8:
-                    if (exactDoubles)
-                        return GetComparerOne<Double>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                    else
-                        return GetComparerOne<Double>(r1, r2, col, EqualWithEps);
-                case DataKind.Text:
-                    return GetComparerOne<DvText>(r1, r2, col, DvText.Identical);
-                case DataKind.Bool:
-                    return GetComparerOne<DvBool>(r1, r2, col, (x, y) => x.Equals(y));
-                case DataKind.TimeSpan:
-                    return GetComparerOne<TimeSpan>(r1, r2, col, (x, y) => x == y);
-                case DataKind.DT:
-                    return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x == y);
-                case DataKind.DZ:
-                    return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
-                case DataKind.UG:
-                    return GetComparerOne<UInt128>(r1, r2, col, (x, y) => x.Equals(y));
+                    case DataKind.I1:
+                        return GetComparerOne<DvInt1>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                    case DataKind.U1:
+                        return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.I2:
+                        return GetComparerOne<DvInt2>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                    case DataKind.U2:
+                        return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.I4:
+                        return GetComparerOne<DvInt4>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                    case DataKind.U4:
+                        return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.I8:
+                        return GetComparerOne<DvInt8>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                    case DataKind.U8:
+                        return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.R4:
+                        return GetComparerOne<Single>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    case DataKind.R8:
+                        if (exactDoubles)
+                            return GetComparerOne<Double>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                        else
+                            return GetComparerOne<Double>(r1, r2, col, EqualWithEps);
+                    case DataKind.Text:
+                        return GetComparerOne<DvText>(r1, r2, col, DvText.Identical);
+                    case DataKind.Bool:
+                        return GetComparerOne<DvBool>(r1, r2, col, (x, y) => x.Equals(y));
+                    case DataKind.TimeSpan:
+                        return GetComparerOne<DvTimeSpan>(r1, r2, col, (x, y) => x.Equals(y));
+                    case DataKind.DT:
+                        return GetComparerOne<DvDateTime>(r1, r2, col, (x, y) => x.Equals(y));
+                    case DataKind.DZ:
+                        return GetComparerOne<DvDateTimeZone>(r1, r2, col, (x, y) => x.Equals(y));
+                    case DataKind.UG:
+                        return GetComparerOne<UInt128>(r1, r2, col, (x, y) => x.Equals(y));
+                    case (DataKind)0:
+                        // We cannot compare custom types (including image).
+                        return () => true;
                 }
             }
             else
@@ -921,41 +1028,41 @@ namespace Microsoft.ML.Runtime.RunTests
                 Contracts.Assert(size >= 0);
                 switch (type.ItemType.RawKind)
                 {
-                case DataKind.I1:
-                    return GetComparerVec<DvInt1>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U1:
-                    return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
-                case DataKind.I2:
-                    return GetComparerVec<DvInt2>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U2:
-                    return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
-                case DataKind.I4:
-                    return GetComparerVec<DvInt4>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U4:
-                    return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
-                case DataKind.I8:
-                    return GetComparerVec<DvInt8>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U8:
-                    return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
-                case DataKind.R4:
-                    return GetComparerVec<Single>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                case DataKind.R8:
-                    if (exactDoubles)
-                        return GetComparerVec<Double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                    else
-                        return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
-                case DataKind.Text:
-                    return GetComparerVec<DvText>(r1, r2, col, size, DvText.Identical);
-                case DataKind.Bool:
-                    return GetComparerVec<DvBool>(r1, r2, col, size, (x, y) => x.Equals(y));
-                case DataKind.TimeSpan:
-                    return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x == y);
-                case DataKind.DT:
-                    return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x == y);
-                case DataKind.DZ:
-                    return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
-                case DataKind.UG:
-                    return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
+                    case DataKind.I1:
+                        return GetComparerVec<DvInt1>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                    case DataKind.U1:
+                        return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.I2:
+                        return GetComparerVec<DvInt2>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                    case DataKind.U2:
+                        return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.I4:
+                        return GetComparerVec<DvInt4>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                    case DataKind.U4:
+                        return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.I8:
+                        return GetComparerVec<DvInt8>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                    case DataKind.U8:
+                        return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.R4:
+                        return GetComparerVec<Single>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    case DataKind.R8:
+                        if (exactDoubles)
+                            return GetComparerVec<Double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                        else
+                            return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
+                    case DataKind.Text:
+                        return GetComparerVec<DvText>(r1, r2, col, size, DvText.Identical);
+                    case DataKind.Bool:
+                        return GetComparerVec<DvBool>(r1, r2, col, size, (x, y) => x.Equals(y));
+                    case DataKind.TimeSpan:
+                        return GetComparerVec<DvTimeSpan>(r1, r2, col, size, (x, y) => x.Equals(y));
+                    case DataKind.DT:
+                        return GetComparerVec<DvDateTime>(r1, r2, col, size, (x, y) => x.Equals(y));
+                    case DataKind.DZ:
+                        return GetComparerVec<DvDateTimeZone>(r1, r2, col, size, (x, y) => x.Equals(y));
+                    case DataKind.UG:
+                        return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
                 }
             }
 
