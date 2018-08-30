@@ -27,20 +27,22 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
+                var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
+                var data = reader.Read(new MultiFileSource(dataPath));
+
                 // Pipeline.
-                var pipeline = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()))
-                    .Append(new MySdca(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
+                var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs())
+                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
 
                 // Train.
-                var model = pipeline.Fit(new MultiFileSource(dataPath));
+                var model = pipeline.Fit(data);
 
                 ITransformer loadedModel;
                 using (var file = env.CreateTempFile())
                 {
                     // Save model. 
                     using (var fs = file.CreateWriteStream())
-                        model.Transformer.SaveTo(env, fs);
+                        model.SaveTo(env, fs);
 
                     // Load model.
                     loadedModel = TransformerChain.LoadFrom(env, file.OpenReadStream());
@@ -50,7 +52,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var engine = new MyPredictionEngine<SentimentData, SentimentPrediction>(env, loadedModel);
 
                 // Take a couple examples out of the test data and run predictions on top.
-                var testData = model.Reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))
+                var testData = reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))
                     .AsEnumerable<SentimentData>(env, false);
                 foreach (var input in testData.Take(5))
                 {

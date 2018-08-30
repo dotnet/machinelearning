@@ -5,8 +5,9 @@
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 
 namespace Microsoft.ML.Benchmarks
@@ -21,40 +22,27 @@ namespace Microsoft.ML.Benchmarks
             using (var env = new TlcEnvironment(seed: 1))
             {
                 // Pipeline
-                var loader = new TextLoader(env,
+                var loader = TextLoader.ReadFile(env,
                     new TextLoader.Arguments()
                     {
                         HasHeader = true,
                         Separator = ",",
                         Column = new[] {
-                            new TextLoader.Column()
-                            {
-                                Name = "Label",
-                                Source = new [] { new TextLoader.Range() { Min = 14, Max = 14} },
-                                Type = DataKind.R4
-                            },
-                            new TextLoader.Column()
-                            {
-                                Name = "CatFeatures",
-                                Source = new [] {
+                            new TextLoader.Column("Label", DataKind.R4, 14),
+                            new TextLoader.Column("CatFeatures", DataKind.TX,
+                                new [] {
                                     new TextLoader.Range() { Min = 1, Max = 1 },
                                     new TextLoader.Range() { Min = 3, Max = 3 },
                                     new TextLoader.Range() { Min = 5, Max = 9 },
                                     new TextLoader.Range() { Min = 13, Max = 13 }
-                                },
-                                Type = DataKind.TX
-                            },
-                            new TextLoader.Column()
-                            {
-                                Name = "NumFeatures",
-                                Source = new [] {
+                                }),
+                            new TextLoader.Column("NumFeatures", DataKind.R4,
+                                new [] {
                                     new TextLoader.Range() { Min = 0, Max = 0 },
                                     new TextLoader.Range() { Min = 2, Max = 2 },
                                     new TextLoader.Range() { Min = 4, Max = 4 },
                                     new TextLoader.Range() { Min = 10, Max = 12 }
-                                },
-                                Type = DataKind.R4
-                            }
+                                })
                         }
                     }, new MultiFileSource(_dataPath));
 
@@ -70,7 +58,11 @@ namespace Microsoft.ML.Benchmarks
                 trans = new ConcatTransform(env, trans, "Features", "NumFeatures", "CatFeatures");
                 trans = TrainAndScoreTransform.Create(env, new TrainAndScoreTransform.Arguments
                 {
-                    Trainer = new SubComponent<ITrainer, SignatureTrainer>("KMeans", "k=100"),
+                    Trainer = ComponentFactoryUtils.CreateFromFunction(host =>
+                        new KMeansPlusPlusTrainer(host, new KMeansPlusPlusTrainer.Arguments()
+                        {
+                            K = 100
+                        })),
                     FeatureColumn = "Features"
                 }, trans);
                 trans = new ConcatTransform(env, trans, "Features", "Features", "Score");
@@ -78,7 +70,6 @@ namespace Microsoft.ML.Benchmarks
                 // Train
                 var trainer = new LogisticRegression(env, new LogisticRegression.Arguments() { EnforceNonNegativity = true, OptTol = 1e-3f });
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
-
                 return trainer.Train(trainRoles);
             }
         }
