@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.RunTests
         private readonly static Conversions _conv = Conversions.Instance;
 
         [Fact]
-        public void TXToI1()
+        public void TXToSByte()
         {
             var mapper = GetMapper<DvText, sbyte>();
 
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
             catch (Exception ex)
             {
-                Assert.Equal("Missing text value cannot be converted to signed numbers.", ex.Message);
+                Assert.Equal("Missing text value cannot be converted to integer type.", ex.Message);
                 error = true;
             }
 
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void TXToI2()
+        public void TXToShort()
         {
             var mapper = GetMapper<DvText, short>();
 
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
             catch (Exception ex)
             {
-                Assert.Equal("Missing text value cannot be converted to signed numbers.", ex.Message);
+                Assert.Equal("Missing text value cannot be converted to integer type.", ex.Message);
                 error = true;
             }
 
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void TXToI4()
+        public void TXToInt()
         {
             var mapper = GetMapper<DvText, int>();
 
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
             catch (Exception ex)
             {
-                Assert.Equal("Missing text value cannot be converted to signed numbers.", ex.Message);
+                Assert.Equal("Missing text value cannot be converted to integer type.", ex.Message);
                 error = true;
             }
 
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void TXToI8()
+        public void TXToLong()
         {
             var mapper = GetMapper<DvText, long>();
 
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
             catch (Exception ex)
             {
-                Assert.Equal("Missing text value cannot be converted to signed numbers.", ex.Message);
+                Assert.Equal("Missing text value cannot be converted to integer type.", ex.Message);
                 error = true;
             }
 

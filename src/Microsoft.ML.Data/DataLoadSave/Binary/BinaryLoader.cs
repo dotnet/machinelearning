@@ -729,7 +729,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <summary>
         /// Upper inclusive bound of versions this reader can read.
         /// </summary>
-        private const ulong ReaderVersion = MissingTextVersion;
+        private const ulong ReaderVersion = StandardDataTypesVersion;
 
         /// <summary>
         /// The first version that removes DvTypes and uses .NET standard
@@ -1096,10 +1096,10 @@ namespace Microsoft.ML.Runtime.Data.IO
                 throw _host.Except("Cannot read version {0} data, earliest that can be handled is {1}",
                     Header.VersionToString(header.CompatibleVersion), Header.VersionToString(MetadataVersion));
             }
-            if (header.CompatibleVersion > StandardDataTypesVersion)
+            if (header.CompatibleVersion > ReaderVersion)
             {
                 throw _host.Except("Cannot read version {0} data, latest that can be handled is {1}",
-                    Header.VersionToString(header.CompatibleVersion), Header.VersionToString(StandardDataTypesVersion));
+                    Header.VersionToString(header.CompatibleVersion), Header.VersionToString(ReaderVersion));
             }
 
             _host.CheckDecode(header.RowCount >= 0, "Row count cannot be negative");

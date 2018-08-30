@@ -113,7 +113,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             string pathData = DeleteOutputPath("SavePipe", "TextInput.txt");
             File.WriteAllLines(pathData, new string[] {
                 "9223372036854775808"
-
             });
 
             try

@@ -1035,6 +1035,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out U1 dst)
         {
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref src, out res) || res > U1.MaxValue)
             {
@@ -1050,6 +1051,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out U2 dst)
         {
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref src, out res) || res > U2.MaxValue)
             {
@@ -1065,6 +1067,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out U4 dst)
         {
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref src, out res) || res > U4.MaxValue)
             {
@@ -1080,12 +1083,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out U8 dst)
         {
-            if (src.IsNA)
-            {
-                dst = 0;
-                return false;
-            }
-
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             int ichMin;
             int ichLim;
             string text = src.GetRawUnderlyingBufferInfo(out ichMin, out ichLim);
@@ -1203,6 +1201,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParseKey(ref TX src, U8 min, U8 max, out U8 dst)
         {
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to unsigned integer type.");
+            Contracts.Check(!IsStdMissing(ref src), "Missing text value cannot be converted to unsigned integer type.");
             Contracts.Assert(min <= max);
 
             // This simply ensures we don't have min == 0 and max == U8.MaxValue. This is illegal since
@@ -1227,7 +1227,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             {
                 dst = 0;
                 // Return true only for standard forms for NA.
-                return IsStdMissing(ref src);
+                return false;
             }
 
             if (min > uu || uu > max)
@@ -1277,13 +1277,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out I1 dst)
         {
-            dst = default;
-            if (src.IsNA)
-            {
-                dst = I1.MinValue;
-                return true;
-            }
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
 
+            dst = default;
             TryParseSigned(I1.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
             Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
@@ -1297,13 +1293,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out I2 dst)
         {
-            dst = default;
-            if (src.IsNA)
-            {
-                dst = I2.MinValue;
-                return true;
-            }
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
 
+            dst = default;
             TryParseSigned(I2.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
             Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
@@ -1317,13 +1309,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out I4 dst)
         {
-            dst = default;
-            if (src.IsNA)
-            {
-                dst = I4.MinValue;
-                return true;
-            }
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
 
+            dst = default;
             TryParseSigned(I4.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to int32.");
             Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
@@ -1337,13 +1325,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out I8 dst)
         {
-            dst = default;
-            if (src.IsNA)
-            {
-                dst = I8.MinValue;
-                return true;
-            }
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
 
+            dst = default;
             TryParseSigned(I8.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
             dst = (I8)res;
@@ -1525,9 +1509,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         // These throw an exception for unparsable and overflow values.
         private I1 ParseI1(ref TX src)
         {
-            if (src.IsNA)
-                return I1.MinValue;
-
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
             TryParseSigned(I1.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
             Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
@@ -1536,9 +1518,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private I2 ParseI2(ref TX src)
         {
-            if (src.IsNA)
-                return I2.MinValue;
-
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
             TryParseSigned(I2.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
             Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
@@ -1547,9 +1527,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private I4 ParseI4(ref TX src)
         {
-            if (src.IsNA)
-                return I4.MinValue;
-
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
             TryParseSigned(I4.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to int.");
             Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
@@ -1558,9 +1536,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private I8 ParseI8(ref TX src)
         {
-            if (src.IsNA)
-                return I8.MinValue;
-
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
             TryParseSigned(I8.MaxValue, ref src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
             return res.Value;
@@ -1571,6 +1547,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         // unsigned integer types.
         private U1 ParseU1(ref TX span)
         {
+            Contracts.Check(!span.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref span, out res))
                 return 0;
@@ -1581,6 +1558,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private U2 ParseU2(ref TX span)
         {
+            Contracts.Check(!span.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref span, out res))
                 return 0;
@@ -1591,6 +1569,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private U4 ParseU4(ref TX span)
         {
+            Contracts.Check(!span.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref span, out res))
                 return 0;
@@ -1601,6 +1580,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private U8 ParseU8(ref TX span)
         {
+            Contracts.Check(!span.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref span, out res))
                 return 0;
