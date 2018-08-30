@@ -18,6 +18,7 @@
           <item>The transform supports scoring only one example at a time.</item>
           <item>The name of input column(s) should match the name of input(s) in Tensorflow model.</item>
           <item>The name of the output column should match one of the operations in the Tensorflow graph.</item>
+          <item>Currently, float and double are the only acceptable data types for input/output.</item>
           <item>
             Upon success, the transform will introduce a new column in <see cref="IDataView"/> based on the name of the output column specified.
           </item>
@@ -27,12 +28,44 @@
     <example name="TensorflowTransform">
       <example>
         <code language="csharp">
+          pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;MNISTData&gt;(useHeader: false));
+          pipeline.Add(new ColumnCopier(("NumericImageVec", "Input");
           pipeline.Add(new TensorFlowScorer()
           {
-            ModelFile = &quot;path&quot;;
-            InputColumns = new []{&quot;input1&quot;, &quot;input2&quot; ... };
-            OutputColumn = &quot;output&quot;
+          ModelFile = model_location;
+          InputColumns = new []{ &quot;Input&quot; };
+            OutputColumn = &quot;Output&quot;
           }
+        </code>
+      </example>
+      <example>
+        <code language="csharp">
+            var pipeline = new LearningPipeline(seed: 1);
+            pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;CifarData&gt;(useHeader: false));
+            pipeline.Add(new ImageLoader((&quot;ImagePath&quot;, &quot;ImageReal&quot;))
+            {
+                ImageFolder = imageFolder
+            });
+
+            pipeline.Add(new ImageResizer((&quot;ImageReal&quot;, &quot;ImageCropped&quot;))
+            {
+                ImageHeight = imageHeight,
+                ImageWidth = imageWidth,
+                Resizing = ImageResizerTransformResizingKind.IsoCrop
+            });
+
+            pipeline.Add(new ImagePixelExtractor((&quot;ImageCropped&quot;, &quot;Input&quot;))
+            {
+                UseAlpha = false,
+                InterleaveArgb = true
+            });
+
+            pipeline.Add(new TensorFlowScorer()
+            {
+                ModelFile = model_location,
+                InputColumns = new[] { &quot;Input&quot; },
+                OutputColumn = &quot;Output&quot;
+            });
         </code>
       </example>
     </example>

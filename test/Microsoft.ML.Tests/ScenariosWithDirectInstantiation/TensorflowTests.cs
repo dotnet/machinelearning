@@ -176,7 +176,7 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TensorFlowTransformCifar()
         {
-            var model_location =  "cifar_model/frozen_model.pb";
+            var model_location = "cifar_model/frozen_model.pb";
 
             using (var env = new TlcEnvironment())
             {
