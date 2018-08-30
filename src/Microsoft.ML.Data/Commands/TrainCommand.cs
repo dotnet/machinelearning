@@ -60,8 +60,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Normalize option for the feature column", ShortName = "norm")]
             public NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr")]
-            public SubComponent<ITrainer, SignatureTrainer> Trainer = new SubComponent<ITrainer, SignatureTrainer>("AveragedPerceptron");
+            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", SignatureType = typeof(SignatureTrainer))]
+            public IComponentFactory<ITrainer> Trainer;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The validation data file", ShortName = "valid")]
             public string ValidationFile;
@@ -81,8 +81,7 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string Summary = "Trains a predictor.";
 
-        private readonly ComponentCatalog.LoadableClassInfo _info;
-        private readonly SubComponent<ITrainer, SignatureTrainer> _trainer;
+        private readonly IComponentFactory<ITrainer> _trainer;
 
         private readonly string _labelColumn;
         private readonly string _featureColumn;
@@ -94,7 +93,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env, args, nameof(TrainCommand))
         {
             Host.CheckNonWhiteSpace(args.OutputModelFile, nameof(args.OutputModelFile));
-            _info = TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
+            TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
             _trainer = args.Trainer;
 
             _labelColumn = args.LabelColumn;
@@ -137,7 +136,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(cmd);
 
             ch.Trace("Constructing trainer");
-            ITrainer trainer = _trainer.CreateInstance(Host);
+            ITrainer trainer = _trainer.CreateComponent(Host);
 
             IPredictor inputPredictor = null;
             if (Args.ContinueTrain && !TrainUtils.TryLoadPredictor(ch, Host, Args.InputModelFile, out inputPredictor))
@@ -187,19 +186,13 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class TrainUtils
     {
-        public static ComponentCatalog.LoadableClassInfo CheckTrainer<TSig>(IExceptionContext ectx, SubComponent<ITrainer, TSig> trainer, string dataFile)
+        public static void CheckTrainer(IExceptionContext ectx, IComponentFactory<ITrainer> trainer, string dataFile)
         {
             Contracts.CheckValueOrNull(ectx);
-            ectx.CheckUserArg(trainer.IsGood(), nameof(TrainCommand.Arguments.Trainer), "A trainer is required.");
+            ectx.CheckValue(trainer, nameof(TrainCommand.Arguments.Trainer), "A trainer is required.");
 
-            var info = ComponentCatalog.GetLoadableClassInfo<TSig>(trainer.Kind);
-            if (info == null)
-                throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.Trainer), "Unknown trainer: '{0}'", trainer.Kind);
-            if (!typeof(ITrainer).IsAssignableFrom(info.Type))
-                throw ectx.Except("Loadable class '{0}' does not implement 'ITrainer'", info.LoadNames[0]);
             if (string.IsNullOrWhiteSpace(dataFile))
                 throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.DataFile), "Data file must be defined.");
-            return info;
         }
 
         /// <summary>
