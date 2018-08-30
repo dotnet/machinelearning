@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Sweeper;
 
@@ -21,11 +22,11 @@ namespace Microsoft.ML.Runtime.Sweeper
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p")]
-            public SubComponent[] SweptParameters;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
+            public IComponentFactory<IValueGenerator>[] SweptParameters;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The sweeper used to get the initial results.", ShortName = "init")]
-            public SubComponent<ISweeper, SignatureSweeperFromParameterList> FirstBatchSweeper = new SubComponent<ISweeper, SignatureSweeperFromParameterList>("ldrandpl");
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The sweeper used to get the initial results.", ShortName = "init", SignatureType = typeof(SignatureSweeperFromParameterList))]
+            public IComponentFactory<IValueGenerator[], ISweeper> FirstBatchSweeper;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
             public int RandomSeed;
@@ -100,7 +101,7 @@ namespace Microsoft.ML.Runtime.Sweeper
             _sweepParameters = new List<IValueGenerator>();
             foreach (var sweptParameter in args.SweptParameters)
             {
-                var parameter = ComponentCatalog.CreateInstance<IValueGenerator, SignatureSweeperParameter>(env, sweptParameter);
+                var parameter = sweptParameter.CreateComponent(env);
                 // REVIEW: ideas about how to support discrete values:
                 // 1. assign each discrete value a random number (1-n) to make mirroring possible
                 // 2. each time we need to mirror a discrete value, sample from the remaining value
@@ -112,7 +113,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                 _sweepParameters.Add(parameterNumeric);
             }
 
-            _initSweeper = args.FirstBatchSweeper.CreateInstance(env, new object[] { _sweepParameters.ToArray() });
+            _initSweeper = args.FirstBatchSweeper.CreateComponent(env, _sweepParameters.ToArray());
             _dim = _sweepParameters.Count;
             env.CheckUserArg(_dim > 1, nameof(args.SweptParameters), "Nelder-Mead sweeper needs at least two parameters to sweep over.");
 

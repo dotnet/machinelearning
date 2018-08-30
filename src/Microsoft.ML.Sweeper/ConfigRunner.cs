@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper;
 
@@ -46,9 +47,9 @@ namespace Microsoft.ML.Runtime.Sweeper
             [Argument(ArgumentType.AtMostOnce, HelpText = "The executable name, including the path (the default is MAML.exe)")]
             public string Exe;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Specify how to extract the metrics from the result file.", ShortName = "ev")]
-            public SubComponent<ISweepResultEvaluator<string>, SignatureSweepResultEvaluator> ResultProcessor
-                = new SubComponent<ISweepResultEvaluator<string>, SignatureSweepResultEvaluator>("Tlc");
+            [Argument(ArgumentType.Multiple, HelpText = "Specify how to extract the metrics from the result file.", ShortName = "ev", SignatureType = typeof(SignatureSweepResultEvaluator))]
+            public IComponentFactory<ISweepResultEvaluator<string>> ResultProcessor = ComponentFactoryUtils.CreateFromFunction(
+                env => new InternalSweepResultEvaluator(env, new InternalSweepResultEvaluator.Arguments()));
 
             [Argument(ArgumentType.AtMostOnce, Hide = true)]
             public bool CalledFromUnitTestSuite;
@@ -74,7 +75,7 @@ namespace Microsoft.ML.Runtime.Sweeper
             ArgsPattern = args.ArgsPattern;
             OutputFolder = GetOutputFolderPath(args.OutputFolderName);
             Prefix = string.IsNullOrEmpty(args.Prefix) ? "" : args.Prefix;
-            ResultProcessor = args.ResultProcessor.CreateInstance(Host);
+            ResultProcessor = args.ResultProcessor.CreateComponent(Host);
             _calledFromUnitTestSuite = args.CalledFromUnitTestSuite;
             RunNums = new List<int>();
         }

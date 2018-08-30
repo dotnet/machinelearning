@@ -9,7 +9,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -26,37 +25,38 @@ namespace Microsoft.ML.Runtime.Data
 
         private static class DefaultEvaluatorTable
         {
-            private static volatile Dictionary<string, string> _knownEvaluatorLoadNames;
+            private static volatile Dictionary<string, Func<IHostEnvironment, IMamlEvaluator>> _knownEvaluatorFactories;
 
-            public static Dictionary<string, string> Instance
+            public static Dictionary<string, Func<IHostEnvironment, IMamlEvaluator>> Instance
             {
                 get
                 {
-                    if (_knownEvaluatorLoadNames == null)
+                    if (_knownEvaluatorFactories == null)
                     {
-                        var tmp = new Dictionary<string, string>();
-                        tmp.Add(MetadataUtils.Const.ScoreColumnKind.BinaryClassification, BinaryClassifierEvaluator.LoadName);
-                        tmp.Add(MetadataUtils.Const.ScoreColumnKind.MultiClassClassification, MultiClassClassifierEvaluator.LoadName);
-                        tmp.Add(MetadataUtils.Const.ScoreColumnKind.Regression, RegressionEvaluator.LoadName);
-                        tmp.Add(MetadataUtils.Const.ScoreColumnKind.MultiOutputRegression, MultiOutputRegressionEvaluator.LoadName);
-                        tmp.Add(MetadataUtils.Const.ScoreColumnKind.QuantileRegression, QuantileRegressionEvaluator.LoadName);
-                        tmp.Add(MetadataUtils.Const.ScoreColumnKind.Ranking, RankerEvaluator.LoadName);
-                        tmp.Add(MetadataUtils.Const.ScoreColumnKind.Clustering, ClusteringEvaluator.LoadName);
-                        tmp.Add(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, AnomalyDetectionEvaluator.LoadName);
-                        tmp.Add(MetadataUtils.Const.ScoreColumnKind.SequenceClassification, "SequenceClassifierEvaluator");
-                        Interlocked.CompareExchange(ref _knownEvaluatorLoadNames, tmp, null);
+                        var tmp = new Dictionary<string, Func<IHostEnvironment, IMamlEvaluator>>
+                        {
+                            { MetadataUtils.Const.ScoreColumnKind.BinaryClassification, env => new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments()) },
+                            { MetadataUtils.Const.ScoreColumnKind.MultiClassClassification, env => new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments()) },
+                            { MetadataUtils.Const.ScoreColumnKind.Regression, env => new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments()) },
+                            { MetadataUtils.Const.ScoreColumnKind.MultiOutputRegression, env => new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments()) },
+                            { MetadataUtils.Const.ScoreColumnKind.QuantileRegression, env => new QuantileRegressionMamlEvaluator(env, new QuantileRegressionMamlEvaluator.Arguments()) },
+                            { MetadataUtils.Const.ScoreColumnKind.Ranking, env => new RankerMamlEvaluator(env, new RankerMamlEvaluator.Arguments()) },
+                            { MetadataUtils.Const.ScoreColumnKind.Clustering, env => new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments()) },
+                            { MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, env => new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments()) }
+                        };
+                        //tmp.Add(MetadataUtils.Const.ScoreColumnKind.SequenceClassification, "SequenceClassifierEvaluator");
+                        Interlocked.CompareExchange(ref _knownEvaluatorFactories, tmp, null);
                     }
-                    return _knownEvaluatorLoadNames;
+                    return _knownEvaluatorFactories;
                 }
             }
         }
 
-        public static SubComponent<IMamlEvaluator, SignatureMamlEvaluator> GetEvaluatorType(IExceptionContext ectx, ISchema schema)
+        public static IMamlEvaluator GetEvaluator(IHostEnvironment env, ISchema schema)
         {
-            Contracts.CheckValueOrNull(ectx);
-            DvText tmp = default(DvText);
-            int col;
-            schema.GetMaxMetadataKind(out col, MetadataUtils.Kinds.ScoreColumnSetId, CheckScoreColumnKindIsKnown);
+            Contracts.CheckValueOrNull(env);
+            DvText tmp = default;
+            schema.GetMaxMetadataKind(out int col, MetadataUtils.Kinds.ScoreColumnSetId, CheckScoreColumnKindIsKnown);
             if (col >= 0)
             {
                 schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, col, ref tmp);
@@ -64,17 +64,17 @@ namespace Microsoft.ML.Runtime.Data
                 var map = DefaultEvaluatorTable.Instance;
                 // The next assert is guaranteed because it is checked in CheckScoreColumnKindIsKnown which is the lambda passed to GetMaxMetadataKind.
                 Contracts.Assert(map.ContainsKey(kind));
-                return new SubComponent<IMamlEvaluator, SignatureMamlEvaluator>(map[kind]);
+                return map[kind](env);
             }
 
             schema.GetMaxMetadataKind(out col, MetadataUtils.Kinds.ScoreColumnSetId, CheckScoreColumnKind);
             if (col >= 0)
             {
                 schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, col, ref tmp);
-                throw ectx.ExceptUserArg(nameof(EvaluateCommand.Arguments.Evaluator), "No default evaluator found for score column kind '{0}'.", tmp.ToString());
+                throw env.ExceptUserArg(nameof(EvaluateCommand.Arguments.Evaluator), "No default evaluator found for score column kind '{0}'.", tmp.ToString());
             }
 
-            throw ectx.ExceptParam(nameof(schema), "No score columns have been automatically detected.");
+            throw env.ExceptParam(nameof(schema), "No score columns have been automatically detected.");
         }
 
         // Lambda used as validator/filter in calls to GetMaxMetadataKind.
