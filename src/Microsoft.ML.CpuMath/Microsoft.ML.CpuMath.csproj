@@ -11,6 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\Microsoft.ML.Core\Utilities\Contracts.cs" />
 
     <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
@@ -26,5 +30,7 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <Compile Remove="CpuMathUtils.netcoreapp.cs" />
     <Compile Remove="SseIntrinsics.cs" />
+    <Compile Remove="AvxIntrinsics.cs" />
   </ItemGroup>
+
 </Project>
