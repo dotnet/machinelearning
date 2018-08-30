@@ -226,8 +226,11 @@ namespace Microsoft.ML.Runtime.Api
             env.AssertValue(data);
             env.AssertValueOrNull(schemaDefinition);
 
-            var intSchemaDefn = InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
-            return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, intSchemaDefn);
+            var outSchema = schemaDefinition == null
+                ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Write)
+                : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
+
+            return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, outSchema);
         }
 
         private abstract class TypedRowBase : IRow<TRow>
