@@ -184,7 +184,7 @@ namespace Microsoft.ML.Scenarios
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-                var images = new ImageLoaderTransform(env, new ImageLoaderTransform.Arguments()
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
                 {
                     Column = new ImageLoaderTransform.Column[1]
                     {
@@ -192,14 +192,14 @@ namespace Microsoft.ML.Scenarios
                     },
                     ImageFolder = imageFolder
                 }, data);
-                var cropped = new ImageResizerTransform(env, new ImageResizerTransform.Arguments()
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
                 {
                     Column = new ImageResizerTransform.Column[1]{
                         new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
                     }
                 }, images);
 
-                var pixels = new ImagePixelExtractorTransform(env, new ImagePixelExtractorTransform.Arguments()
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
                 {
                     Column = new ImagePixelExtractorTransform.Column[1]{
                         new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
