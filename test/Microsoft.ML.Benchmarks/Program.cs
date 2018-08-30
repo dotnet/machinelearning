@@ -8,15 +8,9 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Reports;
-using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Toolchains.InProcess;
-using System;
 using System.IO;
 using Microsoft.ML.Models;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Benchmarks;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -26,22 +20,18 @@ namespace Microsoft.ML.Benchmarks
         /// execute dotnet run -c Release and choose the benchmarks you want to run
         /// </summary>
         /// <param name="args"></param>
-        static void Main(string[] args)
-        {
-            BenchmarkSwitcher
+        static void Main(string[] args) 
+            => BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(null, CreateClrVsCoreConfig());
-        }
+                .Run(args, CreateCustomConfig());
 
-        private static IConfig CreateClrVsCoreConfig()
-        {
-            var config = DefaultConfig.Instance.With(
-                Job.ShortRun.
-                With(InProcessToolchain.Instance)).
-                With(new ClassificationMetricsColumn("AccuracyMacro", "Macro-average accuracy of the model")).
-                With(MemoryDiagnoser.Default);
-            return config;
-        }
+        private static IConfig CreateCustomConfig() 
+            => DefaultConfig.Instance
+                .With(Job.Default
+                    .WithMaxIterationCount(20)
+                    .With(InProcessToolchain.Instance))
+                .With(new ClassificationMetricsColumn("AccuracyMacro", "Macro-average accuracy of the model"))
+                .With(MemoryDiagnoser.Default);
 
         internal static string GetDataPath(string name)
             => Path.GetFullPath(Path.Combine(_dataRoot, name));
@@ -57,8 +47,8 @@ namespace Microsoft.ML.Benchmarks
 
     public class ClassificationMetricsColumn : IColumn
     {
-        string _metricName;
-        string _legend;
+        private readonly string _metricName;
+        private readonly string _legend;
 
         public ClassificationMetricsColumn(string metricName, string legend)
         {
@@ -70,19 +60,19 @@ namespace Microsoft.ML.Benchmarks
         public string Id => _metricName;
         public string Legend => _legend;
         public bool IsNumeric => true;
-        public bool IsDefault(Summary summary, Benchmark benchmark) => true;
+        public bool IsDefault(Summary summary, BenchmarkCase benchmark) => true;
         public bool IsAvailable(Summary summary) => true;
         public bool AlwaysShow => true;
         public ColumnCategory Category => ColumnCategory.Custom;
         public int PriorityInCategory => 1;
         public UnitType UnitType => UnitType.Dimensionless;
 
-        public string GetValue(Summary summary, Benchmark benchmark, ISummaryStyle style)
+        public string GetValue(Summary summary, BenchmarkCase benchmark, ISummaryStyle style)
         {
             var property = typeof(ClassificationMetrics).GetProperty(_metricName);
             return property.GetValue(StochasticDualCoordinateAscentClassifierBench.s_metrics).ToString();
         }
-        public string GetValue(Summary summary, Benchmark benchmark) => GetValue(summary, benchmark, null);
+        public string GetValue(Summary summary, BenchmarkCase benchmark) => GetValue(summary, benchmark, null);
 
         public override string ToString() => ColumnName;
     }

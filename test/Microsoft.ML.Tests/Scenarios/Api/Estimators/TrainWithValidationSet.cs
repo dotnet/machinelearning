@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Learners;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -22,16 +23,17 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline.
-                var pipeline = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()));
+                var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
+                var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs());
 
                 // Train the pipeline, prepare train and validation set.
-                var reader = pipeline.Fit(new MultiFileSource(dataPath));
-                var trainData = reader.Read(new MultiFileSource(dataPath));
-                var validData = reader.Read(new MultiFileSource(validationDataPath));
+                var data = reader.Read(new MultiFileSource(dataPath));
+                var preprocess = pipeline.Fit(data);
+                var trainData = preprocess.Transform(data);
+                var validData = preprocess.Transform(reader.Read(new MultiFileSource(validationDataPath)));
 
                 // Train model with validation set.
-                var trainer = new MySdca(env, new Runtime.Learners.LinearClassificationTrainer.Arguments(), "Features", "Label");
+                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments(), "Features", "Label");
                 var model = trainer.Train(trainData, validData);
             }
         }

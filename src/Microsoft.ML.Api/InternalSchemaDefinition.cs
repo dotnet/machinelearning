@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using static Microsoft.ML.Runtime.Api.SchemaDefinition;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -30,23 +30,27 @@ namespace Microsoft.ML.Runtime.Api
             public readonly Delegate Generator;
             private readonly Dictionary<string, MetadataInfo> _metadata;
             public Dictionary<string, MetadataInfo> Metadata { get { return _metadata; } }
-            public Type ComputedReturnType {get { return ReturnParameterInfo.ParameterType.GetElementType(); }}
+            public Type ComputedReturnType { get { return ReturnParameterInfo.ParameterType.GetElementType(); } }
             public Type FieldOrPropertyType => (MemberInfo is FieldInfo) ? (MemberInfo as FieldInfo).FieldType : (MemberInfo as PropertyInfo).PropertyType;
             public Type OutputType => IsComputed ? ComputedReturnType : FieldOrPropertyType;
 
             public Column(string columnName, ColumnType columnType, MemberInfo memberInfo) :
-                this(columnName, columnType, memberInfo, null, null) { }
+                this(columnName, columnType, memberInfo, null, null)
+            { }
 
             public Column(string columnName, ColumnType columnType, MemberInfo memberInfo,
                 Dictionary<string, MetadataInfo> metadataInfos) :
-                this(columnName, columnType, memberInfo, null, metadataInfos) { }
+                this(columnName, columnType, memberInfo, null, metadataInfos)
+            { }
 
             public Column(string columnName, ColumnType columnType, Delegate generator) :
-                this(columnName, columnType, null, generator, null) { }
+                this(columnName, columnType, null, generator, null)
+            { }
 
             public Column(string columnName, ColumnType columnType, Delegate generator,
                 Dictionary<string, MetadataInfo> metadataInfos) :
-                this(columnName, columnType, null, generator, metadataInfos) { }
+                this(columnName, columnType, null, generator, metadataInfos)
+            { }
 
             private Column(string columnName, ColumnType columnType, MemberInfo memberInfo = null,
                 Delegate generator = null, Dictionary<string, MetadataInfo> metadataInfos = null)
@@ -204,13 +208,16 @@ namespace Microsoft.ML.Runtime.Api
                 throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type for member {0}", name);
         }
 
-        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition = null)
+        public static InternalSchemaDefinition Create(Type userType, Direction direction)
+        {
+            var userSchemaDefinition = SchemaDefinition.Create(userType, direction);
+            return Create(userType, userSchemaDefinition);
+        }
+
+        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition)
         {
             Contracts.AssertValue(userType);
-            Contracts.AssertValueOrNull(userSchemaDefinition);
-
-            if (userSchemaDefinition == null)
-                userSchemaDefinition = SchemaDefinition.Create(userType);
+            Contracts.AssertValue(userSchemaDefinition);
 
             Column[] dstCols = new Column[userSchemaDefinition.Count];
 
@@ -238,7 +245,7 @@ namespace Microsoft.ML.Runtime.Api
 
                     //Clause to handle the field that may be used to expose the cursor channel.
                     //This field does not need a column.
-                    if ( (memberInfo is FieldInfo && (memberInfo as FieldInfo).FieldType == typeof(IChannel)) ||
+                    if ((memberInfo is FieldInfo && (memberInfo as FieldInfo).FieldType == typeof(IChannel)) ||
                         (memberInfo is PropertyInfo && (memberInfo as PropertyInfo).PropertyType == typeof(IChannel)))
                         continue;
 

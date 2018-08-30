@@ -118,15 +118,6 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            protected void SendTelemetryComponent(IPipe<TelemetryMessage> pipe, SubComponent sub)
-            {
-                Host.AssertValue(pipe);
-                Host.AssertValueOrNull(sub);
-
-                if (sub.IsGood())
-                    pipe.Send(TelemetryMessage.CreateTrainer(sub.Kind, sub.SubComponentSettings));
-            }
-
             protected void SendTelemetryComponent(IPipe<TelemetryMessage> pipe, IComponentFactory factory)
             {
                 Host.AssertValue(pipe);
@@ -371,11 +362,11 @@ namespace Microsoft.ML.Runtime.Data
                         var isBinary = string.Equals(ext, ".idv", StringComparison.OrdinalIgnoreCase);
                         var isTranspose = string.Equals(ext, ".tdv", StringComparison.OrdinalIgnoreCase);
 
-                        return isText ? new TextLoader(Host, new TextLoader.Arguments(), fileSource) :
+                        return isText ? TextLoader.Create(Host, new TextLoader.Arguments(), fileSource) :
                                isBinary ? new BinaryLoader(Host, new BinaryLoader.Arguments(), fileSource) :
                                isTranspose ? new TransposeLoader(Host, new TransposeLoader.Arguments(), fileSource) :
                                defaultLoaderFactory != null ? defaultLoaderFactory(Host, fileSource) :
-                               new TextLoader(Host, new TextLoader.Arguments(), fileSource);
+                               TextLoader.Create(Host, new TextLoader.Arguments(), fileSource);
                     }
                     else
                     {

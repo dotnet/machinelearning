@@ -34,23 +34,59 @@ namespace Microsoft.ML.Core.Data
             public readonly bool IsKey;
             public readonly string[] MetadataKinds;
 
-            public Column(string name, VectorKind vecKind, DataKind itemKind, bool isKey, string[] metadataKinds)
+            public Column(string name, VectorKind vecKind, DataKind itemKind, bool isKey, string[] metadataKinds = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
-                Contracts.CheckValue(metadataKinds, nameof(metadataKinds));
+                Contracts.CheckValueOrNull(metadataKinds);
 
                 Name = name;
                 Kind = vecKind;
                 ItemKind = itemKind;
                 IsKey = isKey;
-                MetadataKinds = metadataKinds;
+                MetadataKinds = metadataKinds ?? new string[0];
+            }
+
+            /// <summary>
+            /// Returns whether <paramref name="inputColumn"/> is a valid input, if this object represents a
+            /// requirement.
+            ///
+            /// Namely, it returns true iff:
+            ///  - The <see cref="Name"/>, <see cref="Kind"/>, <see cref="ItemKind"/>, <see cref="IsKey"/> fields match.
+            ///  - The <see cref="MetadataKinds"/> of <paramref name="inputColumn"/> is a superset of our <see cref="MetadataKinds"/>.
+            /// </summary>
+            public bool IsCompatibleWith(Column inputColumn)
+            {
+                Contracts.CheckValue(inputColumn, nameof(inputColumn));
+                if (Name != inputColumn.Name)
+                    return false;
+                if (Kind != inputColumn.Kind)
+                    return false;
+                if (ItemKind != inputColumn.ItemKind)
+                    return false;
+                if (IsKey != inputColumn.IsKey)
+                    return false;
+                if (inputColumn.MetadataKinds.Except(MetadataKinds).Any())
+                    return false;
+                return true;
+            }
+
+            public string GetTypeString()
+            {
+                string result = ItemKind.ToString();
+                if (IsKey)
+                    result = $"Key<{result}>";
+                if (Kind == VectorKind.Vector)
+                    result = $"Vector<{result}>";
+                else if (Kind == VectorKind.VariableVector)
+                    result = $"VarVector<{result}>";
+                return result;
             }
         }
 
-        public SchemaShape(Column[] columns)
+        public SchemaShape(IEnumerable<Column> columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            Columns = columns;
+            Columns = columns.ToArray();
         }
 
         /// <summary>

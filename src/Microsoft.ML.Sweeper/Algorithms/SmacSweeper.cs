@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Sweeper;
 
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -28,8 +29,8 @@ namespace Microsoft.ML.Runtime.Sweeper
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p")]
-            public SubComponent<IValueGenerator, SignatureSweeperParameter>[] SweptParameters;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
+            public IComponentFactory<IValueGenerator>[] SweptParameters;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
             public int RandomSeed;
@@ -83,7 +84,7 @@ namespace Microsoft.ML.Runtime.Sweeper
 
             _args = args;
             _host.CheckUserArg(Utils.Size(args.SweptParameters) > 0, nameof(args.SweptParameters), "SMAC sweeper needs at least one parameter to sweep over");
-            _sweepParameters = args.SweptParameters.Select(p => p.CreateInstance(_host)).ToArray();
+            _sweepParameters = args.SweptParameters.Select(p => p.CreateComponent(_host)).ToArray();
             _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.ArgumentsBase(), _sweepParameters);
         }
 

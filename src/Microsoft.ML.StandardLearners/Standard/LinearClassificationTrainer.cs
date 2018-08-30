@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -147,8 +148,9 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public abstract class SdcaTrainerBase<TPredictor> : LinearTrainerBase<TPredictor>
-        where TPredictor : IPredictor
+    public abstract class SdcaTrainerBase<TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
+        where TTransformer : IPredictionTransformer<TModel>
+        where TModel : IPredictor
     {
         // REVIEW: Making it even faster and more accurate:
         // 1. Train with not-too-many threads. nt = 2 or 4 seems to be good enough. Didn't seem additional benefit over more threads.
@@ -240,14 +242,19 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected override bool ShuffleData => _args.Shuffle;
 
-        protected SdcaTrainerBase(ArgumentsBase args, IHostEnvironment env, string name)
-            : base(env, name)
+        protected SdcaTrainerBase(IHost host, ArgumentsBase args, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = null)
+            : base(host, feature, label, weight)
         {
             _args = args;
-            _args.Check(env);
+            _args.Check(host);
         }
 
-        protected sealed override TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
+        protected Float WDot(ref VBuffer<Float> features, ref VBuffer<Float> weights, Float bias)
+        {
+            return VectorUtils.DotProduct(ref weights, ref features) + bias;
+        }
+
+        protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
         {
             Contracts.Assert(predictor == null, "SDCA based trainers don't support continuous training.");
             Contracts.Assert(weightSetCount >= 1);
@@ -603,7 +610,7 @@ namespace Microsoft.ML.Runtime.Learners
             return CreatePredictor(weights, bias);
         }
 
-        protected abstract TPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias);
+        protected abstract TModel CreatePredictor(VBuffer<Float>[] weights, Float[] bias);
 
         // Assign an upper bound for number of iterations based on data set size first.
         // This ensures SDCA will not run forever...
@@ -1351,7 +1358,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed class LinearClassificationTrainer : SdcaTrainerBase<TScalarPredictor>
+    public sealed class LinearClassificationTrainer : SdcaTrainerBase<BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
     {
         public const string LoadNameValue = "SDCA";
         public const string UserNameValue = "Fast Linear (SA-SDCA)";
@@ -1383,19 +1390,61 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected override bool ShuffleData => _args.Shuffle;
 
+        protected override SchemaShape.Column[] OutputColumns { get; }
+
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         public override TrainerInfo Info { get; }
 
-        public LinearClassificationTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, LoadNameValue)
+        public LinearClassificationTrainer(IHostEnvironment env, Arguments args,
+            string featureColumn, string labelColumn, string weightColumn = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
         {
             _loss = args.LossFunction.CreateComponent(env);
-            base.Loss = _loss;
+            Loss = _loss;
             Info = new TrainerInfo(calibration: !(_loss is LogLoss));
-            NeedShuffle = args.Shuffle;
             _args = args;
             _positiveInstanceWeight = _args.PositiveInstanceWeight;
+            OutputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, DataKind.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, DataKind.BL, false)
+            };
+        }
+
+        public LinearClassificationTrainer(IHostEnvironment env, Arguments args)
+            : this(env, args, args.FeatureColumn, args.LabelColumn)
+        {
+        }
+
+        protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
+        {
+            Contracts.AssertValue(labelCol);
+
+            Action error =
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "BL, R8, R4 or a Key", labelCol.GetTypeString());
+
+            if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
+                error();
+            if (!labelCol.IsKey && labelCol.ItemKind != DataKind.R4 && labelCol.ItemKind != DataKind.R8 && labelCol.ItemKind != DataKind.BL)
+                error();
+        }
+
+        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, DataKind.R4, false);
+        }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, DataKind.BL, false);
+        }
+
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, DataKind.R4, false);
         }
 
         protected override TScalarPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
@@ -1407,6 +1456,7 @@ namespace Microsoft.ML.Runtime.Learners
             VBuffer<Float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(ref weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
+
             var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias[0]);
             if (!(_loss is LogLoss))
                 return predictor;
@@ -1423,6 +1473,11 @@ namespace Microsoft.ML.Runtime.Learners
             examples.CheckBinaryLabel();
             weightSetCount = 1;
         }
+
+        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, ISchema trainSchema)
+            => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IDataView validationData) => TrainTransformer(trainData, validationData);
     }
 
     public sealed class StochasticGradientDescentClassificationTrainer :
@@ -1748,7 +1803,6 @@ namespace Microsoft.ML.Runtime.Learners
                 () => new LinearClassificationTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
-
         }
     }
 }
