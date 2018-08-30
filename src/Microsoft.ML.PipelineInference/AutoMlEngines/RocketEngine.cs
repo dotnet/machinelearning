@@ -101,9 +101,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // If first time optimizing hyperparams, create new hyperparameter sweeper.
             if (!_hyperSweepers.ContainsKey(learner.LearnerName))
             {
-                var paramTups = AutoMlUtils.ConvertToSweepArgumentStrings(learner.PipelineNode.SweepParams);
-                var sps = paramTups.Select(tup =>
-                    new SubComponent<IValueGenerator, SignatureSweeperParameter>(tup.Item1, tup.Item2)).ToArray();
+                var sps = AutoMlUtils.ConvertToComponentFactories(learner.PipelineNode.SweepParams);
                 if (sps.Length > 0)
                 {
                     _hyperSweepers[learner.LearnerName] = new KdoSweeper(Env,

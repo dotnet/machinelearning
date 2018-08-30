@@ -3732,5 +3732,18 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
             }
         }
+
+        [Fact]
+        public void EntryPointTensorFlowTransform()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
+                new[] { "Transforms.TensorFlowScorer" },
+                new[]
+                {
+                    @"'InputColumns': [ 'Placeholder' ],
+                      'ModelFile': 'mnist_model/frozen_saved_model.pb',
+                      'OutputColumn': 'Softmax'"
+                });
+        }
     }
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System;
 
@@ -10,14 +11,38 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     public static partial class CpuMathUtils
     {
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
-        public const int Vector128Alignment = 16;
+        private const int Vector128Alignment = 16;
+
+        // The count of bytes in Vector256<T>, corresponding to _cbAlign in AlignedArray
+        private const int Vector256Alignment = 32;
+
+        // The count of bytes in a 32-bit float, corresponding to _cbAlign in AlignedArray
+        private const int FloatAlignment = 4;
+
+        // If neither AVX nor SSE is supported, return basic alignment for a 4-byte float.
+        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
+        public static int GetVectorAlignment()
+            => Avx.IsSupported ? Vector256Alignment : (Sse.IsSupported ? Vector128Alignment : FloatAlignment);
 
         public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
         {
             Contracts.Assert(mat.Size == dst.Size * src.Size);
             Contracts.Assert(crun >= 0);
 
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                if (!tran)
+                {
+                    Contracts.Assert(crun <= dst.Size);
+                    AvxIntrinsics.MatMulX(add, mat, src, dst, crun, src.Size);
+                }
+                else
+                {
+                    Contracts.Assert(crun <= src.Size);
+                    AvxIntrinsics.MatMulTranX(add, mat, src, dst, dst.Size, crun);
+                }
+            }
+            else if (Sse.IsSupported)
             {
                 if (!tran)
                 {
@@ -96,7 +121,20 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.AssertNonEmpty(rgposSrc);
             Contracts.Assert(crun >= 0);
 
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                if (!tran)
+                {
+                    Contracts.Assert(crun <= dst.Size);
+                    AvxIntrinsics.MatMulPX(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
+                }
+                else
+                {
+                    Contracts.Assert(crun <= srcValues.Size);
+                    AvxIntrinsics.MatMulTranPX(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
+                }
+            }
+            else if (Sse.IsSupported)
             {
                 if (!tran)
                 {
@@ -170,7 +208,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void Add(float a, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddScalarU(a, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.AddScalarU(a, dst);
             }
@@ -204,7 +246,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void Scale(float a, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.ScaleU(a, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.ScaleU(a, dst);
             }
@@ -231,7 +277,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void Scale(float a, Span<float> src, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.ScaleSrcU(a, src, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.ScaleSrcU(a, src, dst);
             }
@@ -256,7 +306,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void ScaleAdd(float a, float b, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.ScaleAddU(a, b, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.ScaleAddU(a, b, dst);
             }
@@ -295,7 +349,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void AddScale(float a, Span<float> src, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddScaleU(a, src, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.AddScaleU(a, src, dst);
             }
@@ -339,7 +397,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void AddScale(float a, Span<float> src, Span<int> indices, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddScaleSU(a, src, indices, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.AddScaleSU(a, src, indices, dst);
             }
@@ -368,7 +430,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void AddScaleCopy(float a, Span<float> src, Span<float> dst, Span<float> res)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddScaleCopyU(a, src, dst, res);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.AddScaleCopyU(a, src, dst, res);
             }
@@ -394,7 +460,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void Add(Span<float> src, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddU(src, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.AddU(src, dst);
             }
@@ -438,7 +508,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void Add(Span<float> src, Span<int> indices, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.AddSU(src, indices, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.AddSU(src, indices, dst);
             }
@@ -467,7 +541,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void MulElementWise(Span<float> src1, Span<float> src2, Span<float> dst)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.MulElementWiseU(src1, src2, dst);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.MulElementWiseU(src1, src2, dst);
             }
@@ -501,7 +579,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static float Sum(Span<float> src)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.SumU(src);
+            }
+            else if (Sse.IsSupported)
             {
                 return SseIntrinsics.SumU(src);
             }
@@ -537,7 +619,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static float SumSq(Span<float> src)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.SumSqU(src);
+            }
+            else if (Sse.IsSupported)
             {
                 return SseIntrinsics.SumSqU(src);
             }
@@ -564,7 +650,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static float SumSq(float mean, Span<float> src)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                return (mean == 0) ? AvxIntrinsics.SumSqU(src) : AvxIntrinsics.SumSqDiffU(mean, src);
+            }
+            else if (Sse.IsSupported)
             {
                 return (mean == 0) ? SseIntrinsics.SumSqU(src) : SseIntrinsics.SumSqDiffU(mean, src);
             }
@@ -600,7 +690,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static float SumAbs(Span<float> src)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.SumAbsU(src);
+            }
+            else if (Sse.IsSupported)
             {
                 return SseIntrinsics.SumAbsU(src);
             }
@@ -627,7 +721,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static float SumAbs(float mean, Span<float> src)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                return (mean == 0) ? AvxIntrinsics.SumAbsU(src) : AvxIntrinsics.SumAbsDiffU(mean, src);
+            }
+            else if (Sse.IsSupported)
             {
                 return (mean == 0) ? SseIntrinsics.SumAbsU(src) : SseIntrinsics.SumAbsDiffU(mean, src);
             }
@@ -663,7 +761,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static float MaxAbs(Span<float> src)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.MaxAbsU(src);
+            }
+            else if (Sse.IsSupported)
             {
                 return SseIntrinsics.MaxAbsU(src);
             }
@@ -693,7 +795,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static float MaxAbsDiff(float mean, Span<float> src)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.MaxAbsDiffU(mean, src);
+            }
+            else if (Sse.IsSupported)
             {
                 return SseIntrinsics.MaxAbsDiffU(mean, src);
             }
@@ -737,7 +843,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static float DotProductDense(Span<float> a, Span<float> b)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.DotU(a, b);
+            }
+            else if (Sse.IsSupported)
             {
                 return SseIntrinsics.DotU(a, b);
             }
@@ -784,7 +894,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static float DotProductSparse(Span<float> a, Span<float> b, Span<int> indices)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.DotSU(a, b, indices);
+            }
+            else if (Sse.IsSupported)
             {
                 return SseIntrinsics.DotSU(a, b, indices);
             }
@@ -813,7 +927,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static float L2DistSquared(Span<float> a, Span<float> b)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                return AvxIntrinsics.Dist2(a, b);
+            }
+            else if (Sse.IsSupported)
             {
                 return SseIntrinsics.Dist2(a, b);
             }
@@ -909,7 +1027,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void SdcaL1UpdateDense(float primalUpdate, Span<float> src, float threshold, Span<float> v, Span<float> w)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.SdcaL1UpdateU(primalUpdate, src, threshold, v, w);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.SdcaL1UpdateU(primalUpdate, src, threshold, v, w);
             }
@@ -943,7 +1065,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static void SdcaL1UpdateSparse(float primalUpdate, Span<float> src, Span<int> indices, float threshold, Span<float> v, Span<float> w)
         {
-            if (Sse.IsSupported)
+            if (Avx.IsSupported)
+            {
+                AvxIntrinsics.SdcaL1UpdateSU(primalUpdate, src, indices, threshold, v, w);
+            }
+            else if (Sse.IsSupported)
             {
                 SseIntrinsics.SdcaL1UpdateSU(primalUpdate, src, indices, threshold, v, w);
             }
