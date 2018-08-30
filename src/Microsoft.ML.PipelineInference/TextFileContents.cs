@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             messages.Add(msg);
                         });
-                    var idv = new TextLoader(loaderEnv, args, source).Take(1000);
+                    var idv = TextLoader.ReadFile(loaderEnv, args, source).Take(1000);
                     var columnCounts = new List<int>();
                     int columnIndex;
                     bool found = idv.Schema.TryGetColumnIndex("C", out columnIndex);

@@ -9,10 +9,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Tools;
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
         /// <param name="result">ExperimentItemResult object</param>
         public void Initialize(ExperimentItemResult result)
         {
-            LearnerName = result.Trainer.Kind;
+            LearnerName = result.TrainerKind;
             AllignResultHeaderNames(result);
             AllignSettingHeaderNames(result);
         }
@@ -229,9 +229,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
         public string TestDatafile;
 
         /// <summary>
-        /// the trainer SubComponent from the command.
+        /// the trainer kind/name from the command.
         /// </summary>
-        public SubComponent<ITrainer, SignatureTrainer> Trainer;
+        public string TrainerKind;
 
         /// <summary>
         /// The name of the output file produced by the Experiment Run
@@ -448,7 +448,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             ComponentCatalog.LoadableClassInfo trainerClass;
             string datafile = string.Empty;
             string testDatafile = string.Empty;
-            SubComponent<ITrainer, SignatureTrainer> trainer;
+            IComponentFactory<ITrainer> trainer;
             var trainTestArgs = commandArgs as TrainTestCommand.Arguments;
             if (trainTestArgs != null)
             {
@@ -518,7 +518,10 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
                 }
             }
             Contracts.AssertValue(trainer);
-            trainerClass = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(trainer.Kind);
+            ICommandLineComponentFactory commandLineTrainer = trainer as ICommandLineComponentFactory;
+            Contracts.AssertValue(commandLineTrainer, "ResultProcessor can only work with ICommandLineComponentFactory.");
+
+            trainerClass = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(commandLineTrainer.Name);
             trainerArgs = trainerClass.CreateArguments();
             Dictionary<string, string> predictorSettings;
             if (trainerArgs == null)
@@ -528,7 +531,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             }
             else
             {
-                CmdParser.ParseArguments(env, PredictionUtil.CombineSettings(trainer.Settings), trainerArgs);
+                CmdParser.ParseArguments(env, commandLineTrainer.GetSettingsString(), trainerArgs);
                 predictorSettings = CmdParser.GetSettingPairs(env, trainerArgs, trainerClass.CreateArguments(), SettingsFlags.ShortNames).
                     GroupBy(kvp => kvp.Key, kvp => kvp.Value).ToDictionary(g => "/" + g.Key, g => string.Join(",", g));
             }
@@ -547,7 +550,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
                     Commandline = commandline,
                     Datafile = datafile,
                     TestDatafile = testDatafile,
-                    Trainer = trainer,
+                    TrainerKind = commandLineTrainer.Name,
                     Settings = predictorSettings,
                 };
 
@@ -1226,7 +1229,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
                 bool newLearner;
                 PredictorResult predictorItem = GetPredictorObject(predictorResultsList,
-                    resultValue.Trainer.Kind, out newLearner);
+                    resultValue.TrainerKind, out newLearner);
 
                 if (predictorItem.PredictorList == null)
                     predictorItem.PredictorList = new List<ExperimentItemResult>();

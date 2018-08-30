@@ -137,14 +137,11 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public abstract class ArgumentsBase<TSigTrainer> : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", NullName = "<None>", SortOrder = 1)]
-            public SubComponent<ITrainer, TSigTrainer> Trainer;
-        }
+            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", NullName = "<None>", SortOrder = 1, SignatureType = typeof(SignatureTrainer))]
+            public IComponentFactory<ITrainer> Trainer;
 
-        public sealed class Arguments : ArgumentsBase<SignatureTrainer>
-        {
             [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
             public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
 
@@ -198,23 +195,23 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
-            env.CheckUserArg(args.Trainer.IsGood(), nameof(args.Trainer),
+            env.CheckValue(args.Trainer, nameof(args.Trainer),
                 "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
             env.CheckValue(input, nameof(input));
 
-            return Create(env, args, args.Trainer.CreateInstance(env), input, null);
+            return Create(env, args, args.Trainer.CreateComponent(env), input, null);
         }
 
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input, IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
-            env.CheckUserArg(args.Trainer.IsGood(), nameof(args.Trainer),
+            env.CheckValue(args.Trainer, nameof(args.Trainer),
                 "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
             env.CheckValue(input, nameof(input));
             env.CheckValueOrNull(mapperFactory);
 
-            return Create(env, args, args.Trainer.CreateInstance(env), input, mapperFactory);
+            return Create(env, args, args.Trainer.CreateComponent(env), input, mapperFactory);
         }
 
         private static IDataTransform Create(IHostEnvironment env, Arguments args, ITrainer trainer, IDataView input, IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory)
@@ -233,7 +230,7 @@ namespace Microsoft.ML.Runtime.Data
                 string feat;
                 string group;
                 var data = CreateDataFromArgs(ch, input, args, out feat, out group);
-                var predictor = TrainUtils.Train(host, ch, data, trainer, args.Trainer.Kind, null,
+                var predictor = TrainUtils.Train(host, ch, data, trainer, null,
                     args.Calibrator, args.MaxCalibrationExamples, null);
 
                 ch.Done();
@@ -242,16 +239,16 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static RoleMappedData CreateDataFromArgs<TSigTrainer>(IExceptionContext ectx, IDataView input,
-            ArgumentsBase<TSigTrainer> args)
+        public static RoleMappedData CreateDataFromArgs(IExceptionContext ectx, IDataView input,
+            ArgumentsBase args)
         {
             string feat;
             string group;
             return CreateDataFromArgs(ectx, input, args, out feat, out group);
         }
 
-        private static RoleMappedData CreateDataFromArgs<TSigTrainer>(IExceptionContext ectx, IDataView input,
-            ArgumentsBase<TSigTrainer> args, out string feat, out string group)
+        private static RoleMappedData CreateDataFromArgs(IExceptionContext ectx, IDataView input,
+            ArgumentsBase args, out string feat, out string group)
         {
             var schema = input.Schema;
             feat = TrainUtils.MatchNameOrDefaultOrNull(ectx, schema, nameof(args.FeatureColumn), args.FeatureColumn,

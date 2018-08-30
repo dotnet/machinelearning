@@ -11116,6 +11116,18 @@
           "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
         },
         {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
           "Name": "BatchSize",
           "Type": "Int",
           "Desc": "Number of entries in a batch when loading data.",
@@ -11597,6 +11609,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
+        },
+        {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -12082,6 +12106,18 @@
           "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
         },
         {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
           "Name": "BatchSize",
           "Type": "Int",
           "Desc": "Number of entries in a batch when loading data.",
@@ -12563,6 +12599,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
+        },
+        {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -21810,6 +21858,76 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 1000000000
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "Transforms.TensorFlowScorer",
+      "Desc": "Transforms the data using the TensorFlow model.",
+      "FriendlyName": "TensorFlowTransform",
+      "ShortName": "TFTransform",
+      "Inputs": [
+        {
+          "Name": "ModelFile",
+          "Type": "String",
+          "Desc": "This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
+          "Aliases": [
+            "ModelDir"
+          ],
+          "Required": true,
+          "SortOrder": 0.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "InputColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "The names of the model inputs",
+          "Aliases": [
+            "inputs"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "OutputColumn",
+          "Type": "String",
+          "Desc": "The name of the output",
+          "Aliases": [
+            "output"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
         }
       ],
       "Outputs": [

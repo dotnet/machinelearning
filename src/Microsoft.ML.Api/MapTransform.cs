@@ -65,8 +65,10 @@ namespace Microsoft.ML.Runtime.Api
             _mapAction = mapAction;
             _inputSchemaDefinition = inputSchemaDefinition;
             _typedSource = TypedCursorable<TSrc>.Create(Host, Source, false, inputSchemaDefinition);
+            var outSchema = outputSchemaDefinition == null
+               ? InternalSchemaDefinition.Create(typeof(TDst), SchemaDefinition.Direction.Write)
+               : InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
 
-            var outSchema = InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
             _schema = MergedSchema.Create(_source.Schema, outSchema);
         }
 

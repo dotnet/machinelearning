@@ -41,8 +41,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SortOrder = 101, SignatureType = typeof(SignatureDataScorer))]
             public IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> Scorer;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", NullName = "<Auto>", SortOrder = 102)]
-            public SubComponent<IMamlEvaluator, SignatureMamlEvaluator> Evaluator;
+            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", NullName = "<Auto>", SortOrder = 102, SignatureType = typeof(SignatureMamlEvaluator))]
+            public IComponentFactory<IMamlEvaluator> Evaluator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Results summary filename", ShortName = "sf")]
             public string SummaryFilename;
@@ -112,10 +112,8 @@ namespace Microsoft.ML.Runtime.Data
             IDataScorerTransform scorePipe = ScoreUtils.GetScorer(Args.Scorer, predictor, loader, features, group, customCols, Host, trainSchema);
 
             // Evaluate.
-            var evalComp = Args.Evaluator;
-            if (!evalComp.IsGood())
-                evalComp = EvaluateUtils.GetEvaluatorType(ch, scorePipe.Schema);
-            var evaluator = evalComp.CreateInstance(Host);
+            var evaluator = Args.Evaluator?.CreateComponent(Host) ??
+                EvaluateUtils.GetEvaluator(Host, scorePipe.Schema);
             var data = new RoleMappedData(scorePipe, label, null, group, weight, name, customCols);
             var metrics = evaluator.Evaluate(data);
             MetricWriter.PrintWarnings(ch, metrics);
