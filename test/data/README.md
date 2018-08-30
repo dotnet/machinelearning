@@ -48,7 +48,7 @@ Redistributing the dataset "taxi-fare-test.csv", "taxi-fare-train.csv" with attr
 
 # Images
 
-### Located in `images' folder
+### Located in `images` folder
 
 > "[Banana and cross section](https://commons.wikimedia.org/wiki/File:Banana_and_cross_section.jpg)" by [fir0002](https://en.wikipedia.org/wiki/User:Fir0002) is licensed under the [CC BY-NC](https://creativecommons.org/licenses/by/2.0/)
 >
