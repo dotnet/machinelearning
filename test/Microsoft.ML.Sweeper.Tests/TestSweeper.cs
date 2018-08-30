@@ -20,8 +20,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Sweeper.RunTests
 {
-    using Float = System.Single;
-
     public sealed partial class TestSweeper : BaseTestBaseline
     {
         public TestSweeper(ITestOutputHelper output) : base(output)
@@ -52,7 +50,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             IParameterValue param = paramSweep.CreateFromNormalized(0.345);
             float unNormalizedParam = paramSweep.NormalizeValue(param);
             Assert.Equal("5", param.ValueText);
-            Assert.Equal((Float)5 / 17, unNormalizedParam);
+            Assert.Equal((float)5 / 17, unNormalizedParam);
         }
 
         [Theory]
@@ -72,7 +70,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         {
             var paramSweep = new FloatValueGenerator(new FloatParamArguments() { Name = "bla", Min = 1, Max = 5 });
             var random = new Random(123);
-            var normalizedValue = (Float)random.NextDouble();
+            var normalizedValue = (float)random.NextDouble();
             var value = (FloatParameterValue)paramSweep.CreateFromNormalized(normalizedValue);
             var originalNormalizedValue = paramSweep.NormalizeValue(value);
             Assert.Equal(normalizedValue, originalNormalizedValue);
@@ -116,14 +114,12 @@ namespace Microsoft.ML.Sweeper.RunTests
                         if (parameterValue.Name == "foo")
                         {
                             var val = long.Parse(parameterValue.ValueText);
-                            Assert.True(val >= 10);
-                            Assert.True(val <= 20);
+                            Assert.InRange(val, 10, 20);
                         }
                         else if (parameterValue.Name == "bar")
                         {
                             var val = long.Parse(parameterValue.ValueText);
-                            Assert.True(val >= 100);
-                            Assert.True(val <= 200);
+                            Assert.InRange(val, 100, 200);
                         }
                         else
                         {
@@ -159,7 +155,7 @@ namespace Microsoft.ML.Sweeper.RunTests
 
                 // Test consumption without ever calling Update.
                 var gridArgs = new RandomGridSweeper.Arguments();
-                gridArgs.SweptParameters = new IComponentFactory<INumericValueGenerator> [] {
+                gridArgs.SweptParameters = new IComponentFactory<INumericValueGenerator>[] {
                     ComponentFactoryUtils.CreateFromFunction(
                         environ => new FloatValueGenerator(new FloatParamArguments() { Name = "foo", Min = 1, Max = 5})),
                     ComponentFactoryUtils.CreateFromFunction(
@@ -177,7 +173,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                 CheckAsyncSweeperResult(paramSets);
             }
         }
-        
+
         [Fact]
         public void TestDeterministicSweeperAsyncCancellation()
         {
@@ -199,7 +195,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                                     t => new LongValueGenerator(new LongParamArguments() { Name = "bar", Min = 1, Max = 1000, LogBase = true }))
                             }
                         }));
-                
+
                 var sweeper = new DeterministicSweeperAsync(env, args);
 
                 int sweeps = 20;
@@ -340,7 +336,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                 {
                     var task = sweeper.Propose();
                     task.Wait();
-                    Assert.True(task.Status == TaskStatus.RanToCompletion);
+                    Assert.Equal(TaskStatus.RanToCompletion, task.Status);
                     var paramWithId = task.Result;
                     if (paramWithId == null)
                         return;
@@ -412,15 +408,13 @@ namespace Microsoft.ML.Sweeper.RunTests
                 {
                     if (parameterValue.Name == "foo")
                     {
-                        var val = Float.Parse(parameterValue.ValueText, CultureInfo.InvariantCulture);
-                        Assert.True(val >= 1);
-                        Assert.True(val <= 5);
+                        var val = float.Parse(parameterValue.ValueText, CultureInfo.InvariantCulture);
+                        Assert.InRange(val, 1, 5);
                     }
                     else if (parameterValue.Name == "bar")
                     {
                         var val = long.Parse(parameterValue.ValueText);
-                        Assert.True(val >= 1);
-                        Assert.True(val <= 1000);
+                        Assert.InRange(val, 1, 1000);
                     }
                     else
                     {
@@ -566,15 +560,13 @@ namespace Microsoft.ML.Sweeper.RunTests
                         {
                             if (parameterValue.Name == "foo")
                             {
-                                var val = Float.Parse(parameterValue.ValueText, CultureInfo.InvariantCulture);
-                                Assert.True(val >= 1);
-                                Assert.True(val <= 5);
+                                var val = float.Parse(parameterValue.ValueText, CultureInfo.InvariantCulture);
+                                Assert.InRange(val, 1, 5);
                             }
                             else if (parameterValue.Name == "bar")
                             {
                                 var val = long.Parse(parameterValue.ValueText);
-                                Assert.True(val >= 1);
-                                Assert.True(val <= 1000);
+                                Assert.InRange(val, 1, 1000);
                             }
                             else
                             {
@@ -590,7 +582,6 @@ namespace Microsoft.ML.Sweeper.RunTests
             }
         }
 
-#if !PORTED
         [Fact]
         public void TestSmacSweeper()
         {
@@ -602,10 +593,14 @@ namespace Microsoft.ML.Sweeper.RunTests
                 {
                     int maxInitSweeps = 5;
                     args.NumberInitialPopulation = 20;
-                    args.SweptParameters = new[] {
-                        new SubComponent<IValueGenerator, SignatureSweeperParameter>("fp", "name=foo", "min=1", "max=5"),
-                        new SubComponent<IValueGenerator, SignatureSweeperParameter>("lp", "name=bar", "min=1", "max=1000", "logbase+"),
+
+                    args.SweptParameters = new IComponentFactory<INumericValueGenerator>[] {
+                        ComponentFactoryUtils.CreateFromFunction(
+                            environ => new FloatValueGenerator(new FloatParamArguments() { Name = "foo", Min = 1, Max = 5})),
+                        ComponentFactoryUtils.CreateFromFunction(
+                            environ => new LongValueGenerator(new LongParamArguments() { Name = "bar", Min = 1, Max = 100, LogBase = true }))
                     };
+
                     var sweeper = new SmacSweeper(env, args);
                     var results = new List<IRunResult>();
                     var sweeps = sweeper.ProposeSweeps(maxInitSweeps, results);
@@ -619,15 +614,13 @@ namespace Microsoft.ML.Sweeper.RunTests
                             {
                                 if (parameterValue.Name == "foo")
                                 {
-                                    var val = Float.Parse(parameterValue.ValueText, CultureInfo.InvariantCulture);
-                                    Assert.True(val >= 1);
-                                    Assert.True(val <= 5);
+                                    var val = float.Parse(parameterValue.ValueText, CultureInfo.InvariantCulture);
+                                    Assert.InRange(val, 1, 5);
                                 }
                                 else if (parameterValue.Name == "bar")
                                 {
                                     var val = long.Parse(parameterValue.ValueText);
-                                    Assert.True(val >= 1);
-                                    Assert.True(val <= 1000);
+                                    Assert.InRange(val, 1, 1000);
                                 }
                                 else
                                 {
@@ -639,11 +632,12 @@ namespace Microsoft.ML.Sweeper.RunTests
 
                         sweeps = sweeper.ProposeSweeps(5, results);
                     }
-                    Assert.True(sweeps.Length == 5);
+                    Assert.Equal(5, sweeps.Length);
                 }
             });
         }
 
+#if !PORTED
         [Fact]
         public void TestSimpleSweeperAsyncParallel()
         {
