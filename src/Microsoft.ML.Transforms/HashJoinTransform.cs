@@ -152,8 +152,7 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string RegistrationName = "HashJoin";
 
-        internal const string Summary = "Converts column values into hashes. This transform accepts both numeric and text inputs, both single and vector-valued columns. "
-            + "This is a part of the Dracula transform.";
+        internal const string Summary = "Converts column values into hashes. This transform accepts both numeric and text inputs, both single and vector-valued columns. ";
 
         internal const string UserName = "Hash Join Transform";
 

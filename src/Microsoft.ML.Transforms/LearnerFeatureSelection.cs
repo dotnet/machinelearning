@@ -7,8 +7,9 @@ using System.Collections.Generic;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
 
 [assembly: LoadableClass(LearnerFeatureSelectionTransform.Summary, typeof(IDataTransform), typeof(LearnerFeatureSelectionTransform), typeof(LearnerFeatureSelectionTransform.Arguments), typeof(SignatureDataTransform),
     "Learner Feature Selection Transform", "LearnerFeatureSelectionTransform", "LearnerFeatureSelection")]
@@ -32,9 +33,11 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of slots to preserve", ShortName = "topk", SortOrder = 1)]
             public int? NumSlotsToKeep;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Filter", ShortName = "f", SortOrder = 1)]
-            public SubComponent<ITrainer<IPredictorWithFeatureWeights<Single>>, SignatureFeatureScorerTrainer> Filter =
-                new SubComponent<ITrainer<IPredictorWithFeatureWeights<Single>>, SignatureFeatureScorerTrainer>("SDCA");
+            [Argument(ArgumentType.Multiple, HelpText = "Filter", ShortName = "f", SortOrder = 1, SignatureType = typeof(SignatureFeatureScorerTrainer))]
+            public IComponentFactory<ITrainer<IPredictorWithFeatureWeights<Single>>> Filter =
+                ComponentFactoryUtils.CreateFromFunction(env =>
+                    // ML.Transforms doesn't have a direct reference to ML.StandardLearners, so use ComponentCatalog to create the Filter
+                    ComponentCatalog.CreateInstance<ITrainer<IPredictorWithFeatureWeights<Single>>>(env, typeof(SignatureFeatureScorerTrainer), "SDCA", options: null));
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for features", ShortName = "feat,col", SortOrder = 3, Purpose = SpecialPurpose.ColumnName)]
             public string FeatureColumn = DefaultColumnNames.Features;
@@ -283,7 +286,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = host.Start("Train"))
             {
                 ch.Trace("Constructing trainer");
-                ITrainer trainer = args.Filter.CreateInstance(host);
+                ITrainer trainer = args.Filter.CreateComponent(host);
 
                 IDataView view = input;
 
@@ -301,7 +304,7 @@ namespace Microsoft.ML.Runtime.Data
                 var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, args.CustomColumn);
                 var data = new RoleMappedData(view, label, feature, group, weight, name, customCols);
 
-                var predictor = TrainUtils.Train(host, ch, data, trainer, args.Filter.Kind, null,
+                var predictor = TrainUtils.Train(host, ch, data, trainer, null,
                     null, 0, args.CacheData);
 
                 var rfs = predictor as IPredictorWithFeatureWeights<Single>;

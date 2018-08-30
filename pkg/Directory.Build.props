@@ -25,6 +25,8 @@
     <PackageProjectUrl>https://dot.net/ml</PackageProjectUrl>
     <PackageIconUrl>https://aka.ms/mlnetlogo</PackageIconUrl>
     <PackageReleaseNotes>https://aka.ms/mlnetreleasenotes</PackageReleaseNotes>
+    <!-- space separated -->
+    <PackageTags>ML.NET ML Machine Learning</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

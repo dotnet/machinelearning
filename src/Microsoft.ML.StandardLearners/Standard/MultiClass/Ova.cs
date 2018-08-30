@@ -89,10 +89,10 @@ namespace Microsoft.ML.Runtime.Learners
             if (Args.UseProbabilities)
             {
                 ICalibratorTrainer calibrator;
-                if (!Args.Calibrator.IsGood())
+                if (Args.Calibrator == null)
                     calibrator = null;
                 else
-                    calibrator = Args.Calibrator.CreateInstance(Host);
+                    calibrator = Args.Calibrator.CreateComponent(Host);
                 var res = CalibratorUtils.TrainCalibratorIfNeeded(Host, ch, calibrator, Args.MaxCalibrationExamples,
                     trainer, predictor, td);
                 predictor = res as TScalarPredictor;

@@ -29,10 +29,11 @@
         Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array
       </summary>
       <remarks>
-        <para>The CategoricalOneHotVectorizer transform passes through a data set, operating on text columns, to
+        <para>
+        The CategoricalOneHotVectorizer transform passes through a data set, operating on text columns, to
         build a dictionary of categories.
-        For each row, the entire text string appearing in the input column is defined as a category.
-        The output of this transform is an indicator vector.</para>
+        For each row, the entire text string appearing in the input column is defined as a category.</para>
+        <para>The output of this transform is an indicator vector.</para>
         Each slot in this vector corresponds to a category in the dictionary, so its length is the size of the built dictionary.
         <para>The CategoricalOneHotVectorizer can be applied to one or more columns, in which case it builds and uses a separate dictionary
         for each column that it is applied to.</para>
@@ -171,7 +172,7 @@
         This transform can transform either scalars or vectors (both fixed and variable size),
         creating output columns that indicate, through the true/false booleans whether the row has a missing value.
       </summary>
-      <seealso cref=" Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"></seealso>
+      <seealso cref="T:Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"></seealso>
     </member>
     <example name="NAIndicator">
       <example>
@@ -192,14 +193,14 @@
         with either the default value, user input, or imputed values (min/max/mean are currently supported).
         Imputation modes are supported for vectors both by slot and across all slots.
       </remarks>
-      <seealso cref=" Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"></seealso>
+      <seealso cref="T:Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"></seealso>
     </member>
     <example name="NAReplace">
       <example>
         <code language="csharp">
           pipeline.Add(new MissingValueSubstitutor(&quot;FeatureCol&quot;)
           { 
-            ReplacementKind = NAReplaceTransformReplacementKind.Mean 
+              ReplacementKind = NAReplaceTransformReplacementKind.Mean 
           });
         </code>
       </example>
@@ -221,7 +222,7 @@
         <code language="csharp">
           pipeline.Add(new LpNormalizer(&quot;FeatureCol&quot;)
           { 
-            NormKind = LpNormNormalizerTransformNormalizerKind.L1Norm
+              NormKind = LpNormNormalizerTransformNormalizerKind.L1Norm
           });
         </code>
       </example>
@@ -235,14 +236,15 @@
        </summary>
       <remarks>
         Scaling inputs to unit norms is a common operation for text classification or clustering.
-        For more information see: <a href="http://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf"></a>
+        For more information see: 
+        <a href="http://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf">An Analysis of Single-Layer Networks in Unsupervised Feature Learning</a>
       </remarks>
       <seealso cref=" Microsoft.ML.Transforms.LpNormalizer"></seealso>
       <example>
         <code language="csharp">
           pipeline.Add(new GlobalContrastNormalizer(&quot;FeatureCol&quot;)
           { 
-            SubMean= false
+              SubMean= false
           });
         </code>
       </example>
@@ -334,7 +336,7 @@
         <code language="csharp">
           pipeline.Add(new CombinerByContiguousGroupId
           { 
-            GroupKey = new []{&quot;Key1&quot;, &quot;Key2&quot; } 
+              GroupKey = new []{&quot;Key1&quot;, &quot;Key2&quot; } 
           });
         </code>
       </example>

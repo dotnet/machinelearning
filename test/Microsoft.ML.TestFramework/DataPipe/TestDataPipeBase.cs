@@ -8,6 +8,7 @@ using System.IO;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Xunit;
@@ -215,28 +216,35 @@ namespace Microsoft.ML.Runtime.RunTests
                 VerifyCustArgs(kvp.Value);
         }
 
-        protected void VerifyCustArgs<TRes, TSig>(SubComponent<TRes, TSig> sub)
+        protected void VerifyCustArgs<TArg, TRes>(IComponentFactory<TArg, TRes> factory)
             where TRes : class
         {
-            var str = CmdParser.CombineSettings(sub.Settings);
-            var info = ComponentCatalog.GetLoadableClassInfo<TSig>(sub.Kind);
-            Assert.NotNull(info);
-            var def = info.CreateArguments();
+            if (factory is ICommandLineComponentFactory commandLineFactory)
+            {
+                var str = commandLineFactory.GetSettingsString();
+                var info = ComponentCatalog.GetLoadableClassInfo(commandLineFactory.Name, commandLineFactory.SignatureType);
+                Assert.NotNull(info);
+                var def = info.CreateArguments();
 
-            var a1 = info.CreateArguments();
-            CmdParser.ParseArguments(Env, str, a1);
+                var a1 = info.CreateArguments();
+                CmdParser.ParseArguments(Env, str, a1);
 
-            // Get both the expanded and custom forms.
-            string exp1 = CmdParser.GetSettings(Env, a1, def, SettingsFlags.Default | SettingsFlags.NoUnparse);
-            string cust = CmdParser.GetSettings(Env, a1, def);
+                // Get both the expanded and custom forms.
+                string exp1 = CmdParser.GetSettings(Env, a1, def, SettingsFlags.Default | SettingsFlags.NoUnparse);
+                string cust = CmdParser.GetSettings(Env, a1, def);
 
-            // Map cust back to an object, then get its full form.
-            var a2 = info.CreateArguments();
-            CmdParser.ParseArguments(Env, cust, a2);
-            string exp2 = CmdParser.GetSettings(Env, a2, def, SettingsFlags.Default | SettingsFlags.NoUnparse);
+                // Map cust back to an object, then get its full form.
+                var a2 = info.CreateArguments();
+                CmdParser.ParseArguments(Env, cust, a2);
+                string exp2 = CmdParser.GetSettings(Env, a2, def, SettingsFlags.Default | SettingsFlags.NoUnparse);
 
-            if (exp1 != exp2)
-                Fail("Custom unparse failed on '{0}' starting with '{1}': '{2}' vs '{3}'", sub.Kind, str, exp1, exp2);
+                if (exp1 != exp2)
+                    Fail("Custom unparse failed on '{0}' starting with '{1}': '{2}' vs '{3}'", commandLineFactory.Name, str, exp1, exp2);
+            }
+            else
+            {
+                Fail($"TestDataPipeBase was called with a non command line loader or transform '{factory}'");
+            }
         }
 
         protected bool SaveLoadText(IDataView view, IHostEnvironment env,
@@ -287,13 +295,13 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // Note that we don't pass in "args", but pass in a default args so we test
             // the auto-schema parsing.
-            var loader = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(pathData));
-            if (!CheckMetadataTypes(loader.Schema))
+            var loadedData = TextLoader.ReadFile(env, new TextLoader.Arguments(), new MultiFileSource(pathData));
+            if (!CheckMetadataTypes(loadedData.Schema))
                 Failed();
 
-            if (!CheckSameSchemas(view.Schema, loader.Schema, exactTypes: false, keyNames: false))
+            if (!CheckSameSchemas(view.Schema, loadedData.Schema, exactTypes: false, keyNames: false))
                 return Failed();
-            if (!CheckSameValues(view, loader, exactTypes: false, exactDoubles: false, checkId: false))
+            if (!CheckSameValues(view, loadedData, exactTypes: false, exactDoubles: false, checkId: false))
                 return Failed();
             return true;
         }

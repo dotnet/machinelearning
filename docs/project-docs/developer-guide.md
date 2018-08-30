@@ -32,7 +32,8 @@ build.cmd -Release -TargetArchitecture:x64
 
 - Building the src and then building and running the tests
 ```
-build.cmd -RunTests
+build.cmd
+build.cmd -runTests
 ```
 
 ### Building individual projects

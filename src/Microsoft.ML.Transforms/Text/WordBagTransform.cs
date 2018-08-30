@@ -103,8 +103,10 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Tokenizer to use", ShortName = "tok")]
-            public SubComponent<ITokenizeTransform, SignatureTokenizeTransform> Tokenizer = new SubComponent<ITokenizeTransform, SignatureTokenizeTransform>("Token");
+            [Argument(ArgumentType.Multiple, HelpText = "Tokenizer to use", ShortName = "tok", SignatureType = typeof(SignatureTokenizeTransform))]
+            public IComponentFactory<IDataView, OneToOneColumn[], ITokenizeTransform> Tokenizer =
+                ComponentFactoryUtils.CreateFromFunction<IDataView, OneToOneColumn[], ITokenizeTransform>(
+                    (env, input, columns) => new DelimitedTokenizeTransform(env, new DelimitedTokenizeTransform.TokenizeArguments(), input, columns));
         }
 
         private const string RegistrationName = "WordBagTransform";
@@ -119,7 +121,7 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "Columns must be specified");
-            h.CheckUserArg(args.Tokenizer.IsGood(), nameof(args.Tokenizer), "tokenizer must be specified");
+            h.CheckUserArg(args.Tokenizer != null, nameof(args.Tokenizer), "tokenizer must be specified");
 
             // Compose the WordBagTransform from a tokenize transform,
             // followed by a NgramExtractionTransform.
@@ -174,7 +176,7 @@ namespace Microsoft.ML.Runtime.Data
 
             IDataView view = input;
             view = NgramExtractionUtils.ApplyConcatOnSources(h, args.Column, view);
-            view = args.Tokenizer.CreateInstance(h, view, tokenizeColumns);
+            view = args.Tokenizer.CreateComponent(h, view, tokenizeColumns);
             return NgramExtractorTransform.Create(h, extractorArgs, view);
         }
     }
@@ -451,8 +453,8 @@ namespace Microsoft.ML.Runtime.Data
         [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the terms", ShortName = "data", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
         public string DataFile;
 
-        [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-        public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+        [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
+        public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the terms", ShortName = "termCol", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
         public string TermsColumn;

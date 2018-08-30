@@ -29,7 +29,7 @@
           <item><description>In case of a ranking problem, the instances are ordered by the output value of the ensemble.</description></item>
         </list>
         <para>For more information see:</para>
-        <list>
+        <list type="bullet">
           <item><description><a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting).</a></description></item>
           <item><description><a href='http://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine.</a></description></item>
         </list>  

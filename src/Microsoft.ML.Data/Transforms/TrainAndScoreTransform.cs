@@ -36,8 +36,8 @@ namespace Microsoft.ML.Runtime.Data
                 ShortName = "col", SortOrder = 101, Purpose = SpecialPurpose.ColumnSelector)]
             public KeyValuePair<string, string>[] CustomColumn;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>")]
-            public SubComponent<IDataScorerTransform, SignatureDataScorer> Scorer;
+            [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SignatureType = typeof(SignatureDataScorer))]
+            public IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> Scorer;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Predictor model file used in scoring",
                 ShortName = "in", SortOrder = 2)]
@@ -137,22 +137,19 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public abstract class ArgumentsBase<TSigTrainer> : ArgumentsBase
+        public sealed class Arguments : ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", NullName = "<None>", SortOrder = 1)]
-            public SubComponent<ITrainer, TSigTrainer> Trainer;
-        }
+            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", NullName = "<None>", SortOrder = 1, SignatureType = typeof(SignatureTrainer))]
+            public IComponentFactory<ITrainer> Trainer;
 
-        public sealed class Arguments : ArgumentsBase<SignatureTrainer>
-        {
-            [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>")]
-            public SubComponent<ICalibratorTrainer, SignatureCalibrator> Calibrator = new SubComponent<ICalibratorTrainer, SignatureCalibrator>("PlattCalibration");
+            [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
+            public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of instances to train the calibrator", ShortName = "numcali")]
             public int MaxCalibrationExamples = 1000000000;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>")]
-            public SubComponent<IDataScorerTransform, SignatureDataScorer> Scorer;
+            [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SignatureType = typeof(SignatureDataScorer))]
+            public IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> Scorer;
         }
 
         internal const string Summary = "Trains a predictor, or loads it from a file, and runs it on the data.";
@@ -191,21 +188,33 @@ namespace Microsoft.ML.Runtime.Data
                 GroupColumn = groupColumn
             };
 
-            return Create(env, args, trainer, input);
+            return Create(env, args, trainer, input, null);
         }
 
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
-            env.CheckUserArg(args.Trainer.IsGood(), nameof(args.Trainer),
+            env.CheckValue(args.Trainer, nameof(args.Trainer),
                 "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
             env.CheckValue(input, nameof(input));
 
-            return Create(env, args, args.Trainer.CreateInstance(env), input);
+            return Create(env, args, args.Trainer.CreateComponent(env), input, null);
         }
 
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, ITrainer trainer, IDataView input)
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input, IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(args.Trainer, nameof(args.Trainer),
+                "Trainer cannot be null. If your model is already trained, please use ScoreTransform instead.");
+            env.CheckValue(input, nameof(input));
+            env.CheckValueOrNull(mapperFactory);
+
+            return Create(env, args, args.Trainer.CreateComponent(env), input, mapperFactory);
+        }
+
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, ITrainer trainer, IDataView input, IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory)
         {
             Contracts.AssertValue(env, nameof(env));
             env.AssertValue(args, nameof(args));
@@ -221,25 +230,25 @@ namespace Microsoft.ML.Runtime.Data
                 string feat;
                 string group;
                 var data = CreateDataFromArgs(ch, input, args, out feat, out group);
-                var predictor = TrainUtils.Train(host, ch, data, trainer, args.Trainer.Kind, null,
+                var predictor = TrainUtils.Train(host, ch, data, trainer, null,
                     args.Calibrator, args.MaxCalibrationExamples, null);
 
                 ch.Done();
 
-                return ScoreUtils.GetScorer(args.Scorer, predictor, input, feat, group, customCols, env, data.Schema);
+                return ScoreUtils.GetScorer(args.Scorer, predictor, input, feat, group, customCols, env, data.Schema, mapperFactory);
             }
         }
 
-        public static RoleMappedData CreateDataFromArgs<TSigTrainer>(IExceptionContext ectx, IDataView input,
-            ArgumentsBase<TSigTrainer> args)
+        public static RoleMappedData CreateDataFromArgs(IExceptionContext ectx, IDataView input,
+            ArgumentsBase args)
         {
             string feat;
             string group;
             return CreateDataFromArgs(ectx, input, args, out feat, out group);
         }
 
-        private static RoleMappedData CreateDataFromArgs<TSigTrainer>(IExceptionContext ectx, IDataView input,
-            ArgumentsBase<TSigTrainer> args, out string feat, out string group)
+        private static RoleMappedData CreateDataFromArgs(IExceptionContext ectx, IDataView input,
+            ArgumentsBase args, out string feat, out string group)
         {
             var schema = input.Schema;
             feat = TrainUtils.MatchNameOrDefaultOrNull(ectx, schema, nameof(args.FeatureColumn), args.FeatureColumn,
