@@ -8,23 +8,23 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Data.StaticPipe
 {
-    public sealed class DataReaderEstimator<TIn, TTupleShape, TDataReader> : BlockMaker<TTupleShape>
+    public sealed class DataReaderEstimator<TIn, TTupleShape, TDataReader> : SchemaBearing<TTupleShape>
         where TDataReader : class, IDataReader<TIn>
     {
-        public IDataReaderEstimator<TIn, TDataReader> Wrapped { get; }
+        public IDataReaderEstimator<TIn, TDataReader> AsDynamic { get; }
 
         public DataReaderEstimator(IHostEnvironment env, IDataReaderEstimator<TIn, TDataReader> estimator)
             : base(env)
         {
             Env.CheckValue(estimator, nameof(estimator));
-            Wrapped = estimator;
+            AsDynamic = estimator;
         }
 
         public DataReader<TIn, TTupleShape> Fit(TIn input)
         {
             Contracts.Assert(nameof(Fit) == nameof(IDataReaderEstimator<TIn, TDataReader>.Fit));
 
-            var reader = Wrapped.Fit(input);
+            var reader = AsDynamic.Fit(input);
             return new DataReader<TIn, TTupleShape>(Env, reader);
         }
 
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Data.StaticPipe
         {
             Contracts.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
 
-            var readerEst = Wrapped.Append(est.Wrapped);
+            var readerEst = AsDynamic.Append(est.AsDynamic);
             return new DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>>(Env, readerEst);
         }
     }

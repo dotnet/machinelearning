@@ -7,18 +7,17 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Data.StaticPipe
 {
-    public class DataView<TTupleShape>
+    public class DataView<TTupleShape> : SchemaBearing<TTupleShape>
     {
-        private readonly IHostEnvironment _env;
-        public IDataView Wrapped { get; }
+        public IDataView AsDynamic { get; }
 
         public DataView(IHostEnvironment env, IDataView view)
+            : base(env)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(view, nameof(view));
 
-            _env = env;
-            Wrapped = view;
+            AsDynamic = view;
         }
     }
 }

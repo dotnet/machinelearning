@@ -113,7 +113,7 @@ namespace Microsoft.ML.Data.StaticPipe
             // This holds the mappings of columns to names and back. Note that while the same column could be used on
             // the *output*, e.g., you could hypothetically have `(a: r.Foo, b: r.Foo)`, we treat that as the last thing
             // that is done.
-            var nameMap = new InvDictionary<string, PipelineColumn>();
+            var nameMap = new BidirectionalDictionary<string, PipelineColumn>();
 
             // Check to see if we have any set of initial names. This is important in the case where we are mapping
             // in an input data view.
@@ -130,7 +130,6 @@ namespace Microsoft.ML.Data.StaticPipe
                 }
             }
 
-            // REVIEW: This ought to be a assigned earlier in the case of a copy-columns being necessary.
             estimator = null;
             var toCopy = new List<(string src, string dst)>();
 
@@ -206,7 +205,7 @@ namespace Microsoft.ML.Data.StaticPipe
                 // an estimator. If this is not the case something seriously wonky is going on, most probably that the
                 // user tried to use a column from another source. If this is detected we can produce a sensible error
                 // message to tell them not to do this.
-                if (!(group.Key is DataInputReconciler rec))
+                if (!(group.Key is EstimatorReconciler rec))
                 {
                     throw ch.Except("Columns from multiple sources were detected. " +
                         "Did the caller use a " + nameof(PipelineColumn) + " from another delegate?");
@@ -288,12 +287,12 @@ namespace Microsoft.ML.Data.StaticPipe
             return readerEstimator;
         }
 
-        internal sealed class InvDictionary<T1, T2>
+        private sealed class BidirectionalDictionary<T1, T2>
         {
             private readonly Dictionary<T1, T2> _d12;
             private readonly Dictionary<T2, T1> _d21;
 
-            public InvDictionary()
+            public BidirectionalDictionary()
             {
                 _d12 = new Dictionary<T1, T2>();
                 _d21 = new Dictionary<T2, T1>();

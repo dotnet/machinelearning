@@ -2,33 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
-using System;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Data.StaticPipe
 {
     internal static class PipelineColumnAnalyzer
     {
-        public static void Analyze<TIn, TOut>(Func<TIn, TOut> func)
-        {
-            bool singletonIn = typeof(PipelineColumn).IsAssignableFrom(typeof(TIn));
-            bool singletonOut = typeof(PipelineColumn).IsAssignableFrom(typeof(TOut));
-
-            var analysis = CreateAnalysisInstance<TIn>(out var reconciler);
-            var analysisOut = func(analysis);
-
-            var inNames = GetNames<TIn, PipelineColumn>(analysis, func.Method.GetParameters()[0]);
-            var outNames = GetNames<TOut, PipelineColumn>(analysisOut, func.Method.ReturnParameter);
-        }
-
-        public interface IIsAnalysisColumn { }
+        private interface IIsAnalysisColumn { }
 
         /// <summary>
         /// Given a type which is a <see cref="ValueTuple"/> tree with <see cref="PipelineColumn"/> leaves, return an instance of that
@@ -40,11 +28,11 @@ namespace Microsoft.ML.Data.StaticPipe
         /// (e.g., <see cref="Scalar{T}"/>, <see cref="Vector{T}"/>, etc.)</typeparam>
         /// <returns>An instance of <typeparamref name="T"/> where all <see cref="PipelineColumn"/> fields have instances implementing
         /// <see cref="IIsAnalysisColumn"/> filled in</returns>
-        public static T CreateAnalysisInstance<T>(out ReaderReconciler<int> fakeReconciler)
+        public static T MakeAnalysisInstance<T>(out ReaderReconciler<int> fakeReconciler)
         {
             var rec = new AnalyzeUtil.Rec();
             fakeReconciler = rec;
-            return (T)AnalyzeUtil.CreateAnalysisInstanceCore<T>(rec);
+            return (T)AnalyzeUtil.MakeAnalysisInstanceCore<T>(rec);
         }
 
         private static class AnalyzeUtil
@@ -72,12 +60,12 @@ namespace Microsoft.ML.Data.StaticPipe
             private sealed class AKey<T, TV> : Key<T, TV>, IIsAnalysisColumn { public AKey(Rec rec) : base(rec, null) { } }
             private sealed class AVarKey<T> : VarKey<T>, IIsAnalysisColumn { public AVarKey(Rec rec) : base(rec, null) { } }
 
-            private static PipelineColumn CreateScalar<T>(Rec rec) => new AScalar<T>(rec);
-            private static PipelineColumn CreateVector<T>(Rec rec) => new AVector<T>(rec);
-            private static PipelineColumn CreateVarVector<T>(Rec rec) => new AVarVector<T>(rec);
-            private static PipelineColumn CreateKey<T>(Rec rec) => new AKey<T>(rec);
-            private static Key<T, TV> CreateKey<T, TV>(Rec rec) => new AKey<T, TV>(rec);
-            private static PipelineColumn CreateVarKey<T>(Rec rec) => new AVarKey<T>(rec);
+            private static PipelineColumn MakeScalar<T>(Rec rec) => new AScalar<T>(rec);
+            private static PipelineColumn MakeVector<T>(Rec rec) => new AVector<T>(rec);
+            private static PipelineColumn MakeVarVector<T>(Rec rec) => new AVarVector<T>(rec);
+            private static PipelineColumn MakeKey<T>(Rec rec) => new AKey<T>(rec);
+            private static Key<T, TV> MakeKey<T, TV>(Rec rec) => new AKey<T, TV>(rec);
+            private static PipelineColumn MakeVarKey<T>(Rec rec) => new AVarKey<T>(rec);
 
             private static MethodInfo[] _valueTupleCreateMethod = InitValueTupleCreateMethods();
 
@@ -105,7 +93,7 @@ namespace Microsoft.ML.Data.StaticPipe
                 return new ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>(v1, v2, v3, v4, v5, v6, v7, restTuple);
             }
 
-            public static object CreateAnalysisInstanceCore<T>(Rec rec)
+            public static object MakeAnalysisInstanceCore<T>(Rec rec)
             {
                 var t = typeof(T);
                 if (typeof(PipelineColumn).IsAssignableFrom(t))
@@ -116,20 +104,20 @@ namespace Microsoft.ML.Data.StaticPipe
                         var genT = t.GetGenericTypeDefinition();
 
                         if (genT == typeof(Scalar<>))
-                            return Utils.MarshalInvoke(CreateScalar<int>, genP[0], rec);
+                            return Utils.MarshalInvoke(MakeScalar<int>, genP[0], rec);
                         if (genT == typeof(Vector<>))
-                            return Utils.MarshalInvoke(CreateVector<int>, genP[0], rec);
+                            return Utils.MarshalInvoke(MakeVector<int>, genP[0], rec);
                         if (genT == typeof(VarVector<>))
-                            return Utils.MarshalInvoke(CreateVarVector<int>, genP[0], rec);
+                            return Utils.MarshalInvoke(MakeVarVector<int>, genP[0], rec);
                         if (genT == typeof(Key<>))
-                            return Utils.MarshalInvoke(CreateKey<uint>, genP[0], rec);
+                            return Utils.MarshalInvoke(MakeKey<uint>, genP[0], rec);
                         if (genT == typeof(Key<,>))
                         {
-                            Func<Rec, PipelineColumn> f = CreateKey<uint, int>;
+                            Func<Rec, PipelineColumn> f = MakeKey<uint, int>;
                             return f.Method.GetGenericMethodDefinition().MakeGenericMethod(genP).Invoke(null, new object[] { rec });
                         }
                         if (genT == typeof(VarKey<>))
-                            return Utils.MarshalInvoke(CreateVector<int>, genP[0], rec);
+                            return Utils.MarshalInvoke(MakeVector<int>, genP[0], rec);
                     }
                     throw Contracts.Except($"Type {t} is a {nameof(PipelineColumn)} yet does not appear to be directly one of " +
                         $"the official types. This is commonly due to a mistake by the component author and can be addressed by " +
@@ -144,7 +132,7 @@ namespace Microsoft.ML.Data.StaticPipe
                     if (1 <= genP.Length && genP.Length <= 8)
                     {
                         // First recursively create the sub-analysis objects.
-                        object[] subArgs = genP.Select(subType => Utils.MarshalInvoke(CreateAnalysisInstanceCore<int>, subType, rec)).ToArray();
+                        object[] subArgs = genP.Select(subType => Utils.MarshalInvoke(MakeAnalysisInstanceCore<int>, subType, rec)).ToArray();
                         // Next create the tuple.
                         return _valueTupleCreateMethod[subArgs.Length - 1].MakeGenericMethod(genP).Invoke(null, subArgs);
                     }

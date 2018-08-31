@@ -17,7 +17,7 @@ namespace FakeStaticPipes
     /// <summary>
     /// This is a reconciler that doesn't really do anything, just a fake for testing the infrastructure.
     /// </summary>
-    internal sealed class FakeTransformReconciler : DataInputReconciler
+    internal sealed class FakeTransformReconciler : EstimatorReconciler
     {
         private readonly string _name;
 

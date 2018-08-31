@@ -8,15 +8,14 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Data.StaticPipe
 {
-    public sealed class DataReader<TIn, TTupleShape>
-        : BlockMaker<TTupleShape>
+    public sealed class DataReader<TIn, TTupleShape> : SchemaBearing<TTupleShape>
     {
-        public IDataReader<TIn> Wrapped { get; }
+        public IDataReader<TIn> AsDynamic { get; }
 
         public DataReader(IHostEnvironment env, IDataReader<TIn> reader)
             : base(env)
         {
-            Wrapped = reader;
+            AsDynamic = reader;
         }
 
         public DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>> Append<TNewOut, TTrans>(Estimator<TTupleShape, TNewOut, TTrans> estimator)
@@ -24,7 +23,7 @@ namespace Microsoft.ML.Data.StaticPipe
         {
             Contracts.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
 
-            var readerEst = Wrapped.Append(estimator.Wrapped);
+            var readerEst = AsDynamic.Append(estimator.AsDynamic);
             return new DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>>(Env, readerEst);
         }
 
@@ -34,7 +33,7 @@ namespace Microsoft.ML.Data.StaticPipe
             Env.CheckValue(transformer, nameof(transformer));
             Env.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
 
-            var reader = Wrapped.Append(transformer.Wrapped);
+            var reader = AsDynamic.Append(transformer.AsDynamic);
             return new DataReader<TIn, TNewTupleShape>(Env, reader);
         }
 
@@ -46,7 +45,7 @@ namespace Microsoft.ML.Data.StaticPipe
             // that determination.
             Env.Assert(nameof(Read) == nameof(IDataReader<TIn>.Read));
 
-            var data = Wrapped.Read(input);
+            var data = AsDynamic.Read(input);
             return new DataView<TTupleShape>(Env, data);
         }
     }

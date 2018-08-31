@@ -8,19 +8,18 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Data.StaticPipe
 {
-    public sealed class Transformer<TTupleInShape, TTupleOutShape, TTransformer>
+    public sealed class Transformer<TTupleInShape, TTupleOutShape, TTransformer> : SchemaBearing<TTupleOutShape>
         where TTransformer : class, ITransformer
     {
-        private readonly IHostEnvironment _env;
-        public TTransformer Wrapped { get; }
+        public TTransformer AsDynamic { get; }
 
         public Transformer(IHostEnvironment env, TTransformer transformer)
+            : base(env)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(transformer, nameof(transformer));
 
-            _env = env;
-            Wrapped = transformer;
+            AsDynamic = transformer;
         }
 
         public Transformer<TTupleInShape, TTupleNewOutShape, TransformerChain<TNewTransformer>>
@@ -29,17 +28,17 @@ namespace Microsoft.ML.Data.StaticPipe
         {
             Contracts.Assert(nameof(Append) == nameof(LearningPipelineExtensions.Append));
 
-            var trans = Wrapped.Append(transformer.Wrapped);
-            return new Transformer<TTupleInShape, TTupleNewOutShape, TransformerChain<TNewTransformer>>(_env, trans);
+            var trans = AsDynamic.Append(transformer.AsDynamic);
+            return new Transformer<TTupleInShape, TTupleNewOutShape, TransformerChain<TNewTransformer>>(Env, trans);
         }
 
         public DataView<TTupleOutShape> Transform(DataView<TTupleInShape> input)
         {
-            Contracts.Assert(nameof(Transform) == nameof(ITransformer.Transform));
-            _env.CheckValue(input, nameof(input));
+            Env.Assert(nameof(Transform) == nameof(ITransformer.Transform));
+            Env.CheckValue(input, nameof(input));
 
-            var view = Wrapped.Transform(input.Wrapped);
-            return new DataView<TTupleOutShape>(_env, view);
+            var view = AsDynamic.Transform(input.AsDynamic);
+            return new DataView<TTupleOutShape>(Env, view);
         }
     }
 }

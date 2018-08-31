@@ -14,7 +14,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     /// they should be considered a single group of columns (through equality on the reconcilers), as well as how to
     /// actually create the underlying dynamic structures, whether an <see cref="IDataReaderEstimator{TSource, TReader}"/>
     /// (for the <see cref="ReaderReconciler{TREaderIn}"/>) or a <see cref="IEstimator{TTransformer}"/>
-    /// (for the <see cref="DataInputReconciler"/>).
+    /// (for the <see cref="EstimatorReconciler"/>).
     /// </summary>
     public abstract class Reconciler
     {
@@ -45,12 +45,12 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 
     /// <summary>
     /// Reconciler for column groups intended to resolve to an <see cref="IEstimator{TTransformer}"/>. This type of
-    /// reconciler will work with <see cref="BlockMaker{TTupleShape}.CreateEstimator{TTupleOutShape}(Func{TTupleShape, TTupleOutShape})"/>
-    /// or other functions that involve the creation of transforms.
+    /// reconciler will work with <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Append{TTupleNewOutShape}(Func{TTupleOutShape, TTupleNewOutShape})"/>
+    /// or other methods that involve the creation of estimator chains.
     /// </summary>
-    public abstract class DataInputReconciler : Reconciler
+    public abstract class EstimatorReconciler : Reconciler
     {
-        public DataInputReconciler() : base() { }
+        public EstimatorReconciler() : base() { }
 
         /// <summary>
         /// Returns an estimator.
