@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -59,8 +60,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Normalize option for the feature column", ShortName = "norm")]
             public NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr")]
-            public SubComponent<ITrainer, SignatureTrainer> Trainer = new SubComponent<ITrainer, SignatureTrainer>("AveragedPerceptron");
+            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", SignatureType = typeof(SignatureTrainer))]
+            public IComponentFactory<ITrainer> Trainer;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The validation data file", ShortName = "valid")]
             public string ValidationFile;
@@ -68,8 +69,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
             public bool? CacheData;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>")]
-            public SubComponent<ICalibratorTrainer, SignatureCalibrator> Calibrator = new SubComponent<ICalibratorTrainer, SignatureCalibrator>("PlattCalibration");
+            [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
+            public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of instances to train the calibrator", ShortName = "numcali")]
             public int MaxCalibrationExamples = 1000000000;
@@ -80,8 +81,7 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string Summary = "Trains a predictor.";
 
-        private readonly ComponentCatalog.LoadableClassInfo _info;
-        private readonly SubComponent<ITrainer, SignatureTrainer> _trainer;
+        private readonly IComponentFactory<ITrainer> _trainer;
 
         private readonly string _labelColumn;
         private readonly string _featureColumn;
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env, args, nameof(TrainCommand))
         {
             Host.CheckNonWhiteSpace(args.OutputModelFile, nameof(args.OutputModelFile));
-            _info = TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
+            TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
             _trainer = args.Trainer;
 
             _labelColumn = args.LabelColumn;
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(cmd);
 
             ch.Trace("Constructing trainer");
-            ITrainer trainer = _trainer.CreateInstance(Host);
+            ITrainer trainer = _trainer.CreateComponent(Host);
 
             IPredictor inputPredictor = null;
             if (Args.ContinueTrain && !TrainUtils.TryLoadPredictor(ch, Host, Args.InputModelFile, out inputPredictor))
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            var predictor = TrainUtils.Train(Host, ch, data, trainer, _info.LoadNames[0], validData,
+            var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
                 Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor);
 
             using (var file = Host.CreateOutputFile(Args.OutputModelFile))
@@ -186,19 +186,13 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class TrainUtils
     {
-        public static ComponentCatalog.LoadableClassInfo CheckTrainer<TSig>(IExceptionContext ectx, SubComponent<ITrainer, TSig> trainer, string dataFile)
+        public static void CheckTrainer(IExceptionContext ectx, IComponentFactory<ITrainer> trainer, string dataFile)
         {
             Contracts.CheckValueOrNull(ectx);
-            ectx.CheckUserArg(trainer.IsGood(), nameof(TrainCommand.Arguments.Trainer), "A trainer is required.");
+            ectx.CheckValue(trainer, nameof(TrainCommand.Arguments.Trainer), "A trainer is required.");
 
-            var info = ComponentCatalog.GetLoadableClassInfo<TSig>(trainer.Kind);
-            if (info == null)
-                throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.Trainer), "Unknown trainer: '{0}'", trainer.Kind);
-            if (!typeof(ITrainer).IsAssignableFrom(info.Type))
-                throw ectx.Except("Loadable class '{0}' does not implement 'ITrainer'", info.LoadNames[0]);
             if (string.IsNullOrWhiteSpace(dataFile))
                 throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.DataFile), "Data file must be defined.");
-            return info;
         }
 
         /// <summary>
@@ -227,28 +221,27 @@ namespace Microsoft.ML.Runtime.Data
 #pragma warning restore MSML_ContractsNameUsesNameof
         }
 
-        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name,
+        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer,
             ICalibratorTrainerFactory calibrator, int maxCalibrationExamples)
         {
             var caliTrainer = calibrator?.CreateComponent(env);
-            return TrainCore(env, ch, data, trainer, name, null, caliTrainer, maxCalibrationExamples, false);
+            return TrainCore(env, ch, data, trainer, null, caliTrainer, maxCalibrationExamples, false);
         }
 
-        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name, RoleMappedData validData,
-            SubComponent<ICalibratorTrainer, SignatureCalibrator> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null)
+        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, RoleMappedData validData,
+            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null)
         {
-            ICalibratorTrainer caliTrainer = !calibrator.IsGood() ? null : calibrator.CreateInstance(env);
-            return TrainCore(env, ch, data, trainer, name, validData, caliTrainer, maxCalibrationExamples, cacheData, inputPredictor);
+            ICalibratorTrainer caliTrainer = calibrator?.CreateComponent(env);
+            return TrainCore(env, ch, data, trainer, validData, caliTrainer, maxCalibrationExamples, cacheData, inputPredictor);
         }
 
-        private static IPredictor TrainCore(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name, RoleMappedData validData,
+        private static IPredictor TrainCore(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, RoleMappedData validData,
             ICalibratorTrainer calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
             ch.CheckValue(data, nameof(data));
             ch.CheckValue(trainer, nameof(trainer));
-            ch.CheckNonEmpty(name, nameof(name));
             ch.CheckValueOrNull(validData);
             ch.CheckValueOrNull(inputPredictor);
 

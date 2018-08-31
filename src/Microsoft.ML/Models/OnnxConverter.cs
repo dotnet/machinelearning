@@ -28,7 +28,7 @@ namespace Microsoft.ML.Models
         /// path defined through the Json option.
         ///
         /// This API supports the following arguments:
-        /// <see cref="Onnx"/> indicates the file to write the ONNX protocol buffer file to. This is optional.
+        /// <see cref="Onnx"/> indicates the file to write the ONNX protocol buffer file to. This is required.
         /// <see cref="Json"/> indicates the file to write the JSON representation of the ONNX model. This is optional.
         /// <see cref="Name"/> indicates the name property in the ONNX model. If left unspecified, it will
         /// be the extension-less name of the file specified in the onnx indicates the protocol buffer file

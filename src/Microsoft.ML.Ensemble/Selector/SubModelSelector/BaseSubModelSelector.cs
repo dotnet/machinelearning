@@ -54,16 +54,16 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
             return models;
         }
 
-        private SubComponent<IEvaluator, SignatureEvaluator> GetEvaluatorSubComponent()
+        private IEvaluator GetEvaluator(IHostEnvironment env)
         {
             switch (PredictionKind)
             {
                 case PredictionKind.BinaryClassification:
-                    return new SubComponent<IEvaluator, SignatureEvaluator>(BinaryClassifierEvaluator.LoadName);
+                    return new BinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments());
                 case PredictionKind.Regression:
-                    return new SubComponent<IEvaluator, SignatureEvaluator>(RegressionEvaluator.LoadName);
+                    return new RegressionEvaluator(env, new RegressionEvaluator.Arguments());
                 case PredictionKind.MultiClassClassification:
-                    return new SubComponent<IEvaluator, SignatureEvaluator>(MultiClassClassifierEvaluator.LoadName);
+                    return new MultiClassClassifierEvaluator(env, new MultiClassClassifierEvaluator.Arguments());
                 default:
                     throw Host.Except("Unrecognized prediction kind '{0}'", PredictionKind);
             }
@@ -81,12 +81,11 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
                 // Because the training and test datasets are drawn from the same base dataset, the test data role mappings
                 // are the same as for the train data.
                 IDataScorerTransform scorePipe = ScoreUtils.GetScorer(model.Predictor, testData, Host, testData.Schema);
-                // REVIEW: Should we somehow allow the user to customize the evaluator?
-                // By what mechanism should we allow that?
-                var evalComp = GetEvaluatorSubComponent();
                 RoleMappedData scoredTestData = new RoleMappedData(scorePipe,
                     GetColumnRoles(testData.Schema, scorePipe.Schema));
-                IEvaluator evaluator = evalComp.CreateInstance(Host);
+                // REVIEW: Should we somehow allow the user to customize the evaluator?
+                // By what mechanism should we allow that?
+                IEvaluator evaluator = GetEvaluator(Host);
                 // REVIEW: with the new evaluators, metrics of individual models are no longer
                 // printed to the Console. Consider adding an option on the combiner to print them.
                 // REVIEW: Consider adding an option to the combiner to save a data view

@@ -11,13 +11,15 @@ using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Core.Data;
 
-[assembly: LoadableClass(TextLoader.Summary, typeof(TextLoader), typeof(TextLoader.Arguments), typeof(SignatureDataLoader),
+[assembly: LoadableClass(TextLoader.Summary, typeof(IDataLoader), typeof(TextLoader), typeof(TextLoader.Arguments), typeof(SignatureDataLoader),
     "Text Loader", "TextLoader", "Text", DocName = "loader/TextLoader.md")]
 
-[assembly: LoadableClass(TextLoader.Summary, typeof(TextLoader), null, typeof(SignatureLoadDataLoader),
+[assembly: LoadableClass(TextLoader.Summary, typeof(IDataLoader), typeof(TextLoader), null, typeof(SignatureLoadDataLoader),
     "Text Loader", TextLoader.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
@@ -26,7 +28,7 @@ namespace Microsoft.ML.Runtime.Data
     /// Loads a text file into an IDataView. Supports basic mapping from input columns to IDataView columns.
     /// Should accept any file that TlcTextInstances accepts.
     /// </summary>
-    public sealed partial class TextLoader : IDataLoader
+    public sealed partial class TextLoader : IDataReader<IMultiStreamSource>, ICanSaveModel
     {
         /// <example>
         /// Scalar column of <seealso cref="DataKind"/> I4 sourced from 2nd column
@@ -40,6 +42,23 @@ namespace Microsoft.ML.Runtime.Data
         /// </example>
         public sealed class Column
         {
+            public Column() { }
+
+            public Column(string name, DataKind? type, int index)
+               : this(name, type, new[] { new Range(index) }) { }
+
+            public Column(string name, DataKind? type, Range[] source, KeyRange keyRange = null)
+            {
+                Contracts.CheckValue(name, nameof(name));
+                Contracts.CheckValue(source, nameof(source));
+                Contracts.CheckValueOrNull(keyRange);
+
+                Name = name;
+                Type = type;
+                Source = source;
+                KeyRange = keyRange;
+            }
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
             public string Name;
 
@@ -179,6 +198,20 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Range
         {
+            public Range() { }
+
+            public Range(int index)
+                : this(index, index) { }
+
+            public Range(int min, int max)
+            {
+                Contracts.CheckParam(min >= 0, nameof(min), "min must be non-negative.");
+                Contracts.CheckParam(max >= min, nameof(max), "max must be greater than or equal to min.");
+
+                Min = min;
+                Max = max;
+            }
+
             [Argument(ArgumentType.Required, HelpText = "First index in the range")]
             public int Min;
 
@@ -472,11 +505,12 @@ namespace Microsoft.ML.Runtime.Data
                 _getSlotNames = GetSlotNames;
             }
 
-            public Bindings(TextLoader parent, Column[] cols, IMultiStreamSource headerFile)
+            public Bindings(TextLoader parent, Column[] cols, IMultiStreamSource headerFile, IMultiStreamSource dataSample)
                 : this()
             {
                 Contracts.AssertNonEmpty(cols);
                 Contracts.AssertValueOrNull(headerFile);
+                Contracts.AssertValueOrNull(dataSample);
 
                 using (var ch = parent._host.Start("Binding"))
                 {
@@ -498,9 +532,9 @@ namespace Microsoft.ML.Runtime.Data
                     if (headerFile != null)
                         Cursor.GetSomeLines(headerFile, 1, ref lines);
                     if (needInputSize && inputSize == 0)
-                        Cursor.GetSomeLines(parent._files, 100, ref lines);
+                        Cursor.GetSomeLines(dataSample, 100, ref lines);
                     else if (headerFile == null && parent.HasHeader)
-                        Cursor.GetSomeLines(parent._files, 1, ref lines);
+                        Cursor.GetSomeLines(dataSample, 1, ref lines);
 
                     if (needInputSize && inputSize == 0)
                     {
@@ -746,22 +780,11 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 _slotNames = new VBuffer<DvText>[Infos.Length];
-                List<DvText> lines = null;
-                // If the loader has a header in the data file, try reading a new header.
-                if (parent.HasHeader)
-                    Cursor.GetSomeLines(parent._files, 2, ref lines);
-                // If there were no lines in the new file source, or if there is a header from a different source (a header file or a string
-                // argument), try reading the header from the serialized text stream.
-                if (Utils.Size(lines) == 0)
-                {
-                    // REVIEW: Not sure if should prefer this, or if parent._files is empty?
-                    string result = null;
-                    ctx.TryLoadTextStream("Header.txt", reader => result = reader.ReadLine());
-                    if (!string.IsNullOrEmpty(result))
-                        Utils.Add(ref lines, new DvText(result));
-                }
-                if (Utils.Size(lines) > 0)
-                    Parser.ParseSlotNames(parent, _header = lines[0], Infos, _slotNames);
+
+                string result = null;
+                ctx.TryLoadTextStream("Header.txt", reader => result = reader.ReadLine());
+                if (!string.IsNullOrEmpty(result))
+                    Parser.ParseSlotNames(parent, _header = new DvText(result), Infos, _slotNames);
             }
 
             public void Save(ModelSaveContext ctx)
@@ -855,15 +878,15 @@ namespace Microsoft.ML.Runtime.Data
 
                 switch (kind)
                 {
-                case MetadataUtils.Kinds.SlotNames:
-                    var names = _slotNames[col];
-                    if (names.Length == 0)
-                        return null;
-                    Contracts.Assert(Infos[col].ColType.VectorSize == names.Length);
-                    return MetadataUtils.GetNamesType(names.Length);
+                    case MetadataUtils.Kinds.SlotNames:
+                        var names = _slotNames[col];
+                        if (names.Length == 0)
+                            return null;
+                        Contracts.Assert(Infos[col].ColType.VectorSize == names.Length);
+                        return MetadataUtils.GetNamesType(names.Length);
 
-                default:
-                    return null;
+                    default:
+                        return null;
                 }
             }
 
@@ -874,12 +897,12 @@ namespace Microsoft.ML.Runtime.Data
 
                 switch (kind)
                 {
-                case MetadataUtils.Kinds.SlotNames:
-                    _getSlotNames.Marshal(col, ref value);
-                    return;
+                    case MetadataUtils.Kinds.SlotNames:
+                        _getSlotNames.Marshal(col, ref value);
+                        return;
 
-                default:
-                    throw MetadataUtils.ExceptGetMetadata();
+                    default:
+                        throw MetadataUtils.ExceptGetMetadata();
                 }
             }
 
@@ -948,7 +971,6 @@ namespace Microsoft.ML.Runtime.Data
         private readonly char[] _separators;
         private readonly Bindings _bindings;
 
-        private readonly IMultiStreamSource _files;
         private readonly Parser _parser;
 
         private bool HasHeader
@@ -959,15 +981,16 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private const string RegistrationName = "TextLoader";
 
-        public TextLoader(IHostEnvironment env, Arguments args, IMultiStreamSource files)
+        public TextLoader(IHostEnvironment env, Arguments args, IMultiStreamSource dataSample = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
 
             _host.CheckValue(args, nameof(args));
-            _host.CheckValue(files, nameof(files));
+            _host.CheckValueOrNull(dataSample);
 
-            _files = files;
+            if (dataSample == null)
+                dataSample = new MultiFileSource(null);
 
             IMultiStreamSource headerFile = null;
             if (!string.IsNullOrWhiteSpace(args.HeaderFile))
@@ -975,7 +998,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var cols = args.Column;
             bool error;
-            if (Utils.Size(cols) == 0 && !TryParseSchema(_host, headerFile ?? _files, ref args, out cols, out error))
+            if (Utils.Size(cols) == 0 && !TryParseSchema(_host, headerFile ?? dataSample, ref args, out cols, out error))
             {
                 if (error)
                     throw _host.Except("TextLoader options embedded in the file are invalid");
@@ -1048,7 +1071,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            _bindings = new Bindings(this, cols, headerFile);
+            _bindings = new Bindings(this, cols, headerFile, dataSample);
             _parser = new Parser(this);
         }
 
@@ -1056,31 +1079,31 @@ namespace Microsoft.ML.Runtime.Data
         {
             switch (sep)
             {
-            case "space":
-            case " ":
-                return ' ';
-            case "tab":
-            case "\t":
-                return '\t';
-            case "comma":
-            case ",":
-                return ',';
-            case "colon":
-            case ":":
-                _host.CheckUserArg((_flags & Options.AllowSparse) == 0, nameof(Arguments.Separator),
-                    "When the separator is colon, turn off allowSparse");
-                return ':';
-            case "semicolon":
-            case ";":
-                return ';';
-            case "bar":
-            case "|":
-                return '|';
-            default:
-                char ch = sep[0];
-                if (sep.Length != 1 || ch < ' ' || '0' <= ch && ch <= '9' || ch == '"')
-                    throw _host.ExceptUserArg(nameof(Arguments.Separator), "Illegal separator: '{0}'", sep);
-                return sep[0];
+                case "space":
+                case " ":
+                    return ' ';
+                case "tab":
+                case "\t":
+                    return '\t';
+                case "comma":
+                case ",":
+                    return ',';
+                case "colon":
+                case ":":
+                    _host.CheckUserArg((_flags & Options.AllowSparse) == 0, nameof(Arguments.Separator),
+                        "When the separator is colon, turn off allowSparse");
+                    return ':';
+                case "semicolon":
+                case ";":
+                    return ';';
+                case "bar":
+                case "|":
+                    return '|';
+                default:
+                    char ch = sep[0];
+                    if (sep.Length != 1 || ch < ' ' || '0' <= ch && ch <= '9' || ch == '"')
+                        throw _host.ExceptUserArg(nameof(Arguments.Separator), "Illegal separator: '{0}'", sep);
+                    return sep[0];
             }
         }
 
@@ -1089,8 +1112,8 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class LoaderHolder
         {
 #pragma warning disable 649 // never assigned
-            [Argument(ArgumentType.Multiple)]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IDataLoader> Loader;
 #pragma warning restore 649 // never assigned
         }
 
@@ -1131,12 +1154,16 @@ namespace Microsoft.ML.Runtime.Data
                 LoaderHolder h = new LoaderHolder();
                 if (!CmdParser.ParseArguments(host, "loader = " + str, h, msg => ch.Error(msg)))
                     goto LDone;
-                if (h.Loader == null || string.IsNullOrWhiteSpace(h.Loader.Kind))
+
+                ch.Assert(h.Loader == null || h.Loader is ICommandLineComponentFactory);
+                var loader = h.Loader as ICommandLineComponentFactory;
+
+                if (loader == null || string.IsNullOrWhiteSpace(loader.Name))
                     goto LDone;
 
                 // Make sure the loader binds to us.
-                var info = ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(h.Loader.Kind);
-                if (info.Type != typeof(TextLoader) || info.ArgType != typeof(Arguments))
+                var info = ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(loader.Name);
+                if (info.Type != typeof(IDataLoader) || info.ArgType != typeof(Arguments))
                     goto LDone;
 
                 var argsNew = new Arguments();
@@ -1144,7 +1171,7 @@ namespace Microsoft.ML.Runtime.Data
                 var parsed = CmdParser.ParseArguments(host, CmdParser.GetSettings(ch, args, new Arguments()), argsNew);
                 ch.Assert(parsed);
                 // Copy the core arguments to the new args.
-                if (!CmdParser.ParseArguments(host, h.Loader.SubComponentSettings, argsNew, typeof(ArgumentsCore), msg => ch.Error(msg)))
+                if (!CmdParser.ParseArguments(host, loader.GetSettingsString(), argsNew, typeof(ArgumentsCore), msg => ch.Error(msg)))
                     goto LDone;
 
                 cols = argsNew.Column;
@@ -1154,7 +1181,7 @@ namespace Microsoft.ML.Runtime.Data
                 error = false;
                 args = argsNew;
 
-                LDone:
+            LDone:
                 ch.Done();
                 return !error;
             }
@@ -1175,14 +1202,12 @@ namespace Microsoft.ML.Runtime.Data
             return found && !error && args.IsValid();
         }
 
-        private TextLoader(IHost host, ModelLoadContext ctx, IMultiStreamSource files)
+        private TextLoader(IHost host, ModelLoadContext ctx)
         {
             Contracts.AssertValue(host, "host");
             host.AssertValue(ctx);
-            host.AssertValue(files);
 
             _host = host;
-            _files = files;
 
             // REVIEW: Should we serialize this? It really isn't part of the data model.
             _useThreads = true;
@@ -1222,17 +1247,28 @@ namespace Microsoft.ML.Runtime.Data
             _parser = new Parser(this);
         }
 
-        public static TextLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+        public static TextLoader Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(RegistrationName);
 
             h.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            h.CheckValue(files, nameof(files));
 
-            return h.Apply("Loading Model", ch => new TextLoader(h, ctx, files));
+            return h.Apply("Loading Model", ch => new TextLoader(h, ctx));
         }
+
+        // These are legacy constructors needed for ComponentCatalog.
+        public static IDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+            => (IDataLoader)Create(env, ctx).Read(files);
+        public static IDataLoader Create(IHostEnvironment env, Arguments args, IMultiStreamSource files)
+            => (IDataLoader)new TextLoader(env, args, files).Read(files);
+
+        /// <summary>
+        /// Convenience method to create a <see cref="TextLoader"/> and use it to read a specified file.
+        /// </summary>
+        public static IDataView ReadFile(IHostEnvironment env, Arguments args, IMultiStreamSource fileSource)
+            => new TextLoader(env, args, fileSource).Read(fileSource);
 
         public void Save(ModelSaveContext ctx)
         {
@@ -1259,33 +1295,53 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        public long? GetRowCount(bool lazy = true)
+        public ISchema GetOutputSchema() => _bindings;
+
+        public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
+
+        private sealed class BoundLoader : IDataLoader
         {
-            // We don't know how many rows there are.
-            // REVIEW: Should we try to support RowCount?
-            return null;
-        }
+            private readonly TextLoader _reader;
+            private readonly IHost _host;
+            private readonly IMultiStreamSource _files;
 
-        // REVIEW: Should we try to support shuffling?
-        public bool CanShuffle => false;
+            public BoundLoader(TextLoader reader, IMultiStreamSource files)
+            {
+                _reader = reader;
+                _host = reader._host.Register(nameof(BoundLoader));
+                _files = files;
+            }
 
-        public ISchema Schema => _bindings;
+            public long? GetRowCount(bool lazy = true)
+            {
+                // We don't know how many rows there are.
+                // REVIEW: Should we try to support RowCount?
+                return null;
+            }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
-        {
-            _host.CheckValue(predicate, nameof(predicate));
-            _host.CheckValueOrNull(rand);
-            var active = Utils.BuildArray(_bindings.ColumnCount, predicate);
-            return Cursor.Create(this, active);
-        }
+            // REVIEW: Should we try to support shuffling?
+            public bool CanShuffle => false;
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
-        {
-            _host.CheckValue(predicate, nameof(predicate));
-            _host.CheckValueOrNull(rand);
-            var active = Utils.BuildArray(_bindings.ColumnCount, predicate);
-            return Cursor.CreateSet(out consolidator, this, active, n);
+            public ISchema Schema => _reader._bindings;
+
+            public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+            {
+                _host.CheckValue(predicate, nameof(predicate));
+                _host.CheckValueOrNull(rand);
+                var active = Utils.BuildArray(_reader._bindings.ColumnCount, predicate);
+                return Cursor.Create(_reader, _files, active);
+            }
+
+            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+                Func<int, bool> predicate, int n, IRandom rand = null)
+            {
+                _host.CheckValue(predicate, nameof(predicate));
+                _host.CheckValueOrNull(rand);
+                var active = Utils.BuildArray(_reader._bindings.ColumnCount, predicate);
+                return Cursor.CreateSet(out consolidator, _reader, _files, active, n);
+            }
+
+            public void Save(ModelSaveContext ctx) => _reader.Save(ctx);
         }
     }
 }

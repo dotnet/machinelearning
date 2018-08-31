@@ -1,0 +1,29 @@
+<Project> 
+  <PropertyGroup> 
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <!--
+      In the SDK ImportAfter folder, this property is declared to point to Microsoft.TestPlatform.targets, which is the file containing the original VSTest target.
+      Since the Microsoft.TestPlatform.targets are in the ImportAfter folder, they would be imported after this file hence our empty VSTest target would be overriden,
+      in order to be able to override this target, we set the VSTestTargets property to an inexistent file path, so nothing will be imported and that way we successfully
+      overrode the VSTest target.
+    -->
+    <VSTestTargets>ignore.targets</VSTestTargets>
+  </PropertyGroup>
+
+  <!-- 
+    Copied from https://github.com/dotnet/arcade/blob/master/src/Microsoft.DotNet.Arcade.Sdk/tools/Empty.targets 
+
+    Import this file to suppress all targets while allowing the project to participate in the build. 
+    Workaround for https://github.com/dotnet/sdk/issues/2071. 
+
+    The targets defined here are not sufficient for the project to be open in Visual Studio without issues though.     
+  --> 
+
+  <Target Name="_IsProjectRestoreSupported"/>
+  <Target Name="_CheckForInvalidConfigurationAndPlatform"/>
+  <Target Name="Restore"/>
+  <Target Name="Build"/>
+  <Target Name="Test"/>
+  <Target Name="VSTest"/>
+  <Target Name="Pack"/>
+</Project>

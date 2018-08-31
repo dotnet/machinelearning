@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: LoadableClass(typeof(IDataLoader), typeof(CompositeDataLoader), typeof(CompositeDataLoader.Arguments), typeof(SignatureDataLoader),
     "Composite Data Loader", "CompositeDataLoader", "Composite", "PipeData", "Pipe", "PipeDataLoader")]
@@ -34,11 +35,11 @@ namespace Microsoft.ML.Runtime.Data
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader")]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader", SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Transform", ShortName = "xf")]
-            public KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] Transform;
+            [Argument(ArgumentType.Multiple, HelpText = "Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
+            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transform;
         }
 
         private struct TransformEx
@@ -98,10 +99,10 @@ namespace Microsoft.ML.Runtime.Data
             var h = env.Register(RegistrationName);
 
             h.CheckValue(args, nameof(args));
-            h.CheckUserArg(args.Loader.IsGood(), nameof(args.Loader));
+            h.CheckValue(args.Loader, nameof(args.Loader));
             h.CheckValue(files, nameof(files));
 
-            var loader = args.Loader.CreateInstance(h, files);
+            var loader = args.Loader.CreateComponent(h, files);
             return CreateCore(h, loader, args.Transform);
         }
 
@@ -111,7 +112,7 @@ namespace Microsoft.ML.Runtime.Data
         /// If there are no transforms, the <paramref name="srcLoader"/> is returned.
         /// </summary>
         public static IDataLoader Create(IHostEnvironment env, IDataLoader srcLoader,
-            params KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] transformArgs)
+            params KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] transformArgs)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -122,7 +123,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static IDataLoader CreateCore(IHost host, IDataLoader srcLoader,
-            KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] transformArgs)
+            KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] transformArgs)
         {
             Contracts.AssertValue(host, "host");
             host.AssertValue(srcLoader, "srcLoader");
@@ -131,8 +132,15 @@ namespace Microsoft.ML.Runtime.Data
             if (Utils.Size(transformArgs) == 0)
                 return srcLoader;
 
+            string GetTagData(IComponentFactory<IDataView, IDataTransform> factory)
+            {
+                // When coming from the command line, preserve the string arguments.
+                // For other factories, we aren't able to get the string.
+                return (factory as ICommandLineComponentFactory)?.ToString();
+            }
+
             var tagData = transformArgs
-                .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString()))
+                .Select(x => new KeyValuePair<string, string>(x.Key, GetTagData(x.Value)))
                 .ToArray();
 
             // Warn if tags coincide with ones already present in the loader.
@@ -152,7 +160,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             return ApplyTransformsCore(host, srcLoader, tagData,
-                (prov, index, data) => transformArgs[index].Value.CreateInstance(prov, data));
+                (env, index, data) => transformArgs[index].Value.CreateComponent(env, data));
         }
 
         /// <summary>

@@ -18,7 +18,7 @@ Along with these ML capabilities this first release of ML.NET also brings the fi
 
 ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
 
-The current release is 0.3. Check out the [release notes](docs/release-notes/0.3/release-0.3.md).
+The current release is 0.4. Check out the [release notes](docs/release-notes/0.4/release-0.4.md).
 
 First ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64 bit process.
 
@@ -45,7 +45,7 @@ To build ML.NET from source please visit our [developers guide](docs/project-doc
 |    | x64 Debug | x64 Release |
 |:---|----------------:|------------------:|
 |**Linux**|[![x64-debug](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
-|**macOS**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_release/lastCompletedBuild)|
+|**macOS**|[![x64-debug](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
 |**Windows**|[![x64-debug](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
 
 ## Contributing

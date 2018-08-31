@@ -5,14 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Ensemble.EntryPoints;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Learners;
 
 [assembly: LoadableClass(EnsembleTrainer.Summary, typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
@@ -26,7 +27,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     /// A generic ensemble trainer for binary classification.
     /// </summary>
     public sealed class EnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
-        IBinarySubModelSelector, IBinaryOutputCombiner, SignatureBinaryClassifierTrainer>,
+        IBinarySubModelSelector, IBinaryOutputCombiner>,
         IModelCombiner<TScalarPredictor, TScalarPredictor>
     {
         public const string LoadNameValue = "WeightedEnsemble";
@@ -44,9 +45,18 @@ namespace Microsoft.ML.Runtime.Ensemble
             [TGUI(Label = "Output combiner", Description = "Output combiner type")]
             public ISupportBinaryOutputCombinerFactory OutputCombiner = new MedianFactory();
 
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureBinaryClassifierTrainer))]
+            public IComponentFactory<ITrainer<TScalarPredictor>>[] BasePredictors;
+
+            internal override IComponentFactory<ITrainer<TScalarPredictor>>[] GetPredictorFactories() => BasePredictors;
+
             public Arguments()
             {
-                BasePredictors = new[] { new SubComponent<ITrainer<TScalarPredictor>, SignatureBinaryClassifierTrainer>("LinearSVM") };
+                BasePredictors = new[]
+                {
+                    ComponentFactoryUtils.CreateFromFunction(
+                        env => new LinearSvm(env, new LinearSvm.Arguments()))
+                };
             }
         }
 

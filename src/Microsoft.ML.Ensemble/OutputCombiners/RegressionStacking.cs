@@ -7,6 +7,8 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(RegressionStacking), typeof(RegressionStacking.Arguments), typeof(SignatureCombiner),
@@ -19,7 +21,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     using TScalarPredictor = IPredictorProducing<Single>;
 
-    public sealed class RegressionStacking : BaseScalarStacking<SignatureRegressorTrainer>, IRegressionOutputCombiner, ICanSaveModel
+    public sealed class RegressionStacking : BaseScalarStacking, IRegressionOutputCombiner, ICanSaveModel
     {
         public const string LoadName = "RegressionStacking";
         public const string LoaderSignature = "RegressionStacking";
@@ -37,9 +39,17 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
         public sealed class Arguments : ArgumentsBase, ISupportRegressionOutputCombinerFactory
         {
+            [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
+                Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureRegressorTrainer))]
+            [TGUI(Label = "Base predictor")]
+            public IComponentFactory<ITrainer<TScalarPredictor>> BasePredictorType;
+
+            internal override IComponentFactory<ITrainer<TScalarPredictor>> GetPredictorFactory() => BasePredictorType;
+
             public Arguments()
             {
-                BasePredictorType = new SubComponent<ITrainer<TScalarPredictor>, SignatureRegressorTrainer>("FastTreeRegression");
+                BasePredictorType = ComponentFactoryUtils.CreateFromFunction(
+                    env => new FastTreeRegressionTrainer(env, new FastTreeRegressionTrainer.Arguments()));
             }
 
             public IRegressionOutputCombiner CreateComponent(IHostEnvironment env) => new RegressionStacking(env, this);

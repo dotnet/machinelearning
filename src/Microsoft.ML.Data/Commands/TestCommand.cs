@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 [assembly: LoadableClass(TestCommand.Summary, typeof(TestCommand), typeof(TestCommand.Arguments), typeof(SignatureCommand),
@@ -37,11 +38,11 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
             public KeyValuePair<string, string>[] CustomColumn;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SortOrder = 101)]
-            public SubComponent<IDataScorerTransform, SignatureDataScorer> Scorer;
+            [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SortOrder = 101, SignatureType = typeof(SignatureDataScorer))]
+            public IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> Scorer;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", NullName = "<Auto>", SortOrder = 102)]
-            public SubComponent<IMamlEvaluator, SignatureMamlEvaluator> Evaluator;
+            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", NullName = "<Auto>", SortOrder = 102, SignatureType = typeof(SignatureMamlEvaluator))]
+            public IComponentFactory<IMamlEvaluator> Evaluator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Results summary filename", ShortName = "sf")]
             public string SummaryFilename;
@@ -107,13 +108,12 @@ namespace Microsoft.ML.Runtime.Data
 
             // Score.
             ch.Trace("Scoring and evaluating");
+            ch.Assert(Args.Scorer == null || Args.Scorer is ICommandLineComponentFactory, "TestCommand should only be used from the command line.");
             IDataScorerTransform scorePipe = ScoreUtils.GetScorer(Args.Scorer, predictor, loader, features, group, customCols, Host, trainSchema);
 
             // Evaluate.
-            var evalComp = Args.Evaluator;
-            if (!evalComp.IsGood())
-                evalComp = EvaluateUtils.GetEvaluatorType(ch, scorePipe.Schema);
-            var evaluator = evalComp.CreateInstance(Host);
+            var evaluator = Args.Evaluator?.CreateComponent(Host) ??
+                EvaluateUtils.GetEvaluator(Host, scorePipe.Schema);
             var data = new RoleMappedData(scorePipe, label, null, group, weight, name, customCols);
             var metrics = evaluator.Evaluate(data);
             MetricWriter.PrintWarnings(ch, metrics);
