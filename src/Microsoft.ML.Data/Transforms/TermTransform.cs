@@ -164,14 +164,13 @@ namespace Microsoft.ML.Runtime.Data
 
         public class ColumnInfo
         {
-            public ColumnInfo(string input, string output, int maxNumTerms = Defaults.MaxNumTerms, SortOrder sort = Defaults.Sort, string[] term = null, string terms = null, bool textKeyValues = false)
+            public ColumnInfo(string input, string output, int maxNumTerms = Defaults.MaxNumTerms, SortOrder sort = Defaults.Sort, string[] term = null, bool textKeyValues = false)
             {
                 Input = input;
                 Output = output;
                 Sort = sort;
                 MaxNumTerms = maxNumTerms;
                 Term = term;
-                Terms = terms;
                 TextKeyValues = textKeyValues;
             }
 
@@ -180,8 +179,9 @@ namespace Microsoft.ML.Runtime.Data
             public readonly SortOrder Sort;
             public readonly int MaxNumTerms;
             public readonly string[] Term;
-            public readonly string Terms;
             public readonly bool TextKeyValues;
+
+            internal string Terms { get; set; }
         }
 
         public const string Summary = "Converts input values (words, numbers, etc.) to index in a dictionary.";
@@ -315,8 +315,8 @@ namespace Microsoft.ML.Runtime.Data
                         item.MaxNumTerms ?? args.MaxNumTerms,
                         sortOrder,
                         item.Term,
-                        item.Terms,
                         item.TextKeyValues ?? args.TextKeyValues);
+                    cols[i].Terms = item.Terms;
                 };
             }
             return new TermTransform(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);

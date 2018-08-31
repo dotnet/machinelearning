@@ -368,7 +368,6 @@ namespace Microsoft.ML.Runtime.Data
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
                 ch.Done();
-                RowCursor
                 return new Row(input, this, Schema, getters);
             }
         }
@@ -408,10 +407,7 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
-            {
-                return _input.GetIdGetter();
-            }
+            public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
 
             public bool IsColumnActive(int col)
             {
