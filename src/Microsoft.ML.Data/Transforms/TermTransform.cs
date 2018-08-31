@@ -242,7 +242,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         public TermTransform(IHostEnvironment env, IDataView input,
-            ColumnInfo[] columns) :
+            params ColumnInfo[] columns) :
             this(env, input, columns, null, null, null)
         { }
 
@@ -378,16 +378,9 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
         /// If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').</param>
         public static IDataView Create(IHostEnvironment env,
-            IDataView input,
-            string name,
-            string source = null,
-            int maxNumTerms = Defaults.MaxNumTerms,
-            SortOrder sort = Defaults.Sort) => Create(env, new Arguments()
-            {
-                Column = new[] { new Column() { Source = source ?? name, Name = name } },
-                MaxNumTerms = maxNumTerms,
-                Sort = sort
-            }, input);
+            IDataView input, string name, string source = null,
+            int maxNumTerms = Defaults.MaxNumTerms, SortOrder sort = Defaults.Sort) =>
+            new TermTransform(env, input, new[] { new ColumnInfo(source ?? name, name, maxNumTerms, sort) }).MakeDataTransform(input);
 
         //REVIEW: This and static method below need to go to base class as it get created.
         private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";

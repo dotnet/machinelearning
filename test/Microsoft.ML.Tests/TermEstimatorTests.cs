@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using System;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -87,7 +88,7 @@ namespace Microsoft.ML.Tests
                     var result = transformer.Transform(stringView);
                     Assert.False(true);
                 }
-                catch
+                catch(InvalidOperationException)
                 {
                 }
             }

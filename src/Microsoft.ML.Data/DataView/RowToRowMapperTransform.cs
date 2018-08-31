@@ -326,12 +326,14 @@ namespace Microsoft.ML.Runtime.Data
 
         public void SaveAsOnnx(OnnxContext ctx)
         {
+            Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsOnnx onnx)
                 onnx.SaveAsOnnx(ctx);
         }
 
         public void SaveAsPfa(BoundPfaContext ctx)
         {
+            Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsPfa onnx)
                 onnx.SaveAsPfa(ctx);
         }
@@ -339,7 +341,7 @@ namespace Microsoft.ML.Runtime.Data
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {
             Func<int, bool> predicateInput;
-            var active = _bindings.GetActive(predicate, out predicateInput);
+            _bindings.GetActive(predicate, out predicateInput);
             return predicateInput;
         }
 
