@@ -27,7 +27,6 @@ namespace Microsoft.ML.Tests.Transformers
                 Column = new[] {
                     new TextLoader.Column("float1", DataKind.R4, 1),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
                     new TextLoader.Column("double1", DataKind.R8, 1),
                     new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(1, 4) }),
                     new TextLoader.Column("int1", DataKind.I4, 0),
