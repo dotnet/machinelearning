@@ -27,6 +27,14 @@ namespace Microsoft.ML.Runtime.Data
             public const long MaxTrainingExamples = 1000000000;
         }
 
+        public enum NormalizerMode
+        {
+            MinMax = 0,
+            MeanVariance = 1,
+            LogMeanVariance = 2,
+            Binning = 3
+        }
+
         public abstract class ColumnBase
         {
             public readonly string Input;
@@ -45,6 +53,23 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             internal abstract IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, IRowCursor cursor);
+
+            internal static ColumnBase Create(string input, string output, NormalizerMode mode)
+            {
+                switch (mode)
+                {
+                    case NormalizerMode.MinMax:
+                        return new MinMaxColumn(input, output);
+                    case NormalizerMode.MeanVariance:
+                        return new MeanVarColumn(input, output);
+                    case NormalizerMode.LogMeanVariance:
+                        return new LogMeanVarColumn(input, output);
+                    case NormalizerMode.Binning:
+                        return new BinningColumn(input, output);
+                    default:
+                        throw Contracts.ExceptParam(nameof(mode), "Unknown normalizer mode");
+                }
+            }
         }
 
         public abstract class FixZeroColumnBase : ColumnBase
@@ -116,6 +141,19 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IHost _host;
         private readonly ColumnBase[] _columns;
+
+        public Normalizer(IHostEnvironment env, string columnName, NormalizerMode mode = NormalizerMode.MinMax)
+            : this(env, mode, (columnName, columnName))
+        {
+        }
+
+        public Normalizer(IHostEnvironment env, NormalizerMode mode, params (string inputColumn, string outputColumn)[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(Normalizer));
+            _host.CheckValue(columns, nameof(columns));
+            _columns = columns.Select(x => ColumnBase.Create(x.inputColumn, x.outputColumn, mode)).ToArray();
+        }
 
         public Normalizer(IHostEnvironment env, params ColumnBase[] columns)
         {

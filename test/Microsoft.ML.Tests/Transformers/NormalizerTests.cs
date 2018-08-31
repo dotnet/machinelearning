@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
-                Column = new[]{
+                Column = new[] {
                     new TextLoader.Column("float1", DataKind.R4, 1),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
@@ -71,6 +71,37 @@ namespace Microsoft.ML.Tests.Transformers
             }
 
             CheckEquality("Normalizer", "normalized.tsv");
+
+            Done();
+        }
+
+        [Fact]
+        public void SimpleConstructors()
+        {
+            string dataPath = GetDataPath("iris.txt");
+
+            var loader = new TextLoader(Env, new TextLoader.Arguments
+            {
+                Column = new[] {
+                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
+                }
+            });
+
+            var data = loader.Read(new MultiFileSource(dataPath));
+
+            var est1 = new Normalizer(Env, "float4");
+            var est2 = new Normalizer(Env, Normalizer.NormalizerMode.MinMax, ("float4", "float4"));
+            var est3 = new Normalizer(Env, new Normalizer.MinMaxColumn("float4"));
+
+            var data1 = est1.Fit(data).Transform(data);
+            var data2 = est2.Fit(data).Transform(data);
+            var data3 = est3.Fit(data).Transform(data);
+
+            CheckSameSchemas(data1.Schema, data2.Schema);
+            CheckSameSchemas(data1.Schema, data3.Schema);
+            CheckSameValues(data1, data2);
+            CheckSameValues(data1, data3);
+
             Done();
         }
     }
