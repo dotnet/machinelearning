@@ -28,10 +28,11 @@
     <BinDir Condition="'$(BinDir)'==''">$(RepoRoot)bin/</BinDir>
     <BaseOutputPath Condition="'$(BaseOutputPath)'==''">$(BinDir)</BaseOutputPath>
     <ObjDir Condition="'$(ObjDir)'==''">$(BinDir)obj/</ObjDir>
-    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'==''">$(ObjDir)</BaseIntermediateOutputPath>
+    <RootIntermediateOutputPath Condition="'$(RootIntermediateOutputPath)'==''">$(ObjDir)</RootIntermediateOutputPath>
 
-    <IntermediateOutputRootPath Condition="'$(IntermediateOutputRootPath)' == ''">$(BaseIntermediateOutputPath)$(PlatformConfig)\</IntermediateOutputRootPath>
+    <IntermediateOutputRootPath Condition="'$(IntermediateOutputRootPath)' == ''">$(RootIntermediateOutputPath)$(PlatformConfig)\</IntermediateOutputRootPath>
     <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">$(IntermediateOutputRootPath)$(MSBuildProjectName)\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(IntermediateOutputPath)</BaseIntermediateOutputPath>
 
     <OutputPath Condition="'$(OutputPath)'==''">$(BaseOutputPath)$(PlatformConfig)\$(MSBuildProjectName)\</OutputPath>
 
@@ -81,10 +82,6 @@
     <SourceRevisionId>$(LatestCommit)</SourceRevisionId>
   </PropertyGroup>
 
-  <!--
-  Ensure to import versioning.props before overwriting BaseIntermediateOutputPath since
-  the source link file exists in the root bin/obj folder.
-   -->
   <Import Project="$(ToolsDir)versioning.props" 
           Condition="Exists('$(ToolsDir)versioning.props') and '$(DisableImportVersioningProps)' != 'true'" />
  
@@ -96,15 +93,6 @@
   
   <PropertyGroup>
     <RunningOnUnix Condition="'$(OS)'!='Windows_NT'">true</RunningOnUnix>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(UsingMicrosoftNETSdk)' == 'true'">
-    <!--
-    The Microsoft.NET.Sdk changed the definition of what it assumes $(BaseIntermediateOutputPath) is.
-    In the "old" .csproj files, BaseIntermediateOutputPath could be shared with many projects.
-    In the SDK-based .csproj files, BaseIntermediateOutputPath is assumed to be project-specific.
-    -->
-    <BaseIntermediateOutputPath>$(IntermediateOutputPath)</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <!-- Signing properties -->

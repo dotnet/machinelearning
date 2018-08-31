@@ -21880,6 +21880,76 @@
       ]
     },
     {
+      "Name": "Transforms.TensorFlowScorer",
+      "Desc": "Transforms the data using the TensorFlow model.",
+      "FriendlyName": "TensorFlowTransform",
+      "ShortName": "TFTransform",
+      "Inputs": [
+        {
+          "Name": "ModelFile",
+          "Type": "String",
+          "Desc": "This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
+          "Aliases": [
+            "ModelDir"
+          ],
+          "Required": true,
+          "SortOrder": 0.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "InputColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "The names of the model inputs",
+          "Aliases": [
+            "inputs"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "OutputColumn",
+          "Type": "String",
+          "Desc": "The name of the output",
+          "Aliases": [
+            "output"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Transforms.TextFeaturizer",
       "Desc": "A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are normalized counts of (word and/or character) ngrams in a given tokenized text.",
       "FriendlyName": "Text Transform",

@@ -1,4 +1,4 @@
-maml.exe CV threads=- numcali=200 dout=%Output% data=%Data% seed=1
+maml.exe CV tr=AveragedPerceptron threads=- numcali=200 dout=%Output% data=%Data% seed=1
 Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
 Warning: Skipped 8 instances with missing features during training (over 1 iterations; 8 inst/iter)
 Training calibrator.
