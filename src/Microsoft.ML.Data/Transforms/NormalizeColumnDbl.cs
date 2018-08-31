@@ -1312,7 +1312,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static partial class MeanVarUtils
+        internal static partial class MeanVarUtils
         {
             public static void ComputeScaleAndOffset(Double mean, Double stddev, out TFloat scale, out TFloat offset)
             {
@@ -1364,7 +1364,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static partial class BinUtils
+        internal static partial class BinUtils
         {
             public static TFloat GetValue(ref TFloat input, TFloat[] binUpperBounds, TFloat den, TFloat offset)
             {
@@ -1422,11 +1422,11 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                public static IColumnFunctionBuilder Create(long lim, bool fix, IHost host, int icol, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(Normalizer.MinMaxColumn column, IHost host, ColumnType srcType,
                     ValueGetter<TFloat> getter)
                 {
-                    host.CheckUserArg(lim > 1, nameof(lim), "Must be greater than 1");
-                    return new MinMaxOneColumnFunctionBuilder(host, lim, fix, getter);
+                    host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
+                    return new MinMaxOneColumnFunctionBuilder(host, column.MaxTrainingExamples, column.FixZero, getter);
                 }
 
                 public override IColumnFunction CreateColumnFunction()
@@ -1472,12 +1472,12 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                public static IColumnFunctionBuilder Create(long lim, bool fix, IHost host, int icol, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(Normalizer.MinMaxColumn column, IHost host, ColumnType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    host.CheckUserArg(lim > 1, nameof(lim), "Must be greater than 1");
+                    host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
                     var cv = srcType.ValueCount;
-                    return new MinMaxVecColumnFunctionBuilder(host, cv, lim, fix, getter);
+                    return new MinMaxVecColumnFunctionBuilder(host, cv, column.MaxTrainingExamples, column.FixZero, getter);
                 }
 
                 public override IColumnFunction CreateColumnFunction()
@@ -1534,21 +1534,19 @@ namespace Microsoft.ML.Runtime.Data
                     _buffer = new VBuffer<TFloat>(1, new TFloat[1]);
                 }
 
-                public static IColumnFunctionBuilder Create(MeanVarArguments args, IHost host, int icol, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(Normalizer.MeanVarColumn column, IHost host, ColumnType srcType,
                     ValueGetter<TFloat> getter)
                 {
-                    var lim = args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = args.Column[icol].FixZero ?? args.FixZero;
-                    return new MeanVarOneColumnFunctionBuilder(host, lim, fix, getter, false, args.UseCdf);
+                    host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
+                    return new MeanVarOneColumnFunctionBuilder(host, column.MaxTrainingExamples, column.FixZero, getter, false, column.UseCdf);
                 }
 
-                public static IColumnFunctionBuilder Create(LogMeanVarArguments args, IHost host, int icol, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(Normalizer.LogMeanVarColumn column, IHost host, ColumnType srcType,
                     ValueGetter<TFloat> getter)
                 {
-                    var lim = args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
-                    return new MeanVarOneColumnFunctionBuilder(host, lim, false, getter, true, args.UseCdf);
+                    var lim = column.MaxTrainingExamples;
+                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
+                    return new MeanVarOneColumnFunctionBuilder(host, lim, false, getter, true, column.UseCdf);
                 }
 
                 protected override bool ProcessValue(ref TFloat origVal)
@@ -1610,23 +1608,21 @@ namespace Microsoft.ML.Runtime.Data
                     _useCdf = useCdf;
                 }
 
-                public static IColumnFunctionBuilder Create(MeanVarArguments args, IHost host, int icol, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(Normalizer.MeanVarColumn column, IHost host, ColumnType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    var lim = args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = args.Column[icol].FixZero ?? args.FixZero;
+                    host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
                     var cv = srcType.ValueCount;
-                    return new MeanVarVecColumnFunctionBuilder(host, cv, lim, fix, getter, false, args.UseCdf);
+                    return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaxTrainingExamples, column.FixZero, getter, false, column.UseCdf);
                 }
 
-                public static IColumnFunctionBuilder Create(LogMeanVarArguments args, IHost host, int icol, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(Normalizer.LogMeanVarColumn column, IHost host, ColumnType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    var lim = args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
+                    var lim = column.MaxTrainingExamples;
+                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
                     var cv = srcType.ValueCount;
-                    return new MeanVarVecColumnFunctionBuilder(host, cv, lim, false, getter, true, args.UseCdf);
+                    return new MeanVarVecColumnFunctionBuilder(host, cv, lim, false, getter, true, column.UseCdf);
                 }
 
                 protected override bool ProcessValue(ref VBuffer<TFloat> buffer)
@@ -1728,14 +1724,14 @@ namespace Microsoft.ML.Runtime.Data
                     _values = new List<TFloat>();
                 }
 
-                public static IColumnFunctionBuilder Create(BinArguments args, IHost host, int icol, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(Normalizer.BinningColumn column, IHost host, ColumnType srcType,
                     ValueGetter<TFloat> getter)
                 {
-                    var lim = args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = args.Column[icol].FixZero ?? args.FixZero;
-                    var numBins = args.Column[icol].NumBins ?? args.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "Must be greater than 1");
+                    var lim = column.MaxTrainingExamples;
+                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
+                    bool fix = column.FixZero;
+                    var numBins = column.NumBins;
+                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "Must be greater than 1");
                     return new BinOneColumnFunctionBuilder(host, lim, fix, numBins, getter);
                 }
 
@@ -1777,14 +1773,14 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public static IColumnFunctionBuilder Create(BinArguments args, IHost host, int icol, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(Normalizer.BinningColumn column, IHost host, ColumnType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    var lim = args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = args.Column[icol].FixZero ?? args.FixZero;
-                    var numBins = args.Column[icol].NumBins ?? args.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "Must be greater than 1");
+                    var lim = column.MaxTrainingExamples;
+                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
+                    bool fix = column.FixZero;
+                    var numBins = column.NumBins;
+                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "numBins must be greater than 1");
                     var cv = srcType.ValueCount;
                     return new BinVecColumnFunctionBuilder(host, cv, lim, fix, numBins, getter);
                 }

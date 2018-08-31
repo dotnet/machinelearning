@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
                 MaxTrainingExamples = maxTrainingExamples;
             }
 
-            internal abstract IColumnFunctionBuilder MakeBuilder(IHost host, int colIndex, int srcIndex, ColumnType srcType, IRowCursor cursor);
+            internal abstract IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, IRowCursor cursor);
         }
 
         public abstract class FixZeroColumnBase : ColumnBase
@@ -65,38 +65,53 @@ namespace Microsoft.ML.Runtime.Data
             {
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
-                => NormalizeTransform.MinMaxUtils.CreateBuilder(MaxTrainingExamples, FixZero, host, icol, srcIndex, srcType, cursor);
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                => NormalizeTransform.MinMaxUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
         public sealed class MeanVarColumn : FixZeroColumnBase
         {
             public readonly bool UseCdf;
 
-            public MeanVarColumn(string input, string output,
+            public MeanVarColumn(string input, string output = null,
                 long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = Defaults.FixZero, bool useCdf = Defaults.MeanVarCdf)
-                : base(input, output, maxTrainingExamples, fixZero)
+                : base(input, output ?? input, maxTrainingExamples, fixZero)
             {
                 UseCdf = useCdf;
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int colIndex, int srcIndex, ColumnType srcType, IRowCursor cursor) => throw new NotImplementedException();
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                => NormalizeTransform.MeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
+        }
+
+        public sealed class LogMeanVarColumn : ColumnBase
+        {
+            public readonly bool UseCdf;
+
+            public LogMeanVarColumn(string input, string output = null,
+                long maxTrainingExamples = Defaults.MaxTrainingExamples, bool useCdf = Defaults.LogMeanVarCdf)
+                : base(input, output ?? input, maxTrainingExamples)
+            {
+                UseCdf = useCdf;
+            }
+
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                => NormalizeTransform.LogMeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
         public sealed class BinningColumn : FixZeroColumnBase
         {
             public readonly int NumBins;
-            public readonly int MinBinSize;
 
-            public BinningColumn(string input, string output,
-                long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = true, int numBins = Defaults.NumBins, int minBinSize = Defaults.MinBinSize)
-                : base(input, output, maxTrainingExamples, fixZero)
+            public BinningColumn(string input, string output = null,
+                long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = true, int numBins = Defaults.NumBins)
+                : base(input, output ?? input, maxTrainingExamples, fixZero)
             {
                 NumBins = numBins;
-                MinBinSize = minBinSize;
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int colIndex, int srcIndex, ColumnType srcType, IRowCursor cursor) => throw new NotImplementedException();
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                => NormalizeTransform.BinUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
         private readonly IHost _host;
@@ -256,7 +271,7 @@ namespace Microsoft.ML.Runtime.Data
                         var info = columns[i];
                         var host = env.Register($"Column_{i:000}");
 
-                        functionBuilders[i] = info.MakeBuilder(host, i, srcCols[i], srcTypes[i], cursor);
+                        functionBuilders[i] = info.MakeBuilder(host, srcCols[i], srcTypes[i], cursor);
                     }
 
                     while (cursor.MoveNext())
@@ -358,6 +373,10 @@ namespace Microsoft.ML.Runtime.Data
             if (!colType.ItemType.Equals(NumberType.R4) && !colType.ItemType.Equals(NumberType.R8))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, expectedType, colType.ToString());
         }
+
+        // Temporary: enables SignatureDataTransform factory methods.
+        public new IDataTransform MakeDataTransform(IDataView input)
+            => base.MakeDataTransform(input);
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
             => new Mapper(this, schema);
