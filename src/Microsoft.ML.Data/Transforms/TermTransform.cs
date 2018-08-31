@@ -413,33 +413,20 @@ namespace Microsoft.ML.Runtime.Data
             return infos;
         }
 
-        /*  /// <summary>
-          /// Public constructor for compositional forms.
-          /// </summary>
-          public TermTransform(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
-          {
-              Host.CheckValue(args, nameof(args));
-              _infos = CreateInfos(env, _columns, input.Schema, TestIsKnownDataKind);
-              Host.AssertNonEmpty(_infos);
-              Host.Assert(_infos.Length == Utils.Size(column));
-              using (var ch = Host.Start("Training"))
-              {
-                  _unboundMaps = Train(Host, ch, _infos, args, column, input);
-                  _textMetadata = new bool[_unboundMaps.Length];
-                  for (int iinfo = 0; iinfo < column.Length; ++iinfo)
-                  {
-                      _textMetadata[iinfo] = column[iinfo].TextKeyValues ?? args.TextKeyValues;
-                  }
-                  ch.Assert(_unboundMaps.Length == column.Length);
-                  ch.Done();
-              }
-          }*/
-
         public static IDataTransform Create(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
         {
             return Create(env, new Arguments()
             {
-                Column = column.Select(x => (Column)x).ToArray(),
+                Column = column.Select(x => new Column()
+                {
+                    MaxNumTerms = x.MaxNumTerms,
+                    Name = x.Name,
+                    Sort = x.Sort,
+                    Source = x.Source,
+                    Term = x.Term,
+                    Terms = x.Terms,
+                    TextKeyValues = x.TextKeyValues
+                }).ToArray(),
                 Data = args.Data,
                 DataFile = args.DataFile,
                 Loader = args.Loader,
@@ -762,7 +749,7 @@ namespace Microsoft.ML.Runtime.Data
             base.SaveColumns(ctx);
 
             Host.Assert(_unboundMaps.Length == _textMetadata.Length);
-            Host.Assert(_textMetadata.Length == Columns.Count);
+            Host.Assert(_textMetadata.Length == ColumnPairs.Length);
             ctx.Writer.WriteBoolBytesNoCount(_textMetadata, _textMetadata.Length);
 
             // REVIEW: Should we do separate sub models for each dictionary?
