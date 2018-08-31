@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             {
                 FieldInfo[] fields = Args.GetType().GetFields();
                 foreach (var field in fields)
-                    res[GetArgName(field.Name)] = field.GetValue(Args).ToString();
+                    res[GetArgName(field.Name)] = field.GetValue(Args);
             }
         }
 
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public EvalMetricType EvalMetric = EvalMetricType.DefaultMetric;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
-        [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false})]
+        [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
         public bool? UseSoftmax;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Rounds of early stopping, 0 will disable it.",
@@ -320,6 +320,11 @@ namespace Microsoft.ML.Runtime.LightGBM
         [Argument(ArgumentType.AtMostOnce, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
         [TGUI(Label = "Ranking Label Gain")]
         public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function. Used only in " + nameof(LightGbmBinaryTrainer) + ", " + nameof(LightGbmMulticlassTrainer) +
+            " and in " + nameof(LightGbmRankingTrainer) + ".", ShortName = "sigmoid")]
+        [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
+        public double Sigmoid = 0.5;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of entries in a batch when loading data.", Hide = true)]
         public int BatchSize = 1 << 20;
@@ -359,18 +364,19 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
             Contracts.CheckValue(host, nameof(host));
             Contracts.CheckUserArg(MaxBin > 0, nameof(MaxBin), "must be > 0.");
+            Contracts.CheckUserArg(Sigmoid > 0, nameof(Sigmoid), "must be > 0.");
             Dictionary<string, object> res = new Dictionary<string, object>();
 
             var boosterParams = Booster.CreateComponent(host);
             boosterParams.UpdateParameters(res);
 
-            res[GetArgName(nameof(MaxBin))] = MaxBin.ToString();
+            res[GetArgName(nameof(MaxBin))] = MaxBin;
 
             res["verbose"] = Silent ? "-1" : "1";
             if (NThread.HasValue)
-                res["nthread"] = NThread.Value.ToString();
+                res["nthread"] = NThread.Value;
 
-            res["seed"] = host.Rand.Next().ToString();
+            res["seed"] = host.Rand.Next();
 
             string metric = null;
             switch (EvalMetric)
@@ -401,13 +407,13 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
             if (!string.IsNullOrEmpty(metric))
                 res["metric"] = metric;
-            res["sigmoid"] = "0.5";
+            res["sigmoid"] = Sigmoid;
             res["label_gain"] = CustomGains;
-            res[GetArgName(nameof(UseMissing))] = UseMissing.ToString();
-            res[GetArgName(nameof(MinDataPerGroup))] = MinDataPerGroup.ToString();
-            res[GetArgName(nameof(MaxCatThreshold))] = MaxCatThreshold.ToString();
-            res[GetArgName(nameof(CatSmooth))] = CatSmooth.ToString();
-            res[GetArgName(nameof(CatL2))] = CatL2.ToString();
+            res[GetArgName(nameof(UseMissing))] = UseMissing;
+            res[GetArgName(nameof(MinDataPerGroup))] = MinDataPerGroup;
+            res[GetArgName(nameof(MaxCatThreshold))] = MaxCatThreshold;
+            res[GetArgName(nameof(CatSmooth))] = CatSmooth;
+            res[GetArgName(nameof(CatL2))] = CatL2;
             return res;
         }
     }

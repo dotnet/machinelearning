@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <LangVersion>7.2</LangVersion>
     <StartupObject>Microsoft.ML.Benchmarks.Program</StartupObject>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="BenchmarkDotNet.Artifacts\**" />
@@ -11,13 +10,26 @@
     <None Remove="BenchmarkDotNet.Artifacts\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.10.14" />
+    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
   </ItemGroup>
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Input\" />
+    <Content Include="..\data\iris.txt" Link="Input\iris.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="..\data\adult.train" Link="Input\adult.train">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\data\wikipedia-detox-250-line-data.tsv" Link="Input\wikipedia-detox-250-line-data.tsv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
