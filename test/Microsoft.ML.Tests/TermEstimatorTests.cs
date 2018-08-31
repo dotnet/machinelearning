@@ -5,14 +5,20 @@
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using System.IO;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public class TermEstimatorTests
+    public class TermEstimatorTests : TestDataPipeBase
     {
+        public TermEstimatorTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         class TestClass
         {
             public int A;
@@ -44,45 +50,23 @@ namespace Microsoft.ML.Tests
         void TestWorking()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
+            var stringData = new[] { new TestClassDifferentTypes { A = "1", B = "c", C = "b" } };
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new TermEstimator(env, new[]{
+                var pipe = new TermEstimator(env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC")
                 });
-                var transformer = est.Fit(dataView);
-                var result = transformer.Transform(dataView);
-                ValidateTermTransformer(result);
+                var invalidData = ComponentCreation.CreateDataView(env, xydata);
+                TestEstimatorCore(pipe, dataView, null, invalidData);
             }
         }
 
         [Fact]
-        void TestBadOriginalSchema()
-        {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            using (var env = new TlcEnvironment())
-            {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new TermEstimator(env, new[]{
-                    new TermTransform.ColumnInfo("A", "TermA"),
-                    new TermTransform.ColumnInfo("B", "TermB"),
-                    new TermTransform.ColumnInfo("C", "TermC")
-                });
-                try
-                {
-                    var transformer = est.Fit(dataView);
-                    Assert.False(true);
-                }
-                catch
-                {
-                }
-            }
-        }
-
-        [Fact]
-        void TestBadTransformSchmea()
+        void TestBadTransformSchema()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
@@ -97,14 +81,6 @@ namespace Microsoft.ML.Tests
                     new TermTransform.ColumnInfo("C", "TermC")
                 });
                 var transformer = est.Fit(dataView);
-                try
-                {
-                    var result = transformer.Transform(xyDataView);
-                    Assert.False(true);
-                }
-                catch
-                {
-                }
                 var stringView = ComponentCreation.CreateDataView(env, stringData);
                 try
                 {
@@ -206,7 +182,7 @@ namespace Microsoft.ML.Tests
                 uint avalue = 0;
                 uint bvalue = 0;
                 uint cvalue = 0;
-                
+
                 var aGetter = cursor.GetGetter<uint>(ColA);
                 var bGetter = cursor.GetGetter<uint>(ColB);
                 var cGetter = cursor.GetGetter<uint>(ColC);

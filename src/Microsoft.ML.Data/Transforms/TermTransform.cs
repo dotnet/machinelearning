@@ -241,7 +241,12 @@ namespace Microsoft.ML.Runtime.Data
             return infos;
         }
 
-        internal TermTransform(IHostEnvironment env, IDataView input,
+        public TermTransform(IHostEnvironment env, IDataView input,
+            ColumnInfo[] columns) :
+            this(env, input, columns, null, null, null)
+        { }
+
+        private TermTransform(IHostEnvironment env, IDataView input,
             ColumnInfo[] columns,
             string file = null, string termsColumn = null,
             IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
