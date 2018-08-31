@@ -47,10 +47,10 @@ namespace Microsoft.ML.Tests
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new TermEstimator(env, columns: new[] {
-                    new TermTransform.Column { Name = "TermA", Source = "A" },
-                    new TermTransform.Column { Name = "TermB", Source = "B" },
-                    new TermTransform.Column { Name = "TermC", Source = "C" }
+                var est = new TermEstimator(env, new[]{
+                    new TermTransform.ColumnInfo("A", "TermA"),
+                    new TermTransform.ColumnInfo("B", "TermB"),
+                    new TermTransform.ColumnInfo("C", "TermC")
                 });
                 var transformer = est.Fit(dataView);
                 var result = transformer.Transform(dataView);
@@ -65,10 +65,10 @@ namespace Microsoft.ML.Tests
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new TermEstimator(env, columns: new[] {
-                    new TermTransform.Column { Name = "TermA", Source = "A" },
-                    new TermTransform.Column { Name = "TermB", Source = "D" },
-                    new TermTransform.Column { Name = "TermC", Source = "B" }
+                var est = new TermEstimator(env, new[]{
+                    new TermTransform.ColumnInfo("A", "TermA"),
+                    new TermTransform.ColumnInfo("B", "TermB"),
+                    new TermTransform.ColumnInfo("C", "TermC")
                 });
                 try
                 {
@@ -91,10 +91,10 @@ namespace Microsoft.ML.Tests
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var xyDataView = ComponentCreation.CreateDataView(env, xydata);
-                var est = new TermEstimator(env, columns: new[] {
-                    new TermTransform.Column { Name = "TermA", Source = "A" },
-                    new TermTransform.Column { Name = "TermB", Source = "B" },
-                    new TermTransform.Column { Name = "TermC", Source = "C" }
+                var est = new TermEstimator(env, new[]{
+                    new TermTransform.ColumnInfo("A", "TermA"),
+                    new TermTransform.ColumnInfo("B", "TermB"),
+                    new TermTransform.ColumnInfo("C", "TermC")
                 });
                 var transformer = est.Fit(dataView);
                 try
@@ -124,10 +124,10 @@ namespace Microsoft.ML.Tests
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new TermEstimator(env, columns: new[] {
-                    new TermTransform.Column { Name = "TermA", Source = "A" },
-                    new TermTransform.Column { Name = "TermB", Source = "B" },
-                    new TermTransform.Column { Name = "TermC", Source = "C" }
+                var est = new TermEstimator(env, new[]{
+                    new TermTransform.ColumnInfo("A", "TermA"),
+                    new TermTransform.ColumnInfo("B", "TermB"),
+                    new TermTransform.ColumnInfo("C", "TermC")
                 });
                 var transformer = est.Fit(dataView);
                 using (var ms = new MemoryStream())
@@ -148,10 +148,10 @@ namespace Microsoft.ML.Tests
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new TermEstimator(env, columns: new[] {
-                    new TermTransform.Column { Name = "TermA", Source = "A" },
-                    new TermTransform.Column { Name = "TermB", Source = "B" },
-                    new TermTransform.Column { Name = "TermC", Source = "C" }
+                var est = new TermEstimator(env, new[]{
+                    new TermTransform.ColumnInfo("A", "TermA"),
+                    new TermTransform.ColumnInfo("B", "TermB"),
+                    new TermTransform.ColumnInfo("C", "TermC")
                 });
                 var transformer = est.Fit(dataView);
                 var result = transformer.Transform(dataView);
@@ -173,8 +173,8 @@ namespace Microsoft.ML.Tests
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var termEst = new TermEstimator(env, columns: new[] {
-                    new TermTransform.Column { Name = "T", Source = "Term" } });
+                var termEst = new TermEstimator(env, new[] {
+                    new TermTransform.ColumnInfo("Term" ,"T") });
                 var termTransformer = termEst.Fit(dataView);
                 var result = termTransformer.Transform(dataView);
 
@@ -198,14 +198,18 @@ namespace Microsoft.ML.Tests
 
         private void ValidateTermTransformer(IDataView result)
         {
+            result.Schema.TryGetColumnIndex("TermA", out int ColA);
+            result.Schema.TryGetColumnIndex("TermB", out int ColB);
+            result.Schema.TryGetColumnIndex("TermC", out int ColC);
             using (var cursor = result.GetRowCursor(x => true))
             {
                 uint avalue = 0;
                 uint bvalue = 0;
                 uint cvalue = 0;
-                var aGetter = cursor.GetGetter<uint>(3);
-                var bGetter = cursor.GetGetter<uint>(4);
-                var cGetter = cursor.GetGetter<uint>(5);
+                
+                var aGetter = cursor.GetGetter<uint>(ColA);
+                var bGetter = cursor.GetGetter<uint>(ColB);
+                var cGetter = cursor.GetGetter<uint>(ColC);
                 uint i = 1;
                 while (cursor.MoveNext())
                 {

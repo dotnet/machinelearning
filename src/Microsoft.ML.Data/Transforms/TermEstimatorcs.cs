@@ -3,71 +3,45 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using System.Collections.Generic;
 using System.Linq;
-using static Microsoft.ML.Runtime.Data.TermTransform;
 
 namespace Microsoft.ML.Runtime.Data
 {
     public sealed class TermEstimator : IEstimator<TermTransform>
     {
-        private readonly int _maxNumTerms;
-        private readonly SortOrder _sort;
-        private readonly Column[] _columns;
         private readonly IHost _host;
-
-        public TermEstimator(IHostEnvironment env, string name, string source = null, int maxNumTerms = Defaults.MaxNumTerms, SortOrder sort = Defaults.Sort) :
-           this(env, maxNumTerms, sort, new Column { Name = name, Source = source ?? name })
+        private readonly TermTransform.ColumnInfo[] _columns;
+        public TermEstimator(IHostEnvironment env, string name, string source = null, int maxNumTerms = TermTransform.Defaults.MaxNumTerms, TermTransform.SortOrder sort = TermTransform.Defaults.Sort) :
+           this(env, new TermTransform.ColumnInfo(name, source ?? name, maxNumTerms, sort))
         {
         }
 
-        public TermEstimator(IHostEnvironment env, int maxNumTerms = Defaults.MaxNumTerms, SortOrder sort = Defaults.Sort, params Column[] columns)
+        public TermEstimator(IHostEnvironment env, params TermTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TermEstimator));
-            var newNames = new HashSet<string>();
-            foreach (var column in columns)
-            {
-                if (newNames.Contains(column.Name))
-                    throw Contracts.ExceptUserArg(nameof(columns), $"New column {column.Name} specified multiple times");
-                newNames.Add(column.Name);
-            }
             _columns = columns;
-            _maxNumTerms = maxNumTerms;
-            _sort = sort;
         }
 
-        public TermTransform Fit(IDataView input)
-        {
-            // Invoke schema validation.
-            GetOutputSchema(SchemaShape.Create(input.Schema));
-            var args = new Arguments
-            {
-                Column = _columns,
-                MaxNumTerms = _maxNumTerms,
-                Sort = _sort
-            };
-            return new TermTransform(_host, args, input);
-        }
-
+        public TermTransform Fit(IDataView input) => new TermTransform(_host, input, _columns);
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-            foreach (var column in _columns)
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in _columns)
             {
-                var originalColumn = inputSchema.FindColumn(column.Source);
-                if (originalColumn != null)
-                {
-                    var col = new SchemaShape.Column(column.Name, originalColumn.Kind, DataKind.U4, true, originalColumn.MetadataKinds);
-                    resultDic[column.Name] = col;
-                }
-                else
-                {
-                    throw _host.ExceptParam(nameof(inputSchema), $"{column.Source} not found in {nameof(inputSchema)}");
-                }
+                var col = inputSchema.FindColumn(colInfo.Input);
+
+                if (col == null)
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+
+                if (!(col.ItemType.ItemType.RawKind == default) || !(col.ItemType.IsVector || col.ItemType.IsPrimitive))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, NumberType.U4, true, new[] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.KeyValues });
             }
-            return new SchemaShape(resultDic.Values.ToArray());
+
+            return new SchemaShape(result.Values);
         }
     }
 }
