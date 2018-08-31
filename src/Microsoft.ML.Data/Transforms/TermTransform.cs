@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
         }
 
-        public sealed class ColInfo
+        internal sealed class ColInfo
         {
             public readonly string Name;
             public readonly string Source;
@@ -161,6 +161,27 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        public class ColumnInfo
+        {
+            public ColumnInfo(string input, string output, int maxNumTerms = Defaults.MaxNumTerms, SortOrder sort = Defaults.Sort, string[] term = null, string terms = null, bool textKeyValues = false)
+            {
+                Input = input;
+                Output = output;
+                Sort = sort;
+                MaxNumTerms = maxNumTerms;
+                Term = term;
+                Terms = terms;
+                TextKeyValues = textKeyValues;
+            }
+
+            public readonly string Input;
+            public readonly string Output;
+            public readonly SortOrder Sort;
+            public readonly int MaxNumTerms;
+            public readonly string[] Term;
+            public readonly string Terms;
+            public readonly bool TextKeyValues;
+        }
         public const string Summary = "Converts input values (words, numbers, etc.) to index in a dictionary.";
         public const string UserName = "Term Transform";
         public const string LoaderSignature = "TermTransform";
@@ -181,7 +202,8 @@ namespace Microsoft.ML.Runtime.Data
         private const uint VerManagerNonTextTypesSupported = 0x00010002;
 
         public const string TermManagerLoaderSignature = "TermManager";
-        internal static VersionInfo GetTermManagerVersionInfo()
+
+        private static VersionInfo GetTermManagerVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "TERM MAN",
@@ -202,10 +224,6 @@ namespace Microsoft.ML.Runtime.Data
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        private readonly ColumnInfo[] _columns;
-
-        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
-
         private ColInfo[] CreateInfos(ISchema schema)
         {
             Host.AssertValue(schema);
@@ -223,23 +241,22 @@ namespace Microsoft.ML.Runtime.Data
             return infos;
         }
 
-        public TermTransform(IHostEnvironment env, IDataView input,
+        internal TermTransform(IHostEnvironment env, IDataView input,
             ColumnInfo[] columns,
             string file = null, string termsColumn = null,
             IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
-            _columns = columns.ToArray();
             using (var ch = Host.Start("Training"))
             {
                 var infos = CreateInfos(Host, ColumnPairs, input.Schema, TestIsKnownDataKind);
-                _unboundMaps = Train(Host, ch, infos, file, termsColumn, loaderFactory, _columns, input);
+                _unboundMaps = Train(Host, ch, infos, file, termsColumn, loaderFactory, columns, input);
                 _textMetadata = new bool[_unboundMaps.Length];
-                for (int iinfo = 0; iinfo < _columns.Length; ++iinfo)
+                for (int iinfo = 0; iinfo < columns.Length; ++iinfo)
                 {
-                    _textMetadata[iinfo] = _columns[iinfo].TextKeyValues;
+                    _textMetadata[iinfo] = columns[iinfo].TextKeyValues;
                 }
-                ch.Assert(_unboundMaps.Length == _columns.Length);
+                ch.Assert(_unboundMaps.Length == columns.Length);
                 ch.Done();
             }
         }
@@ -297,15 +314,15 @@ namespace Microsoft.ML.Runtime.Data
         private TermTransform(IHost host, ModelLoadContext ctx)
            : base(host, ctx)
         {
-            var columnsLenght = ColumnPairs.Length;
+            var columnsLength = ColumnPairs.Length;
 
             if (ctx.Header.ModelVerWritten >= VerNonTextTypesSupported)
-                _textMetadata = ctx.Reader.ReadBoolArray(columnsLenght);
+                _textMetadata = ctx.Reader.ReadBoolArray(columnsLength);
             else
-                _textMetadata = new bool[columnsLenght]; // No need to set in this case. They're all text.
+                _textMetadata = new bool[columnsLength]; // No need to set in this case. They're all text.
 
             const string dir = "Vocabulary";
-            var termMap = new TermMap[columnsLenght];
+            var termMap = new TermMap[columnsLength];
             bool b = ctx.TryProcessSubModel(dir,
             c =>
             {
@@ -318,15 +335,15 @@ namespace Microsoft.ML.Runtime.Data
                 host.CheckValue(c, nameof(ctx));
                 c.CheckAtModel(GetTermManagerVersionInfo());
                 int cmap = c.Reader.ReadInt32();
-                host.CheckDecode(cmap == columnsLenght);
+                host.CheckDecode(cmap == columnsLength);
                 if (c.Header.ModelVerWritten >= VerManagerNonTextTypesSupported)
                 {
-                    for (int i = 0; i < columnsLenght; ++i)
+                    for (int i = 0; i < columnsLength; ++i)
                         termMap[i] = TermMap.Load(c, host);
                 }
                 else
                 {
-                    for (int i = 0; i < columnsLenght; ++i)
+                    for (int i = 0; i < columnsLength; ++i)
                         termMap[i] = TermMap.TextImpl.Create(c, host);
                 }
             });
@@ -345,28 +362,6 @@ namespace Microsoft.ML.Runtime.Data
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        public class ColumnInfo
-        {
-            public ColumnInfo(string input, string output, int maxNumTerms = Defaults.MaxNumTerms, SortOrder sort = Defaults.Sort, string[] term = null, string terms = null, bool textKeyValues = false)
-            {
-                Input = input;
-                Output = output;
-                Sort = sort;
-                MaxNumTerms = maxNumTerms;
-                Term = term;
-                Terms = terms;
-                TextKeyValues = textKeyValues;
-            }
-
-            public readonly string Input;
-            public readonly string Output;
-            public readonly SortOrder Sort;
-            public readonly int MaxNumTerms;
-            public readonly string[] Term;
-            public readonly string Terms;
-            public readonly bool TextKeyValues;
-        }
-
         /// <summary>
         /// Convenience constructor for public facing API.
         /// </summary>
@@ -382,15 +377,17 @@ namespace Microsoft.ML.Runtime.Data
             string name,
             string source = null,
             int maxNumTerms = Defaults.MaxNumTerms,
-            SortOrder sort = Defaults.Sort)
-        {
-            return Create(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, MaxNumTerms = maxNumTerms, Sort = sort }, input);
-        }
+            SortOrder sort = Defaults.Sort) => Create(env, new Arguments()
+            {
+                Column = new[] { new Column() { Source = source ?? name, Name = name } },
+                MaxNumTerms = maxNumTerms,
+                Sort = sort
+            }, input);
 
         //REVIEW: This and static method below need to go to base class as it get created.
         private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
 
-        internal static ColInfo[] CreateInfos(IHostEnvironment env, (string source, string name)[] columns, ISchema schema, Func<ColumnType, string> testType)
+        private static ColInfo[] CreateInfos(IHostEnvironment env, (string source, string name)[] columns, ISchema schema, Func<ColumnType, string> testType)
         {
             env.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
             env.AssertValue(schema);
@@ -437,64 +434,6 @@ namespace Microsoft.ML.Runtime.Data
                 TermsColumn = args.TermsColumn,
                 TextKeyValues = args.TextKeyValues
             }, input);
-        }
-
-        internal static void LoadObjectsFromContext(IHostEnvironment env, ModelLoadContext ctx,
-            out (string Source, string Name)[] columns, out bool[] textMetadata, out TermMap[] boundMap, bool ignoreVersioning = false)
-        {
-            // *** Binary format ***
-            // for each term map:
-            //   bool(byte): whether this column should present key value metadata as text
-            var length = ctx.Reader.ReadInt32();
-            env.Assert(length > 0);
-            columns = new (string Source, string Name)[length];
-            for (int i = 0; i < length; i++)
-            {
-                columns[i].Name = ctx.LoadNonEmptyString();
-                columns[i].Source = ctx.LoadNonEmptyString();
-            }
-            env.Assert(length > 0);
-            if (ignoreVersioning)
-                textMetadata = ctx.Reader.ReadBoolArray(length);
-            else
-            {
-                if (ctx.Header.ModelVerWritten >= VerNonTextTypesSupported)
-                    textMetadata = ctx.Reader.ReadBoolArray(length);
-                else
-                    textMetadata = new bool[length]; // No need to set in this case. They're all text.
-            }
-
-            const string dir = "Vocabulary";
-            var termMap = new TermMap[length];
-            bool b = ctx.TryProcessSubModel(dir,
-            c =>
-            {
-                // *** Binary format ***
-                // int: number of term maps (should equal number of columns)
-                // for each term map:
-                //   byte: code identifying the term map type (0 text, 1 codec)
-                //   <data>: type specific format, see TermMap save/load methods
-
-                env.CheckValue(c, nameof(ctx));
-                c.CheckAtModel(GetTermManagerVersionInfo());
-                int cmap = c.Reader.ReadInt32();
-                env.CheckDecode(cmap == length);
-                if (c.Header.ModelVerWritten >= VerManagerNonTextTypesSupported)
-                {
-                    for (int i = 0; i < length; ++i)
-                        termMap[i] = TermMap.Load(c, env);
-                }
-                else
-                {
-                    for (int i = 0; i < length; ++i)
-                        termMap[i] = TermMap.TextImpl.Create(c, env);
-                }
-            });
-#pragma warning disable MSML_NoMessagesForLoadContext // Vaguely useful.
-            if (!b)
-                throw env.ExceptDecode("Missing {0} model", dir);
-#pragma warning restore MSML_NoMessagesForLoadContext
-            boundMap = termMap;
         }
 
         internal static string TestIsKnownDataKind(ColumnType type)
@@ -786,7 +725,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             if ((inputSchema.GetColumnType(srcCol).ItemType.RawKind == default))
 
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[col].Input, "image", inputSchema.GetColumnType(srcCol).ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "image", inputSchema.GetColumnType(srcCol).ToString());
         }
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
@@ -952,6 +891,5 @@ namespace Microsoft.ML.Runtime.Data
                 return PfaUtils.If(PfaUtils.Call("map.containsKey", cellRef, srcToken), PfaUtils.Index(cellRef, srcToken), -1);
             }
         }
-
     }
 }

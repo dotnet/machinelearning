@@ -24,6 +24,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         public TermTransform Fit(IDataView input) => new TermTransform(_host, input, _columns);
+
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -37,7 +38,11 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (!(col.ItemType.ItemType.RawKind == default) || !(col.ItemType.IsVector || col.ItemType.IsPrimitive))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-
+                string[] metadata;
+                if (col.MetadataKinds.Contains(MetadataUtils.Kinds.SlotNames))
+                    metadata = new[] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.KeyValues };
+                else
+                    metadata = new[] { MetadataUtils.Kinds.KeyValues };
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, NumberType.U4, true, new[] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.KeyValues });
             }
 
