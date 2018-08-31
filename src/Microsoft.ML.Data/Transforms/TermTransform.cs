@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.Data
             // other things, like case insensitive (where appropriate), culturally aware, etc.?
         }
 
-        public static class Defaults
+        internal static class Defaults
         {
             public const int MaxNumTerms = 1000000;
             public const SortOrder Sort = SortOrder.Occurrence;
@@ -733,6 +733,10 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ColInfo[] _infos;
 
             private readonly BoundTermMap[] _termMap;
+
+            public bool CanSaveOnnx => true;
+
+            public bool CanSavePfa => true;
 
             public Mapper(TermTransform parent, ISchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)

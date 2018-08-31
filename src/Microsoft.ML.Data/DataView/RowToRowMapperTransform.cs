@@ -211,9 +211,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public override ISchema Schema { get { return _bindings; } }
 
-        public bool CanSaveOnnx => _mapper is ISaveAsOnnx onnxMapper ? true : false;
+        public bool CanSaveOnnx => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx : false;
 
-        public bool CanSavePfa => _mapper is ISaveAsOnnx pfaMapper ? true : false;
+        public bool CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 
         public RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper)
             : base(env, RegistrationName, input)
@@ -328,14 +328,16 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsOnnx onnx)
-                onnx.SaveAsOnnx(ctx);
+                if (onnx.CanSaveOnnx)
+                    onnx.SaveAsOnnx(ctx);
         }
 
         public void SaveAsPfa(BoundPfaContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
-            if (_mapper is ISaveAsPfa onnx)
-                onnx.SaveAsPfa(ctx);
+            if (_mapper is ISaveAsPfa pfa)
+                if (pfa.CanSavePfa)
+                    pfa.SaveAsPfa(ctx);
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
