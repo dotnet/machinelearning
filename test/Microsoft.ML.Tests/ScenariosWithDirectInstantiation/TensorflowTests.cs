@@ -119,7 +119,6 @@ namespace Microsoft.ML.Scenarios
                 var metrics = Evaluate(env, testDataScorer);
 
                 Assert.Equal(0.99, metrics.AccuracyMicro, 2);
-                Assert.Equal(0.99, metrics.AccuracyMicro, 2);
 
                 // Create prediction engine and test predictions
                 var model = env.CreatePredictionEngine<MNISTData, MNISTPrediction>(testDataScorer);
@@ -145,7 +144,7 @@ namespace Microsoft.ML.Scenarios
 
                 float max = -1;
                 int maxIndex = -1;
-                for(int i=0;i<prediction.PredictedLabels.Length; i++)
+                for (int i = 0; i < prediction.PredictedLabels.Length; i++)
                 {
                     if (prediction.PredictedLabels[i] > max)
                     {
@@ -207,10 +206,10 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, cropped);
 
-
                 IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, "Output", "Input");
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
+                var numRows = 0;
                 using (var cursor = trans.GetRowCursor(col => col == output))
                 {
                     var buffer = default(VBuffer<float>);
@@ -219,8 +218,57 @@ namespace Microsoft.ML.Scenarios
                     {
                         getter(ref buffer);
                         Assert.Equal(10, buffer.Length);
+                        numRows += 1;
                     }
                 }
+                Assert.Equal(3, numRows);
+            }
+        }
+
+        [Fact]
+        public void TensorFlowTransformCifarInvalidShape()
+        {
+            var model_location = "cifar_model/frozen_model.pb";
+
+            using (var env = new TlcEnvironment())
+            {
+                var imageHeight = 28;
+                var imageWidth = 28;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
+                    }
+                }, cropped);
+
+                var thrown = false;
+                try
+                {
+                    IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, "Output", "Input");
+                }
+                catch
+                {
+                    thrown = true;
+                }
+                Assert.True(thrown);
             }
         }
     }
