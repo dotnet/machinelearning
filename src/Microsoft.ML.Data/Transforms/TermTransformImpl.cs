@@ -451,26 +451,8 @@ namespace Microsoft.ML.Runtime.Data
         /// These are the immutable and serializable analogs to the <see cref="Builder"/> used in
         /// training.
         /// </summary>
-        internal abstract class TermMap
+        private abstract class TermMap
         {
-            private static volatile MemoryStreamPool _codecFactoryPool;
-            private static volatile CodecFactory _codecFactory;
-            private static object _factoryLock = new object();
-
-            private static CodecFactory CodecFactory(IHostEnvironment env)
-            {
-                lock (_factoryLock)
-                {
-                    if (_codecFactory == null)
-                    {
-                        Interlocked.CompareExchange(ref _codecFactoryPool, new MemoryStreamPool(), null);
-                        Interlocked.CompareExchange(ref _codecFactory, new CodecFactory(env, _codecFactoryPool), null);
-                    }
-                }
-                env.Assert(_codecFactory != null);
-
-                return _codecFactory;
-            }
             /// <summary>
             /// The item type of the input type, that is, either the input type or,
             /// if a vector, the item type of that type.
@@ -500,9 +482,9 @@ namespace Microsoft.ML.Runtime.Data
                 OutputType = new KeyType(DataKind.U4, 0, Count == 0 ? 1 : Count);
             }
 
-            public abstract void Save(ModelSaveContext ctx, IHostEnvironment host);
+            public abstract void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory);
 
-            public static TermMap Load(ModelLoadContext ctx, IHostEnvironment ectx)
+            public static TermMap Load(ModelLoadContext ctx, IHostEnvironment ectx, CodecFactory codecFactory)
             {
                 // *** Binary format ***
                 // byte: map type code
@@ -521,7 +503,7 @@ namespace Microsoft.ML.Runtime.Data
                         // int: number of terms
                         // value codec block: the terms written in the codec-defined binary format
                         IValueCodec codec;
-                        if (!CodecFactory(ectx).TryReadCodec(ctx.Reader.BaseStream, out codec))
+                        if (!codecFactory.TryReadCodec(ctx.Reader.BaseStream, out codec))
                             throw ectx.Except("Unrecognized codec read");
                         ectx.CheckDecode(codec.Type.IsPrimitive);
                         int count = ctx.Reader.ReadInt32();
@@ -628,7 +610,7 @@ namespace Microsoft.ML.Runtime.Data
                     return new TextImpl(pool);
                 }
 
-                public override void Save(ModelSaveContext ctx, IHostEnvironment host)
+                public override void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory)
                 {
                     // *** Binary format ***
                     // byte: map type code, in this case 'Text' (0)
@@ -703,7 +685,7 @@ namespace Microsoft.ML.Runtime.Data
                     _values = values;
                 }
 
-                public override void Save(ModelSaveContext ctx, IHostEnvironment host)
+                public override void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory)
                 {
                     // *** Binary format ***
                     // byte: map type code, in this case 'Codec'
@@ -712,12 +694,12 @@ namespace Microsoft.ML.Runtime.Data
                     // value codec block: the terms written in the codec-defined binary format
 
                     IValueCodec codec;
-                    if (!CodecFactory(host).TryGetCodec(ItemType, out codec))
+                    if (!codecFactory.TryGetCodec(ItemType, out codec))
                         throw host.Except("We do not know how to serialize terms of type '{0}'", ItemType);
                     ctx.Writer.Write((byte)MapType.Codec);
                     host.Assert(codec.Type.Equals(ItemType));
                     host.Assert(codec.Type.IsPrimitive);
-                    CodecFactory(host).WriteCodec(ctx.Writer.BaseStream, codec);
+                    codecFactory.WriteCodec(ctx.Writer.BaseStream, codec);
                     IValueCodec<T> codecT = (IValueCodec<T>)codec;
                     ctx.Writer.Write(_values.Count);
                     using (var writer = codecT.OpenWriter(ctx.Writer.BaseStream))
@@ -775,7 +757,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        internal abstract class TermMap<T> : TermMap
+        private abstract class TermMap<T> : TermMap
         {
             protected TermMap(PrimitiveType type, int count)
                 : base(type, count)
@@ -820,7 +802,7 @@ namespace Microsoft.ML.Runtime.Data
         /// a <see cref="TermMap"/>, and facilitate mapping that object to the inputs of
         /// a particular column, providing both values and metadata.
         /// </summary>
-        internal abstract class BoundTermMap
+        private abstract class BoundTermMap
         {
             public readonly TermMap Map;
 

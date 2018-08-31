@@ -328,16 +328,20 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsOnnx onnx)
-                if (onnx.CanSaveOnnx)
-                    onnx.SaveAsOnnx(ctx);
+            {
+                Host.Check(onnx.CanSaveOnnx, "Cannot be saved as ONNX.");
+                onnx.SaveAsOnnx(ctx);
+            }
         }
 
         public void SaveAsPfa(BoundPfaContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsPfa pfa)
-                if (pfa.CanSavePfa)
-                    pfa.SaveAsPfa(ctx);
+            {
+                Host.Check(pfa.CanSavePfa, "Cannot be saved as PFA.");
+                pfa.SaveAsPfa(ctx);
+            }
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
@@ -364,6 +368,7 @@ namespace Microsoft.ML.Runtime.Data
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
                 ch.Done();
+                RowCursor
                 return new Row(input, this, Schema, getters);
             }
         }

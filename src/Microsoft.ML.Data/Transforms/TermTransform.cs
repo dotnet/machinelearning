@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 [assembly: LoadableClass(TermTransform.Summary, typeof(IDataTransform), typeof(TermTransform),
     typeof(TermTransform.Arguments), typeof(SignatureDataTransform),
@@ -182,6 +183,7 @@ namespace Microsoft.ML.Runtime.Data
             public readonly string Terms;
             public readonly bool TextKeyValues;
         }
+
         public const string Summary = "Converts input values (words, numbers, etc.) to index in a dictionary.";
         public const string UserName = "Term Transform";
         public const string LoaderSignature = "TermTransform";
@@ -202,7 +204,22 @@ namespace Microsoft.ML.Runtime.Data
         private const uint VerManagerNonTextTypesSupported = 0x00010002;
 
         public const string TermManagerLoaderSignature = "TermManager";
+        private static volatile MemoryStreamPool _codecFactoryPool;
+        private volatile CodecFactory _codecFactory;
 
+        private CodecFactory CodecFactory
+        {
+            get
+            {
+                if (_codecFactory == null)
+                {
+                    Interlocked.CompareExchange(ref _codecFactoryPool, new MemoryStreamPool(), null);
+                    Interlocked.CompareExchange(ref _codecFactory, new CodecFactory(Host, _codecFactoryPool), null);
+                }
+                Host.Assert(_codecFactory != null);
+                return _codecFactory;
+            }
+        }
         private static VersionInfo GetTermManagerVersionInfo()
         {
             return new VersionInfo(
@@ -344,7 +361,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (c.Header.ModelVerWritten >= VerManagerNonTextTypesSupported)
                 {
                     for (int i = 0; i < columnsLength; ++i)
-                        termMap[i] = TermMap.Load(c, host);
+                        termMap[i] = TermMap.Load(c, host, CodecFactory);
                 }
                 else
                 {
@@ -705,7 +722,7 @@ namespace Microsoft.ML.Runtime.Data
                     c.SetVersionInfo(GetTermManagerVersionInfo());
                     c.Writer.Write(_unboundMaps.Length);
                     foreach (var term in _unboundMaps)
-                        term.Save(c, Host);
+                        term.Save(c, Host, CodecFactory);
 
                     c.SaveTextStream("Terms.txt",
                         writer =>
@@ -722,7 +739,6 @@ namespace Microsoft.ML.Runtime.Data
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
             if ((inputSchema.GetColumnType(srcCol).ItemType.RawKind == default))
-
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "image", inputSchema.GetColumnType(srcCol).ToString());
         }
 
