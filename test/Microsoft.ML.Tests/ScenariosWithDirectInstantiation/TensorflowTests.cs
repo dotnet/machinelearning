@@ -119,7 +119,7 @@ namespace Microsoft.ML.Scenarios
                 var metrics = Evaluate(env, testDataScorer);
 
                 Assert.Equal(0.99, metrics.AccuracyMicro, 2);
-                Assert.Equal(0.99, metrics.AccuracyMicro, 2);
+                Assert.Equal(1.0, metrics.AccuracyMacro, 2);
 
                 // Create prediction engine and test predictions
                 var model = env.CreatePredictionEngine<MNISTData, MNISTPrediction>(testDataScorer);
