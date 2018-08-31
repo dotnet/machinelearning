@@ -4,6 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.KMeans;
@@ -13,21 +14,11 @@ namespace Microsoft.ML.Benchmarks
 {
     public class KMeansAndLogisticRegressionBench
     {
-        private static string s_dataPath;
+        private readonly string _dataPath = Program.GetInvariantCultureDataPath("adult.train");
 
         [Benchmark]
-        public IPredictor TrainKMeansAndLR() => TrainKMeansAndLRCore();
-
-        [GlobalSetup]
-        public void Setup()
+        public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
         {
-            s_dataPath = Program.GetDataPath("adult.train");
-        }
-
-        private static IPredictor TrainKMeansAndLRCore()
-        {
-            string dataPath = s_dataPath;
-
             using (var env = new TlcEnvironment(seed: 1))
             {
                 // Pipeline
@@ -53,7 +44,7 @@ namespace Microsoft.ML.Benchmarks
                                     new TextLoader.Range() { Min = 10, Max = 12 }
                                 })
                         }
-                    }, new MultiFileSource(dataPath));
+                    }, new MultiFileSource(_dataPath));
 
                 IDataTransform trans = CategoricalTransform.Create(env, new CategoricalTransform.Arguments
                 {
