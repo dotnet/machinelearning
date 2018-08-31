@@ -1612,12 +1612,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out BL dst)
         {
-            // NA text -> default.
-            if (src.IsNA)
-            {
-                dst = default;
-                return true;
-            }
+            // NA text -> Exception.
+            Contracts.Check(!src.IsNA, "Missing text values cannot be converted to bool value.");
+            Contracts.Check(!IsStdMissing(ref src), "Missing text values cannot be converted to bool value.");
 
             char ch;
             switch (src.Length)
@@ -1721,7 +1718,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             }
 
             dst = false;
-            return IsStdMissing(ref src);
+            return false;
         }
 
         private bool TryParse(ref TX src, out TX dst)
@@ -1787,6 +1784,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         }
         public void Convert(ref TX span, ref BL value)
         {
+            Contracts.Check(!span.IsNA, "Missing text values cannot be converted to bool value.");
             // When TryParseBL returns false, it should have set value to false.
             if (!TryParse(ref span, out value))
                 Contracts.Assert(!value);
