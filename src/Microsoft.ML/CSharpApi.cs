@@ -1534,6 +1534,18 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Transforms.SupervisedBinNormalizer", input, output));
             }
 
+            public Microsoft.ML.Transforms.TensorFlowScorer.Output Add(Microsoft.ML.Transforms.TensorFlowScorer input)
+            {
+                var output = new Microsoft.ML.Transforms.TensorFlowScorer.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Transforms.TensorFlowScorer input, Microsoft.ML.Transforms.TensorFlowScorer.Output output)
+            {
+                _jsonNodes.Add(Serialize("Transforms.TensorFlowScorer", input, output));
+            }
+
             public Microsoft.ML.Transforms.TextFeaturizer.Output Add(Microsoft.ML.Transforms.TextFeaturizer input)
             {
                 var output = new Microsoft.ML.Transforms.TextFeaturizer.Output();
@@ -15893,6 +15905,81 @@ namespace Microsoft.ML
             private class SupervisedBinNormalizerPipelineStep : ILearningPipelineDataStep
             {
                 public SupervisedBinNormalizerPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Transforms
+    {
+
+        /// <summary>
+        /// Transforms the data using the TensorFlow model.
+        /// </summary>
+        public sealed partial class TensorFlowScorer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more details.
+            /// </summary>
+            public string ModelFile { get; set; }
+
+            /// <summary>
+            /// The names of the model inputs
+            /// </summary>
+            public string[] InputColumns { get; set; }
+
+            /// <summary>
+            /// The name of the output
+            /// </summary>
+            public string OutputColumn { get; set; }
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(TensorFlowScorer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new TensorFlowScorerPipelineStep(output);
+            }
+
+            private class TensorFlowScorerPipelineStep : ILearningPipelineDataStep
+            {
+                public TensorFlowScorerPipelineStep(Output output)
                 {
                     Data = output.OutputData;
                     Model = output.Model;

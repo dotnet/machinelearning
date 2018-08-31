@@ -11,22 +11,19 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Microsoft.ML.Benchmarks
 {
-    public class StochasticDualCoordinateAscentClassifierBench
+    public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
-        internal static ClassificationMetrics s_metrics;
-        private static PredictionModel<IrisData, IrisPrediction> s_trainedModel;
-        private static string s_dataPath;
-        private static string s_sentimentDataPath;
-        private static IrisData[][] s_batches;
-        private static readonly int[] s_batchSizes = new int[] { 1, 2, 5 };
-        private readonly Random r = new Random(0);
-        private readonly Consumer _consumer = new Consumer();
-        private static readonly IrisData s_example = new IrisData()
+        private readonly string _dataPath = Program.GetInvariantCultureDataPath("iris.txt");
+        private readonly string _sentimentDataPath = Program.GetInvariantCultureDataPath("wikipedia-detox-250-line-data.tsv");
+        private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
+
+        private readonly int[] _batchSizes = new int[] { 1, 2, 5 };
+        private readonly IrisData _example = new IrisData()
         {
             SepalLength = 3.3f,
             SepalWidth = 1.6f,
@@ -34,71 +31,36 @@ namespace Microsoft.ML.Benchmarks
             PetalWidth = 5.1f,
         };
 
-        [GlobalSetup]
-        public void Setup()
+        private PredictionModel<IrisData, IrisPrediction> _trainedModel;
+        private IrisData[][] _batches;
+        private ClassificationMetrics _metrics;
+
+        protected override IEnumerable<Metric> GetMetrics()
         {
-            s_dataPath = Program.GetDataPath("iris.txt");
-            s_sentimentDataPath = Program.GetDataPath("wikipedia-detox-250-line-data.tsv");
-            s_trainedModel = TrainCore();
-            IrisPrediction prediction = s_trainedModel.Predict(s_example);
-
-            var testData = new Data.TextLoader(s_dataPath).CreateFrom<IrisData>(useHeader: true);
-            var evaluator = new ClassificationEvaluator();
-            s_metrics = evaluator.Evaluate(s_trainedModel, testData);
-
-            s_batches = new IrisData[s_batchSizes.Length][];
-            for (int i = 0; i < s_batches.Length; i++)
-            {
-                var batch = new IrisData[s_batchSizes[i]];
-                s_batches[i] = batch;
-                for (int bi = 0; bi < batch.Length; bi++)
-                {
-                    batch[bi] = s_example;
-                }
-            }
+            if (_metrics != null)
+                yield return new Metric(
+                    nameof(ClassificationMetrics.AccuracyMacro),
+                    _metrics.AccuracyMacro.ToString("0.##", CultureInfo.InvariantCulture));
         }
 
         [Benchmark]
-        public PredictionModel<IrisData, IrisPrediction> TrainIris() => TrainCore();
+        public PredictionModel<IrisData, IrisPrediction> TrainIris() => Train(_dataPath);
 
-        [Benchmark]
-        public float[] PredictIris() => s_trainedModel.Predict(s_example).PredictedLabels;
-
-        [Benchmark]
-        public void PredictIrisBatchOf1() => Consume(s_trainedModel.Predict(s_batches[0]));
-
-        [Benchmark]
-        public void PredictIrisBatchOf2() => Consume(s_trainedModel.Predict(s_batches[1]));
-
-        [Benchmark]
-        public void PredictIrisBatchOf5() => Consume(s_trainedModel.Predict(s_batches[2]));
-
-        [Benchmark]
-        public IPredictor TrainSentiment() => TrainSentimentCore();
-
-        private void Consume(IEnumerable<IrisPrediction> predictions)
-        {
-            foreach (var prediction in predictions)
-                _consumer.Consume(prediction);
-        }
-
-        private static PredictionModel<IrisData, IrisPrediction> TrainCore()
+        private PredictionModel<IrisData, IrisPrediction> Train(string dataPath)
         {
             var pipeline = new LearningPipeline();
 
-            pipeline.Add(new Data.TextLoader(s_dataPath).CreateFrom<IrisData>(useHeader: true));
-            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
-                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
+            pipeline.Add(new Data.TextLoader(dataPath).CreateFrom<IrisData>(useHeader: true));
+            pipeline.Add(new ColumnConcatenator(outputColumn: "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
 
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
-            PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
-            return model;
+            return pipeline.Train<IrisData, IrisPrediction>();
         }
 
-        private static IPredictor TrainSentimentCore()
+        [Benchmark]
+        public void TrainSentiment()
         {
-            var dataPath = s_sentimentDataPath;
             using (var env = new TlcEnvironment(seed: 1))
             {
                 // Pipeline
@@ -125,7 +87,7 @@ namespace Microsoft.ML.Benchmarks
                                 Type = DataKind.Text
                             }
                         }
-                    }, new MultiFileSource(dataPath));
+                    }, new MultiFileSource(_sentimentDataPath));
 
                 var text = TextTransform.Create(env,
                     new TextTransform.Arguments()
@@ -145,7 +107,7 @@ namespace Microsoft.ML.Benchmarks
                         WordFeatureExtractor = null,
                     }, loader);
 
-                var trans = new WordEmbeddingsTransform(env, 
+                var trans = new WordEmbeddingsTransform(env,
                     new WordEmbeddingsTransform.Arguments()
                     {
                         Column = new WordEmbeddingsTransform.Column[1]
@@ -162,32 +124,74 @@ namespace Microsoft.ML.Benchmarks
                 // Train
                 var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { MaxIterations = 20 });
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
-                return trainer.Train(trainRoles);
+
+                var predicted = trainer.Train(trainRoles);
+                _consumer.Consume(predicted); 
             }
         }
 
-        public class IrisData
+        [GlobalSetup(Targets = new string[] { nameof(PredictIris), nameof(PredictIrisBatchOf1), nameof(PredictIrisBatchOf2), nameof(PredictIrisBatchOf5) })]
+        public void SetupPredictBenchmarks()
         {
-            [Column("0")]
-            public float Label;
+            _trainedModel = Train(_dataPath);
+            _consumer.Consume(_trainedModel.Predict(_example));
 
-            [Column("1")]
-            public float SepalLength;
+            var testData = new Data.TextLoader(_dataPath).CreateFrom<IrisData>(useHeader: true);
+            var evaluator = new ClassificationEvaluator();
+            _metrics = evaluator.Evaluate(_trainedModel, testData);
 
-            [Column("2")]
-            public float SepalWidth;
-
-            [Column("3")]
-            public float PetalLength;
-
-            [Column("4")]
-            public float PetalWidth;
+            _batches = new IrisData[_batchSizes.Length][];
+            for (int i = 0; i < _batches.Length; i++)
+            {
+                var batch = new IrisData[_batchSizes[i]];
+                _batches[i] = batch;
+                for (int bi = 0; bi < batch.Length; bi++)
+                {
+                    batch[bi] = _example;
+                }
+            }
         }
 
-        public class IrisPrediction
+        [Benchmark]
+        public float[] PredictIris() => _trainedModel.Predict(_example).PredictedLabels;
+
+        [Benchmark]
+        public void PredictIrisBatchOf1() => Consume(_trainedModel.Predict(_batches[0]));
+
+        [Benchmark]
+        public void PredictIrisBatchOf2() => Consume(_trainedModel.Predict(_batches[1]));
+
+        [Benchmark]
+        public void PredictIrisBatchOf5() => Consume(_trainedModel.Predict(_batches[2]));
+
+        private void Consume(IEnumerable<IrisPrediction> predictions)
         {
-            [ColumnName("Score")]
-            public float[] PredictedLabels;
+            foreach (var prediction in predictions)
+                _consumer.Consume(prediction);
         }
+    }
+
+    public class IrisData
+    {
+        [Column("0")]
+        public float Label;
+
+        [Column("1")]
+        public float SepalLength;
+
+        [Column("2")]
+        public float SepalWidth;
+
+        [Column("3")]
+        public float PetalLength;
+
+        [Column("4")]
+        public float PetalWidth;
+    }
+
+    public class IrisPrediction
+    {
+        [ColumnName("Score")]
+        public float[] PredictedLabels;
     }
 }

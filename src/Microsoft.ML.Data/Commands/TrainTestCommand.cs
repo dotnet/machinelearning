@@ -24,14 +24,14 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The test data file", ShortName = "test", SortOrder = 1)]
             public string TestFile;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr")]
-            public SubComponent<ITrainer, SignatureTrainer> Trainer = new SubComponent<ITrainer, SignatureTrainer>("AveragedPerceptron");
+            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", SignatureType = typeof(SignatureTrainer))]
+            public IComponentFactory<ITrainer> Trainer;
 
             [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SortOrder = 101, SignatureType = typeof(SignatureDataScorer))]
             public IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> Scorer;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", NullName = "<Auto>", SortOrder = 102)]
-            public SubComponent<IMamlEvaluator, SignatureMamlEvaluator> Evaluator;
+            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", NullName = "<Auto>", SortOrder = 102, SignatureType = typeof(SignatureMamlEvaluator))]
+            public IComponentFactory<IMamlEvaluator> Evaluator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Results summary filename", ShortName = "sf")]
             public string SummaryFilename;
@@ -79,14 +79,13 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string Summary = "Trains a predictor using the train file and then scores and evaluates the predictor using the test file.";
         public const string LoadName = "TrainTest";
-        private readonly ComponentCatalog.LoadableClassInfo _info;
 
         public TrainTestCommand(IHostEnvironment env, Arguments args)
             : base(env, args, nameof(TrainTestCommand))
         {
             Utils.CheckOptionalUserDirectory(args.SummaryFilename, nameof(args.SummaryFilename));
             Utils.CheckOptionalUserDirectory(args.OutputDataFile, nameof(args.OutputDataFile));
-            _info = TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
+            TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
             if (string.IsNullOrWhiteSpace(args.TestFile))
                 throw Host.ExceptUserArg(nameof(args.TestFile), "Test file must be defined.");
         }
@@ -123,7 +122,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(cmd);
 
             ch.Trace("Constructing trainer");
-            ITrainer trainer = Args.Trainer.CreateInstance(Host);
+            ITrainer trainer = Args.Trainer.CreateComponent(Host);
 
             IPredictor inputPredictor = null;
             if (Args.ContinueTrain && !TrainUtils.TryLoadPredictor(ch, Host, Args.InputModelFile, out inputPredictor))
@@ -187,10 +186,8 @@ namespace Microsoft.ML.Runtime.Data
             IDataScorerTransform scorePipe = ScoreUtils.GetScorer(Args.Scorer, predictor, testPipe, features, group, customCols, Host, data.Schema);
 
             // Evaluate.
-            var evalComp = Args.Evaluator;
-            if (!evalComp.IsGood())
-                evalComp = EvaluateUtils.GetEvaluatorType(ch, scorePipe.Schema);
-            var evaluator = evalComp.CreateInstance(Host);
+            var evaluator = Args.Evaluator?.CreateComponent(Host) ??
+                EvaluateUtils.GetEvaluator(Host, scorePipe.Schema);
             var dataEval = new RoleMappedData(scorePipe, label, features,
                 group, weight, name, customCols, opt: true);
             var metrics = evaluator.Evaluate(dataEval);
