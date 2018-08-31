@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.FastTree
         public override RegressionGamPredictor Train(TrainContext context)
         {
             TrainBase(context);
-            return new RegressionGamPredictor(Host, InputLength, TrainSet, MeanEffect, BinEffects, FeatureMap, FinalResults);
+            return new RegressionGamPredictor(Host, InputLength, TrainSet, MeanEffect, BinEffects, FeatureMap);
         }
 
         protected override ObjectiveFunctionBase CreateObjectiveFunction()
@@ -74,8 +74,8 @@ namespace Microsoft.ML.Runtime.FastTree
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         public RegressionGamPredictor(IHostEnvironment env, int inputLength, Dataset trainset,
-            double meanEffect, double[][] binEffects, int[] featureMap, TrainingResults trainingResults)
-            : base(env, LoaderSignature, inputLength, trainset, meanEffect, binEffects, featureMap, trainingResults) { }
+            double meanEffect, double[][] binEffects, int[] featureMap)
+            : base(env, LoaderSignature, inputLength, trainset, meanEffect, binEffects, featureMap) { }
 
         private RegressionGamPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx) { }

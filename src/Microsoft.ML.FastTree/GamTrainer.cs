@@ -119,14 +119,12 @@ namespace Microsoft.ML.Runtime.FastTree
         private bool HasWeights => TrainSet?.SampleWeights != null;
 
         // Training Datastructures
-        private uint[][] _splitPoint;
-        private double[][][] _splitValue;
+        private SubGraph _subGraph;
 
         //Results of Training
         protected double MeanEffect;
         protected double[][] BinEffects;
         protected int[] FeatureMap;
-        protected TrainingResults FinalResults;
 
         public override TrainerInfo Info { get; }
         private protected virtual bool NeedCalibration => false;
@@ -331,7 +329,8 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainSet.Flocks[flockIndex].Trust(subFeatureIndex), 0);
 
             // Adjust the model
-            ConvertTreeToGraph(globalFeatureIndex, iteration, _leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].Gain > 0);
+            if (_leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].Gain > 0)
+                ConvertTreeToGraph(globalFeatureIndex, iteration);
         }
 
         /// <summary>
@@ -340,12 +339,12 @@ namespace Microsoft.ML.Runtime.FastTree
         private void UpdateScores(int iteration)
         {
             // Pass scores by reference to be updated and manually trigger the update callbacks
-            UpdateScoresForSet(TrainSet, TrainSetScore.Scores, iteration, UpdateWithSplitValues);
+            UpdateScoresForSet(TrainSet, TrainSetScore.Scores, iteration);
             TrainSetScore.SendScoresUpdatedMessage();
 
             if (HasValidSet)
             {
-                UpdateScoresForSet(ValidSet, ValidSetScore.Scores, iteration, UpdateWithSplitValues);
+                UpdateScoresForSet(ValidSet, ValidSetScore.Scores, iteration);
                 ValidSetScore.SendScoresUpdatedMessage();
             }
         }
@@ -357,10 +356,8 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="scores">The current scores for this dataset</param>
         /// <param name="iteration">The iteration of the algorithm.
         /// Used to look up the sub-graph to use to update the score.</param>
-        /// <param name="updateFunction">Function to use to update the scores</param>
         /// <returns></returns>
-        private void UpdateScoresForSet(Dataset dataset, double[] scores, int iteration,
-            Action<int, int, int, int, double[]> updateFunction)
+        private void UpdateScoresForSet(Dataset dataset, double[] scores, int iteration)
         {
             DefineDocumentThreadBlocks(dataset.NumDocs, BlockingThreadPool.NumThreads, out int[] threadBlocks);
 
@@ -369,45 +366,19 @@ namespace Microsoft.ML.Runtime.FastTree
                 {
                     int startIndexInclusive = threadBlocks[threadIndex];
                     int endIndexExclusive = threadBlocks[threadIndex + 1];
-                    for (int featureIndex = 0; featureIndex < _splitPoint.Length; featureIndex++)
+                    for (int featureIndex = 0; featureIndex < _subGraph.Splits.Length; featureIndex++)
                     {
                         var featureIndexer = dataset.GetIndexer(featureIndex);
                         for (int doc = startIndexInclusive; doc < endIndexExclusive; doc++)
                         {
-                            updateFunction(doc, featureIndex, iteration, featureIndexer[doc], scores);
+                            if (featureIndexer[doc] <= _subGraph.Splits[featureIndex][iteration].SplitPoint)
+                                scores[doc] += _subGraph.Splits[featureIndex][iteration].LteValue;
+                            else
+                                scores[doc] += _subGraph.Splits[featureIndex][iteration].GtValue;
                         }
                     }
                 }, BlockingThreadPool.NumThreads);
             updateTask.RunTask();
-        }
-
-        /// <summary>
-        /// Update the scores incrementally using a subgraph
-        /// </summary>
-        /// <param name="doc">the document index</param>
-        /// <param name="featureIndex">the feature index</param>
-        /// <param name="iteration">the iteration</param>
-        /// <param name="featureBin">the bin for the feature in this document</param>
-        /// <param name="scores">the array of scores</param>
-        private void UpdateWithSplitValues(int doc, int featureIndex, int iteration, int featureBin, double[] scores)
-        {
-            if (featureBin <= _splitPoint[featureIndex][iteration])
-                scores[doc] += _splitValue[featureIndex][iteration][0];
-            else
-                scores[doc] += _splitValue[featureIndex][iteration][1];
-        }
-
-        /// <summary>
-        /// Update the scores using the BinEffects graph
-        /// </summary>
-        /// <param name="doc">the document index</param>
-        /// <param name="featureIndex">the feature index</param>
-        /// <param name="iteration">the iteration</param>
-        /// <param name="featureBin">the bin for the feature in this document</param>
-        /// <param name="scores">the array of scores</param>
-        private void UpdateWithGraph(int doc, int featureIndex, int iteration, int featureBin, double[] scores)
-        {
-            scores[doc] += BinEffects[featureIndex][featureBin] + MeanEffect/BinEffects.Length;
         }
 
         /// <summary>
@@ -444,40 +415,16 @@ namespace Microsoft.ML.Runtime.FastTree
 
                 for (int iteration = 0; iteration < bestIteration; iteration++)
                 {
-                    var splitPoint = _splitPoint[featureIndex][iteration];
-                    var splitValue = _splitValue[featureIndex][iteration];
+                    var splitPoint = _subGraph.Splits[featureIndex][iteration].SplitPoint;
                     for (int bin = 0; bin <= splitPoint; bin++)
-                        BinEffects[featureIndex][bin] += splitValue[0];
+                        BinEffects[featureIndex][bin] += _subGraph.Splits[featureIndex][iteration].LteValue;
                     for (int bin = (int)splitPoint + 1; bin < numOfBins; bin++)
-                        BinEffects[featureIndex][bin] += splitValue[1];
-
-                    // Drop the unused values
-                    _splitValue[featureIndex][iteration] = null;
+                        BinEffects[featureIndex][bin] += _subGraph.Splits[featureIndex][iteration].GtValue;
                 }
             }
 
             // Center the graph around zero
             CenterGraph();
-
-            // Recompute the final results if necessary
-            if (bestIteration != Args.NumIterations)
-            {
-                Array.Clear(TrainSetScore.Scores, 0, TrainSetScore.Scores.Length);
-                if (HasValidSet)
-                    Array.Clear(ValidSetScore.Scores, 0, ValidSetScore.Scores.Length);
-
-                UpdateScoresForSet(TrainSet, TrainSetScore.Scores, bestIteration, UpdateWithGraph);
-                if (HasValidSet)
-                    UpdateScoresForSet(ValidSet, ValidSetScore.Scores, bestIteration, UpdateWithGraph);
-            }
-
-            if (HasValidSet && PruningTest != null) {
-                FinalResults = new TrainingResults(bestIteration,
-                    _objectiveFunction.GetGradient(ch, TrainSetScore.Scores).Sum(),
-                    PruningTest.ComputeTests().ToArray()[PruningLossIndex].FinalValue);
-            }
-            else
-                FinalResults = new TrainingResults(bestIteration, _objectiveFunction.GetGradient(ch, TrainSetScore.Scores).Sum());
         }
 
         /// <summary>
@@ -549,19 +496,12 @@ namespace Microsoft.ML.Runtime.FastTree
             }
         }
 
-        private void ConvertTreeToGraph(int globalFeatureIndex, int iteration, bool useSplitValues)
+        private void ConvertTreeToGraph(int globalFeatureIndex, int iteration)
         {
-            // Always define the graph
-            _splitValue[globalFeatureIndex][iteration] = new double[2]; // Easily extend to variable-length trees
-
-            // But only fill it in if some criteria were met
-            if (useSplitValues)
-            {
-                SplitInfo splitinfo = _leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex];
-                _splitPoint[globalFeatureIndex][iteration] = splitinfo.Threshold;
-                _splitValue[globalFeatureIndex][iteration][0] = Args.LearningRates * splitinfo.LteOutput;
-                _splitValue[globalFeatureIndex][iteration][1] = Args.LearningRates * splitinfo.GTOutput;
-            }
+            SplitInfo splitinfo = _leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex];
+            _subGraph.Splits[globalFeatureIndex][iteration].SplitPoint = splitinfo.Threshold;
+            _subGraph.Splits[globalFeatureIndex][iteration].LteValue = Args.LearningRates * splitinfo.LteOutput;
+            _subGraph.Splits[globalFeatureIndex][iteration].GtValue = Args.LearningRates * splitinfo.GTOutput;
         }
 
         private void InitializeGamHistograms()
@@ -569,14 +509,6 @@ namespace Microsoft.ML.Runtime.FastTree
             _histogram = new SufficientStatsBase[TrainSet.Flocks.Length];
             for (int i = 0; i < TrainSet.Flocks.Length; i++)
                 _histogram[i] = TrainSet.Flocks[i].CreateSufficientStats(HasWeights);
-
-            _splitPoint = new uint[TrainSet.NumFeatures][];
-            _splitValue = new double[TrainSet.NumFeatures][][];
-            for (int i = 0; i < TrainSet.NumFeatures; i++)
-            {
-                _splitPoint[i] = new uint[Args.NumIterations];
-                _splitValue[i] = new double[Args.NumIterations][]; // Note the last dim is null
-            }
         }
 
         private void Initialize(IChannel ch)
@@ -584,6 +516,7 @@ namespace Microsoft.ML.Runtime.FastTree
             using (Timer.Time(TimerEvent.InitializeTraining))
             {
                 InitializeGamHistograms();
+                _subGraph = new SubGraph(TrainSet.NumFeatures, Args.NumIterations);
                 _leafSplitCandidates = new LeastSquaresRegressionTreeLearner.LeafSplitCandidates(TrainSet);
                 _leafSplitHelper = new LeafSplitHelper(HasWeights);
             }
@@ -637,25 +570,36 @@ namespace Microsoft.ML.Runtime.FastTree
                 return sumTargets / sumWeights;
             }
         }
-    }
 
-    public sealed class TrainingResults
-    {
-        public double Iteration { get; private set; }
-        public double TrainLoss { get; private set; }
-        public double ValidMetric { get; private set; }
-
-        public TrainingResults(int iteration, double trainLoss)
+        private struct SubGraph
         {
-            Iteration = iteration;
-            TrainLoss = trainLoss;
-        }
 
-        public TrainingResults(int iteration, double trainLoss, double validMetric)
-        {
-            Iteration = iteration;
-            TrainLoss = trainLoss;
-            ValidMetric = validMetric;
+            public Stump[][] Splits;
+
+            public SubGraph(int numFeatures, int numIterations)
+            {
+                Splits = new Stump[numFeatures][];
+                for (int i =0; i < numFeatures; ++i)
+                {
+                    Splits[i] = new Stump[numIterations];
+                    for (int j = 0; j < numIterations; j++)
+                        Splits[i][j] = new Stump(0, 0, 0);
+                }
+            }
+
+            public struct Stump
+            {
+                public uint SplitPoint;
+                public double LteValue;
+                public double GtValue;
+
+                public Stump(uint splitPoint, double lteValue, double gtValue)
+                {
+                    SplitPoint = splitPoint;
+                    LteValue = lteValue;
+                    GtValue = gtValue;
+                }
+            }
         }
     }
 
@@ -676,15 +620,12 @@ namespace Microsoft.ML.Runtime.FastTree
         private readonly int _inputLength;
         private readonly Dictionary<int, int> _inputFeatureToDatasetFeatureMap;
 
-        public readonly TrainingResults TrainingSummary;
-
         public ColumnType InputType => _inputType;
 
         public ColumnType OutputType => NumberType.Float;
 
         private protected GamPredictorBase(IHostEnvironment env, string name,
-            int inputLength, Dataset trainSet, double meanEffect, double[][] binEffects, int[] featureMap,
-            TrainingResults trainingResults)
+            int inputLength, Dataset trainSet, double meanEffect, double[][] binEffects, int[] featureMap)
             : base(env, name)
         {
             Host.CheckValue(trainSet, nameof(trainSet));
@@ -700,8 +641,6 @@ namespace Microsoft.ML.Runtime.FastTree
             _featureMap = featureMap;
 
             _intercept = meanEffect;
-
-            TrainingSummary = trainingResults;
 
             //No features were filtered.
             if (_featureMap == null)
@@ -970,10 +909,6 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
-
-            writer.WriteLine("Iterations: {0}", TrainingSummary.Iteration);
-            writer.WriteLine("Training Loss: {0}", TrainingSummary.TrainLoss);
-            writer.WriteLine("Validation Metric: {0}", TrainingSummary.ValidMetric);
 
             writer.WriteLine("\xfeffFeature index table"); // add BOM to tell excel this is UTF-8
             writer.WriteLine($"Number of features:\t{_numFeatures+1:D}");

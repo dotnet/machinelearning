@@ -1203,7 +1203,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         }
     }
 
-    public interface ILeafSplitStatisticsCalculator
+    internal interface ILeafSplitStatisticsCalculator
     {
         double CalculateSplittedLeafOutput(int count, double sumTargets, double sumWeights);
 

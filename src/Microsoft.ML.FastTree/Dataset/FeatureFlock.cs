@@ -232,7 +232,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
         }
 
-        public void FindBestSplitForFeature(ILeafSplitStatisticsCalculator leafCalculator,
+        internal void FindBestSplitForFeature(ILeafSplitStatisticsCalculator leafCalculator,
             LeastSquaresRegressionTreeLearner.LeafSplitCandidates leafSplitCandidates,
             int totalCount, double sumTargets, double sumWeights,
             int featureIndex, int flockIndex, int subfeatureIndex, double minDocsInLeaf,
