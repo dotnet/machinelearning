@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
@@ -48,74 +49,64 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestWorking()
+        void TestDifferntTypes()
         {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
-            var stringData = new[] { new TestClassDifferentTypes { A = "1", B = "c", C = "b" } };
-            using (var env = new TlcEnvironment())
+            string dataPath = GetDataPath("adult.test");
+
+            var loader = new TextLoader(Env, new TextLoader.Arguments
             {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var pipe = new TermEstimator(env, new[]{
-                    new TermTransform.ColumnInfo("A", "TermA"),
-                    new TermTransform.ColumnInfo("B", "TermB"),
-                    new TermTransform.ColumnInfo("C", "TermC")
+                Column = new[]{
+                    new TextLoader.Column("float1", DataKind.R4, 0),
+                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
+                    new TextLoader.Column("double1", DataKind.R8, 0),
+                    new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
+                    new TextLoader.Column("int1", DataKind.I4, 0),
+                    new TextLoader.Column("text1", DataKind.TX, 1),
+                    new TextLoader.Column("text2", DataKind.TX, new[]{new TextLoader.Range(1), new TextLoader.Range(3)}),
+                },
+                Separator = ",",
+                HasHeader = true
+            }, new MultiFileSource(dataPath));
+
+            var pipe = new TermEstimator(Env, new[]{
+                    new TermTransform.ColumnInfo("float1", "TermFloat1"),
+                    new TermTransform.ColumnInfo("float4", "TermFloat4"),
+                    new TermTransform.ColumnInfo("double1", "TermDouble1"),
+                    new TermTransform.ColumnInfo("double4", "TermDouble4"),
+                    new TermTransform.ColumnInfo("int1", "TermInt1"),
+                    new TermTransform.ColumnInfo("text1", "TermText1"),
+                    new TermTransform.ColumnInfo("text2", "TermText2")
                 });
-                var invalidData = ComponentCreation.CreateDataView(env, xydata);
-                TestEstimatorCore(pipe, dataView, null, invalidData);
+            var data = loader.Read(new MultiFileSource(dataPath));
+            data = TakeFilter.Create(Env, data, 10);
+            var outputPath = GetOutputPath("Term", "Term.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, pipe.Fit(data).Transform(data), fs, keepHidden: true);
             }
+
+            CheckEquality("Term", "Term.tsv");
+            Done();
         }
 
         [Fact]
-        void TestBadTransformSchema()
+        void TestSimpleCase()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+
             var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
             var stringData = new[] { new TestClassDifferentTypes { A = "1", B = "c", C = "b" } };
-            using (var env = new TlcEnvironment())
-            {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var xyDataView = ComponentCreation.CreateDataView(env, xydata);
-                var est = new TermEstimator(env, new[]{
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var pipe = new TermEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC")
                 });
-                var transformer = est.Fit(dataView);
-                var stringView = ComponentCreation.CreateDataView(env, stringData);
-                try
-                {
-                    var result = transformer.Transform(stringView);
-                    Assert.False(true);
-                }
-                catch(InvalidOperationException)
-                {
-                }
-            }
-        }
-
-        [Fact]
-        void TestSavingAndLoading()
-        {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            using (var env = new TlcEnvironment())
-            {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new TermEstimator(env, new[]{
-                    new TermTransform.ColumnInfo("A", "TermA"),
-                    new TermTransform.ColumnInfo("B", "TermB"),
-                    new TermTransform.ColumnInfo("C", "TermC")
-                });
-                var transformer = est.Fit(dataView);
-                using (var ms = new MemoryStream())
-                {
-                    transformer.SaveTo(env, ms);
-                    ms.Position = 0;
-                    var loadedTransformer = TransformerChain.LoadFrom(env, ms);
-                    var result = loadedTransformer.Transform(dataView);
-                    ValidateTermTransformer(result);
-                }
-            }
+            var invalidData = ComponentCreation.CreateDataView(Env, xydata);
+            var validFitNotValidTransformData = ComponentCreation.CreateDataView(Env, stringData);
+            TestEstimatorCore(pipe, dataView, null, invalidData, validFitNotValidTransformData);
         }
 
         [Fact]

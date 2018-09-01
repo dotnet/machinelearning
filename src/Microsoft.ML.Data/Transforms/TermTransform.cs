@@ -322,6 +322,7 @@ namespace Microsoft.ML.Runtime.Data
             return new TermTransform(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);
         }
 
+        // Factory method for SignatureLoadModel.
         public static TermTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
