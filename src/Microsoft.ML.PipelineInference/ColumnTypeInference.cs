@@ -259,8 +259,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 AllowSparse = args.AllowSparse,
                 AllowQuoting = args.AllowQuote,
             };
-            var textLoader = new TextLoader(env, textLoaderArgs, fileSource);
-            var idv = textLoader.Take(args.MaxRowsToRead);
+            var idv = TextLoader.ReadFile(env, textLoaderArgs, fileSource);
+            idv = idv.Take(args.MaxRowsToRead);
 
             // Read all the data into memory.
             // List items are rows of the dataset.

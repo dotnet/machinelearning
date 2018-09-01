@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
 
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
 
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var model = env.CreatePredictionEngine<SentimentData, SentimentPrediction>(scorer);
 
                 // Take a couple examples out of the test data and run predictions on top.
-                var testLoader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(SentimentTestPath)));
+                var testLoader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(SentimentTestPath)));
                 var testData = testLoader.AsEnumerable<SentimentData>(env, false);
                 foreach (var input in testData.Take(5))
                 {

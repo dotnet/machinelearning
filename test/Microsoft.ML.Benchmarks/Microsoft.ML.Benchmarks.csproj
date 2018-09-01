@@ -20,4 +20,16 @@
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Input\" />
+    <Content Include="..\data\iris.txt" Link="Input\iris.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="..\data\adult.train" Link="Input\adult.train">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\data\wikipedia-detox-250-line-data.tsv" Link="Input\wikipedia-detox-250-line-data.tsv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
