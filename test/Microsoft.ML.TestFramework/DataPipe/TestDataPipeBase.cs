@@ -118,7 +118,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 mustFail(() => loadedTransformer.Transform(validForFitNotValidForTransformInput));
             }
 
-
             // Schema verification between estimator and transformer.
             var scoredTrainSchemaShape = SchemaShape.Create(transformer.GetOutputSchema(validFitInput.Schema));
             CheckSameSchemaShape(outSchemaShape, scoredTrainSchemaShape);
