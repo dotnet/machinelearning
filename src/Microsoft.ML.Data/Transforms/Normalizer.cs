@@ -13,6 +13,9 @@ using System.Linq;
 [assembly: LoadableClass(typeof(NormalizerTransformer), null, typeof(SignatureLoadModel),
     "", NormalizerTransformer.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(IRowMapper), typeof(NormalizerTransformer), null, typeof(SignatureLoadRowMapper),
+    "", NormalizerTransformer.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.Data
 {
     public sealed class Normalizer : IEstimator<NormalizerTransformer>
@@ -375,7 +378,7 @@ namespace Microsoft.ML.Runtime.Data
             return new NormalizerTransformer(env.Register(nameof(NormalizerTransformer)), ctx);
         }
 
-        // Factory method for SignatureRowMapper.
+        // Factory method for SignatureLoadRowMapper.
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
