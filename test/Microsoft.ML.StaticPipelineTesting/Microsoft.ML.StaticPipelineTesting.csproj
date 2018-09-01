@@ -5,7 +5,9 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
-    <ProjectReference Include="..\..\tools-local\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
+
+    <ProjectReference Include="..\..\tools-local\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj" />
   </ItemGroup>
 </Project>

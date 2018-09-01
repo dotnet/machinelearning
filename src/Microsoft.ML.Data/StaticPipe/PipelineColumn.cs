@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     /// <typeparam name="T"></typeparam>
     public abstract class Scalar<T> : PipelineColumn
     {
-        protected Scalar(Reconciler reconciler, PipelineColumn[] dependencies)
+        protected Scalar(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
         {
         }
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     /// <typeparam name="T">The vector item type.</typeparam>
     public abstract class Vector<T> : PipelineColumn
     {
-        protected Vector(Reconciler reconciler, PipelineColumn[] dependencies)
+        protected Vector(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
         {
         }
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     /// <typeparam name="T">The vector item type.</typeparam>
     public abstract class VarVector<T> : PipelineColumn
     {
-        protected VarVector(Reconciler reconciler, PipelineColumn[] dependencies)
+        protected VarVector(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
         {
         }
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     /// by <see cref="Key{T, TVal}"/>.</remarks>
     public abstract class Key<T> : PipelineColumn
     {
-        protected Key(Reconciler reconciler, PipelineColumn[] dependencies)
+        protected Key(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
         {
         }
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     /// this is not necessary</typeparam>
     public abstract class Key<T, TVal> : Key<T>
     {
-        protected Key(Reconciler reconciler, PipelineColumn[] dependencies)
+        protected Key(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
         {
         }
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     /// size so any enumeration into that set would itself be a key-value of unknown cardinality.</remarks>
     public abstract class VarKey<T> : PipelineColumn
     {
-        protected VarKey(Reconciler reconciler, PipelineColumn[] dependencies)
+        protected VarKey(Reconciler reconciler, params PipelineColumn[] dependencies)
             : base(reconciler, dependencies)
         {
         }

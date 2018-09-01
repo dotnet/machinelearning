@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -457,6 +458,58 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
 
             return new SchemaShape(result.Values);
+        }
+
+        internal sealed class OutPipelineColumn : Scalar<Bitmap>
+        {
+            private readonly PipelineColumn _input;
+            private readonly int _width;
+            private readonly int _height;
+            private readonly ImageResizerTransform.ResizingKind _resizing;
+            private readonly ImageResizerTransform.Anchor _cropAnchor;
+
+            public OutPipelineColumn(PipelineColumn input, int width, int height,
+            ImageResizerTransform.ResizingKind resizing, ImageResizerTransform.Anchor cropAnchor)
+                : base(Reconciler.Inst, input)
+            {
+                Contracts.AssertValue(input);
+                _input = input;
+                _width = width;
+                _height = height;
+                _resizing = resizing;
+                _cropAnchor = cropAnchor;
+            }
+
+            private ImageResizerTransform.ColumnInfo MakeColumnInfo(string input, string output)
+                => new ImageResizerTransform.ColumnInfo(input, output, _width, _height, _resizing, _cropAnchor);
+
+            /// <summary>
+            /// Reconciler to an <see cref="ImageResizerTransform"/> for the <see cref="PipelineColumn"/>.
+            /// </summary>
+            /// <seealso cref="ImageStaticPipe.Resize(Scalar{Bitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
+            /// <seealso cref="ImageStaticPipe.Resize(Scalar{UnknownSizeBitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
+            private sealed class Reconciler : EstimatorReconciler
+            {
+                public static Reconciler Inst = new Reconciler();
+
+                private Reconciler()
+                {
+                }
+
+                public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                    PipelineColumn[] toOutput,
+                    IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                    IReadOnlyDictionary<PipelineColumn, string> outputNames)
+                {
+                    var cols = new ImageResizerTransform.ColumnInfo[toOutput.Length];
+                    for (int i = 0; i < toOutput.Length; ++i)
+                    {
+                        var outCol = (OutPipelineColumn)toOutput[i];
+                        cols[i] = outCol.MakeColumnInfo(inputNames[outCol._input], outputNames[outCol]);
+                    }
+                    return new ImageResizerEstimator(env, cols);
+                }
+            }
         }
     }
 }
