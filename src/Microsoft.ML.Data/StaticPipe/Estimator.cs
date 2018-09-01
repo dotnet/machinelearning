@@ -15,20 +15,26 @@ namespace Microsoft.ML.Data.StaticPipe
         where TTransformer : class, ITransformer
     {
         public IEstimator<TTransformer> AsDynamic { get; }
+        private readonly StaticSchemaShape _inShape;
 
-        public Estimator(IHostEnvironment env, IEstimator<TTransformer> estimator)
-            : base(env)
+        internal Estimator(IHostEnvironment env, IEstimator<TTransformer> estimator, StaticSchemaShape inShape, StaticSchemaShape outShape)
+            : base(env, outShape)
         {
             Env.CheckValue(estimator, nameof(estimator));
             AsDynamic = estimator;
+            _inShape = inShape;
+            // Our ability to check estimators at constructor time is somewaht limited. During fit though we could.
+            // Fortunately, estimators are one of the least likely things that users will freqeuently declare the
+            // types of on their own.
         }
 
         public Transformer<TTupleInShape, TTupleOutShape, TTransformer> Fit(DataView<TTupleInShape> view)
         {
             Contracts.Assert(nameof(Fit) == nameof(IEstimator<TTransformer>.Fit));
+            _inShape.Check(Env, view.AsDynamic.Schema);
 
             var trans = AsDynamic.Fit(view.AsDynamic);
-            return new Transformer<TTupleInShape, TTupleOutShape, TTransformer>(Env, trans);
+            return new Transformer<TTupleInShape, TTupleOutShape, TTransformer>(Env, trans, _inShape, Shape);
         }
 
         public Estimator<TTupleInShape, TTupleNewOutShape, ITransformer> Append<TTupleNewOutShape>(Estimator<TTupleOutShape, TTupleNewOutShape, ITransformer> estimator)
@@ -36,7 +42,7 @@ namespace Microsoft.ML.Data.StaticPipe
             Env.CheckValue(estimator, nameof(estimator));
 
             var est = AsDynamic.Append(estimator.AsDynamic);
-            return new Estimator<TTupleInShape, TTupleNewOutShape, ITransformer>(Env, est);
+            return new Estimator<TTupleInShape, TTupleNewOutShape, ITransformer>(Env, est, _inShape, estimator.Shape);
         }
 
         public Estimator<TTupleInShape, TTupleNewOutShape, ITransformer> Append<TTupleNewOutShape>(Func<TTupleOutShape, TTupleNewOutShape> mapper)
@@ -48,8 +54,8 @@ namespace Microsoft.ML.Data.StaticPipe
                 var method = mapper.Method;
 
                 // Construct the dummy column structure, then apply the mapping.
-                var input = PipelineColumnAnalyzer.MakeAnalysisInstance<TTupleOutShape>(out var fakeReconciler);
-                KeyValuePair<string, PipelineColumn>[] inPairs = PipelineColumnAnalyzer.GetNames(input, method.GetParameters()[0]);
+                var input = StaticPipeInternalUtils.MakeAnalysisInstance<TTupleOutShape>(out var fakeReconciler);
+                KeyValuePair<string, PipelineColumn>[] inPairs = StaticPipeInternalUtils.GetNamesValues(input, method.GetParameters()[0]);
 
                 // Initially we suppose we've only assigned names to the inputs.
                 var inputColToName = new Dictionary<PipelineColumn, string>();
@@ -66,7 +72,8 @@ namespace Microsoft.ML.Data.StaticPipe
                 ch.AssertValue(estTail);
 
                 var est = AsDynamic.Append(estTail);
-                var toReturn = new Estimator<TTupleInShape, TTupleNewOutShape, ITransformer>(Env, est);
+                var newOut = StaticSchemaShape.Make<TTupleNewOutShape>(method.ReturnParameter);
+                var toReturn = new Estimator<TTupleInShape, TTupleNewOutShape, ITransformer>(Env, est, _inShape, newOut);
                 ch.Done();
                 return toReturn;
             }
@@ -80,8 +87,8 @@ namespace Microsoft.ML.Data.StaticPipe
         /// something with the sahape of <typeparamref name="TTupleShape"/> as its input schema shape.
         /// The returned object is an empty estimator.
         /// </summary>
-        /// <param name="fromSchema"></param>
-        /// <returns></returns>
+        /// <param name="fromSchema">Creates a new empty head of a pipeline</param>
+        /// <returns>The empty esitmator, to which new items may be appended to create a pipeline</returns>
         public static Estimator<TTupleShape, TTupleShape, ITransformer> MakeNew<TTupleShape>(SchemaBearing<TTupleShape> fromSchema)
         {
             Contracts.CheckValue(fromSchema, nameof(fromSchema));

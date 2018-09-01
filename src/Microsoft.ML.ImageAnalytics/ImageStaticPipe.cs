@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
     public class UnknownSizeBitmap { private UnknownSizeBitmap() { } }
 
     /// <summary>
-    /// Extension methods for the static-pipeline.
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
     public static class ImageStaticPipe
     {

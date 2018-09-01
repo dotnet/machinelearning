@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 
 namespace Microsoft.ML.Data.StaticPipe
 {
@@ -11,13 +12,13 @@ namespace Microsoft.ML.Data.StaticPipe
     {
         public IDataView AsDynamic { get; }
 
-        public DataView(IHostEnvironment env, IDataView view)
-            : base(env)
+        internal DataView(IHostEnvironment env, IDataView view, StaticSchemaShape shape)
+            : base(env, shape)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(view, nameof(view));
+            Env.AssertValue(view);
 
             AsDynamic = view;
+            Shape.Check(Env, AsDynamic.Schema);
         }
     }
 }

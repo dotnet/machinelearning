@@ -59,6 +59,21 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     }
 
     /// <summary>
+    /// For representing a <see cref="VectorType"/> that is normalized, that is, its <see cref="MetadataUtils.Kinds.IsNormalized"/>
+    /// value is set with the value <c>true</c>.
+    /// </summary>
+    /// <typeparam name="T">The vector item type.</typeparam>
+    public abstract class NormVector<T> : Vector<T>
+    {
+        protected NormVector(Reconciler reconciler, params PipelineColumn[] dependencies)
+            : base(reconciler, dependencies)
+        {
+        }
+
+        public override string ToString() => $"{nameof(NormVector<T>)}<{typeof(T)}>";
+    }
+
+    /// <summary>
     /// For representing a <see cref="VectorType"/> of unknown length.
     /// </summary>
     /// <typeparam name="T">The vector item type.</typeparam>

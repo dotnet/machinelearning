@@ -6,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Data.StaticPipe
+namespace Microsoft.ML.Data.StaticPipe.Runtime
 {
     /// <summary>
     /// Utility methods for components that want to expose themselves in the idioms of the statically-typed pipelines.
@@ -46,7 +45,8 @@ namespace Microsoft.ML.Data.StaticPipe
             Func<TDelegateInput, TTupleOutShape> mapper)
         {
             var readerEstimator = GeneralFunctionAnalyzer(env, ch, input, baseReconciler, mapper, out var est, col => null);
-            return new DataReaderEstimator<TIn, TTupleOutShape, IDataReader<TIn>>(env, readerEstimator);
+            var schema = StaticSchemaShape.Make<TTupleOutShape>(mapper.Method.ReturnParameter);
+            return new DataReaderEstimator<TIn, TTupleOutShape, IDataReader<TIn>>(env, readerEstimator, schema);
         }
 
         internal static IDataReaderEstimator<TIn, IDataReader<TIn>>
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Data.StaticPipe
             var method = mapper.Method;
             var output = mapper(input);
 
-            KeyValuePair<string, PipelineColumn>[] outPairs = PipelineColumnAnalyzer.GetNames(output, method.ReturnParameter);
+            KeyValuePair<string, PipelineColumn>[] outPairs = StaticPipeInternalUtils.GetNamesValues(output, method.ReturnParameter);
 
             // Map where the key depends on the set of things in the value. The value contains the yet unresolved dependencies.
             var keyDependsOn = new Dictionary<PipelineColumn, HashSet<PipelineColumn>>();

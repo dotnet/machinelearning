@@ -19,15 +19,21 @@ namespace Microsoft.ML.Data.StaticPipe
     public abstract class SchemaBearing<TTupleShape>
     {
         private protected readonly IHostEnvironment Env;
+        internal readonly StaticSchemaShape Shape;
 
         /// <summary>
         /// Constructor for a block maker.
         /// </summary>
-        /// <param name="env"></param>
-        private protected SchemaBearing(IHostEnvironment env)
+        /// <param name="env">The host environment, stored with this object</param>
+        /// <param name="shape">The item holding the name and types as enumerated within
+        /// <typeparamref name="TTupleShape"/></param>
+        private protected SchemaBearing(IHostEnvironment env, StaticSchemaShape shape)
         {
-            Contracts.CheckValue(env, nameof(env));
+            Contracts.AssertValue(env);
+            env.AssertValue(shape);
+
             Env = env;
+            Shape = shape;
         }
 
         /// <summary>
@@ -38,7 +44,7 @@ namespace Microsoft.ML.Data.StaticPipe
         internal Estimator<TTupleShape, TTupleShape, ITransformer> MakeNewEstimator()
         {
             var est = new EstimatorChain<ITransformer>();
-            return new Estimator<TTupleShape, TTupleShape, ITransformer>(Env, est);
+            return new Estimator<TTupleShape, TTupleShape, ITransformer>(Env, est, Shape, Shape);
         }
     }
 }

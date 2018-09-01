@@ -35,7 +35,6 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(3, vecType.GetDim(0));
             Assert.Equal(8, vecType.GetDim(1));
             Assert.Equal(10, vecType.GetDim(2));
-
         }
     }
 }

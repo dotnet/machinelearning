@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
@@ -12,10 +13,13 @@ namespace Microsoft.ML.Data.StaticPipe
     {
         public IDataReader<TIn> AsDynamic { get; }
 
-        public DataReader(IHostEnvironment env, IDataReader<TIn> reader)
-            : base(env)
+        internal DataReader(IHostEnvironment env, IDataReader<TIn> reader, StaticSchemaShape shape)
+            : base(env, shape)
         {
+            Env.AssertValue(reader);
+
             AsDynamic = reader;
+            Shape.Check(Env, AsDynamic.GetOutputSchema());
         }
 
         public DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>> Append<TNewOut, TTrans>(Estimator<TTupleShape, TNewOut, TTrans> estimator)
@@ -24,7 +28,7 @@ namespace Microsoft.ML.Data.StaticPipe
             Contracts.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
 
             var readerEst = AsDynamic.Append(estimator.AsDynamic);
-            return new DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>>(Env, readerEst);
+            return new DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>>(Env, readerEst, estimator.Shape);
         }
 
         public DataReader<TIn, TNewTupleShape> Append<TNewTupleShape, TTransformer>(Transformer<TTupleShape, TNewTupleShape, TTransformer> transformer)
@@ -34,7 +38,7 @@ namespace Microsoft.ML.Data.StaticPipe
             Env.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
 
             var reader = AsDynamic.Append(transformer.AsDynamic);
-            return new DataReader<TIn, TNewTupleShape>(Env, reader);
+            return new DataReader<TIn, TNewTupleShape>(Env, reader, transformer.Shape);
         }
 
         public DataView<TTupleShape> Read(TIn input)
@@ -46,7 +50,7 @@ namespace Microsoft.ML.Data.StaticPipe
             Env.Assert(nameof(Read) == nameof(IDataReader<TIn>.Read));
 
             var data = AsDynamic.Read(input);
-            return new DataView<TTupleShape>(Env, data);
+            return new DataView<TTupleShape>(Env, data, Shape);
         }
     }
 }
