@@ -6,7 +6,7 @@ using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
 using Microsoft.ML.InternalCodeAnalyzer;
 using Xunit;
 
-namespace Microsoft.ML.CodeAnalyzer.Tests.Code
+namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class NameTest : DiagnosticVerifier<NameAnalyzer>
     {
