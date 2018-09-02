@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.ML.CodeAnalyzer {
+namespace Microsoft.ML.InternalCodeAnalyzer {
     using System;
     using System.Reflection;
     

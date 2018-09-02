@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -120,6 +121,14 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Next verify they have the expected types.
             Assert.Equal(BoolType.Instance, schema.GetColumnType(textIdx));
             Assert.Equal(new VectorType(NumberType.R4, 3), schema.GetColumnType(labelIdx));
+        }
+
+        [Fact]
+        public void StaticPipeAssertThrows()
+        {
+            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var schema = new SimpleSchema(env,
+                new KeyValuePair<string, ColumnType>());
         }
     }
 }

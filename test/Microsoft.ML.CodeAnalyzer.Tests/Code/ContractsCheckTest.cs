@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
+using Microsoft.ML.InternalCodeAnalyzer;
 using Xunit;
 using Xunit.Abstractions;
 
