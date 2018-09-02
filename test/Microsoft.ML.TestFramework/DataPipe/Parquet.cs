@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestParquetPrimitiveDataTypes()
         {
             string pathData = GetDataPath(@"Parquet", "alltypes.parquet");
-            TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" });
+            TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" } );
             Done();
         }
 
