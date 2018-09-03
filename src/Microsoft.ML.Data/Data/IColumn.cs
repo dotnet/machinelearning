@@ -207,7 +207,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <see cref="ICounted"/>, or if null, the output row will yield default values for those implementations,
         /// that is, a totally static row</param>
         /// <param name="columns">A set of row columns</param>
-        /// <returns>A row with items derived from</returns>
+        /// <returns>A row with items derived from <paramref name="columns"/></returns>
         public static IRow GetRow(ICounted counted, params IColumn[] columns)
         {
             Contracts.CheckValueOrNull(counted);

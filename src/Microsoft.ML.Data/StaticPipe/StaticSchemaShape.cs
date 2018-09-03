@@ -14,7 +14,10 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 {
     /// <summary>
     /// A schema shape with names corresponding to a type parameter in one of the typed variants
-    /// of the data pipeline structures. Used for validation.
+    /// of the data pipeline structures. Instances of this class tend to be bundled with the statically
+    /// typed variants of the dynamic structures (e.g., <see cref="DataView{TTupleShape}"/> and so forth),
+    /// and their primary purpose is to ensure that the schemas of the dynamic structures and the
+    /// statically declared structures are compatible.
     /// </summary>
     internal sealed class StaticSchemaShape
     {
@@ -56,10 +59,24 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 
             foreach (var pair in Pairs)
             {
-                if (!schema.TryGetColumnIndex(pair.Key, out int col))
+                if (!schema.TryGetColumnIndex(pair.Key, out int colIdx))
                     throw ectx.ExceptParam(nameof(schema), $"Column named '{pair.Key}' was not found");
+                var col = RowColumnUtils.GetColumn(schema, colIdx);
+                var type = GetTypeOrNull(col);
+                if ((type != null && !pair.Value.IsAssignableFromStaticPipeline(type)) || (type == null && IsStandard(ectx, pair.Value)))
+                {
+                    // When not null, we can use IsAssignableFrom to indicate we could assign to this, so as to allow
+                    // for example Key<uint, string> to be considered to be compatible with Key<uint>.
+
+                    // In the null case, while we cannot directly verify an unrecognized type, we can at least verify
+                    // that the statically declared type should not have corresponded to a recognized type.
+                    if (!pair.Value.IsAssignableFromStaticPipeline(type))
+                    {
+                        throw ectx.ExceptParam(nameof(schema),
+                            $"Column '{pair.Key}' of type '{col.Type}' cannot be expressed statically as type '{pair.Value}'.");
+                    }
+                }
             }
-            // REVIEW: Need more checking of types and whatnot.
         }
 
         /// <summary>
@@ -78,8 +95,30 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
                 var col = shape.FindColumn(pair.Key);
                 if (col == null)
                     throw ectx.ExceptParam(nameof(shape), $"Column named '{pair.Key}' was not found");
+                var type = GetTypeOrNull(col);
+                if ((type != null && !pair.Value.IsAssignableFromStaticPipeline(type)) || (type == null && IsStandard(ectx, pair.Value)))
+                {
+                    // When not null, we can use IsAssignableFrom to indicate we could assign to this, so as to allow
+                    // for example Key<uint, string> to be considered to be compatible with Key<uint>.
+
+                    // In the null case, while we cannot directly verify an unrecognized type, we can at least verify
+                    // that the statically declared type should not have corresponded to a recognized type.
+                    if (!pair.Value.IsAssignableFromStaticPipeline(type))
+                    {
+                        // This is generally an error, unless it's the situation where the asserted type is Key<,> but we could
+                        // only resolve it so far as Key<>, since for the moment the SchemaShape cannot determine the type of key
+                        // value metadata. In which case, we can check if the declared type is a subtype of the key that was determined
+                        // from the analysis.
+                        if (pair.Value.IsGenericType && pair.Value.GetGenericTypeDefinition() == typeof(Key<,>) &&
+                                type.IsAssignableFromStaticPipeline(pair.Value))
+                        {
+                            continue;
+                        }
+                        throw ectx.ExceptParam(nameof(shape),
+                            $"Column '{pair.Key}' of type '{col.GetTypeString()}' cannot be expressed statically as type '{pair.Value}'.");
+                    }
+                }
             }
-            // REVIEW: Need more checking of types and whatnot.
         }
 
         private static Type GetTypeOrNull(SchemaShape.Column col)
@@ -136,6 +175,54 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Returns true if the input type is something recognizable as being oen of the standard
+        /// builtin types. This method will also throw if something is detected as being definitely
+        /// wrong (e.g., the input type does not descend from <see cref="PipelineColumn"/> at all,
+        /// or a <see cref="Key{T}"/> is declared with a <see cref="string"/> type parameter or
+        /// something.
+        /// </summary>
+        private static bool IsStandard(IExceptionContext ectx, Type t)
+        {
+            Contracts.AssertValue(ectx);
+            ectx.AssertValue(t);
+            if (!typeof(PipelineColumn).IsAssignableFrom(t))
+            {
+                throw ectx.ExceptParam(nameof(t), $"Type {t} was not even of {nameof(PipelineColumn)}");
+            }
+            var gt = t.IsGenericType ? t.GetGenericTypeDefinition() : t;
+            if (gt != typeof(Scalar<>) && gt != typeof(Key<>) && gt != typeof(Key<,>) && gt != typeof(VarKey<>) &&
+                gt != typeof(Vector<>) && gt != typeof(VarVector<>) && gt != typeof(NormVector<>))
+            {
+                throw ectx.ExceptParam(nameof(t),
+                    $"Type {t} was not one of the standard subclasses of {nameof(PipelineColumn)}");
+            }
+            ectx.Assert(t.IsGenericType);
+            var ga = t.GetGenericArguments();
+            ectx.AssertNonEmpty(ga);
+
+            if (gt == typeof(Key<>) || gt == typeof(Key<,>) || gt == typeof(VarKey<>))
+            {
+                ectx.Assert((gt == typeof(Key<,>) && ga.Length == 2) || ga.Length == 1);
+                var kt = ga[0];
+                if (kt != typeof(byte) && kt != typeof(ushort) && kt != typeof(uint) && kt != typeof(ulong))
+                    throw ectx.ExceptParam(nameof(t), $"Type parameter {kt.Name} is not a valid type for key");
+                return gt != typeof(Key<,>) || IsStandardCore(ga[1]);
+            }
+
+            ectx.Assert(ga.Length == 1);
+            return IsStandardCore(ga[0]);
+        }
+
+        private static bool IsStandardCore(Type t)
+        {
+            Contracts.AssertValue(t);
+            return t == typeof(float) || t == typeof(double) || t == typeof(string) || t == typeof(bool) ||
+                t == typeof(sbyte) || t == typeof(short) || t == typeof(int) || t == typeof(long) ||
+                t == typeof(byte) || t == typeof(ushort) || t == typeof(uint) || t == typeof(ulong) ||
+                t == typeof(TimeSpan) || t == typeof(DateTime) || t == typeof(DateTimeOffset);
         }
 
         /// <summary>
@@ -221,8 +308,8 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
                 // not be one of the built in types. (E.g., an outside analogy to the key types.) For this
                 // reason, we must be certain that when we return here we are covering one fo the builtin types.
                 if (physType != null && (
-                    pt == NumberType.I1 || pt == NumberType.I2 || pt == NumberType.I4 || pt == NumberType.I4 ||
-                    pt == NumberType.U1 || pt == NumberType.U2 || pt == NumberType.U4 || pt == NumberType.U4 ||
+                    pt == NumberType.I1 || pt == NumberType.I2 || pt == NumberType.I4 || pt == NumberType.I8 ||
+                    pt == NumberType.U1 || pt == NumberType.U2 || pt == NumberType.U4 || pt == NumberType.U8 ||
                     pt == NumberType.R4 || pt == NumberType.R8 || pt == NumberType.UG || pt == BoolType.Instance ||
                     pt == DateTimeType.Instance || pt == DateTimeZoneType.Instance || pt == TimeSpanType.Instance ||
                     pt == TextType.Instance))
@@ -239,7 +326,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         /// <see cref="DataKind.Text"/> the return type is <see cref="string"/>, even though we do not use that
         /// type for communicating text.
         /// </summary>
-        /// <returns>The basic type used to represent an item type</returns>
+        /// <returns>The basic type used to represent an item type in the static pipeline</returns>
         private static Type StaticKind(DataKind kind)
         {
             switch (kind)
@@ -259,6 +346,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 
                 case DataKind.R4: return typeof(float);
                 case DataKind.R8: return typeof(double);
+                case DataKind.BL: return typeof(bool);
 
                 case DataKind.Text: return typeof(string);
                 case DataKind.TimeSpan: return typeof(TimeSpan);

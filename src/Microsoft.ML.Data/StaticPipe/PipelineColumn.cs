@@ -41,7 +41,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         {
         }
 
-        public override string ToString() => $"{nameof(Scalar<T>)}<{typeof(T)}>";
+        public override string ToString() => $"{nameof(Scalar<T>)}<{typeof(T).Name}>";
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         {
         }
 
-        public override string ToString() => $"{nameof(Vector<T>)}<{typeof(T)}>";
+        public override string ToString() => $"{nameof(Vector<T>)}<{typeof(T).Name}>";
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         {
         }
 
-        public override string ToString() => $"{nameof(NormVector<T>)}<{typeof(T)}>";
+        public override string ToString() => $"{nameof(NormVector<T>)}<{typeof(T).Name}>";
     }
 
     /// <summary>
@@ -83,6 +83,8 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             : base(reconciler, dependencies)
         {
         }
+
+        public override string ToString() => $"{nameof(VarVector<T>)}<{typeof(T).Name}>";
     }
 
     /// <summary>
@@ -99,6 +101,8 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             : base(reconciler, dependencies)
         {
         }
+
+        public override string ToString() => $"{nameof(Key<T>)}<{typeof(T).Name}>";
     }
 
     /// <summary>
@@ -116,6 +120,8 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             : base(reconciler, dependencies)
         {
         }
+
+        public override string ToString() => $"{nameof(Key<T, TVal>)}<{typeof(T).Name}, {typeof(TVal).Name}>";
     }
 
     /// <summary>
@@ -132,5 +138,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             : base(reconciler, dependencies)
         {
         }
+
+        public override string ToString() => $"{nameof(VarKey<T>)}<{typeof(T).Name}>";
     }
 }

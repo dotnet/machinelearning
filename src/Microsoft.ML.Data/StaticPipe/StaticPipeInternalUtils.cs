@@ -143,18 +143,6 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             }
         }
 
-        private struct Info
-        {
-            public readonly Type Type;
-            public readonly object Item;
-
-            public Info(Type type, object item)
-            {
-                Type = type;
-                Item = item;
-            }
-        }
-
         public static KeyValuePair<string, Type>[] GetNamesTypes<T>(ParameterInfo pInfo)
             => GetNamesTypes<T, PipelineColumn>(pInfo);
 
@@ -188,11 +176,69 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         }
 
         /// <summary>
+        /// A sort of extended version of <see cref="Type.IsAssignableFrom(Type)"/> that accounts
+        /// for the presence of the <see cref="Vector{T}"/>, <see cref="VarVector{T}"/> and <see cref="NormVector{T}"/> types. />
+        /// </summary>
+        /// <param name="to">Can we assign to this type?</param>
+        /// <param name="from">From that type?</param>
+        /// <returns></returns>
+        public static bool IsAssignableFromStaticPipeline(this Type to, Type from)
+        {
+            Contracts.AssertValue(to);
+            Contracts.AssertValue(from);
+            if (to.IsAssignableFrom(from))
+                return true;
+            // The only exception to the above test are the vector types. These are generic types.
+            if (!to.IsGenericType || !from.IsGenericType)
+                return false;
+            var gto = to.GetGenericTypeDefinition();
+            var gfrom = from.GetGenericTypeDefinition();
+
+            // If either of the types is not one of the vector types, we can just stop right here.
+            if ((gto != typeof(Vector<>) && gto != typeof(VarVector<>) && gto != typeof(NormVector<>)) ||
+                (gfrom != typeof(Vector<>) && gfrom != typeof(VarVector<>) && gfrom != typeof(NormVector<>)))
+            {
+                return false;
+            }
+
+            // First check the value types. If those don't match, no sense going any further.
+            var ato = to.GetGenericArguments();
+            var afrom = from.GetGenericArguments();
+            Contracts.Assert(Utils.Size(ato) == 1);
+            Contracts.Assert(Utils.Size(afrom) == 1);
+
+            if (!ato[0].IsAssignableFrom(afrom[0]))
+                return false;
+
+            // We have now confirmed at least the compatibility of the item types. Next we must confirm the same of the vector type.
+            // Variable sized vectors must match in their types, norm vector can be considered assignable to vector.
+
+            // If either is a var vector, the other must be as well.
+            if (gto == typeof(VarVector<>))
+                return gfrom == typeof(VarVector<>);
+
+            // We can assign from NormVector<> to Vector<>, but not the other way around. So we only fail if we are trying to assign Vector<> to NormVector<>.
+            return gfrom != typeof(Vector<>) || gto != typeof(NormVector<>);
+        }
+
+        /// <summary>
         /// Utility for extracting names out of value-tuple tree structures.
         /// </summary>
         /// <typeparam name="TLeaf"></typeparam>
         private static class NameUtil<TLeaf>
         {
+            private struct Info
+            {
+                public readonly Type Type;
+                public readonly object Item;
+
+                public Info(Type type, object item)
+                {
+                    Type = type;
+                    Item = item;
+                }
+            }
+
             /// <summary>
             /// A utility for exacting name/type/value triples out of a value-tuple based tree structure.
             ///

@@ -30,6 +30,10 @@ namespace Microsoft.ML.Data.StaticPipe
             env.CheckValue(outputDecl, nameof(outputDecl));
 
             // We don't actually need to call the method, it's just there to give the declaration.
+#if DEBUG
+            outputDecl(SchemaAssertionContext.Inst);
+#endif
+
             var schema = StaticSchemaShape.Make<T>(outputDecl.Method.ReturnParameter);
             return new DataView<T>(env, view, schema);
         }
