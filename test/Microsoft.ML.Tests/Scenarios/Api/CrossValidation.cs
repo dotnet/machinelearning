@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline.
-                var loader = new TextLoader(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
 
                 var text = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
                 IDataView trans = new GenerateNumberTransform(env, text, "StratificationColumn");
@@ -43,7 +43,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     ConvergenceTolerance = 1f
                 });
 
-                
                 var metrics = new List<BinaryClassificationMetrics>();
                 for (int fold = 0; fold < numFolds; fold++)
                 {
@@ -80,7 +79,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     var pipe = ApplyTransformUtils.ApplyAllTransformsToData(env, preCachedData.Data, testPipe, trainPipe);
 
                     var testRoles = new RoleMappedData(pipe, trainData.Schema.GetColumnRoleNames());
-                    
+
                     IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, testRoles, env, testRoles.Schema);
 
                     BinaryClassifierMamlEvaluator eval = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments() { });

@@ -28,29 +28,87 @@ namespace Microsoft.ML.Core.Data
                 VariableVector
             }
 
+            /// <summary>
+            /// The column name.
+            /// </summary>
             public readonly string Name;
+
+            /// <summary>
+            /// The type of the column: scalar, fixed vector or variable vector.
+            /// </summary>
             public readonly VectorKind Kind;
-            public readonly DataKind ItemKind;
+
+            /// <summary>
+            /// The 'raw' type of column item: must be a primitive type or a structured type.
+            /// </summary>
+            public readonly ColumnType ItemType;
+            /// <summary>
+            /// The flag whether the column is actually a key. If yes, <see cref="ItemType"/> is representing
+            /// the underlying primitive type.
+            /// </summary>
             public readonly bool IsKey;
+            /// <summary>
+            /// The metadata kinds that are present for this column.
+            /// </summary>
             public readonly string[] MetadataKinds;
 
-            public Column(string name, VectorKind vecKind, DataKind itemKind, bool isKey, string[] metadataKinds)
+            public Column(string name, VectorKind vecKind, ColumnType itemType, bool isKey, string[] metadataKinds = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
-                Contracts.CheckValue(metadataKinds, nameof(metadataKinds));
+                Contracts.CheckValueOrNull(metadataKinds);
+                Contracts.CheckParam(!itemType.IsKey, nameof(itemType), "Item type cannot be a key");
+                Contracts.CheckParam(!itemType.IsVector, nameof(itemType), "Item type cannot be a vector");
+
+                Contracts.CheckParam(!isKey || KeyType.IsValidDataKind(itemType.RawKind), nameof(itemType), "The item type must be valid for a key");
 
                 Name = name;
                 Kind = vecKind;
-                ItemKind = itemKind;
+                ItemType = itemType;
                 IsKey = isKey;
-                MetadataKinds = metadataKinds;
+                MetadataKinds = metadataKinds ?? new string[0];
+            }
+
+            /// <summary>
+            /// Returns whether <paramref name="inputColumn"/> is a valid input, if this object represents a
+            /// requirement.
+            ///
+            /// Namely, it returns true iff:
+            ///  - The <see cref="Name"/>, <see cref="Kind"/>, <see cref="ItemType"/>, <see cref="IsKey"/> fields match.
+            ///  - The <see cref="MetadataKinds"/> of <paramref name="inputColumn"/> is a superset of our <see cref="MetadataKinds"/>.
+            /// </summary>
+            public bool IsCompatibleWith(Column inputColumn)
+            {
+                Contracts.CheckValue(inputColumn, nameof(inputColumn));
+                if (Name != inputColumn.Name)
+                    return false;
+                if (Kind != inputColumn.Kind)
+                    return false;
+                if (!ItemType.Equals(inputColumn.ItemType))
+                    return false;
+                if (IsKey != inputColumn.IsKey)
+                    return false;
+                if (inputColumn.MetadataKinds.Except(MetadataKinds).Any())
+                    return false;
+                return true;
+            }
+
+            public string GetTypeString()
+            {
+                string result = ItemType.ToString();
+                if (IsKey)
+                    result = $"Key<{result}>";
+                if (Kind == VectorKind.Vector)
+                    result = $"Vector<{result}>";
+                else if (Kind == VectorKind.VariableVector)
+                    result = $"VarVector<{result}>";
+                return result;
             }
         }
 
-        public SchemaShape(Column[] columns)
+        public SchemaShape(IEnumerable<Column> columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            Columns = columns;
+            Columns = columns.ToArray();
         }
 
         /// <summary>
@@ -74,13 +132,15 @@ namespace Microsoft.ML.Core.Data
                     else
                         vecKind = Column.VectorKind.Scalar;
 
-                    var kind = type.ItemType.RawKind;
+                    ColumnType itemType = type.ItemType;
+                    if (type.ItemType.IsKey)
+                        itemType = PrimitiveType.FromKind(type.ItemType.RawKind);
                     var isKey = type.ItemType.IsKey;
 
                     var metadataNames = schema.GetMetadataTypes(iCol)
                         .Select(kvp => kvp.Key)
                         .ToArray();
-                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, kind, isKey, metadataNames));
+                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, itemType, isKey, metadataNames));
                 }
             }
             return new SchemaShape(cols.ToArray());

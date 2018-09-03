@@ -11,19 +11,14 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 {
     class Program
     {
-        public static void Main(string[] args)
-        {
-            BenchmarkSwitcher
+        public static void Main(string[] args) 
+            => BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(null, CreateClrVsCoreConfig());
-        }
+                .Run(args, CreateCustomConfig());
 
-        private static IConfig CreateClrVsCoreConfig()
-        {
-            var config = DefaultConfig.Instance.With(
-                Job.ShortRun.
-                With(InProcessToolchain.Instance));
-            return config;
-        }
+        private static IConfig CreateCustomConfig()
+            => DefaultConfig.Instance
+                .With(Job.Default
+                    .With(InProcessToolchain.Instance));
     }
 }

@@ -6,17 +6,13 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
-using BenchmarkDotNet.Columns;
-using BenchmarkDotNet.Reports;
+using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CsProj;
-using BenchmarkDotNet.Toolchains.InProcess;
-using System;
+using BenchmarkDotNet.Toolchains.DotNetCli;
+using Microsoft.ML.Benchmarks.Harness;
+using System.Globalization;
 using System.IO;
-using Microsoft.ML.Models;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Benchmarks;
+using System.Threading;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -26,64 +22,41 @@ namespace Microsoft.ML.Benchmarks
         /// execute dotnet run -c Release and choose the benchmarks you want to run
         /// </summary>
         /// <param name="args"></param>
-        static void Main(string[] args)
-        {
-            BenchmarkSwitcher
+        static void Main(string[] args) 
+            => BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(null, CreateClrVsCoreConfig());
-        }
+                .Run(args, CreateCustomConfig());
 
-        private static IConfig CreateClrVsCoreConfig()
+        private static IConfig CreateCustomConfig() 
+            => DefaultConfig.Instance
+                .With(Job.Default
+                    .WithWarmupCount(1) // for our time consuming benchmarks 1 warmup iteration is enough
+                    .WithMaxIterationCount(20)
+                    .With(CreateToolchain()))
+                .With(new ExtraMetricColumn())
+                .With(MemoryDiagnoser.Default);
+
+        /// <summary>
+        /// we need our own toolchain because MSBuild by default does not copy recursive native dependencies to the output
+        /// </summary>
+        private static IToolchain CreateToolchain()
         {
-            var config = DefaultConfig.Instance.With(
-                Job.ShortRun.
-                With(InProcessToolchain.Instance)).
-                With(new ClassificationMetricsColumn("AccuracyMacro", "Macro-average accuracy of the model")).
-                With(MemoryDiagnoser.Default);
-            return config;
+            var csProj = CsProjCoreToolchain.Current.Value;
+            var tfm = NetCoreAppSettings.Current.Value.TargetFrameworkMoniker;
+
+            return new Toolchain(
+                tfm, 
+                new ProjectGenerator(tfm), 
+                csProj.Builder, 
+                csProj.Executor);
         }
 
-        internal static string GetDataPath(string name)
-            => Path.GetFullPath(Path.Combine(_dataRoot, name));
-
-        static readonly string _dataRoot;
-        static Program()
+        internal static string GetInvariantCultureDataPath(string name)
         {
-            var currentAssemblyLocation = new FileInfo(typeof(Program).Assembly.Location);
-            var rootDir = currentAssemblyLocation.Directory.Parent.Parent.Parent.Parent.FullName;
-            _dataRoot = Path.Combine(rootDir, "test", "data");
+            // enforce Neutral Language as "en-us" because the input data files use dot as decimal separator (and it fails for cultures with ",")
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
+            return Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "Input", name);
         }
-    }
-
-    public class ClassificationMetricsColumn : IColumn
-    {
-        string _metricName;
-        string _legend;
-
-        public ClassificationMetricsColumn(string metricName, string legend)
-        {
-            _metricName = metricName;
-            _legend = legend;
-        }
-
-        public string ColumnName => _metricName;
-        public string Id => _metricName;
-        public string Legend => _legend;
-        public bool IsNumeric => true;
-        public bool IsDefault(Summary summary, Benchmark benchmark) => true;
-        public bool IsAvailable(Summary summary) => true;
-        public bool AlwaysShow => true;
-        public ColumnCategory Category => ColumnCategory.Custom;
-        public int PriorityInCategory => 1;
-        public UnitType UnitType => UnitType.Dimensionless;
-
-        public string GetValue(Summary summary, Benchmark benchmark, ISummaryStyle style)
-        {
-            var property = typeof(ClassificationMetrics).GetProperty(_metricName);
-            return property.GetValue(StochasticDualCoordinateAscentClassifierBench.s_metrics).ToString();
-        }
-        public string GetValue(Summary summary, Benchmark benchmark) => GetValue(summary, benchmark, null);
-
-        public override string ToString() => ColumnName;
     }
 }
