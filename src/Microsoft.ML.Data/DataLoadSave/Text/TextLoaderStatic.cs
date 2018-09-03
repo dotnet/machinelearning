@@ -4,11 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Data.StaticPipe;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -35,8 +33,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="allowSparse">Whether the input may include sparse representations.</param>
         /// <param name="trimWhitspace">Remove trailing whitespace from lines.</param>
         /// <returns>A configured statically-typed reader for text files.</returns>
-        public static DataReader<IMultiStreamSource, TTupleShape> CreateReader<TTupleShape>(
-            IHostEnvironment env, Func<Context, TTupleShape> func, IMultiStreamSource files = null,
+        public static DataReader<IMultiStreamSource, TTupleShape> CreateReader<[IsShape] TTupleShape>(
+            IHostEnvironment env,  Func<Context, TTupleShape> func, IMultiStreamSource files = null,
             bool hasHeader = false, char separator = '\t', bool allowQuoting = true, bool allowSparse = true,
             bool trimWhitspace = false)
         {

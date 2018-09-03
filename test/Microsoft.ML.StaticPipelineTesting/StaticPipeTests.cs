@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data.StaticPipe;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
@@ -254,6 +255,46 @@ namespace Microsoft.ML.StaticPipelineTesting
                 view.AssertStatic(env, c => (
                    stay: c.KeyU4.TextValues.Scalar,
                    alot: c.KeyU1.I4Values.Vector)));
+        }
+
+        DataReader<IMultiStreamSource, T> Foo1<T>(Func<TextLoader.Context, T> m)
+        {
+            IHostEnvironment env = new TlcEnvironment();
+            return TextLoader.CreateReader(env, m);
+        }
+
+        DataReader<IMultiStreamSource, T> Foo2<[IsShape] T>(Func<TextLoader.Context, T> m)
+        {
+            IHostEnvironment env = new TlcEnvironment();
+            return TextLoader.CreateReader(env, m);
+        }
+
+        DataReader<IMultiStreamSource, T> Foo3<T>(Func<TextLoader.Context, T> m)
+            where T : PipelineColumn
+        {
+            IHostEnvironment env = new TlcEnvironment();
+            return TextLoader.CreateReader(env, m);
+        }
+
+        void Scratch()
+        {
+            var f1 = Foo1(ctx => (
+                label: ctx.LoadBool(0), text: ctx.LoadText(1)));
+            var f2 = Foo1(ctx => (
+                label: ctx.LoadBool(0), text: "hi"));
+
+            var f3 = Foo2(ctx => (
+                label: ctx.LoadBool(0), text: ctx.LoadText(1)));
+            var f4 = Foo2(ctx => (
+                label: ctx.LoadBool(0), text: "hi"));
+
+            var f5 = Foo3(ctx => ctx.LoadBool(0));
+        }
+
+        [Fact]
+        public void ScratchTest()
+        {
+            Scratch();
         }
     }
 }

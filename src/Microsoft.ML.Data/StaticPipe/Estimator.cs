@@ -45,7 +45,7 @@ namespace Microsoft.ML.Data.StaticPipe
             return new Estimator<TTupleInShape, TTupleNewOutShape, ITransformer>(Env, est, _inShape, estimator.Shape);
         }
 
-        public Estimator<TTupleInShape, TTupleNewOutShape, ITransformer> Append<TTupleNewOutShape>(Func<TTupleOutShape, TTupleNewOutShape> mapper)
+        public Estimator<TTupleInShape, TTupleNewOutShape, ITransformer> Append<[IsShape] TTupleNewOutShape>(Func<TTupleOutShape, TTupleNewOutShape> mapper)
         {
             Contracts.CheckValue(mapper, nameof(mapper));
 
