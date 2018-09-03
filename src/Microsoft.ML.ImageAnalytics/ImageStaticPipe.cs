@@ -25,9 +25,9 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// </summary>
         /// <param name="path">The scalar text column that holds paths to the images</param>
         /// <param name="relativeTo">If specified, paths are considered to be relative to this directory.
-        /// However, since hte transform can be persisted across machines, it is generally considered more
-        /// safe for practitioners to simply always make their input path data contain absolute paths.</param>
-        /// <returns>The column shcema definition for </returns>
+        /// However, since the transform can be persisted across machines, it is generally considered more
+        /// safe for users to simply always make their input paths absolute.</param>
+        /// <returns>The loaded images</returns>
         /// <seealso cref="ImageLoaderEstimator"/>
         public static Scalar<UnknownSizeBitmap> LoadAsImage(this Scalar<string> path, string relativeTo = null)
         {
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// <param name="width">The width to resize to</param>
         /// <param name="height">The height to resize to</param>
         /// <param name="resizing">The type of resizing to do</param>
-        /// <param name="cropAnchor">If cropping is necessary, at what </param>
+        /// <param name="cropAnchor">If cropping is necessary, at what position will the image be fixed?</param>
         /// <returns>The now uniformly sized images</returns>
         /// <seealso cref="ImageResizerEstimator"/>
         public static Scalar<Bitmap> Resize(this Scalar<UnknownSizeBitmap> input, int width, int height,
