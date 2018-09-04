@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
     /// <summary>
-    /// This class takes care of downloading resources needed by ML.Net components. Resources are located in
+    /// This class takes care of downloading resources needed by ML.NET components. Resources are located in
     /// a pre-defined location, that can be overridden by defining Environment variable <see cref="CustomResourcesUrlEnvVariable"/>.
     /// </summary>
     public sealed class ResourceManagerUtils
