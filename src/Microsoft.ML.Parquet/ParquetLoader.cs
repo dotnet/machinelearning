@@ -733,16 +733,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <param name="dst">TimeSpan object.</param>
             public void Conv(ref Interval src, ref TimeSpan dst)
             {
-                try
-                {
-                    dst = TimeSpan.FromDays(src.Months * 30 + src.Days) + TimeSpan.FromMilliseconds(src.Millis);
-                }
-                catch (Exception ex)
-                {
-                    // Handle TimeSpan OverflowException
-                    _ch.Error("Cannot convert Inteval to TimeSpan. Exception : '{0}'", ex.Message);
-                    dst = default;
-                }
+                dst = TimeSpan.FromDays(src.Months * 30 + src.Days) + TimeSpan.FromMilliseconds(src.Millis);
             }
 
             private string ConvertListToString(IList list)
