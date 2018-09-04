@@ -93,7 +93,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.CpuMath", "Mic
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools-local", "tools-local", "{7F13E156-3EBA-4021-84A5-CD56BA72F99E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CodeAnalyzer", "tools-local\Microsoft.ML.CodeAnalyzer\Microsoft.ML.CodeAnalyzer.csproj", "{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.InternalCodeAnalyzer", "tools-local\Microsoft.ML.InternalCodeAnalyzer\Microsoft.ML.InternalCodeAnalyzer.csproj", "{B4E55B2D-2A92-46E7-B72F-E76D6FD83440}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CodeAnalyzer.Tests", "test\Microsoft.ML.CodeAnalyzer.Tests\Microsoft.ML.CodeAnalyzer.Tests.csproj", "{3E4ABF07-7970-4BE6-B45B-A13D3C397545}"
 EndProject
@@ -110,6 +110,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.HalLearners", "src\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.csproj", "{A7222F41-1CF0-47D9-B80C-B4D77B027A61}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TensorFlow", "src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj", "{570A0B8A-5463-44D2-8521-54C0CA4CACA9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Analyzer", "src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj", "{6DEF0F40-3853-47B3-8165-5F24BA5E14DF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StaticPipelineTesting", "test\Microsoft.ML.StaticPipelineTesting\Microsoft.ML.StaticPipelineTesting.csproj", "{8B38BF24-35F4-4787-A9C5-22D35987106E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -399,6 +403,22 @@ Global
 		{570A0B8A-5463-44D2-8521-54C0CA4CACA9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{570A0B8A-5463-44D2-8521-54C0CA4CACA9}.Release-Intrinsics|Any CPU.ActiveCfg = Release|Any CPU
 		{570A0B8A-5463-44D2-8521-54C0CA4CACA9}.Release-Intrinsics|Any CPU.Build.0 = Release|Any CPU
+		{6DEF0F40-3853-47B3-8165-5F24BA5E14DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DEF0F40-3853-47B3-8165-5F24BA5E14DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DEF0F40-3853-47B3-8165-5F24BA5E14DF}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DEF0F40-3853-47B3-8165-5F24BA5E14DF}.Debug-Intrinsics|Any CPU.Build.0 = Debug|Any CPU
+		{6DEF0F40-3853-47B3-8165-5F24BA5E14DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DEF0F40-3853-47B3-8165-5F24BA5E14DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DEF0F40-3853-47B3-8165-5F24BA5E14DF}.Release-Intrinsics|Any CPU.ActiveCfg = Release|Any CPU
+		{6DEF0F40-3853-47B3-8165-5F24BA5E14DF}.Release-Intrinsics|Any CPU.Build.0 = Release|Any CPU
+		{8B38BF24-35F4-4787-A9C5-22D35987106E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B38BF24-35F4-4787-A9C5-22D35987106E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B38BF24-35F4-4787-A9C5-22D35987106E}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B38BF24-35F4-4787-A9C5-22D35987106E}.Debug-Intrinsics|Any CPU.Build.0 = Debug|Any CPU
+		{8B38BF24-35F4-4787-A9C5-22D35987106E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B38BF24-35F4-4787-A9C5-22D35987106E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B38BF24-35F4-4787-A9C5-22D35987106E}.Release-Intrinsics|Any CPU.ActiveCfg = Release|Any CPU
+		{8B38BF24-35F4-4787-A9C5-22D35987106E}.Release-Intrinsics|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -444,6 +464,8 @@ Global
 		{00E38F77-1E61-4CDF-8F97-1417D4E85053} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{A7222F41-1CF0-47D9-B80C-B4D77B027A61} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{570A0B8A-5463-44D2-8521-54C0CA4CACA9} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{6DEF0F40-3853-47B3-8165-5F24BA5E14DF} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{8B38BF24-35F4-4787-A9C5-22D35987106E} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}

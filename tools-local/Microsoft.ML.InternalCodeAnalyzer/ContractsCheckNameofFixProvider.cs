@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.ML.CodeAnalyzer
+namespace Microsoft.ML.InternalCodeAnalyzer
 {
     using Debug = System.Diagnostics.Debug;
 

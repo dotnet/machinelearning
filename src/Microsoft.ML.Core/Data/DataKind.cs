@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
         Num = R4,
 
         TX = 11,
-#pragma warning disable MSML_GeneralName // The data kind enum has its own logic, independnet of C# naming conventions.
+#pragma warning disable MSML_GeneralName // The data kind enum has its own logic, independent of C# naming conventions.
         TXT = TX,
         Text = TX,
 
