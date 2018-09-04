@@ -62,6 +62,14 @@ namespace Microsoft.ML.Runtime.RunTests
         }
     }
 
+    public sealed partial class TestParquet : TestDataPipeBase
+    {
+        public TestParquet(ITestOutputHelper helper)
+                    : base(helper)
+        {
+        }
+    }
+
     public sealed partial class TestExceptionPropagation : TestDataViewBase
     {
         public TestExceptionPropagation(ITestOutputHelper helper)
