@@ -300,58 +300,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public class MyTextTransform : IEstimator<TransformWrapper>
-    {
-        private readonly IHostEnvironment _env;
-        private readonly TextTransform.Arguments _args;
-
-        public MyTextTransform(IHostEnvironment env, TextTransform.Arguments args)
-        {
-            _env = env;
-            _args = args;
-        }
-
-        public TransformWrapper Fit(IDataView input)
-        {
-            var xf = TextTransform.Create(_env, _args, input);
-            var empty = new EmptyDataView(_env, input.Schema);
-            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
-            return new TransformWrapper(_env, chunk);
-        }
-
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class MyTermTransform : IEstimator<TransformWrapper>
-    {
-        private readonly IHostEnvironment _env;
-        private readonly string _column;
-        private readonly string _srcColumn;
-
-        public MyTermTransform(IHostEnvironment env, string column, string srcColumn = null)
-        {
-            _env = env;
-            _column = column;
-            _srcColumn = srcColumn;
-        }
-
-        public TransformWrapper Fit(IDataView input)
-        {
-            var xf = new TermTransform(_env, input, _column, _srcColumn);
-            var empty = new EmptyDataView(_env, input.Schema);
-            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
-            return new TransformWrapper(_env, chunk);
-        }
-
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class MyConcatTransform : IEstimator<TransformWrapper>
     {
         private readonly IHostEnvironment _env;
