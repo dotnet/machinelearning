@@ -138,7 +138,7 @@ namespace Microsoft.ML.Tests
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var term = new TermTransform(env, new TermTransform.Arguments()
+                var term = TermTransform.Create(env, new TermTransform.Arguments()
                 {
                     Column = new[] { new TermTransform.Column() { Source = "Term", Name = "T" } }
                 }, dataView);

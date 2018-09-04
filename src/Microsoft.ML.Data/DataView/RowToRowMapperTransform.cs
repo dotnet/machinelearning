@@ -9,6 +9,8 @@ using System.Reflection;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Model.Onnx;
+using Microsoft.ML.Runtime.Model.Pfa;
 
 [assembly: LoadableClass(typeof(RowToRowMapperTransform), null, typeof(SignatureLoadDataTransform),
     "", RowToRowMapperTransform.LoaderSignature)]
@@ -127,7 +129,7 @@ namespace Microsoft.ML.Runtime.Data
     /// It does so with the help of an <see cref="IRowMapper"/>, that is given a schema in its constructor, and has methods
     /// to get the dependencies on input columns and the getters for the output columns, given an active set of output columns.
     /// </summary>
-    public sealed class RowToRowMapperTransform : RowToRowTransformBase
+    public sealed class RowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper, ITransformCanSaveOnnx, ITransformCanSavePfa
     {
         private sealed class Bindings : ColumnBindingsBase
         {
@@ -243,6 +245,10 @@ namespace Microsoft.ML.Runtime.Data
 
         public override ISchema Schema { get { return _bindings; } }
 
+        public bool CanSaveOnnx => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx : false;
+
+        public bool CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
+
         public RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper)
             : base(env, RegistrationName, input)
         {
@@ -317,6 +323,101 @@ namespace Microsoft.ML.Runtime.Data
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = new RowCursor(Host, inputs[i], this, active);
             return cursors;
+        }
+
+        public void SaveAsOnnx(OnnxContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+            if (_mapper is ISaveAsOnnx onnx)
+            {
+                Host.Check(onnx.CanSaveOnnx, "Cannot be saved as ONNX.");
+                onnx.SaveAsOnnx(ctx);
+            }
+        }
+
+        public void SaveAsPfa(BoundPfaContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+            if (_mapper is ISaveAsPfa pfa)
+            {
+                Host.Check(pfa.CanSavePfa, "Cannot be saved as PFA.");
+                pfa.SaveAsPfa(ctx);
+            }
+        }
+
+        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+        {
+            Func<int, bool> predicateInput;
+            _bindings.GetActive(predicate, out predicateInput);
+            return predicateInput;
+        }
+
+        public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+        {
+            Host.CheckValue(input, nameof(input));
+            Host.CheckValue(active, nameof(active));
+            Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
+
+            disposer = null;
+            using (var ch = Host.Start("GetEntireRow"))
+            {
+                Action disp;
+                var activeArr = new bool[Schema.ColumnCount];
+                for (int i = 0; i < Schema.ColumnCount; i++)
+                    activeArr[i] = active(i);
+                var pred = _bindings.GetActiveOutputColumns(activeArr);
+                var getters = _mapper.CreateGetters(input, pred, out disp);
+                disposer += disp;
+                ch.Done();
+                return new Row(input, this, Schema, getters);
+            }
+        }
+
+        private sealed class Row : IRow
+        {
+            private readonly IRow _input;
+            private readonly Delegate[] _getters;
+
+            private readonly RowToRowMapperTransform _parent;
+
+            public long Batch { get { return _input.Batch; } }
+
+            public long Position { get { return _input.Position; } }
+
+            public ISchema Schema { get; }
+
+            public Row(IRow input, RowToRowMapperTransform parent, ISchema schema, Delegate[] getters)
+            {
+                _input = input;
+                _parent = parent;
+                Schema = schema;
+                _getters = getters;
+            }
+
+            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            {
+                bool isSrc;
+                int index = _parent._bindings.MapColumnIndex(out isSrc, col);
+                if (isSrc)
+                    return _input.GetGetter<TValue>(index);
+
+                Contracts.Assert(_getters[index] != null);
+                var fn = _getters[index] as ValueGetter<TValue>;
+                if (fn == null)
+                    throw Contracts.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
+                return fn;
+            }
+
+            public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
+
+            public bool IsColumnActive(int col)
+            {
+                bool isSrc;
+                int index = _parent._bindings.MapColumnIndex(out isSrc, col);
+                if (isSrc)
+                    return _input.IsColumnActive((index));
+                return _getters[index] != null;
+            }
         }
 
         private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
