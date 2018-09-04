@@ -1,0 +1,4 @@
+---- ParquetLoader ----
+2 columns:
+  foo: I4
+  bar: I4

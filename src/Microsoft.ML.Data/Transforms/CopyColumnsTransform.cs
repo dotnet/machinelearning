@@ -217,7 +217,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         private readonly ISchema _schema;
         private readonly Dictionary<int, int> _colNewToOldMapping;
-        private (string Source, string Name)[] _columns;
+        private readonly (string Source, string Name)[] _columns;
         private readonly IHost _host;
         public const string LoaderSignature = "CopyColumnsRowMapper";
 
