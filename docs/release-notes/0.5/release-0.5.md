@@ -43,7 +43,7 @@ Below are some of the highlights from this release.
     * For now, these scores can be used within a `LearningPipeline` as inputs
       to a learner. However, with the upcoming ML.NET APIs, the scores from
       the TensorFlow model will be directly accessible.
-    * This transform uses
+    * The implementation of this transform is based on code from
       [TensorFlowSharp](https://github.com/migueldeicaza/TensorFlowSharp).
     * Example usage of the transform with the existing `LearningPipeline` API
       can be found
