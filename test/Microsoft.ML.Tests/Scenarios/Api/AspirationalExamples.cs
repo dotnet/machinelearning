@@ -65,93 +65,92 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void SimpleIrisDescisionTrees()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new ConsoleEnvironment();
             string dataPath = "iris-data.txt";
             // Create reader with specific schema.
             var dataReader = TextLoader.CreateReader(env, ctx => (
-               Label: ctx.LoadText(0),
-               SepalWidth: ctx.LoadFloat(1),
-               SepalLength: ctx.LoadFloat(2),
-               PetalWidth: ctx.LoadFloat(3),
-               PetalLength: ctx.LoadFloat(4)),
+               label: ctx.LoadText(0),
+               sepalWidth: ctx.LoadFloat(1),
+               sepalLength: ctx.LoadFloat(2),
+               petalWidth: ctx.LoadFloat(3),
+               petalLength: ctx.LoadFloat(4)),
                dataPath);
+
+
+            var pipeline = data.MakeEstimator()
+                .Append(row => (
+                    // Convert string label to key.
+                    label: row.label.Dictionarize(),
+                    // Concatenate all features into a vector.
+                    features: row.sepalWidth.ConcatWith(row.sepalLength, row.petalWidth, row.petalLength)))
+                .Append(row => (
+                    label: row.label,
+                    prediction: row.label.PredictWithMultiClassFastTree(row.features)));
 
             // Load the data into the system.
             var data = dataReader.Read(dataPath);
-
-            var preprocess = data.Schema.MakeEstimator(row => (
-                // Convert string label to key.
-                Label: row.Label.Dictionarize(),
-                // Concatenate all features into a vector.
-                Features: row.SepalWidth.ConcatWith(row.SepalLength, row.PetalWidth, row.PetalLength)));
-
-
-            var pipeline = preprocess
-                .Append(row => row.Label.PredictWithDecisionTrees(row.Features))
-                // shoul it be BagVectorize instead of KeyToValue?
-                .Append(row => row.PredictedLabel.KeyToValue());
-
             var model = pipeline.Fit(data);
 
             var predictions = model.Transform(dataReader.Read(testDataPath));
             var evaluator = new MultiClassEvaluator(env);
-            var metrics = evaluator.Evaluate(predictions);
+            var metrics = MultiClassEvaluator.Evaluate(predictions, row => row.label, row => row.prediction);
         }
 
         [Fact]
         public void TwitterSentimentAnalysis()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new ConsoleEnvironment();
             var dataPath = "wikipedia-detox-250-line-data.tsv";
             // Load the data into the system.
-            var data = TextLoader.CreateReader(env, ctx => (
-                   Label: ctx.LoadFloat(0),
-                   Text: ctx.LoadText(1)),
-                   dataPath, hasHeader: true).Read(dataPath);
+            var dataReader = TextLoader.CreateReader(env, ctx => (
+                   label: ctx.LoadFloat(0),
+                   text: ctx.LoadText(1)),
+                   dataPath, hasHeader: true);
 
-            var preprocess = data.Schema.MakeEstimator(row => (
-                Label: row.Label,
-                // Concatenate all features into a vector.
-                Features: row.Text.TextFeaturizer()));
+            var pipeline = dataMakeEstimator()
+                .Append(row => (
+                    label: row.label,
+                    // Concatenate all features into a vector.
+                    Features: row.text.TextFeaturizer()))
+                 .Append(row => (
+                    label: row.label,
+                    row.label.TrainLinearClassification(row.features)));
 
-            var pipeline = preprocess.
-                Append(row => row.Label.TrainLinearClassification(row.Features));
 
-            var (trainData, testData) = CrossValidator.TrainTestSplit(env, data: data, trainFraction: 0.7);
+            var (trainData, testData) = CrossValidator.TrainTestSplit(env, data: dataReader.Read(dataPath), trainFraction: 0.7);
             var model = pipeline.Fit(trainData);
+
             var predictions = model.Transform(testData);
-            var evaluator = new BinaryClassifierEvaluator(env);
-            var metrics = evaluator.Evaluate(predictions);
+            var metrics = BinaryClassifierEvaluator.Evaluate(predictions, row => row.label, row => row.prediction);
         }
 
         [Fact]
         public void TwentyNewsGroups()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new ConsoleEnvironment();
             var dataPath = "20newsGroups.txt";
             // Load the data into the system.
-            var data = TextLoader.CreateReader(env, ctx => (
-                   Label: ctx.LoadText(1),
-                   Subject: ctx.LoadText(1),
-                   Content: ctx.LoadText(2)),
-                   dataPath, hasHeader: true).Read(dataPath);
+            var dataReader = TextLoader.CreateReader(env, ctx => (
+                   label: ctx.LoadText(1),
+                   subject: ctx.LoadText(1),
+                   content: ctx.LoadText(2)),
+                   dataPath, hasHeader: true);
 
-            var preprocess = data.Schema.MakeEstimator(row => (
-                // Convert string label to key.
-                Label: row.Label.Dictionarize(),
+            var preprocess = data.MakeEstimator().
+                Append(row => (
+                    // Convert string label to key.
+                    label: row.label.Dictionarize(),
                 // Concatenate all features into a vector.
-                Features: row.Subject.Concat(row.Content).TextFeaturizer()));
+                features: row.subject.Concat(row.content).TextFeaturizer()))
+                 .Append(row => (
+                    label: row.label,
+                    prediction: row.label.TrainSDCAClassifier(row.features)));
 
-            var pipeline = preprocess.
-                Append(row => row.Label.TrainSDCAClassifier(row.Features)).
-                Append(row => row.PredictedLabel.KeyToValue());
-
-            var (trainData, testData) = CrossValidator.TrainTestSplit(env, data: data, trainFraction: 0.8);
+            var (trainData, testData) = CrossValidator.TrainTestSplit(env, data: dataReader.Read(dataPath), trainFraction: 0.8);
             var model = pipeline.Fit(trainData);
 
             var predictions = model.Transform(testData);
-            var evaluator = new MultiClassEvaluator(env);
-            var metrics = evaluator.Evaluate(predictions);
+            var metrics = MultiClassEvaluator.Evaluate(predictions, row => row.label, row => row.prediction);
         }
     }
 }
