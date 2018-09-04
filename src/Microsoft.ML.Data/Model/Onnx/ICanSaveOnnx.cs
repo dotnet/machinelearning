@@ -19,15 +19,22 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     }
 
     /// <summary>
-    /// This data model component is savable as ONNX.
+    /// This component know how to save himself in ONNX format.
     /// </summary>
-    public interface ITransformCanSaveOnnx: ICanSaveOnnx, IDataTransform
+    public interface ISaveAsOnnx : ICanSaveOnnx
     {
         /// <summary>
         /// Save as ONNX.
         /// </summary>
         /// <param name="ctx">The ONNX program being built</param>
         void SaveAsOnnx(OnnxContext ctx);
+    }
+
+    /// <summary>
+    /// This data model component is savable as ONNX.
+    /// </summary>
+    public interface ITransformCanSaveOnnx : ISaveAsOnnx, IDataTransform
+    {
     }
 
     /// <summary>

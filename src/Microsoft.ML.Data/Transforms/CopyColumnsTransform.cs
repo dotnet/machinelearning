@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.Data
                 var originalColumn = inputSchema.FindColumn(column.Source);
                 if (originalColumn != null)
                 {
-                    var col = new SchemaShape.Column(column.Name, originalColumn.Kind, originalColumn.ItemKind, originalColumn.IsKey, originalColumn.MetadataKinds);
+                    var col = new SchemaShape.Column(column.Name, originalColumn.Kind, originalColumn.ItemType, originalColumn.IsKey, originalColumn.MetadataKinds);
                     resultDic[column.Name] = col;
                 }
                 else
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         private readonly ISchema _schema;
         private readonly Dictionary<int, int> _colNewToOldMapping;
-        private (string Source, string Name)[] _columns;
+        private readonly (string Source, string Name)[] _columns;
         private readonly IHost _host;
         public const string LoaderSignature = "CopyColumnsRowMapper";
 

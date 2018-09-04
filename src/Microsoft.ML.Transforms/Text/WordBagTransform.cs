@@ -360,7 +360,7 @@ namespace Microsoft.ML.Runtime.Data
                         naDropArgs.Column[iinfo] = new NADropTransform.Column { Name = column.Name, Source = column.Name };
                 }
 
-                view = new TermTransform(h, termArgs, view);
+                view = TermTransform.Create(h, termArgs, view);
                 if (naDropArgs != null)
                     view = new NADropTransform(h, naDropArgs, view);
             }

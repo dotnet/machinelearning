@@ -7,5 +7,9 @@
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.ML.CpuMath.UnitTests.netcoreapp\UnitTests.cs" />
+  </ItemGroup>
  
 </Project>

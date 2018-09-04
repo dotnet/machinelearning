@@ -2,31 +2,38 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Drawing;
-using System.IO;
-using System.Text;
-using Microsoft.ML.Runtime.ImageAnalytics;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Text;
 
-[assembly: LoadableClass(ImageLoaderTransform.Summary, typeof(ImageLoaderTransform), typeof(ImageLoaderTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(ImageLoaderTransform.Summary, typeof(IDataTransform), typeof(ImageLoaderTransform), typeof(ImageLoaderTransform.Arguments), typeof(SignatureDataTransform),
     ImageLoaderTransform.UserName, "ImageLoaderTransform", "ImageLoader")]
 
-[assembly: LoadableClass(ImageLoaderTransform.Summary, typeof(ImageLoaderTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(ImageLoaderTransform.Summary, typeof(IDataTransform), typeof(ImageLoaderTransform), null, typeof(SignatureLoadDataTransform),
    ImageLoaderTransform.UserName, ImageLoaderTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(ImageLoaderTransform), null, typeof(SignatureLoadModel), "", ImageLoaderTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageLoaderTransform), null, typeof(SignatureLoadRowMapper), "", ImageLoaderTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
-    // REVIEW: Rewrite as LambdaTransform to simplify.
     /// <summary>
     /// Transform which takes one or many columns of type <see cref="DvText"/> and loads them as <see cref="ImageType"/>
     /// </summary>
-    public sealed class ImageLoaderTransform : OneToOneTransformBase
+    public sealed class ImageLoaderTransform : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -61,10 +68,74 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         internal const string UserName = "Image Loader Transform";
         public const string LoaderSignature = "ImageLoaderTransform";
 
+        public readonly string ImageFolder;
+
+        public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
+
+        public ImageLoaderTransform(IHostEnvironment env, string imageFolder, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoaderTransform)), columns)
+        {
+            ImageFolder = imageFolder;
+        }
+
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
+        {
+            return new ImageLoaderTransform(env, args.ImageFolder, args.Column.Select(x => (x.Source ?? x.Name, x.Name)).ToArray())
+                .MakeDataTransform(data);
+        }
+
+        public static ImageLoaderTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+
+            ctx.CheckAtModel(GetVersionInfo());
+            return new ImageLoaderTransform(env.Register(nameof(ImageLoaderTransform)), ctx);
+        }
+
+        private ImageLoaderTransform(IHost host, ModelLoadContext ctx)
+            : base(host, ctx)
+        {
+            // *** Binary format ***
+            // <base>
+            // int: id of image folder
+
+            ImageFolder = ctx.LoadStringOrNull();
+        }
+
+        // Factory method for SignatureLoadDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        {
+            if (!inputSchema.GetColumnType(srcCol).IsText)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextType.Instance.ToString(), inputSchema.GetColumnType(srcCol).ToString());
+        }
+
+        public override void Save(ModelSaveContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // <base>
+            // int: id of image folder
+
+            base.SaveColumns(ctx);
+            ctx.SaveStringOrNull(ImageFolder);
+        }
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "IMGLOADT",
+                modelSignature: "IMGLOADR",
                 //verWrittenCur: 0x00010001, // Initial
                 verWrittenCur: 0x00010002, // Swith from OpenCV to Bitmap
                 verReadableCur: 0x00010002,
@@ -72,107 +143,159 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 loaderSignature: LoaderSignature);
         }
 
-        private readonly ImageType _type;
-        private readonly string _imageFolder;
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+            => new Mapper(this, schema);
 
-        private const string RegistrationName = "ImageLoader";
-
-        // Public constructor corresponding to SignatureDataTransform.
-        public ImageLoaderTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column, input, TestIsText)
+        private sealed class Mapper : MapperBase
         {
-            Host.AssertNonEmpty(Infos);
-            _imageFolder = args.ImageFolder;
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
-            _type = new ImageType();
-            Metadata.Seal();
-        }
+            private readonly ImageLoaderTransform _parent;
+            private readonly ImageType _imageType;
 
-        private ImageLoaderTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestIsText)
-        {
-            Host.AssertValue(ctx);
+            public Mapper(ImageLoaderTransform parent, ISchema inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+            {
+                _imageType = new ImageType();
+                _parent = parent;
+            }
 
-            // *** Binary format ***
-            // <base>
-            _imageFolder = ctx.Reader.ReadString();
-            _type = new ImageType();
-            Metadata.Seal();
-        }
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
-        public static ImageLoaderTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
-            ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new ImageLoaderTransform(h, ctx, input));
-        }
-
-        public override void Save(ModelSaveContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
-
-            // *** Binary format ***
-            // <base>
-            ctx.Writer.Write(_imageFolder);
-            SaveBase(ctx);
-        }
-
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Check(0 <= iinfo && iinfo < Infos.Length);
-            return _type;
-        }
-
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValue(ch, nameof(ch));
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            disposer = null;
-
-            var getSrc = GetSrcGetter<DvText>(input, iinfo);
-            DvText src = default;
-            ValueGetter<Bitmap> del =
-                (ref Bitmap dst) =>
-                {
-                    if (dst != null)
+                disposer = null;
+                var getSrc = input.GetGetter<DvText>(ColMapNewToOld[iinfo]);
+                DvText src = default;
+                ValueGetter<Bitmap> del =
+                    (ref Bitmap dst) =>
                     {
-                        dst.Dispose();
-                        dst = null;
-                    }
-
-                    getSrc(ref src);
-
-                    if (src.Length > 0)
-                    {
-                        // Catch exceptions and pass null through. Should also log failures...
-                        try
+                        if (dst != null)
                         {
-                            string path = src.ToString();
-                            if (!string.IsNullOrWhiteSpace(_imageFolder))
-                                path = Path.Combine(_imageFolder, path);
-                            dst = new Bitmap(path);
-                        }
-                        catch (Exception e)
-                        {
-                            // REVIEW: We catch everything since the documentation for new Bitmap(string)
-                            // appears to be incorrect. When the file isn't found, it throws an ArgumentException,
-                            // while the documentation says FileNotFoundException. Not sure what it will throw
-                            // in other cases, like corrupted file, etc.
-
-                            // REVIEW : Log failures.
-                            ch.Info(e.Message);
-                            ch.Info(e.StackTrace);
+                            dst.Dispose();
                             dst = null;
                         }
+
+                        getSrc(ref src);
+
+                        if (src.Length > 0)
+                        {
+                            // Catch exceptions and pass null through. Should also log failures...
+                            try
+                            {
+                                string path = src.ToString();
+                                if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
+                                    path = Path.Combine(_parent.ImageFolder, path);
+                                dst = new Bitmap(path);
+                            }
+                            catch (Exception)
+                            {
+                                // REVIEW: We catch everything since the documentation for new Bitmap(string)
+                                // appears to be incorrect. When the file isn't found, it throws an ArgumentException,
+                                // while the documentation says FileNotFoundException. Not sure what it will throw
+                                // in other cases, like corrupted file, etc.
+
+                                // REVIEW : Log failures.
+                                dst = null;
+                            }
+                        }
+                    };
+                return del;
+            }
+
+            public override RowMapperColumnInfo[] GetOutputColumns()
+                => _parent.ColumnPairs.Select(x => new RowMapperColumnInfo(x.output, _imageType, null)).ToArray();
+        }
+    }
+
+    public sealed class ImageLoaderEstimator : TrivialEstimator<ImageLoaderTransform>
+    {
+        private readonly ImageType _imageType;
+
+        public ImageLoaderEstimator(IHostEnvironment env, string imageFolder, params (string input, string output)[] columns)
+            : this(env, new ImageLoaderTransform(env, imageFolder, columns))
+        {
+        }
+
+        public ImageLoaderEstimator(IHostEnvironment env, ImageLoaderTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoaderEstimator)), transformer)
+        {
+            _imageType = new ImageType();
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var (input, output) in Transformer.Columns)
+            {
+                var col = inputSchema.FindColumn(input);
+
+                if (col == null)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
+                if (!col.ItemType.IsText || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, TextType.Instance.ToString(), col.GetTypeString());
+
+                result[output] = new SchemaShape.Column(output, SchemaShape.Column.VectorKind.Scalar, _imageType, false);
+            }
+
+            return new SchemaShape(result.Values);
+        }
+
+        internal sealed class OutPipelineColumn : Scalar<UnknownSizeBitmap>
+        {
+            private readonly Scalar<string> _input;
+
+            public OutPipelineColumn(Scalar<string> path, string relativeTo)
+                : base(new Reconciler(relativeTo), path)
+            {
+                Contracts.AssertValue(path);
+                _input = path;
+            }
+
+            /// <summary>
+            /// Reconciler to an <see cref="ImageLoaderEstimator"/> for the <see cref="PipelineColumn"/>.
+            /// </summary>
+            /// <remarks>
+            /// We must create a new reconciler per call, because the relative path of <see cref="ImageLoaderTransform.Arguments.ImageFolder"/>
+            /// is considered a transform-wide option, as it is not specified in <see cref="ImageLoaderTransform.Column"/>. However, we still
+            /// implement <see cref="IEquatable{T}"/> so the analyzer can still equate two of these things if they happen to share the same
+            /// path, so we can be a bit more efficient with respect to our estimator declarations.
+            /// </remarks>
+            /// <see cref="ImageStaticPipe.LoadAsImage(Scalar{string}, string)"/>
+            private sealed class Reconciler : EstimatorReconciler, IEquatable<Reconciler>
+            {
+                private readonly string _relTo;
+
+                public Reconciler(string relativeTo)
+                {
+                    Contracts.AssertValueOrNull(relativeTo);
+                    _relTo = relativeTo;
+                }
+
+                public bool Equals(Reconciler other)
+                    => other != null && other._relTo == _relTo;
+
+                public override bool Equals(object obj)
+                    => obj is Reconciler other && Equals(other);
+
+                public override int GetHashCode()
+                    => _relTo?.GetHashCode() ?? 0;
+
+                public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                    PipelineColumn[] toOutput,
+                    IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                    IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                    IReadOnlyCollection<string> usedNames)
+                {
+                    var cols = new (string input, string output)[toOutput.Length];
+                    for (int i = 0; i < toOutput.Length; ++i)
+                    {
+                        var outCol = (OutPipelineColumn)toOutput[i];
+                        cols[i] = (inputNames[outCol._input], outputNames[outCol]);
                     }
-                };
-            return del;
+                    return new ImageLoaderEstimator(env, _relTo, cols);
+                }
+            }
         }
     }
 }

@@ -327,12 +327,21 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
+        [Flags]
+        public enum Direction
+        {
+            Read = 1,
+            Write = 2,
+            Both = Read | Write
+        }
+
         /// <summary>
         /// Create a schema definition by enumerating all public fields of the given type.
         /// </summary>
         /// <param name="userType">The type to base the schema on.</param>
+        /// <param name="direction">Accept fields and properties based on their direction.</param>
         /// <returns>The generated schema definition.</returns>
-        public static SchemaDefinition Create(Type userType)
+        public static SchemaDefinition Create(Type userType, Direction direction = Direction.Both)
         {
             // REVIEW: This will have to be updated whenever we start
             // supporting properties and not just fields.
@@ -345,7 +354,9 @@ namespace Microsoft.ML.Runtime.Api
             var propertyInfos =
                 userType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0);
+                .Where(x => (((direction & Direction.Read) == Direction.Read && (x.CanRead && x.GetGetMethod() != null)) ||
+                ((direction & Direction.Write) == Direction.Write && (x.CanWrite && x.GetSetMethod() != null))) &&
+                x.GetIndexParameters().Length == 0);
 
             var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
 
