@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.ML.CodeAnalyzer {
+namespace Microsoft.ML.InternalCodeAnalyzer {
     using System;
     using System.Reflection;
     
@@ -40,7 +40,7 @@ namespace Microsoft.ML.CodeAnalyzer {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.ML.CodeAnalyzer.Descriptions", typeof(Descriptions).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.ML.InternalCodeAnalyzer.Descriptions", typeof(Descriptions).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

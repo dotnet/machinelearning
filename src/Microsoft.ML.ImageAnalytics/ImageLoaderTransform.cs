@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -238,6 +239,63 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
 
             return new SchemaShape(result.Values);
+        }
+
+        internal sealed class OutPipelineColumn : Scalar<UnknownSizeBitmap>
+        {
+            private readonly Scalar<string> _input;
+
+            public OutPipelineColumn(Scalar<string> path, string relativeTo)
+                : base(new Reconciler(relativeTo), path)
+            {
+                Contracts.AssertValue(path);
+                _input = path;
+            }
+
+            /// <summary>
+            /// Reconciler to an <see cref="ImageLoaderEstimator"/> for the <see cref="PipelineColumn"/>.
+            /// </summary>
+            /// <remarks>
+            /// We must create a new reconciler per call, because the relative path of <see cref="ImageLoaderTransform.Arguments.ImageFolder"/>
+            /// is considered a transform-wide option, as it is not specified in <see cref="ImageLoaderTransform.Column"/>. However, we still
+            /// implement <see cref="IEquatable{T}"/> so the analyzer can still equate two of these things if they happen to share the same
+            /// path, so we can be a bit more efficient with respect to our estimator declarations.
+            /// </remarks>
+            /// <see cref="ImageStaticPipe.LoadAsImage(Scalar{string}, string)"/>
+            private sealed class Reconciler : EstimatorReconciler, IEquatable<Reconciler>
+            {
+                private readonly string _relTo;
+
+                public Reconciler(string relativeTo)
+                {
+                    Contracts.AssertValueOrNull(relativeTo);
+                    _relTo = relativeTo;
+                }
+
+                public bool Equals(Reconciler other)
+                    => other != null && other._relTo == _relTo;
+
+                public override bool Equals(object obj)
+                    => obj is Reconciler other && Equals(other);
+
+                public override int GetHashCode()
+                    => _relTo?.GetHashCode() ?? 0;
+
+                public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                    PipelineColumn[] toOutput,
+                    IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                    IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                    IReadOnlyCollection<string> usedNames)
+                {
+                    var cols = new (string input, string output)[toOutput.Length];
+                    for (int i = 0; i < toOutput.Length; ++i)
+                    {
+                        var outCol = (OutPipelineColumn)toOutput[i];
+                        cols[i] = (inputNames[outCol._input], outputNames[outCol]);
+                    }
+                    return new ImageLoaderEstimator(env, _relTo, cols);
+                }
+            }
         }
     }
 }
