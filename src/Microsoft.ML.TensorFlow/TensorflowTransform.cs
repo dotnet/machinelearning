@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms
 
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                 {
-                    UpdateCacheIfNeeded(input.Position, iinfo, srcTensorGetters);
+                    UpdateCacheIfNeeded(input.Position, srcTensorGetters);
 
                     var values = dst.Values;
                     if (Utils.Size(values) < _outputColTypes[iinfo].VectorSize)
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms
                 return valuegetter;
             }
 
-            private void UpdateCacheIfNeeded(long position, int colIndex, ITensorValueGetter[] srcTensorGetters)
+            private void UpdateCacheIfNeeded(long position, ITensorValueGetter[] srcTensorGetters)
             {
                 if (_cachedPosition != position)
                 {
@@ -231,6 +231,7 @@ namespace Microsoft.ML.Transforms
 
             public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
+                _cachedPosition = -1;
                 var getters = new Delegate[_outputColNames.Length];
                 disposer = null;
                 using (var ch = _host.Start("CreateGetters"))
