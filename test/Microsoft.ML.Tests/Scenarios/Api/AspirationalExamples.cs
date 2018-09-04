@@ -60,5 +60,96 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 PetalLength = 5.1f
             });
         }
+
+
+        [Fact]
+        public void SimpleIrisDescisionTrees()
+        {
+            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            string dataPath = "iris-data.txt";
+            // Create reader with specific schema.
+            var dataReader = TextLoader.CreateReader(env, ctx => (
+               Label: ctx.LoadText(0),
+               SepalWidth: ctx.LoadFloat(1),
+               SepalLength: ctx.LoadFloat(2),
+               PetalWidth: ctx.LoadFloat(3),
+               PetalLength: ctx.LoadFloat(4)),
+               dataPath);
+
+            // Load the data into the system.
+            var data = dataReader.Read(dataPath);
+
+            var preprocess = data.Schema.MakeEstimator(row => (
+                // Convert string label to key.
+                Label: row.Label.Dictionarize(),
+                // Concatenate all features into a vector.
+                Features: row.SepalWidth.ConcatWith(row.SepalLength, row.PetalWidth, row.PetalLength)));
+
+
+            var pipeline = preprocess
+                .Append(row => row.Label.PredictWithDecisionTrees(row.Features))
+                // shoul it be BagVectorize instead of KeyToValue?
+                .Append(row => row.PredictedLabel.KeyToValue());
+
+            var model = pipeline.Fit(data);
+
+            var predictions = model.Transform(dataReader.Read(testDataPath));
+            var evaluator = new MultiClassEvaluator(env);
+            var metrics = evaluator.Evaluate(predictions);
+        }
+
+        public void TwitterSentimentAnalysis()
+        {
+            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var dataPath = "wikipedia-detox-250-line-data.tsv";
+            // Load the data into the system.
+            var data = TextLoader.CreateReader(env, ctx => (
+                   Label: ctx.ReadFloat(0),
+                   Text: ctx.ReadString(1)),
+                   dataPath, hasHeader: true).Read(dataPath);
+
+            var preprocess = data.Schema.MakeEstimator(row => (
+                Label: row.Label,
+                // Concatenate all features into a vector.
+                Features: row.Text.TextFeaturizer()));
+
+            var pipeline = preprocess.
+                Appand(row => row.Label.TrainLinearClassification(row.Features));
+
+            var (trainData, testData) = CrossValidator.TrainTestSplit(env, data: data, trainFraction: 0.7);
+            var model = pipeline.Fit(trainData);
+            var predictions = model.Transform(testData);
+            var evaluator = new BinaryClassifierEvaluator(env);
+            var metrics = evaluator.Evaluate(predictions);
+        }
+
+        public void TwentyNewsGroups()
+        {
+            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var dataPath = "20newsGroups.txt";
+            // Load the data into the system.
+            var data = TextLoader.CreateReader(env, ctx => (
+                   Label: ctx.ReadString(1),
+                   Subject: ctx.ReadString(1),
+                   Content: ctx.ReadString(2)),
+                   dataPath, hasHeader: true).Read(dataPath);
+
+            var preprocess = data.Schema.MakeEstimator(row => (
+                // Convert string label to key.
+                Label: row.Label.Dictionarize(),
+                // Concatenate all features into a vector.
+                Features: row.Subject.Concat(row.Content).TextFeaturizer()));
+
+            var pipeline = preprocess.
+                Appand(row => row.Label.TrainSDCAClassifier(row.Features)).
+                Append(row => row.PredictedLabel.KeyToValue());
+
+            var (trainData, testData) = CrossValidator.TrainTestSplit(env, data: data, trainFraction: 0.8);
+            var model = pipeline.Fit(trainData);
+
+            var predictions = model.Transform(testData);
+            var evaluator = new MultiClassEvaluator(env);
+            var metrics = evaluator.Evaluate(predictions);
+        }
     }
 }
