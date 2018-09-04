@@ -1,21 +1,18 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    // Implementations of the helper objects for term transform.
-
-    public sealed partial class TermTransform : OneToOneTransformBase, ITransformTemplate
+    public sealed partial class TermTransform
     {
         /// <summary>
         /// These are objects shared by both the scalar and vector implementations of <see cref="Trainer"/>
@@ -67,7 +64,7 @@ namespace Microsoft.ML.Runtime.Data
                 // of building our term dictionary. For the other types (practically, only the UX types),
                 // we should ignore nothing.
                 RefPredicate<T> mapsToMissing;
-                if (!Conversion.Conversions.Instance.TryGetIsNAPredicate(type, out mapsToMissing))
+                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type, out mapsToMissing))
                     mapsToMissing = (ref T val) => false;
                 return new Impl<T>(type, mapsToMissing, sorted);
             }
@@ -208,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 T val;
                 var tryParse = Conversion.Conversions.Instance.GetParseConversion<T>(ItemType);
-                for (bool more = true; more; )
+                for (bool more = true; more;)
                 {
                     DvText term;
                     more = terms.SplitOne(',', out term, out terms);
@@ -485,9 +482,9 @@ namespace Microsoft.ML.Runtime.Data
                 OutputType = new KeyType(DataKind.U4, 0, Count == 0 ? 1 : Count);
             }
 
-            public abstract void Save(ModelSaveContext ctx, TermTransform trans);
+            public abstract void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory);
 
-            public static TermMap Load(ModelLoadContext ctx, IExceptionContext ectx, TermTransform trans)
+            public static TermMap Load(ModelLoadContext ctx, IHostEnvironment ectx, CodecFactory codecFactory)
             {
                 // *** Binary format ***
                 // byte: map type code
@@ -497,24 +494,24 @@ namespace Microsoft.ML.Runtime.Data
                 ectx.CheckDecode(Enum.IsDefined(typeof(MapType), mtype));
                 switch (mtype)
                 {
-                case MapType.Text:
-                    // Binary format defined by this method.
-                    return TextImpl.Create(ctx, ectx);
-                case MapType.Codec:
-                    // *** Binary format ***
-                    // codec parameterization: the codec
-                    // int: number of terms
-                    // value codec block: the terms written in the codec-defined binary format
-                    IValueCodec codec;
-                    if (!trans.CodecFactory.TryReadCodec(ctx.Reader.BaseStream, out codec))
-                        throw ectx.Except("Unrecognized codec read");
-                    ectx.CheckDecode(codec.Type.IsPrimitive);
-                    int count = ctx.Reader.ReadInt32();
-                    ectx.CheckDecode(count >= 0);
-                    return Utils.MarshalInvoke(LoadCodecCore<int>, codec.Type.RawType, ctx, ectx, codec, count);
-                default:
-                    ectx.Assert(false);
-                    throw ectx.Except("Unrecognized type '{0}'", mtype);
+                    case MapType.Text:
+                        // Binary format defined by this method.
+                        return TextImpl.Create(ctx, ectx);
+                    case MapType.Codec:
+                        // *** Binary format ***
+                        // codec parameterization: the codec
+                        // int: number of terms
+                        // value codec block: the terms written in the codec-defined binary format
+                        IValueCodec codec;
+                        if (!codecFactory.TryReadCodec(ctx.Reader.BaseStream, out codec))
+                            throw ectx.Except("Unrecognized codec read");
+                        ectx.CheckDecode(codec.Type.IsPrimitive);
+                        int count = ctx.Reader.ReadInt32();
+                        ectx.CheckDecode(count >= 0);
+                        return Utils.MarshalInvoke(LoadCodecCore<int>, codec.Type.RawType, ctx, ectx, codec, count);
+                    default:
+                        ectx.Assert(false);
+                        throw ectx.Except("Unrecognized type '{0}'", mtype);
                 }
             }
 
@@ -556,19 +553,18 @@ namespace Microsoft.ML.Runtime.Data
             /// requests on the input dataset. This should throw an error if we attempt to bind this
             /// to the wrong type of item.
             /// </summary>
-            public BoundTermMap Bind(TermTransform trans, int iinfo)
+            public BoundTermMap Bind(IHostEnvironment env, ISchema schema,  ColInfo[] infos, bool[] textMetadata, int iinfo)
             {
-                Contracts.AssertValue(trans);
-                trans.Host.Assert(0 <= iinfo && iinfo < trans.Infos.Length);
+                env.Assert(0 <= iinfo && iinfo < infos.Length);
 
-                var info = trans.Infos[iinfo];
+                var info = infos[iinfo];
                 var inType = info.TypeSrc.ItemType;
                 if (!inType.Equals(ItemType))
                 {
-                    throw trans.Host.Except("Could not apply a map over type '{0}' to column '{1}' since it has type '{2}'",
+                    throw env.Except("Could not apply a map over type '{0}' to column '{1}' since it has type '{2}'",
                         ItemType, info.Name, inType);
                 }
-                return BoundTermMap.Create(this, trans, iinfo);
+                return BoundTermMap.Create(env, schema, this, infos, textMetadata, iinfo);
             }
 
             public abstract void WriteTextTerms(TextWriter writer);
@@ -614,7 +610,7 @@ namespace Microsoft.ML.Runtime.Data
                     return new TextImpl(pool);
                 }
 
-                public override void Save(ModelSaveContext ctx, TermTransform trans)
+                public override void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory)
                 {
                     // *** Binary format ***
                     // byte: map type code, in this case 'Text' (0)
@@ -622,14 +618,14 @@ namespace Microsoft.ML.Runtime.Data
                     // int[]: term string ids
 
                     ctx.Writer.Write((byte)MapType.Text);
-                    trans.Host.Assert(_pool.Count >= 0);
-                    trans.Host.CheckDecode(_pool.Get("") == null);
+                    host.Assert(_pool.Count >= 0);
+                    host.CheckDecode(_pool.Get("") == null);
                     ctx.Writer.Write(_pool.Count);
 
                     int id = 0;
                     foreach (var nstr in _pool)
                     {
-                        trans.Host.Assert(nstr.Id == id);
+                        host.Assert(nstr.Id == id);
                         ctx.SaveNonEmptyString(nstr.Value);
                         id++;
                     }
@@ -689,7 +685,7 @@ namespace Microsoft.ML.Runtime.Data
                     _values = values;
                 }
 
-                public override void Save(ModelSaveContext ctx, TermTransform trans)
+                public override void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory)
                 {
                     // *** Binary format ***
                     // byte: map type code, in this case 'Codec'
@@ -698,12 +694,12 @@ namespace Microsoft.ML.Runtime.Data
                     // value codec block: the terms written in the codec-defined binary format
 
                     IValueCodec codec;
-                    if (!trans.CodecFactory.TryGetCodec(ItemType, out codec))
-                        throw trans.Host.Except("We do not know how to serialize terms of type '{0}'", ItemType);
+                    if (!codecFactory.TryGetCodec(ItemType, out codec))
+                        throw host.Except("We do not know how to serialize terms of type '{0}'", ItemType);
                     ctx.Writer.Write((byte)MapType.Codec);
-                    trans.Host.Assert(codec.Type.Equals(ItemType));
-                    trans.Host.Assert(codec.Type.IsPrimitive);
-                    trans.CodecFactory.WriteCodec(ctx.Writer.BaseStream, codec);
+                    host.Assert(codec.Type.Equals(ItemType));
+                    host.Assert(codec.Type.IsPrimitive);
+                    codecFactory.WriteCodec(ctx.Writer.BaseStream, codec);
                     IValueCodec<T> codecT = (IValueCodec<T>)codec;
                     ctx.Writer.Write(_values.Count);
                     using (var writer = codecT.OpenWriter(ctx.Writer.BaseStream))
@@ -810,48 +806,48 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly TermMap Map;
 
-            private readonly TermTransform _parent;
             private readonly int _iinfo;
             private readonly bool _inputIsVector;
+            private readonly IHostEnvironment _host;
+            private readonly bool[] _textMetadata;
+            private readonly ColInfo[] _infos;
+            private readonly ISchema _schema;
 
-            private IHost Host { get { return _parent.Host; } }
+            private bool IsTextMetadata { get { return _textMetadata[_iinfo]; } }
 
-            private bool IsTextMetadata { get { return _parent._textMetadata[_iinfo]; } }
-
-            private BoundTermMap(TermMap map, TermTransform trans, int iinfo)
+            private BoundTermMap(IHostEnvironment env, ISchema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
             {
-                Contracts.AssertValue(trans);
-                _parent = trans;
-
-                Host.AssertValue(map);
-                Host.Assert(0 <= iinfo && iinfo < trans.Infos.Length);
-                ColInfo info = trans.Infos[iinfo];
-                Host.Assert(info.TypeSrc.ItemType.Equals(map.ItemType));
+                _host = env;
+                //assert me.
+                _textMetadata = textMetadata;
+                _infos = infos;
+                _schema = schema;
+                _host.AssertValue(map);
+                _host.Assert(0 <= iinfo && iinfo < infos.Length);
+                var info = infos[iinfo];
+                _host.Assert(info.TypeSrc.ItemType.Equals(map.ItemType));
 
                 Map = map;
                 _iinfo = iinfo;
                 _inputIsVector = info.TypeSrc.IsVector;
             }
 
-            public static BoundTermMap Create(TermMap map, TermTransform trans, int iinfo)
+            public static BoundTermMap Create(IHostEnvironment host, ISchema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
             {
-                Contracts.AssertValue(trans);
-                var host = trans.Host;
-
                 host.AssertValue(map);
-                host.Assert(0 <= iinfo && iinfo < trans.Infos.Length);
-                ColInfo info = trans.Infos[iinfo];
+                host.Assert(0 <= iinfo && iinfo < infos.Length);
+                var info = infos[iinfo];
                 host.Assert(info.TypeSrc.ItemType.Equals(map.ItemType));
 
-                return Utils.MarshalInvoke(CreateCore<int>, map.ItemType.RawType, map, trans, iinfo);
+                return Utils.MarshalInvoke(CreateCore<int>, map.ItemType.RawType, host, schema, map, infos, textMetadata, iinfo);
             }
 
-            public static BoundTermMap CreateCore<T>(TermMap map, TermTransform trans, int iinfo)
+            public static BoundTermMap CreateCore<T>(IHostEnvironment env, ISchema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
             {
                 TermMap<T> mapT = (TermMap<T>)map;
                 if (mapT.ItemType.IsKey)
-                    return new KeyImpl<T>(mapT, trans, iinfo);
-                return new Impl<T>(mapT, trans, iinfo);
+                    return new KeyImpl<T>(env, schema, mapT, infos, textMetadata, iinfo);
+                return new Impl<T>(env, schema, mapT, infos, textMetadata, iinfo);
             }
 
             public abstract Delegate GetMappingGetter(IRow row);
@@ -860,7 +856,7 @@ namespace Microsoft.ML.Runtime.Data
             /// Allows us to optionally register metadata. It is also perfectly legal for
             /// this to do nothing, which corresponds to there being no metadata.
             /// </summary>
-            public abstract void AddMetadata(MetadataDispatcher.Builder bldr);
+            public abstract void AddMetadata(ColumnMetadataInfo colMetaInfo);
 
             /// <summary>
             /// Writes out all terms we map to a text writer, with one line per mapped term.
@@ -878,8 +874,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 protected readonly TermMap<T> TypedMap;
 
-                public Base(TermMap<T> map, TermTransform trans, int iinfo)
-                    : base(map, trans, iinfo)
+                public Base(IHostEnvironment env, ISchema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
+                    : base(env, schema, map, infos, textMetadata, iinfo)
                 {
                     TypedMap = map;
                 }
@@ -908,10 +904,12 @@ namespace Microsoft.ML.Runtime.Data
                     if (!_inputIsVector)
                     {
                         ValueMapper<T, uint> map = TypedMap.GetKeyMapper();
-                        var info = _parent.Infos[_iinfo];
+                        var info = _infos[_iinfo];
                         T src = default(T);
                         Contracts.Assert(!info.TypeSrc.IsVector);
-                        ValueGetter<T> getSrc = _parent.GetSrcGetter<T>(input, _iinfo);
+                        input.Schema.TryGetColumnIndex(info.Source, out int colIndex);
+                        _host.Assert(input.IsColumnActive(colIndex));
+                        var getSrc = input.GetGetter<T>(colIndex);
                         ValueGetter<uint> retVal =
                             (ref uint dst) =>
                             {
@@ -928,9 +926,11 @@ namespace Microsoft.ML.Runtime.Data
                         // will have an indirect wrapping class to hold "map" and "info". This is
                         // bad, especially since "map" is very frequently called.
                         ValueMapper<T, uint> map = TypedMap.GetKeyMapper();
-                        var info = _parent.Infos[_iinfo];
+                        var info = _infos[_iinfo];
                         // First test whether default maps to default. If so this is sparsity preserving.
-                        ValueGetter<VBuffer<T>> getSrc = _parent.GetSrcGetter<VBuffer<T>>(input, _iinfo);
+                        input.Schema.TryGetColumnIndex(info.Source, out int colIndex);
+                        _host.Assert(input.IsColumnActive(colIndex));
+                        var getSrc = input.GetGetter<VBuffer<T>>(colIndex);
                         VBuffer<T> src = default(VBuffer<T>);
                         ValueGetter<VBuffer<uint>> retVal;
                         // REVIEW: Consider whether possible or reasonable to not use a builder here.
@@ -948,7 +948,7 @@ namespace Microsoft.ML.Runtime.Data
                                     getSrc(ref src);
                                     int cval = src.Length;
                                     if (cv != 0 && cval != cv)
-                                        throw Host.Except("Column '{0}': TermTransform expects {1} slots, but got {2}", info.Name, cv, cval);
+                                        throw _host.Except("Column '{0}': TermTransform expects {1} slots, but got {2}", info.Name, cv, cval);
                                     if (cval == 0)
                                     {
                                         // REVIEW: Should the VBufferBuilder be changed so that it can
@@ -983,7 +983,7 @@ namespace Microsoft.ML.Runtime.Data
                                     getSrc(ref src);
                                     int cval = src.Length;
                                     if (cv != 0 && cval != cv)
-                                        throw Host.Except("Column '{0}': TermTransform expects {1} slots, but got {2}", info.Name, cv, cval);
+                                        throw _host.Except("Column '{0}': TermTransform expects {1} slots, but got {2}", info.Name, cv, cval);
                                     if (cval == 0)
                                     {
                                         // REVIEW: Should the VBufferBuilder be changed so that it can
@@ -1017,7 +1017,7 @@ namespace Microsoft.ML.Runtime.Data
                                             if (nextExplicitSlot == slot)
                                             {
                                                 // This was an explicitly defined value.
-                                                Host.Assert(islot < src.Count);
+                                                _host.Assert(islot < src.Count);
                                                 map(ref values[islot], ref dstItem);
                                                 if (dstItem != 0)
                                                     bldr.AddFeature(slot, dstItem);
@@ -1025,7 +1025,7 @@ namespace Microsoft.ML.Runtime.Data
                                             }
                                             else
                                             {
-                                                Host.Assert(slot < nextExplicitSlot);
+                                                _host.Assert(slot < nextExplicitSlot);
                                                 // This is a non-defined implicit default value. No need to attempt a remap
                                                 // since we already have it.
                                                 bldr.AddFeature(slot, defaultMapValue);
@@ -1039,11 +1039,10 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public override void AddMetadata(MetadataDispatcher.Builder bldr)
+                public override void AddMetadata(ColumnMetadataInfo colMetaInfo)
                 {
                     if (TypedMap.Count == 0)
                         return;
-
                     if (IsTextMetadata && !TypedMap.ItemType.IsText)
                     {
                         var conv = Conversion.Conversions.Instance;
@@ -1052,25 +1051,27 @@ namespace Microsoft.ML.Runtime.Data
                         MetadataUtils.MetadataGetter<VBuffer<DvText>> getter =
                             (int iinfo, ref VBuffer<DvText> dst) =>
                             {
-                                Host.Assert(iinfo == _iinfo);
+                                _host.Assert(iinfo == _iinfo);
                                 // No buffer sharing convenient here.
                                 VBuffer<T> dstT = default(VBuffer<T>);
                                 TypedMap.GetTerms(ref dstT);
                                 GetTextTerms(ref dstT, stringMapper, ref dst);
                             };
-                        bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.KeyValues,
-                            new VectorType(TextType.Instance, TypedMap.OutputType.KeyCount), getter);
+                        var columnType = new VectorType(TextType.Instance, TypedMap.OutputType.KeyCount);
+                        var info = new MetadataInfo<VBuffer<DvText>>(columnType, getter);
+                        colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
                     }
                     else
                     {
                         MetadataUtils.MetadataGetter<VBuffer<T>> getter =
                             (int iinfo, ref VBuffer<T> dst) =>
                             {
-                                Host.Assert(iinfo == _iinfo);
+                                _host.Assert(iinfo == _iinfo);
                                 TypedMap.GetTerms(ref dst);
                             };
-                        bldr.AddGetter<VBuffer<T>>(MetadataUtils.Kinds.KeyValues,
-                            new VectorType(TypedMap.ItemType, TypedMap.OutputType.KeyCount), getter);
+                        var columnType = new VectorType(TypedMap.ItemType, TypedMap.OutputType.KeyCount);
+                        var info = new MetadataInfo<VBuffer<T>>(columnType, getter);
+                        colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
                     }
                 }
             }
@@ -1081,34 +1082,34 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             private sealed class KeyImpl<T> : Base<T>
             {
-                public KeyImpl(TermMap<T> map, TermTransform trans, int iinfo)
-                    : base(map, trans, iinfo)
+                public KeyImpl(IHostEnvironment env, ISchema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
+                    : base(env, schema, map, infos, textMetadata, iinfo)
                 {
-                    Host.Assert(TypedMap.ItemType.IsKey);
+                    _host.Assert(TypedMap.ItemType.IsKey);
                 }
 
-                public override void AddMetadata(MetadataDispatcher.Builder bldr)
+                public override void AddMetadata(ColumnMetadataInfo colMetaInfo)
                 {
                     if (TypedMap.Count == 0)
                         return;
 
-                    int srcCol = _parent.Infos[_iinfo].Source;
-                    ColumnType srcMetaType = _parent.Source.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
+                    _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
+                    ColumnType srcMetaType = _schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
                     if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
-                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, bldr))
+                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, colMetaInfo))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
-                        base.AddMetadata(bldr);
+                        base.AddMetadata(colMetaInfo);
                     }
                 }
 
-                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, MetadataDispatcher.Builder bldr)
+                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, ColumnMetadataInfo colMetaInfo)
                 {
-                    Host.AssertValue(srcMetaType);
-                    Host.Assert(srcMetaType.RawType == typeof(TMeta));
-                    Host.AssertValue(bldr);
+                    _host.AssertValue(srcMetaType);
+                    _host.Assert(srcMetaType.RawType == typeof(TMeta));
+                    _host.AssertValue(colMetaInfo);
                     var srcType = TypedMap.ItemType.AsKey;
-                    Host.AssertValue(srcType);
+                    _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
                     var convInst = Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
@@ -1116,14 +1117,14 @@ namespace Microsoft.ML.Runtime.Data
                     // If we can't convert this type to U4, don't try to pass along the metadata.
                     if (!convInst.TryGetStandardConversion<T, uint>(srcType, dstType, out conv, out identity))
                         return false;
-                    int srcCol = _parent.Infos[_iinfo].Source;
+                    _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
 
                     ValueGetter<VBuffer<TMeta>> getter =
                         (ref VBuffer<TMeta> dst) =>
                         {
                             VBuffer<TMeta> srcMeta = default(VBuffer<TMeta>);
-                            _parent.Source.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref srcMeta);
-                            Host.Assert(srcMeta.Length == srcType.Count);
+                            _schema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref srcMeta);
+                            _host.Assert(srcMeta.Length == srcType.Count);
 
                             VBuffer<T> keyVals = default(VBuffer<T>);
                             TypedMap.GetTerms(ref keyVals);
@@ -1136,7 +1137,7 @@ namespace Microsoft.ML.Runtime.Data
                                 T keyVal = pair.Value;
                                 conv(ref keyVal, ref convKeyVal);
                                 // The builder for the key values should not have any missings.
-                                Host.Assert(0 < convKeyVal && convKeyVal <= srcMeta.Length);
+                                _host.Assert(0 < convKeyVal && convKeyVal <= srcMeta.Length);
                                 srcMeta.GetItemOrDefault((int)(convKeyVal - 1), ref values[pair.Key]);
                             }
                             dst = new VBuffer<TMeta>(TypedMap.OutputType.KeyCount, values, dst.Indices);
@@ -1148,29 +1149,29 @@ namespace Microsoft.ML.Runtime.Data
                         MetadataUtils.MetadataGetter<VBuffer<DvText>> mgetter =
                             (int iinfo, ref VBuffer<DvText> dst) =>
                             {
-                                Host.Assert(iinfo == _iinfo);
+                                _host.Assert(iinfo == _iinfo);
                                 var tempMeta = default(VBuffer<TMeta>);
                                 getter(ref tempMeta);
                                 Contracts.Assert(tempMeta.IsDense);
                                 GetTextTerms(ref tempMeta, stringMapper, ref dst);
-                                Host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
+                                _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
                             };
-
-                        bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.KeyValues,
-                            new VectorType(TextType.Instance, TypedMap.OutputType.KeyCount), mgetter);
+                        var columnType = new VectorType(TextType.Instance, TypedMap.OutputType.KeyCount);
+                        var info = new MetadataInfo<VBuffer<DvText>>(columnType, mgetter);
+                        colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
                     }
                     else
                     {
                         MetadataUtils.MetadataGetter<VBuffer<TMeta>> mgetter =
                             (int iinfo, ref VBuffer<TMeta> dst) =>
                             {
-                                Host.Assert(iinfo == _iinfo);
+                                _host.Assert(iinfo == _iinfo);
                                 getter(ref dst);
-                                Host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
+                                _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
                             };
-
-                        bldr.AddGetter<VBuffer<TMeta>>(MetadataUtils.Kinds.KeyValues,
-                            new VectorType(srcMetaType.ItemType.AsPrimitive, TypedMap.OutputType.KeyCount), mgetter);
+                        var columnType = new VectorType(srcMetaType.ItemType.AsPrimitive, TypedMap.OutputType.KeyCount);
+                        var info = new MetadataInfo<VBuffer<TMeta>>(columnType, mgetter);
+                        colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
                     }
                     return true;
                 }
@@ -1180,8 +1181,8 @@ namespace Microsoft.ML.Runtime.Data
                     if (TypedMap.Count == 0)
                         return;
 
-                    int srcCol = _parent.Infos[_iinfo].Source;
-                    ColumnType srcMetaType = _parent.Source.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
+                    _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
+                    ColumnType srcMetaType = _schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
                     if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
                         TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.AsVector.ItemType, writer))
                     {
@@ -1192,10 +1193,10 @@ namespace Microsoft.ML.Runtime.Data
 
                 private bool WriteTextTermsCore<TMeta>(PrimitiveType srcMetaType, TextWriter writer)
                 {
-                    Host.AssertValue(srcMetaType);
-                    Host.Assert(srcMetaType.RawType == typeof(TMeta));
+                    _host.AssertValue(srcMetaType);
+                    _host.Assert(srcMetaType.RawType == typeof(TMeta));
                     var srcType = TypedMap.ItemType.AsKey;
-                    Host.AssertValue(srcType);
+                    _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
                     var convInst = Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
@@ -1203,10 +1204,10 @@ namespace Microsoft.ML.Runtime.Data
                     // If we can't convert this type to U4, don't try.
                     if (!convInst.TryGetStandardConversion<T, uint>(srcType, dstType, out conv, out identity))
                         return false;
-                    int srcCol = _parent.Infos[_iinfo].Source;
+                    _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
 
                     VBuffer<TMeta> srcMeta = default(VBuffer<TMeta>);
-                    _parent.Source.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref srcMeta);
+                    _schema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref srcMeta);
                     if (srcMeta.Length != srcType.Count)
                         return false;
 
@@ -1225,7 +1226,7 @@ namespace Microsoft.ML.Runtime.Data
                         T keyVal = pair.Value;
                         conv(ref keyVal, ref convKeyVal);
                         // The key mapping will not have admitted missing keys.
-                        Host.Assert(0 < convKeyVal && convKeyVal <= srcMeta.Length);
+                        _host.Assert(0 < convKeyVal && convKeyVal <= srcMeta.Length);
                         srcMeta.GetItemOrDefault((int)(convKeyVal - 1), ref metaVal);
                         keyStringMapper(ref keyVal, ref sb);
                         writer.Write("{0}\t{1}", pair.Key, sb.ToString());
@@ -1238,8 +1239,8 @@ namespace Microsoft.ML.Runtime.Data
 
             private sealed class Impl<T> : Base<T>
             {
-                public Impl(TermMap<T> map, TermTransform trans, int iinfo)
-                    : base(map, trans, iinfo)
+                public Impl(IHostEnvironment env, ISchema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
+                    : base(env, schema, map, infos, textMetadata, iinfo)
                 {
                 }
             }
