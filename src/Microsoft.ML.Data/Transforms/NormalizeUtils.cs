@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Interface to define an aggregate function over values
     /// </summary>
-    internal interface IColumnAggregator<T>
+    public interface IColumnAggregator<T>
     {
         /// <summary>
         /// Updates the aggregate function with a value

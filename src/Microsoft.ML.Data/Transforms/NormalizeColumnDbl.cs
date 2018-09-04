@@ -520,7 +520,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed partial class NormalizeTransform
     {
-        public abstract partial class AffineColumnFunction
+        internal abstract partial class AffineColumnFunction
         {
             public static IColumnFunction Create(IHost host, TFloat scale, TFloat offset)
             {
@@ -846,7 +846,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public abstract partial class CdfColumnFunction
+        internal abstract partial class CdfColumnFunction
         {
             public static IColumnFunction Create(IHost host, TFloat mean, TFloat stddev, bool useLog)
             {
@@ -1021,7 +1021,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public abstract partial class BinColumnFunction
+        internal abstract partial class BinColumnFunction
         {
             public static IColumnFunction Create(IHost host, TFloat[] binUpperBounds, bool fixZero)
             {

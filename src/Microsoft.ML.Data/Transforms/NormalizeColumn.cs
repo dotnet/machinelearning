@@ -369,7 +369,7 @@ namespace Microsoft.ML.Runtime.Data
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
-        public abstract partial class AffineColumnFunction : IColumnFunction
+        internal abstract partial class AffineColumnFunction : IColumnFunction
         {
             protected readonly IHost Host;
 
@@ -477,7 +477,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public abstract partial class CdfColumnFunction : IColumnFunction
+        internal abstract partial class CdfColumnFunction : IColumnFunction
         {
             protected readonly IHost Host;
 
@@ -603,7 +603,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public abstract partial class BinColumnFunction : IColumnFunction
+        internal abstract partial class BinColumnFunction : IColumnFunction
         {
             protected readonly IHost Host;
 
