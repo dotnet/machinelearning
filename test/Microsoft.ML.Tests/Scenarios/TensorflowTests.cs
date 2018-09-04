@@ -7,7 +7,9 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.LightGBM;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.TensorFlow;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -16,7 +18,7 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class ScenariosTests
     {
-        [Fact(Skip = "Disabled due to this bug https://github.com/dotnet/machinelearning/issues/770")]
+        [Fact]
         public void TensorFlowTransformCifarLearningPipelineTest()
         {
             var imageHeight = 32;
@@ -52,23 +54,36 @@ namespace Microsoft.ML.Scenarios
                 OutputColumn = "Output"
             });
 
-            using (var environment = new TlcEnvironment())
-            {
-                IDataView trans = pipeline.Execute(environment);
-                Assert.NotNull(trans);
+            pipeline.Add(new ColumnConcatenator(outputColumn: "Features", "Output"));
+            pipeline.Add(new TextToKeyConverter("Label"));
+            pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
-                trans.Schema.TryGetColumnIndex("Output", out int output);
-                using (var cursor = trans.GetRowCursor(col => col == output))
-                {
-                    var buffer = default(VBuffer<float>);
-                    var getter = cursor.GetGetter<VBuffer<float>>(output);
-                    while (cursor.MoveNext())
-                    {
-                        getter(ref buffer);
-                        Assert.Equal(10, buffer.Length);
-                    }
-                }
-            }
+            TensorFlowUtils.Initialize();
+            var model = pipeline.Train<CifarData, CifarPrediction>();
+            string[] scoreLabels;
+            model.TryGetScoreLabelNames(out scoreLabels);
+
+            Assert.NotNull(scoreLabels);
+            Assert.Equal(3, scoreLabels.Length);
+            Assert.Equal("banana", scoreLabels[0]);
+            Assert.Equal("hotdog", scoreLabels[1]);
+            Assert.Equal("tomato", scoreLabels[2]);
+
+            CifarPrediction prediction = model.Predict(new CifarData()
+            {
+                ImagePath = GetDataPath("images/banana.jpg")
+            });
+            Assert.Equal(1, prediction.PredictedLabels[0], 2);
+            Assert.Equal(0, prediction.PredictedLabels[1], 2);
+            Assert.Equal(0, prediction.PredictedLabels[2], 2);
+
+            prediction = model.Predict(new CifarData()
+            {
+                ImagePath = GetDataPath("images/hotdog.jpg")
+            });
+            Assert.Equal(0, prediction.PredictedLabels[0], 2);
+            Assert.Equal(1, prediction.PredictedLabels[1], 2);
+            Assert.Equal(0, prediction.PredictedLabels[2], 2);
         }
     }
 
@@ -78,6 +93,12 @@ namespace Microsoft.ML.Scenarios
         public string ImagePath;
 
         [Column("1")]
-        public string Name;
+        public string Label;
+    }
+
+    public class CifarPrediction
+    {
+        [ColumnName("Score")]
+        public float[] PredictedLabels;
     }
 }
