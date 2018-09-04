@@ -98,14 +98,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var metrics = evaluator.Evaluate(predictions);
         }
 
+        [Fact]
         public void TwitterSentimentAnalysis()
         {
             var env = new TlcEnvironment(new SysRandom(0), verbose: true);
             var dataPath = "wikipedia-detox-250-line-data.tsv";
             // Load the data into the system.
             var data = TextLoader.CreateReader(env, ctx => (
-                   Label: ctx.ReadFloat(0),
-                   Text: ctx.ReadString(1)),
+                   Label: ctx.LoadFloat(0),
+                   Text: ctx.LoadText(1)),
                    dataPath, hasHeader: true).Read(dataPath);
 
             var preprocess = data.Schema.MakeEstimator(row => (
@@ -114,7 +115,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 Features: row.Text.TextFeaturizer()));
 
             var pipeline = preprocess.
-                Appand(row => row.Label.TrainLinearClassification(row.Features));
+                Append(row => row.Label.TrainLinearClassification(row.Features));
 
             var (trainData, testData) = CrossValidator.TrainTestSplit(env, data: data, trainFraction: 0.7);
             var model = pipeline.Fit(trainData);
@@ -123,15 +124,16 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var metrics = evaluator.Evaluate(predictions);
         }
 
+        [Fact]
         public void TwentyNewsGroups()
         {
             var env = new TlcEnvironment(new SysRandom(0), verbose: true);
             var dataPath = "20newsGroups.txt";
             // Load the data into the system.
             var data = TextLoader.CreateReader(env, ctx => (
-                   Label: ctx.ReadString(1),
-                   Subject: ctx.ReadString(1),
-                   Content: ctx.ReadString(2)),
+                   Label: ctx.LoadText(1),
+                   Subject: ctx.LoadText(1),
+                   Content: ctx.LoadText(2)),
                    dataPath, hasHeader: true).Read(dataPath);
 
             var preprocess = data.Schema.MakeEstimator(row => (
@@ -141,7 +143,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 Features: row.Subject.Concat(row.Content).TextFeaturizer()));
 
             var pipeline = preprocess.
-                Appand(row => row.Label.TrainSDCAClassifier(row.Features)).
+                Append(row => row.Label.TrainSDCAClassifier(row.Features)).
                 Append(row => row.PredictedLabel.KeyToValue());
 
             var (trainData, testData) = CrossValidator.TrainTestSplit(env, data: data, trainFraction: 0.8);
