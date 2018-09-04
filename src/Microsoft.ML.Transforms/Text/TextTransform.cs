@@ -154,6 +154,8 @@ namespace Microsoft.ML.Runtime.Data
                 _setter = setter;
             }
 
+            public void SetNone() => _setter(null);
+
             public void SetNgram(int ngramLength = 1, int skipLength = 0, bool allLengths = true,
                 int[] maxNumTerms = null, NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
             {
