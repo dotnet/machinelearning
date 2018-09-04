@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[]
                     {
                         new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Features", DataKind.R4, 
+                        new TextLoader.Column("Features", DataKind.R4,
                             new [] { new TextLoader.Range(1, 9) })
                     }
                 },
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                data = new TermTransform(Env, new TermTransform.Arguments()
+                data = TermTransform.Create(Env, new TermTransform.Arguments()
                 {
                     Column = new[]
                     {
