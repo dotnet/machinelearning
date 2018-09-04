@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Data.StaticPipe.Runtime
 {
@@ -57,13 +58,21 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         /// </summary>
         /// <param name="env">The host environment to use to create the estimator</param>
         /// <param name="toOutput">The columns that the object created by the reconciler should output</param>
-        /// <param name="inputNames">The columns that the object created by the reconciler should output</param>
-        /// <param name="outputNames">The </param>
-        /// <returns></returns>
+        /// <param name="inputNames">The name mapping that maps dependencies of the output columns to their names</param>
+        /// <param name="outputNames">The name mapping that maps the output column to their names</param>
+        /// <param name="usedNames">While most estimators allow full control over the names of their outputs, a limited
+        /// subset of estimator transforms do not allow this: they produce columns whose names are unconfigurable. For
+        /// these, there is this collection which provides the names used by the analysis tool. If the estimator under
+        /// construction must use one of the names here, then they are responsible for "saving" the column they will
+        /// overwrite using applications of the <see cref="CopyColumnsEstimator"/>. Note that if the estimator under
+        /// construction has complete control over what columns it produces, there is no need for it to pay this argument
+        /// any attention.</param>
+        /// <returns>Returns an estimator.</returns>
         public abstract IEstimator<ITransformer> Reconcile(
             IHostEnvironment env,
             PipelineColumn[] toOutput,
             IReadOnlyDictionary<PipelineColumn, string> inputNames,
-            IReadOnlyDictionary<PipelineColumn, string> outputNames);
+            IReadOnlyDictionary<PipelineColumn, string> outputNames,
+            IReadOnlyCollection<string> usedNames);
     }
 }

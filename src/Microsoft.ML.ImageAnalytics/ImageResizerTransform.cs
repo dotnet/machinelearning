@@ -499,7 +499,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
                     PipelineColumn[] toOutput,
                     IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                    IReadOnlyDictionary<PipelineColumn, string> outputNames)
+                    IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                    IReadOnlyCollection<string> usedNames)
                 {
                     var cols = new ImageResizerTransform.ColumnInfo[toOutput.Length];
                     for (int i = 0; i < toOutput.Length; ++i)

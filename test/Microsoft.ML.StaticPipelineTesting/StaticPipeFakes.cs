@@ -30,7 +30,8 @@ namespace FakeStaticPipes
             IHostEnvironment env,
             PipelineColumn[] toOutput,
             IReadOnlyDictionary<PipelineColumn, string> inputNames,
-            IReadOnlyDictionary<PipelineColumn, string> outputNames)
+            IReadOnlyDictionary<PipelineColumn, string> outputNames,
+            IReadOnlyCollection<string> usedNames)
         {
             Console.WriteLine($"Constructing {_name} estimator!");
 

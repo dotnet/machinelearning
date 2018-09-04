@@ -222,7 +222,9 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 
                 var localInputNames = nameMap.AsOther(cols.SelectMany(c => c.Dependencies ?? Enumerable.Empty<PipelineColumn>()));
                 var localOutputNames = nameMap.AsOther(cols);
-                var localEstimator = rec.Reconcile(env, cols, localInputNames, localOutputNames);
+                var usedNames = new HashSet<string>(nameMap.Keys1.Except(localOutputNames.Values));
+
+                var localEstimator = rec.Reconcile(env, cols, localInputNames, localOutputNames, usedNames);
                 readerEstimator = readerEstimator?.Append(localEstimator);
                 estimator = estimator?.Append(localEstimator) ?? localEstimator;
 
@@ -300,6 +302,9 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 
             public bool ContainsKey(T1 k) => _d12.ContainsKey(k);
             public bool ContainsKey(T2 k) => _d21.ContainsKey(k);
+
+            public IEnumerable<T1> Keys1 => _d12.Keys;
+            public IEnumerable<T2> Keys2 => _d21.Keys;
 
             public bool TryGetValue(T1 k, out T2 v) => _d12.TryGetValue(k, out v);
             public bool TryGetValue(T2 k, out T1 v) => _d21.TryGetValue(k, out v);
