@@ -98,7 +98,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Exposes a single column in a schema. It column is considered inactive.
+        /// Exposes a single column in a schema. The column is considered inactive.
         /// </summary>
         /// <param name="schema">The schema to get the data for</param>
         /// <param name="col">The column to get</param>

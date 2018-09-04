@@ -21,10 +21,10 @@ namespace Microsoft.ML.Analyzer
             private const string Title = "The type is not a schema shape";
             private const string Format = "Type{0} is neither a PipelineColumn nor a ValueTuple.";
             internal const string Description =
-                "Within statically typed pipeline elements of ML.NET, the shape of the schema is determined by a a type. " +
+                "Within statically typed pipeline elements of ML.NET, the shape of the schema is determined by a type. " +
                 "A valid type is either an instance of one of the PipelineColumn subclasses (e.g., Scalar<bool> " +
                 "or something like that), or a ValueTuple containing only valid types. (So, ValueTuples containing " +
-                "other value tuples are fine, so long as they terminate in a PipelineColumn sublcass.)";
+                "other value tuples are fine, so long as they terminate in a PipelineColumn subclass.)";
 
             internal static DiagnosticDescriptor Rule =
                 new DiagnosticDescriptor(Id, Title, Format, Category,
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Analyzer
             if (leafType == null)
                 return;
 
-            // This internal helper method recrusively determines whether an attributed type parameter
+            // This internal helper method recursively determines whether an attributed type parameter
             // has a valid type. It is called externally from the loop over invocations.
             bool CheckType(ITypeSymbol type, out string path, out ITypeSymbol problematicType)
             {
