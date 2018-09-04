@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.TensorFlow;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -57,6 +58,7 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new TextToKeyConverter("Label"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
+            TensorFlowUtils.Initialize();
             var model = pipeline.Train<CifarData, CifarPrediction>();
             string[] scoreLabels;
             model.TryGetScoreLabelNames(out scoreLabels);
