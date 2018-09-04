@@ -6,6 +6,9 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Model.Onnx;
+using Microsoft.ML.Runtime.Model.Pfa;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +47,7 @@ namespace Microsoft.ML.Runtime.Data
             public readonly string Output;
             public readonly long MaxTrainingExamples;
 
-            protected ColumnBase(string input, string output, long maxTrainingExamples)
+            private protected ColumnBase(string input, string output, long maxTrainingExamples)
             {
                 Contracts.CheckNonEmpty(input, nameof(input));
                 Contracts.CheckNonEmpty(output, nameof(output));
@@ -79,7 +82,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly bool FixZero;
 
-            protected FixZeroColumnBase(string input, string output, long maxTrainingExamples, bool fixZero)
+            private protected FixZeroColumnBase(string input, string output, long maxTrainingExamples, bool fixZero)
                 : base(input, output, maxTrainingExamples)
             {
                 FixZero = fixZero;
@@ -422,9 +425,12 @@ namespace Microsoft.ML.Runtime.Data
         protected override IRowMapper MakeRowMapper(ISchema schema)
             => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
             private NormalizerTransformer _parent;
+
+            public bool CanSaveOnnx => true;
+            public bool CanSavePfa => true;
 
             public Mapper(NormalizerTransformer parent, ISchema schema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, schema)
@@ -466,6 +472,89 @@ namespace Microsoft.ML.Runtime.Data
                 disposer = null;
                 return _parent._columns[iinfo].ColumnFunction.GetGetter(input, ColMapNewToOld[iinfo]);
             }
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
+                {
+                    var info = _parent._columns[iinfo];
+                    string sourceColumnName = info.Input;
+                    if (!ctx.ContainsColumn(sourceColumnName))
+                    {
+                        ctx.RemoveColumn(info.Output, false);
+                        continue;
+                    }
+
+                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
+                        ctx.AddIntermediateVariable(info.InputType, info.Output)))
+                    {
+                        ctx.RemoveColumn(info.Output, true);
+                    }
+                }
+            }
+
+            public void SaveAsPfa(BoundPfaContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                var toHide = new List<string>();
+                var toDeclare = new List<KeyValuePair<string, JToken>>();
+
+                for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
+                {
+                    var info = _parent._columns[iinfo];
+                    var srcName = info.Input;
+                    string srcToken = ctx.TokenOrNullForName(srcName);
+                    if (srcToken == null)
+                    {
+                        toHide.Add(info.Output);
+                        continue;
+                    }
+                    var result = SaveAsPfaCore(ctx, iinfo, info, srcToken);
+                    if (result == null)
+                    {
+                        toHide.Add(info.Output);
+                        continue;
+                    }
+                    toDeclare.Add(new KeyValuePair<string, JToken>(info.Output, result));
+                }
+                ctx.Hide(toHide.ToArray());
+                ctx.DeclareVar(toDeclare.ToArray());
+            }
+
+            private JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColumnInfo info, JToken srcToken)
+            {
+                Contracts.AssertValue(ctx);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
+                Contracts.Assert(_parent._columns[iinfo] == info);
+                Contracts.AssertValue(srcToken);
+                Contracts.Assert(CanSavePfa);
+                return info.ColumnFunction.PfaInfo(ctx, srcToken);
+            }
+
+            private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColumnInfo info, string srcVariableName, string dstVariableName)
+            {
+                Contracts.AssertValue(ctx);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
+                Contracts.Assert(_parent._columns[iinfo] == info);
+                Contracts.Assert(CanSaveOnnx);
+
+                if (info.InputType.ValueCount == 0)
+                    return false;
+
+                if (info.ColumnFunction.CanSaveOnnx)
+                {
+                    string opType = "Scaler";
+                    var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+                    info.ColumnFunction.OnnxInfo(ctx, node, info.InputType.ValueCount);
+                    return true;
+                }
+
+                return false;
+            }
+
         }
     }
 }

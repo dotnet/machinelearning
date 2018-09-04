@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public delegate void SignatureLoadColumnFunction(ModelLoadContext ctx, IHost host, ColumnType typeSrc);
 
-    public interface IColumnFunctionBuilder
+    internal interface IColumnFunctionBuilder
     {
         /// <summary>
         /// Trains on the current value.
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Interface to define an aggregate function over values
     /// </summary>
-    public interface IColumnAggregator<T>
+    internal interface IColumnAggregator<T>
     {
         /// <summary>
         /// Updates the aggregate function with a value
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.Data
         void Finish();
     }
 
-    public interface IColumnFunction : ICanSaveModel
+    internal interface IColumnFunction : ICanSaveModel
     {
         Delegate GetGetter(IRow input, int icol);
 
