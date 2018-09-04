@@ -5,11 +5,23 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {
-    internal partial class TensorFlowUtils
+    public static class TensorFlowUtils
     {
+        // This method is needed for the Pipeline API, since ModuleCatalog does not load entry points that are located
+        // in assemblies that aren't directly used in the code. Users who want to use TensorFlow components will have to call
+        // TensorFlowUtils.Initialize() before creating the pipeline.
+        /// <summary>
+        /// Initialize the TensorFlow environment. Call this method before adding TensorFlow components to a learning pipeline.
+        /// </summary>
+        public static void Initialize()
+        {
+            ImageAnalytics.Initialize();
+        }
+
         internal static PrimitiveType Tf2MlNetType(TFDataType type)
         {
             switch (type)
@@ -27,7 +39,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
         }
 
-        public static unsafe void FetchData<T>(IntPtr data, T[] result)
+        internal static unsafe void FetchData<T>(IntPtr data, T[] result)
         {
             var size = result.Length;
 
