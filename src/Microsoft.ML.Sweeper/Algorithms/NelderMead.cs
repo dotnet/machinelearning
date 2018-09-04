@@ -96,6 +96,11 @@ namespace Microsoft.ML.Runtime.Sweeper
             env.CheckUserArg(args.DeltaExpansion > args.DeltaReflection, nameof(args.DeltaExpansion), "Must be greater than " + nameof(args.DeltaReflection));
             env.CheckUserArg(0 < args.GammaShrink && args.GammaShrink < 1, nameof(args.GammaShrink), "Must be between 0 and 1");
 
+            if (args.FirstBatchSweeper == null)
+            {
+                throw new NullReferenceException("First Batch Sweeper Contains Null Value");
+            }
+
             _args = args;
 
             _sweepParameters = new List<IValueGenerator>();
