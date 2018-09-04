@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void SimpleIrisDescisionTrees()
         {
             var env = new ConsoleEnvironment();
-            string dataPath = "iris-data.txt";
+            string dataPath = "iris.txt";
             // Create reader with specific schema.
             var dataReader = TextLoader.CreateReader(env, ctx => (
                label: ctx.LoadText(0),
