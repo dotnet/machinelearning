@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.ML.CodeAnalyzer
+namespace Microsoft.ML.InternalCodeAnalyzer
 {
     internal enum NameType
     {

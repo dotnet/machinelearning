@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Rename;
 
-namespace Microsoft.ML.CodeAnalyzer
+namespace Microsoft.ML.InternalCodeAnalyzer
 {
     // This is somewhat difficult. The trouble is, if a name is in a bad state, it is
     // actually rather difficult to come up with a general procedure to "fix" it. We

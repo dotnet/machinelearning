@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.ML.CodeAnalyzer
+namespace Microsoft.ML.InternalCodeAnalyzer
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class InstanceInitializerAnalyzer : DiagnosticAnalyzer

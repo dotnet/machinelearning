@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
-using System.Reflection;
-using System.Threading;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Microsoft.ML.CodeAnalyzer.Tests
+namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class ContractsCheckTest : DiagnosticVerifier<ContractsCheckAnalyzer>
     {
