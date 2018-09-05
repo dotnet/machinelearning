@@ -764,7 +764,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> result = Sse.SetZeroVector128();
 
-                while (pSrcCurrent + 4 < pSrcEnd)
+                while (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     result = Sse.Add(result, Sse.LoadVector128(pSrcCurrent));
                     pSrcCurrent += 4;
