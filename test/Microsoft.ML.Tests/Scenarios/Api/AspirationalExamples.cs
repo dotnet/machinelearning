@@ -76,8 +76,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                petalLength: ctx.LoadFloat(4)),
                dataPath);
 
-
-            var pipeline = data.MakeEstimator()
+            var pipeline = dataReader.MakeEstimator()
                 .Append(row => (
                     // Convert string label to key.
                     label: row.label.Dictionarize(),
@@ -116,7 +115,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     row.label.TrainLinearClassification(row.features)));
 
 
-            var (trainData, testData) = CrossValidator.TrainTestSplit(env, data: dataReader.Read(dataPath), trainFraction: 0.7);
+            var (trainData, testData) = ModelValidation.TrainTestSplit(env, data: dataReader.Read(dataPath), trainFraction: 0.7);
             var model = pipeline.Fit(trainData);
             var predictions = model.Transform(testData);
             var metrics = BinaryClassifierEvaluator.Evaluate(predictions, row => row.label, row => row.prediction);
@@ -134,17 +133,17 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                    content: ctx.LoadText(2)),
                    dataPath, hasHeader: true);
 
-            var pipeline = data.MakeEstimator().
+            var pipeline = dataReader.MakeEstimator().
                 Append(row => (
                     // Convert string label to key.
                     label: row.label.Dictionarize(),
                     // Concatenate all features into a vector.
-                    features: row.subject.Concat(row.content).TextFeaturizer()))
+                    features: row.subject.ConcatWith(row.content).TextFeaturizer()))
                  .Append(row => (
                     label: row.label,
                     prediction: row.label.TrainSDCAClassifier(row.features)));
 
-            var (trainData, testData) = CrossValidator.TrainTestSplit(env, data: dataReader.Read(dataPath), trainFraction: 0.8);
+            var (trainData, testData) = ModelValidation.TrainTestSplit(env, data: dataReader.Read(dataPath), trainFraction: 0.8);
             var model = pipeline.Fit(trainData);
 
             var predictions = model.Transform(testData);
