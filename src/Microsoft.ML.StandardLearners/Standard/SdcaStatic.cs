@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
-        /// the linear model that was learnt.  Note that this action cannot change the result in any way; it is only a way for the caller to
+        /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
         public static Scalar<float> PredictSdcaRegression(this Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
-        /// the linear model that was learnt, as well as the calibrator on top of that model. Note that this action cannot change the
+        /// the linear model that was trained, as well as the calibrator on top of that model. Note that this action cannot change the
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
-        /// the linear model that was learnt, as well as the calibrator on top of that model. Note that this action cannot change the
+        /// the linear model that was trained, as well as the calibrator on top of that model. Note that this action cannot change the
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
