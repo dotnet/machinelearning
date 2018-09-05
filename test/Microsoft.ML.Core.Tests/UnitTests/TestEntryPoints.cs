@@ -234,7 +234,7 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
-        [Fact(Skip = "Execute this test if you want to regenerate ep-list and _manifest.json")]
+        [Fact]
         public void RegenerateEntryPointCatalog()
         {
             var buildPrefix = GetBuildPrefix();
@@ -3742,7 +3742,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     @"'InputColumns': [ 'Placeholder' ],
                       'ModelFile': 'mnist_model/frozen_saved_model.pb',
-                      'OutputColumn': 'Softmax'"
+                      'OutputColumns': [ 'Softmax' ]"
                 });
         }
     }

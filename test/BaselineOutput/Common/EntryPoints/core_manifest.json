@@ -21749,8 +21749,11 @@
           "IsNullable": false
         },
         {
-          "Name": "OutputColumn",
-          "Type": "String",
+          "Name": "OutputColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
           "Desc": "The name of the output",
           "Aliases": [
             "output"
