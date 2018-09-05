@@ -84,7 +84,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     features: row.sepalWidth.ConcatWith(row.sepalLength, row.petalWidth, row.petalLength)))
                 .Append(row => (
                     label: row.label,
-                    prediction: row.label.PredictWithMultiClassFastTree(row.features)));
+                    prediction: row.label.PredictFastTreeMultiClass(row.features)));
 
             // Load the data into the system.
             var data = dataReader.Read(dataPath);
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     row.label.TrainLinearClassification(row.features)));
 
 
-            var (trainData, testData) = ModelValidation.TrainTestSplit(env, data: dataReader.Read(dataPath), trainFraction: 0.7);
+            var (trainData, testData) = dataReader.Read(dataPath).TrainTestSplit(trainFraction: 0.7);
             var model = pipeline.Fit(trainData);
             var predictions = model.Transform(testData);
             var metrics = BinaryClassifierEvaluator.Evaluate(predictions, row => row.label, row => row.prediction);
@@ -141,9 +141,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     features: row.subject.ConcatWith(row.content).TextFeaturizer()))
                  .Append(row => (
                     label: row.label,
-                    prediction: row.label.TrainSDCAClassifier(row.features)));
+                    prediction: row.label.PredictSdcaMultiClass(row.features)));
 
-            var (trainData, testData) = ModelValidation.TrainTestSplit(env, data: dataReader.Read(dataPath), trainFraction: 0.8);
+            var (trainData, testData) = dataReader.Read(dataPath).TrainTestSplit(trainFraction: 0.8);
             var model = pipeline.Fit(trainData);
 
             var predictions = model.Transform(testData);
