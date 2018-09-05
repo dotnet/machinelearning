@@ -193,16 +193,16 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             {
                 var entryPointFile = _modulePrefix + name + "EntryPoint.cs";
                 if (_generateModuleInstance)
-                    GenerateFile(info, entryPointFile, ModuleInstanceEntryPointGeneratorMapping, false);
+                    GenerateFile(info, entryPointFile, ModuleInstanceEntryPointGeneratorMapping);
                 else
-                    GenerateFile(info, entryPointFile, EntryPointGeneratorMapping, true);
+                    GenerateFile(info, entryPointFile, EntryPointGeneratorMapping);
             }
 
             var implFile = _modulePrefix + name + ".cs";
-            GenerateFile(info, implFile, ImplGeneratorMapping, !_generateModule || _generateModuleInstance);
+            GenerateFile(info, implFile, ImplGeneratorMapping);
         }
 
-        private void GenerateFile(ComponentCatalog.LoadableClassInfo info, string filename, Dictionary<Type, GeneratorBase> mapping, bool generateEnums)
+        private void GenerateFile(ComponentCatalog.LoadableClassInfo info, string filename, Dictionary<Type, GeneratorBase> mapping)
         {
             using (var sw = new StreamWriter(filename))
             {
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
                 {
                     if (info.IsOfType(kvp.Key))
                     {
-                        kvp.Value.Generate(writer, _modulePrefix, _regenerate, info, generateEnums,
+                        kvp.Value.Generate(writer, _modulePrefix, _regenerate, info,
                             _moduleId ?? Guid.NewGuid().ToString(), _moduleName, _moduleOwner, _moduleVersion, _moduleState,
                             _moduleType, _moduleDeterminism, _moduleCategory, _exclude, _namespaces);
                         break;
