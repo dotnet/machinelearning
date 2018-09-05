@@ -244,6 +244,15 @@ namespace Microsoft.ML.Runtime.CommandLine
             : base(kind, settings)
         {
         }
+
+        public TRes CreateInstance(IHostEnvironment env, params object[] extra)
+        {
+            string options = CmdParser.CombineSettings(Settings);
+            TRes result;
+            if (ComponentCatalog.TryCreateInstance<TRes, TSig>(env, out result, Kind, options, extra))
+                return result;
+            throw Contracts.Except("Unknown loadable class: {0}", Kind).MarkSensitive(MessageSensitivity.None);
+        }
     }
 
     public static class SubComponentExtensions

@@ -22,8 +22,7 @@ namespace Microsoft.ML.Runtime
     /// a descendant of <see cref="LoadableClassAttributeBase"/>, identifying the names and signature types under which the component
     /// type should be registered. Signatures are delegate types that return void and specify that parameter
     /// types for component instantiation. Each component may also specify an "arguments object" that should
-    /// be provided at instantiation time. Typically the arguments object is populated via the <see cref="CmdParser"/>
-    /// from a <see cref="SubComponent"/>.
+    /// be provided at instantiation time.
     /// </summary>
     public static partial class ComponentCatalog
     {
@@ -843,54 +842,6 @@ namespace Microsoft.ML.Runtime
             return FindClassCore(new LoadableClassInfo.Key(loadName, signatureType));
         }
 
-        public static LoadableClassInfo GetLoadableClassInfo<TRes, TSig>(SubComponent<TRes, TSig> sub)
-            where TRes : class
-        {
-            Contracts.CheckParam(typeof(TSig).BaseType == typeof(MulticastDelegate), nameof(TSig), "TSig must be a delegate type");
-            Contracts.CheckParam(sub.IsGood(), nameof(sub), "SubComponent must be non-null and non-empty");
-
-            // SubComponent.Kind is never null (may be empty).
-            Contracts.Assert(sub.Kind != null);
-
-            string loadName = sub.Kind.ToLowerInvariant().Trim();
-            return FindClassCore(new LoadableClassInfo.Key(loadName, typeof(TSig)));
-        }
-
-        /// <summary>
-        /// Create an instance of the indicated component.
-        /// </summary>
-        public static TRes CreateInstance<TRes, TSig>(this SubComponent<TRes, TSig> comp, IHostEnvironment env)
-            where TRes : class
-        {
-            return CreateInstance<TRes, TSig>(env, (SubComponent)comp);
-        }
-
-        /// <summary>
-        /// Create an instance of the indicated component with the given extra parameters.
-        /// </summary>
-        public static TRes CreateInstance<TRes, TSig>(IHostEnvironment env, SubComponent comp, params object[] extra)
-            where TRes : class
-        {
-            string options = CmdParser.CombineSettings(comp.Settings);
-            TRes result;
-            if (TryCreateInstance<TRes, TSig>(env, out result, comp.Kind, options, extra))
-                return result;
-            throw Contracts.Except("Unknown loadable class: {0}", comp.Kind).MarkSensitive(MessageSensitivity.None);
-        }
-
-        /// <summary>
-        /// Create an instance of the indicated component with the given extra parameters.
-        /// </summary>
-        public static TRes CreateInstance<TRes, TSig>(this SubComponent<TRes, TSig> comp, IHostEnvironment env, params object[] extra)
-            where TRes : class
-        {
-            string options = CmdParser.CombineSettings(comp.Settings);
-            TRes result;
-            if (TryCreateInstance<TRes, TSig>(env, out result, comp.Kind, options, extra))
-                return result;
-            throw Contracts.Except("Unknown loadable class: {0}", comp.Kind).MarkSensitive(MessageSensitivity.None);
-        }
-
         /// <summary>
         /// Create an instance of the indicated component with the given extra parameters.
         /// </summary>
@@ -901,27 +852,6 @@ namespace Microsoft.ML.Runtime
             if (TryCreateInstance(env, signatureType, out result, name, options, extra))
                 return result;
             throw Contracts.Except("Unknown loadable class: {0}", name).MarkSensitive(MessageSensitivity.None);
-        }
-
-        /// <summary>
-        /// Try to create an instance of the indicated component with the given extra parameters. If there is no
-        /// such component in the catalog, returns false. Any other error results in an exception.
-        /// </summary>
-        public static bool TryCreateInstance<TRes, TSig>(IHostEnvironment env, out TRes result, SubComponent<TRes, TSig> comp, params object[] extra)
-            where TRes : class
-        {
-            return TryCreateInstance<TRes, TSig>(env, out result, (SubComponent)comp, extra);
-        }
-
-        /// <summary>
-        /// Try to create an instance of the indicated component with the given extra parameters. If there is no
-        /// such component in the catalog, returns false. Any other error results in an exception.
-        /// </summary>
-        public static bool TryCreateInstance<TRes, TSig>(IHostEnvironment env, out TRes result, SubComponent comp, params object[] extra)
-            where TRes : class
-        {
-            string options = CmdParser.CombineSettings(comp.Settings);
-            return TryCreateInstance<TRes, TSig>(env, out result, comp.Kind, options, extra);
         }
 
         /// <summary>
