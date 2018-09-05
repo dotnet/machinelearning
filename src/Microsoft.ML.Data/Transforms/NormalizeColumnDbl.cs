@@ -1780,7 +1780,7 @@ namespace Microsoft.ML.Runtime.Data
                     host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
                     bool fix = column.FixZero;
                     var numBins = column.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "numBins must be greater than 1");
+                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "Must be greater than 1");
                     var cv = srcType.ValueCount;
                     return new BinVecColumnFunctionBuilder(host, cv, lim, fix, numBins, getter);
                 }

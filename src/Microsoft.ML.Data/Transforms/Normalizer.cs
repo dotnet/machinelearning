@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
@@ -23,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     public sealed class Normalizer : IEstimator<NormalizerTransformer>
     {
-        private static class Defaults
+        internal static class Defaults
         {
             public const bool FixZero = true;
             public const bool MeanVarCdf = false;
@@ -555,7 +556,132 @@ namespace Microsoft.ML.Runtime.Data
 
                 return false;
             }
-
         }
+    }
+
+    public static class NormalizerStaticExtensions
+    {
+        private const long MaxTrain = Normalizer.Defaults.MaxTrainingExamples;
+        private const bool FZ = Normalizer.Defaults.FixZero;
+
+        public static NormVector<float> NormalizeByMinMax(
+            this Vector<float> input, bool fixZero = FZ, long maxTrainingExamples = MaxTrain)
+        {
+            return NormalizeByMinMaxCore(input, fixZero, maxTrainingExamples);
+        }
+
+        public static NormVector<double> NormalizeByMinMax(
+            this Vector<double> input, bool fixZero = FZ, long maxTrainingExamples = MaxTrain)
+        {
+            return NormalizeByMinMaxCore(input, fixZero, maxTrainingExamples);
+        }
+
+        private static NormVector<T> NormalizeByMinMaxCore<T>(Vector<T> input, bool fixZero, long maxTrainingExamples)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
+            return new Impl<T>(input, (src, name) => new Normalizer.MinMaxColumn(src, name, maxTrainingExamples, fixZero));
+        }
+
+        public static NormVector<float> NormalizeByMeanVar(
+            this Vector<float> input, bool fixZero = FZ, bool useCdf = Normalizer.Defaults.MeanVarCdf, long maxTrainingExamples = MaxTrain)
+        {
+            return NormalizeByMeanVarCore(input, fixZero, useCdf, maxTrainingExamples);
+        }
+
+        public static NormVector<double> NormalizeByMeanVar(
+            this Vector<double> input, bool fixZero = FZ, bool useCdf = Normalizer.Defaults.MeanVarCdf, long maxTrainingExamples = MaxTrain)
+        {
+            return NormalizeByMeanVarCore(input, fixZero, useCdf, maxTrainingExamples);
+        }
+
+        private static NormVector<T> NormalizeByMeanVarCore<T>(Vector<T> input, bool fixZero, bool useCdf, long maxTrainingExamples)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
+            return new Impl<T>(input, (src, name) => new Normalizer.MeanVarColumn(src, name, maxTrainingExamples, useCdf));
+        }
+
+        public static NormVector<float> NormalizeByLogMeanVar(
+            this Vector<float> input, bool useCdf = Normalizer.Defaults.LogMeanVarCdf, long maxTrainingExamples = MaxTrain)
+        {
+            return NormalizeByLogMeanVarCore(input, useCdf, maxTrainingExamples);
+        }
+
+        public static NormVector<double> NormalizeByLogMeanVar(
+            this Vector<double> input, bool useCdf = Normalizer.Defaults.LogMeanVarCdf, long maxTrainingExamples = MaxTrain)
+        {
+            return NormalizeByLogMeanVarCore(input, useCdf, maxTrainingExamples);
+        }
+
+        private static NormVector<T> NormalizeByLogMeanVarCore<T>(Vector<T> input, bool useCdf, long maxTrainingExamples)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
+            return new Impl<T>(input, (src, name) => new Normalizer.LogMeanVarColumn(src, name, maxTrainingExamples, useCdf));
+        }
+
+        public static NormVector<float> NormalizeByBinning(
+    this Vector<float> input, int maxBins = Normalizer.Defaults.NumBins, bool fixZero = FZ, long maxTrainingExamples = MaxTrain)
+        {
+            return NormalizeByBinningCore(input, maxBins, fixZero, maxTrainingExamples);
+        }
+
+        public static NormVector<double> NormalizeByBinning(
+            this Vector<double> input, int maxBins = Normalizer.Defaults.NumBins, bool fixZero = FZ, long maxTrainingExamples = MaxTrain)
+        {
+            return NormalizeByBinningCore(input, maxBins, fixZero, maxTrainingExamples);
+        }
+
+        private static NormVector<T> NormalizeByBinningCore<T>(Vector<T> input, int numBins, bool fixZero, long maxTrainingExamples)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckParam(numBins > 1, nameof(maxTrainingExamples), "Must be greater than 1");
+            Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
+            return new Impl<T>(input, (src, name) => new Normalizer.BinningColumn(src, name, maxTrainingExamples, fixZero, numBins));
+        }
+
+        #region Implementation support
+        private delegate Normalizer.ColumnBase CreateNormCol(string input, string name);
+
+        private sealed class Rec : EstimatorReconciler
+        {
+            // All settings are self contained in the columns.
+            public static readonly Rec Inst = new Rec();
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
+            {
+                var cols = new Normalizer.ColumnBase[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var col = (INormColCreator)toOutput[i];
+                    cols[i] = col.CreateNormCol(inputNames[col.Input], outputNames[toOutput[i]]);
+                }
+                return new Normalizer(env, cols);
+            }
+        }
+
+        private interface INormColCreator
+        {
+            CreateNormCol CreateNormCol { get; }
+            PipelineColumn Input { get; }
+        }
+
+        private sealed class Impl<T> : NormVector<T>, INormColCreator
+        {
+            public PipelineColumn Input { get; }
+            public CreateNormCol CreateNormCol { get; }
+
+            public Impl(Vector<T> input, CreateNormCol del)
+                : base(Rec.Inst, input)
+            {
+                Contracts.AssertValue(input);
+                Contracts.AssertValue(del);
+                Input = input;
+                CreateNormCol = del;
+            }
+        }
+        #endregion
     }
 }

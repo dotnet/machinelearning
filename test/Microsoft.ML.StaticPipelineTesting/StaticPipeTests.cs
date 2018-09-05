@@ -125,7 +125,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             => new KeyValuePair<string, ColumnType>(name, type);
 
         [Fact]
-        public void StaticPipeAssertSimple()
+        public void AssertStaticSimple()
         {
             var env = new TlcEnvironment(new SysRandom(0), verbose: true);
             var schema = new SimpleSchema(env,
@@ -149,7 +149,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
-        public void StaticPipeAssertKeys()
+        public void AssertStaticKeys()
         {
             var env = new TlcEnvironment(new SysRandom(0), verbose: true);
             var counted = new MetaCounted();
@@ -253,6 +253,31 @@ namespace Microsoft.ML.StaticPipelineTesting
                 view.AssertStatic(env, c => (
                    stay: c.KeyU4.TextValues.Scalar,
                    alot: c.KeyU1.I4Values.Vector)));
+        }
+
+        [Fact]
+        public void Normalizer()
+        {
+            var env = new TlcEnvironment(seed: 0);
+            var dataPath = GetDataPath("external", "winequality-white.csv");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+            var data = reader.Read(dataSource);
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, r.features, bin: r.features.NormalizeByBinning(), mm: r.features.NormalizeByMinMax()));
+            var tdata = est.Fit(data).Transform(data);
+
+            var schema = tdata.AsDynamic.Schema;
+            Assert.True(schema.TryGetColumnIndex("features", out int featCol));
+            Assert.True(schema.TryGetColumnIndex("bin", out int binCol));
+            Assert.True(schema.TryGetColumnIndex("mm", out int mmCol));
+            Assert.False(schema.IsNormalized(featCol));
+            Assert.True(schema.IsNormalized(binCol));
+            Assert.True(schema.IsNormalized(mmCol));
         }
     }
 }
