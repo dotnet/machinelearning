@@ -68,13 +68,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var env = new ConsoleEnvironment();
             string dataPath = "iris.txt";
             // Create reader with specific schema.
-            var dataReader = TextLoader.CreateReader(env, ctx => (
-               label: ctx.LoadText(0),
-               sepalWidth: ctx.LoadFloat(1),
-               sepalLength: ctx.LoadFloat(2),
-               petalWidth: ctx.LoadFloat(3),
-               petalLength: ctx.LoadFloat(4)),
-               dataPath);
+            var dataReader = TextLoader.CreateReader(env, dataPath,
+                ctx => (
+                    label: ctx.LoadText(0),
+                    sepalWidth: ctx.LoadFloat(1),
+                    sepalLength: ctx.LoadFloat(2),
+                    petalWidth: ctx.LoadFloat(3),
+                    petalLength: ctx.LoadFloat(4)
+                ));
 
             var pipeline = dataReader.MakeEstimator()
                 .Append(row => (
@@ -100,10 +101,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var env = new ConsoleEnvironment();
             var dataPath = "wikipedia-detox-250-line-data.tsv";
             // Load the data into the system.
-            var dataReader = TextLoader.CreateReader(env, ctx => (
-                   label: ctx.LoadFloat(0),
-                   text: ctx.LoadText(1)),
-                   dataPath, hasHeader: true);
+            var dataReader = TextLoader.CreateReader(env, dataPath,
+                    ctx => (
+                        label: ctx.LoadFloat(0),
+                        text: ctx.LoadText(1)),
+                    hasHeader: true);
 
             var pipeline = dataReader.MakeEstimator()
                 .Append(row => (
@@ -127,11 +129,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var env = new ConsoleEnvironment();
             var dataPath = "20newsGroups.txt";
             // Load the data into the system.
-            var dataReader = TextLoader.CreateReader(env, ctx => (
-                   label: ctx.LoadText(1),
-                   subject: ctx.LoadText(1),
-                   content: ctx.LoadText(2)),
-                   dataPath, hasHeader: true);
+            var dataReader = TextLoader.CreateReader(env, dataPath,
+                   ctx => (
+                        label: ctx.LoadText(1),
+                        subject: ctx.LoadText(1),
+                        content: ctx.LoadText(2)),
+                   hasHeader: true);
 
             var pipeline = dataReader.MakeEstimator().
                 Append(row => (
