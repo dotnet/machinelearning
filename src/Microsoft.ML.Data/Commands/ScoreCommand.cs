@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -56,8 +57,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", SignatureType = typeof(SignatureDataScorer))]
             public TScorerFactory Scorer;
 
-            [Argument(ArgumentType.Multiple, HelpText = "The data saver to use")]
-            public SubComponent<IDataSaver, SignatureDataSaver> Saver;
+            [Argument(ArgumentType.Multiple, HelpText = "The data saver to use", SignatureType = typeof(SignatureDataSaver))]
+            public IComponentFactory<IDataSaver> Saver;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "File to save the data", ShortName = "dout")]
             public string OutputDataFile;
@@ -135,14 +136,24 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             ch.Trace("Creating saver");
-            var saver = Args.Saver;
-            if (!saver.IsGood())
+            IDataSaver writer;
+            if (Args.Saver == null)
             {
                 var ext = Path.GetExtension(Args.OutputDataFile);
                 var isText = ext == ".txt" || ext == ".tlc";
-                saver = new SubComponent<IDataSaver, SignatureDataSaver>(isText ? "TextSaver" : "BinarySaver");
+                if (isText)
+                {
+                    writer = new TextSaver(Host, new TextSaver.Arguments());
+                }
+                else
+                {
+                    writer = new BinarySaver(Host, new BinarySaver.Arguments());
+                }
             }
-            var writer = saver.CreateInstance(Host);
+            else
+            {
+                writer = Args.Saver.CreateComponent(Host);
+            }
             ch.Assert(writer != null);
             var outputIsBinary = writer is BinaryWriter;
 

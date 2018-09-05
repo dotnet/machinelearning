@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 [assembly: LoadableClass(EvaluateTransform.Summary, typeof(IDataTransform), typeof(EvaluateTransform), typeof(EvaluateTransform.Arguments), typeof(SignatureDataTransform),
@@ -130,8 +131,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
             public KeyValuePair<string, string>[] CustomColumn;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval")]
-            public SubComponent<IMamlEvaluator, SignatureMamlEvaluator> Evaluator;
+            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", SignatureType = typeof(SignatureMamlEvaluator))]
+            public IComponentFactory<IMamlEvaluator> Evaluator;
         }
 
         internal const string Summary = "Runs a previously trained predictor on the data.";
@@ -153,11 +154,9 @@ namespace Microsoft.ML.Runtime.Data
                 var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, args.CustomColumn);
 
                 ch.Trace("Creating evaluator");
-                var evalComp = args.Evaluator;
-                if (!evalComp.IsGood())
-                    evalComp = EvaluateUtils.GetEvaluatorType(ch, input.Schema);
+                IMamlEvaluator eval = args.Evaluator?.CreateComponent(env) ??
+                    EvaluateUtils.GetEvaluator(env, input.Schema);
 
-                var eval = evalComp.CreateInstance(env);
                 var data = new RoleMappedData(input, label, null, group, weight, null, customCols);
                 return eval.GetPerInstanceMetrics(data);
             }
@@ -183,8 +182,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
             public KeyValuePair<string, string>[] CustomColumn;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval")]
-            public SubComponent<IMamlEvaluator, SignatureMamlEvaluator> Evaluator;
+            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", SignatureType = typeof(SignatureMamlEvaluator))]
+            public IComponentFactory<IMamlEvaluator> Evaluator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Results summary filename", ShortName = "sf")]
             public string SummaryFilename;
@@ -233,10 +232,9 @@ namespace Microsoft.ML.Runtime.Data
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
 
             ch.Trace("Creating evaluator");
-            var evalComp = Args.Evaluator;
-            if (!evalComp.IsGood())
-                evalComp = EvaluateUtils.GetEvaluatorType(ch, view.Schema);
-            var evaluator = evalComp.CreateInstance(Host);
+            var evaluator = Args.Evaluator?.CreateComponent(Host) ??
+                EvaluateUtils.GetEvaluator(Host, view.Schema);
+
             var data = new RoleMappedData(view, label, null, group, weight, name, customCols);
             var metrics = evaluator.Evaluate(data);
             MetricWriter.PrintWarnings(ch, metrics);

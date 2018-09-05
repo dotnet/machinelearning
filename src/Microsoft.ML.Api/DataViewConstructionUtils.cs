@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Api
             env.AssertValue(data);
             env.AssertValueOrNull(schemaDefinition);
             var internalSchemaDefn = schemaDefinition == null
-                ? InternalSchemaDefinition.Create(typeof(TRow))
+                ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Read)
                 : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
             return new ListDataView<TRow>(env, data, internalSchemaDefn);
         }
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Api
             env.AssertValue(data);
             env.AssertValueOrNull(schemaDefinition);
             var internalSchemaDefn = schemaDefinition == null
-                ? InternalSchemaDefinition.Create(typeof(TRow))
+                ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Read)
                 : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
             return new StreamingDataView<TRow>(env, data, internalSchemaDefn);
         }

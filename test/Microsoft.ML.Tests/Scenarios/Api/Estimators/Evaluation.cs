@@ -24,16 +24,18 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
+                var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
+
                 // Pipeline.
-                var pipeline = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
+                var pipeline = new TextLoader(env, MakeSentimentTextLoaderArgs())
                     .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()))
-                    .Append(new MySdca(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
+                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
 
                 // Train.
-                var model = pipeline.Fit(new MultiFileSource(dataPath));
+                var readerModel = pipeline.Fit(new MultiFileSource(dataPath));
 
                 // Evaluate on the test set.
-                var dataEval = model.Read(new MultiFileSource(testDataPath));
+                var dataEval = readerModel.Read(new MultiFileSource(testDataPath));
                 var evaluator = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { });
                 var metrics = evaluator.Evaluate(dataEval);
             }

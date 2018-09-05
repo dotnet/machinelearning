@@ -20,9 +20,9 @@ namespace Microsoft.ML.Runtime.Model.Pfa
     }
 
     /// <summary>
-    /// This data model component is savable as PFA. See http://dmg.org/pfa/ .
+    /// This component know how to save himself in Pfa format.
     /// </summary>
-    public interface ITransformCanSavePfa : ICanSavePfa, IDataTransform
+    public interface ISaveAsPfa : ICanSavePfa
     {
         /// <summary>
         /// Save as PFA. For any columns that are output, this interface should use
@@ -32,6 +32,14 @@ namespace Microsoft.ML.Runtime.Model.Pfa
         /// </summary>
         /// <param name="ctx">The PFA program being built</param>
         void SaveAsPfa(BoundPfaContext ctx);
+    }
+
+    /// <summary>
+    /// This data model component is savable as PFA. See http://dmg.org/pfa/ .
+    /// </summary>
+    public interface ITransformCanSavePfa : ISaveAsPfa, IDataTransform
+    {
+
     }
 
     /// <summary>

@@ -579,58 +579,73 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             return history.Select(h => ConvertToRunResult(h.Learner, h.PerformanceSummary, isMetricMaximizing)).ToArray();
         }
+
         /// <summary>
-        /// Method to convert set of sweepable hyperparameters into strings of a format understood
+        /// Method to convert set of sweepable hyperparameters into <see cref="IComponentFactory"/> instances used
         /// by the current smart hyperparameter sweepers.
         /// </summary>
-        public static Tuple<string, string[]>[] ConvertToSweepArgumentStrings(TlcModule.SweepableParamAttribute[] hps)
+        public static IComponentFactory<IValueGenerator>[] ConvertToComponentFactories(TlcModule.SweepableParamAttribute[] hps)
         {
-            var results = new Tuple<string, string[]>[hps.Length];
+            var results = new IComponentFactory<IValueGenerator>[hps.Length];
 
             for (int i = 0; i < hps.Length; i++)
             {
-                string logSetting;
-                string numStepsSetting;
-                string stepSizeSetting;
                 switch (hps[i])
                 {
                     case TlcModule.SweepableDiscreteParamAttribute dp:
-                        results[i] = new Tuple<string, string[]>("dp",
-                            new[] { $"name={dp.Name}", $"{string.Join(" ", dp.Options.Select(o => $"v={o}"))}" });
+                        results[i] = ComponentFactoryUtils.CreateFromFunction(env =>
+                        {
+                            var dpArgs = new DiscreteParamArguments()
+                            {
+                                Name = dp.Name,
+                                Values = dp.Options.Select(o => o.ToString()).ToArray()
+                            };
+                            return new DiscreteValueGenerator(dpArgs);
+                        });
                         break;
+
                     case TlcModule.SweepableFloatParamAttribute fp:
-                        logSetting = fp.IsLogScale ? "log+" : "";
-                        numStepsSetting = fp.NumSteps != null ? $"numsteps={fp.NumSteps}" : "";
-                        stepSizeSetting = fp.StepSize != null ? $"stepsize={fp.StepSize}" : "";
-
-                        results[i] =
-                            new Tuple<string, string[]>("fp",
-                                new[]
-                                {
-                                    $"name={fp.Name}",
-                                    $"min={fp.Min}",
-                                    $"max={fp.Max}",
-                                    logSetting,
-                                    numStepsSetting,
-                                    stepSizeSetting
-                                });
+                        results[i] = ComponentFactoryUtils.CreateFromFunction(env =>
+                        {
+                            var fpArgs = new FloatParamArguments()
+                            {
+                                Name = fp.Name,
+                                Min = fp.Min,
+                                Max = fp.Max,
+                                LogBase = fp.IsLogScale,
+                            };
+                            if (fp.NumSteps.HasValue)
+                            {
+                                fpArgs.NumSteps = fp.NumSteps.Value;
+                            }
+                            if (fp.StepSize.HasValue)
+                            {
+                                fpArgs.StepSize = fp.StepSize.Value;
+                            }
+                            return new FloatValueGenerator(fpArgs);
+                        });
                         break;
-                    case TlcModule.SweepableLongParamAttribute lp:
-                        logSetting = lp.IsLogScale ? "logbase+" : "";
-                        numStepsSetting = lp.NumSteps != null ? $"numsteps={lp.NumSteps}" : "";
-                        stepSizeSetting = lp.StepSize != null ? $"stepsize={lp.StepSize}" : "";
 
-                        results[i] =
-                            new Tuple<string, string[]>("lp",
-                                new[]
-                                {
-                                    $"name={lp.Name}",
-                                    $"min={lp.Min}",
-                                    $"max={lp.Max}",
-                                    logSetting,
-                                    numStepsSetting,
-                                    stepSizeSetting
-                                });
+                    case TlcModule.SweepableLongParamAttribute lp:
+                        results[i] = ComponentFactoryUtils.CreateFromFunction(env =>
+                        {
+                            var lpArgs = new LongParamArguments()
+                            {
+                                Name = lp.Name,
+                                Min = lp.Min,
+                                Max = lp.Max,
+                                LogBase = lp.IsLogScale
+                            };
+                            if (lp.NumSteps.HasValue)
+                            {
+                                lpArgs.NumSteps = lp.NumSteps.Value;
+                            }
+                            if (lp.StepSize.HasValue)
+                            {
+                                lpArgs.StepSize = lp.StepSize.Value;
+                            }
+                            return new LongValueGenerator(lpArgs);
+                        });
                         break;
                 }
             }

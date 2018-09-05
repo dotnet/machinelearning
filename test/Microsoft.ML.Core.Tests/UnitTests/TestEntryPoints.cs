@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[]
                     {
                         new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Features", DataKind.R4, 
+                        new TextLoader.Column("Features", DataKind.R4,
                             new [] { new TextLoader.Range(1, 9) })
                     }
                 },
@@ -426,7 +426,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
 
-                individualScores[i] = new CopyColumnsTransform(Env,
+                individualScores[i] = CopyColumnsTransform.Create(Env,
                     new CopyColumnsTransform.Arguments()
                     {
                         Column = new[]
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                data = new TermTransform(Env, new TermTransform.Arguments()
+                data = TermTransform.Create(Env, new TermTransform.Arguments()
                 {
                     Column = new[]
                     {
@@ -3731,6 +3731,19 @@ namespace Microsoft.ML.Runtime.RunTests
                     Assert.True(feat.Values[0] != 0);
                 }
             }
+        }
+
+        [Fact]
+        public void EntryPointTensorFlowTransform()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
+                new[] { "Transforms.TensorFlowScorer" },
+                new[]
+                {
+                    @"'InputColumns': [ 'Placeholder' ],
+                      'ModelFile': 'mnist_model/frozen_saved_model.pb',
+                      'OutputColumn': 'Softmax'"
+                });
         }
     }
 }

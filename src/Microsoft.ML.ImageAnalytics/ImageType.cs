@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 return false;
             if (Height != tmp.Height)
                 return false;
-            return Width != tmp.Width;
+            return Width == tmp.Width;
         }
 
         public override bool Equals(object other)

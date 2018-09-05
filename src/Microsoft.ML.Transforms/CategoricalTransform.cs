@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.Data
                 args.OutputKind,
                 args.Column,
                 args.Column.Select(col => col.OutputKind).ToList(),
-                new TermTransform(args, args.Column, h, input),
+                 TermTransform.Create(h, args, args.Column, input),
                 h,
                 env);
         }
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Runtime.Data
 
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer",
             Desc = CategoricalHashTransform.Summary,
-            UserName = CategoricalHashTransform.UserName ,
+            UserName = CategoricalHashTransform.UserName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CategoricalHashOneHotVectorizer""]/*' />"})]
         public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, CategoricalHashTransform.Arguments input)
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Runtime.Data
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = new TermTransform(host, input, input.Data);
+            var xf = TermTransform.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 

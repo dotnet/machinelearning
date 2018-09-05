@@ -101,11 +101,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
                             .ToArray()
                     },
                      viewTrain);
-                viewTrain = new Data.TermTransform(host,
-                    new Data.TermTransform.Arguments()
+                viewTrain = TermTransform.Create(host,
+                    new TermTransform.Arguments()
                     {
                         Column = ktv
-                            .Select(c => new Data.TermTransform.Column() { Name = c.Name, Source = c.Name, Terms = GetTerms(viewTrain, c.Source) })
+                            .Select(c => new TermTransform.Column() { Name = c.Name, Source = c.Name, Terms = GetTerms(viewTrain, c.Source) })
                             .ToArray(),
                         TextKeyValues = true
                     },
@@ -255,20 +255,20 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
             }
 
-            var args = new Data.TermTransform.Arguments()
+            var args = new TermTransform.Arguments()
             {
                 Column = new[]
                 {
-                    new Data.TermTransform.Column()
+                    new TermTransform.Column()
                     {
                         Name = input.LabelColumn,
                         Source = input.LabelColumn,
                         TextKeyValues = input.TextKeyValues,
-                        Sort = Data.TermTransform.SortOrder.Value
+                        Sort = TermTransform.SortOrder.Value
                     }
                 }
             };
-            var xf = new Data.TermTransform(host, args, input.Data);
+            var xf = TermTransform.Create(host, args, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 

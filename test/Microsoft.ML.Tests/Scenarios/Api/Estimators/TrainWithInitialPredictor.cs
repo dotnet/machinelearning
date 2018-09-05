@@ -21,17 +21,16 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
+                var data = new TextLoader(env, MakeSentimentTextLoaderArgs()).Read(new MultiFileSource(dataPath));
+
                 // Pipeline.
-                var pipeline = new MyTextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()));
+                var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs());
 
                 // Train the pipeline, prepare train set.
-                var reader = pipeline.Fit(new MultiFileSource(dataPath));
-                var trainData = reader.Read(new MultiFileSource(dataPath));
-
+                var trainData = pipeline.FitAndTransform(data);
 
                 // Train the first predictor.
-                var trainer = new MySdca(env, new LinearClassificationTrainer.Arguments
+                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
                 {
                     NumThreads = 1
                 }, "Features", "Label");
@@ -39,7 +38,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 // Train the second predictor on the same data.
                 var secondTrainer = new MyAveragedPerceptron(env, new AveragedPerceptronTrainer.Arguments(), "Features", "Label");
-                var finalModel = secondTrainer.Train(trainData, firstModel.InnerModel);
+                var finalModel = secondTrainer.Train(trainData, firstModel.Model);
             }
         }
     }

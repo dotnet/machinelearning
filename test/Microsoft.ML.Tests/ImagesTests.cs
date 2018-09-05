@@ -5,19 +5,75 @@
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
 using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public class ImageTests : BaseTestClass
+    public class ImageTests : TestDataPipeBase
     {
         public ImageTests(ITestOutputHelper output) : base(output)
         {
+        }
+
+        [Fact]
+        public void TestEstimatorChain()
+        {
+            using (var env = new TlcEnvironment())
+            {
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var invalidData = env.CreateLoader("Text{col=ImagePath:R4:0}", new MultiFileSource(dataFile));
+
+                var pipe = new ImageLoaderEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
+                    .Append(new ImageResizerEstimator(env, "ImageReal", "ImageReal", 100, 100))
+                    .Append(new ImagePixelExtractorEstimator(env, "ImageReal", "ImagePixels"))
+                    .Append(new ImageGrayscaleEstimator(env, ("ImageReal", "ImageGray")));
+
+                TestEstimatorCore(pipe, data, null, invalidData);
+            }
+            Done();
+        }
+
+        [Fact]
+        public void TestEstimatorSaveLoad()
+        {
+            using (var env = new TlcEnvironment())
+            {
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+
+                var pipe = new ImageLoaderEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
+                    .Append(new ImageResizerEstimator(env, "ImageReal", "ImageReal", 100, 100))
+                    .Append(new ImagePixelExtractorEstimator(env, "ImageReal", "ImagePixels"))
+                    .Append(new ImageGrayscaleEstimator(env, ("ImageReal", "ImageGray")));
+
+                pipe.GetOutputSchema(Core.Data.SchemaShape.Create(data.Schema));
+                var model = pipe.Fit(data);
+
+                using (var file = env.CreateTempFile())
+                {
+                    using (var fs = file.CreateWriteStream())
+                        model.SaveTo(env, fs);
+                    var model2 = TransformerChain.LoadFrom(env, file.OpenReadStream());
+
+                    var newCols = ((ImageLoaderTransform)model2.First()).Columns;
+                    var oldCols = ((ImageLoaderTransform)model.First()).Columns;
+                    Assert.True(newCols
+                        .Zip(oldCols, (x, y) => x == y)
+                        .All(x => x));
+                }
+            }
+            Done();
         }
 
         [Fact]
@@ -28,7 +84,7 @@ namespace Microsoft.ML.Tests
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-                var images = new ImageLoaderTransform(env, new ImageLoaderTransform.Arguments()
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
                 {
                     Column = new ImageLoaderTransform.Column[1]
                     {
@@ -37,7 +93,7 @@ namespace Microsoft.ML.Tests
                     ImageFolder = imageFolder
                 }, data);
 
-                var cropped = new ImageResizerTransform(env, new ImageResizerTransform.Arguments()
+                IDataView cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
                 {
                     Column = new ImageResizerTransform.Column[1]{
                         new ImageResizerTransform.Column() {  Name= "ImageCropped", Source = "ImageReal", ImageHeight =100, ImageWidth = 100, Resizing = ImageResizerTransform.ResizingKind.IsoPad}
@@ -62,6 +118,7 @@ namespace Microsoft.ML.Tests
                     }
                 }
             }
+            Done();
         }
 
         [Fact]
@@ -74,7 +131,7 @@ namespace Microsoft.ML.Tests
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-                var images = new ImageLoaderTransform(env, new ImageLoaderTransform.Arguments()
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
                 {
                     Column = new ImageLoaderTransform.Column[1]
                     {
@@ -82,19 +139,28 @@ namespace Microsoft.ML.Tests
                     },
                     ImageFolder = imageFolder
                 }, data);
-                var cropped = new ImageResizerTransform(env, new ImageResizerTransform.Arguments()
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
                 {
                     Column = new ImageResizerTransform.Column[1]{
                         new ImageResizerTransform.Column() {  Name= "ImageCropped", Source = "ImageReal", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
                     }
                 }, images);
 
-                var grey = new ImageGrayscaleTransform(env, new ImageGrayscaleTransform.Arguments()
+                IDataView grey = ImageGrayscaleTransform.Create(env, new ImageGrayscaleTransform.Arguments()
                 {
                     Column = new ImageGrayscaleTransform.Column[1]{
                         new ImageGrayscaleTransform.Column() {  Name= "ImageGrey", Source = "ImageCropped"}
                     }
                 }, cropped);
+
+                var fname = nameof(TestGreyscaleTransformImages) + "_model.zip";
+
+                var fh = env.CreateOutputFile(fname);
+                using (var ch = env.Start("save"))
+                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(grey));
+
+                grey = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+                DeleteOutputPath(fname);
 
                 grey.Schema.TryGetColumnIndex("ImageGrey", out int greyColumn);
                 using (var cursor = grey.GetRowCursor((x) => true))
@@ -115,6 +181,7 @@ namespace Microsoft.ML.Tests
                     }
                 }
             }
+            Done();
         }
 
         [Fact]
@@ -127,7 +194,7 @@ namespace Microsoft.ML.Tests
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-                var images = new ImageLoaderTransform(env, new ImageLoaderTransform.Arguments()
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
                 {
                     Column = new ImageLoaderTransform.Column[1]
                     {
@@ -135,26 +202,36 @@ namespace Microsoft.ML.Tests
                     },
                     ImageFolder = imageFolder
                 }, data);
-                var cropped = new ImageResizerTransform(env, new ImageResizerTransform.Arguments()
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
                 {
                     Column = new ImageResizerTransform.Column[1]{
                         new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
                     }
                 }, images);
 
-                var pixels = new ImagePixelExtractorTransform(env, new ImagePixelExtractorTransform.Arguments()
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
                 {
                     Column = new ImagePixelExtractorTransform.Column[1]{
                         new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "ImagePixels", UseAlpha=true}
                     }
                 }, cropped);
 
-                var backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+                IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
                 {
                     Column = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
                 }, pixels);
+
+                var fname = nameof(TestBackAndForthConversion) + "_model.zip";
+
+                var fh = env.CreateOutputFile(fname);
+                using (var ch = env.Start("save"))
+                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+
+                backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+                DeleteOutputPath(fname);
+
 
                 backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
                 backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
@@ -179,6 +256,7 @@ namespace Microsoft.ML.Tests
                     }
                 }
             }
+            Done();
         }
     }
 }

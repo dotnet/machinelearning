@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
-    public sealed partial class TextLoader : IDataLoader
+    public sealed partial class TextLoader
     {
         /// <summary>
         /// This type exists to provide efficient delegates for creating a ColumnValue specific to a DataKind.

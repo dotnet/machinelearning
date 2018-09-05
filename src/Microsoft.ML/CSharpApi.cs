@@ -1522,16 +1522,16 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Transforms.SentimentAnalyzer", input, output));
             }
 
-            public Microsoft.ML.Transforms.SupervisedBinNormalizer.Output Add(Microsoft.ML.Transforms.SupervisedBinNormalizer input)
+            public Microsoft.ML.Transforms.TensorFlowScorer.Output Add(Microsoft.ML.Transforms.TensorFlowScorer input)
             {
-                var output = new Microsoft.ML.Transforms.SupervisedBinNormalizer.Output();
+                var output = new Microsoft.ML.Transforms.TensorFlowScorer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.SupervisedBinNormalizer input, Microsoft.ML.Transforms.SupervisedBinNormalizer.Output output)
+            public void Add(Microsoft.ML.Transforms.TensorFlowScorer input, Microsoft.ML.Transforms.TensorFlowScorer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.SupervisedBinNormalizer", input, output));
+                _jsonNodes.Add(Serialize("Transforms.TensorFlowScorer", input, output));
             }
 
             public Microsoft.ML.Transforms.TextFeaturizer.Output Add(Microsoft.ML.Transforms.TextFeaturizer input)
@@ -7526,6 +7526,11 @@ namespace Microsoft.ML
             public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
             /// <summary>
+            /// Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.
+            /// </summary>
+            public double Sigmoid { get; set; } = 0.5d;
+
+            /// <summary>
             /// Number of entries in a batch when loading data.
             /// </summary>
             public int BatchSize { get; set; } = 1048576;
@@ -7728,6 +7733,11 @@ namespace Microsoft.ML
             /// Comma seperated list of gains associated to each relevance label.
             /// </summary>
             public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+
+            /// <summary>
+            /// Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.
+            /// </summary>
+            public double Sigmoid { get; set; } = 0.5d;
 
             /// <summary>
             /// Number of entries in a batch when loading data.
@@ -7934,6 +7944,11 @@ namespace Microsoft.ML
             public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
 
             /// <summary>
+            /// Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.
+            /// </summary>
+            public double Sigmoid { get; set; } = 0.5d;
+
+            /// <summary>
             /// Number of entries in a batch when loading data.
             /// </summary>
             public int BatchSize { get; set; } = 1048576;
@@ -8136,6 +8151,11 @@ namespace Microsoft.ML
             /// Comma seperated list of gains associated to each relevance label.
             /// </summary>
             public string CustomGains { get; set; } = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+
+            /// <summary>
+            /// Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.
+            /// </summary>
+            public double Sigmoid { get; set; } = 0.5d;
 
             /// <summary>
             /// Number of entries in a batch when loading data.
@@ -15758,81 +15778,26 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Similar to BinNormalizer, but calculates bins based on correlation with the label column, not equi-density. The new value is bin_number / number_of_bins.
+        /// Transforms the data using the TensorFlow model.
         /// </summary>
-        public sealed partial class SupervisedBinNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class TensorFlowScorer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
-            public SupervisedBinNormalizer()
-            {
-            }
-            
-            public SupervisedBinNormalizer(params string[] inputColumns)
-            {
-                if (inputColumns != null)
-                {
-                    foreach (string input in inputColumns)
-                    {
-                        AddColumn(input);
-                    }
-                }
-            }
-            
-            public SupervisedBinNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
-            {
-                if (inputOutputColumns != null)
-                {
-                    foreach (var inputOutput in inputOutputColumns)
-                    {
-                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
-                    }
-                }
-            }
-            
-            public void AddColumn(string inputColumn)
-            {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(inputColumn));
-                Column = list.ToArray();
-            }
-
-            public void AddColumn(string outputColumn, string inputColumn)
-            {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(outputColumn, inputColumn));
-                Column = list.ToArray();
-            }
-
 
             /// <summary>
-            /// Label column for supervised binning
+            /// This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more details.
             /// </summary>
-            public string LabelColumn { get; set; }
+            public string ModelFile { get; set; }
 
             /// <summary>
-            /// Minimum number of examples per bin
+            /// The names of the model inputs
             /// </summary>
-            public int MinBinSize { get; set; } = 10;
+            public string[] InputColumns { get; set; }
 
             /// <summary>
-            /// New column definition(s) (optional form: name:src)
+            /// The name of the output
             /// </summary>
-            public NormalizeTransformBinColumn[] Column { get; set; }
-
-            /// <summary>
-            /// Max number of bins, power of 2 recommended
-            /// </summary>
-            public int NumBins { get; set; } = 1024;
-
-            /// <summary>
-            /// Whether to map zero to zero, preserving sparsity
-            /// </summary>
-            public bool FixZero { get; set; } = true;
-
-            /// <summary>
-            /// Max number of examples used to train the normalizer
-            /// </summary>
-            public long MaxTrainingExamples { get; set; } = 1000000000;
+            public string OutputColumn { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -15861,18 +15826,18 @@ namespace Microsoft.ML
                 {
                     if (!(previousStep is ILearningPipelineDataStep dataStep))
                     {
-                        throw new InvalidOperationException($"{ nameof(SupervisedBinNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                        throw new InvalidOperationException($"{ nameof(TensorFlowScorer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
                     }
 
                     Data = dataStep.Data;
                 }
                 Output output = experiment.Add(this);
-                return new SupervisedBinNormalizerPipelineStep(output);
+                return new TensorFlowScorerPipelineStep(output);
             }
 
-            private class SupervisedBinNormalizerPipelineStep : ILearningPipelineDataStep
+            private class TensorFlowScorerPipelineStep : ILearningPipelineDataStep
             {
-                public SupervisedBinNormalizerPipelineStep(Output output)
+                public TensorFlowScorerPipelineStep(Output output)
                 {
                     Data = output.OutputData;
                     Model = output.Model;
