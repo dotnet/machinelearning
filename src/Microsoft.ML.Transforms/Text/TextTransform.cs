@@ -620,8 +620,12 @@ namespace Microsoft.ML.Runtime.Data
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, "scalar or vector of text", col.GetTypeString());
             }
 
+            var metadata = new List<string> { MetadataUtils.Kinds.SlotNames };
+            if (VectorNormalizer != TextNormKind.None)
+                metadata.Add(MetadataUtils.Kinds.IsNormalized);
+
             result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false,
-                new string[] { MetadataUtils.Kinds.SlotNames });
+                metadata.ToArray());
             if (OutputTokens)
             {
                 string name = string.Format(TransformedTextColFormat, OutputColumn);
