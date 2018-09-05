@@ -109,7 +109,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // The next step where we shuffle the names around a little bit is one where we are
             // testing out the implicit usage of copy columns.
 
-            var est = Estimator.MakeNew(text).Append(r => (text: r.label, label: r.numericFeatures));
+            var est = text.MakeNewEstimator().Append(r => (text: r.label, label: r.numericFeatures));
             var newText = text.Append(est);
             var newTextData = newText.Fit(dataSource).Read(dataSource);
 

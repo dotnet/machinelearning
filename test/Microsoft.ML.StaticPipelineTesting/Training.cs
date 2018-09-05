@@ -32,7 +32,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             LinearRegressionPredictor pred = null;
 
-            var est = Estimator.MakeNew(reader)
+            var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: r.label.PredictSdcaRegression(r.features, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -64,7 +64,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10), Score: c.LoadText(2)),
                 separator: ';', hasHeader: true);
 
-            var est = Estimator.MakeNew(reader)
+            var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, r.Score, score: r.label.PredictSdcaRegression(r.features)));
 
             var pipe = reader.Append(est);
@@ -94,7 +94,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             LinearBinaryPredictor pred = null;
             ParameterMixingCalibratedPredictor cali = null;
 
-            var est = Estimator.MakeNew(reader)
+            var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: r.label.PredictSdcaBinaryClassification(r.features,
                     onFit: (p, c) => { pred = p; cali = c; })));
 
@@ -132,7 +132,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
 
             // With a custom loss function we no longer get calibrated predictions.
-            var est = Estimator.MakeNew(reader)
+            var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: r.label.PredictSdcaBinaryClassificationCustomLoss(r.features,
                     loss: loss,  onFit: p => pred = p)));
 
