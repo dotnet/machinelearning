@@ -416,10 +416,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(sb, nameof(sb));
             if (!memory.IsEmpty)
-            {
-                MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-                sb.Append(outerBuffer, ichMin, length);
-            }
+                sb.AppendAll(memory);
         }
 
         public static void AddLowerCaseToStringBuilder(StringBuilder sb, ReadOnlyMemory<char> memory)
@@ -428,23 +425,22 @@ namespace Microsoft.ML.Runtime.Data
 
             if (!memory.IsEmpty)
             {
-                MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-                int ichLim = ichMin + length;
-                int min = ichMin;
+                int ichLim = memory.Length;
+                int min = 0;
                 int j;
                 for (j = min; j < ichLim; j++)
                 {
-                    char ch = CharUtils.ToLowerInvariant(outerBuffer[j]);
-                    if (ch != outerBuffer[j])
+                    char ch = CharUtils.ToLowerInvariant(memory.Span[j]);
+                    if (ch != memory.Span[j])
                     {
-                        sb.Append(outerBuffer, min, j - min).Append(ch);
+                        sb.Append(memory, min, j - min).Append(ch);
                         min = j + 1;
                     }
                 }
 
                 Contracts.Assert(j == ichLim);
                 if (min != j)
-                    sb.Append(outerBuffer, min, j - min);
+                    sb.Append(memory, min, j - min);
             }
         }
 
@@ -459,6 +455,23 @@ namespace Microsoft.ML.Runtime.Data
                     return true;
             }
             return false;
+        }
+
+        public static StringBuilder AppendAll(this StringBuilder sb, ReadOnlyMemory<char> memory) => Append(sb, memory, 0, memory.Length);
+
+        public static StringBuilder Append(this StringBuilder sb, ReadOnlyMemory<char> memory, int startIndex, int length)
+        {
+            Contracts.Assert(startIndex >= 0, nameof(startIndex));
+            Contracts.Assert(length >= 0, nameof(length));
+
+            int ichLim = startIndex + length;
+
+            Contracts.Assert(memory.Length >= ichLim, nameof(memory));
+
+            for (int index = startIndex; index < ichLim; index++)
+                sb.Append(memory.Span[index]);
+
+            return sb;
         }
     }
 }
