@@ -106,7 +106,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                    text: ctx.LoadText(1)),
                    dataPath, hasHeader: true);
 
-            var pipeline = dataMakeEstimator()
+            var pipeline = dataReader.MakeEstimator()
                 .Append(row => (
                     label: row.label,
                     // Concatenate all features into a vector.
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                    content: ctx.LoadText(2)),
                    dataPath, hasHeader: true);
 
-            var preprocess = data.MakeEstimator().
+            var pipeline = data.MakeEstimator().
                 Append(row => (
                     // Convert string label to key.
                     label: row.label.Dictionarize(),
