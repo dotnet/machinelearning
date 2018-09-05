@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     label: row.Label.DictionarizeLabel(),
                     // Concatenate all features into a vector.
                     features: row.SepalWidth.ConcatWith(row.sepalLength, row.petalWidth, row.petalLength)))
-                .Append(row => row.label.PredictWithSdca(row.features))
+                .Append(row => row.label.PredictSdcaMultiClass(row.features))
                 .Append(row => row.predictedLabel.KeyToValue());
 
             // Read the data
@@ -96,8 +96,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     features: row.description.ConcatWith(r.title),
                     // Preserve the label
                     label: row.label))
-                // How do we specify arguments for the trainer?
-                .Append(row => r.label.TrainLinearClassification(row.Features));
+                .Append(row => r.label.PredictSdcaMultiClass(row.features));
 
             // Read the data
             var data = reader.Read(dataPath);
@@ -119,7 +118,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = await PredictionModel.ReadAsync(ModelPath);
             var predictor = model.MakePredictionFunction<IssueInput, IssuePrediction>();
 
-            // leaving it on predictor for now
             var prediction = predictor.PredictSdcaMultiClass(new IssueInput
                 {
                     ID = "29338\t",
