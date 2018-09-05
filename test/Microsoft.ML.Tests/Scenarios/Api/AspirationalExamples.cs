@@ -92,7 +92,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = pipeline.Fit(data);
 
             var predictions = model.Transform(dataReader.Read(testDataPath));
-            var evaluator = new MultiClassEvaluator(env);
             var metrics = MultiClassEvaluator.Evaluate(predictions, row => row.label, row => row.prediction);
         }
 
@@ -111,7 +110,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .Append(row => (
                     label: row.label,
                     // Concatenate all features into a vector.
-                    Features: row.text.TextFeaturizer()))
+                    features: row.text.TextFeaturizer()))
                  .Append(row => (
                     label: row.label,
                     row.label.TrainLinearClassification(row.features)));
@@ -119,7 +118,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var (trainData, testData) = CrossValidator.TrainTestSplit(env, data: dataReader.Read(dataPath), trainFraction: 0.7);
             var model = pipeline.Fit(trainData);
-
             var predictions = model.Transform(testData);
             var metrics = BinaryClassifierEvaluator.Evaluate(predictions, row => row.label, row => row.prediction);
         }
@@ -140,8 +138,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 Append(row => (
                     // Convert string label to key.
                     label: row.label.Dictionarize(),
-                // Concatenate all features into a vector.
-                features: row.subject.Concat(row.content).TextFeaturizer()))
+                    // Concatenate all features into a vector.
+                    features: row.subject.Concat(row.content).TextFeaturizer()))
                  .Append(row => (
                     label: row.label,
                     prediction: row.label.TrainSDCAClassifier(row.features)));
