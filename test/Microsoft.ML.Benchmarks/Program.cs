@@ -29,7 +29,7 @@ namespace Microsoft.ML.Benchmarks
 
         private static IConfig CreateCustomConfig() 
             => DefaultConfig.Instance
-                .With(Job.VeryLongRun
+                .With(Job.Default
                     .WithWarmupCount(1) // for our time consuming benchmarks 1 warmup iteration is enough
                     .WithMaxIterationCount(20)
                     .With(CreateToolchain()))

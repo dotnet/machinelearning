@@ -160,6 +160,13 @@ namespace Microsoft.ML.Runtime.RunTests
             loaderSettings = "col=Label:R4:11 col=Features:R4:0-10 sep=; header+"
         };
 
+        public static TestDataset wikiDetox = new TestDataset
+        {
+            name = "wikiDetox",
+            trainFilename = "Input/wikiDetoxAnnotated160kRows.tsv",
+            testFilename = "Input/wikiDetoxAnnotated160kRows.tsv"
+        };
+
         public static TestDataset winequality = new TestDataset
         {
             name = "wine",

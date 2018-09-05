@@ -2,8 +2,9 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
   <ItemGroup>
-    <Project Include="$(MSBuildThisFileDirectory)**\*.csproj" />
+    <Project Include="$(MSBuildThisFileDirectory)**\*.csproj" Exclude="$(MSBuildThisFileDirectory)Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj" />
     <Project Include="$(MSBuildThisFileDirectory)**\*.fsproj" />
+    <Project Condition="'$(RunBenchmarks)' == 'true'" Include="$(MSBuildThisFileDirectory)Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj" />
   </ItemGroup>
 
   <Target Name="RunTests">
