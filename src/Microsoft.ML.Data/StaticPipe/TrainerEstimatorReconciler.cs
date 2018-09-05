@@ -45,17 +45,17 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         /// <summary>
         /// Produce the training estimator.
         /// </summary>
-        /// <param name="env">The host environment to use to create the estimator</param>
+        /// <param name="env">The host environment to use to create the estimator.</param>
         /// <param name="inputNames">The names of the inputs, which corresponds exactly to the input columns
-        /// fed into the constructor</param>
+        /// fed into the constructor.</param>
         /// <returns>An estimator, which should produce the additional columns indicated by the output names
-        /// in the constructor</returns>
+        /// in the constructor.</returns>
         protected abstract IEstimator<ITransformer> ReconcileCore(IHostEnvironment env, string[] inputNames);
 
         /// <summary>
         /// Produces the estimator. Note that this is made out of <see cref="ReconcileCore(IHostEnvironment, string[])"/>'s
         /// return value, plus whatever usages of <see cref="CopyColumnsEstimator"/> are necessary to avoid collisions with
-        /// the output names fed to the constructor. This class provides the implementation, and subclassses should instead
+        /// the output names fed to the constructor. This class provides the implementation, and subclasses should instead
         /// override <see cref="ReconcileCore(IHostEnvironment, string[])"/>.
         /// </summary>
         public sealed override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
@@ -138,16 +138,16 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         public sealed class Regression : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to parameterize the <see cref="Regression"/> instance.
+            /// The delegate to create the <see cref="Regression"/> instance.
             /// </summary>
             /// <param name="env">The environment with which to create the estimator</param>
             /// <param name="label">The label column name</param>
             /// <param name="features">The features column name</param>
             /// <param name="weights">The weights column name, or <c>null</c> if the reconciler was constructed with <c>null</c> weights</param>
-            /// <returns>Some sort of estimator producing columns with the fixed name <see cref="DefaultColumnNames.Score"/></returns>
-            public delegate IEstimator<ITransformer> EstimatorMaker(IHostEnvironment env, string label, string features, string weights);
+            /// <returns>A estimator producing columns with the fixed name <see cref="DefaultColumnNames.Score"/>.</returns>
+            public delegate IEstimator<ITransformer> EstimatorFactory(IHostEnvironment env, string label, string features, string weights);
 
-            private readonly EstimatorMaker _estMaker;
+            private readonly EstimatorFactory _estFact;
 
             /// <summary>
             /// The output score column for the regression. This will have this instance as its reconciler.
@@ -161,17 +161,17 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             /// <summary>
             /// Constructs a new general regression reconciler.
             /// </summary>
-            /// <param name="estimatorMaker">The delegate to create the training estimator. It is assumed that this estimator
+            /// <param name="estimatorFactory">The delegate to create the training estimator. It is assumed that this estimator
             /// will produce a single new scalar <see cref="float"/> column named <see cref="DefaultColumnNames.Score"/>.</param>
-            /// <param name="label">The input label column</param>
-            /// <param name="features">The input features column</param>
-            /// <param name="weights">The input weights column, or <c>null</c> if there are no weights</param>
-            public Regression(EstimatorMaker estimatorMaker, Scalar<float> label, Vector<float> features, Scalar<float> weights)
+            /// <param name="label">The input label column.</param>
+            /// <param name="features">The input features column.</param>
+            /// <param name="weights">The input weights column, or <c>null</c> if there are no weights.</param>
+            public Regression(EstimatorFactory estimatorFactory, Scalar<float> label, Vector<float> features, Scalar<float> weights)
                     : base(MakeInputs(Contracts.CheckRef(label, nameof(label)), Contracts.CheckRef(features, nameof(features)), weights),
                           _fixedOutputNames)
             {
-                Contracts.CheckValue(estimatorMaker, nameof(estimatorMaker));
-                _estMaker = estimatorMaker;
+                Contracts.CheckValue(estimatorFactory, nameof(estimatorFactory));
+                _estFact = estimatorFactory;
                 Contracts.Assert(_inputs.Length == 2 || _inputs.Length == 3);
                 Score = new Impl(this);
             }
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             {
                 Contracts.AssertValue(env);
                 env.Assert(Utils.Size(inputNames) == _inputs.Length);
-                return _estMaker(env, inputNames[0], inputNames[1], inputNames.Length > 2 ? inputNames[2] : null);
+                return _estFact(env, inputNames[0], inputNames[1], inputNames.Length > 2 ? inputNames[2] : null);
             }
 
             private sealed class Impl : Scalar<float>
@@ -193,21 +193,21 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         }
 
         /// <summary>
-        /// A reconciler for regression capable of handling the most common cases for binary classifier with calibrated outputs.
+        /// A reconciler capable of handling the most common cases for binary classification with calibrated outputs.
         /// </summary>
         public sealed class BinaryClassifier : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to parameterize the <see cref="BinaryClassifier"/> instance.
+            /// The delegate to create the <see cref="BinaryClassifier"/> instance.
             /// </summary>
-            /// <param name="env">The environment with which to create the estimator</param>
-            /// <param name="label">The label column name</param>
-            /// <param name="features">The features column name</param>
-            /// <param name="weights">The weights column name, or <c>null</c> if the reconciler was constructed with <c>null</c> weights</param>
-            /// <returns></returns>
-            public delegate IEstimator<ITransformer> EstimatorMaker(IHostEnvironment env, string label, string features, string weights);
+            /// <param name="env">The environment with which to create the estimator.</param>
+            /// <param name="label">The label column name.</param>
+            /// <param name="features">The features column name.</param>
+            /// <param name="weights">The weights column name, or <c>null</c> if the reconciler was constructed with <c>null</c> weights.</param>
+            /// <returns>A binary classification trainer estimator.</returns>
+            public delegate IEstimator<ITransformer> EstimatorFactory(IHostEnvironment env, string label, string features, string weights);
 
-            private readonly EstimatorMaker _estMaker;
+            private readonly EstimatorFactory _estFact;
             private static readonly string[] _fixedOutputNames = new[] { DefaultColumnNames.Score, DefaultColumnNames.Probability, DefaultColumnNames.PredictedLabel };
 
             /// <summary>
@@ -220,17 +220,17 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             /// <summary>
             /// Constructs a new general regression reconciler.
             /// </summary>
-            /// <param name="estimatorMaker">The delegate to create the training estimator. It is assumed that this estimator
+            /// <param name="estimatorFactory">The delegate to create the training estimator. It is assumed that this estimator
             /// will produce a single new scalar <see cref="float"/> column named <see cref="DefaultColumnNames.Score"/>.</param>
-            /// <param name="label">The input label column</param>
-            /// <param name="features">The input features column</param>
-            /// <param name="weights">The input weights column, or <c>null</c> if there are no weights</param>
-            public BinaryClassifier(EstimatorMaker estimatorMaker, Scalar<bool> label, Vector<float> features, Scalar<float> weights)
+            /// <param name="label">The input label column.</param>
+            /// <param name="features">The input features column.</param>
+            /// <param name="weights">The input weights column, or <c>null</c> if there are no weights.</param>
+            public BinaryClassifier(EstimatorFactory estimatorFactory, Scalar<bool> label, Vector<float> features, Scalar<float> weights)
                 : base(MakeInputs(Contracts.CheckRef(label, nameof(label)), Contracts.CheckRef(features, nameof(features)), weights),
                       _fixedOutputNames)
             {
-                Contracts.CheckValue(estimatorMaker, nameof(estimatorMaker));
-                _estMaker = estimatorMaker;
+                Contracts.CheckValue(estimatorFactory, nameof(estimatorFactory));
+                _estFact = estimatorFactory;
                 Contracts.Assert(_inputs.Length == 2 || _inputs.Length == 3);
 
                 Output = (new Impl(this), new Impl(this), new ImplBool(this));
@@ -243,7 +243,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             {
                 Contracts.AssertValue(env);
                 env.Assert(Utils.Size(inputNames) == _inputs.Length);
-                return _estMaker(env, inputNames[0], inputNames[1], inputNames.Length > 2 ? inputNames[2] : null);
+                return _estFact(env, inputNames[0], inputNames[1], inputNames.Length > 2 ? inputNames[2] : null);
             }
 
             private sealed class Impl : Scalar<float>
@@ -258,22 +258,22 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         }
 
         /// <summary>
-        /// A reconciler for regression capable of handling the most common cases for binary classification
-        /// that does not necessarily have calibrated outputs.
+        /// A reconciler capable of handling the most common cases for binary classification that does not
+        /// necessarily have with calibrated outputs.
         /// </summary>
         public sealed class BinaryClassifierNoCalibration : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to parameterize the <see cref="BinaryClassifier"/> instance.
+            /// The delegate to create the <see cref="BinaryClassifier"/> instance.
             /// </summary>
             /// <param name="env">The environment with which to create the estimator</param>
-            /// <param name="label">The label column name</param>
-            /// <param name="features">The features column name</param>
-            /// <param name="weights">The weights column name, or <c>null</c> if the reconciler was constructed with <c>null</c> weights</param>
-            /// <returns></returns>
-            public delegate IEstimator<ITransformer> EstimatorMaker(IHostEnvironment env, string label, string features, string weights);
+            /// <param name="label">The label column name.</param>
+            /// <param name="features">The features column name.</param>
+            /// <param name="weights">The weights column name, or <c>null</c> if the reconciler was constructed with <c>null</c> weights.</param>
+            /// <returns>A binary classification trainer estimator.</returns>
+            public delegate IEstimator<ITransformer> EstimatorFactory(IHostEnvironment env, string label, string features, string weights);
 
-            private readonly EstimatorMaker _estMaker;
+            private readonly EstimatorFactory _estFact;
             private static readonly string[] _fixedOutputNamesProb = new[] { DefaultColumnNames.Score, DefaultColumnNames.Probability, DefaultColumnNames.PredictedLabel };
             private static readonly string[] _fixedOutputNames = new[] { DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel };
 
@@ -282,25 +282,30 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             /// </summary>
             public (Scalar<float> score, Scalar<bool> predictedLabel) Output { get; }
 
+            /// <summary>
+            /// The output columns, which will contain at least the columns produced by <see cref="Output"/> and may contain an
+            /// additional <see cref="DefaultColumnNames.Probability"/> column if at runtime we determine the predictor actually
+            /// is calibrated.
+            /// </summary>
             protected override IEnumerable<PipelineColumn> Outputs { get; }
 
             /// <summary>
             /// Constructs a new general binary classifier reconciler.
             /// </summary>
-            /// <param name="estimatorMaker">The delegate to create the training estimator. It is assumed that this estimator
+            /// <param name="estimatorFactory">The delegate to create the training estimator. It is assumed that this estimator
             /// will produce a single new scalar <see cref="float"/> column named <see cref="DefaultColumnNames.Score"/>.</param>
-            /// <param name="label">The input label column</param>
-            /// <param name="features">The input features column</param>
-            /// <param name="weights">The input weights column, or <c>null</c> if there are no weights</param>
+            /// <param name="label">The input label column.</param>
+            /// <param name="features">The input features column.</param>
+            /// <param name="weights">The input weights column, or <c>null</c> if there are no weights.</param>
             /// <param name="hasProbs">While this type is a compile time construct, it may be that at runtime we have determined that we will have probabilities,
             /// and so ought to do the renaming of the <see cref="DefaultColumnNames.Probability"/> column anyway if appropriate. If this is so, then this should
             /// be set to true.</param>
-            public BinaryClassifierNoCalibration(EstimatorMaker estimatorMaker, Scalar<bool> label, Vector<float> features, Scalar<float> weights, bool hasProbs)
+            public BinaryClassifierNoCalibration(EstimatorFactory estimatorFactory, Scalar<bool> label, Vector<float> features, Scalar<float> weights, bool hasProbs)
                 : base(MakeInputs(Contracts.CheckRef(label, nameof(label)), Contracts.CheckRef(features, nameof(features)), weights),
                       hasProbs ? _fixedOutputNamesProb : _fixedOutputNames)
             {
-                Contracts.CheckValue(estimatorMaker, nameof(estimatorMaker));
-                _estMaker = estimatorMaker;
+                Contracts.CheckValue(estimatorFactory, nameof(estimatorFactory));
+                _estFact = estimatorFactory;
                 Contracts.Assert(_inputs.Length == 2 || _inputs.Length == 3);
 
                 Output = (new Impl(this), new ImplBool(this));
@@ -318,7 +323,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             {
                 Contracts.AssertValue(env);
                 env.Assert(Utils.Size(inputNames) == _inputs.Length);
-                return _estMaker(env, inputNames[0], inputNames[1], inputNames.Length > 2 ? inputNames[2] : null);
+                return _estFact(env, inputNames[0], inputNames[1], inputNames.Length > 2 ? inputNames[2] : null);
             }
 
             private sealed class Impl : Scalar<float>

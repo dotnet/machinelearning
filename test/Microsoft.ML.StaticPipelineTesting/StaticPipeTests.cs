@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data.StaticPipe;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
@@ -15,12 +14,12 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {
-    public abstract class MakeConsoleWork : BaseTestClass, IDisposable
+    public abstract class BaseTestClassWithConsole : BaseTestClass, IDisposable
     {
         private readonly TextWriter _originalOut;
         private readonly TextWriter _textWriter;
 
-        public MakeConsoleWork(ITestOutputHelper output)
+        public BaseTestClassWithConsole(ITestOutputHelper output)
             : base(output)
         {
             _originalOut = Console.Out;
@@ -35,7 +34,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
     }
 
-    public sealed class StaticPipeTests : MakeConsoleWork
+    public sealed class StaticPipeTests : BaseTestClassWithConsole
     {
         public StaticPipeTests(ITestOutputHelper output)
             : base(output)

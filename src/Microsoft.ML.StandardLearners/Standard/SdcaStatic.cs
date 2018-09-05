@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
@@ -10,30 +11,51 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 namespace Microsoft.ML.Runtime.Learners
 {
     /// <summary>
-    /// Extension methods and utilities.
+    /// Extension methods and utilities for instantiating SDCA trainer estimators inside statically typed pipelines.
     /// </summary>
     public static class SdcaStatic
     {
+        /// <summary>
+        /// Predict a target using a linear regression model trained with the SDCA trainer.
+        /// </summary>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="l2Const">The L2 regularization hyperparameter.</param>
+        /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to
+        /// more sparse model.</param>
+        /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="loss">The custom loss, if unspecified will be <see cref="SquaredLossSDCARegressionLossFunction"/>.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
+        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was learnt.  Note that this action cannot change the result in any way; it is only a way for the caller to
+        /// be informed about what was learnt.</param>
+        /// <returns>The predicted output.</returns>
         public static Scalar<float> PredictSdcaRegression(this Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             float? l2Const = null,
             float? l1Threshold = null,
-            float convergenceTolerance = 0.01f,
             int? maxIterations = null,
-            bool shuffle = true,
-            float biasLearningRate = 1,
-            ISupportSdcaRegressionLossFactory loss = null,
+            ISupportSdcaRegressionLoss loss = null,
             Action<LinearRegressionPredictor> onFit = null)
         {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckParam(!(l2Const < 0), nameof(l2Const), "Must not be negative");
+            Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative");
+            Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
+            Contracts.CheckValueOrNull(loss);
+            Contracts.CheckValueOrNull(onFit);
+
             var args = new SdcaRegressionTrainer.Arguments()
             {
                 L2Const = l2Const,
                 L1Threshold = l1Threshold,
-                ConvergenceTolerance = convergenceTolerance,
-                MaxIterations = maxIterations,
-                Shuffle = shuffle,
-                BiasLearningRate = biasLearningRate,
-                LossFunction = loss ?? new SquaredLossFactory()
+                MaxIterations = maxIterations
             };
+            if (loss != null)
+                args.LossFunction = new TrivialRegressionLossFactory(loss);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
@@ -47,24 +69,43 @@ namespace Microsoft.ML.Runtime.Learners
             return rec.Score;
         }
 
+        /// <summary>
+        /// Predict a target using a linear binary classification model trained with the SDCA trainer, and log-loss.
+        /// </summary>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="l2Const">The L2 regularization hyperparameter.</param>
+        /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to
+        /// more sparse model.</param>
+        /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
+        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was learnt, as well as the calibrator on top of that model. Note that this action cannot change the
+        /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
+        /// <returns>The set of output columns including in order the predicted binary classification score (which will range
+        /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel)
             PredictSdcaBinaryClassification(this Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
                 float? l2Const = null,
                 float? l1Threshold = null,
-                float convergenceTolerance = 0.1f,
                 int? maxIterations = null,
-                bool shuffle = true,
-                float biasLearningRate = 0,
                 Action<LinearBinaryPredictor, ParameterMixingCalibratedPredictor> onFit = null)
         {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckParam(!(l2Const < 0), nameof(l2Const), "Must not be negative");
+            Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative");
+            Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
+            Contracts.CheckValueOrNull(onFit);
+
             var args = new LinearClassificationTrainer.Arguments()
             {
                 L2Const = l2Const,
                 L1Threshold = l1Threshold,
-                ConvergenceTolerance = convergenceTolerance,
                 MaxIterations = maxIterations,
-                Shuffle = shuffle,
-                BiasLearningRate = biasLearningRate
             };
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
@@ -88,48 +129,54 @@ namespace Microsoft.ML.Runtime.Learners
             return rec.Output;
         }
 
-        private sealed class TrivialFactory : ISupportSdcaClassificationLossFactory
-        {
-            private readonly ISupportSdcaClassificationLoss _loss;
-
-            public TrivialFactory(ISupportSdcaClassificationLoss loss)
-            {
-                _loss = loss;
-            }
-
-            public ISupportSdcaClassificationLoss CreateComponent(IHostEnvironment env)
-            {
-                // REVIEW: We are ignoring env?
-                return _loss;
-            }
-        }
-
+        /// <summary>
+        /// Predict a target using a linear binary classification model trained with the SDCA trainer, and a custom loss.
+        /// Note that because we cannot be sure that all loss functions will produce naturally calibrated outputs, setting
+        /// a custom loss function will not produce a calibrated probability column.
+        /// </summary>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// /// <param name="loss">The custom loss.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="l2Const">The L2 regularization hyperparameter.</param>
+        /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to
+        /// more sparse model.</param>
+        /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
+        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was learnt, as well as the calibrator on top of that model. Note that this action cannot change the
+        /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
+        /// <returns>The set of output columns including in order the predicted binary classification score (which will range
+        /// from negative to positive infinity), and the predicted label.</returns>
+        /// <seealso cref="PredictSdcaBinaryClassification(Scalar{bool}, Vector{float}, Scalar{float}, float?, float?, int?, Action{LinearBinaryPredictor, ParameterMixingCalibratedPredictor})"/>
         public static (Scalar<float> score, Scalar<bool> predictedLabel)
-            PredictSdcaBinaryClassificationCustomLoss(this Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
+            PredictSdcaBinaryClassification(this Scalar<bool> label, Vector<float> features,
+                ISupportSdcaClassificationLoss loss,
+                Scalar<float> weights = null,
                 float? l2Const = null,
                 float? l1Threshold = null,
-                float convergenceTolerance = 0.1f,
                 int? maxIterations = null,
-                bool shuffle = true,
-                float biasLearningRate = 0,
-                ISupportSdcaClassificationLoss loss = null,
                 Action<LinearBinaryPredictor> onFit = null
             )
         {
-            ISupportSdcaClassificationLossFactory lossFactory = new LogLossFactory();
-            if (loss != null)
-                lossFactory = new TrivialFactory(loss);
-            bool hasProbs = lossFactory is LogLossFactory || loss is LogLoss;
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValue(loss, nameof(loss));
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckParam(!(l2Const < 0), nameof(l2Const), "Must not be negative");
+            Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative");
+            Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
+            Contracts.CheckValueOrNull(onFit);
+
+            bool hasProbs = loss is LogLoss;
 
             var args = new LinearClassificationTrainer.Arguments()
             {
                 L2Const = l2Const,
                 L1Threshold = l1Threshold,
-                ConvergenceTolerance = convergenceTolerance,
                 MaxIterations = maxIterations,
-                Shuffle = shuffle,
-                LossFunction = lossFactory,
-                BiasLearningRate = biasLearningRate
+                LossFunction = new TrivialClassificationLossFactory(loss)
             };
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
@@ -151,6 +198,36 @@ namespace Microsoft.ML.Runtime.Learners
                 }, label, features, weights, hasProbs);
 
             return rec.Output;
+        }
+
+        private sealed class TrivialRegressionLossFactory : ISupportSdcaRegressionLossFactory
+        {
+            private readonly ISupportSdcaRegressionLoss _loss;
+
+            public TrivialRegressionLossFactory(ISupportSdcaRegressionLoss loss)
+            {
+                _loss = loss;
+            }
+
+            public ISupportSdcaRegressionLoss CreateComponent(IHostEnvironment env)
+            {
+                return _loss;
+            }
+        }
+
+        private sealed class TrivialClassificationLossFactory : ISupportSdcaClassificationLossFactory
+        {
+            private readonly ISupportSdcaClassificationLoss _loss;
+
+            public TrivialClassificationLossFactory(ISupportSdcaClassificationLoss loss)
+            {
+                _loss = loss;
+            }
+
+            public ISupportSdcaClassificationLoss CreateComponent(IHostEnvironment env)
+            {
+                return _loss;
+            }
         }
     }
 }

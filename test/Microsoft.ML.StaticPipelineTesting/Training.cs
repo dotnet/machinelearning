@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {
-    public sealed class Training : MakeConsoleWork
+    public sealed class Training : BaseTestClassWithConsole
     {
         public Training(ITestOutputHelper output) : base(output)
         {
@@ -33,7 +33,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             LinearRegressionPredictor pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: r.label.PredictSdcaRegression(r.features, onFit: p => pred = p)));
+                .Append(r => (r.label, score: r.label.PredictSdcaRegression(r.features, maxIterations: 2, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 
@@ -65,7 +65,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 separator: ';', hasHeader: true);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, r.Score, score: r.label.PredictSdcaRegression(r.features)));
+                .Append(r => (r.label, r.Score, score: r.label.PredictSdcaRegression(r.features, maxIterations: 2)));
 
             var pipe = reader.Append(est);
 
@@ -96,6 +96,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: r.label.PredictSdcaBinaryClassification(r.features,
+                    maxIterations: 2,
                     onFit: (p, c) => { pred = p; cali = c; })));
 
             var pipe = reader.Append(est);
@@ -133,8 +134,9 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: r.label.PredictSdcaBinaryClassificationCustomLoss(r.features,
-                    loss: loss,  onFit: p => pred = p)));
+                .Append(r => (r.label, preds: r.label.PredictSdcaBinaryClassification(r.features,
+                maxIterations: 2,
+                loss: loss, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 
