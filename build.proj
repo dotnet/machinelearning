@@ -79,6 +79,10 @@
     <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/winequality-white.csv"
       Url="https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv"
       DestinationFile="$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv" />
+    
+    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/wikiDetoxAnnotated160kRows.tsv"
+      Url="http://aka.ms/tlc-resources/benchmarks/wikiDetoxAnnotated160kRows.tsv"
+      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/wikiDetoxAnnotated160kRows.tsv" />
   </ItemGroup>
 
   <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
