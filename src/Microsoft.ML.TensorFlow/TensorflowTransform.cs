@@ -46,17 +46,15 @@ namespace Microsoft.ML.Transforms
             private readonly string[] _outputColNames;
             private readonly ColumnType[] _outputColTypes;
             private readonly TFDataType[] _tfOutputTypes;
-            private IDictionary<string, TFTensor> _cachedOutputs;
-            private long _cachedPosition;
-
             private const int BatchSize = 1;
             public const string LoaderSignature = "TFMapper";
             private static VersionInfo GetVersionInfo()
             {
                 return new VersionInfo(
                     modelSignature: "TENSFLOW",
-                    verWrittenCur: 0x00010001, // Initial
-                    verReadableCur: 0x00010001,
+                    //verWrittenCur: 0x00010001, // Initial
+                    verWrittenCur: 0x00010002,  // Upgraded when change for multiple outputs was implemented.
+                    verReadableCur: 0x00010002,
                     verWeCanReadBack: 0x00010001,
                     loaderSignature: LoaderSignature);
             }
@@ -69,6 +67,10 @@ namespace Microsoft.ML.Transforms
                 _host.CheckNonEmpty(modelBytes, nameof(modelBytes));
                 _host.CheckNonEmpty(inputColNames, nameof(inputColNames));
                 _host.CheckNonEmpty(outputColNames, nameof(outputColNames));
+                for (int i = 0; i < inputColNames.Length; i++)
+                    _host.CheckNonWhiteSpace(inputColNames[i], nameof(inputColNames));
+                for (int i = 0; i < outputColNames.Length; i++)
+                    _host.CheckNonWhiteSpace(outputColNames[i], nameof(outputColNames));
 
                 _session = LoadTFSession(modelBytes, null);
                 _host.Check(inputColNames.All(name => _session.Graph[name] != null), "One of the input does not exist in the model");
@@ -77,9 +79,6 @@ namespace Microsoft.ML.Transforms
                 _outputColNames = outputColNames;
                 (_outputColTypes, _tfOutputTypes) = GetOutputTypes(_session.Graph, _outputColNames);
                 (_inputColNames, _inputColIndices, _isVectorInput, _tfInputShapes, _tfInputTypes) = GetInputMetaData(_session.Graph, inputColNames, inputSchema);
-
-                _cachedOutputs = new Dictionary<string, TFTensor>();
-                _cachedPosition = -1;
             }
 
             public static TensorFlowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
@@ -99,10 +98,16 @@ namespace Microsoft.ML.Transforms
                 if (!ctx.TryLoadBinaryStream("TFModel", r => data = r.ReadByteArray()))
                     throw env.ExceptDecode();
 
-                var numOutputs = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(numOutputs > 0);
+                bool isMultiOutput = ctx.Header.ModelVerReadable >= 0x00010002;
 
-                string[] outputColNames = new string[numOutputs];
+                var numOutputs = 1;
+                if (isMultiOutput)
+                {
+                    numOutputs = ctx.Reader.ReadInt32();
+                }
+
+                Contracts.CheckDecode(numOutputs > 0);
+                var outputColNames = new string[numOutputs];
                 for (int j = 0; j < outputColNames.Length; j++)
                     outputColNames[j] = ctx.LoadNonEmptyString();
 
@@ -122,12 +127,12 @@ namespace Microsoft.ML.Transforms
                 {
                     w.WriteByteArray(buffer.ToArray());
                 });
-                Contracts.AssertNonEmpty(_inputColNames);
+                _host.AssertNonEmpty(_inputColNames);
                 ctx.Writer.Write(_inputColNames.Length);
                 foreach (var colName in _inputColNames)
                     ctx.SaveNonEmptyString(colName);
 
-                Contracts.AssertNonEmpty(_outputColNames);
+                _host.AssertNonEmpty(_outputColNames);
                 ctx.Writer.Write(_outputColNames.Length);
                 foreach (var colName in _outputColNames)
                     ctx.SaveNonEmptyString(colName);
@@ -178,37 +183,63 @@ namespace Microsoft.ML.Transforms
                 return srcTensorGetters;
             }
 
-            private Delegate MakeGetter(IRow input, int iinfo)
+            private class OutputCache
             {
-                var type = TFTensor.TypeFromTensorType(_tfOutputTypes[iinfo]);
-                _host.Assert(type == _outputColTypes[iinfo].ItemType.RawType);
-                return Utils.MarshalInvoke(MakeGetter<int>, type, input, _outputColTypes[iinfo], iinfo);
+                public long Position;
+                public Dictionary<string, TFTensor> Outputs;
+                public OutputCache()
+                {
+                    Position = -1;
+                    Outputs = new Dictionary<string, TFTensor>();
+                }
             }
 
-            private Delegate MakeGetter<T>(IRow input, ColumnType columnType, int iinfo)
+            private Delegate[] MakeGetter(IRow input, Func<int, bool> activeOutput)
             {
                 _host.AssertValue(input);
-                _host.Assert(typeof(T) == columnType.ItemType.RawType);
 
-                var srcTensorGetters = GetTensorValueGetters(input);
+                var outputCache = new OutputCache();
+                var activeOutputColNames = _outputColNames.Where((x, i) => activeOutput(i)).ToArray();
 
-                ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
+                var valueGetters = new List<Delegate>();
+                for (int i = 0; i < _outputColNames.Length; i++)
                 {
-                    UpdateCacheIfNeeded(input.Position, srcTensorGetters);
-
-                    var values = dst.Values;
-                    if (Utils.Size(values) < _outputColTypes[iinfo].VectorSize)
-                        values = new T[_outputColTypes[iinfo].VectorSize];
-
-                    TensorFlowUtils.FetchData<T>(_cachedOutputs[_outputColNames[iinfo]].Data, values);
-                    dst = new VBuffer<T>(values.Length, values);
-                };
-                return valuegetter;
+                    if (activeOutput(i))
+                    {
+                        var type = TFTensor.TypeFromTensorType(_tfOutputTypes[i]);
+                        _host.Assert(type == _outputColTypes[i].ItemType.RawType);
+                        var srcTensorGetters = GetTensorValueGetters(input);
+                        valueGetters.Add(Utils.MarshalInvoke(MakeGetter<int>, type, input, i, srcTensorGetters, activeOutputColNames, outputCache));
+                    }
+                }
+                return valueGetters.ToArray();
             }
 
-            private void UpdateCacheIfNeeded(long position, ITensorValueGetter[] srcTensorGetters)
+            private Delegate MakeGetter<T>(IRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
-                if (_cachedPosition != position)
+                _host.AssertValue(input);
+                ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
+                {
+                    UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+
+                    var values = dst.Values;
+                    var indices = dst.Indices;
+                    if (Utils.Size(values) < _outputColTypes[iinfo].VectorSize)
+                    {
+                        values = new T[_outputColTypes[iinfo].VectorSize];
+                        indices = new int[_outputColTypes[iinfo].VectorSize];
+                    }
+
+                    TensorFlowUtils.FetchData<T>(outputCache.Outputs[_outputColNames[iinfo]].Data, values);
+                    dst = new VBuffer<T>(values.Length, values, indices);
+                };
+                return valuegetter;
+
+            }
+
+            private void UpdateCacheIfNeeded(long position, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
+            {
+                if (outputCache.Position != position)
                 {
                     var runner = _session.GetRunner();
                     for (int i = 0; i < _inputColIndices.Length; i++)
@@ -217,30 +248,24 @@ namespace Microsoft.ML.Transforms
                         runner.AddInput(inputName, srcTensorGetters[i].GetTensor());
                     }
 
-                    var tensors = runner.Fetch(_outputColNames).Run();
+                    var tensors = runner.Fetch(activeOutputColNames).Run();
                     Contracts.Assert(tensors.Length > 0);
 
                     for (int j = 0; j < tensors.Length; j++)
                     {
-                        _cachedOutputs[_outputColNames[j]] = tensors[j];
+                        outputCache.Outputs[activeOutputColNames[j]] = tensors[j];
                     }
 
-                    _cachedPosition = position;
+                    outputCache.Position = position;
                 }
             }
 
             public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
-                _cachedPosition = -1;
-                var getters = new Delegate[_outputColNames.Length];
                 disposer = null;
                 using (var ch = _host.Start("CreateGetters"))
                 {
-                    for (int i = 0; i < _outputColNames.Length; i++)
-                    {
-                        if (activeOutput(i))
-                            getters[i] = MakeGetter(input, i);
-                    }
+                    var getters = MakeGetter(input, activeOutput);
                     ch.Done();
                     return getters;
                 }
@@ -248,16 +273,14 @@ namespace Microsoft.ML.Transforms
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                return col => activeOutput(0) && _inputColIndices.Any(i => i == col);
+                return col => Enumerable.Range(0, _outputColNames.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }
 
             public RowMapperColumnInfo[] GetOutputColumns()
             {
                 var info = new RowMapperColumnInfo[_outputColNames.Length];
                 for (int i = 0; i < _outputColNames.Length; i++)
-                {
                     info[i] = new RowMapperColumnInfo(_outputColNames[i], _outputColTypes[i], null);
-                }
                 return info;
             }
 
@@ -358,7 +381,7 @@ namespace Microsoft.ML.Transforms
             return Create(env, new Arguments() { InputColumns = source, OutputColumns = new[] { name }, ModelFile = modelFile }, input);
         }
 
-         /// <summary>
+        /// <summary>
         /// Convenience constructor for public facing API.
         /// </summary>
         /// <param name="env">Host Environment.</param>
@@ -380,6 +403,10 @@ namespace Microsoft.ML.Transforms
             host.CheckUserArg(Utils.Size(args.InputColumns) > 0, nameof(args.InputColumns));
             for (int i = 0; i < args.InputColumns.Length; i++)
                 host.CheckNonWhiteSpace(args.InputColumns[i], nameof(args.InputColumns));
+            for (int i = 0; i < args.OutputColumns.Length; i++)
+                host.CheckNonWhiteSpace(args.OutputColumns[i], nameof(args.OutputColumns));
+            host.CheckUserArg(args.OutputColumns.Distinct().Count() == args.OutputColumns.Length,
+                nameof(args.OutputColumns), "Some of the output columns specified multiple times.");
             host.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
             host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
 
