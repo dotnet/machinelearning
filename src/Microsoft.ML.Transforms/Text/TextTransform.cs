@@ -135,80 +135,12 @@ namespace Microsoft.ML.Runtime.Data
         public readonly bool OutputTokens;
         public readonly TextNormKind VectorNormalizer;
 
-        // Mutable parameters.
+        // These parameters are hardcoded for now.
+        // REVIEW: expose them once sub-transforms are estimators.
         private IStopWordsRemoverFactory _stopWordsRemover;
-        public readonly StopwordsRemoverSettings StopWordsRemover;
         private TermLoaderArguments _dictionary;
-        public readonly TermDictionarySettings TermDictionary;
         private INgramExtractorFactoryFactory _wordFeatureExtractor;
-        public readonly NgramExtractorSettings WordFeatureExtractor;
         private INgramExtractorFactoryFactory _charFeatureExtractor;
-        public readonly NgramExtractorSettings CharFeatureExtractor;
-
-        public sealed class NgramExtractorSettings
-        {
-            private readonly Action<INgramExtractorFactoryFactory> _setter;
-
-            internal NgramExtractorSettings(Action<INgramExtractorFactoryFactory> setter)
-            {
-                _setter = setter;
-            }
-
-            public void SetNone() => _setter(null);
-
-            public void SetNgram(int ngramLength = 1, int skipLength = 0, bool allLengths = true,
-                int[] maxNumTerms = null, NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
-            {
-                _setter(new NgramExtractorTransform.NgramExtractorArguments
-                {
-                    NgramLength = ngramLength,
-                    SkipLength = skipLength,
-                    AllLengths = allLengths,
-                    MaxNumTerms = maxNumTerms ?? new int[] { NgramTransform.Arguments.DefaultMaxTerms },
-                    Weighting = weighting
-                });
-            }
-
-            public void SetHash(int ngramLength = 1, int skipLength = 0, int hashBits = 16, uint seed = 314489979,
-                 bool ordered = true, int invertHash = 0, bool allLengths = true)
-            {
-                _setter(new NgramHashExtractorTransform.NgramHashExtractorArguments
-                {
-                    NgramLength = ngramLength,
-                    SkipLength = skipLength,
-                    HashBits = hashBits,
-                    Seed = seed,
-                    Ordered = ordered,
-                    InvertHash = invertHash,
-                    AllLengths = allLengths
-                });
-            }
-        }
-        public sealed class StopwordsRemoverSettings
-        {
-            private readonly Action<IStopWordsRemoverFactory> _setter;
-            internal StopwordsRemoverSettings(Action<IStopWordsRemoverFactory> setter)
-            {
-                _setter = setter;
-            }
-
-            public void SetNone() => _setter(null);
-            public void SetPredefined() => _setter(new PredefinedStopWordsRemoverFactory());
-            public void SetStopwords(IEnumerable<string> stopWords)
-                => _setter(new CustomStopWordsRemoverTransform.LoaderArguments { Stopword = Contracts.CheckRef(stopWords, nameof(stopWords)).ToArray() });
-        }
-        public sealed class TermDictionarySettings
-        {
-            private readonly TextTransform _parent;
-            internal TermDictionarySettings(TextTransform parent)
-            {
-                _parent = parent;
-            }
-
-            public void SetEmpty() => _parent._dictionary = null;
-            public void SetTerms(IEnumerable<string> terms)
-                => _parent._dictionary = new TermLoaderArguments { Term = terms.ToArray() };
-        }
 
         private readonly IHost _host;
 
@@ -303,8 +235,6 @@ namespace Microsoft.ML.Runtime.Data
             public TransformApplierParams(TextTransform parent)
             {
                 var host = parent._host;
-                host.CheckUserArg(parent._wordFeatureExtractor != null || parent._charFeatureExtractor != null || parent.OutputTokens,
-                    nameof(parent.WordFeatureExtractor), "At least one feature extractor or OutputTokens must be specified.");
                 host.Check(Enum.IsDefined(typeof(Language), parent.TextLanguage));
                 host.Check(Enum.IsDefined(typeof(CaseNormalizationMode), parent.TextCase));
                 WordExtractorFactory = parent._wordFeatureExtractor?.CreateComponent(host, parent._dictionary);
@@ -370,16 +300,9 @@ namespace Microsoft.ML.Runtime.Data
             VectorNormalizer = vectorNormalizer;
 
             _stopWordsRemover = null;
-            StopWordsRemover = new StopwordsRemoverSettings(x => _stopWordsRemover = x);
-
             _dictionary = null;
-            TermDictionary = new TermDictionarySettings(this);
-
             _wordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments();
-            WordFeatureExtractor = new NgramExtractorSettings(x => _wordFeatureExtractor = x);
-
             _charFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
-            CharFeatureExtractor = new NgramExtractorSettings(x => _charFeatureExtractor = x);
         }
 
         public ITransformer Fit(IDataView input)
