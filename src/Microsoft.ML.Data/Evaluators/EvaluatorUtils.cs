@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.Data
         public static IMamlEvaluator GetEvaluator(IHostEnvironment env, ISchema schema)
         {
             Contracts.CheckValueOrNull(env);
-            DvText tmp = default;
+            ReadOnlyMemory<char> tmp = default;
             schema.GetMaxMetadataKind(out int col, MetadataUtils.Kinds.ScoreColumnSetId, CheckScoreColumnKindIsKnown);
             if (col >= 0)
             {
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Runtime.Data
             var columnType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, col);
             if (columnType == null || !columnType.IsText)
                 return false;
-            DvText tmp = default(DvText);
+            ReadOnlyMemory<char> tmp = default;
             schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, col, ref tmp);
             var map = DefaultEvaluatorTable.Instance;
             return map.ContainsKey(tmp.ToString());
@@ -125,18 +125,18 @@ namespace Microsoft.ML.Runtime.Data
             var maxSetNum = schema.GetMaxMetadataKind(out colTmp, MetadataUtils.Kinds.ScoreColumnSetId,
                 (s, c) => IsScoreColumnKind(ectx, s, c, kind));
 
-            DvText tmp = default(DvText);
+            ReadOnlyMemory<char> tmp = default;
             foreach (var col in schema.GetColumnSet(MetadataUtils.Kinds.ScoreColumnSetId, maxSetNum))
             {
 #if DEBUG
                 schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, col, ref tmp);
-                ectx.Assert(tmp.EqualsStr(kind));
+                ectx.Assert(ReadOnlyMemoryUtils.EqualsStr(kind, tmp));
 #endif
                 // REVIEW: What should this do about hidden columns? Currently we ignore them.
                 if (schema.IsHidden(col))
                     continue;
                 if (schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreValueKind, col, ref tmp) &&
-                    tmp.EqualsStr(valueKind))
+                    ReadOnlyMemoryUtils.EqualsStr(valueKind, tmp))
                 {
                     return ColumnInfo.CreateFromIndex(schema, col);
                 }
@@ -187,14 +187,14 @@ namespace Microsoft.ML.Runtime.Data
             uint setId = 0;
             schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnSetId, colScore, ref setId);
 
-            DvText tmp = default(DvText);
+            ReadOnlyMemory<char> tmp = default;
             foreach (var col in schema.GetColumnSet(MetadataUtils.Kinds.ScoreColumnSetId, setId))
             {
                 // REVIEW: What should this do about hidden columns? Currently we ignore them.
                 if (schema.IsHidden(col))
                     continue;
                 if (schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreValueKind, col, ref tmp) &&
-                    tmp.EqualsStr(valueKind))
+                    ReadOnlyMemoryUtils.EqualsStr(valueKind, tmp))
                 {
                     var res = ColumnInfo.CreateFromIndex(schema, col);
                     if (testType(res.Type))
@@ -216,9 +216,9 @@ namespace Microsoft.ML.Runtime.Data
             var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, col);
             if (type == null || !type.IsText)
                 return false;
-            var tmp = default(DvText);
+            var tmp = default(ReadOnlyMemory<char>);
             schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, col, ref tmp);
-            return tmp.EqualsStr(kind);
+            return ReadOnlyMemoryUtils.EqualsStr(kind, tmp);
         }
 
         /// <summary>
@@ -341,17 +341,17 @@ namespace Microsoft.ML.Runtime.Data
 
                             // For R8 vector valued columns the names of the metrics are the column name,
                             // followed by the slot name if it exists, or "Label_i" if it doesn't.
-                            VBuffer<DvText> names = default(VBuffer<DvText>);
+                            VBuffer<ReadOnlyMemory<char>> names = default;
                             var size = schema.GetColumnType(i).VectorSize;
                             var slotNamesType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, i);
                             if (slotNamesType != null && slotNamesType.VectorSize == size && slotNamesType.ItemType.IsText)
                                 schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref names);
                             else
                             {
-                                var namesArray = new DvText[size];
+                                var namesArray = new ReadOnlyMemory<char>[size];
                                 for (int j = 0; j < size; j++)
-                                    namesArray[j] = new DvText(string.Format("({0})", j));
-                                names = new VBuffer<DvText>(size, namesArray);
+                                    namesArray[j] = string.Format("({0})", j).AsMemory();
+                                names = new VBuffer<ReadOnlyMemory<char>>(size, namesArray);
                             }
                             var colName = schema.GetColumnName(i);
                             foreach (var metric in metricVals.Items(all: true))
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.Check(typeSrc.RawType == typeof(TSrc));
             return LambdaColumnMapper.Create(env, registrationName, input, inputColName, outputColName, typeSrc, TextType.Instance,
-                (ref TSrc src, ref DvText dst) => dst = new DvText(value));
+                (ref TSrc src, ref ReadOnlyMemory<char> dst) => dst = value.AsMemory());
         }
 
         /// <summary>
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static IDataView AddKeyColumn<TSrc>(IHostEnvironment env, IDataView input, string inputColName, string outputColName,
-            ColumnType typeSrc, int keyCount, int value, string registrationName, ValueGetter<VBuffer<DvText>> keyValueGetter)
+            ColumnType typeSrc, int keyCount, int value, string registrationName, ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter)
         {
             Contracts.Check(typeSrc.RawType == typeof(TSrc));
             return LambdaColumnMapper.Create(env, registrationName, input, inputColName, outputColName, typeSrc,
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Runtime.Data
             var inputColType = input.Schema.GetColumnType(inputCol);
             return Utils.MarshalInvoke(AddKeyColumn<int>, inputColType.RawType, env,
                 input, inputColName, MetricKinds.ColumnNames.FoldIndex,
-                inputColType, numFolds, curFold + 1, "FoldIndex", default(ValueGetter<VBuffer<DvText>>));
+                inputColType, numFolds, curFold + 1, "FoldIndex", default(ValueGetter<VBuffer<ReadOnlyMemory<char>>>));
         }
 
         /// <summary>
@@ -456,9 +456,9 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckParam(typeof(T) == itemType.RawType, nameof(itemType), "Generic type does not match the item type");
 
             var numIdvs = views.Length;
-            var slotNames = new Dictionary<DvText, int>();
+            var slotNames = new Dictionary<string, int>();
             var maps = new int[numIdvs][];
-            var slotNamesCur = default(VBuffer<DvText>);
+            var slotNamesCur = default(VBuffer<ReadOnlyMemory<char>>);
             var typeSrc = new ColumnType[numIdvs];
             // Create mappings from the original slots to the reconciled slots.
             for (int i = 0; i < numIdvs; i++)
@@ -477,23 +477,23 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var kvp in slotNamesCur.Items(true))
                 {
                     var index = kvp.Key;
-                    var name = kvp.Value;
+                    var name = kvp.Value.ToString();
                     if (!slotNames.ContainsKey(name))
                         slotNames[name] = slotNames.Count;
                     map[index] = slotNames[name];
                 }
             }
 
-            var reconciledSlotNames = new VBuffer<DvText>(slotNames.Count, slotNames.Keys.ToArray());
-            ValueGetter<VBuffer<DvText>> slotNamesGetter =
-                (ref VBuffer<DvText> dst) =>
+            var reconciledSlotNames = new VBuffer<ReadOnlyMemory<char>>(slotNames.Count, slotNames.Keys.Select(k => k.AsMemory()).ToArray());
+            ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter =
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < reconciledSlotNames.Length)
-                        values = new DvText[reconciledSlotNames.Length];
+                        values = new ReadOnlyMemory<char>[reconciledSlotNames.Length];
 
                     Array.Copy(reconciledSlotNames.Values, values, reconciledSlotNames.Length);
-                    dst = new VBuffer<DvText>(reconciledSlotNames.Length, values, dst.Indices);
+                    dst = new VBuffer<ReadOnlyMemory<char>>(reconciledSlotNames.Length, values, dst.Indices);
                 };
 
             // For each input data view, create the reconciled key column by wrapping it in a LambdaColumnMapper.
@@ -553,7 +553,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static int[][] MapKeys<T>(ISchema[] schemas, string columnName, bool isVec,
-            int[] indices, Dictionary<DvText, int> reconciledKeyNames)
+            int[] indices, Dictionary<ReadOnlyMemory<char>, int> reconciledKeyNames)
         {
             Contracts.AssertValue(indices);
             Contracts.AssertValue(reconciledKeyNames);
@@ -582,7 +582,7 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var kvp in keyNamesCur.Items(true))
                 {
                     var key = kvp.Key;
-                    var name = new DvText(kvp.Value.ToString());
+                    var name = kvp.Value.ToString().AsMemory();
                     if (!reconciledKeyNames.ContainsKey(name))
                         reconciledKeyNames[name] = reconciledKeyNames.Count;
                     keyValueMappers[i][key] = reconciledKeyNames[name];
@@ -606,14 +606,14 @@ namespace Microsoft.ML.Runtime.Data
 
             // Create mappings from the original key types to the reconciled key type.
             var indices = new int[dvCount];
-            var keyNames = new Dictionary<DvText, int>();
+            var keyNames = new Dictionary<ReadOnlyMemory<char>, int>();
             // We use MarshalInvoke so that we can call MapKeys with the correct generic: keyValueType.RawType.
             var keyValueMappers = Utils.MarshalInvoke(MapKeys<int>, keyValueType.RawType, views.Select(view => view.Schema).ToArray(), columnName, false, indices, keyNames);
             var keyType = new KeyType(DataKind.U4, 0, keyNames.Count);
-            var keyNamesVBuffer = new VBuffer<DvText>(keyNames.Count, keyNames.Keys.ToArray());
-            ValueGetter<VBuffer<DvText>> keyValueGetter =
-                    (ref VBuffer<DvText> dst) =>
-                        dst = new VBuffer<DvText>(keyNamesVBuffer.Length, keyNamesVBuffer.Count, keyNamesVBuffer.Values, keyNamesVBuffer.Indices);
+            var keyNamesVBuffer = new VBuffer<ReadOnlyMemory<char>>(keyNames.Count, keyNames.Keys.ToArray());
+            ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter =
+                    (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                        dst = new VBuffer<ReadOnlyMemory<char>>(keyNamesVBuffer.Length, keyNamesVBuffer.Count, keyNamesVBuffer.Values, keyNamesVBuffer.Indices);
 
             // For each input data view, create the reconciled key column by wrapping it in a LambdaColumnMapper.
             for (int i = 0; i < dvCount; i++)
@@ -674,14 +674,14 @@ namespace Microsoft.ML.Runtime.Data
 
             var dvCount = views.Length;
 
-            var keyNames = new Dictionary<DvText, int>();
+            var keyNames = new Dictionary<ReadOnlyMemory<char>, int>();
             var columnIndices = new int[dvCount];
             var keyValueMappers = Utils.MarshalInvoke(MapKeys<int>, keyValueType.RawType, views.Select(view => view.Schema).ToArray(), columnName, true, columnIndices, keyNames);
             var keyType = new KeyType(DataKind.U4, 0, keyNames.Count);
-            var keyNamesVBuffer = new VBuffer<DvText>(keyNames.Count, keyNames.Keys.ToArray());
-            ValueGetter<VBuffer<DvText>> keyValueGetter =
-                    (ref VBuffer<DvText> dst) =>
-                        dst = new VBuffer<DvText>(keyNamesVBuffer.Length, keyNamesVBuffer.Count, keyNamesVBuffer.Values, keyNamesVBuffer.Indices);
+            var keyNamesVBuffer = new VBuffer<ReadOnlyMemory<char>>(keyNames.Count, keyNames.Keys.ToArray());
+            ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter =
+                    (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                        dst = new VBuffer<ReadOnlyMemory<char>>(keyNamesVBuffer.Length, keyNamesVBuffer.Count, keyNamesVBuffer.Values, keyNamesVBuffer.Indices);
 
             for (int i = 0; i < dvCount; i++)
             {
@@ -720,14 +720,14 @@ namespace Microsoft.ML.Runtime.Data
                         }
                     };
 
-                ValueGetter<VBuffer<DvText>> slotNamesGetter = null;
+                ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = null;
                 var type = views[i].Schema.GetColumnType(columnIndices[i]);
                 if (views[i].Schema.HasSlotNames(columnIndices[i], type.VectorSize))
                 {
                     var schema = views[i].Schema;
                     int index = columnIndices[i];
                     slotNamesGetter =
-                        (ref VBuffer<DvText> dst) => schema.GetMetadata(MetadataUtils.Kinds.SlotNames, index, ref dst);
+                        (ref VBuffer<ReadOnlyMemory<char>> dst) => schema.GetMetadata(MetadataUtils.Kinds.SlotNames, index, ref dst);
                 }
                 views[i] = LambdaColumnMapper.Create(env, "ReconcileKeyValues", views[i], columnName, columnName,
                     type, new VectorType(keyType, type.AsVector), mapper, keyValueGetter, slotNamesGetter);
@@ -810,7 +810,7 @@ namespace Microsoft.ML.Runtime.Data
             // Make sure there are no variable size vector columns.
             // This is a dictionary from the column name to its vector size.
             var vectorSizes = new Dictionary<string, int>();
-            var firstDvSlotNames = new Dictionary<string, VBuffer<DvText>>();
+            var firstDvSlotNames = new Dictionary<string, VBuffer<ReadOnlyMemory<char>>>();
             ColumnType labelColKeyValuesType = null;
             var firstDvKeyWithNamesColumns = new List<string>();
             var firstDvKeyNoNamesColumns = new Dictionary<string, int>();
@@ -840,7 +840,7 @@ namespace Microsoft.ML.Runtime.Data
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema.HasSlotNames(i, type.VectorSize))
                             {
-                                VBuffer<DvText> slotNames = default(VBuffer<DvText>);
+                                VBuffer<ReadOnlyMemory<char>> slotNames = default;
                                 dv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref slotNames);
                                 firstDvSlotNames.Add(name, slotNames);
                             }
@@ -849,7 +849,7 @@ namespace Microsoft.ML.Runtime.Data
                         int cachedSize;
                         if (vectorSizes.TryGetValue(name, out cachedSize))
                         {
-                            VBuffer<DvText> slotNames;
+                            VBuffer<ReadOnlyMemory<char>> slotNames;
                             // In the event that no slot names were recorded here, then slotNames will be
                             // the default, length 0 vector.
                             firstDvSlotNames.TryGetValue(name, out slotNames);
@@ -948,7 +948,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static bool VerifyVectorColumnsMatch(int cachedSize, int col, IDataView dv,
-            ColumnType type, ref VBuffer<DvText> firstDvSlotNames)
+            ColumnType type, ref VBuffer<ReadOnlyMemory<char>> firstDvSlotNames)
         {
             if (cachedSize != type.VectorSize)
                 return false;
@@ -957,7 +957,7 @@ namespace Microsoft.ML.Runtime.Data
             if (dv.Schema.HasSlotNames(col, type.VectorSize))
             {
                 // Verify that slots match with slots from 1st idv.
-                VBuffer<DvText> currSlotNames = default(VBuffer<DvText>);
+                VBuffer<ReadOnlyMemory<char>> currSlotNames = default;
                 dv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, col, ref currSlotNames);
 
                 if (currSlotNames.Length != firstDvSlotNames.Length)
@@ -966,7 +966,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var result = true;
                     VBufferUtils.ForEachEitherDefined(ref currSlotNames, ref firstDvSlotNames,
-                        (slot, val1, val2) => result = result && DvText.Identical(val1, val2));
+                        (slot, val1, val2) => result = result && ReadOnlyMemoryUtils.Identical(val1, val2));
                     return result;
                 }
             }
@@ -994,7 +994,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Get the names of the metrics. For R8 valued columns the metric name is the column name. For R8 vector valued columns
             // the names of the metrics are the column name, followed by the slot name if it exists, or "Label_i" if it doesn't.
-            VBuffer<DvText> names = default(VBuffer<DvText>);
+            VBuffer<ReadOnlyMemory<char>> names = default;
             int metricCount = 0;
             var metricNames = new List<string>();
             for (int i = 0; i < schema.ColumnCount; i++)
@@ -1027,10 +1027,10 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         var namesArray = names.Values;
                         if (Utils.Size(namesArray) < type.VectorSize)
-                            namesArray = new DvText[type.VectorSize];
+                            namesArray = new ReadOnlyMemory<char>[type.VectorSize];
                         for (int j = 0; j < type.VectorSize; j++)
-                            namesArray[j] = new DvText(string.Format("Label_{0}", j));
-                        names = new VBuffer<DvText>(type.VectorSize, namesArray);
+                            namesArray[j] = string.Format("Label_{0}", j).AsMemory();
+                        names = new VBuffer<ReadOnlyMemory<char>>(type.VectorSize, namesArray);
                     }
                     foreach (var name in names.Items(all: true))
                         metricNames.Add(string.Format("{0}{1}", metricName, name.Value));
@@ -1236,8 +1236,8 @@ namespace Microsoft.ML.Runtime.Data
                             MetricKinds.ColumnNames.StratCol);
                     }
 
-                    ValueGetter<VBuffer<DvText>> getKeyValues =
-                        (ref VBuffer<DvText> dst) =>
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues =
+                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                         {
                             schema.GetMetadata(MetadataUtils.Kinds.KeyValues, stratCol, ref dst);
                             Contracts.Assert(dst.IsDense);
@@ -1249,7 +1249,8 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else if (i == stratVal)
                 {
-                    var stratVals = foldCol >= 0 ? new[] { DvText.NA, DvText.NA } : new[] { DvText.NA };
+                    //REVIEW: Not sure if empty string makes sense here.
+                    var stratVals = foldCol >= 0 ? new[] { "".AsMemory(), "".AsMemory() } : new[] { "".AsMemory() };
                     dvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVals);
                     weightedDvBldr?.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVals);
                 }
@@ -1261,7 +1262,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else if (i == foldCol)
                 {
-                    var foldVals = new[] { new DvText("Average"), new DvText("Standard Deviation") };
+                    var foldVals = new[] { "Average".AsMemory(), "Standard Deviation".AsMemory() };
                     dvBldr.AddColumn(MetricKinds.ColumnNames.FoldIndex, TextType.Instance, foldVals);
                     weightedDvBldr?.AddColumn(MetricKinds.ColumnNames.FoldIndex, TextType.Instance, foldVals);
                 }
@@ -1300,11 +1301,11 @@ namespace Microsoft.ML.Runtime.Data
                 for (int j = 0; j < vectorStdevMetrics.Length; j++)
                     vectorStdevMetrics[j] = Math.Sqrt(agg[iMetric + j].SumSq / numFolds - vectorMetrics[j] * vectorMetrics[j]);
             }
-            var names = new DvText[type.VectorSize];
+            var names = new ReadOnlyMemory<char>[type.VectorSize];
             for (int j = 0; j < names.Length; j++)
-                names[j] = new DvText(agg[iMetric + j].Name);
-            var slotNames = new VBuffer<DvText>(type.VectorSize, names);
-            ValueGetter<VBuffer<DvText>> getSlotNames = (ref VBuffer<DvText> dst) => dst = slotNames;
+                names[j] = agg[iMetric + j].Name.AsMemory();
+            var slotNames = new VBuffer<ReadOnlyMemory<char>>(type.VectorSize, names);
+            ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames = (ref VBuffer<ReadOnlyMemory<char>> dst) => dst = slotNames;
             if (vectorStdevMetrics != null)
             {
                 env.AssertValue(vectorStdevMetrics);
@@ -1359,7 +1360,7 @@ namespace Microsoft.ML.Runtime.Data
             var type = confusionDataView.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, countCol);
             host.Check(type != null && type.IsKnownSizeVector && type.ItemType.IsText, "The Count column does not have a text vector metadata of kind SlotNames.");
 
-            var labelNames = default(VBuffer<DvText>);
+            var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             confusionDataView.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countCol, ref labelNames);
             host.Check(labelNames.IsDense, "Slot names vector must be dense");
 
@@ -1539,7 +1540,7 @@ namespace Microsoft.ML.Runtime.Data
 
         // Get a string representation of a confusion table.
         private static string GetConfusionTableAsString(double[][] confusionTable, double[] rowSums, double[] columnSums,
-            DvText[] predictedLabelNames, string prefix = "", bool sampled = false, bool binary = true)
+            ReadOnlyMemory<char>[] predictedLabelNames, string prefix = "", bool sampled = false, bool binary = true)
         {
             int numLabels = Utils.Size(confusionTable);
 
@@ -1690,8 +1691,8 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     using (var cursor = warnings.GetRowCursor(c => c == col))
                     {
-                        var warning = default(DvText);
-                        var getter = cursor.GetGetter<DvText>(col);
+                        var warning = default(ReadOnlyMemory<char>);
+                        var getter = cursor.GetGetter<ReadOnlyMemory<char>>(col);
                         while (cursor.MoveNext())
                         {
                             getter(ref warning);

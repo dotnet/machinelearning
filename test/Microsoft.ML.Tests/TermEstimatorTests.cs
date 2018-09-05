@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tests
                 var result = termTransformer.Transform(dataView);
 
                 result.Schema.TryGetColumnIndex("T", out int termIndex);
-                var names1 = default(VBuffer<DvText>);
+                var names1 = default(VBuffer<ReadOnlyMemory<char>>);
                 var type1 = result.Schema.GetColumnType(termIndex);
                 int size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);

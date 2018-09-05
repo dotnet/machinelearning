@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Scenarios
 
             CifarPrediction prediction = model.Predict(new CifarData()
             {
-                ImagePath = GetDataPath("images/banana.jpg")
+                ImagePath = GetDataPath("images/banana.jpg").AsMemory()
             });
             Assert.Equal(1, prediction.PredictedLabels[0], 2);
             Assert.Equal(0, prediction.PredictedLabels[1], 2);
@@ -79,7 +80,7 @@ namespace Microsoft.ML.Scenarios
 
             prediction = model.Predict(new CifarData()
             {
-                ImagePath = GetDataPath("images/hotdog.jpg")
+                ImagePath = GetDataPath("images/hotdog.jpg").AsMemory()
             });
             Assert.Equal(0, prediction.PredictedLabels[0], 2);
             Assert.Equal(1, prediction.PredictedLabels[1], 2);
@@ -90,10 +91,10 @@ namespace Microsoft.ML.Scenarios
     public class CifarData
     {
         [Column("0")]
-        public string ImagePath;
+        public ReadOnlyMemory<char> ImagePath;
 
         [Column("1")]
-        public string Label;
+        public ReadOnlyMemory<char> Label;
     }
 
     public class CifarPrediction

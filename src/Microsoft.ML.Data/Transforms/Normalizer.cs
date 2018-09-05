@@ -453,11 +453,11 @@ namespace Microsoft.ML.Runtime.Data
                 result.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<DvBool>(BoolType.Instance, IsNormalizedGetter));
                 if (InputSchema.HasSlotNames(ColMapNewToOld[iinfo], colInfo.InputType.VectorSize))
                 {
-                    MetadataUtils.MetadataGetter<VBuffer<DvText>> getter = (int col, ref VBuffer<DvText> slotNames) =>
+                    MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> slotNames) =>
                         InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, ColMapNewToOld[iinfo], ref slotNames);
                     var metaType = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, ColMapNewToOld[iinfo]);
                     Contracts.AssertValue(metaType);
-                    result.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(metaType, getter));
+                    result.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(metaType, getter));
                 }
                 return result;
             }

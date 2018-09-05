@@ -576,16 +576,16 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < infos.Length; iinfo++)
             {
                 // First check whether we have a terms argument, and handle it appropriately.
-                var terms = new DvText(columns[iinfo].Terms);
+                var terms = columns[iinfo].Terms.AsMemory();
                 var termsArray = columns[iinfo].Term;
 
-                terms = terms.Trim();
-                if (terms.HasChars || (termsArray != null && termsArray.Length > 0))
+                terms = ReadOnlyMemoryUtils.Trim(terms);
+                if (!terms.IsEmpty || (termsArray != null && termsArray.Length > 0))
                 {
                     // We have terms! Pass it in.
                     var sortOrder = columns[iinfo].Sort;
                     var bldr = Builder.Create(infos[iinfo].TypeSrc, sortOrder);
-                    if (terms.HasChars)
+                    if (!terms.IsEmpty)
                         bldr.ParseAddTermArg(ref terms, ch);
                     else
                         bldr.ParseAddTermArg(termsArray, ch);
@@ -814,8 +814,8 @@ namespace Microsoft.ML.Runtime.Data
                 if (!info.TypeSrc.ItemType.IsText)
                     return false;
 
-                var terms = default(VBuffer<DvText>);
-                TermMap<DvText> map = (TermMap<DvText>)_termMap[iinfo].Map;
+                var terms = default(VBuffer<ReadOnlyMemory<char>>);
+                TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
                 map.GetTerms(ref terms);
                 string opType = "LabelEncoder";
                 var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
@@ -889,8 +889,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (!info.TypeSrc.ItemType.IsText)
                     return null;
-                var terms = default(VBuffer<DvText>);
-                TermMap<DvText> map = (TermMap<DvText>)_termMap[iinfo].Map;
+                var terms = default(VBuffer<ReadOnlyMemory<char>>);
+                TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
                 map.GetTerms(ref terms);
                 var jsonMap = new JObject();
                 foreach (var kv in terms.Items())

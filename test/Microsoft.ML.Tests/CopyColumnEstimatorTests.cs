@@ -147,14 +147,14 @@ namespace Microsoft.ML.Tests
                 var result = transformer.Transform(term);
                 result.Schema.TryGetColumnIndex("T", out int termIndex);
                 result.Schema.TryGetColumnIndex("T1", out int copyIndex);
-                var names1 = default(VBuffer<DvText>);
-                var names2 = default(VBuffer<DvText>);
+                var names1 = default(VBuffer<ReadOnlyMemory<char>>);
+                var names2 = default(VBuffer<ReadOnlyMemory<char>>);
                 var type1 = result.Schema.GetColumnType(termIndex);
                 int size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
                 var type2 = result.Schema.GetColumnType(copyIndex);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, copyIndex, ref names2);
-                Assert.True(CompareVec(ref names1, ref names2, size, DvText.Identical));
+                Assert.True(CompareVec(ref names1, ref names2, size, ReadOnlyMemoryUtils.Identical));
             }
         }
 

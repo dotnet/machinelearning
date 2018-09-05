@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.Data
     {
     }
 
-    // The input for this transform is a ReadOnlyMemory or a vector of ReadOnlyMemory, and its output is a vector of DvTexts,
+    // The input for this transform is a ReadOnlyMemory or a vector of ReadOnlyMemory, and its output is a vector of ReadOnlyMemory<char>,
     // corresponding to the tokens in the input text, split using a set of user specified separator characters.
     // Empty strings and strings containing only spaces are dropped.
     /// <include file='doc.xml' path='doc/members/member[@name="WordTokenizer"]/*' />
