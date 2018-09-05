@@ -433,12 +433,12 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             {
                 if (Utils.Size(chainArgs.Command) == 0)
                     return null;
-                var acceptableCommand = chainArgs.Command.FirstOrDefault(x =>
-                    string.Equals(x.Kind, "CV", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(x.Kind, "TrainTest", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(x.Kind, "Test", StringComparison.OrdinalIgnoreCase));
+                var acceptableCommand = chainArgs.Command.Cast<ICommandLineComponentFactory>().FirstOrDefault(x =>
+                    string.Equals(x.Name, "CV", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(x.Name, "TrainTest", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(x.Name, "Test", StringComparison.OrdinalIgnoreCase));
                 if (acceptableCommand == null || !ParseCommandArguments(env,
-                    acceptableCommand.Kind + " " + acceptableCommand.SubComponentSettings, out commandArgs, out command, trimExe))
+                    acceptableCommand.Name + " " + acceptableCommand.GetSettingsString(), out commandArgs, out command, trimExe))
                 {
                     return null;
                 }
