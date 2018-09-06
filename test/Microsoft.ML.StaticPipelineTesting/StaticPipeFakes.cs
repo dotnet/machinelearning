@@ -51,7 +51,7 @@ namespace FakeStaticPipes
 
         private sealed class FakeEstimator : IEstimator<ITransformer>
         {
-            public ITransformer Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null) => throw new NotImplementedException();
+            public ITransformer Fit(IDataView input) => throw new NotImplementedException();
             public SchemaShape GetOutputSchema(SchemaShape inputSchema) => throw new NotImplementedException();
         }
 

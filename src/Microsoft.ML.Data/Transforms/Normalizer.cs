@@ -170,7 +170,7 @@ namespace Microsoft.ML.Runtime.Data
             _columns = columns.ToArray();
         }
 
-        public NormalizerTransformer Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
+        public NormalizerTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             return NormalizerTransformer.Train(_host, input, _columns);

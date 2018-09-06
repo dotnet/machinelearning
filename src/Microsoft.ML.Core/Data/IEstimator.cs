@@ -237,7 +237,7 @@ namespace Microsoft.ML.Core.Data
         /// <summary>
         /// Train and return a transformer.
         /// </summary>
-        TTransformer Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null);
+        TTransformer Fit(IDataView input);
 
         /// <summary>
         /// Schema propagation for estimators.

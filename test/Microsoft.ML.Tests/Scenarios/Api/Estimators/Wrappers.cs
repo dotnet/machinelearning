@@ -245,7 +245,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Info = trainerInfo;
         }
 
-        public TTransformer Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
+        public TTransformer Fit(IDataView input)
         {
             return TrainTransformer(input);
         }
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _args = args;
         }
 
-        public TransformWrapper Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
+        public TransformWrapper Fit(IDataView input)
         {
             var xf = TextTransform.Create(_env, _args, input);
             var empty = new EmptyDataView(_env, input.Schema);
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _source = source;
         }
 
-        public TransformWrapper Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
+        public TransformWrapper Fit(IDataView input)
         {
             var xf = new ConcatTransform(_env, input, _name, _source);
             var empty = new EmptyDataView(_env, input.Schema);
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _source = source;
         }
 
-        public TransformWrapper Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
+        public TransformWrapper Fit(IDataView input)
         {
             var xf = new KeyToValueTransform(_env, input, _name, _source);
             var empty = new EmptyDataView(_env, input.Schema);
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _action = action;
         }
 
-        public TransformWrapper Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
+        public TransformWrapper Fit(IDataView input)
         {
             var xf = LambdaTransform.CreateMap(_env, input, _action);
             var empty = new EmptyDataView(_env, input.Schema);
