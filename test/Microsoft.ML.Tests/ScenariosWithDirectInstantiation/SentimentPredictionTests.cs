@@ -89,7 +89,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact(Skip = "Model unavailable")]
+        [Fact]
         public void TrainAndPredictSentimentModelWithDirectionInstantiationTestWithWordEmbedding()
         {
             var dataPath = GetDataPath(SentimentDataPath);

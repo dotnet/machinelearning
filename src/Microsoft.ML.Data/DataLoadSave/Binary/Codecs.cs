@@ -307,7 +307,6 @@ namespace Microsoft.ML.Runtime.Data.IO
 
         private sealed class DvTextCodec : SimpleCodec<ReadOnlyMemory<char>>
         {
-            private const int MissingBit = unchecked((int)0x80000000);
             private const int LengthMask = unchecked((int)0x7FFFFFFF);
 
             public override string LoadName
@@ -407,8 +406,13 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     Contracts.Assert(_index < _entries);
                     int b = _boundaries[_index + 1];
-                    //May be put an assert for b >= 0?
-                    value = _text.AsMemory().Slice(_boundaries[_index] & LengthMask, (b & LengthMask) - (_boundaries[_index] & LengthMask));
+                    if (b > 0)
+                        value = _text.AsMemory().Slice(_boundaries[_index] & LengthMask, (b & LengthMask) - (_boundaries[_index] & LengthMask));
+                    else
+                    {
+                        //For backward compatiblity when NA values existed.
+                        value = "".AsMemory();
+                    }
                 }
             }
         }
