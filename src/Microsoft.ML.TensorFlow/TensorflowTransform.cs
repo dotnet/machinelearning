@@ -87,9 +87,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="source">Name of the input column(s). Keep it same as in the TensorFlow model.</param>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string name, params string[] source)
         {
-            env.CheckNonWhiteSpace(modelFile, nameof(modelFile));
-            env.CheckUserArg(File.Exists(modelFile), nameof(modelFile));
-            return new TensorFlowTransform(env, File.ReadAllBytes(modelFile), source, new[] { name }).MakeDataTransform(input);
+            return new TensorFlowTransform(env, modelFile, source, new[] { name }).MakeDataTransform(input);
         }
 
         /// <summary>
@@ -102,9 +100,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] names, string[] source)
         {
-            env.CheckNonWhiteSpace(modelFile, nameof(modelFile));
-            env.CheckUserArg(File.Exists(modelFile), nameof(modelFile));
-            return new TensorFlowTransform(env, File.ReadAllBytes(modelFile), source, names).MakeDataTransform(input);
+            return new TensorFlowTransform(env, modelFile, source, names).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -143,9 +139,7 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
             env.CheckValue(args.InputColumns, nameof(args.InputColumns));
             env.CheckValue(args.OutputColumns, nameof(args.OutputColumns));
-            env.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
-            env.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
-            return new TensorFlowTransform(env, File.ReadAllBytes(args.ModelFile), args.InputColumns, args.OutputColumns).MakeDataTransform(input);
+            return new TensorFlowTransform(env, args.ModelFile, args.InputColumns, args.OutputColumns).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -172,15 +166,34 @@ namespace Microsoft.ML.Transforms
             return new TFSession(graph);
         }
 
-        public TensorFlowTransform(IHostEnvironment env, byte[] modelStream, string[] inputs, string[] outputs)
+        private static byte[] CheckFileAndRead(IHostEnvironment env, string modelFile)
+        {
+            env.CheckNonWhiteSpace(modelFile, nameof(modelFile));
+            env.CheckUserArg(File.Exists(modelFile), nameof(modelFile));
+            return File.ReadAllBytes(modelFile);
+        }
+
+        public TensorFlowTransform(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs) :
+            this(env, CheckFileAndRead(env, modelFile), inputs, outputs)
+        {
+        }
+
+        private TensorFlowTransform(IHostEnvironment env, byte[] modelStream, string[] inputs, string[] outputs)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
             _host.CheckValue(modelStream, nameof(modelStream));
             Session = LoadTFSession(modelStream);
             foreach (var input in inputs)
+            {
                 _host.CheckNonWhiteSpace(input, nameof(inputs));
-            _host.Check(inputs.All(name => Session.Graph[name] != null), "One of the input does not exist in the model");
+                if (Session.Graph[input] == null)
+                    throw _host.ExceptParam(nameof(outputs), $"Input column '{input}'  does not exist in the model");
+                var tfInput = new TFOutput(Session.Graph[input]);
+                if (!TensorFlowUtils.IsTypeSupported(tfInput.OutputType))
+                    throw _host.Except($"Input type '{tfInput.OutputType}' of input column '{input}' is not supported in TensorFlow");
+            }
+
             var newNames = new HashSet<string>();
             foreach (var output in outputs)
             {
@@ -230,7 +243,7 @@ namespace Microsoft.ML.Transforms
             return Transform(new EmptyDataView(_host, inputSchema)).Schema;
         }
 
-        private IRowMapper MakeRowMapper(ISchema schema) => new TensorFlowMapper(_host, this, schema);
+        private IRowMapper MakeRowMapper(ISchema schema) => new Mapper(_host, this, schema);
 
         private RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
@@ -264,7 +277,7 @@ namespace Microsoft.ML.Transforms
                 ctx.SaveNonEmptyString(colName);
         }
 
-        private sealed class TensorFlowMapper : IRowMapper
+        private sealed class Mapper : IRowMapper
         {
             private readonly IHost _host;
             private readonly ISchema _schema;
@@ -272,10 +285,10 @@ namespace Microsoft.ML.Transforms
             private readonly int[] _inputColIndices;
             private readonly bool[] _isInputVector;
 
-            public TensorFlowMapper(IHostEnvironment env, TensorFlowTransform parent, ISchema inputSchema)
+            public Mapper(IHostEnvironment env, TensorFlowTransform parent, ISchema inputSchema)
             {
                 Contracts.CheckValue(env, nameof(env));
-                _host = env.Register(nameof(TensorFlowMapper));
+                _host = env.Register(nameof(Mapper));
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 _host.CheckValue(parent, nameof(parent));
                 _parent = parent;
@@ -348,7 +361,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private Delegate[] MakeGetter(IRow input, Func<int, bool> activeOutput)
+            private Delegate[] MakeGetters(IRow input, Func<int, bool> activeOutput)
             {
                 _host.AssertValue(input);
 
@@ -416,7 +429,7 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
                 using (var ch = _host.Start("CreateGetters"))
                 {
-                    var getters = MakeGetter(input, activeOutput);
+                    var getters = MakeGetters(input, activeOutput);
                     ch.Done();
                     return getters;
                 }
@@ -496,52 +509,38 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public sealed class TensorFlowEstimator : IEstimator<TensorFlowTransform>
+    public sealed class TensorFlowEstimator : TrivialEstimator<TensorFlowTransform>
     {
-        private readonly IHost _host;
-        private readonly TensorFlowTransform _transformer;
-
-        public TensorFlowTransform Fit(IDataView input)
-        {
-            // Validate input schema.
-            _transformer.GetOutputSchema(input.Schema);
-            return _transformer;
-        }
-
         public TensorFlowEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs)
+           : this(env, new TensorFlowTransform(env, modelFile, inputs, outputs))
         {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(TensorFlowEstimator));
-            _transformer = new TensorFlowTransform(env, File.ReadAllBytes(modelFile), inputs, outputs);
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        public TensorFlowEstimator(IHostEnvironment env, TensorFlowTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowTransform)), transformer)
         {
-            _host.CheckValue(inputSchema, nameof(inputSchema));
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-            for (var i = 0; i < _transformer.Inputs.Length; i++)
+            for (var i = 0; i < Transformer.Inputs.Length; i++)
             {
-                var input = _transformer.Inputs[i];
+                var input = Transformer.Inputs[i];
                 var col = inputSchema.FindColumn(input);
                 if (col == null)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-                var tfInput = new TFOutput(_transformer.Graph[input]);
-                if (!TensorFlowUtils.IsTypeSupported(tfInput.OutputType))
-                    throw _host.Except($"Input type '{tfInput.OutputType}' of input column '{input}' is not supported in TensorFlow");
-                var tfShape = _transformer.Graph.GetTensorShape(tfInput);
-                var shape = tfShape.ToIntArray().Skip(tfShape[0] == -1 ? TensorFlowTransform.BatchSize : 0);
-
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
+                
                 if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
-                var expectedType = TensorFlowUtils.Tf2MlNetType(_transformer.TFInputTypes[i]);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
+                var expectedType = TensorFlowUtils.Tf2MlNetType(Transformer.TFInputTypes[i]);
                 if (col.ItemType != expectedType)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }
-
-            for (var i = 0; i < _transformer.Outputs.Length; i++)
-                //IVAN: not sure about VectorKind.
-                resultDic[_transformer.Outputs[i]] = new SchemaShape.Column(_transformer.Outputs[i], SchemaShape.Column.VectorKind.Vector, _transformer.OutputTypes[i].ItemType, false);
+            for (var i = 0; i < Transformer.Outputs.Length; i++)
+                resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i], SchemaShape.Column.VectorKind.Vector, Transformer.OutputTypes[i].ItemType, false);
             return new SchemaShape(resultDic.Values);
         }
 
