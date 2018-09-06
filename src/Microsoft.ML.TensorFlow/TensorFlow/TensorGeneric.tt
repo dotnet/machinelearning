@@ -37,13 +37,14 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// </summary>
         /// <typeparam name="T[]">.NET type of tensor to create</typeparam>
         /// <param name="data">value of tensor</param>
+        /// <param name="count">The number of elements in the tensor</param>
         /// <param name="shape">shape of tensor</param>
-        public static TFTensor Create<T>(T[] data, TFShape shape)
+        public static TFTensor Create<T>(T[] data, int count, TFShape shape)
         {
 <# foreach (TypeConfiguration type in typeConfiguration) { #>
             <#=GenerateIfStatementHeader(type)#>
             {
-                return new TFTensor(SetupTensor(TFDataType.<#=type.TFDataType#>, shape, (Array)(object)data, 0, ((Array)(object)data).Length, <#=type.Size#>));
+                return new TFTensor(SetupTensor(TFDataType.<#=type.TFDataType#>, shape, (Array)(object)data, 0, count, <#=type.Size#>));
             }
 <# } #>
             // note that we will get here for jagged arrays, which is intententional since we'd need to copy them.

@@ -71,6 +71,140 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
+        public void TensorFlowTransformObjectDetectionTest()
+        {
+            var model_location = @"C:\models\TensorFlow\ssd_mobilenet_v1_coco_2018_01_28\frozen_inference_graph.pb";
+            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            {
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =32, ImageWidth = 32, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "image_tensor", UseAlpha=false, InterleaveArgb=true, Convert = false}
+                    }
+                }, cropped);
+
+                var boxes = TensorFlowTransform.Create(env, pixels, model_location, "detection_boxes", "image_tensor");
+                var scores = TensorFlowTransform.Create(env, boxes, model_location, "detection_scores", "image_tensor");
+                var num = TensorFlowTransform.Create(env, scores, model_location, "num_detections", "image_tensor");
+                var classes = TensorFlowTransform.Create(env, num, model_location, "detection_classes", "image_tensor");
+
+                boxes.Schema.TryGetColumnIndex("image_tensor", out int input);
+                boxes.Schema.TryGetColumnIndex("detection_boxes", out int b);
+                using (var curs = boxes.GetRowCursor(col => col == b || col == input))
+                {
+                    var get = curs.GetGetter<VBuffer<float>>(b);
+                    var getInput = curs.GetGetter<VBuffer<byte>>(input);
+                    var buffer = default(VBuffer<float>);
+                    var inputBuffer = default(VBuffer<byte>);
+                    while (curs.MoveNext())
+                    {
+                        getInput(ref inputBuffer);
+                        get(ref buffer);
+                    }
+                }
+
+                scores.Schema.TryGetColumnIndex("detection_scores", out b);
+                using (var curs = scores.GetRowCursor(col => col == b))
+                {
+                    var get = curs.GetGetter<VBuffer<float>>(b);
+                    var buffer = default(VBuffer<float>);
+                    while (curs.MoveNext())
+                    {
+                        get(ref buffer);
+                    }
+                }
+
+                num.Schema.TryGetColumnIndex("num_detections", out b);
+                using (var curs = num.GetRowCursor(col => col == b))
+                {
+                    var get = curs.GetGetter<VBuffer<float>>(b);
+                    var buffer = default(VBuffer<float>);
+                    while (curs.MoveNext())
+                    {
+                        get(ref buffer);
+                    }
+                }
+
+                classes.Schema.TryGetColumnIndex("detection_classes", out b);
+                using (var curs = classes.GetRowCursor(col => col == b))
+                {
+                    var get = curs.GetGetter<VBuffer<float>>(b);
+                    var buffer = default(VBuffer<float>);
+                    while (curs.MoveNext())
+                    {
+                        get(ref buffer);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TensorFlowTransformInceptionTest()
+        {
+            var model_location = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
+            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            {
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =224, ImageWidth = 224, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "input", UseAlpha=false, InterleaveArgb=true, Convert = true}
+                    }
+                }, cropped);
+
+                var tf = TensorFlowTransform.Create(env, pixels, model_location, "softmax2_pre_activation", "input");
+
+                tf.Schema.TryGetColumnIndex("input", out int input);
+                tf.Schema.TryGetColumnIndex("softmax2_pre_activation", out int b);
+                using (var curs = tf.GetRowCursor(col => col == b || col == input))
+                {
+                    var get = curs.GetGetter<VBuffer<float>>(b);
+                    var getInput = curs.GetGetter<VBuffer<float>>(input);
+                    var buffer = default(VBuffer<float>);
+                    var inputBuffer = default(VBuffer<float>);
+                    while (curs.MoveNext())
+                    {
+                        getInput(ref inputBuffer);
+                        get(ref buffer);
+                    }
+                }
+            }
+        }
+
+        [Fact]
         public void TensorFlowTransformMNISTConvTest()
         {
             var model_location = "mnist_model/frozen_saved_model.pb";
@@ -145,7 +279,7 @@ namespace Microsoft.ML.Scenarios
 
                 float max = -1;
                 int maxIndex = -1;
-                for(int i=0;i<prediction.PredictedLabels.Length; i++)
+                for (int i = 0; i < prediction.PredictedLabels.Length; i++)
                 {
                     if (prediction.PredictedLabels[i] > max)
                     {

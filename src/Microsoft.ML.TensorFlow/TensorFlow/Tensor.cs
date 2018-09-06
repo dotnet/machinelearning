@@ -410,9 +410,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
         public TFTensor(Complex[] data) : base(SetupTensor(TFDataType.Complex128, data, size: 16)) { }
 
         // Convenience function to factor out the setup of a new tensor from an array
-        internal static IntPtr SetupTensor(TFDataType dt, long[] dims, Array data, int size)
+        internal static IntPtr SetupTensor(TFDataType dt, long[] dims, Array data, int count, int size)
         {
-            return SetupTensor(dt, dims, data, start: 0, count: data.Length, size: size);
+            return SetupTensor(dt, dims, data, start: 0, count: count, size: size);
         }
 
         // Convenience function to factor out the setup of a new tensor from an array

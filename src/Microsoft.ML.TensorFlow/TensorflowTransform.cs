@@ -58,7 +58,7 @@ namespace Microsoft.ML.Transforms
                     loaderSignature: LoaderSignature);
             }
 
-            public TensorFlowMapper(IHostEnvironment env, ISchema inputSchema, byte[] modelBytes, string[] inputColNames, string outputColName)
+            public TensorFlowMapper(IHostEnvironment env, ISchema inputSchema, byte[] modelBytes, string[] inputColNames, string outputColName, string modelFile = null)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register("TensorFlowMapper");
@@ -67,7 +67,8 @@ namespace Microsoft.ML.Transforms
                 _host.CheckNonEmpty(inputColNames, nameof(inputColNames));
                 _host.CheckNonEmpty(outputColName, nameof(outputColName));
 
-                _session = LoadTFSession(modelBytes, null);
+                _session = LoadTFSession(_host, modelBytes, modelFile);
+
                 _host.CheckValue(_session.Graph[outputColName], nameof(outputColName), "Output does not exist in the model");
                 _host.Check(inputColNames.All(name => _session.Graph[name] != null), "One of the input does not exist in the model");
 
@@ -118,8 +119,7 @@ namespace Microsoft.ML.Transforms
 
                 ctx.SaveNonEmptyString(_outputColName);
             }
-
-            private TFSession LoadTFSession(byte[] modelBytes, string modelArg)
+            private static TFSession LoadTFSession(IExceptionContext ectx, byte[] modelBytes, string modelArg)
             {
                 var graph = new TFGraph();
                 try
@@ -129,9 +129,9 @@ namespace Microsoft.ML.Transforms
                 catch (Exception ex)
                 {
                     if (!string.IsNullOrEmpty(modelArg))
-                        throw _host.Except($"TensorFlow exception triggered while loading model from '{modelArg}'");
+                        throw ectx.Except($"TensorFlow exception triggered while loading model from '{modelArg}'");
 #pragma warning disable MSML_NoMessagesForLoadContext
-                    throw _host.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
+                    throw ectx.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
 #pragma warning restore MSML_NoMessagesForLoadContext
 
                 }
@@ -192,11 +192,12 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(tensors.Length > 0);
 
                     var values = dst.Values;
-                    if (Utils.Size(values) < _outputColType.VectorSize)
-                        values = new T[_outputColType.VectorSize];
+                    var tensorSize = tensors[0].Shape.Where(x => x > 0).Aggregate((x, y) => x * y);
+                    if (Utils.Size(values) < tensorSize)
+                        values = new T[tensorSize];
 
                     TensorFlowUtils.FetchData<T>(tensors[0].Data, values);
-                    dst = new VBuffer<T>(values.Length, values, dst.Indices);
+                    dst = new VBuffer<T>((int)tensorSize, values, dst.Indices);
                 };
                 return valuegetter;
             }
@@ -233,8 +234,11 @@ namespace Microsoft.ML.Transforms
                 var tfoutput = new TFOutput(graph[columnName]);
                 var shape = graph.GetTensorShape(tfoutput);
 
-                int[] dims = shape.ToIntArray().Skip(shape[0] == -1 ? BatchSize : 0).ToArray();
                 var type = TensorFlowUtils.Tf2MlNetType(tfoutput.OutputType);
+                if (Utils.Size(shape.ToIntArray()) == 0)
+                    return (new VectorType(type), tfoutput.OutputType);
+
+                int[] dims = shape.ToIntArray().Skip(shape[0] == -1 ? BatchSize : 0).ToArray();
                 return (new VectorType(type, dims), tfoutput.OutputType);
             }
 
@@ -257,26 +261,51 @@ namespace Microsoft.ML.Transforms
 
                     tfShapes[i] = graph.GetTensorShape(tfoutput);
                     var type = inputSchema.GetColumnType(inputColIndices[i]);
-                    var shape = tfShapes[i].ToIntArray().Skip(tfShapes[i][0] == -1 ? BatchSize : 0);
-                    if (type.AsVector.DimCount == 1)
+                    var tfShape = tfShapes[i].ToIntArray();
+                    //var shape = Utils.Size(tfShapes[i].ToIntArray()) > 0 ? tfShapes[i].ToIntArray().Skip(tfShapes[i][0] == -1 ? BatchSize : 0) : null;
+
+                    var colTypeDims = Enumerable.Range(0, type.AsVector.DimCount + 1).Select(d => d == 0 ? 1 : (long)type.AsVector.GetDim(d - 1)).ToArray();
+                    if (tfShape == null)
+                        tfShapes[i] = new TFShape(colTypeDims);
+                    else if (type.AsVector.DimCount == 1)
                     {
-                        int valCount = shape.Aggregate((x, y) => x * y);
-                        if (type.ValueCount != valCount)
-                            throw Contracts.Except($"Input shape mismatch: Input '{colNames[i]}' has shape {tfShapes[i].ToString()}, but input data is of length {valCount}.");
+                        // If the column is one dimension we make sure that the total size of the TF shape matches.
+                        // Compute the total size of the known dimensions of the shape.
+                        int valCount = tfShapes[i].ToIntArray().Where(x => x > 0).Aggregate((x, y) => x * y);
+                        // The column length should be divisible by this, so that the other dimensions can be integral.
+                        if (type.ValueCount % valCount != 0)
+                            throw Contracts.Except($"Input shape mismatch: Input '{colNames[i]}' has shape {tfShapes[i].ToString()}, but input data is of length {type.ValueCount}.");
+
+                        // If the shape is multi-dimensional, we should be able to create the length of the vector by plugging
+                        // in a single value for the unknown shapes. E.g., if the shape is [?,?,3], then there should exist a value
+                        // d such that d*d*3 is equal to the length of the input column.
+                        var d = tfShapes[i].NumDimensions > 2 ? Math.Pow(type.ValueCount / valCount, 1.0 / (tfShapes[i].NumDimensions - 2)) : 1;
+                        if (tfShapes[i].NumDimensions > 2 && d - (int)d != 0)
+                            throw Contracts.Except($"Input shape mismatch: Input '{colNames[i]}' has shape {tfShapes[i].ToString()}, but input data is of length {type.ValueCount}.");
+
+                        // Fill in the unknown dimensions.
+                        var l = new long[tfShapes[i].NumDimensions];
+                        if (tfShapes[i][0] == -1)
+                            l[0] = BatchSize;
+                        for (int ishape = 1; ishape < tfShapes[i].NumDimensions; ishape++)
+                            l[ishape] = tfShapes[i][ishape] == -1 ? (int)d : tfShapes[i][ishape];
+                        tfShapes[i] = new TFShape(l);
                     }
-                    else if (shape.Select((dim, j) => dim != type.AsVector.GetDim(j)).Any(b => b))
-                        throw Contracts.Except($"Input shape mismatch: Input '{colNames[i]}' has shape {tfShapes[i].ToString()}, but input data is {type.AsVector.ToString()}.");
+                    else
+                    {
+                        if (tfShape.Select((dim, j) => dim != -1 && dim != colTypeDims[j]).Any(b => b))
+                            throw Contracts.Except($"Input shape mismatch: Input '{colNames[i]}' has shape {tfShapes[i].ToString()}, but input data is {type.AsVector.ToString()}.");
+
+                        // Fill in the unknown dimensions.
+                        var l = new long[tfShapes[i].NumDimensions];
+                        for (int ishape = 0; ishape < tfShapes[i].NumDimensions; ishape++)
+                            l[ishape] = tfShapes[i][ishape] == -1 ? colTypeDims[ishape] : tfShapes[i][ishape];
+                        tfShapes[i] = new TFShape(l);
+                    }
 
                     isInputVector[i] = type.IsVector;
 
                     tfTypes[i] = tfoutput.OutputType;
-
-                    var l = new long[tfShapes[i].NumDimensions];
-                    for (int ishape = 0; ishape < tfShapes[i].NumDimensions; ishape++)
-                    {
-                        l[ishape] = tfShapes[i][ishape] == -1 ? BatchSize : tfShapes[i][ishape];
-                    }
-                    tfShapes[i] = new TFShape(l);
                 }
                 return (colNames, inputColIndices, isInputVector, tfShapes, tfTypes);
             }
@@ -326,7 +355,7 @@ namespace Microsoft.ML.Transforms
             host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
 
             var modelBytes = File.ReadAllBytes(args.ModelFile);
-            var mapper = new TensorFlowMapper(host, input.Schema, modelBytes, args.InputColumns, args.OutputColumn);
+            var mapper = new TensorFlowMapper(host, input.Schema, modelBytes, args.InputColumns, args.OutputColumn, args.ModelFile);
             return new RowToRowMapperTransform(host, input, mapper);
         }
 
@@ -368,7 +397,7 @@ namespace Microsoft.ML.Transforms
             {
                 _srcgetter(ref _vBuffer);
                 _vBuffer.CopyToDense(ref _vBufferDense);
-                return TFTensor.Create(_vBufferDense.Values, _tfShape);
+                return TFTensor.Create(_vBufferDense.Values, _vBufferDense.Length, _tfShape);
             }
         }
 
