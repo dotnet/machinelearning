@@ -183,9 +183,7 @@ namespace Microsoft.ML.Runtime.Data
 
             foreach (var colInfo in _columns)
             {
-                var col = inputSchema.FindColumn(colInfo.Input);
-
-                if (col == null)
+                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
                 if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, "fixed-size vector or scalar", col.GetTypeString());
@@ -193,10 +191,13 @@ namespace Microsoft.ML.Runtime.Data
                 if (!col.ItemType.Equals(NumberType.R4) && !col.ItemType.Equals(NumberType.R8))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, "vector or scalar of R4 or R8", col.GetTypeString());
 
-                var newMetadataKinds = new List<string> { MetadataUtils.Kinds.IsNormalized };
-                if (col.MetadataKinds.Contains(MetadataUtils.Kinds.SlotNames))
-                    newMetadataKinds.Add(MetadataUtils.Kinds.SlotNames);
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, col.ItemType, col.IsKey, newMetadataKinds.ToArray());
+                var isNormalizedMeta = new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar,
+                    BoolType.Instance, false);
+                var newMetadataKinds = new List<SchemaShape.Column> { isNormalizedMeta };
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    newMetadataKinds.Add(slotMeta);
+                var meta = new SchemaShape(newMetadataKinds);
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, col.ItemType, col.IsKey, meta);
             }
 
             return new SchemaShape(result.Values);

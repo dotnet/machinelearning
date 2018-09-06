@@ -139,9 +139,12 @@ namespace Microsoft.ML.Runtime.RunTests
             var sortedCols1 = first.Columns.OrderBy(x => x.Name);
             var sortedCols2 = second.Columns.OrderBy(x => x.Name);
 
-            Assert.True(sortedCols1.Zip(sortedCols2,
-                (x, y) => x.IsCompatibleWith(y) && y.IsCompatibleWith(x))
-                .All(x => x));
+            foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
+            {
+                Assert.Equal(x.Name, y.Name);
+                Assert.True(x.IsCompatibleWith(y), $"Mismatch on {x.Name}");
+                Assert.True(y.IsCompatibleWith(x), $"Mismatch on {x.Name}");
+            }
         }
 
         // REVIEW: incorporate the testing for re-apply logic here?
