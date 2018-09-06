@@ -40,16 +40,14 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (memory.Length != b.Length)
                 return false;
+
             Contracts.Assert(memory.IsEmpty == b.IsEmpty);
 
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-
-            MemoryMarshal.TryGetString(b, out string bOuterBuffer, out int bIchMin, out int bLength);
-            int bIchLim = bIchMin + bLength;
+            int ichLim = memory.Length;
+            int bIchLim = b.Length;
             for (int i = 0; i < memory.Length; i++)
             {
-                if (outerBuffer[ichMin + i] != bOuterBuffer[bIchMin + i])
+                if (memory.Span[i] != b.Span[i])
                     return false;
             }
             return true;
@@ -66,15 +64,12 @@ namespace Microsoft.ML.Runtime.Data
             if (!a.IsEmpty)
             {
                 Contracts.Assert(!b.IsEmpty);
-                MemoryMarshal.TryGetString(a, out string aOuterBuffer, out int aIchMin, out int aLength);
-                int aIchLim = aIchMin + aLength;
 
-                MemoryMarshal.TryGetString(b, out string bOuterBuffer, out int bIchMin, out int bLength);
-                int bIchLim = bIchMin + bLength;
-
+                int aIchLim = a.Length;
+                int bIchLim = b.Length;
                 for (int i = 0; i < a.Length; i++)
                 {
-                    if (aOuterBuffer[aIchMin + i] != bOuterBuffer[bIchMin + i])
+                    if (a.Span[i] != b.Span[i])
                         return false;
                 }
             }
@@ -88,18 +83,16 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValueOrNull(s);
 
-            // Note that "NA" doesn't match any string.
             if (s == null)
                 return memory.Length == 0;
 
             if (s.Length != memory.Length)
                 return false;
 
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
+            int ichLim = memory.Length;
             for (int i = 0; i < memory.Length; i++)
             {
-                if (s[i] != outerBuffer[ichMin + i])
+                if (s[i] != memory.Span[i])
                     return false;
             }
             return true;
@@ -113,16 +106,16 @@ namespace Microsoft.ML.Runtime.Data
         public static int CompareTo(ReadOnlyMemory<char> other, ReadOnlyMemory<char> memory)
         {
             int len = Math.Min(memory.Length, other.Length);
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
+            int ichMin = 0;
+            int ichLim = memory.Length;
 
-            MemoryMarshal.TryGetString(other, out string otherOuterBuffer, out int otherIchMin, out int otherLength);
-            int otherIchLim = otherIchMin + otherLength;
+            int otherIchMin = 0;
+            int otherIchLim = other.Length;
 
             for (int ich = 0; ich < len; ich++)
             {
-                char ch1 = outerBuffer[ichMin + ich];
-                char ch2 = otherOuterBuffer[otherIchMin + ich];
+                char ch1 = memory.Span[ichMin + ich];
+                char ch2 = other.Span[otherIchMin + ich];
                 if (ch1 != ch2)
                     return ch1 < ch2 ? -1 : +1;
             }
@@ -146,9 +139,8 @@ namespace Microsoft.ML.Runtime.Data
                 yield break;
             }
 
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-            string text = outerBuffer;
+            int ichMin = 0;
+            int ichLim = memory.Length;
             if (separators.Length == 1)
             {
                 char chSep = separators[0];
@@ -160,14 +152,14 @@ namespace Microsoft.ML.Runtime.Data
                         Contracts.Assert(ichCur <= ichLim);
                         if (ichCur >= ichLim)
                         {
-                            yield return outerBuffer.AsMemory().Slice(ichMinLocal, ichCur - ichMinLocal);
+                            yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
                             yield break;
                         }
-                        if (text[ichCur] == chSep)
+                        if (memory.Span[ichCur] == chSep)
                             break;
                     }
 
-                    yield return outerBuffer.AsMemory().Slice(ichMinLocal, ichCur - ichMinLocal);
+                    yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
 
                     // Skip the separator.
                     ichCur++;
@@ -183,15 +175,15 @@ namespace Microsoft.ML.Runtime.Data
                         Contracts.Assert(ichCur <= ichLim);
                         if (ichCur >= ichLim)
                         {
-                            yield return outerBuffer.AsMemory().Slice(ichMinLocal, ichCur - ichMinLocal);
+                            yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
                             yield break;
                         }
                         // REVIEW: Can this be faster?
-                        if (ContainsChar(text[ichCur], separators))
+                        if (ContainsChar(memory.Span[ichCur], separators))
                             break;
                     }
 
-                    yield return outerBuffer.AsMemory().Slice(ichMinLocal, ichCur - ichMinLocal);
+                    yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
 
                     // Skip the separator.
                     ichCur++;
@@ -214,9 +206,9 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-            string text = outerBuffer;
+            int ichMin = 0;
+            int ichLim = memory.Length;
+            var text = memory.Span;
             int ichCur = ichMin;
             for (; ; ichCur++)
             {
@@ -233,8 +225,8 @@ namespace Microsoft.ML.Runtime.Data
 
             // Note that we don't use any fields of "this" here in case one
             // of the out parameters is the same as "this".
-            left = outerBuffer.AsMemory().Slice(ichMin, ichCur - ichMin);
-            right = outerBuffer.AsMemory().Slice(ichCur + 1, ichLim - ichCur - 1);
+            left = memory.Slice(ichMin, ichCur - ichMin);
+            right = memory.Slice(ichCur + 1, ichLim - ichCur - 1);
             return true;
         }
 
@@ -255,9 +247,9 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-            string text = outerBuffer;
+            int ichMin = 0;
+            int ichLim = memory.Length;
+            var text = memory.Span;
 
             int ichCur = ichMin;
             if (separators.Length == 1)
@@ -297,8 +289,8 @@ namespace Microsoft.ML.Runtime.Data
 
             // Note that we don't use any fields of "this" here in case one
             // of the out parameters is the same as "this".
-            left = outerBuffer.AsMemory().Slice(ichMin, ichCur - ichMin);
-            right = outerBuffer.AsMemory().Slice(ichCur + 1, ichLim - ichCur - 1);
+            left = memory.Slice(ichMin, ichCur - ichMin);
+            right = memory.Slice(ichCur + 1, ichLim - ichCur - 1);
             return true;
         }
 
@@ -311,16 +303,16 @@ namespace Microsoft.ML.Runtime.Data
             if (memory.IsEmpty)
                 return memory;
 
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-            if (outerBuffer[ichMin] != ' ' && outerBuffer[ichLim - 1] != ' ')
+            int ichLim = memory.Length;
+            int ichMin = 0;
+            if (memory.Span[ichMin] != ' ' && memory.Span[ichLim - 1] != ' ')
                 return memory;
 
-            while (ichMin < ichLim && outerBuffer[ichMin] == ' ')
+            while (ichMin < ichLim && memory.Span[ichMin] == ' ')
                 ichMin++;
-            while (ichMin < ichLim && outerBuffer[ichLim - 1] == ' ')
+            while (ichMin < ichLim && memory.Span[ichLim - 1] == ' ')
                 ichLim--;
-            return outerBuffer.AsMemory().Slice(ichMin, ichLim - ichMin);
+            return memory.Slice(ichMin, ichLim - ichMin);
         }
 
         /// <summary>
@@ -331,18 +323,17 @@ namespace Microsoft.ML.Runtime.Data
             if (memory.IsEmpty)
                 return memory;
 
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-
-            if (!char.IsWhiteSpace(outerBuffer[ichMin]) && !char.IsWhiteSpace(outerBuffer[ichLim - 1]))
+            int ichMin = 0;
+            int ichLim = memory.Length;
+            if (!char.IsWhiteSpace(memory.Span[ichMin]) && !char.IsWhiteSpace(memory.Span[ichLim - 1]))
                 return memory;
 
-            while (ichMin < ichLim && char.IsWhiteSpace(outerBuffer[ichMin]))
+            while (ichMin < ichLim && char.IsWhiteSpace(memory.Span[ichMin]))
                 ichMin++;
-            while (ichMin < ichLim && char.IsWhiteSpace(outerBuffer[ichLim - 1]))
+            while (ichMin < ichLim && char.IsWhiteSpace(memory.Span[ichLim - 1]))
                 ichLim--;
 
-            return outerBuffer.AsMemory().Slice(ichMin, ichLim - ichMin);
+            return memory.Slice(ichMin, ichLim - ichMin);
         }
 
         /// <summary>
@@ -353,15 +344,14 @@ namespace Microsoft.ML.Runtime.Data
             if (memory.IsEmpty)
                 return memory;
 
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-            if (!char.IsWhiteSpace(outerBuffer[ichLim - 1]))
+            int ichLim = memory.Length;
+            if (!char.IsWhiteSpace(memory.Span[ichLim - 1]))
                 return memory;
 
-            while (ichMin < ichLim && char.IsWhiteSpace(outerBuffer[ichLim - 1]))
+            while (0 < ichLim && char.IsWhiteSpace(memory.Span[ichLim - 1]))
                 ichLim--;
 
-            return outerBuffer.AsMemory().Slice(ichMin, ichLim - ichMin);
+            return memory.Slice(0, ichLim);
         }
 
         /// <summary>
@@ -369,9 +359,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public static bool TryParse(out Single value, ReadOnlyMemory<char> memory)
         {
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-            var res = DoubleParser.Parse(out value, outerBuffer, ichMin, ichLim);
+            var res = DoubleParser.Parse(out value, memory);
             Contracts.Assert(res != DoubleParser.Result.Empty || value == 0);
             return res <= DoubleParser.Result.Empty;
         }
@@ -381,18 +369,14 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public static bool TryParse(out Double value, ReadOnlyMemory<char> memory)
         {
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-            var res = DoubleParser.Parse(out value, outerBuffer, ichMin, ichLim);
+            var res = DoubleParser.Parse(out value, memory);
             Contracts.Assert(res != DoubleParser.Result.Empty || value == 0);
             return res <= DoubleParser.Result.Empty;
         }
 
         public static uint Hash(uint seed, ReadOnlyMemory<char> memory)
         {
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-            return Hashing.MurmurHash(seed, outerBuffer, ichMin, ichLim);
+            return Hashing.MurmurHash(seed, memory);
         }
 
         // REVIEW: Add method to NormStr.Pool that deal with ReadOnlyMemory instead of the other way around.
