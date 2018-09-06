@@ -44,7 +44,8 @@ namespace Microsoft.ML.Transforms
                 _host.CheckNonEmpty(outputColName, nameof(outputColName));
 
                 _outputColName = outputColName;
-                _outputColType = new VectorType(NumberType.R4);
+                _outputColType = new VectorType(NumberType.R4, 3);
+
                 _inputColIndices = new int[inputColNames.Length];
                 var colNames = new string[inputColNames.Length];
                 for (int i = 0; i < inputColNames.Length; i++)
@@ -62,16 +63,14 @@ namespace Microsoft.ML.Transforms
                 using (var ch = _host.Start("CreateGetters"))
                 {
                     if (activeOutput(0))
-                        getters[0] = MakeGetter<int>(input);
+                        getters[0] = MakeGetter<float>(input);
                     ch.Done();
                     return getters;
                 }
             }
-
             private Delegate MakeGetter<T>(IRow input)
             {
                 _host.AssertValue(input);
-
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                 {
                     var values = dst.Values;
