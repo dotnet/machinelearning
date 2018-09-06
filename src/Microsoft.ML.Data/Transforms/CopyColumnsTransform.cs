@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.Data
                     throw _host.ExceptParam(nameof(inputSchema), $"{column.Source} not found in {nameof(inputSchema)}");
                 }
             }
-            return new SchemaShape(resultDic.Values.ToArray());
+            return new SchemaShape(resultDic.Values);
         }
     }
 

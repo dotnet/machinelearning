@@ -8,7 +8,6 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
-using System;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -113,24 +112,21 @@ namespace Microsoft.ML.Tests
         void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            using (var env = new TlcEnvironment())
-            {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new TermEstimator(env, new[]{
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var est = new TermEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC")
                 });
-                var transformer = est.Fit(dataView);
-                var result = transformer.Transform(dataView);
-                var resultRoles = new RoleMappedData(result);
-                using (var ms = new MemoryStream())
-                {
-                    TrainUtils.SaveModel(env, env.Start("saving"), ms, null, resultRoles);
-                    ms.Position = 0;
-                    var loadedView = ModelFileUtils.LoadTransforms(env, dataView, ms);
-                    ValidateTermTransformer(loadedView);
-                }
+            var transformer = est.Fit(dataView);
+            var result = transformer.Transform(dataView);
+            var resultRoles = new RoleMappedData(result);
+            using (var ms = new MemoryStream())
+            {
+                TrainUtils.SaveModel(Env, Env.Start("saving"), ms, null, resultRoles);
+                ms.Position = 0;
+                var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
+                ValidateTermTransformer(loadedView);
             }
         }
 
@@ -138,21 +134,18 @@ namespace Microsoft.ML.Tests
         void TestMetadataCopy()
         {
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
-            using (var env = new TlcEnvironment())
-            {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var termEst = new TermEstimator(env, new[] {
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var termEst = new TermEstimator(Env, new[] {
                     new TermTransform.ColumnInfo("Term" ,"T") });
-                var termTransformer = termEst.Fit(dataView);
-                var result = termTransformer.Transform(dataView);
+            var termTransformer = termEst.Fit(dataView);
+            var result = termTransformer.Transform(dataView);
 
-                result.Schema.TryGetColumnIndex("T", out int termIndex);
-                var names1 = default(VBuffer<DvText>);
-                var type1 = result.Schema.GetColumnType(termIndex);
-                int size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
-                result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
-                Assert.True(names1.Count > 0);
-            }
+            result.Schema.TryGetColumnIndex("T", out int termIndex);
+            var names1 = default(VBuffer<DvText>);
+            var type1 = result.Schema.GetColumnType(termIndex);
+            int size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
+            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
+            Assert.True(names1.Count > 0);
         }
 
         [Fact]
