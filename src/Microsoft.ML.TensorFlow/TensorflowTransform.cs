@@ -117,8 +117,8 @@ namespace Microsoft.ML.Transforms
             // int: number of output columns
             // for each output column
             //   int: id of output column name
-            byte[] modelStream = null;
-            if (!ctx.TryLoadBinaryStream("TFModel", r => modelStream = r.ReadByteArray()))
+            byte[] modelBytes = null;
+            if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                 throw env.ExceptDecode();
             var numInputs = ctx.Reader.ReadInt32();
             env.CheckDecode(numInputs > 0);
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms
             for (int j = 0; j < outputs.Length; j++)
                 outputs[j] = ctx.LoadNonEmptyString();
 
-            return new TensorFlowTransform(env, modelStream, inputs, outputs);
+            return new TensorFlowTransform(env, modelBytes, inputs, outputs);
         }
 
         // Factory method for SignatureDataTransform.
@@ -186,20 +186,20 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        private TensorFlowTransform(IHostEnvironment env, byte[] modelStream, string[] inputs, string[] outputs)
+        private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
-            _host.CheckValue(modelStream, nameof(modelStream));
-            Session = LoadTFSession(modelStream);
+            _host.CheckValue(modelBytes, nameof(modelBytes));
+            Session = LoadTFSession(modelBytes);
             foreach (var input in inputs)
             {
                 _host.CheckNonWhiteSpace(input, nameof(inputs));
                 if (Session.Graph[input] == null)
-                    throw _host.ExceptParam(nameof(outputs), $"Input column '{input}'  does not exist in the model");
+                    throw _host.ExceptParam(nameof(inputs), $"Input column '{input}' does not exist in the model");
                 var tfInput = new TFOutput(Session.Graph[input]);
                 if (!TensorFlowUtils.IsTypeSupported(tfInput.OutputType))
-                    throw _host.Except($"Input type '{tfInput.OutputType}' of input column '{input}' is not supported in TensorFlow");
+                    throw _host.ExceptParam(nameof(modelBytes), $"Input type '{tfInput.OutputType}' of input column '{input}' is not supported in TensorFlow");
             }
 
             var newNames = new HashSet<string>();
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Transforms
                 if (!newNames.Add(output))
                     throw _host.ExceptParam(nameof(outputs), $"Output column '{output}' specified multiple times");
                 if (Session.Graph[output] == null)
-                    throw _host.ExceptParam(nameof(outputs), $"Output column '{output}'  does not exist in the model");
+                    throw _host.ExceptParam(nameof(outputs), $"Output column '{output}' does not exist in the model");
             }
 
             Inputs = inputs;
@@ -558,6 +558,5 @@ namespace Microsoft.ML.Transforms
                 resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i], SchemaShape.Column.VectorKind.Vector, Transformer.OutputTypes[i].ItemType, false);
             return new SchemaShape(resultDic.Values);
         }
-
     }
 }
