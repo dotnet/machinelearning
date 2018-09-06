@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.Data
             _columns = columns;
         }
 
-        public CopyColumnsTransform Fit(IDataView input)
+        public CopyColumnsTransform Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
         {
             // Invoke schema validation.
             GetOutputSchema(SchemaShape.Create(input.Schema));

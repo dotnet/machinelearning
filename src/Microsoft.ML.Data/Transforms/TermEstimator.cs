@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Data
             _columns = columns;
         }
 
-        public TermTransform Fit(IDataView input) => new TermTransform(_host, input, _columns);
+        public TermTransform Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null) => new TermTransform(_host, input, _columns);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {

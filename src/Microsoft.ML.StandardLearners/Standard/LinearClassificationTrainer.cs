@@ -1478,7 +1478,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, ISchema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IDataView validationData) => TrainTransformer(trainData, validationData);
+        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IDataView validationData = null, IPredictor initialPredictor = null) => TrainTransformer(trainData, validationData, initialPredictor);
     }
 
     public sealed class StochasticGradientDescentClassificationTrainer :

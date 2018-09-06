@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.Training
             WeightColumn = weight;
         }
 
-        public TTransformer Fit(IDataView input) => TrainTransformer(input);
+        public TTransformer Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null) => TrainTransformer(input, validationData, initialPredictor);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {

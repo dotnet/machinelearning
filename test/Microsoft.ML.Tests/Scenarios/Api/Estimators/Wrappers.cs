@@ -245,7 +245,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Info = trainerInfo;
         }
 
-        public TTransformer Fit(IDataView input)
+        public TTransformer Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
         {
             return TrainTransformer(input);
         }
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _args = args;
         }
 
-        public TransformWrapper Fit(IDataView input)
+        public TransformWrapper Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
         {
             var xf = TextTransform.Create(_env, _args, input);
             var empty = new EmptyDataView(_env, input.Schema);
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _source = source;
         }
 
-        public TransformWrapper Fit(IDataView input)
+        public TransformWrapper Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
         {
             var xf = new ConcatTransform(_env, input, _name, _source);
             var empty = new EmptyDataView(_env, input.Schema);
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _source = source;
         }
 
-        public TransformWrapper Fit(IDataView input)
+        public TransformWrapper Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
         {
             var xf = new KeyToValueTransform(_env, input, _name, _source);
             var empty = new EmptyDataView(_env, input.Schema);
@@ -377,29 +377,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             throw new NotImplementedException();
         }
-    }
-
-    public sealed class MyAveragedPerceptron : TrainerBase<BinaryScorerWrapper<IPredictor>, IPredictor>
-    {
-        private readonly AveragedPerceptronTrainer _trainer;
-
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-
-        public MyAveragedPerceptron(IHostEnvironment env, AveragedPerceptronTrainer.Arguments args, string featureCol, string labelCol)
-            : base(env, new TrainerInfo(caching: false), featureCol, labelCol)
-        {
-            _trainer = new AveragedPerceptronTrainer(env, args);
-        }
-
-        protected override IPredictor TrainCore(TrainContext trainContext) => _trainer.Train(trainContext);
-
-        public ITransformer Train(IDataView trainData, IPredictor initialPredictor)
-        {
-            return TrainTransformer(trainData, initPredictor: initialPredictor);
-        }
-
-        protected override BinaryScorerWrapper<IPredictor> MakeScorer(IPredictor predictor, RoleMappedData data)
-            => new BinaryScorerWrapper<IPredictor>(_env, predictor, data.Data.Schema, _featureCol, new BinaryClassifierScorer.Arguments());
     }
 
     public sealed class MyPredictionEngine<TSrc, TDst>
@@ -533,7 +510,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _action = action;
         }
 
-        public TransformWrapper Fit(IDataView input)
+        public TransformWrapper Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
         {
             var xf = LambdaTransform.CreateMap(_env, input, _action);
             var empty = new EmptyDataView(_env, input.Schema);

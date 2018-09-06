@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.Data
             LastEstimator = null;
         }
 
-        public TransformerChain<TLastTransformer> Fit(IDataView input)
+        public TransformerChain<TLastTransformer> Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null)
         {
             // REVIEW: before fitting, run schema propagation.
             // Currently, it throws.

@@ -8,7 +8,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// The trivial implementation of <see cref="IEstimator{TTransformer}"/> that already has
-    /// the transformer and returns it on every call to <see cref="Fit(IDataView)"/>.
+    /// the transformer and returns it on every call to <see cref="Fit(IDataView, IDataView, IPredictor)"/>.
     ///
     /// Concrete implementations still have to provide the schema propagation mechanism, since
     /// there is no easy way to infer it from the transformer.
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Data
             Transformer = transformer;
         }
 
-        public TTransformer Fit(IDataView input) => Transformer;
+        public TTransformer Fit(IDataView input, IDataView validationData = null, IPredictor initialPredictor = null) => Transformer;
 
         public abstract SchemaShape GetOutputSchema(SchemaShape inputSchema);
     }
