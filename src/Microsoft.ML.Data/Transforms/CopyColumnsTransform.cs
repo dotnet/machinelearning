@@ -304,29 +304,11 @@ namespace Microsoft.ML.Runtime.Data
             for (int i = 0; i < _columns.Length; i++)
             {
                 _schema.TryGetColumnIndex(_columns[i].Source, out int colIndex);
-                //REVIEW: Metadata need to be switched to IRow instead of ColumMetadataInfo
-                var colMetaInfo = new ColumnMetadataInfo(_columns[i].Name);
-                var types = _schema.GetMetadataTypes(colIndex);
                 var colType = _schema.GetColumnType(colIndex);
-                foreach (var type in types)
-                {
-                    Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, _schema, type.Key, type.Value, _colNewToOldMapping);
-                }
-                result[i] = new RowMapperColumnInfo(_columns[i].Name, colType, colMetaInfo);
+                var meta = new RowColumnUtils.MetadataRow(_schema, colIndex);
+                result[i] = new RowMapperColumnInfo(_columns[i].Name, colType, meta);
             }
             return result;
-        }
-
-        private int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, Dictionary<int, int> colMap)
-        {
-            MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
-            {
-                var originalCol = colMap[col];
-                schema.GetMetadata<T>(kind, originalCol, ref dst);
-            };
-            var info = new MetadataInfo<T>(ct, getter);
-            colMetaInfo.Add(kind, info);
-            return 0;
         }
 
         public void Save(ModelSaveContext ctx)
