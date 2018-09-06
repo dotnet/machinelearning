@@ -181,6 +181,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
                 labelNames = new VBuffer<ReadOnlyMemory<char>>(2, new[] { "positive".AsMemory(), "negative".AsMemory() });
+
             ReadOnlyMemory<char>[] names = new ReadOnlyMemory<char>[2];
             labelNames.CopyTo(names);
             return names;

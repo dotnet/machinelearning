@@ -1,26 +1,19 @@
-﻿using Microsoft.ML.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Microsoft.ML.Runtime.Data
 {
     public static class ReadOnlyMemoryUtils
     {
-        public static int GetHashCode(this ReadOnlyMemory<char> memory) => (int)Hash(42, memory);
-
-        public static bool Equals(this ReadOnlyMemory<char> memory, object obj)
-        {
-            if (obj is ReadOnlyMemory<char>)
-                return Equals((ReadOnlyMemory<char>)obj, memory);
-            return false;
-        }
 
         /// <summary>
-        /// This implements IEquatable's Equals method. Returns true if both are NA.
-        /// For NA propagating equality comparison, use the == operator.
+        /// This implements IEquatable's Equals method.
         /// </summary>
         public static bool Equals(ReadOnlyMemory<char> b, ReadOnlyMemory<char> memory)
         {
@@ -29,8 +22,6 @@ namespace Microsoft.ML.Runtime.Data
 
             Contracts.Assert(memory.IsEmpty == b.IsEmpty);
 
-            int ichLim = memory.Length;
-            int bIchLim = b.Length;
             for (int i = 0; i < memory.Length; i++)
             {
                 if (memory.Span[i] != b.Span[i])
@@ -40,30 +31,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Does not propagate NA values. Returns true if both are NA (same as a.Equals(b)).
-        /// For NA propagating equality comparison, use the == operator.
-        /// </summary>
-        public static bool Identical(ReadOnlyMemory<char> a, ReadOnlyMemory<char> b)
-        {
-            if (a.Length != b.Length)
-                return false;
-            if (!a.IsEmpty)
-            {
-                Contracts.Assert(!b.IsEmpty);
-
-                int aIchLim = a.Length;
-                int bIchLim = b.Length;
-                for (int i = 0; i < a.Length; i++)
-                {
-                    if (a.Span[i] != b.Span[i])
-                        return false;
-                }
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Compare equality with the given system string value. Returns false if "this" is NA.
+        /// Compare equality with the given system string value.
         /// </summary>
         public static bool EqualsStr(string s, ReadOnlyMemory<char> memory)
         {
@@ -75,7 +43,6 @@ namespace Microsoft.ML.Runtime.Data
             if (s.Length != memory.Length)
                 return false;
 
-            int ichLim = memory.Length;
             for (int i = 0; i < memory.Length; i++)
             {
                 if (s[i] != memory.Span[i])
@@ -87,21 +54,14 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// For implementation of ReadOnlyMemory. Uses code point comparison.
         /// Generally, this is not appropriate for sorting for presentation to a user.
-        /// Sorts NA before everything else.
         /// </summary>
         public static int CompareTo(ReadOnlyMemory<char> other, ReadOnlyMemory<char> memory)
         {
             int len = Math.Min(memory.Length, other.Length);
-            int ichMin = 0;
-            int ichLim = memory.Length;
-
-            int otherIchMin = 0;
-            int otherIchLim = other.Length;
-
             for (int ich = 0; ich < len; ich++)
             {
-                char ch1 = memory.Span[ichMin + ich];
-                char ch2 = other.Span[otherIchMin + ich];
+                char ch1 = memory.Span[ich];
+                char ch2 = other.Span[ich];
                 if (ch1 != ch2)
                     return ch1 < ch2 ? -1 : +1;
             }
@@ -360,12 +320,8 @@ namespace Microsoft.ML.Runtime.Data
             return res <= DoubleParser.Result.Empty;
         }
 
-        public static uint Hash(uint seed, ReadOnlyMemory<char> memory)
-        {
-            return Hashing.MurmurHash(seed, memory);
-        }
+        public static uint Hash(uint seed, ReadOnlyMemory<char> memory) => Hashing.MurmurHash(seed, memory);
 
-        // REVIEW: Add method to NormStr.Pool that deal with ReadOnlyMemory instead of the other way around.
         public static NormStr AddToPool(NormStr.Pool pool, ReadOnlyMemory<char> memory)
         {
             Contracts.CheckValue(pool, nameof(pool));

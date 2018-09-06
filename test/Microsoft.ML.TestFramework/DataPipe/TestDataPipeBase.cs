@@ -621,7 +621,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             sch1.GetMetadata(kind, col, ref names1);
             sch2.GetMetadata(kind, col, ref names2);
-            if (!CompareVec(ref names1, ref names2, size, ReadOnlyMemoryUtils.Identical))
+            if (!CompareVec(ref names1, ref names2, size, ReadOnlyMemoryUtils.Equals))
             {
                 Fail("Different {0} metadata values", kind);
                 return Failed();
@@ -1019,7 +1019,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             return GetComparerOne<Double>(r1, r2, col, EqualWithEps);
                     case DataKind.Text:
-                        return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, ReadOnlyMemoryUtils.Identical);
+                        return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, ReadOnlyMemoryUtils.Equals);
                     case DataKind.Bool:
                         return GetComparerOne<DvBool>(r1, r2, col, (x, y) => x.Equals(y));
                     case DataKind.TimeSpan:
@@ -1065,7 +1065,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
                     case DataKind.Text:
-                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, ReadOnlyMemoryUtils.Identical);
+                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, ReadOnlyMemoryUtils.Equals);
                     case DataKind.Bool:
                         return GetComparerVec<DvBool>(r1, r2, col, size, (x, y) => x.Equals(y));
                     case DataKind.TimeSpan:

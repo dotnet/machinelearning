@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.Learners
                         var name = featureNames.GetItemOrDefault(idx);
 
                         inputBuilder.AppendLine("[Input:" + numNonZeroWeights + "]");
-                        inputBuilder.AppendLine("Name=" + (featureNames.Count == 0 ? "Feature_" + idx : ReadOnlyMemoryUtils.Identical(name, String.Empty.AsMemory()) ? $"f{idx}" : name.ToString()));
+                        inputBuilder.AppendLine("Name=" + (featureNames.Count == 0 ? "Feature_" + idx : ReadOnlyMemoryUtils.Equals(name, String.Empty.AsMemory()) ? $"f{idx}" : name.ToString()));
                         inputBuilder.AppendLine("Transform=linear");
                         inputBuilder.AppendLine("Slope=1");
                         inputBuilder.AppendLine("Intercept=0");
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Learners
                 int index = weight.Key;
                 var name = names.GetItemOrDefault(index);
                 list.Add(new KeyValuePair<string, Single>(
-                    ReadOnlyMemoryUtils.Identical(name, String.Empty.AsMemory()) ? $"f{index}" : name.ToString(), weight.Value));
+                    ReadOnlyMemoryUtils.Equals(name, String.Empty.AsMemory()) ? $"f{index}" : name.ToString(), weight.Value));
             }
 
             return list;

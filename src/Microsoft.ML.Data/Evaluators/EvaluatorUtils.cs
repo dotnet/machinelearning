@@ -966,7 +966,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var result = true;
                     VBufferUtils.ForEachEitherDefined(ref currSlotNames, ref firstDvSlotNames,
-                        (slot, val1, val2) => result = result && ReadOnlyMemoryUtils.Identical(val1, val2));
+                        (slot, val1, val2) => result = result && ReadOnlyMemoryUtils.Equals(val1, val2));
                     return result;
                 }
             }

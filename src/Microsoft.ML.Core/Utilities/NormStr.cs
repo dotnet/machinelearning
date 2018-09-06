@@ -121,9 +121,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 AssertValid();
 
-                if (str.IsEmpty)
-                    str = "".AsMemory();
-
                 uint hash = Hashing.HashString(str);
                 int ins = GetIns(hash);
                 while (ins >= 0)
@@ -153,46 +150,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             public NormStr Add(ReadOnlyMemory<char> str)
             {
                 return Get(str, true);
-            }
-
-            /// <summary>
-            /// Determine if the given sub-string has an equivalent NormStr in the pool.
-            /// </summary>
-            public NormStr Get(ReadOnlyMemory<char> str, int ichMin, int ichLim, bool add = false)
-            {
-                AssertValid();
-
-                return Get(str, add);
-
-                /*uint hash = Hashing.HashString(str, ichMin, ichLim);
-                int ins = GetIns(hash);
-                if (ins >= 0)
-                {
-                    int cch = ichLim - ichMin;
-                    var rgmeta = _rgmeta;
-                    for (; ; )
-                    {
-                        ulong meta = rgmeta[ins];
-                        if ((int)Utils.GetLo(meta) == cch)
-                        {
-                            var ns = GetNs(ins);
-                            var value = ns.Value;
-                            for (int ich = 0; ; ich++)
-                            {
-                                if (ich == cch)
-                                    return ns;
-                                if (value[ich] != str[ich + ichMin])
-                                    break;
-                            }
-                        }
-                        ins = (int)Utils.GetHi(meta);
-                        if (ins < 0)
-                            break;
-                    }
-                }
-                Contracts.Assert(ins == -1);
-
-                return add ? AddCore(str.Substring(ichMin, ichLim - ichMin), hash) : null;*/
             }
 
             /// <summary>

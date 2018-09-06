@@ -776,7 +776,7 @@ namespace Microsoft.ML.Runtime.Learners
                     var name = names.GetItemOrDefault(index);
 
                     results.Add(new KeyValuePair<string, object>(
-                        string.Format("{0}+{1}", GetLabelName(classNumber), ReadOnlyMemoryUtils.Identical(name, String.Empty.AsMemory()) ? $"f{index}" : name.ToString()),
+                        string.Format("{0}+{1}", GetLabelName(classNumber), ReadOnlyMemoryUtils.Equals(name, String.Empty.AsMemory()) ? $"f{index}" : name.ToString()),
                         value
                     ));
                 }
