@@ -76,6 +76,23 @@ namespace Microsoft.ML.Transforms
                 (_inputColNames, _inputColIndices, _isVectorInput, _tfInputShapes, _tfInputTypes) = GetInputMetaData(_session.Graph, inputColNames, inputSchema);
             }
 
+            public TensorFlowMapper(IHostEnvironment env, ISchema inputSchema, string exportDir, string[] inputColNames, string outputColName)
+            {
+                Contracts.CheckValue(env, nameof(env));
+                _host = env.Register("TensorFlowMapper");
+                _host.CheckValue(inputSchema, nameof(inputSchema));
+                _host.CheckNonEmpty(inputColNames, nameof(inputColNames));
+                _host.CheckNonEmpty(outputColName, nameof(outputColName));
+
+                _session = LoadTFSession(exportDir);
+                _host.CheckValue(_session.Graph[outputColName], nameof(outputColName), "Output does not exist in the model");
+                _host.Check(inputColNames.All(name => _session.Graph[name] != null), "One of the input does not exist in the model");
+
+                _outputColName = outputColName;
+                (_outputColType, _tfOutputType) = GetOutputTypes(_session.Graph, _outputColName);
+                (_inputColNames, _inputColIndices, _isVectorInput, _tfInputShapes, _tfInputTypes) = GetInputMetaData(_session.Graph, inputColNames, inputSchema);
+            }
+
             public static TensorFlowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
             {
                 Contracts.CheckValue(env, nameof(env));
@@ -136,6 +153,17 @@ namespace Microsoft.ML.Transforms
 
                 }
                 return new TFSession(graph);
+            }
+            private TFSession LoadTFSession(string exportDirSavedModel)
+            {
+                var sessionOptions = new TFSessionOptions();
+                var exportDir = exportDirSavedModel;
+                var tags = new string[] { "serve" };
+                var graph = new TFGraph();
+                var metaGraphDef = new TFBuffer();
+
+                var session = TFSession.FromSavedModel(sessionOptions, null, exportDir, tags, graph, metaGraphDef);
+                return session;
             }
 
             private ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, TFShape tfShape)
@@ -293,6 +321,9 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the output", ShortName = "output", SortOrder = 2)]
             public string OutputColumn;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicator for frozen models", ShortName = "Frozen", SortOrder = 3)]
+            public bool IsFrozen = true;
         }
 
         public const string Summary = "Transforms the data using the TensorFlow model.";
@@ -306,11 +337,12 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="modelFile">This is the frozen TensorFlow model file. https://www.tensorflow.org/mobile/prepare_models </param>
+        /// <param name="isFrozen"></param>
         /// <param name="name">Name of the output column. Keep it same as in the TensorFlow model.</param>
         /// <param name="source">Name of the input column(s). Keep it same as in the TensorFlow model.</param>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string name, params string[] source)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, bool isFrozen, string name, params string[] source)
         {
-            return Create(env, new Arguments() { InputColumns = source, OutputColumn = name, ModelFile = modelFile }, input);
+            return Create(env, new Arguments() { InputColumns = source, OutputColumn = name, ModelFile = modelFile, IsFrozen = isFrozen }, input);
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
@@ -323,10 +355,20 @@ namespace Microsoft.ML.Transforms
             for (int i = 0; i < args.InputColumns.Length; i++)
                 host.CheckNonWhiteSpace(args.InputColumns[i], nameof(args.InputColumns));
             host.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
-            host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
 
-            var modelBytes = File.ReadAllBytes(args.ModelFile);
-            var mapper = new TensorFlowMapper(host, input.Schema, modelBytes, args.InputColumns, args.OutputColumn);
+            TensorFlowMapper mapper = null;
+            if (args.IsFrozen)
+            {
+                host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
+                var modelBytes = File.ReadAllBytes(args.ModelFile);
+                mapper = new TensorFlowMapper(host, input.Schema, modelBytes, args.InputColumns, args.OutputColumn);
+            }
+            else
+            {
+                var exportDir = args.ModelFile;
+                mapper = new TensorFlowMapper(host, input.Schema, exportDir, args.InputColumns, args.OutputColumn);
+            }
+
             return new RowToRowMapperTransform(host, input, mapper);
         }
 

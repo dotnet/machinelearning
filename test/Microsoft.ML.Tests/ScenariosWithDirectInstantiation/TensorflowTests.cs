@@ -41,7 +41,7 @@ namespace Microsoft.ML.Scenarios
                                          b = new[] { 3.0f, 3.0f,
                                                      3.0f, 3.0f } } }));
 
-                var trans = TensorFlowTransform.Create(env, loader, model_location, "c", "a", "b");
+                var trans = TensorFlowTransform.Create(env, loader, model_location, true, "c", "a", "b");
 
                 using (var cursor = trans.GetRowCursor(a => true))
                 {
@@ -103,9 +103,9 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                IDataView trans = TensorFlowTransform.Create(env, loader, model_location, "Softmax", "Placeholder");
+                IDataView trans = TensorFlowTransform.Create(env, loader, model_location, true, "Softmax", "Placeholder");
                 trans = new ConcatTransform(env, trans, "reshape_input", "Placeholder");
-                trans = TensorFlowTransform.Create(env, trans, model_location, "dense/Relu", "reshape_input");
+                trans = TensorFlowTransform.Create(env, trans, model_location, true, "dense/Relu", "reshape_input");
                 trans = new ConcatTransform(env, trans, "Features", "Softmax", "dense/Relu");
 
                 var trainer = new LightGbmMulticlassTrainer(env, new LightGbmArguments());
@@ -208,7 +208,61 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, "Output", "Input");
+                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, true, "Output", "Input");
+
+                trans.Schema.TryGetColumnIndex("Output", out int output);
+                using (var cursor = trans.GetRowCursor(col => col == output))
+                {
+                    var buffer = default(VBuffer<float>);
+                    var getter = cursor.GetGetter<VBuffer<float>>(output);
+                    var numRows = 0;
+                    while (cursor.MoveNext())
+                    {
+                        getter(ref buffer);
+                        Assert.Equal(10, buffer.Length);
+                        numRows += 1;
+                    }
+                    Assert.Equal(3, numRows);
+                }
+            }
+        }
+
+        [Fact]
+        public void TensorFlowTransformCifarSavedModel()
+        {
+            var model_location = GetDataPath("cifar_save10");
+
+            using (var env = new TlcEnvironment())
+            {
+                var imageHeight = 32;
+                var imageWidth = 32;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
+                    }
+                }, cropped);
+
+
+                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, false, "Output", "Input");
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
@@ -317,7 +371,7 @@ namespace Microsoft.ML.Scenarios
                 var thrown = false;
                 try
                 {
-                    IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, "Output", "Input");
+                    IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, true, "Output", "Input");
                 }
                 catch
                 {

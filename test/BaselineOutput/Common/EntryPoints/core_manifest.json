@@ -21758,6 +21758,18 @@
           "Required": true,
           "SortOrder": 2.0,
           "IsNullable": false
+        },
+        {
+          "Name": "IsFrozen",
+          "Type": "Bool",
+          "Desc": "Indicator for frozen models",
+          "Aliases": [
+            "Frozen"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": true
         }
       ],
       "Outputs": [
