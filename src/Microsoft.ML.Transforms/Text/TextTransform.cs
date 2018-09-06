@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -124,16 +125,23 @@ namespace Microsoft.ML.Runtime.Data
             public TextNormKind VectorNormalizer = TextNormKind.L2;
         }
 
+        public sealed class Settings
+        {
+#pragma warning disable MSML_NoInstanceInitializers // No initializers on instance fields or properties
+            public Language TextLanguage { get; set; } = DefaultLanguage;
+            public CaseNormalizationMode TextCase { get; set; } = CaseNormalizationMode.Lower;
+            public bool KeepDiacritics { get; set; } = false;
+            public bool KeepPunctuations { get; set; } = true;
+            public bool KeepNumbers { get; set; } = true;
+            public bool OutputTokens { get; set; } = false;
+            public TextNormKind VectorNormalizer { get; set; } = TextNormKind.L2;
+#pragma warning restore MSML_NoInstanceInitializers // No initializers on instance fields or properties
+        }
+
+        public readonly string OutputColumn;
         private readonly string[] _inputColumns;
         public IReadOnlyCollection<string> InputColumns => _inputColumns.AsReadOnly();
-        public readonly string OutputColumn;
-        public readonly Language TextLanguage;
-        public readonly CaseNormalizationMode TextCase;
-        public readonly bool KeepDiacritics;
-        public readonly bool KeepPunctuations;
-        public readonly bool KeepNumbers;
-        public readonly bool OutputTokens;
-        public readonly TextNormKind VectorNormalizer;
+        public Settings AdvancedSettings { get; }
 
         // These parameters are hardcoded for now.
         // REVIEW: expose them once sub-transforms are estimators.
@@ -235,18 +243,18 @@ namespace Microsoft.ML.Runtime.Data
             public TransformApplierParams(TextTransform parent)
             {
                 var host = parent._host;
-                host.Check(Enum.IsDefined(typeof(Language), parent.TextLanguage));
-                host.Check(Enum.IsDefined(typeof(CaseNormalizationMode), parent.TextCase));
+                host.Check(Enum.IsDefined(typeof(Language), parent.AdvancedSettings.TextLanguage));
+                host.Check(Enum.IsDefined(typeof(CaseNormalizationMode), parent.AdvancedSettings.TextCase));
                 WordExtractorFactory = parent._wordFeatureExtractor?.CreateComponent(host, parent._dictionary);
                 CharExtractorFactory = parent._charFeatureExtractor?.CreateComponent(host, parent._dictionary);
-                VectorNormalizer = parent.VectorNormalizer;
-                Language = parent.TextLanguage;
+                VectorNormalizer = parent.AdvancedSettings.VectorNormalizer;
+                Language = parent.AdvancedSettings.TextLanguage;
                 StopWordsRemover = parent._stopWordsRemover;
-                TextCase = parent.TextCase;
-                KeepDiacritics = parent.KeepDiacritics;
-                KeepPunctuations = parent.KeepPunctuations;
-                KeepNumbers = parent.KeepNumbers;
-                OutputTextTokens = parent.OutputTokens;
+                TextCase = parent.AdvancedSettings.TextCase;
+                KeepDiacritics = parent.AdvancedSettings.KeepDiacritics;
+                KeepPunctuations = parent.AdvancedSettings.KeepPunctuations;
+                KeepNumbers = parent.AdvancedSettings.KeepNumbers;
+                OutputTextTokens = parent.AdvancedSettings.OutputTokens;
                 Dictionary = parent._dictionary;
             }
         }
@@ -262,42 +270,27 @@ namespace Microsoft.ML.Runtime.Data
         private const string TransformedTextColFormat = "{0}_TransformedText";
 
         public TextTransform(IHostEnvironment env, string inputColumn, string outputColumn = null,
-            Language textLanguage = DefaultLanguage,
-            CaseNormalizationMode textCase = CaseNormalizationMode.Lower,
-            bool keepDiacritics = false,
-            bool keepPunctuations = true,
-            bool keepNumbers = true,
-            bool outputTokens = false,
-            TextNormKind vectorNormalizer = TextNormKind.L2)
-            : this(env, new[] { inputColumn }, outputColumn ?? inputColumn, textLanguage, textCase,
-                  keepDiacritics, keepPunctuations, keepNumbers, outputTokens, vectorNormalizer)
+            Action<Settings> advancedSettings = null)
+            : this(env, new[] { inputColumn }, outputColumn ?? inputColumn, advancedSettings)
         {
         }
 
-        public TextTransform(IHostEnvironment env, string[] inputColumns, string outputColumn,
-            Language textLanguage = DefaultLanguage,
-            CaseNormalizationMode textCase = CaseNormalizationMode.Lower,
-            bool keepDiacritics = false,
-            bool keepPunctuations = true,
-            bool keepNumbers = true,
-            bool outputTokens = false,
-            TextNormKind vectorNormalizer = TextNormKind.L2)
+        public TextTransform(IHostEnvironment env, IEnumerable<string> inputColumns, string outputColumn,
+            Action<Settings> advancedSettings = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TextTransform));
-            _host.CheckNonEmpty(inputColumns, nameof(inputColumns));
+            _host.CheckValue(inputColumns, nameof(inputColumns));
+            _host.CheckParam(inputColumns.Any(), nameof(inputColumns));
             _host.CheckParam(!inputColumns.Any(string.IsNullOrWhiteSpace), nameof(inputColumns));
             _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
+            _host.CheckValueOrNull(advancedSettings);
 
             _inputColumns = inputColumns.ToArray();
             OutputColumn = outputColumn;
-            TextLanguage = textLanguage;
-            TextCase = textCase;
-            KeepDiacritics = keepDiacritics;
-            KeepPunctuations = keepPunctuations;
-            KeepNumbers = keepNumbers;
-            OutputTokens = outputTokens;
-            VectorNormalizer = vectorNormalizer;
+
+            AdvancedSettings = new Settings();
+            advancedSettings?.Invoke(AdvancedSettings);
 
             _stopWordsRemover = null;
             _dictionary = null;
@@ -544,12 +537,12 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             var metadata = new List<string> { MetadataUtils.Kinds.SlotNames };
-            if (VectorNormalizer != TextNormKind.None)
+            if (AdvancedSettings.VectorNormalizer != TextNormKind.None)
                 metadata.Add(MetadataUtils.Kinds.IsNormalized);
 
             result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false,
                 metadata.ToArray());
-            if (OutputTokens)
+            if (AdvancedSettings.OutputTokens)
             {
                 string name = string.Format(TransformedTextColFormat, OutputColumn);
                 result[name] = new SchemaShape.Column(name, SchemaShape.Column.VectorKind.VariableVector, TextType.Instance, false);
@@ -560,16 +553,18 @@ namespace Microsoft.ML.Runtime.Data
 
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
         {
-            var estimator = new TextTransform(env,
-                args.Column.Source ?? new[] { args.Column.Name },
-            args.Column.Name,
-            args.Language,
-            args.TextCase,
-            args.KeepDiacritics,
-            args.KeepPunctuations,
-            args.KeepNumbers,
-            args.OutputTokens,
-            args.VectorNormalizer);
+            Action<Settings> settings = s =>
+            {
+                s.TextLanguage = args.Language;
+                s.TextCase = args.TextCase;
+                s.KeepDiacritics = args.KeepDiacritics;
+                s.KeepPunctuations = args.KeepPunctuations;
+                s.KeepNumbers = args.KeepNumbers;
+                s.OutputTokens = args.OutputTokens;
+                s.VectorNormalizer = args.VectorNormalizer;
+            };
+
+            var estimator = new TextTransform(env, args.Column.Source ?? new[] { args.Column.Name }, args.Column.Name, settings);
             estimator._stopWordsRemover = args.StopWordsRemover;
             estimator._dictionary = args.Dictionary;
             estimator._wordFeatureExtractor = args.WordFeatureExtractor;
@@ -659,6 +654,57 @@ namespace Microsoft.ML.Runtime.Data
                     verWeCanReadBack: 0x00010001,
                     loaderSignature: LoaderSignature);
             }
+        }
+
+        internal sealed class OutPipelineColumn : Vector<float>
+        {
+            public readonly Scalar<string>[] Inputs;
+
+            public OutPipelineColumn(IEnumerable<Scalar<string>> inputs, Action<Settings> advancedSettings)
+                : base(new Reconciler(advancedSettings), inputs.ToArray())
+            {
+                Inputs = inputs.ToArray();
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly Action<Settings> _settings;
+
+            public Reconciler(Action<Settings> advancedSettings)
+            {
+                _settings = advancedSettings;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var outCol = (OutPipelineColumn)toOutput[0];
+                var inputs = outCol.Inputs.Select(x => inputNames[x]);
+                return new TextTransform(env, inputs, outputNames[outCol], _settings);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class TextFeaturizerStaticPipe
+    {
+        public static Vector<float> FeaturizeText(this Scalar<string> input, params Scalar<string>[] otherInputs)
+            => input.FeaturizeText(otherInputs, null);
+
+        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextTransform.Settings> advancedSettings = null)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckValueOrNull(otherInputs);
+            otherInputs = otherInputs ?? new Scalar<string>[0];
+            return new TextTransform.OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
         }
     }
 }
