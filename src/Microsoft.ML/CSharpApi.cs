@@ -15800,6 +15800,11 @@ namespace Microsoft.ML
             public string[] OutputColumns { get; set; }
 
             /// <summary>
+            /// Indicator for frozen models
+            /// </summary>
+            public bool IsFrozen { get; set; } = true;
+
+            /// <summary>
             /// Input dataset
             /// </summary>
             public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();

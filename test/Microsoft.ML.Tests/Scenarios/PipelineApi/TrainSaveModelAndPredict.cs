@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Scenarios;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.TensorFlow;
+using System.IO;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi
@@ -37,6 +40,83 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var singlePrediction = loadedModel.Predict(new SentimentData() { SentimentText = "Not big fan of this." });
             Assert.True(singlePrediction.Sentiment);
 
+        }
+
+        [Fact]
+        public async void TensorFlowTransformTrainSaveModelAndPredict()
+        {
+            var imageHeight = 32;
+            var imageWidth = 32;
+            //var model_location = "cifar_model/frozen_model.pb";
+            var model_location = GetDataPath("cifar_save10");
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+
+            var pipeline = new LearningPipeline(seed: 1);
+            pipeline.Add(new TextLoader(dataFile).CreateFrom<CifarData>(useHeader: false));
+            pipeline.Add(new ImageLoader(("ImagePath", "ImageReal"))
+            {
+                ImageFolder = imageFolder
+            });
+
+            pipeline.Add(new ImageResizer(("ImageReal", "ImageCropped"))
+            {
+                ImageHeight = imageHeight,
+                ImageWidth = imageWidth,
+                Resizing = ImageResizerTransformResizingKind.IsoCrop
+            });
+
+            pipeline.Add(new ImagePixelExtractor(("ImageCropped", "Input"))
+            {
+                UseAlpha = false,
+                InterleaveArgb = true
+            });
+
+            pipeline.Add(new TensorFlowScorer()
+            {
+                ModelFile = model_location,
+                InputColumns = new[] { "Input" },
+                OutputColumns = new[] { "Output" },
+                IsFrozen = false
+            });
+
+            pipeline.Add(new ColumnConcatenator(outputColumn: "Features", "Output"));
+            pipeline.Add(new TextToKeyConverter("Label"));
+            pipeline.Add(new StochasticDualCoordinateAscentClassifier());
+
+            TensorFlowUtils.Initialize();
+            var model = pipeline.Train<CifarData, CifarPrediction>();
+
+            var modelName = "tf_TrainSaveAndPredictdModel.zip";
+            DeleteOutputPath(modelName);
+            await model.WriteAsync(modelName);
+
+            var loadedModel = await PredictionModel.ReadAsync<CifarData, CifarPrediction>(modelName);
+
+            string[] scoreLabels;
+            loadedModel.TryGetScoreLabelNames(out scoreLabels);
+
+            Assert.NotNull(scoreLabels);
+            Assert.Equal(3, scoreLabels.Length);
+            Assert.Equal("banana", scoreLabels[0]);
+            Assert.Equal("hotdog", scoreLabels[1]);
+            Assert.Equal("tomato", scoreLabels[2]);
+
+            CifarPrediction prediction = loadedModel.Predict(new CifarData()
+            {
+                ImagePath = GetDataPath("images/banana.jpg")
+            });
+            Assert.Equal(1, prediction.PredictedLabels[0], 2);
+            Assert.Equal(0, prediction.PredictedLabels[1], 2);
+            Assert.Equal(0, prediction.PredictedLabels[2], 2);
+
+            prediction = loadedModel.Predict(new CifarData()
+            {
+                ImagePath = GetDataPath("images/hotdog.jpg")
+            });
+            Assert.Equal(0, prediction.PredictedLabels[0], 2);
+            Assert.Equal(1, prediction.PredictedLabels[1], 2);
+            Assert.Equal(0, prediction.PredictedLabels[2], 2);
         }
     }
 }
