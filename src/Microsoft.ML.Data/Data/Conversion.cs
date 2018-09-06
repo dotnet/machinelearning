@@ -1108,10 +1108,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 return false;
             }
 
-            int ichMin;
-            int ichLim;
-            string text = ReadOnlyMemoryUtils.GetRawUnderlyingBufferInfo(out ichMin, out ichLim, src);
-            return TryParseCore(text, ichMin, ichLim, out dst);
+            return TryParseCore(src, out dst);
         }
 
         /// <summary>
@@ -1130,9 +1127,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 dst = default(UG);
                 return false;
             }
-            int ichMin;
-            int ichLim;
-            string tx = ReadOnlyMemoryUtils.GetRawUnderlyingBufferInfo(out ichMin, out ichLim, src);
+            int ichMin = 0;
+            int ichLim = src.Length;
             int offset = ichMin + 2;
             ulong hi = 0;
             ulong num = 0;
@@ -1141,7 +1137,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 for (int d = 0; d < 16; ++d)
                 {
                     num <<= 4;
-                    char c = tx[offset++];
+                    char c = src.Span[offset++];
                     // REVIEW: An exhaustive switch statement *might* be faster, maybe, at the
                     // cost of being significantly longer.
                     if ('0' <= c && c <= '9')
@@ -1241,11 +1237,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             }
 
             // Parse a ulong.
-            int ichMin;
-            int ichLim;
-            string text = ReadOnlyMemoryUtils.GetRawUnderlyingBufferInfo(out ichMin, out ichLim, src);
             ulong uu;
-            if (!TryParseCore(text, ichMin, ichLim, out uu))
+            if (!TryParseCore(src, out uu))
             {
                 dst = 0;
                 // Return true only for standard forms for NA.
@@ -1262,14 +1255,14 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             return true;
         }
 
-        private bool TryParseCore(string text, int ich, int lim, out ulong dst)
+        private bool TryParseCore(ReadOnlyMemory<char> text, out ulong dst)
         {
-            Contracts.Assert(0 <= ich && ich <= lim && lim <= Utils.Size(text));
-
+            int ich = 0;
+            int lim = text.Length;
             ulong res = 0;
             while (ich < lim)
             {
-                uint d = (uint)text[ich++] - (uint)'0';
+                uint d = (uint)text.Span[ich++] - (uint)'0';
                 if (d >= 10)
                     goto LFail;
 
@@ -1351,15 +1344,15 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// <summary>
         /// Returns false if the text is not parsable as an non-negative long or overflows.
         /// </summary>
-        private bool TryParseNonNegative(string text, int ich, int lim, out long result)
+        private bool TryParseNonNegative(ReadOnlyMemory<char> text, int ich, int lim, out long result)
         {
-            Contracts.Assert(0 <= ich && ich <= lim && lim <= Utils.Size(text));
+            Contracts.Assert(0 <= ich && ich <= lim && lim <= text.Length);
 
             long res = 0;
             while (ich < lim)
             {
                 Contracts.Assert(res >= 0);
-                uint d = (uint)text[ich++] - (uint)'0';
+                uint d = (uint)text.Span[ich++] - (uint)'0';
                 if (d >= 10)
                     goto LFail;
 
@@ -1398,15 +1391,14 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 return true;
             }
 
-            int ichMin;
-            int ichLim;
-            string text = ReadOnlyMemoryUtils.GetRawUnderlyingBufferInfo(out ichMin, out ichLim, span);
+            int ichMin = 0;
+            int ichLim = span.Length;
 
             long val;
             if (span.Span[0] == '-')
             {
                 if (span.Length == 1 ||
-                    !TryParseNonNegative(text, ichMin + 1, ichLim, out val) ||
+                    !TryParseNonNegative(span, ichMin + 1, ichLim, out val) ||
                     val > max)
                 {
                     result = -max - 1;
@@ -1418,7 +1410,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 return true;
             }
 
-            if (!TryParseNonNegative(text, ichMin, ichLim, out val))
+            if (!TryParseNonNegative(span, ichMin, ichLim, out val))
             {
                 // Check for acceptable NA forms: ? NaN NA and N/A.
                 result = -max - 1;

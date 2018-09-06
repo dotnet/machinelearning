@@ -510,7 +510,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// The current text for the entire line (all fields), and possibly more.
             /// </summary>
-            public readonly string TextBuf;
+            public ReadOnlyMemory<char> TextBuf;
 
             /// <summary>
             /// The min position in <see cref="TextBuf"/> to consider (all fields).
@@ -566,7 +566,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 Path = path;
                 Line = line;
-                TextBuf = ReadOnlyMemoryUtils.GetRawUnderlyingBufferInfo(out IchMinBuf, out IchLimBuf, text);
+                TextBuf = text;
+                IchMinBuf = 0;
+                IchLimBuf = text.Length;
                 IchMinNext = IchMinBuf;
             }
         }
@@ -1075,7 +1077,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (!_sepContainsSpace)
                     {
                         // Ignore leading spaces
-                        while (ichCur < ichLim && text[ichCur] == ' ')
+                        while (ichCur < ichLim && text.Span[ichCur] == ' ')
                             ichCur++;
                     }
 
@@ -1092,29 +1094,29 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     int ichMinRaw = ichCur;
-                    if (_sparse && (uint)(text[ichCur] - '0') <= 9)
+                    if (_sparse && (uint)(text.Span[ichCur] - '0') <= 9)
                     {
                         // See if it is sparse. Avoid overflow by limiting the index to 9 digits.
                         // REVIEW: This limits the src index to a billion. Is this acceptable?
                         int ichEnd = Math.Min(ichLim, ichCur + 9);
                         int ichCol = ichCur + 1;
                         Contracts.Assert(ichCol <= ichEnd);
-                        while (ichCol < ichEnd && (uint)(text[ichCol] - '0') <= 9)
+                        while (ichCol < ichEnd && (uint)(text.Span[ichCol] - '0') <= 9)
                             ichCol++;
 
-                        if (ichCol < ichLim && text[ichCol] == ':')
+                        if (ichCol < ichLim && text.Span[ichCol] == ':')
                         {
                             // It is sparse. Compute the index.
                             int ind = 0;
                             for (int ich = ichCur; ich < ichCol; ich++)
-                                ind = ind * 10 + (text[ich] - '0');
+                                ind = ind * 10 + (text.Span[ich] - '0');
                             ichCur = ichCol + 1;
                             scan.Index = ind;
 
                             // Skip spaces again.
                             if (!_sepContainsSpace)
                             {
-                                while (ichCur < ichLim && text[ichCur] == ' ')
+                                while (ichCur < ichLim && text.Span[ichCur] == ' ')
                                     ichCur++;
                             }
 
@@ -1128,7 +1130,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     Contracts.Assert(ichCur < ichLim);
-                    if (text[ichCur] == '"' && _quoting)
+                    if (text.Span[ichCur] == '"' && _quoting)
                     {
                         // Quoted case.
                         ichCur++;
@@ -1143,13 +1145,13 @@ namespace Microsoft.ML.Runtime.Data
                                 scan.QuotingError = true;
                                 break;
                             }
-                            if (text[ichCur] == '"')
+                            if (text.Span[ichCur] == '"')
                             {
                                 if (ichCur > ichRun)
                                     _sb.Append(text, ichRun, ichCur - ichRun);
                                 if (++ichCur >= ichLim)
                                     break;
-                                if (text[ichCur] != '"')
+                                if (text.Span[ichCur] != '"')
                                     break;
                                 ichRun = ichCur;
                             }
@@ -1158,7 +1160,7 @@ namespace Microsoft.ML.Runtime.Data
                         // Ignore any spaces between here and the next separator. Anything else is a formatting "error".
                         for (; ichCur < ichLim; ichCur++)
                         {
-                            if (text[ichCur] == ' ')
+                            if (text.Span[ichCur] == ' ')
                             {
                                 // End the loop if space is a sep, otherwise ignore this space.
                                 if (_sepContainsSpace)
@@ -1167,7 +1169,7 @@ namespace Microsoft.ML.Runtime.Data
                             else
                             {
                                 // End the loop if this nonspace char is a sep, otherwise it is an error.
-                                if (IsSep(text[ichCur]))
+                                if (IsSep(text.Span[ichCur]))
                                     break;
                                 scan.QuotingError = true;
                             }
@@ -1190,7 +1192,7 @@ namespace Microsoft.ML.Runtime.Data
                                 Contracts.Assert(ichCur <= ichLim);
                                 if (ichCur >= ichLim)
                                     break;
-                                if (_sep0 == text[ichCur])
+                                if (_sep0 == text.Span[ichCur])
                                     break;
                             }
                         }
@@ -1201,7 +1203,7 @@ namespace Microsoft.ML.Runtime.Data
                                 Contracts.Assert(ichCur <= ichLim);
                                 if (ichCur >= ichLim)
                                     break;
-                                if (_sep0 == text[ichCur] || _sep1 == text[ichCur])
+                                if (_sep0 == text.Span[ichCur] || _sep1 == text.Span[ichCur])
                                     break;
                             }
                         }
@@ -1212,7 +1214,7 @@ namespace Microsoft.ML.Runtime.Data
                                 Contracts.Assert(ichCur <= ichLim);
                                 if (ichCur >= ichLim)
                                     break;
-                                if (IsSep(text[ichCur]))
+                                if (IsSep(text.Span[ichCur]))
                                     break;
                             }
                         }
@@ -1220,7 +1222,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (ichMin >= ichCur)
                             scan.Span = _blank;
                         else
-                            scan.Span = text.AsMemory().Slice(ichMin, ichCur - ichMin);
+                            scan.Span = text.Slice(ichMin, ichCur - ichMin);
                     }
 
                     scan.IchLim = ichCur;
@@ -1230,7 +1232,7 @@ namespace Microsoft.ML.Runtime.Data
                         return false;
                     }
 
-                    Contracts.Assert(_seps.Contains(text[ichCur]));
+                    Contracts.Assert(_seps.Contains(text.Span[ichCur]));
                     scan.IchMinNext = ichCur + 1;
                     return true;
                 }

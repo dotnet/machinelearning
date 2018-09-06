@@ -809,16 +809,15 @@ namespace Microsoft.ML.Runtime.Data.IO
                 sb.Append("\"\"");
             else
             {
-                int ichMin;
-                int ichLim;
-                string text = ReadOnlyMemoryUtils.GetRawUnderlyingBufferInfo(out ichMin, out ichLim, src);
+                int ichMin = 0;
+                int ichLim = src.Length;
                 int ichCur = ichMin;
                 int ichRun = ichCur;
                 bool quoted = false;
 
                 // Strings that start with space need to be quoted.
                 Contracts.Assert(ichCur < ichLim);
-                if (text[ichCur] == ' ')
+                if (src.Span[ichCur] == ' ')
                 {
                     quoted = true;
                     sb.Append('"');
@@ -826,7 +825,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 for (; ichCur < ichLim; ichCur++)
                 {
-                    char ch = text[ichCur];
+                    char ch = src.Span[ichCur];
                     if (ch != '"' && ch != sep && ch != ':')
                         continue;
                     if (!quoted)
@@ -838,14 +837,14 @@ namespace Microsoft.ML.Runtime.Data.IO
                     if (ch == '"')
                     {
                         if (ichRun < ichCur)
-                            sb.Append(text, ichRun, ichCur - ichRun);
+                            sb.Append(src, ichRun, ichCur - ichRun);
                         sb.Append("\"\"");
                         ichRun = ichCur + 1;
                     }
                 }
                 Contracts.Assert(ichCur == ichLim);
                 if (ichRun < ichCur)
-                    sb.Append(text, ichRun, ichCur - ichRun);
+                    sb.Append(src, ichRun, ichCur - ichRun);
                 if (quoted)
                     sb.Append('"');
             }

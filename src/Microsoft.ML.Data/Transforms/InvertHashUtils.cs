@@ -426,10 +426,10 @@ namespace Microsoft.ML.Runtime.Data
                             continue;
                         }
                         Utils.EnsureSize(ref buffer, text.Length);
-                        int ichMin;
-                        int ichLim;
-                        string str = ReadOnlyMemoryUtils.GetRawUnderlyingBufferInfo(out ichMin, out ichLim, text);
-                        str.CopyTo(ichMin, buffer, 0, text.Length);
+
+                        for (int i = 0; i < text.Length; i++)
+                            buffer[i] = text.Span[i];
+
                         writer.WriteLine(buffer, 0, text.Length);
                     }
                 });

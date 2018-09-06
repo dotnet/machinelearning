@@ -307,18 +307,17 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             buffer.Clear();
 
-            int ichMin;
-            int ichLim;
-            string text = ReadOnlyMemoryUtils.GetRawUnderlyingBufferInfo(out ichMin, out ichLim, src);
+            int ichMin = 0;
+            int ichLim = src.Length;
             int i = ichMin;
             int min = ichMin;
             while (i < ichLim)
             {
-                char ch = text[i];
+                char ch = src.Span[i];
                 if (!_keepPunctuations && char.IsPunctuation(ch) || !_keepNumbers && char.IsNumber(ch))
                 {
                     // Append everything before ch and ignore ch.
-                    buffer.Append(text, min, i - min);
+                    buffer.Append(src, min, i - min);
                     min = i + 1;
                     i++;
                     continue;
@@ -328,7 +327,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 {
                     if (IsCombiningDiacritic(ch))
                     {
-                        buffer.Append(text, min, i - min);
+                        buffer.Append(src, min, i - min);
                         min = i + 1;
                         i++;
                         continue;
@@ -343,9 +342,9 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 else if (_case == CaseNormalizationMode.Upper)
                     ch = CharUtils.ToUpperInvariant(ch);
 
-                if (ch != text[i])
+                if (ch != src.Span[i])
                 {
-                    buffer.Append(text, min, i - min).Append(ch);
+                    buffer.Append(src, min, i - min).Append(ch);
                     min = i + 1;
                 }
 
@@ -361,7 +360,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             }
             else
             {
-                buffer.Append(text, min, len);
+                buffer.Append(src, min, len);
                 dst = buffer.ToString().AsMemory();
             }
         }
