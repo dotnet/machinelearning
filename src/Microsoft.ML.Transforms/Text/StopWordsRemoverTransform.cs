@@ -902,7 +902,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     foreach (var nstr in _stopWordsMap)
                     {
                         Host.Assert(nstr.Id == id);
-                        ctx.SaveString(nstr);
+                        ctx.SaveString(nstr.Value);
                         id++;
                     }
 

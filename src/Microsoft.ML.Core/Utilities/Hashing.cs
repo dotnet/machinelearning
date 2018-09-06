@@ -71,6 +71,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return MurmurHash((5381 << 16) + 5381, str.AsMemory());
         }
 
+        public static uint HashString(ReadOnlyMemory<char> str) => MurmurHash((5381 << 16) + 5381, str);
+
         /// <summary>
         /// Hash the characters in a sub-string. This MUST produce the same result
         /// as HashString(str.SubString(ichMin, ichLim - ichMin)).

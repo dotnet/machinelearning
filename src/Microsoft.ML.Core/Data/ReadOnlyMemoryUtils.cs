@@ -9,20 +9,6 @@ namespace Microsoft.ML.Runtime.Data
 {
     public static class ReadOnlyMemoryUtils
     {
-
-        /// <summary>
-        /// This method retrieves the raw buffer information. The only characters that should be
-        /// referenced in the returned string are those between the returned min and lim indices.
-        /// If this is an NA value, the min will be zero and the lim will be -1. For either an
-        /// empty or NA value, the returned string may be null.
-        /// </summary>
-        public static string GetRawUnderlyingBufferInfo(out int ichMin, out int ichLim, ReadOnlyMemory<char> memory)
-        {
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out ichMin, out int length);
-            ichLim = ichMin + length;
-            return outerBuffer;
-        }
-
         public static int GetHashCode(this ReadOnlyMemory<char> memory) => (int)Hash(42, memory);
 
         public static bool Equals(this ReadOnlyMemory<char> memory, object obj)
@@ -383,17 +369,13 @@ namespace Microsoft.ML.Runtime.Data
         public static NormStr AddToPool(NormStr.Pool pool, ReadOnlyMemory<char> memory)
         {
             Contracts.CheckValue(pool, nameof(pool));
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-            return pool.Add(outerBuffer, ichMin, ichLim);
+            return pool.Add(memory);
         }
 
         public static NormStr FindInPool(NormStr.Pool pool, ReadOnlyMemory<char> memory)
         {
             Contracts.CheckValue(pool, nameof(pool));
-            MemoryMarshal.TryGetString(memory, out string outerBuffer, out int ichMin, out int length);
-            int ichLim = ichMin + length;
-            return pool.Get(outerBuffer, ichMin, ichLim);
+            return pool.Get(memory);
         }
 
         public static void AddToStringBuilder(StringBuilder sb, ReadOnlyMemory<char> memory)

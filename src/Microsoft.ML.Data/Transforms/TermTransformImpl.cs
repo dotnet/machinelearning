@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.Data
                         return new TermMap.TextImpl(_pool);
                     // REVIEW: Should write a Sort method in NormStr.Pool to make sorting more memory efficient.
                     var perm = Utils.GetIdentityPermutation(_pool.Count);
-                    Comparison<int> comp = (i, j) => _pool.GetNormStrById(i).Value.CompareTo(_pool.GetNormStrById(j).Value);
+                    Comparison<int> comp = (i, j) => ReadOnlyMemoryUtils.CompareTo(_pool.GetNormStrById(i).Value, _pool.GetNormStrById(j).Value);
                     Array.Sort(perm, comp);
 
                     var sortedPool = new NormStr.Pool();
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         var nstr = sortedPool.Add(_pool.GetNormStrById(perm[i]).Value);
                         Contracts.Assert(nstr.Id == i);
-                        Contracts.Assert(i == 0 || sortedPool.GetNormStrById(i - 1).Value.CompareTo(sortedPool.GetNormStrById(i).Value) < 0);
+                        Contracts.Assert(i == 0 || ReadOnlyMemoryUtils.CompareTo(sortedPool.GetNormStrById(i - 1).Value, sortedPool.GetNormStrById(i).Value) < 0);
                     }
                     Contracts.Assert(sortedPool.Count == _pool.Count);
                     return new TermMap.TextImpl(sortedPool);
@@ -655,7 +655,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         Contracts.Assert(0 <= nstr.Id & nstr.Id < values.Length);
                         Contracts.Assert(nstr.Id == slot);
-                        values[nstr.Id] = nstr.Value.AsMemory();
+                        values[nstr.Id] = nstr.Value;
                         slot++;
                     }
 

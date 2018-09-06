@@ -108,8 +108,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public bool GetWordVector(ref ReadOnlyMemory<char> word, float[] wordVector)
             {
-                string rawWord = ReadOnlyMemoryUtils.GetRawUnderlyingBufferInfo(out int ichMin, out int ichLim, word);
-                NormStr str = _pool.Get(rawWord, ichMin, ichLim);
+                NormStr str = _pool.Get(word);
                 if (str != null)
                 {
                     _wordVectors.CopyTo(str.Id * Dimension, wordVector, Dimension);

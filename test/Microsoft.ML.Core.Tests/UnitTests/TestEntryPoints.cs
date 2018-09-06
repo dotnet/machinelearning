@@ -3690,7 +3690,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Model unavailable")]
         public void EntryPointWordEmbeddings()
         {
             string dataFile = DeleteOutputPath("SavePipe", "SavePipeTextWordEmbeddings-SampleText.txt");
