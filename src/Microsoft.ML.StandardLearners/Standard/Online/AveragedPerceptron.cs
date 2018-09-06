@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -29,8 +30,7 @@ namespace Microsoft.ML.Runtime.Learners
     //     - Feature normalization. By default, rescaling between min and max values for every feature
     //     - Prediction calibration to produce probabilities. Off by default, if on, uses exponential (aka Platt) calibration.
     /// <include file='doc.xml' path='doc/members/member[@name="AP"]/*' />
-    public sealed class AveragedPerceptronTrainer :
-        AveragedLinearTrainer<AveragedPerceptronTrainer.Arguments, LinearBinaryPredictor>
+    public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<AveragedPerceptronTrainer.Arguments, BinaryPredictionTransformer<LinearBinaryPredictor> , LinearBinaryPredictor>
     {
         public const string LoadNameValue = "AveragedPerceptron";
         internal const string UserNameValue = "Averaged Perceptron";
@@ -49,20 +49,33 @@ namespace Microsoft.ML.Runtime.Learners
             public int MaxCalibrationExamples = 1000000;
         }
 
-        protected override bool NeedCalibration => true;
-
         public AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, UserNameValue)
+            : base(args, env, UserNameValue, MakeLabelColumn(args.LabelColumn))
         {
             LossFunction = Args.LossFunction.CreateComponent(env);
+
+            OutputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
+            };
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+
+        protected override bool NeedCalibration => true;
+
+        protected override SchemaShape.Column[] OutputColumns { get; }
 
         protected override void CheckLabel(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             data.CheckBinaryLabel();
+        }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
         }
 
         protected override LinearBinaryPredictor CreatePredictor()
@@ -86,6 +99,9 @@ namespace Microsoft.ML.Runtime.Learners
 
             return new LinearBinaryPredictor(Host, ref weights, bias);
         }
+
+        protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, ISchema trainSchema)
+        => new BinaryPredictionTransformer<LinearBinaryPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier",
             Desc = Summary,

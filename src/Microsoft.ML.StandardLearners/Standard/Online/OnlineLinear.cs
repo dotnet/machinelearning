@@ -4,6 +4,7 @@
 
 using System;
 using System.Globalization;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -41,11 +42,13 @@ namespace Microsoft.ML.Runtime.Learners
         public int StreamingCacheSize = 1000000;
     }
 
-    public abstract class OnlineLinearTrainer<TArguments, TPredictor> : TrainerBase<TPredictor>
+    public abstract class OnlineLinearTrainer<TArguments, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
+        where TTransformer : IPredictionTransformer<TModel>
+        where TModel : IPredictor
         where TArguments : OnlineLinearArguments
-        where TPredictor : IPredictorProducing<Float>
     {
         protected readonly TArguments Args;
+        protected readonly string Name;
 
         // Initialized by InitCore
         protected int NumFeatures;
@@ -74,8 +77,8 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected virtual bool NeedCalibration => false;
 
-        protected OnlineLinearTrainer(TArguments args, IHostEnvironment env, string name)
-            : base(env, name)
+        protected OnlineLinearTrainer(TArguments args, IHostEnvironment env, string name, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), MakeFeatureColumn(args.FeatureColumn), label, MakeWeightColumn(args.InitialWeights))
         {
             Contracts.CheckValue(args, nameof(args));
             Contracts.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), UserErrorPositive);
@@ -83,6 +86,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.CheckUserArg(args.StreamingCacheSize > 0, nameof(args.StreamingCacheSize), UserErrorPositive);
 
             Args = args;
+            Name = name;
             // REVIEW: Caching could be false for one iteration, if we got around the whole shuffling issue.
             Info = new TrainerInfo(calibration: NeedCalibration, supportIncrementalTrain: true);
         }
@@ -111,7 +115,7 @@ namespace Microsoft.ML.Runtime.Learners
                 ScaleWeights();
         }
 
-        public override TPredictor Train(TrainContext context)
+        protected override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor;
@@ -148,9 +152,21 @@ namespace Microsoft.ML.Runtime.Learners
             return CreatePredictor();
         }
 
-        protected abstract TPredictor CreatePredictor();
+        protected abstract TModel CreatePredictor();
 
         protected abstract void CheckLabel(RoleMappedData data);
+
+        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+        }
 
         protected virtual void TrainCore(IChannel ch, RoleMappedData data)
         {

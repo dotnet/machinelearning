@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Core.Data;
 
 // TODO: Check if it works properly if Averaged is set to false
 
@@ -52,9 +53,10 @@ namespace Microsoft.ML.Runtime.Learners
         public Float AveragedTolerance = (Float)1e-2;
     }
 
-    public abstract class AveragedLinearTrainer<TArguments, TPredictor> : OnlineLinearTrainer<TArguments, TPredictor>
+    public abstract class AveragedLinearTrainer<TArguments, TTransformer, TModel> : OnlineLinearTrainer<TArguments, TTransformer, TModel>
         where TArguments : AveragedLinearArguments
-        where TPredictor : IPredictorProducing<Float>
+        where TTransformer : IPredictionTransformer<TModel>
+        where TModel : IPredictor
     {
         protected IScalarOutputLoss LossFunction;
 
@@ -74,8 +76,8 @@ namespace Microsoft.ML.Runtime.Learners
         // We'll keep a few things global to prevent garbage collection
         protected int NumNoUpdates;
 
-        protected AveragedLinearTrainer(TArguments args, IHostEnvironment env, string name)
-            : base(args, env, name)
+        protected AveragedLinearTrainer(TArguments args, IHostEnvironment env, string name, SchemaShape.Column label)
+            : base(args, env, name, label)
         {
             Contracts.CheckUserArg(args.LearningRate > 0, nameof(args.LearningRate), UserErrorPositive);
             Contracts.CheckUserArg(!args.ResetWeightsAfterXExamples.HasValue || args.ResetWeightsAfterXExamples > 0, nameof(args.ResetWeightsAfterXExamples), UserErrorPositive);

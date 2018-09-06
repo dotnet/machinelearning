@@ -18,6 +18,12 @@ namespace Microsoft.ML.Runtime.Training
         where TModel : IPredictor
     {
         /// <summary>
+        /// A standard string to use in errors or warnings by subclasses, to communicate the idea that no valid
+        /// instances were able to be found.
+        /// </summary>
+        protected const string NoTrainingInstancesMessage = "No valid training instances found, all instances have missing features.";
+
+        /// <summary>
         /// The feature column that the trainer expects.
         /// </summary>
         public readonly SchemaShape.Column FeatureColumn;
