@@ -48,6 +48,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private readonly IHost _host;
+        private const string RegistrationName = "TensorFlowTransform";
 
         internal readonly TFSession Session;
         internal readonly ColumnType[] OutputTypes;
@@ -60,13 +61,11 @@ namespace Microsoft.ML.Transforms
         public readonly string[] Outputs;
 
         public static int BatchSize = 1;
-
         public const string Summary = "Transforms the data using the TensorFlow model.";
         public const string UserName = "TensorFlowTransform";
         public const string ShortName = "TFTransform";
-        private const string RegistrationName = "TensorFlowTransform";
-
         public const string LoaderSignature = "TensorFlowTransform";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -107,6 +106,7 @@ namespace Microsoft.ML.Transforms
             env.CheckUserArg(File.Exists(modelFile), nameof(modelFile));
             return new TensorFlowTransform(env, File.ReadAllBytes(modelFile), source, names).MakeDataTransform(input);
         }
+
         // Factory method for SignatureLoadModel.
         public static TensorFlowTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms
             if (isMultiOutput)
                 numOutputs = ctx.Reader.ReadInt32();
 
-            Contracts.CheckDecode(numOutputs > 0);
+            env.CheckDecode(numOutputs > 0);
             var outputs = new string[numOutputs];
             for (int j = 0; j < outputs.Length; j++)
                 outputs[j] = ctx.LoadNonEmptyString();
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Transforms
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private TFSession LoadTFSession(byte[] modelBytes, string modelArg = null)
+        private TFSession LoadTFSession(byte[] modelBytes)
         {
             var graph = new TFGraph();
             try
@@ -165,12 +165,9 @@ namespace Microsoft.ML.Transforms
             }
             catch (Exception ex)
             {
-                if (!string.IsNullOrEmpty(modelArg))
-                    throw _host.Except($"TensorFlow exception triggered while loading model from '{modelArg}'");
 #pragma warning disable MSML_NoMessagesForLoadContext
                 throw _host.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
 #pragma warning restore MSML_NoMessagesForLoadContext
-
             }
             return new TFSession(graph);
         }
@@ -190,9 +187,10 @@ namespace Microsoft.ML.Transforms
                 _host.CheckNonEmpty(output, nameof(outputs));
                 if (!newNames.Add(output))
                     throw _host.ExceptParam(nameof(outputs), $"Output column '{output}' specified multiple times");
+                if (Session.Graph[output] == null)
+                    throw _host.ExceptParam(nameof(outputs), $"Output column '{output}'  does not exist in the model");
             }
 
-            _host.Check(outputs.All(name => Session.Graph[name] != null), "One of the output does not exist in the model");
             Inputs = inputs;
             TFInputTypes = new TFDataType[Inputs.Length];
             TFInputShapes = new TFShape[Inputs.Length];
@@ -201,12 +199,10 @@ namespace Microsoft.ML.Transforms
                 var tfInput = new TFOutput(Graph[Inputs[i]]);
                 TFInputTypes[i] = tfInput.OutputType;
                 TFInputShapes[i] = Graph.GetTensorShape(tfInput);
-                var l = new long[TFInputShapes[i].NumDimensions];
-                for (int ishape = 0; ishape < TFInputShapes[i].NumDimensions; ishape++)
-                {
-                    l[ishape] = TFInputShapes[i][ishape] == -1 ? BatchSize : TFInputShapes[i][ishape];
-                }
-                TFInputShapes[i] = new TFShape(l);
+                var newShape = new long[TFInputShapes[i].NumDimensions];
+                for (int j = 0; j < TFInputShapes[i].NumDimensions; j++)
+                    newShape[j] = TFInputShapes[i][j] == -1 ? BatchSize : TFInputShapes[i][j];
+                TFInputShapes[i] = new TFShape(newShape);
             }
 
             Outputs = outputs;
@@ -216,9 +212,7 @@ namespace Microsoft.ML.Transforms
             {
                 var tfOutput = new TFOutput(Graph[Outputs[i]]);
                 var shape = Graph.GetTensorShape(tfOutput);
-
                 int[] dims = shape.ToIntArray().Skip(shape[0] == -1 ? BatchSize : 0).ToArray();
-
                 var type = TensorFlowUtils.Tf2MlNetType(tfOutput.OutputType);
                 OutputTypes[i] = new VectorType(type, dims);
                 TFOutputTypes[i] = tfOutput.OutputType;
@@ -277,8 +271,6 @@ namespace Microsoft.ML.Transforms
             private readonly TensorFlowTransform _parent;
             private readonly int[] _inputColIndices;
             private readonly bool[] _isInputVector;
-            private IDictionary<string, TFTensor> _cachedOutputs;
-            private long _cachedPosition;
 
             public TensorFlowMapper(IHostEnvironment env, TensorFlowTransform parent, ISchema inputSchema)
             {
@@ -311,9 +303,6 @@ namespace Microsoft.ML.Transforms
                     else if (shape.Select((dim, j) => dim != type.AsVector.GetDim(j)).Any(b => b))
                         throw _host.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {shape.ToString()}, but input data is {type.AsVector.ToString()}.");
                 }
-
-                _cachedOutputs = new Dictionary<string, TFTensor>();
-                _cachedPosition = -1;
             }
 
             public void Save(ModelSaveContext ctx)
@@ -399,7 +388,6 @@ namespace Microsoft.ML.Transforms
                     dst = new VBuffer<T>(values.Length, values, indices);
                 };
                 return valuegetter;
-
             }
 
             private void UpdateCacheIfNeeded(long position, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
@@ -417,9 +405,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(tensors.Length > 0);
 
                     for (int j = 0; j < tensors.Length; j++)
-                    {
                         outputCache.Outputs[activeOutputColNames[j]] = tensors[j];
-                    }
 
                     outputCache.Position = position;
                 }
@@ -476,6 +462,7 @@ namespace Microsoft.ML.Transforms
                 private readonly TFShape _tfShape;
                 private VBuffer<T> _vBuffer;
                 private VBuffer<T> _vBufferDense;
+
                 public TensorValueGetterVec(IRow input, int colIndex, TFShape tfShape)
                 {
                     _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
@@ -483,6 +470,7 @@ namespace Microsoft.ML.Transforms
                     _vBuffer = default;
                     _vBufferDense = default;
                 }
+
                 public TFTensor GetTensor()
                 {
                     _srcgetter(ref _vBuffer);
