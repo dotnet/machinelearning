@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValueOrNull(ectx);
             _ectx = ectx;
-            _ectx.CheckNonEmpty(columns, nameof(columns));
+            _ectx.CheckValue(columns, nameof(columns));
 
             _names = new string[columns.Length];
             _types = new ColumnType[columns.Length];

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -43,6 +44,15 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
                 catch (ArgumentOutOfRangeException) { }
                 catch (InvalidOperationException) { }
+                catch (TargetInvocationException ex)
+                {
+                    Exception e;
+                    for (e = ex; e.InnerException != null; e = e.InnerException)
+                    {
+                    }
+                    Assert.True(e is ArgumentOutOfRangeException || e is InvalidOperationException);
+                    Assert.True(e.IsMarked());
+                }
             };
 
             // Schema propagation tests for estimator.

@@ -979,7 +979,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     Data = importOutput.Data,
                     InputColumns = new[] { "Placeholder" },
-                    OutputColumn = "Softmax",
+                    OutputColumns = new[] { "Softmax" },
                     ModelFile = "mnist_model/frozen_saved_model.pb"
                 };
                 var tfTransformOutput = experiment.Add(tfTransformInput);
