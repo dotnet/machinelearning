@@ -12,25 +12,11 @@ using System.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
+    // Adding this class to not print anything to the console.
+    // This is required for the current version of BenchmarkDotNet
     internal class EmptyWriter : TextWriter
     {
-        private static EmptyWriter _instance = null;
-
-        private EmptyWriter()
-        {
-        }
-
-        public static EmptyWriter Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new EmptyWriter();
-                }
-                return _instance;
-            }
-        }
+        internal static readonly EmptyWriter Instance = new EmptyWriter();
         public override Encoding Encoding => null;
     }
 
@@ -39,10 +25,10 @@ namespace Microsoft.ML.Benchmarks
         private static string s_dataPath_Wiki;
         private static string s_modelPath_Wiki;
 
-        [GlobalSetup(Targets = new string[] { nameof(Preceptron_CV), nameof(LightGBM_CV), nameof(WordEmbedding_CV_AP), nameof(WordEmbedding_CV_SDCAMC) })]
+        [GlobalSetup(Targets = new string[] { nameof(Preceptron_CV), nameof(LightGBM_CV) })]
         public void Setup_Preceptron_LightGBM()
         {
-            s_dataPath_Wiki = TestDatasets.wikiDetox.trainFilename;
+            s_dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(s_dataPath_Wiki))
             {
@@ -50,11 +36,11 @@ namespace Microsoft.ML.Benchmarks
             }
         }
 
-        [GlobalSetup(Target = nameof(wikiDetox))]
-        public void Setup_wikiDetox()
+        [GlobalSetup(Target = nameof(WikiDetox))]
+        public void Setup_WikiDetox()
         {
             Setup_Preceptron_LightGBM();
-            s_modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"wikiModel.zip");
+            s_modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.zip");
             string cmd = @"CV k=5 data=" + s_dataPath_Wiki + " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}} xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=OVA{p=AveragedPerceptron{iter=10}} out={" + s_modelPath_Wiki + "}";
             using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
@@ -83,29 +69,9 @@ namespace Microsoft.ML.Benchmarks
         }
 
         [Benchmark]
-        public void WordEmbedding_CV_AP()
+        public void WikiDetox()
         {
-            string cmd = @"CV tr=OVA{p=AveragedPerceptron{iter=10}} k=5 loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} data=" + s_dataPath_Wiki + " xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment tokens=+ wordExtractor=NGramExtractorTransform{ngram=2}} xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D} xf=Concat{col=Features:FeaturesText,FeaturesWordEmbedding,logged_in,ns}";
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
-            {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
-            }
-        }
-
-        [Benchmark]
-        public void WordEmbedding_CV_SDCAMC()
-        {
-            string cmd = @"CV tr=SDCAMC k=5 loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} data=" + s_dataPath_Wiki + " xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment tokens=+ wordExtractor={} charExtractor={}} xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D} xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
-            {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
-            }
-        }
-
-        [Benchmark]
-        public void wikiDetox()
-        {
-            string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"wikiModel.fold000.zip");
+            string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.fold000.zip");
             string cmd = @"Test data=" + s_dataPath_Wiki + " in=" + modelpath;
             using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
