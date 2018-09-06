@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -77,8 +79,17 @@ namespace Microsoft.ML.Tests
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
             var invalidDataWrongVectorSize = ComponentCreation.CreateDataView(Env, sizeData);
-            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames, validSchemaCantFitInput: invalidDataWrongVectorSize);
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
+
+            pipe.GetOutputSchema(SchemaShape.Create(invalidDataWrongVectorSize.Schema));
+            try
+            {
+                pipe.Fit(invalidDataWrongVectorSize);
+                Assert.False(true);
+            }
+            catch (ArgumentOutOfRangeException) { }
+            catch (InvalidOperationException) { }
         }
 
         [Fact]

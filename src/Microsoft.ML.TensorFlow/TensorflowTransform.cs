@@ -109,6 +109,14 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
+            // *** Binary format ***
+            // stream: tensorFlow model.
+            // int: number of input columns
+            // for each input column
+            //   int: id of int column name
+            // int: number of output columns
+            // for each output column
+            //   int: id of output column name
             byte[] modelStream = null;
             if (!ctx.TryLoadBinaryStream("TFModel", r => modelStream = r.ReadByteArray()))
                 throw env.ExceptDecode();
@@ -258,6 +266,14 @@ namespace Microsoft.ML.Transforms
             _host.AssertValue(ctx);
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
+            // *** Binary format ***
+            // stream: tensorFlow model.
+            // int: number of input columns
+            // for each input column
+            //   int: id of int column name
+            // int: number of output columns
+            // for each output column
+            //   int: id of output column name
 
             var buffer = new TFBuffer();
             Session.Graph.ToGraphDef(buffer);
@@ -532,7 +548,6 @@ namespace Microsoft.ML.Transforms
                 var col = inputSchema.FindColumn(input);
                 if (col == null)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-                
                 if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
                 var expectedType = TensorFlowUtils.Tf2MlNetType(Transformer.TFInputTypes[i]);

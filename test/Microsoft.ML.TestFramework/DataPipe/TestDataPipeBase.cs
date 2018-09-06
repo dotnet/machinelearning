@@ -28,8 +28,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// - schema propagation for fitted transformer conforms to schema propagation of estimator.
         /// </summary>
         protected void TestEstimatorCore(IEstimator<ITransformer> estimator,
-            IDataView validFitInput, IDataView validTransformInput = null, IDataView invalidInput = null, IDataView validForFitNotValidForTransformInput = null,
-            IDataView validSchemaCantFitInput = null)
+            IDataView validFitInput, IDataView validTransformInput = null, IDataView invalidInput = null, IDataView validForFitNotValidForTransformInput = null)
         {
             Contracts.AssertValue(estimator);
             Contracts.AssertValue(validFitInput);
@@ -59,11 +58,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 mustFail(() => estimator.GetOutputSchema(SchemaShape.Create(invalidInput.Schema)));
                 mustFail(() => estimator.Fit(invalidInput));
             }
-            if (validSchemaCantFitInput != null)
-            {
-                estimator.GetOutputSchema(SchemaShape.Create(validSchemaCantFitInput.Schema));
-                mustFail(() => estimator.Fit(validSchemaCantFitInput));
-            }
+
             if (validForFitNotValidForTransformInput != null)
             {
                 estimator.GetOutputSchema(SchemaShape.Create(validForFitNotValidForTransformInput.Schema));
