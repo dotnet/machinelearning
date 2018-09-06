@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data.StaticPipe;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
@@ -15,15 +14,14 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {
-    public abstract class MakeConsoleWork : IDisposable
+    public abstract class BaseTestClassWithConsole : BaseTestClass, IDisposable
     {
-        private readonly ITestOutputHelper _output;
         private readonly TextWriter _originalOut;
         private readonly TextWriter _textWriter;
 
-        public MakeConsoleWork(ITestOutputHelper output)
+        public BaseTestClassWithConsole(ITestOutputHelper output)
+            : base(output)
         {
-            _output = output;
             _originalOut = Console.Out;
             _textWriter = new StringWriter();
             Console.SetOut(_textWriter);
@@ -31,12 +29,12 @@ namespace Microsoft.ML.StaticPipelineTesting
 
         public void Dispose()
         {
-            _output.WriteLine(_textWriter.ToString());
+            Output.WriteLine(_textWriter.ToString());
             Console.SetOut(_originalOut);
         }
     }
 
-    public sealed class StaticPipeTests : MakeConsoleWork
+    public sealed class StaticPipeTests : BaseTestClassWithConsole
     {
         public StaticPipeTests(ITestOutputHelper output)
             : base(output)
@@ -110,7 +108,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // The next step where we shuffle the names around a little bit is one where we are
             // testing out the implicit usage of copy columns.
 
-            var est = Estimator.MakeNew(text).Append(r => (text: r.label, label: r.numericFeatures));
+            var est = text.MakeNewEstimator().Append(r => (text: r.label, label: r.numericFeatures));
             var newText = text.Append(est);
             var newTextData = newText.Fit(dataSource).Read(dataSource);
 

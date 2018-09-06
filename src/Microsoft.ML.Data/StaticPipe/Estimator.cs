@@ -79,20 +79,4 @@ namespace Microsoft.ML.Data.StaticPipe
             }
         }
     }
-
-    public static class Estimator
-    {
-        /// <summary>
-        /// Create an object that can be used as the start of a new pipeline, that assumes it uses
-        /// something with the sahape of <typeparamref name="TTupleShape"/> as its input schema shape.
-        /// The returned object is an empty estimator.
-        /// </summary>
-        /// <param name="fromSchema">Creates a new empty head of a pipeline</param>
-        /// <returns>The empty esitmator, to which new items may be appended to create a pipeline</returns>
-        public static Estimator<TTupleShape, TTupleShape, ITransformer> MakeNew<TTupleShape>(SchemaBearing<TTupleShape> fromSchema)
-        {
-            Contracts.CheckValue(fromSchema, nameof(fromSchema));
-            return fromSchema.MakeNewEstimator();
-        }
-    }
 }
