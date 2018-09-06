@@ -271,7 +271,7 @@ namespace Microsoft.ML.Scenarios
                     while (cursor.MoveNext())
                     {
                         getter(ref buffer);
-                        Assert.Equal(10, buffer.Length);
+                        Assert.Equal(3, buffer.Length);
                         numRows += 1;
                     }
                     Assert.Equal(3, numRows);
