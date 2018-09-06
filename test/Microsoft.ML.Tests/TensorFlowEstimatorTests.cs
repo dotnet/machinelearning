@@ -122,7 +122,7 @@ namespace Microsoft.ML.Tests
         {
             using (var env = new TlcEnvironment())
             {
-                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c model={model_matmul\frozen_saved_model.pb}} in=f:\2.txt" }), (int)0);
+                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c model={model_matmul/frozen_saved_model.pb}} in=f:\2.txt" }), (int)0);
             }
         }
 
