@@ -7,11 +7,11 @@
         Extracts hidden layers' values from a pre-trained Tensorflow model.
       </summary>
       <remarks>
-        The TensorflowTransform extracts the specified output from the operation computed on the graph (given the input(s)) using a pre-trained <a href="https://www.tensorflow.org">Tensorflow</a> model.
-        The transform takes as input the Tensorflow model together with the names of the inputs to the model and name of the operation for which output values will be extracted from the model.
+        The TensorflowTransform extracts the specified outputs from the operations computed on the graph (given the input(s)) using a pre-trained <a href="https://www.tensorflow.org">Tensorflow</a> model.
+        The transform takes as input the Tensorflow model together with the names of the inputs to the model and names of the operations for which output values will be extracted from the model.
 
         This transform requires the <a href="https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML.TensorFlow/0.5.0-preview-26830-5">Microsoft.ML.TensorFlow</a> nuget to be installed.
-		
+
         The TensorflowTransform has following assumptions regarding the input, output and processing of data.
         <list type="number">
           <item>
@@ -19,15 +19,17 @@
           </item>
           <item>The transform supports scoring only one example at a time.</item>
           <item>The name of input column(s) should match the name of input(s) in Tensorflow model.</item>
-          <item>The name of the output column should match one of the operations in the Tensorflow graph.</item>
+          <item>The name of each output column should match one of the operations in the Tensorflow graph.</item>
           <item>Currently, float and double are the only acceptable data types for input/output.</item>
           <item>
-            Upon success, the transform will introduce a new column in <see cref="IDataView"/> based on the name of the output column specified.
+            Upon success, the transform will introduce a new column in <see cref="IDataView"/> corresponding to each output column specified.
           </item>
         </list>
-		
-        The inputs and outputs of a TensorFlow model can be obtained using the <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs"><code>summarize_graph</code> tool</a>.
-		
+
+        The inputs and outputs of a TensorFlow model can be obtained using the <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs">
+          <code>summarize_graph</code> tool
+        </a>.
+
       </remarks>
     </member>
     <example name="TensorflowTransform">
@@ -39,41 +41,41 @@
           {
           ModelFile = model_location;
           InputColumns = new []{ &quot;Input&quot; };
-            OutputColumn = &quot;Output&quot;
+          OutputColumns = &quot;Output&quot;
           }
         </code>
       </example>
       <example>
         <code language="csharp">
-            var pipeline = new LearningPipeline(seed: 1);
-            pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;CifarData&gt;(useHeader: false));
-            pipeline.Add(new ImageLoader((&quot;ImagePath&quot;, &quot;ImageReal&quot;))
-            {
-                ImageFolder = imageFolder
-            });
+          var pipeline = new LearningPipeline(seed: 1);
+          pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;CifarData&gt;(useHeader: false));
+          pipeline.Add(new ImageLoader((&quot;ImagePath&quot;, &quot;ImageReal&quot;))
+          {
+          ImageFolder = imageFolder
+          });
 
-            pipeline.Add(new ImageResizer((&quot;ImageReal&quot;, &quot;ImageCropped&quot;))
-            {
-                ImageHeight = imageHeight,
-                ImageWidth = imageWidth,
-                Resizing = ImageResizerTransformResizingKind.IsoCrop
-            });
+          pipeline.Add(new ImageResizer((&quot;ImageReal&quot;, &quot;ImageCropped&quot;))
+          {
+          ImageHeight = imageHeight,
+          ImageWidth = imageWidth,
+          Resizing = ImageResizerTransformResizingKind.IsoCrop
+          });
 
-            pipeline.Add(new ImagePixelExtractor((&quot;ImageCropped&quot;, &quot;Input&quot;))
-            {
-                UseAlpha = false,
-                InterleaveArgb = true
-            });
+          pipeline.Add(new ImagePixelExtractor((&quot;ImageCropped&quot;, &quot;Input&quot;))
+          {
+          UseAlpha = false,
+          InterleaveArgb = true
+          });
 
-            pipeline.Add(new TensorFlowScorer()
-            {
-                ModelFile = model_location,
-                InputColumns = new[] { &quot;Input&quot; },
-                OutputColumn = &quot;Output&quot;
-            });
+          pipeline.Add(new TensorFlowScorer()
+          {
+          ModelFile = model_location,
+          InputColumns = new[] { &quot;Input&quot; },
+          OutputColumns = &quot;Output&quot;
+          });
         </code>
       </example>
     </example>
-    
+
   </members>
 </doc>
