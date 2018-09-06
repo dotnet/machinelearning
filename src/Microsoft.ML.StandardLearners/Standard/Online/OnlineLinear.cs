@@ -42,12 +42,11 @@ namespace Microsoft.ML.Runtime.Learners
         public int StreamingCacheSize = 1000000;
     }
 
-    public abstract class OnlineLinearTrainer<TArguments, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
+    public abstract class OnlineLinearTrainer<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
         where TTransformer : IPredictionTransformer<TModel>
         where TModel : IPredictor
-        where TArguments : OnlineLinearArguments
     {
-        protected readonly TArguments Args;
+        protected readonly OnlineLinearArguments Args;
         protected readonly string Name;
 
         // Initialized by InitCore
@@ -77,7 +76,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected virtual bool NeedCalibration => false;
 
-        protected OnlineLinearTrainer(TArguments args, IHostEnvironment env, string name, SchemaShape.Column label)
+        protected OnlineLinearTrainer(OnlineLinearArguments args, IHostEnvironment env, string name, SchemaShape.Column label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), MakeFeatureColumn(args.FeatureColumn), label, MakeWeightColumn(args.InitialWeights))
         {
             Contracts.CheckValue(args, nameof(args));

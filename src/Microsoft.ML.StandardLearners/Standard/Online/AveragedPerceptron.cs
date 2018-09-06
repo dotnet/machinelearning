@@ -30,12 +30,14 @@ namespace Microsoft.ML.Runtime.Learners
     //     - Feature normalization. By default, rescaling between min and max values for every feature
     //     - Prediction calibration to produce probabilities. Off by default, if on, uses exponential (aka Platt) calibration.
     /// <include file='doc.xml' path='doc/members/member[@name="AP"]/*' />
-    public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<AveragedPerceptronTrainer.Arguments, BinaryPredictionTransformer<LinearBinaryPredictor> , LinearBinaryPredictor>
+    public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<BinaryPredictionTransformer<LinearBinaryPredictor> , LinearBinaryPredictor>
     {
         public const string LoadNameValue = "AveragedPerceptron";
         internal const string UserNameValue = "Averaged Perceptron";
         internal const string ShortName = "ap";
         internal const string Summary = "Averaged Perceptron Binary Classifier.";
+
+        internal new readonly Arguments Args;
 
         public class Arguments : AveragedLinearArguments
         {
@@ -52,6 +54,7 @@ namespace Microsoft.ML.Runtime.Learners
         public AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, UserNameValue, MakeLabelColumn(args.LabelColumn))
         {
+            Args = args;
             LossFunction = Args.LossFunction.CreateComponent(env);
 
             OutputColumns = new[]

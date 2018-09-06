@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.Learners
     /// <summary>
     /// Linear SVM that implements PEGASOS for training. See: http://ttic.uchicago.edu/~shai/papers/ShalevSiSr07.pdf
     /// </summary>
-    public sealed class LinearSvm : OnlineLinearTrainer<LinearSvm.Arguments, BinaryPredictionTransformer<LinearBinaryPredictor>, LinearBinaryPredictor>
+    public sealed class LinearSvm : OnlineLinearTrainer<BinaryPredictionTransformer<LinearBinaryPredictor>, LinearBinaryPredictor>
     {
         public const string LoadNameValue = "LinearSVM";
         public const string ShortName = "svm";
@@ -41,6 +41,8 @@ namespace Microsoft.ML.Runtime.Learners
             + "in which instances of the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it, "
             + "and all the negative examples are on the other. After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the "
             + "margin, i.e., the minimal distance between it and the instances.";
+
+        internal new readonly Arguments Args;
 
         public sealed class Arguments : OnlineLinearArguments
         {
@@ -88,6 +90,8 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Contracts.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), UserErrorPositive);
             Contracts.CheckUserArg(args.BatchSize > 0, nameof(args.BatchSize), UserErrorPositive);
+
+            Args = args;
 
             OutputColumns = new[]
             {

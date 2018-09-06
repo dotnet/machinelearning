@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Learners
     using TPredictor = LinearRegressionPredictor;
 
     /// <include file='doc.xml' path='doc/members/member[@name="OGD"]/*' />
-    public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<OnlineGradientDescentTrainer.Arguments, RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
+    public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
     {
         internal const string LoadNameValue = "OnlineGradientDescent";
         internal const string UserNameValue = "Stochastic Gradient Descent (Regression)";
