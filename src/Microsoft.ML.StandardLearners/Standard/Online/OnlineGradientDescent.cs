@@ -95,7 +95,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
         {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, true);
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.OnlineGradientDescentRegressor",
