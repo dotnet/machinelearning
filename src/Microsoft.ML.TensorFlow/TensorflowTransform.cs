@@ -284,11 +284,11 @@ namespace Microsoft.ML.Transforms
                 return info;
             }
 
-            private (ColumnType[], TFDataType[]) GetOutputTypes(TFGraph graph, string[] columnNames)
+            private static (ColumnType[], TFDataType[]) GetOutputTypes(TFGraph graph, string[] columnNames)
             {
                 Contracts.AssertValue(graph);
                 Contracts.AssertNonEmpty(columnNames);
-                Contracts.Assert(columnNames.All(name => _session.Graph[name] != null), "One of the output does not exist in the model");
+                Contracts.Assert(columnNames.All(name => graph[name] != null), "One of the output does not exist in the model");
 
                 var columnTypes = new ColumnType[columnNames.Length];
                 var tfTypes = new TFDataType[columnNames.Length];
