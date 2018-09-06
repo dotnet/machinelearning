@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -650,9 +651,11 @@ namespace Microsoft.ML.Runtime.Data
 
                     public override bool OnnxInfo(OnnxContext ctx, OnnxNode node, int featureCount)
                     {
-
                         if (Offset != null)
                             node.AddAttribute("offset", Offset);
+                        else
+                            node.AddAttribute("offset", Enumerable.Repeat<TFloat>(0, featureCount));
+
                         node.AddAttribute("scale", Scale);
                         return true;
                     }
@@ -1035,11 +1038,13 @@ namespace Microsoft.ML.Runtime.Data
 
             private static class Dbl
             {
-                public sealed class ImplOne : BinColumnFunction
+                public sealed class ImplOne : BinColumnFunction, NormalizerTransformer.IBinData<TFloat>
                 {
                     private readonly TFloat[] _binUpperBounds;
                     private readonly TFloat _den;
                     private readonly TFloat _offset;
+
+                    ImmutableArray<TFloat> NormalizerTransformer.IBinData<TFloat>.UpperBounds => ImmutableArray.Create(_binUpperBounds);
 
                     public ImplOne(IHost host, TFloat[] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1105,11 +1110,14 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public sealed class ImplVec : BinColumnFunction
+                public sealed class ImplVec : BinColumnFunction, NormalizerTransformer.IBinData<ImmutableArray<TFloat>>
                 {
                     private readonly TFloat[][] _binUpperBounds;
                     private readonly TFloat[] _den;
                     private readonly TFloat[] _offset;
+
+                    ImmutableArray<ImmutableArray<TFloat>> NormalizerTransformer.IBinData<ImmutableArray<TFloat>>.UpperBounds
+                        => _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray();
 
                     public ImplVec(IHost host, TFloat[][] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1905,7 +1913,7 @@ namespace Microsoft.ML.Runtime.Data
                     host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
                     bool fix = args.Column[argsColumnIndex].FixZero ?? args.FixZero;
                     var numBins = args.Column[argsColumnIndex].NumBins ?? args.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "Nust be greater than 1");
+                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "Must be greater than 1");
                     host.CheckUserArg(args.MinBinSize > 0, nameof(args.MinBinSize), "Must be positive");
                     return new SupervisedBinVecColumnFunctionBuilder(host, lim, fix, numBins, args.MinBinSize, valueColumnId, labelColumnId, dataRow);
                 }

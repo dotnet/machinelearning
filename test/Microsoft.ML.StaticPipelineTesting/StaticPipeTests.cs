@@ -5,10 +5,14 @@
 using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.TestFramework;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
+using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -278,6 +282,50 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.False(schema.IsNormalized(featCol));
             Assert.True(schema.IsNormalized(binCol));
             Assert.True(schema.IsNormalized(mmCol));
+        }
+
+        [Fact]
+        public void NormalizerWithOnFit()
+        {
+            var env = new TlcEnvironment(seed: 0);
+            var dataPath = GetDataPath("external", "winequality-white.csv");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => c.LoadFloat(0, 2),
+                separator: ';', hasHeader: true);
+            var data = reader.Read(dataSource);
+
+            // These will be populated once we call fit.
+            ImmutableArray<float> mm;
+            ImmutableArray<float> ss;
+            ImmutableArray<ImmutableArray<float>> bb;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r, 
+                    ncdf: r.NormalizeByCumulativeDistribution(onFit: (m, s) => mm = m),
+                    n: r.NormalizeByMeanVar(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
+                    b: r.NormalizeByBinning(onFit: b => bb = b)));
+            var tdata = est.Fit(data).Transform(data);
+
+            Assert.Equal(3, mm.Length);
+            Assert.Equal(3, ss.Length);
+            Assert.Equal(3, bb.Length);
+
+            // Just for fun, let's also write out some of the lines of the data to the console.
+            using (var stream = new MemoryStream())
+            {
+                IDataView v = new ChooseColumnsTransform(env, tdata.AsDynamic, "r", "ncdf", "n", "b");
+                v = TakeFilter.Create(env, v, 10);
+                var saver = new TextSaver(env, new TextSaver.Arguments()
+                {
+                    Dense = true,
+                    Separator = ",",
+                    OutputHeader = false
+                });
+                saver.SaveData(stream, v, Utils.GetIdentityPermutation(v.Schema.ColumnCount));
+                Console.WriteLine(Encoding.UTF8.GetString(stream.ToArray()));
+            }
         }
     }
 }
