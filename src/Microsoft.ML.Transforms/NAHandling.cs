@@ -4,6 +4,8 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using System.Collections.Generic;
+using Microsoft.ML.Scoring;
 
 [assembly: EntryPointModule(typeof(NAHandling))]
 
@@ -19,6 +21,7 @@ namespace Microsoft.ML.Runtime.Data
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""NADrop""]/*' />" })]
         public static CommonOutputs.TransformOutput Drop(IHostEnvironment env, NADropTransform.Arguments input)
         {
+            Tensor t = new Tensor(new List<float>() { 1.0f, 2.0f });
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, NADropTransform.ShortName, input);
             var xf = new NADropTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
