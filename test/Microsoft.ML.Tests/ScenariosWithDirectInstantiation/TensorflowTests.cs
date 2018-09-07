@@ -70,7 +70,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Model files are not available yet")]
         public void TensorFlowTransformObjectDetectionTest()
         {
             var model_location = @"C:\models\TensorFlow\ssd_mobilenet_v1_coco_2018_01_28\frozen_inference_graph.pb";
@@ -100,62 +100,37 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, cropped);
 
-                var boxes = TensorFlowTransform.Create(env, pixels, model_location, "detection_boxes", "image_tensor");
-                var scores = TensorFlowTransform.Create(env, boxes, model_location, "detection_scores", "image_tensor");
-                var num = TensorFlowTransform.Create(env, scores, model_location, "num_detections", "image_tensor");
-                var classes = TensorFlowTransform.Create(env, num, model_location, "detection_classes", "image_tensor");
+                var tf = TensorFlowTransform.Create(env, pixels, model_location,
+                    new[] { "detection_boxes", "detection_scores", "num_detections", "detection_classes" },
+                    new[] { "image_tensor" });
 
-                boxes.Schema.TryGetColumnIndex("image_tensor", out int input);
-                boxes.Schema.TryGetColumnIndex("detection_boxes", out int b);
-                using (var curs = boxes.GetRowCursor(col => col == b || col == input))
+                tf.Schema.TryGetColumnIndex("image_tensor", out int input);
+                tf.Schema.TryGetColumnIndex("detection_boxes", out int boxes);
+                tf.Schema.TryGetColumnIndex("detection_scores", out int scores);
+                tf.Schema.TryGetColumnIndex("num_detections", out int num);
+                tf.Schema.TryGetColumnIndex("detection_classes", out int classes);
+                using (var curs = tf.GetRowCursor(col => col == classes || col == num || col == scores || col == boxes || col == input))
                 {
-                    var get = curs.GetGetter<VBuffer<float>>(b);
                     var getInput = curs.GetGetter<VBuffer<byte>>(input);
+                    var getBoxes = curs.GetGetter<VBuffer<float>>(boxes);
+                    var getScores = curs.GetGetter<VBuffer<float>>(scores);
+                    var getNum = curs.GetGetter<VBuffer<float>>(num);
+                    var getClasses = curs.GetGetter<VBuffer<float>>(classes);
                     var buffer = default(VBuffer<float>);
                     var inputBuffer = default(VBuffer<byte>);
                     while (curs.MoveNext())
                     {
                         getInput(ref inputBuffer);
-                        get(ref buffer);
-                    }
-                }
-
-                scores.Schema.TryGetColumnIndex("detection_scores", out b);
-                using (var curs = scores.GetRowCursor(col => col == b))
-                {
-                    var get = curs.GetGetter<VBuffer<float>>(b);
-                    var buffer = default(VBuffer<float>);
-                    while (curs.MoveNext())
-                    {
-                        get(ref buffer);
-                    }
-                }
-
-                num.Schema.TryGetColumnIndex("num_detections", out b);
-                using (var curs = num.GetRowCursor(col => col == b))
-                {
-                    var get = curs.GetGetter<VBuffer<float>>(b);
-                    var buffer = default(VBuffer<float>);
-                    while (curs.MoveNext())
-                    {
-                        get(ref buffer);
-                    }
-                }
-
-                classes.Schema.TryGetColumnIndex("detection_classes", out b);
-                using (var curs = classes.GetRowCursor(col => col == b))
-                {
-                    var get = curs.GetGetter<VBuffer<float>>(b);
-                    var buffer = default(VBuffer<float>);
-                    while (curs.MoveNext())
-                    {
-                        get(ref buffer);
+                        getBoxes(ref buffer);
+                        getScores(ref buffer);
+                        getNum(ref buffer);
+                        getClasses(ref buffer);
                     }
                 }
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Model files are not available yet")]
         public void TensorFlowTransformInceptionTest()
         {
             var model_location = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";

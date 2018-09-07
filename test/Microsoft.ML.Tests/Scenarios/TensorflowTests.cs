@@ -86,12 +86,12 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0, prediction.PredictedLabels[2], 2);
         }
 
-        [Fact]
+        [Fact(Skip = "Model files are not available yet")]
         public void TensorFlowTransformInceptionPipelineTest()
         {
             var model_location = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
-            var dataFile = @"C:\DotNet\Cesar\TensorFlowMLNETSamples\src\TensorFlowMLNETInceptionv3ModelScoring\model\tags.tsv";
-            var imagesFolder = @"C:\DotNet\Cesar\TensorFlowMLNETSamples\src\TensorFlowMLNETInceptionv3ModelScoring\images";
+            var dataFile = @"C:\Data\tags.tsv";
+            var imagesFolder = @"C:\Data\images";
 
             const int imageHeight = 224;
             const int imageWidth = 224;
@@ -128,18 +128,12 @@ namespace Microsoft.ML.Scenarios
             {
                 ModelFile = model_location,
                 InputColumns = new[] { inputTensorName },
-                OutputColumn = outputTensorName
+                OutputColumns = new[] { outputTensorName }
             });
 
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features", inputColumns: outputTensorName));
             pipeline.Add(new TextToKeyConverter("Label"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-
-            // Hack/workaround for a bug in ML.NET preview. 
-            // These two lines shouldn't be needed after the bug is fixed
-            // These two lines are not needed if referencing the ML.NET OSS code projects directly..
-            //var hackArguments = new TensorFlowTransform.Arguments();
-            //var hackImageLoaderTransform = new ImageLoaderTransform.Arguments();
 
             TensorFlowUtils.Initialize();
 
@@ -151,7 +145,7 @@ namespace Microsoft.ML.Scenarios
 
             ImageNetPrediction prediction = model.Predict(new ImageNetData()
             {
-                ImagePath = @"C:\DotNet\Cesar\TensorFlowMLNETSamples\src\TensorFlowMLNETInceptionv3ModelScoring\images\violin.jpg"
+                ImagePath = @"C:\Data\images\violin.jpg"
             });
         }
     }
