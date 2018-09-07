@@ -1551,7 +1551,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParse(ref TX src, out BL dst)
         {
             Contracts.Check(!IsStdMissing(ref src), "Missing text values cannot be converted to bool value.");
-            
+
             char ch;
             switch (src.Length)
             {
@@ -1720,7 +1720,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         }
         public void Convert(ref TX span, ref BL value)
         {
-            Contracts.Check(!span.IsNA, "Missing text values cannot be converted to bool value.");
             // When TryParseBL returns false, it should have set value to false.
             if (!TryParse(ref span, out value))
                 Contracts.Assert(!value);
@@ -1750,10 +1749,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion FromTX
 
         #region FromBL
-        public void Convert(ref BL src, ref I1 dst) => dst = (I1)src;
-        public void Convert(ref BL src, ref I2 dst) => dst = (I2)src;
-        public void Convert(ref BL src, ref I4 dst) => dst = (I4)src;
-        public void Convert(ref BL src, ref I8 dst) => dst = (I8)src;
+        public void Convert(ref BL src, ref I1 dst) => dst = (I1)(object)src;
+        public void Convert(ref BL src, ref I2 dst) => dst = (I2)(object)src;
+        public void Convert(ref BL src, ref I4 dst) => dst = (I4)(object)src;
+        public void Convert(ref BL src, ref I8 dst) => dst = (I8)(object)src;
         public void Convert(ref BL src, ref R4 dst) => dst = System.Convert.ToSingle(src);
         public void Convert(ref BL src, ref R8 dst) => dst = System.Convert.ToDouble(src);
         public void Convert(ref BL src, ref BL dst) => dst = src;

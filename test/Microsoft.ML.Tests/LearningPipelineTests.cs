@@ -120,7 +120,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float[] Features;
 
             [ColumnName("Label")]
-            public DvBool Label;
+            public bool Label;
         }
 
         [Fact]

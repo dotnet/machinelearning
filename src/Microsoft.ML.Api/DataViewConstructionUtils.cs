@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Api
                             Ch.Assert(colType.IsText);
                             return CreateConvertingGetterDelegate<String, ReadOnlyMemory<char>>(index, x => x != null ? x.AsMemory() : "".AsMemory());
                         }
-                        
+
                         // T -> T
                         if (outputType.IsGenericType && outputType.GetGenericTypeDefinition() == typeof(Nullable<>))
                             Ch.Assert(colType.RawType == Nullable.GetUnderlyingType(outputType));

@@ -310,7 +310,7 @@ namespace Microsoft.ML.Runtime.Api
                         Ch.Assert(peek == null);
                         return CreateConvertingActionSetter<ReadOnlyMemory<char>, string>(input, index, poke, x => x.ToString());
                     }
-                    
+
                     // T -> T
                     if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Nullable<>))
                         Ch.Assert(colType.RawType == Nullable.GetUnderlyingType(fieldType));
