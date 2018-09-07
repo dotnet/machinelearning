@@ -32,7 +32,7 @@ namespace Microsoft.ML.Benchmarks
 
             if (!File.Exists(s_dataPath_Wiki))
             {
-                throw new FileNotFoundException(s_dataPath_Wiki);
+                throw new FileNotFoundException($"Could not find {s_dataPath_Wiki} Please ensure you have run 'build.cmd -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData' from the root");
             }
         }
 

@@ -163,8 +163,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset WikiDetox = new TestDataset
         {
             name = "WikiDetox",
-            trainFilename = "Input/WikiDetoxAnnotated160kRows.tsv",
-            testFilename = "Input/WikiDetoxAnnotated160kRows.tsv"
+            trainFilename = "external/WikiDetoxAnnotated160kRows.tsv",
+            testFilename = "external/WikiDetoxAnnotated160kRows.tsv"
         };
 
         public static TestDataset winequality = new TestDataset
