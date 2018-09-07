@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
                 var col = new SchemaShape.Column(column.Name, originalColumn.Kind, originalColumn.ItemType, originalColumn.IsKey, originalColumn.Metadata);
                 resultDic[column.Name] = col;
             }
-            return new SchemaShape(resultDic.Values.ToArray());
+            return new SchemaShape(resultDic.Values);
         }
     }
 
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 _schema.TryGetColumnIndex(_columns[i].Source, out int colIndex);
                 var colType = _schema.GetColumnType(colIndex);
-                var meta = new RowColumnUtils.MetadataRow(_schema, colIndex);
+                var meta = new RowColumnUtils.MetadataRow(_schema, colIndex, x => true);
                 result[i] = new RowMapperColumnInfo(_columns[i].Name, colType, meta);
             }
             return result;

@@ -302,7 +302,7 @@ namespace Microsoft.ML.Runtime.Data
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = new KeyToValueTransform(host, input, input.Data);
+            var xf = KeyToValueTransform.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
     }
