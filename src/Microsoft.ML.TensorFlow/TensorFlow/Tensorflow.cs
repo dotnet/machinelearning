@@ -4,8 +4,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Globalization;
 using System.Linq;
 
 // We use this TF_Xxx as the native "TF_Xxx *" as those are opaque
@@ -24,9 +22,9 @@ using TF_Function = System.IntPtr;
 using TF_DeviceList = System.IntPtr;
 
 using size_t = System.UIntPtr;
-using System.Numerics;
 using System.Collections.Generic;
-using System.Linq.Expressions;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Data;
 
 #pragma warning disable MSML_GeneralName
 #pragma warning disable MSML_PrivateFieldName
@@ -700,6 +698,24 @@ namespace Microsoft.ML.Transforms.TensorFlow
             IntPtr len;
             return TF_GraphDebugString(Handle, out len);
         }
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        internal static extern string TF_OperationName(TF_Operation oper);
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        internal static extern string TF_OperationOpType(TF_Operation oper);
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        internal static extern int TF_OperationNumOutputs(TF_Operation oper);
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        internal static extern TFDataType TF_OperationOutputType(TFOutput oper_out);
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        internal static extern int TF_OperationNumInputs(TF_Operation oper);
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        internal static unsafe extern TF_Operation TF_GraphNextOperation(TF_Graph graph, long* pos);
     }
 
     /// <summary>

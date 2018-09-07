@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.TensorFlow;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -67,6 +68,16 @@ namespace Microsoft.ML.Scenarios
                     Assert.False(cursor.MoveNext());
 
                 }
+            }
+        }
+
+        [Fact]
+        public void TensorFlowListLayersMnistConv()
+        {
+            var model_location = "mnist_model/frozen_saved_model.pb";
+            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            {
+                var schema = TensorFlowUtils.GetModelSchema(env, model_location);
             }
         }
 

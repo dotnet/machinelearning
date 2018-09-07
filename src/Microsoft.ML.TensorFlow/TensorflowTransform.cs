@@ -58,7 +58,7 @@ namespace Microsoft.ML.Transforms
                     loaderSignature: LoaderSignature);
             }
 
-            public TensorFlowMapper(IHostEnvironment env, ISchema inputSchema, byte[] modelBytes, string[] inputColNames, string outputColName)
+            public TensorFlowMapper(IHostEnvironment env, ISchema inputSchema, byte[] modelBytes, string[] inputColNames, string outputColName, string modelFile = null)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register("TensorFlowMapper");
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Transforms
                 _host.CheckNonEmpty(inputColNames, nameof(inputColNames));
                 _host.CheckNonEmpty(outputColName, nameof(outputColName));
 
-                _session = LoadTFSession(modelBytes, null);
+                _session = TensorFlowUtils.LoadTFSession(_host, modelBytes, modelFile);
                 _host.CheckValue(_session.Graph[outputColName], nameof(outputColName), "Output does not exist in the model");
                 _host.Check(inputColNames.All(name => _session.Graph[name] != null), "One of the input does not exist in the model");
 
@@ -117,25 +117,6 @@ namespace Microsoft.ML.Transforms
                     ctx.SaveNonEmptyString(colName);
 
                 ctx.SaveNonEmptyString(_outputColName);
-            }
-
-            private TFSession LoadTFSession(byte[] modelBytes, string modelArg)
-            {
-                var graph = new TFGraph();
-                try
-                {
-                    graph.Import(modelBytes, "");
-                }
-                catch (Exception ex)
-                {
-                    if (!string.IsNullOrEmpty(modelArg))
-                        throw _host.Except($"TensorFlow exception triggered while loading model from '{modelArg}'");
-#pragma warning disable MSML_NoMessagesForLoadContext
-                    throw _host.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
-#pragma warning restore MSML_NoMessagesForLoadContext
-
-                }
-                return new TFSession(graph);
             }
 
             private ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, TFShape tfShape)
@@ -326,7 +307,7 @@ namespace Microsoft.ML.Transforms
             host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
 
             var modelBytes = File.ReadAllBytes(args.ModelFile);
-            var mapper = new TensorFlowMapper(host, input.Schema, modelBytes, args.InputColumns, args.OutputColumn);
+            var mapper = new TensorFlowMapper(host, input.Schema, modelBytes, args.InputColumns, args.OutputColumn, args.ModelFile);
             return new RowToRowMapperTransform(host, input, mapper);
         }
 
