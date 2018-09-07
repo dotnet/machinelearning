@@ -22,17 +22,17 @@ namespace Microsoft.ML.Benchmarks
 
     public class BigramAndTrigramBenchmark
     {
-        private string s_dataPath_Wiki;
-        private string s_modelPath_Wiki;
+        private string _dataPath_Wiki;
+        private string _modelPath_Wiki;
 
         [GlobalSetup(Targets = new string[] { nameof(Preceptron_CV), nameof(LightGBM_CV) })]
         public void Setup_Preceptron_LightGBM()
         {
-            s_dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
 
-            if (!File.Exists(s_dataPath_Wiki))
+            if (!File.Exists(_dataPath_Wiki))
             {
-                throw new FileNotFoundException($"Could not find {s_dataPath_Wiki} Please ensure you have run 'build.cmd -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=true' from the root");
+                throw new FileNotFoundException($"Could not find {_dataPath_Wiki} Please ensure you have run 'build.cmd -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=true' from the root");
             }
         }
 
@@ -40,8 +40,8 @@ namespace Microsoft.ML.Benchmarks
         public void Setup_WikiDetox()
         {
             Setup_Preceptron_LightGBM();
-            s_modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.zip");
-            string cmd = @"CV k=5 data=" + s_dataPath_Wiki + " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}} xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=OVA{p=AveragedPerceptron{iter=10}} out={" + s_modelPath_Wiki + "}";
+            _modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.zip");
+            string cmd = @"CV k=5 data=" + _dataPath_Wiki + " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}} xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=OVA{p=AveragedPerceptron{iter=10}} out={" + _modelPath_Wiki + "}";
             using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void Preceptron_CV()
         {
-            string cmd = @"CV k=5 data=" + s_dataPath_Wiki + " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}} xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=OVA{p=AveragedPerceptron{iter=10}}";
+            string cmd = @"CV k=5 data=" + _dataPath_Wiki + " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}} xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=OVA{p=AveragedPerceptron{iter=10}}";
             using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void LightGBM_CV()
         {
-            string cmd = @"CV k=5 data=" + s_dataPath_Wiki + " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}} xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=LightGBMMulticlass{}";
+            string cmd = @"CV k=5 data=" + _dataPath_Wiki + " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}} xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=LightGBMMulticlass{}";
             using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Benchmarks
         public void WikiDetox()
         {
             string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.fold000.zip");
-            string cmd = @"Test data=" + s_dataPath_Wiki + " in=" + modelpath;
+            string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
             using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
