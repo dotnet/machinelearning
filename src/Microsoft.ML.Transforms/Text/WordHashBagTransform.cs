@@ -419,7 +419,7 @@ namespace Microsoft.ML.Runtime.Data
                         Sort = termLoaderArgs.Sort,
                         Column = termCols.ToArray()
                     };
-                view = new TermTransform(h, termArgs, view);
+                view = TermTransform.Create(h, termArgs, view);
 
                 if (termLoaderArgs.DropUnknowns)
                 {

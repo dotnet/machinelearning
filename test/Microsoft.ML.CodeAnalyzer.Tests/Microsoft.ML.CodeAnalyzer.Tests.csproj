@@ -5,13 +5,14 @@
     <EmbeddedResource Include="Resources/**/*.cs">
       <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
-    
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\tools-local\Microsoft.ML.CodeAnalyzer\Microsoft.ML.CodeAnalyzer.csproj" />
+    <ProjectReference Include="..\..\tools-local\Microsoft.ML.InternalCodeAnalyzer\Microsoft.ML.InternalCodeAnalyzer.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
+
 </Project>

@@ -200,16 +200,35 @@ namespace Microsoft.ML.Runtime.Data
         {
             public Range() { }
 
+            /// <summary>
+            /// A range representing a single value. Will result in a scalar column.
+            /// </summary>
+            /// <param name="index">The index of the field of the text file to read.</param>
             public Range(int index)
-                : this(index, index) { }
-
-            public Range(int min, int max)
             {
-                Contracts.CheckParam(min >= 0, nameof(min), "min must be non-negative.");
-                Contracts.CheckParam(max >= min, nameof(max), "max must be greater than or equal to min.");
+                Contracts.CheckParam(index >= 0, nameof(index), "Must be non-negative");
+                Min = index;
+                Max = index;
+            }
+
+            /// <summary>
+            /// A range representing a set of values. Will result in a vector column.
+            /// </summary>
+            /// <param name="min">The minimum inclusive index of the column.</param>
+            /// <param name="max">The maximum-inclusive index of the column. If <c>null</c>
+            /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
+            /// of the lines, and read till the end.</param>
+            public Range(int min, int? max)
+            {
+                Contracts.CheckParam(min >= 0, nameof(min), "Must be non-negative");
+                Contracts.CheckParam(!(max < min), nameof(max), "If specified, must be greater than or equal to " + nameof(min));
 
                 Min = min;
                 Max = max;
+                // Note that without the following being set, in the case where there is a single range
+                // where Min == Max, the result will not be a vector valued but a scalar column.
+                ForceVector = true;
+                AutoEnd = max == null;
             }
 
             [Argument(ArgumentType.Required, HelpText = "First index in the range")]
