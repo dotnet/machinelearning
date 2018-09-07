@@ -272,7 +272,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var data = reader.Read(dataSource);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, r.features, bin: r.features.NormalizeByBinning(), mm: r.features.NormalizeByMinMax()));
+                .Append(r => (r.label, r.features, bin: r.features.NormalizeByBinning(), mm: r.features.Normalize()));
             var tdata = est.Fit(data).Transform(data);
 
             var schema = tdata.AsDynamic.Schema;

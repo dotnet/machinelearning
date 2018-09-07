@@ -21,9 +21,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Learns an affine function based on the minimum and maximum, so that all values between the minimum and
-        /// maximum observed during fitting fall into the range of -1 to 1. Note that if values are later transformed
-        /// that are lower than the minimum, or higher than the maximum, observed during fitting, that the output
-        /// values may be outside the range of -1 to 1.
+        /// maximum observed during fitting fall into the range of -1 to 1.
         /// </summary>
         /// <param name="input">The input column.</param>
         /// <param name="fixZero">If set to <c>false</c>, then the observed minimum and maximum during fitting
@@ -33,9 +31,11 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="onFit">A delegate that can be called whenever the function is fit, with the learned slopes
         /// and, if <paramref name="fixZero"/> is <c>false</c>, the offsets as well.</param>
         /// <remarks>Note that the statistics gathering and normalization is done independently per slot of the
-        /// vector values.</remarks>
+        /// vector values.
+        /// Note that if values are later transformed that are lower than the minimum, or higher than the maximum,
+        /// observed during fitting, that the output values may be outside the range of -1 to 1.</remarks>
         /// <returns>The normalized column.</returns>
-        public static NormVector<float> NormalizeByMinMax(
+        public static NormVector<float> Normalize(
             this Vector<float> input, bool fixZero = FZ, long maxTrainingExamples = MaxTrain,
             OnFitAffine<ImmutableArray<float>> onFit = null)
         {
@@ -44,9 +44,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Learns an affine function based on the minimum and maximum, so that all values between the minimum and
-        /// maximum observed during fitting fall into the range of -1 to 1. Note that if values are later transformed
-        /// that are lower than the minimum, or higher than the maximum, observed during fitting, that the output
-        /// values may be outside the range of -1 to 1.
+        /// maximum observed during fitting fall into the range of -1 to 1.
         /// </summary>
         /// <param name="input">The input column.</param>
         /// <param name="fixZero">If set to <c>false</c>, then the observed minimum and maximum during fitting
@@ -56,9 +54,11 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="onFit">A delegate called whenever the estimator is fit, with the learned slopes
         /// and, if <paramref name="fixZero"/> is <c>false</c>, the offsets as well.</param>
         /// <remarks>Note that the statistics gathering and normalization is done independently per slot of the
-        /// vector values.</remarks>
+        /// vector values.
+        /// Note that if values are later transformed that are lower than the minimum, or higher than the maximum,
+        /// observed during fitting, that the output values may be outside the range of -1 to 1.</remarks>
         /// <returns>The normalized column.</returns>
-        public static NormVector<double> NormalizeByMinMax(
+        public static NormVector<double> Normalize(
             this Vector<double> input, bool fixZero = FZ, long maxTrainingExamples = MaxTrain,
             OnFitAffine<ImmutableArray<double>> onFit = null)
         {
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Learns an affine function based on the observed mean and standard deviation. This is less susceptible
-        /// to outliers as compared to <see cref="NormalizeByMinMax(Vector{float}, bool, long, OnFitAffine{ImmutableArray{float}})"/>.
+        /// to outliers as compared to <see cref="Normalize(Vector{float}, bool, long, OnFitAffine{ImmutableArray{float}})"/>.
         /// </summary>
         /// <param name="input">The input column.</param>
         /// <param name="fixZero">If set to <c>true</c> then the offset will always be considered zero.</param>
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Learns an affine function based on the observed mean and standard deviation. This is less susceptible
-        /// to outliers as compared to <see cref="NormalizeByMinMax(Vector{double}, bool, long, OnFitAffine{ImmutableArray{double}})"/>.
+        /// to outliers as compared to <see cref="Normalize(Vector{double}, bool, long, OnFitAffine{ImmutableArray{double}})"/>.
         /// </summary>
         /// <param name="input">The input column.</param>
         /// <param name="fixZero">If set to <c>true</c> then the offset will always be considered zero.</param>

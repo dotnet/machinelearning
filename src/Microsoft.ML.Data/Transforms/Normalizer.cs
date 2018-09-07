@@ -619,8 +619,7 @@ namespace Microsoft.ML.Runtime.Data
             TData Stddev { get; }
 
             /// <summary>
-            /// Whether the input should first be considered to be logged, that is, whether this was configured
-            /// over a log-normal as opposed to regular normal distribution.
+            /// Whether the we ought to apply a logarithm to the input first.
             /// </summary>
             bool UseLog { get; }
         }
@@ -629,7 +628,6 @@ namespace Microsoft.ML.Runtime.Data
         /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
         /// <see cref="NormalizeTransform.BinColumnFunction"/> items.
         /// </summary>
-        /// <typeparam name="TData"></typeparam>
         internal interface IBinData<TData>
         {
             /// <summary>
