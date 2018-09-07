@@ -4,14 +4,14 @@
 
 using System;
 using System.IO;
-using Microsoft.ML;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.PipelineInference;
 using Microsoft.ML.Runtime.MLTesting.Inference;
+using Microsoft.ML.Runtime.PipelineInference;
+using Microsoft.ML.TestFramework;
 
 [assembly: LoadableClass(typeof(InferRecipesCommand), typeof(InferRecipesCommand.Arguments), typeof(SignatureCommand),
     "Infer Recipes", "InferRecipes", DocName = "command/InferRecipes.md")]

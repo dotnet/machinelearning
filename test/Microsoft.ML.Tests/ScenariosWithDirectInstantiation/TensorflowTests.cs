@@ -98,25 +98,19 @@ namespace Microsoft.ML.Scenarios
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min=0, Max=0} },
-                            Type = DataKind.Num
-                        },
+                        new TextLoader.Column("Label", DataKind.Num,0),
+                        new TextLoader.Column("Placeholder", DataKind.Num,new []{new TextLoader.Range(1, 784) })
 
-                        new TextLoader.Column()
-                        {
-                            Name = "Placeholder",
-                            Source = new [] { new TextLoader.Range() { Min=1, Max=784} },
-                            Type = DataKind.Num
-                        }
                     }
                 }, new MultiFileSource(dataPath));
 
-                IDataView trans = TensorFlowTransform.Create(env, loader, model_location, "Softmax", "Placeholder");
-                trans = new ConcatTransform(env, trans, "reshape_input", "Placeholder");
-                trans = TensorFlowTransform.Create(env, trans, model_location, "dense/Relu", "reshape_input");
+                IDataView trans = CopyColumnsTransform.Create(env, new CopyColumnsTransform.Arguments()
+                {
+                    Column = new[] { new CopyColumnsTransform.Column()
+                                        { Name = "reshape_input", Source = "Placeholder" }
+                                    }
+                }, loader);
+                trans = TensorFlowTransform.Create(env, trans, model_location, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" });
                 trans = new ConcatTransform(env, trans, "Features", "Softmax", "dense/Relu");
 
                 var trainer = new LightGbmMulticlassTrainer(env, new LightGbmArguments());
@@ -156,7 +150,7 @@ namespace Microsoft.ML.Scenarios
 
                 float max = -1;
                 int maxIndex = -1;
-                for(int i=0;i<prediction.PredictedLabels.Length; i++)
+                for (int i = 0; i < prediction.PredictedLabels.Length; i++)
                 {
                     if (prediction.PredictedLabels[i] > max)
                     {

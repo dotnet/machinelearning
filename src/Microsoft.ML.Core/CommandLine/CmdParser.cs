@@ -830,14 +830,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                     continue;
                 }
 
-                if (arg.IsSubComponentItemType)
-                {
-                    hadError |= !arg.SetValue(this, ref values[arg.Index], value, tag, destination);
-                    if (!IsCurlyGroup(value) && i + 1 < strs.Length && IsCurlyGroup(strs[i + 1]))
-                        hadError |= !arg.SetValue(this, ref values[arg.Index], strs[++i], "", destination);
-                    continue;
-                }
-
                 if (arg.IsCustomItemType)
                 {
                     hadError |= !arg.SetValue(this, ref values[arg.Index], value, tag, destination);
@@ -1395,7 +1387,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                 public bool IsDefault { get { return _arg.IsDefault; } }
                 public bool IsHidden { get { return _arg.IsHidden; } }
                 public bool IsCollection { get { return _arg.IsCollection; } }
-                public bool IsSubComponentItemType { get { return _arg.IsSubComponentItemType; } }
                 public bool IsTaggedCollection { get { return _arg.IsTaggedCollection; } }
                 // Used for help and composing settings strings.
                 public object DefaultValue { get { return _arg.DefaultValue; } }
@@ -1486,12 +1477,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                         bldr.Append(']');
                         return bldr.ToString();
                     }
-                    else if (type.IsGenericEx(typeof(SubComponent<,>)))
-                    {
-                        var genArgs = type.GetGenericTypeArgumentsEx();
-                        Contracts.Assert(Utils.Size(genArgs) == 2);
-                        return $"{ComponentCatalog.SignatureToString(genArgs[1])} ⇒ {genArgs[0].Name}";
-                    }
                     else
                         return type.Name;
                 }
@@ -1574,7 +1559,6 @@ namespace Microsoft.ML.Runtime.CommandLine
             public readonly bool IsDefault;
             public readonly bool IsHidden;
             public readonly bool IsCollection;
-            public readonly bool IsSubComponentItemType;
             public readonly bool IsTaggedCollection;
             public readonly bool IsComponentFactory;
 
@@ -1629,9 +1613,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 if (defaults != null && !IsRequired)
                     DefaultValue = field.GetValue(defaults);
 
-                if (typeof(SubComponent).IsAssignableFrom(ItemValueType))
-                    IsSubComponentItemType = true;
-                else if (typeof(IComponentFactory).IsAssignableFrom(ItemValueType))
+                if (typeof(IComponentFactory).IsAssignableFrom(ItemValueType))
                     IsComponentFactory = true;
                 else if (!IsValidItemType(ItemValueType))
                 {
@@ -1658,7 +1640,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                 }
 
                 Contracts.Check(!IsCollection || AllowMultiple, "Collection arguments must allow multiple");
-                Contracts.Check(!IsSingleSubComponent || AllowMultiple, "SubComponent arguments must allow multiple");
                 Contracts.Check(!Unique || IsCollection, "Unique only applicable to collection arguments");
             }
 
@@ -1681,7 +1662,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 {
                     // Make sure all collections have a non-null.
                     // REVIEW: Should we really do this? Or should all code be able to handle null arrays?
-                    // Should we also set null strings to ""? SubComponent?
+                    // Should we also set null strings to ""?
                     if (IsCollection && Field.GetValue(destination) == null)
                         Field.SetValue(destination, Array.CreateInstance(ItemType, 0));
                     return ReportMissingRequiredArgument(owner, val);
@@ -1689,34 +1670,7 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                 var values = val.Values;
                 bool error = false;
-                if (IsSingleSubComponent)
-                {
-                    bool haveKind = false;
-                    var com = SubComponent.Create(ItemType);
-                    for (int i = 0; i < Utils.Size(values);)
-                    {
-                        string str = (string)values[i].Value;
-                        if (str.StartsWith("{"))
-                        {
-                            i++;
-                            continue;
-                        }
-                        if (haveKind)
-                        {
-                            owner.Report("Duplicate component kind for argument {0}", LongName);
-                            error = true;
-                        }
-                        com.Kind = str;
-                        haveKind = true;
-                        values.RemoveAt(i);
-                    }
-
-                    if (Utils.Size(values) > 0)
-                        com.Settings = values.Select(x => (string)x.Value).ToArray();
-
-                    Field.SetValue(destination, com);
-                }
-                else if (IsSingleComponentFactory)
+                if (IsSingleComponentFactory)
                 {
                     bool haveName = false;
                     string name = null;
@@ -1756,53 +1710,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                     {
                         owner.Report("There was an error creating the ComponentFactory. Ensure '{0}' is configured correctly.", LongName);
                         error = true;
-                    }
-                }
-                else if (IsMultiSubComponent)
-                {
-                    // REVIEW: the kind should not be separated from settings: everything related
-                    // to one item should go into one value, not multiple values
-                    if (IsTaggedCollection)
-                    {
-                        // Tagged collection of SubComponents
-                        var comList = new List<KeyValuePair<string, SubComponent>>();
-
-                        for (int i = 0; i < Utils.Size(values);)
-                        {
-                            var com = SubComponent.Create(ItemValueType);
-                            string tag = values[i].Key;
-                            com.Kind = (string)values[i++].Value;
-                            if (i < values.Count && IsCurlyGroup((string)values[i].Value) && string.IsNullOrEmpty(values[i].Key))
-                                com.Settings = new string[] { (string)values[i++].Value };
-                            comList.Add(new KeyValuePair<string, SubComponent>(tag, com));
-                        }
-
-                        var arr = Array.CreateInstance(ItemType, comList.Count);
-                        for (int i = 0; i < arr.Length; i++)
-                        {
-                            var kvp = Activator.CreateInstance(ItemType, comList[i].Key, comList[i].Value);
-                            arr.SetValue(kvp, i);
-                        }
-
-                        Field.SetValue(destination, arr);
-                    }
-                    else
-                    {
-                        // Collection of SubComponents
-                        var comList = new List<SubComponent>();
-                        for (int i = 0; i < Utils.Size(values);)
-                        {
-                            var com = SubComponent.Create(ItemValueType);
-                            com.Kind = (string)values[i++].Value;
-                            if (i < values.Count && IsCurlyGroup((string)values[i].Value))
-                                com.Settings = new string[] { (string)values[i++].Value };
-                            comList.Add(com);
-                        }
-
-                        var arr = Array.CreateInstance(ItemValueType, comList.Count);
-                        for (int i = 0; i < arr.Length; i++)
-                            arr.SetValue(comList[i], i);
-                        Field.SetValue(destination, arr);
                     }
                 }
                 else if (IsMultiComponentFactory)
@@ -1951,7 +1858,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                     }
                     val.Values.Add(new KeyValuePair<string, object>(tag, newValue));
                 }
-                else if (IsSingleSubComponent || IsComponentFactory)
+                else if (IsComponentFactory)
                 {
                     Contracts.Assert(newValue is string || newValue == null);
                     Contracts.Assert((string)newValue != "");
@@ -1994,14 +1901,12 @@ namespace Microsoft.ML.Runtime.CommandLine
                         return true;
                     if (type == typeof(string))
                         return true;
-                    if (IsSubComponentItemType)
-                        return true;
 
                     ReportBadArgumentValue(owner, data);
                     return false;
                 }
 
-                if (IsSubComponentItemType || IsComponentFactory)
+                if (IsComponentFactory)
                 {
                     value = data;
                     return true;
@@ -2471,8 +2376,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                         bldr.Append("=<guid>");
                     else if (type == typeof(System.DateTime))
                         bldr.Append("=<datetime>");
-                    else if (IsSubComponentItemType)
-                        bldr.Append("=<name>{<options>}");
                     else if (IsComponentFactory)
                         bldr.Append("=<name>{<options>}");
                     else if (IsCustomItemType)
@@ -2510,14 +2413,6 @@ namespace Microsoft.ML.Runtime.CommandLine
 
             public bool Unique {
                 get { return 0 != (Kind & ArgumentType.Unique); }
-            }
-
-            public bool IsSingleSubComponent {
-                get { return IsSubComponentItemType && !Field.FieldType.IsArray; }
-            }
-
-            public bool IsMultiSubComponent {
-                get { return IsSubComponentItemType && Field.FieldType.IsArray; }
             }
 
             public bool IsSingleComponentFactory

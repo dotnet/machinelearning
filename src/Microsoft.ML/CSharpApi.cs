@@ -15795,9 +15795,9 @@ namespace Microsoft.ML
             public string[] InputColumns { get; set; }
 
             /// <summary>
-            /// The name of the output
+            /// The name of the outputs
             /// </summary>
-            public string OutputColumn { get; set; }
+            public string[] OutputColumns { get; set; }
 
             /// <summary>
             /// Input dataset
