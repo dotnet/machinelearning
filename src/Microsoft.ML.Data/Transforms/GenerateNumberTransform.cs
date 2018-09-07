@@ -213,17 +213,17 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
                 if (kind == MetadataUtils.Kinds.IsNormalized && !UseCounter[iinfo])
                 {
-                    MetadataUtils.Marshal<DvBool, TValue>(IsNormalized, iinfo, ref value);
+                    MetadataUtils.Marshal<bool, TValue>(IsNormalized, iinfo, ref value);
                     return;
                 }
 
                 base.GetMetadataCore(kind, iinfo, ref value);
             }
 
-            private void IsNormalized(int iinfo, ref DvBool dst)
+            private void IsNormalized(int iinfo, ref bool dst)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
-                dst = DvBool.True;
+                dst = true;
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)

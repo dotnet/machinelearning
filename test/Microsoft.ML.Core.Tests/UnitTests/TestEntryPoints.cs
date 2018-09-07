@@ -975,13 +975,13 @@ namespace Microsoft.ML.Runtime.RunTests
                 InputFile = inputFile
             }).Data;
 
-            ValueMapper<ReadOnlyMemory<char>, DvBool> labelToBinary =
-                (ref ReadOnlyMemory<char> src, ref DvBool dst) =>
+            ValueMapper<ReadOnlyMemory<char>, bool> labelToBinary =
+                (ref ReadOnlyMemory<char> src, ref bool dst) =>
                 {
                     if (ReadOnlyMemoryUtils.EqualsStr("Sport", src))
-                        dst = DvBool.True;
+                        dst = true;
                     else
-                        dst = DvBool.False;
+                        dst = false;
                 };
             dataView = LambdaColumnMapper.Create(Env, "TextToBinaryLabel", dataView, "Label", "Label",
                 TextType.Instance, BoolType.Instance, labelToBinary);

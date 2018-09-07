@@ -573,7 +573,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private BoolType()
-            : base(typeof(DvBool), DataKind.BL)
+            : base(typeof(bool), DataKind.BL)
         {
         }
 

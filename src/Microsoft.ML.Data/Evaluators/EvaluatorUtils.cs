@@ -272,12 +272,12 @@ namespace Microsoft.ML.Runtime.Data
 
             using (var cursor = metricsView.GetRowCursor(col => true))
             {
-                DvBool isWeighted = DvBool.False;
-                ValueGetter<DvBool> isWeightedGetter;
+                bool isWeighted = false;
+                ValueGetter<bool> isWeightedGetter;
                 if (hasWeighted)
-                    isWeightedGetter = cursor.GetGetter<DvBool>(isWeightedCol);
+                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol);
                 else
-                    isWeightedGetter = (ref DvBool dst) => dst = DvBool.False;
+                    isWeightedGetter = (ref bool dst) => dst = false;
 
                 ValueGetter<uint> stratColGetter;
                 if (hasStrats)
@@ -313,7 +313,7 @@ namespace Microsoft.ML.Runtime.Data
                 while (cursor.MoveNext())
                 {
                     isWeightedGetter(ref isWeighted);
-                    if (isWeighted.IsTrue)
+                    if (isWeighted)
                         continue;
 
                     stratColGetter(ref strat);
@@ -1098,12 +1098,12 @@ namespace Microsoft.ML.Runtime.Data
             AggregatedMetric[] agg;
             using (var cursor = data.GetRowCursor(col => true))
             {
-                DvBool isWeighted = DvBool.False;
-                ValueGetter<DvBool> isWeightedGetter;
+                bool isWeighted = false;
+                ValueGetter<bool> isWeightedGetter;
                 if (hasWeighted)
-                    isWeightedGetter = cursor.GetGetter<DvBool>(isWeightedCol);
+                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol);
                 else
-                    isWeightedGetter = (ref DvBool dst) => dst = DvBool.False;
+                    isWeightedGetter = (ref bool dst) => dst = false;
 
                 ValueGetter<uint> stratColGetter;
                 if (hasStrats)
@@ -1141,7 +1141,7 @@ namespace Microsoft.ML.Runtime.Data
                         continue;
 
                     isWeightedGetter(ref isWeighted);
-                    if (isWeighted.IsTrue)
+                    if (isWeighted)
                     {
                         // If !average, we should have only one relevant row.
                         if (numWeightedResults > numFolds)
@@ -1257,8 +1257,8 @@ namespace Microsoft.ML.Runtime.Data
                 else if (i == isWeightedCol)
                 {
                     env.AssertValue(weightedDvBldr);
-                    dvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { DvBool.False, DvBool.False } : new[] { DvBool.False });
-                    weightedDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { DvBool.True, DvBool.True } : new[] { DvBool.True });
+                    dvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { false, false} : new[] { false });
+                    weightedDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { true, true } : new[] { true });
                 }
                 else if (i == foldCol)
                 {
@@ -1481,7 +1481,7 @@ namespace Microsoft.ML.Runtime.Data
         /// stratified metrics, it must contain two text columns named "StratCol" and "StratVal", containing the stratification column
         /// name, and a text description of the value. In this case, the value of column StratVal in the row corresponding to the entire
         /// dataset should contain the text "overall", and the value of column StratCol should be DvText.NA. If weighted metrics are present
-        /// then the data view should also contain a DvBool column named "IsWeighted".</param>
+        /// then the data view should also contain a bool column named "IsWeighted".</param>
         /// <param name="weightedMetrics">If the IsWeighted column exists, this is assigned the string representation of the weighted
         /// metrics. Otherwise it is assigned null.</param>
         public static string GetPerFoldResults(IHostEnvironment env, IDataView fold, out string weightedMetrics)
@@ -1511,7 +1511,7 @@ namespace Microsoft.ML.Runtime.Data
 
         // This method returns a string representation of a set of metrics. If there are stratification columns, it looks for columns named
         // StratCol and StratVal, and outputs the metrics in the rows with NA in the StratCol column. If weighted is true, it looks
-        // for a DvBool column named "IsWeighted" and outputs the metrics in the rows with a value of true in that column.
+        // for a bool column named "IsWeighted" and outputs the metrics in the rows with a value of true in that column.
         // If nonAveragedCols is non-null, it computes the average and standard deviation over all the relevant rows and populates
         // nonAveragedCols with columns that are either hidden, or are not of a type that we can display (i.e., either a numeric column,
         // or a known length vector of doubles).

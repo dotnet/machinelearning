@@ -131,16 +131,6 @@ namespace Microsoft.ML.Runtime.Api
                             Ch.Assert(colType.ItemType.IsText);
                             return CreateConvertingArrayGetterDelegate<string, ReadOnlyMemory<char>>(index, x =>  x != null ? x.AsMemory() : "".AsMemory() );
                         }
-                        else if (outputType.GetElementType() == typeof(bool))
-                        {
-                            Ch.Assert(colType.ItemType.IsBool);
-                            return CreateConvertingArrayGetterDelegate<bool, DvBool>(index, x => x);
-                        }
-                        else if (outputType.GetElementType() == typeof(bool?))
-                        {
-                            Ch.Assert(colType.ItemType.IsBool);
-                            return CreateConvertingArrayGetterDelegate<bool?, DvBool>(index, x => x ?? DvBool.NA);
-                        }
 
                         // T[] -> VBuffer<T>
                         if (outputType.GetElementType().IsGenericType && outputType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
@@ -168,18 +158,7 @@ namespace Microsoft.ML.Runtime.Api
                             Ch.Assert(colType.IsText);
                             return CreateConvertingGetterDelegate<String, ReadOnlyMemory<char>>(index, x => x != null ? x.AsMemory() : "".AsMemory());
                         }
-                        else if (outputType == typeof(bool))
-                        {
-                            // Bool -> DvBool
-                            Ch.Assert(colType.IsBool);
-                            return CreateConvertingGetterDelegate<bool, DvBool>(index, x => x);
-                        }
-                        else if (outputType == typeof(bool?))
-                        {
-                            // Bool? -> DvBool
-                            Ch.Assert(colType.IsBool);
-                            return CreateConvertingGetterDelegate<bool?, DvBool>(index, x => x ?? DvBool.NA);
-                        }
+                        
                         // T -> T
                         if (outputType.IsGenericType && outputType.GetGenericTypeDefinition() == typeof(Nullable<>))
                             Ch.Assert(colType.RawType == Nullable.GetUnderlyingType(outputType));

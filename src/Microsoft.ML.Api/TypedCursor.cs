@@ -282,16 +282,6 @@ namespace Microsoft.ML.Runtime.Api
                         Ch.Assert(colType.ItemType.IsText);
                         return CreateConvertingVBufferSetter<ReadOnlyMemory<char>, string>(input, index, poke, peek, x => x.ToString());
                     }
-                    else if (fieldType.GetElementType() == typeof(bool))
-                    {
-                        Ch.Assert(colType.ItemType.IsBool);
-                        return CreateConvertingVBufferSetter<DvBool, bool>(input, index, poke, peek, x => (bool)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(bool?))
-                    {
-                        Ch.Assert(colType.ItemType.IsBool);
-                        return CreateConvertingVBufferSetter<DvBool, bool?>(input, index, poke, peek, x => (bool?)x);
-                    }
 
                     // VBuffer<T> -> T[]
                     if (fieldType.GetElementType().IsGenericType && fieldType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
@@ -320,19 +310,7 @@ namespace Microsoft.ML.Runtime.Api
                         Ch.Assert(peek == null);
                         return CreateConvertingActionSetter<ReadOnlyMemory<char>, string>(input, index, poke, x => x.ToString());
                     }
-                    else if (fieldType == typeof(bool))
-                    {
-                        Ch.Assert(colType.IsBool);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvBool, bool>(input, index, poke, x => (bool)x);
-                    }
-                    else if (fieldType == typeof(bool?))
-                    {
-                        Ch.Assert(colType.IsBool);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvBool, bool?>(input, index, poke, x => (bool?)x);
-                    }
-
+                    
                     // T -> T
                     if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Nullable<>))
                         Ch.Assert(colType.RawType == Nullable.GetUnderlyingType(fieldType));

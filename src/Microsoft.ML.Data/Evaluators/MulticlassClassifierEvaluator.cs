@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -139,8 +139,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             var stratCol = new List<uint>();
             var stratVal = new List<ReadOnlyMemory<char>>();
-            var isWeighted = new List<DvBool>();
-
+            var isWeighted = new List<bool>();
             var microAcc = new List<Double>();
             var macroAcc = new List<Double>();
             var logLoss = new List<Double>();
@@ -165,7 +164,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     microAcc.Add(agg.UnweightedCounters.MicroAvgAccuracy);
                     macroAcc.Add(agg.UnweightedCounters.MacroAvgAccuracy);
                     logLoss.Add(agg.UnweightedCounters.LogLoss);
@@ -182,7 +181,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         microAcc.Add(agg.WeightedCounters.MicroAvgAccuracy);
                         macroAcc.Add(agg.WeightedCounters.MacroAvgAccuracy);
                         logLoss.Add(agg.WeightedCounters.LogLoss);

@@ -417,7 +417,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 },
                 new ConversionSimpleClass()
             };
-
+            
             using (var env = new TlcEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);

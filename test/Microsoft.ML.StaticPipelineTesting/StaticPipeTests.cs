@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -80,12 +80,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Next actually inspect the data.
             using (var cursor = textData.GetRowCursor(c => true))
             {
-                var labelGetter = cursor.GetGetter<DvBool>(labelIdx);
                 var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(textIdx);
                 var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(numericFeaturesIdx);
-
-                DvBool labelVal = default;
                 ReadOnlyMemory<char> textVal = default;
+                var labelGetter = cursor.GetGetter<bool>(labelIdx);
+                bool labelVal = default;
                 VBuffer<float> numVal = default;
 
                 void CheckValuesSame(bool bl, string tx, float v0, float v1, float v2)
@@ -93,9 +92,8 @@ namespace Microsoft.ML.StaticPipelineTesting
                     labelGetter(ref labelVal);
                     textGetter(ref textVal);
                     numericFeaturesGetter(ref numVal);
-
-                    Assert.Equal((DvBool)bl, labelVal);
                     Assert.True(ReadOnlyMemoryUtils.Equals(tx.AsMemory(), textVal));
+                    Assert.Equal((bool)bl, labelVal);
                     Assert.Equal(3, numVal.Length);
                     Assert.Equal(v0, numVal.GetItemOrDefault(0));
                     Assert.Equal(v1, numVal.GetItemOrDefault(1));

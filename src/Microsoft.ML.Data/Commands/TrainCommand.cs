@@ -444,7 +444,6 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (autoNorm != NormalizeOption.Yes)
                 {
-                    DvBool isNormalized = DvBool.False;
                     if (!trainer.Info.NeedNormalization || schema.IsNormalized(featCol))
                     {
                         ch.Info("Not adding a normalizer.");

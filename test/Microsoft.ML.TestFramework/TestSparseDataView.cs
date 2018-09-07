@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             GenericSparseDataView(new[] { 1f, 2f, 3f }, new[] { 1f, 10f, 100f });
             GenericSparseDataView(new int[] { 1, 2, 3 }, new int[] { 1, 10, 100 });
-            GenericSparseDataView(new DvBool[] { true, true, true }, new DvBool[] { false, false, false });
+            GenericSparseDataView(new bool[] { true, true, true }, new bool[] { false, false, false });
             GenericSparseDataView(new double[] { 1, 2, 3 }, new double[] { 1, 10, 100 });
             GenericSparseDataView(new ReadOnlyMemory<char>[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() },
                                   new ReadOnlyMemory<char>[] { "aa".AsMemory(), "bb".AsMemory(), "cc".AsMemory() });
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             GenericDenseDataView(new[] { 1f, 2f, 3f }, new[] { 1f, 10f, 100f });
             GenericDenseDataView(new int[] { 1, 2, 3 }, new int[] { 1, 10, 100 });
-            GenericDenseDataView(new DvBool[] { true, true, true }, new DvBool[] { false, false, false });
+            GenericDenseDataView(new bool[] { true, true, true }, new bool[] { false, false, false });
             GenericDenseDataView(new double[] { 1, 2, 3 }, new double[] { 1, 10, 100 });
             GenericDenseDataView(new ReadOnlyMemory<char>[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() },
                                  new ReadOnlyMemory<char>[] { "aa".AsMemory(), "bb".AsMemory(), "cc".AsMemory() });

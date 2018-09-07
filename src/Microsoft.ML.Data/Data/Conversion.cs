@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data.Conversion
 {
-    using BL = DvBool;
+    using BL = Boolean;
     using DT = DvDateTime;
     using DZ = DvDateTimeZone;
     using R4 = Single;
@@ -242,21 +242,18 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             AddIsNA<R4>(IsNA);
             AddIsNA<R8>(IsNA);
-            AddIsNA<BL>(IsNA);
             AddIsNA<TS>(IsNA);
             AddIsNA<DT>(IsNA);
             AddIsNA<DZ>(IsNA);
 
             AddGetNA<R4>(GetNA);
             AddGetNA<R8>(GetNA);
-            AddGetNA<BL>(GetNA);
             AddGetNA<TS>(GetNA);
             AddGetNA<DT>(GetNA);
             AddGetNA<DZ>(GetNA);
 
             AddHasNA<R4>(HasNA);
             AddHasNA<R8>(HasNA);
-            AddHasNA<BL>(HasNA);
             AddHasNA<TS>(HasNA);
             AddHasNA<DT>(HasNA);
             AddHasNA<DZ>(HasNA);
@@ -829,7 +826,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #region IsNA
         private bool IsNA(ref R4 src) => src.IsNA();
         private bool IsNA(ref R8 src) => src.IsNA();
-        private bool IsNA(ref BL src) => src.IsNA;
         private bool IsNA(ref TS src) => src.IsNA;
         private bool IsNA(ref DT src) => src.IsNA;
         private bool IsNA(ref DZ src) => src.IsNA;
@@ -838,7 +834,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #region HasNA
         private bool HasNA(ref VBuffer<R4> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA()) return true; } return false; }
         private bool HasNA(ref VBuffer<R8> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA()) return true; } return false; }
-        private bool HasNA(ref VBuffer<BL> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
         private bool HasNA(ref VBuffer<TS> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
         private bool HasNA(ref VBuffer<DT> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
         private bool HasNA(ref VBuffer<DZ> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
@@ -852,7 +847,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         private bool IsDefault(ref R4 src) => src == 0;
         private bool IsDefault(ref R8 src) => src == 0;
         private bool IsDefault(ref TX src) => src.IsEmpty;
-        private bool IsDefault(ref BL src) => src.IsFalse;
+        private bool IsDefault(ref BL src) => src == default;
         private bool IsDefault(ref U1 src) => src == 0;
         private bool IsDefault(ref U2 src) => src == 0;
         private bool IsDefault(ref U4 src) => src == 0;
@@ -873,7 +868,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #region GetNA
         private void GetNA(ref R4 value) => value = R4.NaN;
         private void GetNA(ref R8 value) => value = R8.NaN;
-        private void GetNA(ref BL value) => value = BL.NA;
         private void GetNA(ref TS value) => value = TS.NA;
         private void GetNA(ref DT value) => value = DT.NA;
         private void GetNA(ref DZ value) => value = DZ.NA;
@@ -1002,9 +996,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(ref BL src, ref SB dst)
         {
             ClearDst(ref dst);
-            if (src.IsFalse)
+            if (!src)
                 dst.Append("0");
-            else if (src.IsTrue)
+            else
                 dst.Append("1");
         }
         public void Convert(ref TS src, ref SB dst) { ClearDst(ref dst); if (!src.IsNA) dst.AppendFormat("{0:c}", (TimeSpan)src); }
@@ -1556,12 +1550,14 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out BL dst)
         {
+            Contracts.Check(!IsStdMissing(ref src), "Missing text values cannot be converted to bool value.");
+            
             char ch;
             switch (src.Length)
             {
             case 0:
                 // Empty succeeds and maps to false.
-                dst = BL.False;
+                dst = false;
                 return true;
 
             case 1:
@@ -1573,7 +1569,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 case 'y':
                 case '1':
                 case '+':
-                    dst = BL.True;
+                    dst = true;
                     return true;
                 case 'F':
                 case 'f':
@@ -1581,7 +1577,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 case 'n':
                 case '0':
                 case '-':
-                    dst = BL.False;
+                    dst = false;
                     return true;
                 }
                 break;
@@ -1593,17 +1589,17 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 case 'n':
                     if ((ch = src.Span[1]) != 'O' && ch != 'o')
                         break;
-                    dst = BL.False;
+                    dst = false;
                     return true;
                 case '+':
                     if ((ch = src.Span[1]) != '1')
                         break;
-                    dst = BL.True;
+                    dst = true;
                     return true;
                 case '-':
                     if ((ch = src.Span[1]) != '1')
                         break;
-                    dst = BL.False;
+                    dst = false;
                     return true;
                 }
                 break;
@@ -1617,7 +1613,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                         break;
                     if ((ch = src.Span[2]) != 'S' && ch != 's')
                         break;
-                    dst = BL.True;
+                    dst = true;
                     return true;
                 }
                 break;
@@ -1633,7 +1629,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                         break;
                     if ((ch = src.Span[3]) != 'E' && ch != 'e')
                         break;
-                    dst = BL.True;
+                    dst = true;
                     return true;
                 }
                 break;
@@ -1651,14 +1647,14 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                         break;
                     if ((ch = src.Span[4]) != 'E' && ch != 'e')
                         break;
-                    dst = BL.False;
+                    dst = false;
                     return true;
                 }
                 break;
             }
 
-            dst = BL.NA;
-            return IsStdMissing(ref src);
+            dst = false;
+            return false;
         }
 
         private bool TryParse(ref TX src, out TX dst)
@@ -1724,9 +1720,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         }
         public void Convert(ref TX span, ref BL value)
         {
-            // When TryParseBL returns false, it should have set value to NA.
+            Contracts.Check(!span.IsNA, "Missing text values cannot be converted to bool value.");
+            // When TryParseBL returns false, it should have set value to false.
             if (!TryParse(ref span, out value))
-                Contracts.Assert(value.IsNA);
+                Contracts.Assert(!value);
         }
         public void Convert(ref TX src, ref SB dst)
         {
@@ -1757,8 +1754,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(ref BL src, ref I2 dst) => dst = (I2)src;
         public void Convert(ref BL src, ref I4 dst) => dst = (I4)src;
         public void Convert(ref BL src, ref I8 dst) => dst = (I8)src;
-        public void Convert(ref BL src, ref R4 dst) => dst = (R4)src;
-        public void Convert(ref BL src, ref R8 dst) => dst = (R8)src;
+        public void Convert(ref BL src, ref R4 dst) => dst = System.Convert.ToSingle(src);
+        public void Convert(ref BL src, ref R8 dst) => dst = System.Convert.ToDouble(src);
         public void Convert(ref BL src, ref BL dst) => dst = src;
         #endregion FromBL
     }

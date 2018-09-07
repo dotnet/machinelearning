@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             var stratCol = new List<uint>();
             var stratVal = new List<ReadOnlyMemory<char>>();
-            var isWeighted = new List<DvBool>();
+            var isWeighted = new List<bool>();
             var nmi = new List<Double>();
             var avgMinScores = new List<Double>();
             var dbi = new List<Double>();
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     nmi.Add(agg.UnweightedCounters.Nmi);
                     avgMinScores.Add(agg.UnweightedCounters.AvgMinScores);
                     if (agg.UnweightedCounters.CalculateDbi)
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         nmi.Add(agg.WeightedCounters.Nmi);
                         avgMinScores.Add(agg.WeightedCounters.AvgMinScores);
                         if (agg.WeightedCounters.CalculateDbi)

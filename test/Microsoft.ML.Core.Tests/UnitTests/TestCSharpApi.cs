@@ -346,10 +346,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     var getter = cursor.GetGetter<double>(metricCol);
                     var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
-                    var isWeightedGetter = cursor.GetGetter<DvBool>(isWeightedCol);
                     ReadOnlyMemory<char> fold = default;
-                    DvBool isWeighted = default;
-
+                    var isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol);
+                    bool isWeighted = default;
                     double avg = 0;
                     double weightedAvg = 0;
                     for (int w = 0; w < 2; w++)
@@ -364,7 +363,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         foldGetter(ref fold);
                         Assert.True(ReadOnlyMemoryUtils.EqualsStr("Average", fold));
                         isWeightedGetter(ref isWeighted);
-                        Assert.True(isWeighted.IsTrue == (w == 1));
+                        Assert.True(isWeighted == (w == 1));
 
                         // Get the standard deviation.
                         b = cursor.MoveNext();
@@ -378,7 +377,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             Assert.Equal(0.000393, stdev, 6);
                         isWeightedGetter(ref isWeighted);
-                        Assert.True(isWeighted.IsTrue == (w == 1));
+                        Assert.True(isWeighted == (w == 1));
                     }
                     double sum = 0;
                     double weightedSum = 0;
@@ -397,7 +396,7 @@ namespace Microsoft.ML.Runtime.RunTests
                                 sum += val;
                             Assert.True(ReadOnlyMemoryUtils.EqualsStr("Fold " + f, fold));
                             isWeightedGetter(ref isWeighted);
-                            Assert.True(isWeighted.IsTrue == (w == 1));
+                            Assert.True(isWeighted == (w == 1));
                         }
                     }
                     Assert.Equal(weightedAvg, weightedSum / 2);

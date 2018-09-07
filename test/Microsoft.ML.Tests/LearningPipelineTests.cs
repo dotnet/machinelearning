@@ -95,7 +95,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public class Prediction
         {
             [ColumnName("PredictedLabel")]
-            public DvBool PredictedLabel;
+            public bool PredictedLabel;
         }
 
         [Fact]

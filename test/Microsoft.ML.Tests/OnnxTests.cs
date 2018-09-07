@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests
         public class BreastCancerPrediction
         {
             [ColumnName("PredictedLabel")]
-            public DvBool Cancerous;
+            public bool Cancerous;
         }
 
         public class BreastCancerMCPrediction
