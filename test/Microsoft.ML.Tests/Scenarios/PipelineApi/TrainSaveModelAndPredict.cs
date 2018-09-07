@@ -35,7 +35,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             DeleteOutputPath(modelName);
             await model.WriteAsync(modelName);
             var loadedModel = await PredictionModel.ReadAsync<SentimentData, SentimentPrediction>(modelName);
-            var singlePrediction = loadedModel.Predict(new SentimentData() { SentimentText = "Not big fan of this.".AsMemory() });
+            var singlePrediction = loadedModel.Predict(new SentimentData() { SentimentText = "Not big fan of this." });
             Assert.True(singlePrediction.Sentiment);
 
         }

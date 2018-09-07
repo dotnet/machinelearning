@@ -72,7 +72,7 @@ namespace Microsoft.ML.Scenarios
 
             CifarPrediction prediction = model.Predict(new CifarData()
             {
-                ImagePath = GetDataPath("images/banana.jpg").AsMemory()
+                ImagePath = GetDataPath("images/banana.jpg")
             });
             Assert.Equal(1, prediction.PredictedLabels[0], 2);
             Assert.Equal(0, prediction.PredictedLabels[1], 2);
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Scenarios
 
             prediction = model.Predict(new CifarData()
             {
-                ImagePath = GetDataPath("images/hotdog.jpg").AsMemory()
+                ImagePath = GetDataPath("images/hotdog.jpg")
             });
             Assert.Equal(0, prediction.PredictedLabels[0], 2);
             Assert.Equal(1, prediction.PredictedLabels[1], 2);
@@ -91,10 +91,10 @@ namespace Microsoft.ML.Scenarios
     public class CifarData
     {
         [Column("0")]
-        public ReadOnlyMemory<char> ImagePath;
+        public string ImagePath;
 
         [Column("1")]
-        public ReadOnlyMemory<char> Label;
+        public string Label;
     }
 
     public class CifarPrediction

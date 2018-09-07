@@ -50,7 +50,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         private class InputData
         {
             [Column(ordinal: "1")]
-            public ReadOnlyMemory<char> F1;
+            public string F1;
         }
 
         private class TransformedData
@@ -69,7 +69,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Add(new ML.Data.TextLoader(_dataPath).CreateFrom<InputData>(useHeader: false));
             pipeline.Add(new CategoricalHashOneHotVectorizer("F1") { HashBits = 10, Seed = 314489979, OutputKind = CategoricalTransformOutputKind.Bag });
             var model = pipeline.Train<InputData, TransformedData>();
-            var predictionModel = model.Predict(new InputData() { F1 = "5".AsMemory() });
+            var predictionModel = model.Predict(new InputData() { F1 = "5" });
 
             Assert.NotNull(predictionModel);
             Assert.NotNull(predictionModel.TransformedF1);

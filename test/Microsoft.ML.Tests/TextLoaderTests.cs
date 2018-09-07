@@ -237,7 +237,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float ID;
 
             [Column("1")]
-            public ReadOnlyMemory<char> Text;
+            public string Text;
         }
 
         public class SparseInput
@@ -261,7 +261,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public class Input
         {
             [Column("0")]
-            public ReadOnlyMemory<char> String1;
+            public string String1;
 
             [Column("1")]
             public float Number1;
@@ -270,15 +270,15 @@ namespace Microsoft.ML.EntryPoints.Tests
         public class InputWithUnderscore
         {
             [Column("0")]
-            public ReadOnlyMemory<char> String_1;
+            public string String_1;
 
             [Column("1")]
-            public ReadOnlyMemory<char> Number_1;
+            public string Number_1;
         }
 
         public class ModelWithoutColumnAttribute
         {
-            public ReadOnlyMemory<char> String1;
+            public string String1;
         }
     }
 }

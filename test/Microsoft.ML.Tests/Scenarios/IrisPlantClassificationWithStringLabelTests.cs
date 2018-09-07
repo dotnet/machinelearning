@@ -140,7 +140,7 @@ namespace Microsoft.ML.Scenarios
             public float PetalWidth;
 
             [Column("4", name: "Label")]
-            public ReadOnlyMemory<char> IrisPlantType;
+            public string IrisPlantType;
         }
     }
 }

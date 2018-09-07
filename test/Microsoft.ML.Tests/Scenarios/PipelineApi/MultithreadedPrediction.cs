@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var collection = new List<SentimentData>();
             int numExamples = 100;
             for (int i = 0; i < numExamples; i++)
-                collection.Add(new SentimentData() { SentimentText = "Let's predict this one!".AsMemory() });
+                collection.Add(new SentimentData() { SentimentText = "Let's predict this one!" });
 
             Parallel.ForEach(collection, (input) =>
             {

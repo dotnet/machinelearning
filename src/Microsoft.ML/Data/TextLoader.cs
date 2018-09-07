@@ -180,7 +180,7 @@ namespace Microsoft.ML.Data
                 kind = DataKind.R4;
             else if (type == typeof(Double))
                 kind = DataKind.R8;
-            else if (type == typeof(ReadOnlyMemory<char>))
+            else if (type == typeof(ReadOnlyMemory<char>) || type == typeof(string))
                 kind = DataKind.TX;
             else if (type == typeof(DvBool) || type == typeof(bool))
                 kind = DataKind.BL;

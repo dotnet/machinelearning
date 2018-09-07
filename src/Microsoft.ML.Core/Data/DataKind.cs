@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
                 kind = DataKind.R4;
             else if (type == typeof(Double)|| type == typeof(Double?))
                 kind = DataKind.R8;
-            else if (type == typeof(ReadOnlyMemory<char>))
+            else if (type == typeof(ReadOnlyMemory<char>) || type == typeof(string))
                 kind = DataKind.TX;
             else if (type == typeof(DvBool) || type == typeof(bool) || type == typeof(bool?))
                 kind = DataKind.BL;

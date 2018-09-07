@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Api
                         if (outputType.GetElementType() == typeof(string))
                         {
                             Ch.Assert(colType.ItemType.IsText);
-                            return CreateConvertingArrayGetterDelegate<String, ReadOnlyMemory<char>>(index, x => { Contracts.Check(x != null); return x.AsMemory(); });
+                            return CreateConvertingArrayGetterDelegate<string, ReadOnlyMemory<char>>(index, x => { Contracts.Check(x != null); return x.AsMemory(); });
                         }
                         else if (outputType.GetElementType() == typeof(int))
                         {

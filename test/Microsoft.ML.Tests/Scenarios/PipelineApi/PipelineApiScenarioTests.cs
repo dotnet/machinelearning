@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         public class IrisData : IrisDataNoLabel
         {
             [Column("0")]
-            public ReadOnlyMemory<char> Label;
+            public string Label;
         }
 
         public class IrisDataNoLabel
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             [Column("0", name: "Label")]
             public bool Sentiment;
             [Column("1")]
-            public ReadOnlyMemory<char> SentimentText;
+            public string SentimentText;
         }
 
         public class SentimentPrediction
