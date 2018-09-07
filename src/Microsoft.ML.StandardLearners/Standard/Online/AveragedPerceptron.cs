@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Learners
         internal const string ShortName = "ap";
         internal const string Summary = "Averaged Perceptron Binary Classifier.";
 
-        internal new readonly Arguments Args;
+        private readonly Arguments _args;
 
         public class Arguments : AveragedLinearArguments
         {
@@ -54,8 +54,8 @@ namespace Microsoft.ML.Runtime.Learners
         public AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, UserNameValue, MakeLabelColumn(args.LabelColumn))
         {
-            Args = args;
-            LossFunction = Args.LossFunction.CreateComponent(env);
+            _args = args;
+            LossFunction = _args.LossFunction.CreateComponent(env);
 
             OutputColumns = new[]
             {
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.Learners
             VBuffer<Float> weights = default(VBuffer<Float>);
             Float bias;
 
-            if (!Args.Averaged)
+            if (!_args.Averaged)
             {
                 Weights.CopyTo(ref weights);
                 bias = Bias;
