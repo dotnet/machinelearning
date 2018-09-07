@@ -5,13 +5,13 @@
 using Float = System.Single;
 
 using System;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Core.Data;
 
 // TODO: Check if it works properly if Averaged is set to false
 
