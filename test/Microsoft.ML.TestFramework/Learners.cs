@@ -6,7 +6,6 @@ using System.Text;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.TestFramework;
-using Float = System.Single;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -609,7 +608,7 @@ namespace Microsoft.ML.Runtime.RunTests
             };
         }
 
-        public static PredictorAndArgs DssmDefault(int qryFeaturesCount, int docFeaturesCount, int negativeDocsCount, int numIterations, Float gamma)
+        public static PredictorAndArgs DssmDefault(int qryFeaturesCount, int docFeaturesCount, int negativeDocsCount, int numIterations, float gamma)
         {
             string settings = string.Format("qfeats={0} dfeats={1} negdocs={2} iter={3} gamma={4} accel=sse",
                 qryFeaturesCount, docFeaturesCount, negativeDocsCount, numIterations, gamma);
