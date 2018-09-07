@@ -4,17 +4,14 @@
 
 using System;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
 {
     internal abstract class EntryPointGeneratorBase : GeneratorBase
     {
-        protected override void GenerateContent(IndentingTextWriter writer, string prefix, ComponentCatalog.LoadableClassInfo component, bool generateEnums, string moduleId)
+        protected override void GenerateContent(IndentingTextWriter writer, string prefix, ComponentCatalog.LoadableClassInfo component, string moduleId)
         {
-            if (generateEnums)
-                GenerateEnums(writer, component);
             GenerateSummaryComment(writer, component);
             GenerateReturnComment(writer);
             GenerateModuleAttribute(writer, prefix, component, moduleId);
@@ -31,31 +28,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             if (Exclude.Contains(arg.LongName))
                 return;
 
-            if (arg.IsSubComponentItemType)
-            {
-                // We need to create a tree with all the subcomponents, unless the subcomponent is a Trainer.
-                Contracts.Assert(arg.ItemType.GetGenericTypeDefinition() == typeof(SubComponent<,>));
-                var types = arg.ItemType.GetGenericArguments();
-                var baseType = types[0];
-                var sigType = types[1];
-                if (sigType == typeof(SignatureDataLoader))
-                    return;
-                GenerateParameterComment(w, arg.LongName + argSuffix, arg.HelpText);
-                if (IsTrainer(sigType))
-                    return;
-                var infos = ComponentCatalog.GetAllDerivedClasses(baseType, sigType);
-                foreach (var info in infos)
-                {
-                    var args = info.CreateArguments();
-                    if (args == null)
-                        continue;
-                    var argInfo = CmdParser.GetArgInfo(args.GetType(), args);
-                    foreach (var a in argInfo.Args)
-                        GenerateSummaryComment(w, a, argSuffix + info.LoadNames[0]);
-                }
-            }
-            else
-                GenerateParameterComment(w, arg.LongName + argSuffix, arg.HelpText);
+            GenerateParameterComment(w, arg.LongName + argSuffix, arg.HelpText);
         }
 
         protected void GenerateParameterComment(IndentingTextWriter w, string name, string description)
@@ -92,51 +65,17 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             if (Exclude.Contains(arg.LongName))
                 return;
 
-            if (arg.IsSubComponentItemType)
+            w.WriteLine(linePrefix);
+            linePrefix = ",";
+            if (IsColumnType(arg))
             {
-                // We need to create a tree with all the subcomponents, unless the subcomponent is a Trainer.
-                Contracts.Assert(arg.ItemType.GetGenericTypeDefinition() == typeof(SubComponent<,>));
-                var types = arg.ItemType.GetGenericArguments();
-                var baseType = types[0];
-                var sigType = types[1];
-                if (sigType == typeof(SignatureDataLoader))
-                    return;
-                w.WriteLine(linePrefix);
-                linePrefix = ",";
-                if (IsTrainer(sigType))
-                {
-                    w.WriteLine("[DataLabInputPort(FriendlyName = \"Untrained model\", DisplayName = \"Untrained model\", IsOptional = false, DataTypes = WellKnownDataTypeIds.ILearnerDotNet, Description = \"An untrained model\")]");
-                    GenerateParameter(w, "ILearner", arg.LongName + argSuffix);
-                    return;
-                }
-                var typeName = EnumName(arg, sigType);
-                GenerateDataLabParameterAttribute(w, arg.LongName, false, arg.LongName, arg.DefaultValue != null ? typeName + "." + arg.DefaultValue : null, arg.HelpText, parent, parentType, parentValue);
-                GenerateParameter(w, typeName, arg.LongName + argSuffix);
-                var infos = ComponentCatalog.GetAllDerivedClasses(baseType, sigType);
-                foreach (var info in infos)
-                {
-                    var args = info.CreateArguments();
-                    if (args == null)
-                        continue;
-                    var argInfo = CmdParser.GetArgInfo(args.GetType(), args);
-                    foreach (var a in argInfo.Args)
-                        GenerateMethodSignature(w, a, arg.LongName, typeName, info.LoadNames[0], ref linePrefix, argSuffix + info.LoadNames[0]);
-                }
+                GenerateDataLabParameterAttribute(w, arg.LongName, false, arg.LongName, null, arg.HelpText, parent, parentType, parentValue);
+                GenerateParameter(w, "string", arg.LongName + argSuffix);
             }
             else
             {
-                w.WriteLine(linePrefix);
-                linePrefix = ",";
-                if (IsColumnType(arg))
-                {
-                    GenerateDataLabParameterAttribute(w, arg.LongName, false, arg.LongName, null, arg.HelpText, parent, parentType, parentValue);
-                    GenerateParameter(w, "string", arg.LongName + argSuffix);
-                }
-                else
-                {
-                    GenerateDataLabParameterAttribute(w, arg.LongName, IsOptional(arg), arg.LongName, Stringify(arg.DefaultValue), arg.HelpText, parent, parentType, parentValue);
-                    GenerateParameter(w, GetCSharpTypeName(arg.ItemType), arg.LongName + argSuffix);
-                }
+                GenerateDataLabParameterAttribute(w, arg.LongName, IsOptional(arg), arg.LongName, Stringify(arg.DefaultValue), arg.HelpText, parent, parentType, parentValue);
+                GenerateParameter(w, GetCSharpTypeName(arg.ItemType), arg.LongName + argSuffix);
             }
         }
 
@@ -161,47 +100,10 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             if (Exclude.Contains(arg.LongName))
                 return;
 
-            if (arg.IsSubComponentItemType)
-            {
-                Contracts.Assert(arg.ItemType.GetGenericTypeDefinition() == typeof(SubComponent<,>));
-                var types = arg.ItemType.GetGenericArguments();
-                var baseType = types[0];
-                var sigType = types[1];
-                if (sigType == typeof(SignatureDataLoader))
-                    return;
-                if (IsTrainer(sigType))
-                {
-                    w.WriteLine("builder.{0} = {1};", Capitalize(arg.LongName + argSuffix), arg.LongName + argSuffix);
-                    return;
-                }
-                w.WriteLine("builder.{0} = {1};", Capitalize(arg.LongName + argSuffix), arg.LongName + argSuffix);
-                var infos = ComponentCatalog.GetAllDerivedClasses(baseType, sigType);
-                foreach (var info in infos)
-                {
-                    var args = info.CreateArguments();
-                    if (args == null)
-                        continue;
-                    var argInfo = CmdParser.GetArgInfo(args.GetType(), args);
-                    foreach (var a in argInfo.Args)
-                        GenerateImplCall(w, a, argSuffix + info.LoadNames[0]);
-                }
-            }
+            if (IsColumnType(arg))
+                w.WriteLine("builder.{0} = {1}.Split('|');", Capitalize(arg.LongName + argSuffix), arg.LongName + argSuffix);
             else
-            {
-                if (IsColumnType(arg))
-                    w.WriteLine("builder.{0} = {1}.Split('|');", Capitalize(arg.LongName + argSuffix), arg.LongName + argSuffix);
-                else
-                    w.WriteLine("builder.{0} = {1}{2};", Capitalize(arg.LongName + argSuffix), CastIfNeeded(arg), arg.LongName + argSuffix);
-            }
-        }
-
-        protected override void GenerateEnumValue(IndentingTextWriter w, ComponentCatalog.LoadableClassInfo info)
-        {
-            var userName = info != null ? info.UserName : "None";
-            var name = info != null ? info.LoadNames[0] : "None";
-            w.WriteLine("[ItemInfo(FriendlyName = \"{0}\", DisplayValue = \"{1}\")]", userName,
-                userName);
-            w.Write("{0}", name);
+                w.WriteLine("builder.{0} = {1}{2};", Capitalize(arg.LongName + argSuffix), CastIfNeeded(arg), arg.LongName + argSuffix);
         }
 
         protected override string GetCSharpTypeName(Type type)

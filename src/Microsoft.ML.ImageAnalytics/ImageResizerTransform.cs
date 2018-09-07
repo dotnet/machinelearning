@@ -447,9 +447,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                var col = inputSchema.FindColumn(colInfo.Input);
-
-                if (col == null)
+                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, new ImageType().ToString(), col.GetTypeString());

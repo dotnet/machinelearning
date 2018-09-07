@@ -67,16 +67,10 @@ namespace Microsoft.ML.Runtime.Data
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var column in _columns)
             {
-                var originalColumn = inputSchema.FindColumn(column.Source);
-                if (originalColumn != null)
-                {
-                    var col = new SchemaShape.Column(column.Name, originalColumn.Kind, originalColumn.ItemType, originalColumn.IsKey, originalColumn.MetadataKinds);
-                    resultDic[column.Name] = col;
-                }
-                else
-                {
-                    throw _host.ExceptParam(nameof(inputSchema), $"{column.Source} not found in {nameof(inputSchema)}");
-                }
+                if (!inputSchema.TryFindColumn(column.Source, out var originalColumn))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", column.Source);
+                var col = new SchemaShape.Column(column.Name, originalColumn.Kind, originalColumn.ItemType, originalColumn.IsKey, originalColumn.Metadata);
+                resultDic[column.Name] = col;
             }
             return new SchemaShape(resultDic.Values.ToArray());
         }

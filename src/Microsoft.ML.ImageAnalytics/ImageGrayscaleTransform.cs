@@ -221,14 +221,12 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                var col = inputSchema.FindColumn(colInfo.input);
-
-                if (col == null)
+                if (!inputSchema.TryFindColumn(colInfo.input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input);
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, new ImageType().ToString(), col.GetTypeString());
 
-                result[colInfo.output] = new SchemaShape.Column(colInfo.output, col.Kind, col.ItemType, col.IsKey, col.MetadataKinds);
+                result[colInfo.output] = new SchemaShape.Column(colInfo.output, col.Kind, col.ItemType, col.IsKey, col.Metadata);
             }
 
             return new SchemaShape(result.Values);
