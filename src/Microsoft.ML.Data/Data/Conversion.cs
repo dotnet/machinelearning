@@ -502,7 +502,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         private bool TryGetStringConversion<TSrc>(out ValueMapper<TSrc, SB> conv)
         {
             DataKind kindSrc;
-            if (!_kinds.TryGetValue(typeof (TSrc), out kindSrc))
+            if (!_kinds.TryGetValue(typeof(TSrc), out kindSrc))
             {
                 conv = null;
                 return false;
@@ -1050,7 +1050,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out U8 dst)
         {
-        	if (src.IsEmpty)
+            if (src.IsEmpty)
             {
                 dst = 0;
                 return false;
@@ -1126,37 +1126,37 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             char ch;
             switch (src.Length)
             {
-            default:
-                return false;
+                default:
+                    return false;
 
-            case 1:
-                if (src.Span[0] == '?')
+                case 1:
+                    if (src.Span[0] == '?')
+                        return true;
+                    return false;
+                case 2:
+                    if ((ch = src.Span[0]) != 'N' && ch != 'n')
+                        return false;
+                    if ((ch = src.Span[1]) != 'A' && ch != 'a')
+                        return false;
                     return true;
-                return false;
-            case 2:
-                if ((ch = src.Span[0]) != 'N' && ch != 'n')
-                    return false;
-                if ((ch = src.Span[1]) != 'A' && ch != 'a')
-                    return false;
-                return true;
-            case 3:
-                if ((ch = src.Span[0]) != 'N' && ch != 'n')
-                    return false;
-                if ((ch = src.Span[1]) == '/')
-                {
-                    // Check for N/A.
-                    if ((ch = src.Span[2]) != 'A' && ch != 'a')
+                case 3:
+                    if ((ch = src.Span[0]) != 'N' && ch != 'n')
                         return false;
-                }
-                else
-                {
-                    // Check for NaN.
-                    if (ch != 'a' && ch != 'A')
-                        return false;
-                    if ((ch = src.Span[2]) != 'N' && ch != 'n')
-                        return false;
-                }
-                return true;
+                    if ((ch = src.Span[1]) == '/')
+                    {
+                        // Check for N/A.
+                        if ((ch = src.Span[2]) != 'A' && ch != 'a')
+                            return false;
+                    }
+                    else
+                    {
+                        // Check for NaN.
+                        if (ch != 'a' && ch != 'A')
+                            return false;
+                        if ((ch = src.Span[2]) != 'N' && ch != 'n')
+                            return false;
+                    }
+                    return true;
             }
         }
 
@@ -1204,10 +1204,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             return true;
         }
 
-        private bool TryParseCore(ReadOnlyMemory<char> text, out ulong dst)
+        private bool TryParseCore(ReadOnlyMemory<char> text, out ulong dst) => TryParseCore(text, 0, text.Length, out dst);
+
+        private bool TryParseCore(ReadOnlyMemory<char> text, int ich, int lim, out ulong dst)
         {
-            int ich = 0;
-            int lim = text.Length;
             ulong res = 0;
             while (ich < lim)
             {
@@ -1336,7 +1336,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             if (span.IsEmpty)
             {
-                result = 0;
+                result = default(long);
                 return;
             }
 
@@ -1345,7 +1345,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             ulong val;
             if (span.Span[0] == '-')
             {
-                if (span.Span.Length == 1 || !TryParseCore(span, out val) || (val > ((ulong)max + 1)))
+                if (span.Span.Length == 1 || !TryParseCore(span, 1, span.Length, out val) || (val > ((ulong)max + 1)))
                 {
                     result = null;
                     return;
@@ -1531,102 +1531,102 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             char ch;
             switch (src.Length)
             {
-            case 0:
-                // Empty succeeds and maps to false.
-                dst = false;
-                return true;
-
-            case 1:
-                switch (src.Span[0])
-                {
-                case 'T':
-                case 't':
-                case 'Y':
-                case 'y':
-                case '1':
-                case '+':
-                    dst = true;
-                    return true;
-                case 'F':
-                case 'f':
-                case 'N':
-                case 'n':
-                case '0':
-                case '-':
+                case 0:
+                    // Empty succeeds and maps to false.
                     dst = false;
                     return true;
-                }
-                break;
 
-            case 2:
-                switch (src.Span[0])
-                {
-                case 'N':
-                case 'n':
-                    if ((ch = src.Span[1]) != 'O' && ch != 'o')
-                        break;
-                    dst = false;
-                    return true;
-                case '+':
-                    if ((ch = src.Span[1]) != '1')
-                        break;
-                    dst = true;
-                    return true;
-                case '-':
-                    if ((ch = src.Span[1]) != '1')
-                        break;
-                    dst = false;
-                    return true;
-                }
-                break;
+                case 1:
+                    switch (src.Span[0])
+                    {
+                        case 'T':
+                        case 't':
+                        case 'Y':
+                        case 'y':
+                        case '1':
+                        case '+':
+                            dst = true;
+                            return true;
+                        case 'F':
+                        case 'f':
+                        case 'N':
+                        case 'n':
+                        case '0':
+                        case '-':
+                            dst = false;
+                            return true;
+                    }
+                    break;
 
-            case 3:
-                switch (src.Span[0])
-                {
-                case 'Y':
-                case 'y':
-                    if ((ch = src.Span[1]) != 'E' && ch != 'e')
-                        break;
-                    if ((ch = src.Span[2]) != 'S' && ch != 's')
-                        break;
-                    dst = true;
-                    return true;
-                }
-                break;
+                case 2:
+                    switch (src.Span[0])
+                    {
+                        case 'N':
+                        case 'n':
+                            if ((ch = src.Span[1]) != 'O' && ch != 'o')
+                                break;
+                            dst = false;
+                            return true;
+                        case '+':
+                            if ((ch = src.Span[1]) != '1')
+                                break;
+                            dst = true;
+                            return true;
+                        case '-':
+                            if ((ch = src.Span[1]) != '1')
+                                break;
+                            dst = false;
+                            return true;
+                    }
+                    break;
 
-            case 4:
-                switch (src.Span[0])
-                {
-                case 'T':
-                case 't':
-                    if ((ch = src.Span[1]) != 'R' && ch != 'r')
-                        break;
-                    if ((ch = src.Span[2]) != 'U' && ch != 'u')
-                        break;
-                    if ((ch = src.Span[3]) != 'E' && ch != 'e')
-                        break;
-                    dst = true;
-                    return true;
-                }
-                break;
+                case 3:
+                    switch (src.Span[0])
+                    {
+                        case 'Y':
+                        case 'y':
+                            if ((ch = src.Span[1]) != 'E' && ch != 'e')
+                                break;
+                            if ((ch = src.Span[2]) != 'S' && ch != 's')
+                                break;
+                            dst = true;
+                            return true;
+                    }
+                    break;
 
-            case 5:
-                switch (src.Span[0])
-                {
-                case 'F':
-                case 'f':
-                    if ((ch = src.Span[1]) != 'A' && ch != 'a')
-                        break;
-                    if ((ch = src.Span[2]) != 'L' && ch != 'l')
-                        break;
-                    if ((ch = src.Span[3]) != 'S' && ch != 's')
-                        break;
-                    if ((ch = src.Span[4]) != 'E' && ch != 'e')
-                        break;
-                    dst = false;
-                    return true;
-                }
-                break;
+                case 4:
+                    switch (src.Span[0])
+                    {
+                        case 'T':
+                        case 't':
+                            if ((ch = src.Span[1]) != 'R' && ch != 'r')
+                                break;
+                            if ((ch = src.Span[2]) != 'U' && ch != 'u')
+                                break;
+                            if ((ch = src.Span[3]) != 'E' && ch != 'e')
+                                break;
+                            dst = true;
+                            return true;
+                    }
+                    break;
+
+                case 5:
+                    switch (src.Span[0])
+                    {
+                        case 'F':
+                        case 'f':
+                            if ((ch = src.Span[1]) != 'A' && ch != 'a')
+                                break;
+                            if ((ch = src.Span[2]) != 'L' && ch != 'l')
+                                break;
+                            if ((ch = src.Span[3]) != 'S' && ch != 's')
+                                break;
+                            if ((ch = src.Span[4]) != 'E' && ch != 'e')
+                                break;
+                            dst = false;
+                            return true;
+                    }
+                    break;
             }
 
             dst = false;

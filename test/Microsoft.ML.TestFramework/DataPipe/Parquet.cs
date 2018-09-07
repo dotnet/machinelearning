@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.RunTests
     public sealed partial class TestParquet : TestDataPipeBase
     {
 
-        [Fact(Skip = "temp")]
+        [Fact]
         public void TestParquetPrimitiveDataTypes()
         {
             string pathData = GetDataPath(@"Parquet", "alltypes.parquet");
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "temp")]
+        [Fact]
         public void TestParquetNull()
         {
             string pathData = GetDataPath(@"Parquet", "test-null.parquet");
