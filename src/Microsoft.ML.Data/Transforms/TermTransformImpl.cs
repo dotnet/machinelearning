@@ -1051,7 +1051,6 @@ namespace Microsoft.ML.Runtime.Data
                         MetadataUtils.MetadataGetter<VBuffer<DvText>> getter =
                             (int iinfo, ref VBuffer<DvText> dst) =>
                             {
-                                _host.Assert(iinfo == _iinfo);
                                 // No buffer sharing convenient here.
                                 VBuffer<T> dstT = default(VBuffer<T>);
                                 TypedMap.GetTerms(ref dstT);
@@ -1066,7 +1065,6 @@ namespace Microsoft.ML.Runtime.Data
                         MetadataUtils.MetadataGetter<VBuffer<T>> getter =
                             (int iinfo, ref VBuffer<T> dst) =>
                             {
-                                _host.Assert(iinfo == _iinfo);
                                 TypedMap.GetTerms(ref dst);
                             };
                         var columnType = new VectorType(TypedMap.ItemType, TypedMap.OutputType.KeyCount);
