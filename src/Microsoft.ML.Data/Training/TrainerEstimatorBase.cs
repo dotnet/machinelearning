@@ -85,16 +85,14 @@ namespace Microsoft.ML.Runtime.Training
         private void CheckInputSchema(SchemaShape inputSchema)
         {
             // Verify that all required input columns are present, and are of the same type.
-            var featureCol = inputSchema.FindColumn(FeatureColumn.Name);
-            if (featureCol == null)
+            if (!inputSchema.TryFindColumn(FeatureColumn.Name, out var featureCol))
                 throw Host.Except($"Feature column '{FeatureColumn.Name}' is not found");
             if (!FeatureColumn.IsCompatibleWith(featureCol))
                 throw Host.Except($"Feature column '{FeatureColumn.Name}' is not compatible");
 
             if (WeightColumn != null)
             {
-                var weightCol = inputSchema.FindColumn(WeightColumn.Name);
-                if (weightCol == null)
+                if (!inputSchema.TryFindColumn(WeightColumn.Name, out var weightCol))
                     throw Host.Except($"Weight column '{WeightColumn.Name}' is not found");
                 if (!WeightColumn.IsCompatibleWith(weightCol))
                     throw Host.Except($"Weight column '{WeightColumn.Name}' is not compatible");
@@ -104,8 +102,7 @@ namespace Microsoft.ML.Runtime.Training
             // may define their own requirements on the label column.
             if (LabelColumn != null)
             {
-                var labelCol = inputSchema.FindColumn(LabelColumn.Name);
-                if (labelCol == null)
+                if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
                     throw Host.Except($"Label column '{LabelColumn.Name}' is not found");
                 CheckLabelCompatible(labelCol);
             }
@@ -113,7 +110,7 @@ namespace Microsoft.ML.Runtime.Training
 
         protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
-            Contracts.AssertValue(labelCol);
+            Contracts.CheckValue(labelCol, nameof(labelCol));
             Contracts.AssertValue(LabelColumn);
 
             if (!LabelColumn.IsCompatibleWith(labelCol))

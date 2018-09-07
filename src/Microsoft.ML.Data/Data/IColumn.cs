@@ -287,7 +287,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The base class for a few <see cref="ICounted"/> implementations that do not "go" anywhere.
         /// </summary>
-        private abstract class DefaultCounted : ICounted
+        public abstract class DefaultCounted : ICounted
         {
             public long Position => 0;
             public long Batch => 0;
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime.Data
         /// column as an <see cref="IRow"/>. This class will cease to be necessary at the point when all
         /// metadata implementations are just simple <see cref="IRow"/>s.
         /// </summary>
-        private sealed class MetadataRow : DefaultCounted, IRow
+        public sealed class MetadataRow : DefaultCounted, IRow
         {
             public ISchema Schema => _schema;
 
@@ -405,8 +405,8 @@ namespace Microsoft.ML.Runtime.Data
 
             public MetadataRow(ISchema schema, int col)
             {
-                Contracts.AssertValue(schema);
-                Contracts.Assert(0 <= col && col < schema.ColumnCount);
+                Contracts.CheckValue(schema, nameof(schema));
+                Contracts.CheckParam(0 <= col && col < schema.ColumnCount, nameof(col));
 
                 _metaSchema = schema;
                 _col = col;

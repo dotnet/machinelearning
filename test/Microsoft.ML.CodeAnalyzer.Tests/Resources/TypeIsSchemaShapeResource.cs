@@ -16,7 +16,7 @@ namespace Bubba
                 text: ctx.LoadText(1),
                 numericFeatures: ctx.LoadFloat(2, 5)));
 
-            var est = Estimator.MakeNew(text);
+            var est = text.MakeNewEstimator();
             // This should work.
             est.Append(r => r.text);
             // These should not.

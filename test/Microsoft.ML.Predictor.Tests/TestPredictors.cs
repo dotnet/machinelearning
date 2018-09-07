@@ -15,6 +15,7 @@ namespace Microsoft.ML.Runtime.RunTests
     using Microsoft.ML.Runtime.EntryPoints;
     using Microsoft.ML.Runtime.FastTree;
     using Microsoft.ML.Runtime.FastTree.Internal;
+    using Microsoft.ML.TestFramework;
     using System.Linq;
     using System.Runtime.InteropServices;
     using Xunit;

@@ -4,6 +4,8 @@
 
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
+using System.Reflection;
 using Xunit;
 
 namespace Microsoft.ML.Runtime.RunTests
@@ -13,7 +15,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// This tests CmdParser.GetSettings
         /// </summary>
-        [Fact(Skip = "Sub Components Not Getting Parsed Correctly")]
+        [Fact]
         [TestCategory("Cmd Parsing")]
         public void ArgumentParseTest()
         {
@@ -43,8 +45,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 text2 = "\"",
                 text3 = "\" \" ",
                 text4 = "{/a=2 /b=3 /c=4}",
-                sub1 = new SubComponent("S1", innerArg1.ToString(env)),
-                sub2 = new SubComponent("S2", innerArg2.ToString(env)),
+                sub1 = CreateComponentFactory("S1", innerArg1.ToString(env)),
+                sub2 = CreateComponentFactory("S2", innerArg2.ToString(env)),
             };
 
             var outerArg1 = new SimpleArg()
@@ -53,30 +55,26 @@ namespace Microsoft.ML.Runtime.RunTests
                 once = 2,
                 text2 = "Testing",
                 text3 = "a=7",
-                sub1 = new SubComponent("S1", innerArg1.ToString(env)),
-                sub2 = new SubComponent("S2", innerArg2.ToString(env)),
-                sub3 = new SubComponent("S3", innerArg3.ToString(env)),
+                sub1 = CreateComponentFactory("S1", innerArg1.ToString(env)),
+                sub2 = CreateComponentFactory("S2", innerArg2.ToString(env)),
+                sub3 = CreateComponentFactory("S3", innerArg3.ToString(env)),
             };
 
             var testArg = new SimpleArg();
             CmdParser.ParseArguments(env, outerArg1.ToString(env), testArg);
+            Assert.Equal(outerArg1, testArg);
+
+            CmdParser.ParseArguments(env, ((ICommandLineComponentFactory)outerArg1.sub1).GetSettingsString(), testArg = new SimpleArg());
             Assert.Equal(innerArg1, testArg);
 
-            CmdParser.ParseArguments(env, outerArg1.sub1.SubComponentSettings, testArg = new SimpleArg());
-            Assert.Equal(innerArg1, testArg);
-
-            CmdParser.ParseArguments(env, outerArg1.sub1.Settings[0], testArg = new SimpleArg());
-            Assert.Equal(innerArg1, testArg);
-
-            CmdParser.ParseArguments(env, CmdParser.CombineSettings(outerArg1.sub1.Settings), testArg = new SimpleArg());
-            Assert.Equal(innerArg1, testArg);
-
-            CmdParser.ParseArguments(env, outerArg1.sub2.SubComponentSettings, testArg = new SimpleArg());
+            CmdParser.ParseArguments(env, ((ICommandLineComponentFactory)outerArg1.sub2).GetSettingsString(), testArg = new SimpleArg());
             Assert.Equal(innerArg2, testArg);
 
-            CmdParser.ParseArguments(env, outerArg1.sub3.SubComponentSettings, testArg = new SimpleArg());
+            CmdParser.ParseArguments(env, ((ICommandLineComponentFactory)outerArg1.sub3).GetSettingsString(), testArg = new SimpleArg());
             Assert.Equal(innerArg3, testArg);
         }
+
+        private delegate void SignatureSimpleComponent();
 
         private class SimpleArg
         {
@@ -98,14 +96,14 @@ namespace Microsoft.ML.Runtime.RunTests
             [Argument(ArgumentType.AtMostOnce)]
             public string text4 = "";
 
-            [Argument(ArgumentType.Multiple)]
-            public SubComponent sub1 = new SubComponent("sub1", "settings1");
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureSimpleComponent))]
+            public IComponentFactory<SimpleArg> sub1 = CreateComponentFactory("sub1", "settings1");
 
-            [Argument(ArgumentType.Multiple)]
-            public SubComponent sub2 = new SubComponent("sub2", "settings2");
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureSimpleComponent))]
+            public IComponentFactory<SimpleArg> sub2 = CreateComponentFactory("sub2", "settings2");
 
-            [Argument(ArgumentType.Multiple)]
-            public SubComponent sub3 = new SubComponent("sub3", "settings3");
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureSimpleComponent))]
+            public IComponentFactory<SimpleArg> sub3 = CreateComponentFactory("sub3", "settings3");
 
             // REVIEW: include Subcomponent array for testing once it is supported
             //[Argument(ArgumentType.Multiple)]
@@ -135,17 +133,11 @@ namespace Microsoft.ML.Runtime.RunTests
                     return false;
                 if (arg.text4 != this.text4)
                     return false;
-                if (arg.sub1.Kind != this.sub1.Kind)
+                if (!ComponentFactoryEquals(arg.sub1, this.sub1))
                     return false;
-                if (arg.sub1.SubComponentSettings != this.sub1.SubComponentSettings)
+                if (!ComponentFactoryEquals(arg.sub2, this.sub2))
                     return false;
-                if (arg.sub2.Kind != this.sub2.Kind)
-                    return false;
-                if (arg.sub2.SubComponentSettings != this.sub2.SubComponentSettings)
-                    return false;
-                if (arg.sub3.Kind != this.sub3.Kind)
-                    return false;
-                if (arg.sub3.SubComponentSettings != this.sub3.SubComponentSettings)
+                if (!ComponentFactoryEquals(arg.sub3, this.sub3))
                     return false;
 
                 return true;
@@ -155,6 +147,36 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 return base.GetHashCode();
             }
+        }
+
+        private static bool ComponentFactoryEquals(IComponentFactory left, IComponentFactory right)
+        {
+            if (!(left is ICommandLineComponentFactory commandLineLeft &&
+                right is ICommandLineComponentFactory commandLineRight))
+            {
+                // can't compare non-command-line component factories
+                return false;
+            }
+
+            return commandLineLeft.Name == commandLineRight.Name &&
+                commandLineLeft.SignatureType == commandLineRight.SignatureType &&
+                commandLineLeft.GetSettingsString() == commandLineRight.GetSettingsString();
+        }
+
+        private static readonly MethodInfo CreateComponentFactoryMethod = typeof(CmdParser)
+            .GetNestedType("ComponentFactoryFactory", BindingFlags.NonPublic)
+            .GetMethod("CreateComponentFactory");
+
+        private static IComponentFactory<SimpleArg> CreateComponentFactory(string name, string settings)
+        {
+            return (IComponentFactory<SimpleArg>)CreateComponentFactoryMethod.Invoke(null,
+                new object[]
+                {
+                    typeof(IComponentFactory<SimpleArg>),
+                    typeof(SignatureSimpleComponent),
+                    name,
+                    new string[] { settings }
+                });
         }
     }
 }

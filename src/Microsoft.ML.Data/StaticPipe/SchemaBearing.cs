@@ -37,11 +37,12 @@ namespace Microsoft.ML.Data.StaticPipe
         }
 
         /// <summary>
-        /// Create an object that can be used as the start of a new pipeline, that assumes it uses
-        /// something with the sahape of <typeparamref name="TTupleShape"/> as its input schema shape.
-        /// The returned object is an empty estimator.
+        /// Starts a new pipeline, using the output schema of this object. Note that the returned
+        /// estimator does not contain this object, but it has its schema informed by <typeparamref name="TTupleShape"/>.
+        /// The returned object is an empty estimator, on which a new segment of the pipeline can be created.
         /// </summary>
-        internal Estimator<TTupleShape, TTupleShape, ITransformer> MakeNewEstimator()
+        /// <returns>An empty estimator with the same shape as the object on which it was created</returns>
+        public Estimator<TTupleShape, TTupleShape, ITransformer> MakeNewEstimator()
         {
             var est = new EstimatorChain<ITransformer>();
             return new Estimator<TTupleShape, TTupleShape, ITransformer>(Env, est, Shape, Shape);
