@@ -87,19 +87,9 @@ namespace Microsoft.ML.Scenarios
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min=0, Max=0} },
-                            Type = DataKind.Num
-                        },
+                        new TextLoader.Column("Label", DataKind.Num,0),
+                        new TextLoader.Column("Placeholder", DataKind.Num,new []{new TextLoader.Range(1, 784) })
 
-                        new TextLoader.Column()
-                        {
-                            Name = "Placeholder",
-                            Source = new [] { new TextLoader.Range() { Min=1, Max=784} },
-                            Type = DataKind.Num
-                        }
                     }
                 }, new MultiFileSource(dataPath));
 
@@ -149,7 +139,7 @@ namespace Microsoft.ML.Scenarios
 
                 float max = -1;
                 int maxIndex = -1;
-                for(int i=0;i<prediction.PredictedLabels.Length; i++)
+                for (int i = 0; i < prediction.PredictedLabels.Length; i++)
                 {
                     if (prediction.PredictedLabels[i] > max)
                     {

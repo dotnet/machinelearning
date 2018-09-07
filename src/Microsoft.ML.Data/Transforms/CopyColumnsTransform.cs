@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
                 var col = new SchemaShape.Column(column.Name, originalColumn.Kind, originalColumn.ItemType, originalColumn.IsKey, originalColumn.Metadata);
                 resultDic[column.Name] = col;
             }
-            return new SchemaShape(resultDic.Values.ToArray());
+            return new SchemaShape(resultDic.Values);
         }
     }
 
