@@ -12,15 +12,15 @@ namespace Microsoft.ML.Runtime.Data
     public sealed class TrivialReaderEstimator<TSource, TReader>: IDataReaderEstimator<TSource, TReader>
         where TReader: IDataReader<TSource>
     {
-        private readonly TReader _reader;
+        public TReader Reader { get; }
 
         public TrivialReaderEstimator(TReader reader)
         {
-            _reader = reader;
+            Reader = reader;
         }
 
-        public TReader Fit(TSource input) => _reader;
+        public TReader Fit(TSource input) => Reader;
 
-        public SchemaShape GetOutputSchema() => SchemaShape.Create(_reader.GetOutputSchema());
+        public SchemaShape GetOutputSchema() => SchemaShape.Create(Reader.GetOutputSchema());
     }
 }

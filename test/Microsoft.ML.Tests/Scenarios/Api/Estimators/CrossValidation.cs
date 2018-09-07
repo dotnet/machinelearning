@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var data = new TextLoader(env, MakeSentimentTextLoaderArgs())
                     .Read(new MultiFileSource(dataPath));
                 // Pipeline.
-                var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs())
+                var pipeline = new TextTransform(env, "SentimentText", "Features")
                         .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
                         {
                             NumThreads = 1,

@@ -8,6 +8,7 @@ using System.IO;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -234,7 +235,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 TransposeSaver saver = new TransposeSaver(Env, new TransposeSaver.Arguments());
                 saver.SaveData(mem, view, Utils.GetIdentityPermutation(view.Schema.ColumnCount));
-                src = new BytesSource(mem.ToArray());
+                src = new BytesStreamSource(mem.ToArray());
             }
             TransposeLoader loader = new TransposeLoader(Env, new TransposeLoader.Arguments(), src);
             // First check whether this as an IDataView yields the same values.

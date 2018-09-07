@@ -1405,11 +1405,25 @@ namespace Microsoft.ML.Runtime.Learners
             Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             _args = args;
             _positiveInstanceWeight = _args.PositiveInstanceWeight;
-            OutputColumns = new[]
+
+            if (Info.NeedCalibration)
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
-            };
+                OutputColumns = new[]
+                {
+                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
+                };
+            }
+            else
+            {
+                OutputColumns = new[]
+                {
+                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                    new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
+                };
+            }
+
         }
 
         public LinearClassificationTrainer(IHostEnvironment env, Arguments args)

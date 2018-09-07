@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 };
                 var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Append(new MyLambdaTransform<IrisData, IrisData>(env, action))
-                    .Append(new MyTermTransform(env, "Label"), TransformerScope.TrainTest)
+                    .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
                     .Append(new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label"))
                     .Append(new MyKeyToValueTransform(env, "PredictedLabel"));
 
