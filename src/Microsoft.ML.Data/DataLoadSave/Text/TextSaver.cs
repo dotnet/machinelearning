@@ -99,17 +99,17 @@ namespace Microsoft.ML.Runtime.Data.IO
                 }
                 else if (type.IsTimeSpan)
                 {
-                    ValueMapper<DvTimeSpan, StringBuilder> c = MapTimeSpan;
+                    ValueMapper<TimeSpan, StringBuilder> c = MapTimeSpan;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
                 else if (type.IsDateTime)
                 {
-                    ValueMapper<DvDateTime, StringBuilder> c = MapDateTime;
+                    ValueMapper<DateTime, StringBuilder> c = MapDateTime;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
                 else if (type.IsDateTimeZone)
                 {
-                    ValueMapper<DvDateTimeZone, StringBuilder> c = MapDateTimeZone;
+                    ValueMapper<DateTimeOffset, StringBuilder> c = MapDateTimeZone;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
                 else
@@ -125,17 +125,17 @@ namespace Microsoft.ML.Runtime.Data.IO
                 TextSaverUtils.MapText(ref src, ref sb, Sep);
             }
 
-            protected void MapTimeSpan(ref DvTimeSpan src, ref StringBuilder sb)
+            protected void MapTimeSpan(ref TimeSpan src, ref StringBuilder sb)
             {
                 TextSaverUtils.MapTimeSpan(ref src, ref sb);
             }
 
-            protected void MapDateTime(ref DvDateTime src, ref StringBuilder sb)
+            protected void MapDateTime(ref DateTime src, ref StringBuilder sb)
             {
                 TextSaverUtils.MapDateTime(ref src, ref sb);
             }
 
-            protected void MapDateTimeZone(ref DvDateTimeZone src, ref StringBuilder sb)
+            protected void MapDateTimeZone(ref DateTimeOffset src, ref StringBuilder sb)
             {
                 TextSaverUtils.MapDateTimeZone(ref src, ref sb);
             }
@@ -850,34 +850,34 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        internal static void MapTimeSpan(ref DvTimeSpan src, ref StringBuilder sb)
+        internal static void MapTimeSpan(ref TimeSpan src, ref StringBuilder sb)
         {
             if (sb == null)
                 sb = new StringBuilder();
             else
                 sb.Clear();
-            if (!src.IsNA)
-                sb.AppendFormat("\"{0:c}\"", (TimeSpan)src);
+
+            sb.AppendFormat("\"{0:c}\"", src);
         }
 
-        internal static void MapDateTime(ref DvDateTime src, ref StringBuilder sb)
+        internal static void MapDateTime(ref DateTime src, ref StringBuilder sb)
         {
             if (sb == null)
                 sb = new StringBuilder();
             else
                 sb.Clear();
-            if (!src.IsNA)
-                sb.AppendFormat("\"{0:o}\"", (DateTime)src);
+
+            sb.AppendFormat("\"{0:o}\"", src);
         }
 
-        internal static void MapDateTimeZone(ref DvDateTimeZone src, ref StringBuilder sb)
+        internal static void MapDateTimeZone(ref DateTimeOffset src, ref StringBuilder sb)
         {
             if (sb == null)
                 sb = new StringBuilder();
             else
                 sb.Clear();
-            if (!src.IsNA)
-                sb.AppendFormat("\"{0:o}\"", (DateTimeOffset)src);
+
+            sb.AppendFormat("\"{0:o}\"", src);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         private static StatAggregator CreateStatAggregator(IChannel ch, ColumnType type, ReplacementKind? kind, bool bySlot, IRowCursor cursor, int col)
         {
-            ch.Assert(type.ItemType.IsNumber || type.ItemType.IsTimeSpan || type.ItemType.IsDateTime);
+            ch.Assert(type.ItemType.IsNumber);
             if (!type.IsVector)
             {
                 // The type is a scalar.

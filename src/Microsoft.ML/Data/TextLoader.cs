@@ -184,11 +184,11 @@ namespace Microsoft.ML.Data
                 kind = DataKind.TX;
             else if (type == typeof(bool))
                 kind = DataKind.BL;
-            else if (type == typeof(DvTimeSpan) || type == typeof(TimeSpan))
+            else if (type == typeof(TimeSpan))
                 kind = DataKind.TS;
-            else if (type == typeof(DvDateTime) || type == typeof(DateTime))
+            else if (type == typeof(DateTime))
                 kind = DataKind.DT;
-            else if (type == typeof(DvDateTimeZone) || type == typeof(TimeZoneInfo))
+            else if (type == typeof(DateTimeOffset))
                 kind = DataKind.DZ;
             else if (type == typeof(UInt128))
                 kind = DataKind.UG;

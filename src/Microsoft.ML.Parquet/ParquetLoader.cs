@@ -358,7 +358,7 @@ namespace Microsoft.ML.Runtime.Data
                 case DataType.Decimal:
                     return NumberType.R8;
                 case DataType.DateTimeOffset:
-                    return DateTimeZoneType.Instance;
+                    return DateTimeOffsetType.Instance;
                 case DataType.Interval:
                     return TimeSpanType.Instance;
                 default:
@@ -527,9 +527,9 @@ namespace Microsoft.ML.Runtime.Data
                     case DataType.Decimal:
                         return CreateGetterDelegateCore<decimal?, Double>(col, _parquetConversions.Conv);
                     case DataType.DateTimeOffset:
-                        return CreateGetterDelegateCore<DateTimeOffset, DvDateTimeZone>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<DateTimeOffset, DateTimeOffset>(col, _parquetConversions.Conv);
                     case DataType.Interval:
-                        return CreateGetterDelegateCore<Interval, DvTimeSpan>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<Interval, TimeSpan>(col, _parquetConversions.Conv);
                     default:
                         return CreateGetterDelegateCore<IList, ReadOnlyMemory<char>>(col, _parquetConversions.Conv);
                 }
@@ -701,7 +701,7 @@ namespace Microsoft.ML.Runtime.Data
             //Behavior for NA values is undefined.
             public void Conv(ref bool src, ref bool dst) => dst = src;
 
-            public void Conv(ref DateTimeOffset src, ref DvDateTimeZone dst) => dst = src;
+            public void Conv(ref DateTimeOffset src, ref DateTimeOffset dst) => dst = src;
 
             public void Conv(ref IList src, ref ReadOnlyMemory<char> dst) => dst = ConvertListToString(src).AsMemory();
 
@@ -728,22 +728,13 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             /// <summary>
-            /// Converts a Parquet Interval data type value to a DvTimeSpan data type value.
+            /// Converts a Parquet Interval data type value to a TimeSpan data type value.
             /// </summary>
             /// <param name="src">Parquet Interval value (int : months, int : days, int : milliseconds).</param>
-            /// <param name="dst">DvTimeSpan object.</param>
-            public void Conv(ref Interval src, ref DvTimeSpan dst)
+            /// <param name="dst">TimeSpan object.</param>
+            public void Conv(ref Interval src, ref TimeSpan dst)
             {
-                try
-                {
-                    dst = new DvTimeSpan(TimeSpan.FromDays(src.Months * 30 + src.Days) + TimeSpan.FromMilliseconds(src.Millis));
-                }
-                catch (Exception ex)
-                {
-                    // Handle TimeSpan OverflowException
-                    _ch.Error("Cannot convert Inteval to DvTimeSpan. Exception : '{0}'", ex.Message);
-                    dst = DvTimeSpan.NA;
-                }
+                dst = TimeSpan.FromDays(src.Months * 30 + src.Days) + TimeSpan.FromMilliseconds(src.Millis);
             }
 
             private string ConvertListToString(IList list)
