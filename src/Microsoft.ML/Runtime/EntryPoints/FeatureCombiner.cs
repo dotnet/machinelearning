@@ -110,15 +110,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         TextKeyValues = true
                     },
                      viewTrain);
-                viewTrain = new KeyToVectorTransform(host,
-                    new KeyToVectorTransform.Arguments()
-                    {
-                        Column = ktv
-                            .Select(c => new KeyToVectorTransform.Column() { Name = c.Name, Source = c.Name })
-                            .ToArray(),
-                        Bag = false
-                    },
-                     viewTrain);
+                viewTrain = KeyToVectorTransform.Create(host, viewTrain, ktv.Select(c => new KeyToVectorTransform.ColumnInfo(c.Name, c.Name)).ToArray());
             }
             return viewTrain;
         }

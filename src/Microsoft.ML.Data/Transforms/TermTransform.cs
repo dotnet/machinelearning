@@ -271,7 +271,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             using (var ch = Host.Start("Training"))
             {
-                var infos = CreateInfos(Host, ColumnPairs, input.Schema, TestIsKnownDataKind);
+                var infos = CreateInfos(input.Schema);
                 _unboundMaps = Train(Host, ch, infos, file, termsColumn, loaderFactory, columns, input);
                 _textMetadata = new bool[_unboundMaps.Length];
                 for (int iinfo = 0; iinfo < columns.Length; ++iinfo)
@@ -402,29 +402,6 @@ namespace Microsoft.ML.Runtime.Data
 
         //REVIEW: This and static method below need to go to base class as it get created.
         private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
-
-        private static ColInfo[] CreateInfos(IHostEnvironment env, (string source, string name)[] columns, ISchema schema, Func<ColumnType, string> testType)
-        {
-            env.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
-            env.AssertValue(schema);
-            env.AssertValueOrNull(testType);
-
-            var infos = new ColInfo[columns.Length];
-            for (int i = 0; i < columns.Length; i++)
-            {
-                if (!schema.TryGetColumnIndex(columns[i].source, out int colSrc))
-                    throw env.ExceptUserArg(nameof(columns), "Source column '{0}' not found", columns[i].source);
-                var type = schema.GetColumnType(colSrc);
-                if (testType != null)
-                {
-                    string reason = testType(type);
-                    if (reason != null)
-                        throw env.ExceptUserArg(nameof(columns), InvalidTypeErrorFormat, columns[i].source, type, reason);
-                }
-                infos[i] = new ColInfo(columns[i].name, columns[i].source, type);
-            }
-            return infos;
-        }
 
         public static IDataTransform Create(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
         {
@@ -701,7 +678,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            base.SaveColumns(ctx);
+            SaveColumns(ctx);
 
             Host.Assert(_unboundMaps.Length == _textMetadata.Length);
             Host.Assert(_textMetadata.Length == ColumnPairs.Length);

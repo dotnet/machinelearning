@@ -177,7 +177,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = h.Start("Create Transform Core"))
             {
                 // Create the KeyToVectorTransform, if needed.
-                List<KeyToVectorTransform.Column> cols = new List<KeyToVectorTransform.Column>();
+                var cols = new List<KeyToVectorTransform.Column>();
                 bool binaryEncoding = argsOutputKind == OutputKind.Bin;
                 for (int i = 0; i < columns.Length; i++)
                 {
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Runtime.Data
                         Column = cols.ToArray()
                     };
 
-                    transform = new KeyToVectorTransform(h, keyToVecArgs, input);
+                    transform =KeyToVectorTransform.Create(h, keyToVecArgs, input);
                 }
 
                 ch.Done();
