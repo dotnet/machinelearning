@@ -165,7 +165,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var col1 = RowColumnUtils.GetColumn("stay", new KeyType(DataKind.U4, 0, 3), ref value1, RowColumnUtils.GetRow(counted, meta1));
 
             // Next the case where those values are ints.
-            var metaValues2 = new VBuffer<DvInt4>(3, new DvInt4[] { 1, 2, 3, 4 });
+            var metaValues2 = new VBuffer<int>(3, new int[] { 1, 2, 3, 4 });
             var meta2 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, new VectorType(NumberType.I4, 4), ref metaValues2);
             var value2 = new VBuffer<byte>(2, 0, null, null);
             var col2 = RowColumnUtils.GetColumn("awhile", new VectorType(new KeyType(DataKind.U1, 2, 4), 2), ref value2, RowColumnUtils.GetRow(counted, meta2));
