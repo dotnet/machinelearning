@@ -1,0 +1,56 @@
+maml.exe CV tr=sdca{l2=1e-06 l1=0 iter=10 checkFreq=-1 nt=1} threads=- loader=Text{col=Label:U4[0-1]:0 col=Features:Num:~ header+} data=%Data% out=%Output% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Using 1 thread to train.
+Using model from last iteration.
+Not training a calibrator because it is not needed.
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Using 1 thread to train.
+Using model from last iteration.
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.3504 (123.0/(123.0+228.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      116 |        7 | 0.9431
+ negative ||        5 |      223 | 0.9781
+          ||======================
+Precision ||   0.9587 |   0.9696 |
+OVERALL 0/1 ACCURACY: 0.965812
+LOG LOSS/instance:  0.109810
+Test-set entropy (prior Log-Loss/instance): 0.934449
+LOG-LOSS REDUCTION (RIG): 88.248639
+AUC:                0.996399
+TEST POSITIVE RATIO:	0.3494 (116.0/(116.0+216.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      107 |        9 | 0.9224
+ negative ||        5 |      211 | 0.9769
+          ||======================
+Precision ||   0.9554 |   0.9591 |
+OVERALL 0/1 ACCURACY: 0.957831
+LOG LOSS/instance:  0.146498
+Test-set entropy (prior Log-Loss/instance): 0.933529
+LOG-LOSS REDUCTION (RIG): 84.307057
+AUC:                0.994532
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.995465 (0.0009)
+Accuracy:           0.961822 (0.0040)
+Positive precision: 0.957017 (0.0017)
+Positive recall:    0.932752 (0.0103)
+Negative precision: 0.964328 (0.0052)
+Negative recall:    0.977461 (0.0006)
+Log-loss:           0.128154 (0.0183)
+Log-loss reduction: 86.277848 (1.9708)
+F1 Score:           0.944708 (0.0061)
+AUPRC:              0.991146 (0.0022)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
