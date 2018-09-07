@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                     case DataKind.Text:
                         return GetComparerOne<DvText>(r1, r2, col, DvText.Identical);
                     case DataKind.Bool:
-                        return GetComparerOne<DvBool>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<bool>(r1, r2, col, (x, y) => x == y);
                     case DataKind.TimeSpan:
                         return GetComparerOne<DvTimeSpan>(r1, r2, col, (x, y) => x.Equals(y));
                     case DataKind.DT:
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                     case DataKind.Text:
                         return GetComparerVec<DvText>(r1, r2, col, size, DvText.Identical);
                     case DataKind.Bool:
-                        return GetComparerVec<DvBool>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.TimeSpan:
                         return GetComparerVec<DvTimeSpan>(r1, r2, col, size, (x, y) => x.Equals(y));
                     case DataKind.DT:

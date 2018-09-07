@@ -421,16 +421,16 @@ namespace Microsoft.ML.Runtime.Data.IO
         }
 
         /// <summary>
-        /// This is an older boolean code that reads from a form that serialized
-        /// 1 bit per value. The new encoding (implemented by a different codec)
+        /// This is a boolean code that reads from a form that serialized
+        /// 1 bit per value. The old encoding (implemented by a different codec)
         /// uses 2 bits per value so NA values can be supported.
         /// </summary>
-        private sealed class OldBoolCodec : SimpleCodec<DvBool>
+        private sealed class BoolCodec : SimpleCodec<bool>
         {
             // *** Binary block format ***
             // Packed bits.
 
-            public OldBoolCodec(CodecFactory factory)
+            public BoolCodec(CodecFactory factory)
                 : base(factory, BoolType.Instance)
             {
             }
@@ -440,94 +440,33 @@ namespace Microsoft.ML.Runtime.Data.IO
                 get { return typeof(bool).Name; }
             }
 
-            public override IValueWriter<DvBool> OpenWriter(Stream stream)
-            {
-                Contracts.Assert(false, "This older form only supports reading");
-                throw Contracts.ExceptNotSupp("Writing single bit booleans no longer supported");
-            }
-
-            public override IValueReader<DvBool> OpenReader(Stream stream, int items)
-            {
-                return new Reader(this, stream, items);
-            }
-
-            private sealed class Reader : ValueReaderBase<DvBool>
-            {
-                private byte _currentBits;
-                private int _currentIndex;
-                private int _remaining;
-
-                public Reader(OldBoolCodec codec, Stream stream, int items)
-                    : base(codec.Factory, stream)
-                {
-                    _remaining = items;
-                    _currentIndex = -1;
-                }
-
-                public override void MoveNext()
-                {
-                    Contracts.Assert(0 < _remaining, "already consumed all values");
-                    --_remaining;
-                    if ((_currentIndex = (_currentIndex + 1) & 7) == 0)
-                        _currentBits = Reader.ReadByte();
-                    else
-                        _currentBits >>= 1;
-                }
-
-                public override void Get(ref DvBool value)
-                {
-                    Contracts.Assert(0 <= _currentIndex, "have not moved in");
-                    Contracts.Assert(_currentIndex < 8);
-                    value = (_currentBits & 1) != 0;
-                }
-            }
-        }
-
-        private sealed class BoolCodec : SimpleCodec<DvBool>
-        {
-            // *** Binary block format ***
-            // Pack 16 values into 32 bits, with 00 for false, 01 for true and 10 for NA.
-
-            public BoolCodec(CodecFactory factory)
-                : base(factory, BoolType.Instance)
-            {
-            }
-
-            public override IValueWriter<DvBool> OpenWriter(Stream stream)
+            public override IValueWriter<bool> OpenWriter(Stream stream)
             {
                 return new Writer(this, stream);
             }
 
-            public override IValueReader<DvBool> OpenReader(Stream stream, int items)
+            private sealed class Writer : ValueWriterBase<bool>
             {
-                return new Reader(this, stream, items);
-            }
-
-            private sealed class Writer : ValueWriterBase<DvBool>
-            {
-                // Pack 16 values into 32 bits.
-                private int _currentBits;
+                // Pack 8 values into 8 bits.
+                private byte _currentBits;
                 private long _numWritten;
-                private int _currentIndex;
+                private byte _currentIndex;
 
                 public Writer(BoolCodec codec, Stream stream)
                     : base(codec.Factory, stream)
                 {
                 }
 
-                public override void Write(ref DvBool value)
+                public override void Write(ref bool value)
                 {
-                    Contracts.Assert(0 <= _currentIndex && _currentIndex < 32);
-                    Contracts.Assert((_currentIndex & 1) == 0);
+                    Contracts.Assert(0 <= _currentIndex && _currentIndex < 8);
 
                     _numWritten++;
-                    if (value.IsTrue)
-                        _currentBits |= 1 << _currentIndex;
-                    else if (!value.IsFalse)
-                        _currentBits |= 2 << _currentIndex;
+                    if (value)
+                        _currentBits |= (byte)(1 << _currentIndex);
 
-                    _currentIndex += 2;
-                    if (_currentIndex == 32)
+                    _currentIndex++;
+                    if (_currentIndex == 8)
                     {
                         Writer.Write(_currentBits);
                         _currentBits = 0;
@@ -553,13 +492,71 @@ namespace Microsoft.ML.Runtime.Data.IO
                 }
             }
 
-            private sealed class Reader : ValueReaderBase<DvBool>
+            public override IValueReader<bool> OpenReader(Stream stream, int items)
+            {
+                return new Reader(this, stream, items);
+            }
+
+            private sealed class Reader : ValueReaderBase<bool>
+            {
+                private byte _currentBits;
+                private int _currentIndex;
+                private int _remaining;
+
+                public Reader(BoolCodec codec, Stream stream, int items)
+                    : base(codec.Factory, stream)
+                {
+                    _remaining = items;
+                    _currentIndex = -1;
+                }
+
+                public override void MoveNext()
+                {
+                    Contracts.Assert(0 < _remaining, "already consumed all values");
+                    --_remaining;
+                    if ((_currentIndex = (_currentIndex + 1) & 7) == 0)
+                        _currentBits = Reader.ReadByte();
+                    else
+                        _currentBits >>= 1;
+                }
+
+                public override void Get(ref bool value)
+                {
+                    Contracts.Assert(0 <= _currentIndex, "have not moved in");
+                    Contracts.Assert(_currentIndex < 8);
+                    value = (_currentBits & 1) != 0;
+                }
+            }
+        }
+
+        private sealed class OldBoolCodec : SimpleCodec<bool>
+        {
+            // *** Binary block format ***
+            // Pack 16 values into 32 bits, with 00 for false, 01 for true and 10 for NA.
+
+            public OldBoolCodec(CodecFactory factory)
+                : base(factory, BoolType.Instance)
+            {
+            }
+
+            public override IValueWriter<bool> OpenWriter(Stream stream)
+            {
+                Contracts.Assert(false, "This older form only supports reading");
+                throw Contracts.ExceptNotSupp("Writing single bit booleans no longer supported");
+            }
+
+            public override IValueReader<bool> OpenReader(Stream stream, int items)
+            {
+                return new Reader(this, stream, items);
+            }
+
+            private sealed class Reader : ValueReaderBase<bool>
             {
                 private int _currentBits;
                 private int _currentSlot;
                 private int _remaining;
 
-                public Reader(BoolCodec codec, Stream stream, int items)
+                public Reader(OldBoolCodec codec, Stream stream, int items)
                     : base(codec.Factory, stream)
                 {
                     _remaining = items;
@@ -576,20 +573,20 @@ namespace Microsoft.ML.Runtime.Data.IO
                         _currentBits = (int)((uint)_currentBits >> 2);
                 }
 
-                public override void Get(ref DvBool value)
+                public override void Get(ref bool value)
                 {
                     Contracts.Assert(0 <= _currentSlot, "have not moved in");
                     Contracts.Assert(_currentSlot < 16);
                     switch (_currentBits & 0x3)
                     {
                     case 0x0:
-                        value = DvBool.False;
+                        value = false;
                         break;
                     case 0x1:
-                        value = DvBool.True;
+                        value = true;
                         break;
                     case 0x2:
-                        value = DvBool.NA;
+                        value = false;
                         break;
                     default:
                         throw Contracts.ExceptDecode("Invalid bit pattern in BoolCodec");

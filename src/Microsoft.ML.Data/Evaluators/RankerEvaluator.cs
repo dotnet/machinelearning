@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             var stratCol = new List<uint>();
             var stratVal = new List<DvText>();
-            var isWeighted = new List<DvBool>();
+            var isWeighted = new List<bool>();
             var ndcg = new List<Double[]>();
             var dcg = new List<Double[]>();
 
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     ndcg.Add(agg.UnweightedCounters.Ndcg);
                     dcg.Add(agg.UnweightedCounters.Dcg);
                     if (agg.UnweightedCounters.GroupSummary)
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         ndcg.Add(agg.WeightedCounters.Ndcg);
                         dcg.Add(agg.WeightedCounters.Dcg);
                     }

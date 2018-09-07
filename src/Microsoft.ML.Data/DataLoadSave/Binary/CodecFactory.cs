@@ -63,8 +63,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             // Register the old boolean reading codec.
             var oldBool = new OldBoolCodec(this);
-            RegisterOtherCodec(oldBool.LoadName, oldBool.GetCodec);
-
+            RegisterOtherCodec("DvBool", oldBool.GetCodec);
             RegisterOtherCodec("VBuffer", GetVBufferCodec);
             RegisterOtherCodec("Key", GetKeyCodec);
         }

@@ -309,7 +309,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             public ulong? fuLong;
             public float? fFloat;
             public double? fDouble;
-            public bool? fBool;
             public string fString;
         }
 
@@ -440,7 +439,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                 {
                     fInt = int.MaxValue - 1,
                     fuInt = uint.MaxValue - 1,
-                    fBool = true,
                     fsByte = sbyte.MaxValue - 1,
                     fByte = byte.MaxValue - 1,
                     fDouble = double.MaxValue - 1,
@@ -455,7 +453,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                 {
                     fInt = int.MaxValue,
                     fuInt = uint.MaxValue,
-                    fBool = true,
                     fsByte = sbyte.MaxValue,
                     fByte = byte.MaxValue,
                     fDouble = double.MaxValue,
@@ -470,7 +467,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                 {
                     fInt = int.MinValue + 1,
                     fuInt = uint.MinValue,
-                    fBool = false,
                     fsByte = sbyte.MinValue + 1,
                     fByte = byte.MinValue,
                     fDouble = double.MinValue + 1,
@@ -787,7 +783,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             public ulong?[] fuLong;
             public float?[] fFloat;
             public double?[] fDouble;
-            public bool?[] fBool;
         }
 
         [Fact]
@@ -822,7 +817,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                     fInt = new int?[3] { null, -1, 1 },
                     fFloat = new float?[3] { -0.99f, null, 0.99f },
                     fString = new string[2] { null, "" },
-                    fBool = new bool?[3] { true, null, false },
                     fByte = new byte?[4] { 0, 125, null, 255 },
                     fDouble = new double?[3] { -1, null, 1 },
                     fLong = new long?[] { null, -1, 1 },
@@ -898,7 +892,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             private ulong?[] _fuLong;
             private float?[] _fFloat;
             private double?[] _fDouble;
-            private bool?[] _fBool;
 
             public string[] StringProp { get { return _fString; } set { _fString = value; } }
             public int?[] IntProp { get { return _fInt; } set { _fInt = value; } }
@@ -911,7 +904,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             public ulong?[] ULongProp { get { return _fuLong; } set { _fuLong = value; } }
             public float?[] SingleProp { get { return _fFloat; } set { _fFloat = value; } }
             public double?[] DoubleProp { get { return _fDouble; } set { _fDouble = value; } }
-            public bool?[] BoolProp { get { return _fBool; } set { _fBool = value; } }
         }
 
         [Fact]
@@ -946,7 +938,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IntProp = new int?[3] { null, -1, 1 },
                     SingleProp = new float?[3] { -0.99f, null, 0.99f },
                     StringProp = new string[2] { null, "" },
-                    BoolProp = new bool?[3] { true, null, false },
                     ByteProp = new byte?[4] { 0, 125, null, 255 },
                     DoubleProp = new double?[3] { -1, null, 1 },
                     LongProp = new long?[] { null, -1, 1 },

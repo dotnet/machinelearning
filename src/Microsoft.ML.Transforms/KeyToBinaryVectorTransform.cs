@@ -166,7 +166,7 @@ namespace Microsoft.ML.Runtime.Data
                             new VectorType(TextType.Instance, type), trans.GetKeyNames);
                     }
 
-                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, DvBool.True);
+                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, true);
                 }
                 else
                 {

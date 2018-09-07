@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         if (!col.RawData.Skip(1)
                             .All(x =>
                                 {
-                                    DvBool value;
+                                    bool value;
                                     return Conversions.Instance.TryParse(ref x, out value);
                                 })
                             )
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         }
 
                         col.SuggestedType = BoolType.Instance;
-                        DvBool first;
+                        bool first;
 
                         col.HasHeader = !Conversions.Instance.TryParse(ref col.RawData[0], out first);
                     }

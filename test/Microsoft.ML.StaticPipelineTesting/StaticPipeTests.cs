@@ -80,11 +80,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Next actually inspect the data.
             using (var cursor = textData.GetRowCursor(c => true))
             {
-                var labelGetter = cursor.GetGetter<DvBool>(labelIdx);
+                var labelGetter = cursor.GetGetter<bool>(labelIdx);
                 var textGetter = cursor.GetGetter<DvText>(textIdx);
                 var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(numericFeaturesIdx);
 
-                DvBool labelVal = default;
+                bool labelVal = default;
                 DvText textVal = default;
                 VBuffer<float> numVal = default;
 
@@ -94,7 +94,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     textGetter(ref textVal);
                     numericFeaturesGetter(ref numVal);
 
-                    Assert.Equal((DvBool)bl, labelVal);
+                    Assert.Equal((bool)bl, labelVal);
                     Assert.Equal(new DvText(tx), textVal);
                     Assert.Equal(3, numVal.Length);
                     Assert.Equal(v0, numVal.GetItemOrDefault(0));

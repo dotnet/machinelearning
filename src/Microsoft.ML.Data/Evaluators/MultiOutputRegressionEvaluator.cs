@@ -98,7 +98,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             var stratCol = new List<uint>();
             var stratVal = new List<DvText>();
-            var isWeighted = new List<DvBool>();
+            var isWeighted = new List<bool>();
             var l1 = new List<Double>();
             var l2 = new List<Double>();
             var dist = new List<Double>();
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     l1.Add(agg.UnweightedCounters.L1);
                     l2.Add(agg.UnweightedCounters.L2);
                     dist.Add(agg.UnweightedCounters.Dist);
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         l1.Add(agg.WeightedCounters.L1);
                         l2.Add(agg.WeightedCounters.L2);
                         dist.Add(agg.WeightedCounters.Dist);
@@ -680,12 +680,12 @@ namespace Microsoft.ML.Runtime.Data
 
             using (var cursor = fold.GetRowCursor(col => true))
             {
-                DvBool isWeighted = DvBool.False;
-                ValueGetter<DvBool> isWeightedGetter;
+                bool isWeighted = false;
+                ValueGetter<bool> isWeightedGetter;
                 if (needWeighted)
-                    isWeightedGetter = cursor.GetGetter<DvBool>(isWeightedCol);
+                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol);
                 else
-                    isWeightedGetter = (ref DvBool dst) => dst = DvBool.False;
+                    isWeightedGetter = (ref bool dst) => dst = false;
 
                 ValueGetter<uint> stratGetter;
                 if (hasStrats)
@@ -733,12 +733,12 @@ namespace Microsoft.ML.Runtime.Data
                 while (cursor.MoveNext())
                 {
                     isWeightedGetter(ref isWeighted);
-                    if (foundWeighted && isWeighted.IsTrue || foundUnweighted && isWeighted.IsFalse)
+                    if (foundWeighted && isWeighted || foundUnweighted && !isWeighted)
                     {
                         throw ch.Except("Multiple {0} rows found in overall metrics data view",
-                            isWeighted.IsTrue ? "weighted" : "unweighted");
+                            isWeighted ? "weighted" : "unweighted");
                     }
-                    if (isWeighted.IsTrue)
+                    if (isWeighted)
                         foundWeighted = true;
                     else
                         foundUnweighted = true;
@@ -754,7 +754,7 @@ namespace Microsoft.ML.Runtime.Data
                             vBufferGetters[i](ref metricVals);
                             ch.Assert(metricVals.Length == labelCount);
 
-                            sb.AppendFormat("{0}{1,12}:", isWeighted.IsTrue ? "Weighted " : "", fold.Schema.GetColumnName(i));
+                            sb.AppendFormat("{0}{1,12}:", isWeighted ? "Weighted " : "", fold.Schema.GetColumnName(i));
                             foreach (var metric in metricVals.Items(all: true))
                                 sb.AppendFormat(" {0,20:G20}", metric.Value);
                             sb.AppendLine();
