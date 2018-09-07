@@ -5,6 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi

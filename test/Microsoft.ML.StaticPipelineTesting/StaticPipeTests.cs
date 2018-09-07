@@ -81,11 +81,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             using (var cursor = textData.GetRowCursor(c => true))
             {
                 var labelGetter = cursor.GetGetter<DvBool>(labelIdx);
-                var textGetter = cursor.GetGetter<DvText>(textIdx);
+                var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(textIdx);
                 var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(numericFeaturesIdx);
 
                 DvBool labelVal = default;
-                DvText textVal = default;
+                ReadOnlyMemory<char> textVal = default;
                 VBuffer<float> numVal = default;
 
                 void CheckValuesSame(bool bl, string tx, float v0, float v1, float v2)
@@ -95,7 +95,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     numericFeaturesGetter(ref numVal);
 
                     Assert.Equal((DvBool)bl, labelVal);
-                    Assert.Equal(new DvText(tx), textVal);
+                    Assert.True(ReadOnlyMemoryUtils.Equals(tx.AsMemory(), textVal));
                     Assert.Equal(3, numVal.Length);
                     Assert.Equal(v0, numVal.GetItemOrDefault(0));
                     Assert.Equal(v1, numVal.GetItemOrDefault(1));
@@ -159,7 +159,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var counted = new MetaCounted();
 
             // We'll test a few things here. First, the case where the key-value metadata is text.
-            var metaValues1 = new VBuffer<DvText>(3, new[] { new DvText("a"), new DvText("b"), new DvText("c") });
+            var metaValues1 = new VBuffer<ReadOnlyMemory<char>>(3, new[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() });
             var meta1 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, 3), ref metaValues1);
             uint value1 = 2;
             var col1 = RowColumnUtils.GetColumn("stay", new KeyType(DataKind.U4, 0, 3), ref value1, RowColumnUtils.GetRow(counted, meta1));

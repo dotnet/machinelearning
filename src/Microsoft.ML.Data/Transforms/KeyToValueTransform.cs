@@ -273,12 +273,6 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         // Only initialize _isDefault if _defaultIsNA is true as this is the only case in which it is used.
                         _isDefault = Conversions.Instance.GetIsDefaultPredicate<TValue>(TypeOutput.ItemType);
-                        RefPredicate<TValue> del;
-                        if (!Conversions.Instance.TryGetIsNAPredicate<TValue>(TypeOutput.ItemType, out del))
-                        {
-                            ch.Warning("There is no NA value for type '{0}'. The missing key value " +
-                                "will be mapped to the default value of '{0}'", TypeOutput.ItemType);
-                        }
                     }
                 }
 

@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;

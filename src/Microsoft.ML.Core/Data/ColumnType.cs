@@ -341,7 +341,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private TextType()
-            : base(typeof(DvText), DataKind.TX)
+            : base(typeof(ReadOnlyMemory<char>), DataKind.TX)
         {
         }
 

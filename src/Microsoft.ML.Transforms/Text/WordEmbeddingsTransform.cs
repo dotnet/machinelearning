@@ -106,12 +106,9 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public bool GetWordVector(ref DvText word, float[] wordVector)
+            public bool GetWordVector(ref ReadOnlyMemory<char> word, float[] wordVector)
             {
-                if (word.IsNA)
-                    return false;
-                string rawWord = word.GetRawUnderlyingBufferInfo(out int ichMin, out int ichLim);
-                NormStr str = _pool.Get(rawWord, ichMin, ichLim);
+                NormStr str = _pool.Get(word);
                 if (str != null)
                 {
                     _wordVectors.CopyTo(str.Id * Dimension, wordVector, Dimension);
@@ -236,8 +233,8 @@ namespace Microsoft.ML.Runtime.Data
             ch.Assert(info.TypeSrc.IsVector);
             ch.Assert(info.TypeSrc.ItemType.IsText);
 
-            var srcGetter = input.GetGetter<VBuffer<DvText>>(info.Source);
-            var src = default(VBuffer<DvText>);
+            var srcGetter = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(info.Source);
+            var src = default(VBuffer<ReadOnlyMemory<char>>);
             int dimension = _currentVocab.Dimension;
             float[] wordVector = new float[_currentVocab.Dimension];
 

@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly bool[] _isNormalized;
             private readonly string[][] _aliases;
 
-            private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>> _getSlotNames;
+            private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getSlotNames;
 
             public Bindings(Column[] columns, TaggedColumn[] taggedColumns, ISchema schemaInput)
                 : base(columns, schemaInput, TestTypes)
@@ -448,7 +448,7 @@ namespace Microsoft.ML.Runtime.Data
                 dst = DvBool.True;
             }
 
-            private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+            private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
             {
                 Contracts.Assert(0 <= iinfo && iinfo < Infos.Length);
                 Contracts.Assert(!EchoSrc[iinfo]);
@@ -458,11 +458,11 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(type);
                 Contracts.Assert(type.VectorSize == _types[iinfo].VectorSize);
 
-                var bldr = BufferBuilder<DvText>.CreateDefault();
+                var bldr = BufferBuilder<ReadOnlyMemory<char>>.CreateDefault();
                 bldr.Reset(type.VectorSize, dense: false);
 
                 var sb = new StringBuilder();
-                var names = default(VBuffer<DvText>);
+                var names = default(VBuffer<ReadOnlyMemory<char>>);
                 var info = Infos[iinfo];
                 var aliases = _aliases[iinfo];
                 int slot = 0;
@@ -475,7 +475,7 @@ namespace Microsoft.ML.Runtime.Data
                     var nameSrc = aliases[i] ?? colName;
                     if (!typeSrc.IsVector)
                     {
-                        bldr.AddFeature(slot++, new DvText(nameSrc));
+                        bldr.AddFeature(slot++, nameSrc.AsMemory());
                         continue;
                     }
 
@@ -490,11 +490,11 @@ namespace Microsoft.ML.Runtime.Data
                         int len = sb.Length;
                         foreach (var kvp in names.Items())
                         {
-                            if (!kvp.Value.HasChars)
+                            if (kvp.Value.IsEmpty)
                                 continue;
                             sb.Length = len;
-                            kvp.Value.AddToStringBuilder(sb);
-                            bldr.AddFeature(slot + kvp.Key, new DvText(sb.ToString()));
+                            ReadOnlyMemoryUtils.AddToStringBuilder(sb, kvp.Value);
+                            bldr.AddFeature(slot + kvp.Key, sb.ToString().AsMemory());
                         }
                     }
                     slot += info.SrcTypes[i].VectorSize;

@@ -593,8 +593,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckMetadataNames(string kind, int size, ISchema sch1, ISchema sch2, int col, bool exactTypes, bool mustBeText)
         {
-            var names1 = default(VBuffer<DvText>);
-            var names2 = default(VBuffer<DvText>);
+            var names1 = default(VBuffer<ReadOnlyMemory<char>>);
+            var names2 = default(VBuffer<ReadOnlyMemory<char>>);
 
             var t1 = sch1.GetMetadataTypeOrNull(kind, col);
             var t2 = sch2.GetMetadataTypeOrNull(kind, col);
@@ -635,7 +635,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             sch1.GetMetadata(kind, col, ref names1);
             sch2.GetMetadata(kind, col, ref names2);
-            if (!CompareVec(ref names1, ref names2, size, DvText.Identical))
+            if (!CompareVec(ref names1, ref names2, size, ReadOnlyMemoryUtils.Equals))
             {
                 Fail("Different {0} metadata values", kind);
                 return Failed();
@@ -643,7 +643,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckMetadataCallFailure(string kind, ISchema sch, int col, ref VBuffer<DvText> names)
+        protected bool CheckMetadataCallFailure(string kind, ISchema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             try
             {
@@ -1033,7 +1033,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             return GetComparerOne<Double>(r1, r2, col, EqualWithEps);
                     case DataKind.Text:
-                        return GetComparerOne<DvText>(r1, r2, col, DvText.Identical);
+                        return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, ReadOnlyMemoryUtils.Equals);
                     case DataKind.Bool:
                         return GetComparerOne<DvBool>(r1, r2, col, (x, y) => x.Equals(y));
                     case DataKind.TimeSpan:
@@ -1079,7 +1079,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
                     case DataKind.Text:
-                        return GetComparerVec<DvText>(r1, r2, col, size, DvText.Identical);
+                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, ReadOnlyMemoryUtils.Equals);
                     case DataKind.Bool:
                         return GetComparerVec<DvBool>(r1, r2, col, size, (x, y) => x.Equals(y));
                     case DataKind.TimeSpan:

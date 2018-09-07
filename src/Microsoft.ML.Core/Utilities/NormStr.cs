@@ -8,6 +8,7 @@ using System.Collections;
 using System.Linq;
 using System.Threading;
 using System.Text;
+using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
@@ -18,35 +19,26 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// </summary>
     public sealed class NormStr
     {
-        public readonly string Value;
+        public readonly ReadOnlyMemory<char> Value;
         public readonly int Id;
         private readonly uint _hash;
 
         /// <summary>
         /// NormStr's can only be created by the Pool.
         /// </summary>
-        private NormStr(string str, int id, uint hash)
+        private NormStr(ReadOnlyMemory<char> str, int id, uint hash)
         {
-            Contracts.AssertValue(str);
-            Contracts.Assert(id >= 0 || id == -1 && str == "");
+            Contracts.Assert(id >= 0 || id == -1 && str.IsEmpty);
             Value = str;
             Id = id;
             _hash = hash;
         }
 
-        public override string ToString()
-        {
-            return Value;
-        }
+        public override string ToString() => Value.ToString();
 
         public override int GetHashCode()
         {
             return (int)_hash;
-        }
-
-        public static implicit operator string(NormStr nstr)
-        {
-            return nstr.Value;
         }
 
         public sealed class Pool : IEnumerable<NormStr>
@@ -115,7 +107,29 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     if ((int)Utils.GetLo(meta) == str.Length)
                     {
                         var ns = GetNs(ins);
-                        if (ns.Value == str)
+                        if (ReadOnlyMemoryUtils.EqualsStr(str, ns.Value))
+                            return ns;
+                    }
+                    ins = (int)Utils.GetHi(meta);
+                }
+                Contracts.Assert(ins == -1);
+
+                return add ? AddCore(str.AsMemory(), hash) : null;
+            }
+
+            public NormStr Get(ReadOnlyMemory<char> str, bool add = false)
+            {
+                AssertValid();
+
+                uint hash = Hashing.HashString(str);
+                int ins = GetIns(hash);
+                while (ins >= 0)
+                {
+                    ulong meta = _rgmeta[ins];
+                    if ((int)Utils.GetLo(meta) == str.Length)
+                    {
+                        var ns = GetNs(ins);
+                        if (ReadOnlyMemoryUtils.Equals(ns.Value, str))
                             return ns;
                     }
                     ins = (int)Utils.GetHi(meta);
@@ -133,57 +147,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 return Get(str, true);
             }
 
-            /// <summary>
-            /// Determine if the given sub-string has an equivalent NormStr in the pool.
-            /// </summary>
-            public NormStr Get(string str, int ichMin, int ichLim, bool add = false)
+            public NormStr Add(ReadOnlyMemory<char> str)
             {
-                AssertValid();
-
-                Contracts.Assert(0 <= ichMin & ichMin <= ichLim & ichLim <= Utils.Size(str));
-                if (str == null)
-                    return Get("", add);
-
-                if (ichMin == 0 && ichLim == str.Length)
-                    return Get(str, add);
-
-                uint hash = Hashing.HashString(str, ichMin, ichLim);
-                int ins = GetIns(hash);
-                if (ins >= 0)
-                {
-                    int cch = ichLim - ichMin;
-                    var rgmeta = _rgmeta;
-                    for (; ; )
-                    {
-                        ulong meta = rgmeta[ins];
-                        if ((int)Utils.GetLo(meta) == cch)
-                        {
-                            var ns = GetNs(ins);
-                            var value = ns.Value;
-                            for (int ich = 0; ; ich++)
-                            {
-                                if (ich == cch)
-                                    return ns;
-                                if (value[ich] != str[ich + ichMin])
-                                    break;
-                            }
-                        }
-                        ins = (int)Utils.GetHi(meta);
-                        if (ins < 0)
-                            break;
-                    }
-                }
-                Contracts.Assert(ins == -1);
-
-                return add ? AddCore(str.Substring(ichMin, ichLim - ichMin), hash) : null;
-            }
-
-            /// <summary>
-            /// Make sure the given sub-string has an equivalent NormStr in the pool and return it.
-            /// </summary>
-            public NormStr Add(string str, int ichMin, int ichLim)
-            {
-                return Get(str, ichMin, ichLim, true);
+                return Get(str, true);
             }
 
             /// <summary>
@@ -212,7 +178,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         {
                             if (ich == cch)
                                 return ns;
-                            if (value[ich] != sb[ich])
+                            if (value.Span[ich] != sb[ich])
                                 break;
                         }
                     }
@@ -220,7 +186,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 }
                 Contracts.Assert(ins == -1);
 
-                return add ? AddCore(sb.ToString(), hash) : null;
+                return add ? AddCore(sb.ToString().AsMemory(), hash) : null;
             }
 
             /// <summary>
@@ -234,9 +200,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             /// <summary>
             /// Adds the item. Does NOT check for whether the item is already present.
             /// </summary>
-            private NormStr AddCore(string str, uint hash)
+            private NormStr AddCore(ReadOnlyMemory<char> str, uint hash)
             {
-                Contracts.AssertValue(str);
                 Contracts.Assert(str.Length >= 0);
                 Contracts.Assert(Hashing.HashString(str) == hash);
 

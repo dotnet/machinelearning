@@ -131,9 +131,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                     using (var cursor = idv.GetRowCursor(x => x == columnIndex))
                     {
-                        var getter = cursor.GetGetter<VBuffer<DvText>>(columnIndex);
+                        var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(columnIndex);
 
-                        VBuffer<DvText> line = default(VBuffer<DvText>);
+                        VBuffer<ReadOnlyMemory<char>> line = default;
                         while (cursor.MoveNext())
                         {
                             getter(ref line);

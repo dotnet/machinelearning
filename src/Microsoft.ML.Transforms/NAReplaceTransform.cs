@@ -517,9 +517,9 @@ namespace Microsoft.ML.Runtime.Data
             if (!string.IsNullOrEmpty(srcStr))
             {
                 // Handles converting input strings to correct types.
-                DvText srcTxt = new DvText(srcStr);
+                var srcTxt = srcStr.AsMemory();
                 bool identity;
-                var strToT = Conversions.Instance.GetStandardConversion<DvText, T>(TextType.Instance, dstType.ItemType, out identity);
+                var strToT = Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.ItemType, out identity);
                 strToT(ref srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
                 if (isNA(ref val))
