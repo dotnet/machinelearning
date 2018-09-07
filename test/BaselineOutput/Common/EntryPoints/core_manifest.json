@@ -21720,7 +21720,7 @@
           "Type": "String",
           "Desc": "This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
           "Aliases": [
-            "ModelDir"
+            "model"
           ],
           "Required": true,
           "SortOrder": 0.0,
@@ -21754,9 +21754,9 @@
             "Kind": "Array",
             "ItemType": "String"
           },
-          "Desc": "The name of the output",
+          "Desc": "The name of the outputs",
           "Aliases": [
-            "output"
+            "outputs"
           ],
           "Required": true,
           "SortOrder": 2.0,
