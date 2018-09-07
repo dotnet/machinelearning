@@ -10,7 +10,9 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 [assembly: LoadableClass(typeof(NormalizerTransformer), null, typeof(SignatureLoadModel),
@@ -23,7 +25,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     public sealed class Normalizer : IEstimator<NormalizerTransformer>
     {
-        private static class Defaults
+        internal static class Defaults
         {
             public const bool FixZero = true;
             public const bool MeanVarCdf = false;
@@ -269,6 +271,24 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        private sealed class ColumnFunctionAccessor : IReadOnlyList<IColumnFunction>
+        {
+            private readonly ColumnInfo[] _infos;
+
+            public ColumnFunctionAccessor(ColumnInfo[] infos)
+            {
+                _infos = infos;
+            }
+
+            public IColumnFunction this[int index] => _infos[index].ColumnFunction;
+            public int Count => _infos.Length;
+            public IEnumerator<IColumnFunction> GetEnumerator() => _infos.Select(info => info.ColumnFunction).GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        /// <summary>An accessor of the column functions within <see cref="_columns"/>.</summary>
+        internal readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
+
         private readonly ColumnInfo[] _columns;
 
         public (string input, string output)[] Columns => ColumnPairs;
@@ -277,6 +297,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env.Register(nameof(NormalizerTransformer)), columns.Select(x => (x.Input, x.Output)).ToArray())
         {
             _columns = columns;
+            ColumnFunctions = new ColumnFunctionAccessor(_columns);
         }
 
         public static NormalizerTransformer Train(IHostEnvironment env, IDataView data, Normalizer.ColumnBase[] columns)
@@ -365,6 +386,7 @@ namespace Microsoft.ML.Runtime.Data
             //   - separate model for column function
 
             _columns = new ColumnInfo[ColumnPairs.Length];
+            ColumnFunctions = new ColumnFunctionAccessor(_columns);
             for (int iinfo = 0; iinfo < ColumnPairs.Length; iinfo++)
             {
                 var dir = string.Format("Normalizer_{0:000}", iinfo);
@@ -555,7 +577,64 @@ namespace Microsoft.ML.Runtime.Data
 
                 return false;
             }
+        }
 
+        /// <summary>
+        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
+        /// <see cref="NormalizeTransform.AffineColumnFunction"/> items.
+        /// </summary>
+        internal interface IAffineData<TData>
+        {
+            /// <summary>
+            /// The scales. In the scalar case, this is a single value. In the vector case this is of length equal
+            /// to the number of slots. Function is <c>(input - offset) * scale</c>.
+            /// </summary>
+            TData Scale { get; }
+
+            /// <summary>
+            /// The offsets. In the scalar case, this is a single value. In the vector case this is of length equal
+            /// to the number of slots, or of length zero if all the offsets are zero.
+            /// </summary>
+            TData Offset { get; }
+        }
+
+        /// <summary>
+        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
+        /// <see cref="NormalizeTransform.CdfColumnFunction"/> items. The function is the value of the
+        /// cumulative density function of the normal distribution parameterized with mean <see cref="Mean"/>
+        /// and standard deviation <see cref="Stddev"/>.
+        /// </summary>
+        internal interface ICdfData<TData>
+        {
+            /// <summary>
+            /// The mean(s). In the scalar case, this is a single value. In the vector case this is of length equal
+            /// to the number of slots.
+            /// </summary>
+            TData Mean { get; }
+
+            /// <summary>
+            /// The standard deviation(s). In the scalar case, this is a single value. In the vector case this is of
+            /// length equal to the number of slots.
+            /// </summary>
+            TData Stddev { get; }
+
+            /// <summary>
+            /// Whether the we ought to apply a logarithm to the input first.
+            /// </summary>
+            bool UseLog { get; }
+        }
+
+        /// <summary>
+        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
+        /// <see cref="NormalizeTransform.BinColumnFunction"/> items.
+        /// </summary>
+        internal interface IBinData<TData>
+        {
+            /// <summary>
+            /// The standard deviation(s). In the scalar case, these are the bin upper bounds for that single value.
+            /// In the vector case it is a jagged array of the bin upper bounds for all slots.
+            /// </summary>
+            ImmutableArray<TData> UpperBounds { get; }
         }
     }
 }
