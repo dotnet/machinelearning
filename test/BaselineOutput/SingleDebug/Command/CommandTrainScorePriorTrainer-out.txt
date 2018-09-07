@@ -1,0 +1,7 @@
+maml.exe Train tr=priorpredictor loader=text{header+} data=%Data% out=%Output%
+Not adding a normalizer.
+Not training a calibrator because it is not needed.
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

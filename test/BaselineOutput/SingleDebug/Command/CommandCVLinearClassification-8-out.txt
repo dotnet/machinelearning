@@ -1,0 +1,52 @@
+maml.exe CV tr=sgd{nt=1 checkFreq=-1} threads=- loader=Text{col=Label:R8:0 col=Features:Num:~ header+} data=%Data% out=%Output% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.3504 (123.0/(123.0+228.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      118 |        5 | 0.9593
+ negative ||        4 |      224 | 0.9825
+          ||======================
+Precision ||   0.9672 |   0.9782 |
+OVERALL 0/1 ACCURACY: 0.974359
+LOG LOSS/instance:  0.204893
+Test-set entropy (prior Log-Loss/instance): 0.934449
+LOG-LOSS REDUCTION (RIG): 78.073357
+AUC:                0.996434
+TEST POSITIVE RATIO:	0.3494 (116.0/(116.0+216.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      105 |       11 | 0.9052
+ negative ||        5 |      211 | 0.9769
+          ||======================
+Precision ||   0.9545 |   0.9505 |
+OVERALL 0/1 ACCURACY: 0.951807
+LOG LOSS/instance:  0.223649
+Test-set entropy (prior Log-Loss/instance): 0.933529
+LOG-LOSS REDUCTION (RIG): 76.042672
+AUC:                0.994173
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.995304 (0.0011)
+Accuracy:           0.963083 (0.0113)
+Positive precision: 0.960879 (0.0063)
+Positive recall:    0.932261 (0.0271)
+Negative precision: 0.964308 (0.0139)
+Negative recall:    0.979654 (0.0028)
+Log-loss:           0.214271 (0.0094)
+Log-loss reduction: 77.058015 (1.0153)
+F1 Score:           0.946234 (0.0170)
+AUPRC:              0.990391 (0.0025)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
