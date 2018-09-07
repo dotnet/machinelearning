@@ -172,7 +172,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     {
                         if (column.IsPurposeSuggested || !column.Type.IsText)
                             continue;
-                        var data = column.GetData<DvText>();
+                        var data = column.GetData<ReadOnlyMemory<char>>();
 
                         long sumLength = 0;
                         int sumSpaces = 0;
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         foreach (var span in data)
                         {
                             sumLength += span.Length;
-                            seen.Add(span.IsNA ? 0 : span.Hash(0));
+                            seen.Add(ReadOnlyMemoryUtils.Hash(0, span));
                             string spanStr = span.ToString();
                             sumSpaces += spanStr.Count(x => x == ' ');
 

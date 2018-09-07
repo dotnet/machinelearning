@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.TestFramework;
+using System;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi

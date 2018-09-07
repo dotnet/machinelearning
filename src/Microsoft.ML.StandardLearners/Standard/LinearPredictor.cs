@@ -347,7 +347,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             var cols = new List<IColumn>();
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
             var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
                 new VectorType(TextType.Instance, Weight.Length), ref names);
@@ -531,7 +531,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (_stats == null)
                 return null;
             var cols = new List<IColumn>();
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
 
             // Add the stat columns.

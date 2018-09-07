@@ -4,6 +4,7 @@
 
 using Float = System.Single;
 using System.Collections.Generic;
+using System;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -17,8 +18,8 @@ namespace Microsoft.ML.Runtime.Data
     {
         protected readonly ColumnType ScoreType;
         protected readonly string ScoreColumnKind;
-        protected readonly MetadataUtils.MetadataGetter<DvText> ScoreValueKindGetter;
-        protected readonly MetadataUtils.MetadataGetter<DvText> ScoreColumnKindGetter;
+        protected readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> ScoreValueKindGetter;
+        protected readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> ScoreColumnKindGetter;
 
         public ScoreMapperSchemaBase(ColumnType scoreType, string scoreColumnKind)
         {
@@ -117,16 +118,16 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        protected virtual void GetScoreValueKind(int col, ref DvText dst)
+        protected virtual void GetScoreValueKind(int col, ref ReadOnlyMemory<char> dst)
         {
             Contracts.Assert(0 <= col && col < ColumnCount);
             CheckColZero(col, "GetScoreValueKind");
-            dst = new DvText(MetadataUtils.Const.ScoreValueKind.Score);
+            dst = MetadataUtils.Const.ScoreValueKind.Score.AsMemory();
         }
 
-        private void GetScoreColumnKind(int col, ref DvText dst)
+        private void GetScoreColumnKind(int col, ref ReadOnlyMemory<char> dst)
         {
-            dst = new DvText(ScoreColumnKind);
+            dst = ScoreColumnKind.AsMemory();
         }
     }
 
@@ -215,11 +216,11 @@ namespace Microsoft.ML.Runtime.Data
             dst = DvBool.True;
         }
 
-        protected override void GetScoreValueKind(int col, ref DvText dst)
+        protected override void GetScoreValueKind(int col, ref ReadOnlyMemory<char> dst)
         {
             Contracts.Assert(0 <= col && col < ColumnCount);
             if (col == base.ColumnCount)
-                dst = new DvText(MetadataUtils.Const.ScoreValueKind.Probability);
+                dst = MetadataUtils.Const.ScoreValueKind.Probability.AsMemory();
             else
                 base.GetScoreValueKind(col, ref dst);
         }
@@ -228,8 +229,8 @@ namespace Microsoft.ML.Runtime.Data
     public sealed class SequencePredictorSchema : ScoreMapperSchemaBase
     {
         private readonly VectorType _keyNamesType;
-        private readonly VBuffer<DvText> _keyNames;
-        private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>> _getKeyNames;
+        private readonly VBuffer<ReadOnlyMemory<char>> _keyNames;
+        private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getKeyNames;
 
         private bool HasKeyNames { get { return _keyNamesType != null; } }
 
@@ -241,7 +242,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <see cref="MetadataUtils.Kinds.KeyValues"/> metadata. Note that we do not copy
         /// the input key names, but instead take a reference to it.
         /// </summary>
-        public SequencePredictorSchema(ColumnType type, ref VBuffer<DvText> keyNames, string scoreColumnKind)
+        public SequencePredictorSchema(ColumnType type, ref VBuffer<ReadOnlyMemory<char>> keyNames, string scoreColumnKind)
             : base(type, scoreColumnKind)
         {
             if (keyNames.Length > 0)
@@ -273,7 +274,7 @@ namespace Microsoft.ML.Runtime.Data
             return MetadataUtils.Const.ScoreValueKind.PredictedLabel;
         }
 
-        private void GetKeyNames(int col, ref VBuffer<DvText> dst)
+        private void GetKeyNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             Contracts.Assert(col == 0);
             Contracts.AssertValue(_keyNamesType);
@@ -321,10 +322,10 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        protected override void GetScoreValueKind(int col, ref DvText dst)
+        protected override void GetScoreValueKind(int col, ref ReadOnlyMemory<char> dst)
         {
             Contracts.Assert(col == 0);
-            dst = new DvText(MetadataUtils.Const.ScoreValueKind.PredictedLabel);
+            dst = MetadataUtils.Const.ScoreValueKind.PredictedLabel.AsMemory();
         }
     }
 }

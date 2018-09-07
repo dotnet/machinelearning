@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Add slot names metadata.
                 using (var bldr = md.BuildMetadata(iinfo))
                 {
-                    bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.SlotNames,
+                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
                         MetadataUtils.GetNamesType(types[iinfo].VectorSize), GetSlotNames);
                 }
             }
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.Data
             return _types[iinfo];
         }
 
-        private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+        private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
 
@@ -183,15 +183,15 @@ namespace Microsoft.ML.Runtime.Data
 
             var values = dst.Values;
             if (Utils.Size(values) < size)
-                values = new DvText[size];
+                values = new ReadOnlyMemory<char>[size];
 
             var type = Infos[iinfo].TypeSrc;
             if (!type.IsVector)
             {
                 Host.Assert(_types[iinfo].VectorSize == 2);
                 var columnName = Source.Schema.GetColumnName(Infos[iinfo].Source);
-                values[0] = new DvText(columnName);
-                values[1] = new DvText(columnName + IndicatorSuffix);
+                values[0] = columnName.AsMemory();
+                values[1] = (columnName + IndicatorSuffix).AsMemory();
             }
             else
             {
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (typeNames == null || typeNames.VectorSize != type.VectorSize || !typeNames.ItemType.IsText)
                     throw MetadataUtils.ExceptGetMetadata();
 
-                var names = default(VBuffer<DvText>);
+                var names = default(VBuffer<ReadOnlyMemory<char>>);
                 Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref names);
 
                 // We both assert and check. If this fails, there is a bug somewhere (possibly in this code
@@ -219,22 +219,22 @@ namespace Microsoft.ML.Runtime.Data
                     Host.Assert(slot % 2 == 0);
 
                     sb.Clear();
-                    if (!kvp.Value.HasChars)
+                    if (kvp.Value.IsEmpty)
                         sb.Append('[').Append(slot / 2).Append(']');
                     else
-                        kvp.Value.AddToStringBuilder(sb);
+                        ReadOnlyMemoryUtils.AddToStringBuilder(sb, kvp.Value);
 
                     int len = sb.Length;
                     sb.Append(IndicatorSuffix);
                     var str = sb.ToString();
 
-                    values[slot++] = new DvText(str, 0, len);
-                    values[slot++] = new DvText(str);
+                    values[slot++] = str.AsMemory().Slice(0, len);
+                    values[slot++] = str.AsMemory();
                 }
                 Host.Assert(slot == size);
             }
 
-            dst = new VBuffer<DvText>(size, values, dst.Indices);
+            dst = new VBuffer<ReadOnlyMemory<char>>(size, values, dst.Indices);
         }
 
         protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)

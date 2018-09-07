@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
     using RawI8 = Int64;
     using SB = StringBuilder;
     using TS = DvTimeSpan;
-    using TX = DvText;
+    using TX = ReadOnlyMemory<char>;
     using U1 = Byte;
     using U2 = UInt16;
     using U4 = UInt32;
@@ -251,7 +251,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddIsNA<R4>(IsNA);
             AddIsNA<R8>(IsNA);
             AddIsNA<BL>(IsNA);
-            AddIsNA<TX>(IsNA);
             AddIsNA<TS>(IsNA);
             AddIsNA<DT>(IsNA);
             AddIsNA<DZ>(IsNA);
@@ -263,7 +262,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddGetNA<R4>(GetNA);
             AddGetNA<R8>(GetNA);
             AddGetNA<BL>(GetNA);
-            AddGetNA<TX>(GetNA);
             AddGetNA<TS>(GetNA);
             AddGetNA<DT>(GetNA);
             AddGetNA<DZ>(GetNA);
@@ -275,7 +273,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddHasNA<R4>(HasNA);
             AddHasNA<R8>(HasNA);
             AddHasNA<BL>(HasNA);
-            AddHasNA<TX>(HasNA);
             AddHasNA<TS>(HasNA);
             AddHasNA<DT>(HasNA);
             AddHasNA<DZ>(HasNA);
@@ -856,7 +853,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         private bool IsNA(ref TS src) => src.IsNA;
         private bool IsNA(ref DT src) => src.IsNA;
         private bool IsNA(ref DZ src) => src.IsNA;
-        private bool IsNA(ref TX src) => src.IsNA;
         #endregion IsNA
 
         #region HasNA
@@ -870,7 +866,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         private bool HasNA(ref VBuffer<TS> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
         private bool HasNA(ref VBuffer<DT> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
         private bool HasNA(ref VBuffer<DZ> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
-        private bool HasNA(ref VBuffer<TX> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
         #endregion HasNA
 
         #region IsDefault
@@ -910,7 +905,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         private void GetNA(ref TS value) => value = TS.NA;
         private void GetNA(ref DT value) => value = DT.NA;
         private void GetNA(ref DZ value) => value = DZ.NA;
-        private void GetNA(ref TX value) => value = TX.NA;
         #endregion GetNA
 
         #region ToI1
@@ -1108,16 +1102,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out U8 dst)
         {
-            if (src.IsNA)
+            if (src.IsEmpty)
             {
                 dst = 0;
                 return false;
             }
 
-            int ichMin;
-            int ichLim;
-            string text = src.GetRawUnderlyingBufferInfo(out ichMin, out ichLim);
-            return TryParseCore(text, ichMin, ichLim, out dst);
+            return TryParseCore(src, out dst);
         }
 
         /// <summary>
@@ -1131,14 +1122,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParse(ref TX src, out UG dst)
         {
             // REVIEW: Accomodate numeric inputs?
-            if (src.Length != 34 || src[0] != '0' || (src[1] != 'x' && src[1] != 'X'))
+            if (src.Length != 34 || src.Span[0] != '0' || (src.Span[1] != 'x' && src.Span[1] != 'X'))
             {
                 dst = default(UG);
                 return false;
             }
-            int ichMin;
-            int ichLim;
-            string tx = src.GetRawUnderlyingBufferInfo(out ichMin, out ichLim);
+            int ichMin = 0;
+            int ichLim = src.Length;
             int offset = ichMin + 2;
             ulong hi = 0;
             ulong num = 0;
@@ -1147,7 +1137,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 for (int d = 0; d < 16; ++d)
                 {
                     num <<= 4;
-                    char c = tx[offset++];
+                    char c = src.Span[offset++];
                     // REVIEW: An exhaustive switch statement *might* be faster, maybe, at the
                     // cost of being significantly longer.
                     if ('0' <= c && c <= '9')
@@ -1183,7 +1173,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         private bool IsStdMissing(ref TX src)
         {
-            Contracts.Assert(src.HasChars);
+            Contracts.Assert(!src.IsEmpty);
 
             char ch;
             switch (src.Length)
@@ -1192,22 +1182,22 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 return false;
 
             case 1:
-                if (src[0] == '?')
+                if (src.Span[0] == '?')
                     return true;
                 return false;
             case 2:
-                if ((ch = src[0]) != 'N' && ch != 'n')
+                if ((ch = src.Span[0]) != 'N' && ch != 'n')
                     return false;
-                if ((ch = src[1]) != 'A' && ch != 'a')
+                if ((ch = src.Span[1]) != 'A' && ch != 'a')
                     return false;
                 return true;
             case 3:
-                if ((ch = src[0]) != 'N' && ch != 'n')
+                if ((ch = src.Span[0]) != 'N' && ch != 'n')
                     return false;
-                if ((ch = src[1]) == '/')
+                if ((ch = src.Span[1]) == '/')
                 {
                     // Check for N/A.
-                    if ((ch = src[2]) != 'A' && ch != 'a')
+                    if ((ch = src.Span[2]) != 'A' && ch != 'a')
                         return false;
                 }
                 else
@@ -1215,7 +1205,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                     // Check for NaN.
                     if (ch != 'a' && ch != 'A')
                         return false;
-                    if ((ch = src[2]) != 'N' && ch != 'n')
+                    if ((ch = src.Span[2]) != 'N' && ch != 'n')
                         return false;
                 }
                 return true;
@@ -1240,18 +1230,15 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             // Both empty and missing map to zero (NA for key values) and that mapping is valid,
             // hence the true return.
-            if (!src.HasChars)
+            if (src.IsEmpty)
             {
                 dst = 0;
                 return true;
             }
 
             // Parse a ulong.
-            int ichMin;
-            int ichLim;
-            string text = src.GetRawUnderlyingBufferInfo(out ichMin, out ichLim);
             ulong uu;
-            if (!TryParseCore(text, ichMin, ichLim, out uu))
+            if (!TryParseCore(src, out uu))
             {
                 dst = 0;
                 // Return true only for standard forms for NA.
@@ -1268,14 +1255,14 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             return true;
         }
 
-        private bool TryParseCore(string text, int ich, int lim, out ulong dst)
+        private bool TryParseCore(ReadOnlyMemory<char> text, out ulong dst)
         {
-            Contracts.Assert(0 <= ich && ich <= lim && lim <= Utils.Size(text));
-
+            int ich = 0;
+            int lim = text.Length;
             ulong res = 0;
             while (ich < lim)
             {
-                uint d = (uint)text[ich++] - (uint)'0';
+                uint d = (uint)text.Span[ich++] - (uint)'0';
                 if (d >= 10)
                     goto LFail;
 
@@ -1357,15 +1344,15 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// <summary>
         /// Returns false if the text is not parsable as an non-negative long or overflows.
         /// </summary>
-        private bool TryParseNonNegative(string text, int ich, int lim, out long result)
+        private bool TryParseNonNegative(ReadOnlyMemory<char> text, int ich, int lim, out long result)
         {
-            Contracts.Assert(0 <= ich && ich <= lim && lim <= Utils.Size(text));
+            Contracts.Assert(0 <= ich && ich <= lim && lim <= text.Length);
 
             long res = 0;
             while (ich < lim)
             {
                 Contracts.Assert(res >= 0);
-                uint d = (uint)text[ich++] - (uint)'0';
+                uint d = (uint)text.Span[ich++] - (uint)'0';
                 if (d >= 10)
                     goto LFail;
 
@@ -1398,24 +1385,20 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             Contracts.Assert(max > 0);
             Contracts.Assert((max & (max + 1)) == 0);
 
-            if (!span.HasChars)
+            if (span.IsEmpty)
             {
-                if (span.IsNA)
-                    result = -max - 1;
-                else
-                    result = 0;
+                result = 0;
                 return true;
             }
 
-            int ichMin;
-            int ichLim;
-            string text = span.GetRawUnderlyingBufferInfo(out ichMin, out ichLim);
+            int ichMin = 0;
+            int ichLim = span.Length;
 
             long val;
-            if (span[0] == '-')
+            if (span.Span[0] == '-')
             {
                 if (span.Length == 1 ||
-                    !TryParseNonNegative(text, ichMin + 1, ichLim, out val) ||
+                    !TryParseNonNegative(span, ichMin + 1, ichLim, out val) ||
                     val > max)
                 {
                     result = -max - 1;
@@ -1427,7 +1410,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 return true;
             }
 
-            if (!TryParseNonNegative(text, ichMin, ichLim, out val))
+            if (!TryParseNonNegative(span, ichMin, ichLim, out val))
             {
                 // Check for acceptable NA forms: ? NaN NA and N/A.
                 result = -max - 1;
@@ -1452,7 +1435,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out R4 dst)
         {
-            if (src.TryParse(out dst))
+            if (ReadOnlyMemoryUtils.TryParse(out dst, src))
                 return true;
             dst = R4.NaN;
             return IsStdMissing(ref src);
@@ -1464,7 +1447,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out R8 dst)
         {
-            if (src.TryParse(out dst))
+            if (ReadOnlyMemoryUtils.TryParse(out dst, src))
                 return true;
             dst = R8.NaN;
             return IsStdMissing(ref src);
@@ -1472,12 +1455,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         public bool TryParse(ref TX src, out TS dst)
         {
-            if (!src.HasChars)
+            if (src.IsEmpty)
             {
-                if (src.IsNA)
-                    dst = TS.NA;
-                else
-                    dst = default(TS);
+                dst = default;
                 return true;
             }
             TimeSpan res;
@@ -1492,12 +1472,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         public bool TryParse(ref TX src, out DT dst)
         {
-            if (!src.HasChars)
+            if (src.IsEmpty)
             {
-                if (src.IsNA)
-                    dst = DvDateTime.NA;
-                else
-                    dst = default(DvDateTime);
+                dst = default;
                 return true;
             }
             DateTime res;
@@ -1512,12 +1489,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         public bool TryParse(ref TX src, out DZ dst)
         {
-            if (!src.HasChars)
+            if (src.IsEmpty)
             {
-                if (src.IsNA)
-                    dst = DvDateTimeZone.NA;
-                else
-                    dst = default(DvDateTimeZone);
+                dst = default;
                 return true;
             }
             DateTimeOffset res;
@@ -1618,13 +1592,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out BL dst)
         {
-            // NA text fails.
-            if (src.IsNA)
-            {
-                dst = BL.NA;
-                return true;
-            }
-
             char ch;
             switch (src.Length)
             {
@@ -1634,7 +1601,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 return true;
 
             case 1:
-                switch (src[0])
+                switch (src.Span[0])
                 {
                 case 'T':
                 case 't':
@@ -1656,21 +1623,21 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 break;
 
             case 2:
-                switch (src[0])
+                switch (src.Span[0])
                 {
                 case 'N':
                 case 'n':
-                    if ((ch = src[1]) != 'O' && ch != 'o')
+                    if ((ch = src.Span[1]) != 'O' && ch != 'o')
                         break;
                     dst = BL.False;
                     return true;
                 case '+':
-                    if ((ch = src[1]) != '1')
+                    if ((ch = src.Span[1]) != '1')
                         break;
                     dst = BL.True;
                     return true;
                 case '-':
-                    if ((ch = src[1]) != '1')
+                    if ((ch = src.Span[1]) != '1')
                         break;
                     dst = BL.False;
                     return true;
@@ -1678,13 +1645,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 break;
 
             case 3:
-                switch (src[0])
+                switch (src.Span[0])
                 {
                 case 'Y':
                 case 'y':
-                    if ((ch = src[1]) != 'E' && ch != 'e')
+                    if ((ch = src.Span[1]) != 'E' && ch != 'e')
                         break;
-                    if ((ch = src[2]) != 'S' && ch != 's')
+                    if ((ch = src.Span[2]) != 'S' && ch != 's')
                         break;
                     dst = BL.True;
                     return true;
@@ -1692,15 +1659,15 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 break;
 
             case 4:
-                switch (src[0])
+                switch (src.Span[0])
                 {
                 case 'T':
                 case 't':
-                    if ((ch = src[1]) != 'R' && ch != 'r')
+                    if ((ch = src.Span[1]) != 'R' && ch != 'r')
                         break;
-                    if ((ch = src[2]) != 'U' && ch != 'u')
+                    if ((ch = src.Span[2]) != 'U' && ch != 'u')
                         break;
-                    if ((ch = src[3]) != 'E' && ch != 'e')
+                    if ((ch = src.Span[3]) != 'E' && ch != 'e')
                         break;
                     dst = BL.True;
                     return true;
@@ -1708,17 +1675,17 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 break;
 
             case 5:
-                switch (src[0])
+                switch (src.Span[0])
                 {
                 case 'F':
                 case 'f':
-                    if ((ch = src[1]) != 'A' && ch != 'a')
+                    if ((ch = src.Span[1]) != 'A' && ch != 'a')
                         break;
-                    if ((ch = src[2]) != 'L' && ch != 'l')
+                    if ((ch = src.Span[2]) != 'L' && ch != 'l')
                         break;
-                    if ((ch = src[3]) != 'S' && ch != 's')
+                    if ((ch = src.Span[3]) != 'S' && ch != 's')
                         break;
-                    if ((ch = src[4]) != 'E' && ch != 'e')
+                    if ((ch = src.Span[4]) != 'E' && ch != 'e')
                         break;
                     dst = BL.False;
                     return true;
@@ -1775,14 +1742,14 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         }
         public void Convert(ref TX span, ref R4 value)
         {
-            if (span.TryParse(out value))
+            if (ReadOnlyMemoryUtils.TryParse(out value, span))
                 return;
             // Unparsable is mapped to NA.
             value = R4.NaN;
         }
         public void Convert(ref TX span, ref R8 value)
         {
-            if (span.TryParse(out value))
+            if (ReadOnlyMemoryUtils.TryParse(out value, span))
                 return;
             // Unparsable is mapped to NA.
             value = R8.NaN;
@@ -1800,8 +1767,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(ref TX src, ref SB dst)
         {
             ClearDst(ref dst);
-            if (src.HasChars)
-                src.AddToStringBuilder(dst);
+            if (!src.IsEmpty)
+                ReadOnlyMemoryUtils.AddToStringBuilder(dst, src);
         }
 
         public void Convert(ref TX span, ref TS value)

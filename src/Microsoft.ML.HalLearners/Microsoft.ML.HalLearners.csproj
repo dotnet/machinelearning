@@ -12,6 +12,7 @@
     <ProjectReference Include="..\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
     <ProjectReference Include="..\Microsoft.ML\Microsoft.ML.csproj" />
     <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
+    <PackageReference Include="System.Memory" Version="4.5.1" />
   </ItemGroup>
 
 </Project>

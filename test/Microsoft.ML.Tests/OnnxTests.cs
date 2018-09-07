@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using Xunit;
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Tests
             public float Label;
 
             public float F1;
-            public DvText F2;
+            public ReadOnlyMemory<char> F2;
         }
 
         public class BreastCancerDataAllColumns

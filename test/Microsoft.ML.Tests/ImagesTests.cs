@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
+using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -103,8 +104,8 @@ namespace Microsoft.ML.Tests
                 cropped.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
                 using (var cursor = cropped.GetRowCursor((x) => true))
                 {
-                    var pathGetter = cursor.GetGetter<DvText>(pathColumn);
-                    DvText path = default;
+                    var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(pathColumn);
+                    ReadOnlyMemory<char> path = default;
                     var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
                     Bitmap bitmap = default;
                     while (cursor.MoveNext())

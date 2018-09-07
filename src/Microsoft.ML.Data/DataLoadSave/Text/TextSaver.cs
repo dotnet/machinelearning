@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 if (type.IsText)
                 {
                     // For text we need to deal with escaping.
-                    ValueMapper<DvText, StringBuilder> c = MapText;
+                    ValueMapper<ReadOnlyMemory<char>, StringBuilder> c = MapText;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
                 else if (type.IsTimeSpan)
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 Default = Sb.ToString();
             }
 
-            protected void MapText(ref DvText src, ref StringBuilder sb)
+            protected void MapText(ref ReadOnlyMemory<char> src, ref StringBuilder sb)
             {
                 TextSaverUtils.MapText(ref src, ref sb, Sep);
             }
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         {
             private readonly ValueGetter<VBuffer<T>> _getSrc;
             private VBuffer<T> _src;
-            private readonly VBuffer<DvText> _slotNames;
+            private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
             private readonly int _slotCount;
 
             public VecValueWriter(IRowCursor cursor, VectorType type, int source, char sep)
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             public override void WriteHeader(Action<StringBuilder, int> appendItem, out int length)
             {
-                var span = new DvText(_columnName);
+                var span = _columnName.AsMemory();
                 MapText(ref span, ref Sb);
                 appendItem(Sb, 0);
                 length = 1;
@@ -796,9 +796,9 @@ namespace Microsoft.ML.Runtime.Data.IO
     internal static class TextSaverUtils
     {
         /// <summary>
-        /// Converts a DvText to a StringBuilder using TextSaver escaping and string quoting rules.
+        /// Converts a ReadOnlyMemory to a StringBuilder using TextSaver escaping and string quoting rules.
         /// </summary>
-        internal static void MapText(ref DvText src, ref StringBuilder sb, char sep)
+        internal static void MapText(ref ReadOnlyMemory<char> src, ref StringBuilder sb, char sep)
         {
             if (sb == null)
                 sb = new StringBuilder();
@@ -807,18 +807,17 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             if (src.IsEmpty)
                 sb.Append("\"\"");
-            else if (!src.IsNA)
+            else
             {
-                int ichMin;
-                int ichLim;
-                string text = src.GetRawUnderlyingBufferInfo(out ichMin, out ichLim);
+                int ichMin = 0;
+                int ichLim = src.Length;
                 int ichCur = ichMin;
                 int ichRun = ichCur;
                 bool quoted = false;
 
                 // Strings that start with space need to be quoted.
                 Contracts.Assert(ichCur < ichLim);
-                if (text[ichCur] == ' ')
+                if (src.Span[ichCur] == ' ')
                 {
                     quoted = true;
                     sb.Append('"');
@@ -826,7 +825,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 for (; ichCur < ichLim; ichCur++)
                 {
-                    char ch = text[ichCur];
+                    char ch = src.Span[ichCur];
                     if (ch != '"' && ch != sep && ch != ':')
                         continue;
                     if (!quoted)
@@ -838,14 +837,14 @@ namespace Microsoft.ML.Runtime.Data.IO
                     if (ch == '"')
                     {
                         if (ichRun < ichCur)
-                            sb.Append(text, ichRun, ichCur - ichRun);
+                            sb.Append(src, ichRun, ichCur - ichRun);
                         sb.Append("\"\"");
                         ichRun = ichCur + 1;
                     }
                 }
                 Contracts.Assert(ichCur == ichLim);
                 if (ichRun < ichCur)
-                    sb.Append(text, ichRun, ichCur - ichRun);
+                    sb.Append(src, ichRun, ichCur - ichRun);
                 if (quoted)
                     sb.Append('"');
             }

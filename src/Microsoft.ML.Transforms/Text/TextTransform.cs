@@ -228,7 +228,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // If we're performing language auto detection, or either of our extractors aren't hashing then
-            // we need all the input text concatenated into a single Vect<DvText>, for the LanguageDetectionTransform
+            // we need all the input text concatenated into a single ReadOnlyMemory, for the LanguageDetectionTransform
             // to operate on the entire text vector, and for the Dictionary feature extractor to build its bound dictionary
             // correctly.
             public bool NeedInitialSourceColumnConcatTransform

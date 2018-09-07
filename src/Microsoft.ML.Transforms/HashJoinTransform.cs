@@ -343,11 +343,11 @@ namespace Microsoft.ML.Runtime.Data
 
         private int[][] CompileSlotMap(string slotMapString, int srcSlotCount)
         {
-            var parts = new DvText(slotMapString).Split(new[] { ';' }).ToArray();
+            var parts = ReadOnlyMemoryUtils.Split(new[] { ';' }, slotMapString.AsMemory()).ToArray();
             var slotMap = new int[parts.Length][];
             for (int i = 0; i < slotMap.Length; i++)
             {
-                var slotIndices = parts[i].Split(new[] { ',' }).ToArray();
+                var slotIndices = ReadOnlyMemoryUtils.Split(new[] { ',' }, parts[i]).ToArray();
                 var slots = new int[slotIndices.Length];
                 slotMap[i] = slots;
                 for (int j = 0; j < slots.Length; j++)
@@ -397,14 +397,14 @@ namespace Microsoft.ML.Runtime.Data
                     continue;
                 using (var bldr = md.BuildMetadata(i))
                 {
-                    bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.SlotNames,
+                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
                         new VectorType(TextType.Instance, ex.SlotMap.Length), GetSlotNames);
                 }
             }
             md.Seal();
         }
 
-        private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+        private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
 
@@ -413,11 +413,11 @@ namespace Microsoft.ML.Runtime.Data
             int n = _exes[iinfo].OutputValueCount;
             var output = dst.Values;
             if (Utils.Size(output) < n)
-                output = new DvText[n];
+                output = new ReadOnlyMemory<char>[n];
 
             var srcColumnName = Source.Schema.GetColumnName(Infos[iinfo].Source);
             bool useDefaultSlotNames = !Source.Schema.HasSlotNames(Infos[iinfo].Source, Infos[iinfo].TypeSrc.VectorSize);
-            VBuffer<DvText> srcSlotNames = default(VBuffer<DvText>);
+            VBuffer<ReadOnlyMemory<char>> srcSlotNames = default;
             if (!useDefaultSlotNames)
             {
                 Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref srcSlotNames);
@@ -444,10 +444,10 @@ namespace Microsoft.ML.Runtime.Data
                         outputSlotName.Append(srcSlotNames.Values[inputSlotIndex]);
                 }
 
-                output[slot] = new DvText(outputSlotName.ToString());
+                output[slot] = outputSlotName.ToString().AsMemory();
             }
 
-            dst = new VBuffer<DvText>(n, output, dst.Indices);
+            dst = new VBuffer<ReadOnlyMemory<char>>(n, output, dst.Indices);
         }
 
         private delegate uint HashDelegate<TSrc>(ref TSrc value, uint seed);

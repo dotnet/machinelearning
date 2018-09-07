@@ -10,7 +10,6 @@ namespace Microsoft.ML.Runtime.Data
     using R4 = Single;
     using R8 = Double;
     using BL = DvBool;
-    using TX = DvText;
 
     public delegate bool RefPredicate<T>(ref T value);
 

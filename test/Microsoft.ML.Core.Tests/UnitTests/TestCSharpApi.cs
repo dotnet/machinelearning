@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
@@ -344,9 +345,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol || col == isWeightedCol))
                 {
                     var getter = cursor.GetGetter<double>(metricCol);
-                    var foldGetter = cursor.GetGetter<DvText>(foldCol);
+                    var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
                     var isWeightedGetter = cursor.GetGetter<DvBool>(isWeightedCol);
-                    DvText fold = default;
+                    ReadOnlyMemory<char> fold = default;
                     DvBool isWeighted = default;
 
                     double avg = 0;
@@ -361,7 +362,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             getter(ref avg);
                         foldGetter(ref fold);
-                        Assert.True(fold.EqualsStr("Average"));
+                        Assert.True(ReadOnlyMemoryUtils.EqualsStr("Average", fold));
                         isWeightedGetter(ref isWeighted);
                         Assert.True(isWeighted.IsTrue == (w == 1));
 
@@ -371,7 +372,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         double stdev = 0;
                         getter(ref stdev);
                         foldGetter(ref fold);
-                        Assert.True(fold.EqualsStr("Standard Deviation"));
+                        Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
                         if (w == 1)
                             Assert.Equal(0.004557, stdev, 6);
                         else
@@ -394,7 +395,7 @@ namespace Microsoft.ML.Runtime.RunTests
                                 weightedSum += val;
                             else
                                 sum += val;
-                            Assert.True(fold.EqualsStr("Fold " + f));
+                            Assert.True(ReadOnlyMemoryUtils.EqualsStr("Fold " + f, fold));
                             isWeightedGetter(ref isWeighted);
                             Assert.True(isWeighted.IsTrue == (w == 1));
                         }
@@ -460,16 +461,16 @@ namespace Microsoft.ML.Runtime.RunTests
                 using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
                 {
                     var getter = cursor.GetGetter<double>(metricCol);
-                    var foldGetter = cursor.GetGetter<DvText>(foldCol);
-                    DvText fold = default;
+                    var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                    ReadOnlyMemory<char> fold = default;
 
-                    // Get the verage.
+                    // Get the average.
                     b = cursor.MoveNext();
                     Assert.True(b);
                     double avg = 0;
                     getter(ref avg);
                     foldGetter(ref fold);
-                    Assert.True(fold.EqualsStr("Average"));
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr("Average", fold));
 
                     // Get the standard deviation.
                     b = cursor.MoveNext();
@@ -477,7 +478,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     double stdev = 0;
                     getter(ref stdev);
                     foldGetter(ref fold);
-                    Assert.True(fold.EqualsStr("Standard Deviation"));
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
                     Assert.Equal(0.025, stdev, 3);
 
                     double sum = 0;
@@ -489,7 +490,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         getter(ref val);
                         foldGetter(ref fold);
                         sum += val;
-                        Assert.True(fold.EqualsStr("Fold " + f));
+                        Assert.True(ReadOnlyMemoryUtils.EqualsStr("Fold " + f, fold));
                     }
                     Assert.Equal(avg, sum / 2);
                     b = cursor.MoveNext();
@@ -504,15 +505,15 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(b);
                 var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, countCol);
                 Assert.True(type != null && type.ItemType.IsText && type.VectorSize == 10);
-                var slotNames = default(VBuffer<DvText>);
+                var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
                 schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countCol, ref slotNames);
-                Assert.True(slotNames.Values.Select((s, i) => s.EqualsStr(i.ToString())).All(x => x));
+                Assert.True(slotNames.Values.Select((s, i) => ReadOnlyMemoryUtils.EqualsStr(i.ToString(), s)).All(x => x));
                 using (var curs = confusion.GetRowCursor(col => true))
                 {
                     var countGetter = curs.GetGetter<VBuffer<double>>(countCol);
-                    var foldGetter = curs.GetGetter<DvText>(foldCol);
+                    var foldGetter = curs.GetGetter<ReadOnlyMemory<char>>(foldCol);
                     var confCount = default(VBuffer<double>);
-                    var foldIndex = default(DvText);
+                    var foldIndex = default(ReadOnlyMemory<char>);
                     int rowCount = 0;
                     var foldCur = "Fold 0";
                     while (curs.MoveNext())
@@ -520,7 +521,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         countGetter(ref confCount);
                         foldGetter(ref foldIndex);
                         rowCount++;
-                        Assert.True(foldIndex.EqualsStr(foldCur));
+                        Assert.True(ReadOnlyMemoryUtils.EqualsStr(foldCur, foldIndex));
                         if (rowCount == 10)
                         {
                             rowCount = 0;
@@ -598,11 +599,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(b);
                 using (var cursor = warnings.GetRowCursor(col => col == warningCol))
                 {
-                    var getter = cursor.GetGetter<DvText>(warningCol);
+                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(warningCol);
 
                     b = cursor.MoveNext();
                     Assert.True(b);
-                    var warning = default(DvText);
+                    var warning = default(ReadOnlyMemory<char>);
                     getter(ref warning);
                     Assert.Contains("test instances with class values not seen in the training set.", warning.ToString());
                     b = cursor.MoveNext();
@@ -673,8 +674,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
                 {
                     var getter = cursor.GetGetter<double>(metricCol);
-                    var foldGetter = cursor.GetGetter<DvText>(foldCol);
-                    DvText fold = default;
+                    var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                    ReadOnlyMemory<char> fold = default;
 
                     // Get the verage.
                     b = cursor.MoveNext();
@@ -682,7 +683,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     double avg = 0;
                     getter(ref avg);
                     foldGetter(ref fold);
-                    Assert.True(fold.EqualsStr("Average"));
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr("Average", fold));
 
                     // Get the standard deviation.
                     b = cursor.MoveNext();
@@ -690,7 +691,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     double stdev = 0;
                     getter(ref stdev);
                     foldGetter(ref fold);
-                    Assert.True(fold.EqualsStr("Standard Deviation"));
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
                     Assert.Equal(0.00485, stdev, 5);
 
                     double sum = 0;
@@ -702,7 +703,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         getter(ref val);
                         foldGetter(ref fold);
                         sum += val;
-                        Assert.True(fold.EqualsStr("Fold " + f));
+                        Assert.True(ReadOnlyMemoryUtils.EqualsStr("Fold " + f, fold));
                     }
                     Assert.Equal(avg, sum / 2);
                     b = cursor.MoveNext();
@@ -781,8 +782,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
                 {
                     var getter = cursor.GetGetter<VBuffer<double>>(metricCol);
-                    var foldGetter = cursor.GetGetter<DvText>(foldCol);
-                    DvText fold = default;
+                    var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                    ReadOnlyMemory<char> fold = default;
 
                     // Get the verage.
                     b = cursor.MoveNext();
@@ -790,7 +791,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     var avg = default(VBuffer<double>);
                     getter(ref avg);
                     foldGetter(ref fold);
-                    Assert.True(fold.EqualsStr("Average"));
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr("Average", fold));
 
                     // Get the standard deviation.
                     b = cursor.MoveNext();
@@ -798,7 +799,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     var stdev = default(VBuffer<double>);
                     getter(ref stdev);
                     foldGetter(ref fold);
-                    Assert.True(fold.EqualsStr("Standard Deviation"));
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
                     Assert.Equal(2.462, stdev.Values[0], 3);
                     Assert.Equal(2.763, stdev.Values[1], 3);
                     Assert.Equal(3.273, stdev.Values[2], 3);
@@ -813,7 +814,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         getter(ref val);
                         foldGetter(ref fold);
                         sumBldr.AddFeatures(0, ref val);
-                        Assert.True(fold.EqualsStr("Fold " + f));
+                        Assert.True(ReadOnlyMemoryUtils.EqualsStr("Fold " + f, fold));
                     }
                     var sum = default(VBuffer<double>);
                     sumBldr.GetResult(ref sum);
@@ -827,12 +828,12 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(data.Schema.TryGetColumnIndex("Instance", out int nameCol));
                 using (var cursor = data.GetRowCursor(col => col == nameCol))
                 {
-                    var getter = cursor.GetGetter<DvText>(nameCol);
+                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(nameCol);
                     while (cursor.MoveNext())
                     {
-                        DvText name = default;
+                        ReadOnlyMemory<char> name = default;
                         getter(ref name);
-                        Assert.Subset(new HashSet<DvText>() { new DvText("Private"), new DvText("?"), new DvText("Federal-gov") }, new HashSet<DvText>() { name });
+                        Assert.Subset(new HashSet<string>() { "Private", "?", "Federal-gov" }, new HashSet<string>() { name.ToString() });
                         if (cursor.Position > 4)
                             break;
                     }
