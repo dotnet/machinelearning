@@ -20,9 +20,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     {
         private static readonly Vector256<float> _absMask256 = Avx.StaticCast<int, float>(Avx.SetAllVector256(0x7FFFFFFF));
 
-        // The count of 32-bit floats in Vector256<T>
-        private const int Vector256SingleElementCount = 8;
-
         // The count of bytes in Vector256<T>, corresponding to _cbAlign in AlignedArray
         private const int Vector256Alignment = 32;
 
@@ -420,7 +417,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pdst = dst)
             {
                 Vector256<float> scalarVector256 = Avx.SetAllVector256(scalar);
-                int count = Math.DivRem(dst.Length, Vector256SingleElementCount, out int remainder);
+
+                int count = Math.DivRem(dst.Length, 8, out int remainder);
                 float* pDstCurrent = pdst;
 
                 for (int i = 0; i < count; i++)
@@ -429,7 +427,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     dstVector = Avx.Add(dstVector, scalarVector256);
                     Avx.Store(pDstCurrent, dstVector);
 
-                    pDstCurrent += Vector256SingleElementCount;
+                    pDstCurrent += 8;
                 }
 
                 Vector128<float> scalarVector128 = Sse.SetAllVector128(scalar);
@@ -440,10 +438,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     dstVector = Sse.Add(dstVector, scalarVector128);
                     Sse.Store(pDstCurrent, dstVector);
 
-                    pDstCurrent += SseIntrinsics.Vector128SingleElementCount;
+                    pDstCurrent += 4;
                 }
 
-                for (int i = 0; i < remainder - 4; i++)
+                for (int i = 0; i < remainder % 4; i++)
                 {
                     pDstCurrent[i] += scalar;
                 }
@@ -454,12 +452,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             fixed (float* pdst = dst)
             {
-                float* pDstCurrent = pdst;
-                float* pEnd = pdst + dst.Length;
-
                 Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
 
-                while (pDstCurrent + 8 <= pEnd)
+                int count = Math.DivRem(dst.Length, 8, out int remainder);
+                float* pDstCurrent = pdst;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
 
@@ -471,7 +469,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                if (pDstCurrent + 4 <= pEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
 
@@ -481,14 +479,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                while (pDstCurrent < pEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
-
-                    dstVector = Sse.MultiplyScalar(scaleVector128, dstVector);
-                    Sse.StoreScalar(pDstCurrent, dstVector);
-
-                    pDstCurrent++;
+                    pDstCurrent[i] *= scale;
                 }
             }
         }
@@ -498,13 +491,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
-                float* pDstEnd = pdst + dst.Length;
+                Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
+
+                int count = Math.DivRem(dst.Length, 8, out int remainder);
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
 
-                Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
-
-                while (pDstCurrent + 8 <= pDstEnd)
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     srcVector = Avx.Multiply(srcVector, scaleVector256);
@@ -516,7 +509,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                if (pDstCurrent + 4 <= pDstEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Multiply(srcVector, scaleVector128);
@@ -526,14 +519,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                while (pDstCurrent < pDstEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
-                    srcVector = Sse.MultiplyScalar(srcVector, scaleVector128);
-                    Sse.StoreScalar(pDstCurrent, srcVector);
-
-                    pSrcCurrent++;
-                    pDstCurrent++;
+                    pDstCurrent[i] = pSrcCurrent[i] * scale;
                 }
             }
         }
@@ -543,13 +531,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             fixed (float* pdst = dst)
             {
-                float* pDstEnd = pdst + dst.Length;
-                float* pDstCurrent = pdst;
-
                 Vector256<float> a256 = Avx.SetAllVector256(a);
                 Vector256<float> b256 = Avx.SetAllVector256(b);
 
-                while (pDstCurrent + 8 <= pDstEnd)
+                int count = Math.DivRem(dst.Length, 8, out int remainder);
+                float* pDstCurrent = pdst;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
                     dstVector = Avx.Add(dstVector, b256);
@@ -562,7 +550,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> a128 = Sse.SetAllVector128(a);
                 Vector128<float> b128 = Sse.SetAllVector128(b);
 
-                if (pDstCurrent + 4 <= pDstEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, b128);
@@ -572,14 +560,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                while (pDstCurrent < pDstEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
-                    dstVector = Sse.AddScalar(dstVector, b128);
-                    dstVector = Sse.MultiplyScalar(dstVector, a128);
-                    Sse.StoreScalar(pDstCurrent, dstVector);
-
-                    pDstCurrent++;
+                    pDstCurrent[i] = a * (pDstCurrent[i] + b);
                 }
             }
         }
@@ -589,13 +572,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
-                float* pSrcCurrent = psrc;
-                float* pDstCurrent = pdst;
-                float* pEnd = pdst + dst.Length;
-
                 Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
 
-                while (pDstCurrent + 8 <= pEnd)
+                int count = Math.DivRem(dst.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+                float* pDstCurrent = pdst;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
@@ -610,7 +593,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                if (pDstCurrent + 4 <= pEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -623,17 +606,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                while (pDstCurrent < pEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
-                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
-
-                    srcVector = Sse.MultiplyScalar(srcVector, scaleVector128);
-                    dstVector = Sse.AddScalar(dstVector, srcVector);
-                    Sse.StoreScalar(pDstCurrent, dstVector);
-
-                    pSrcCurrent++;
-                    pDstCurrent++;
+                    pDstCurrent[i] += scale * pSrcCurrent[i];
                 }
             }
         }
@@ -644,14 +619,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pdst = dst)
             fixed (float* pres = result)
             {
-                float* pResEnd = pres + result.Length;
+                Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
+
+                int count = Math.DivRem(dst.Length, 8, out int remainder);
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
                 float* pResCurrent = pres;
 
-                Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
-
-                while (pResCurrent + 8 <= pResEnd)
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
@@ -666,7 +641,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                if (pResCurrent + 4 <= pResEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -679,17 +654,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pResCurrent += 4;
                 }
 
-                while (pResCurrent < pResEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
-                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
-                    srcVector = Sse.MultiplyScalar(srcVector, scaleVector128);
-                    dstVector = Sse.AddScalar(dstVector, srcVector);
-                    Sse.StoreScalar(pResCurrent, dstVector);
-
-                    pSrcCurrent++;
-                    pDstCurrent++;
-                    pResCurrent++;
+                    pResCurrent[i] = pDstCurrent[i] + scale * pSrcCurrent[i];
                 }
             }
         }
@@ -700,14 +667,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (int* pidx = idx)
             fixed (float* pdst = dst)
             {
+                Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
+
+                int count = Math.DivRem(idx.Length, 8, out int remainder);
                 float* pSrcCurrent = psrc;
                 int* pIdxCurrent = pidx;
                 float* pDstCurrent = pdst;
-                int* pEnd = pidx + idx.Length;
 
-                Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
-
-                while (pIdxCurrent + 8 <= pEnd)
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     Vector256<float> dstVector = Load8(pDstCurrent, pIdxCurrent);
@@ -722,7 +689,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                if (pIdxCurrent + 4 <= pEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = SseIntrinsics.Load4(pDstCurrent, pIdxCurrent);
@@ -735,12 +702,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent += 4;
                 }
 
-                while (pIdxCurrent < pEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    pDstCurrent[*pIdxCurrent] += scale * (*pSrcCurrent);
-
-                    pIdxCurrent++;
-                    pSrcCurrent++;
+                    int index = pIdxCurrent[i];
+                    pDstCurrent[index] += scale * pSrcCurrent[i];
                 }
             }
         }
@@ -750,11 +715,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
+                int count = Math.DivRem(dst.Length, 8, out int remainder);
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
-                float* pEnd = psrc + src.Length;
 
-                while (pSrcCurrent + 8 <= pEnd)
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
@@ -766,7 +731,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 8;
                 }
 
-                if (pSrcCurrent + 4 <= pEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -778,16 +743,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                while (pSrcCurrent < pEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
-                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
-
-                    Vector128<float> result = Sse.AddScalar(srcVector, dstVector);
-                    Sse.StoreScalar(pDstCurrent, result);
-
-                    pSrcCurrent++;
-                    pDstCurrent++;
+                    pDstCurrent[i] += pSrcCurrent[i];
                 }
             }
         }
@@ -798,12 +756,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (int* pidx = idx)
             fixed (float* pdst = dst)
             {
+                int count = Math.DivRem(idx.Length, 8, out int remainder);
                 float* pSrcCurrent = psrc;
                 int* pIdxCurrent = pidx;
                 float* pDstCurrent = pdst;
-                int* pEnd = pidx + idx.Length;
 
-                while (pIdxCurrent + 8 <= pEnd)
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> dstVector = Load8(pDstCurrent, pIdxCurrent);
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
@@ -815,7 +773,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent += 8;
                 }
 
-                if (pIdxCurrent + 4 <= pEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> dstVector = SseIntrinsics.Load4(pDstCurrent, pIdxCurrent);
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
@@ -827,12 +785,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent += 4;
                 }
 
-                while (pIdxCurrent < pEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    pDstCurrent[*pIdxCurrent] += *pSrcCurrent;
-
-                    pIdxCurrent++;
-                    pSrcCurrent++;
+                    int index = pIdxCurrent[i];
+                    pDstCurrent[index] += pSrcCurrent[i];
                 }
             }
         }
@@ -843,12 +799,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* psrc2 = src2)
             fixed (float* pdst = dst)
             {
+                int count = Math.DivRem(dst.Length, 8, out int remainder);
                 float* pSrc1Current = psrc1;
                 float* pSrc2Current = psrc2;
                 float* pDstCurrent = pdst;
-                float* pEnd = pdst + dst.Length;
 
-                while (pDstCurrent + 8 <= pEnd)
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> src1Vector = Avx.LoadVector256(pSrc1Current);
                     Vector256<float> src2Vector = Avx.LoadVector256(pSrc2Current);
@@ -860,7 +816,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 8;
                 }
 
-                if (pDstCurrent + 4 <= pEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> src1Vector = Sse.LoadVector128(pSrc1Current);
                     Vector128<float> src2Vector = Sse.LoadVector128(pSrc2Current);
@@ -872,16 +828,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDstCurrent += 4;
                 }
 
-                while (pDstCurrent < pEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    Vector128<float> src1Vector = Sse.LoadScalarVector128(pSrc1Current);
-                    Vector128<float> src2Vector = Sse.LoadScalarVector128(pSrc2Current);
-                    src2Vector = Sse.MultiplyScalar(src1Vector, src2Vector);
-                    Sse.StoreScalar(pDstCurrent, src2Vector);
-
-                    pSrc1Current++;
-                    pSrc2Current++;
-                    pDstCurrent++;
+                    pDstCurrent[i] = pSrc1Current[i] * pSrc2Current[i];
                 }
             }
         }
@@ -890,12 +839,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             fixed (float* psrc = src)
             {
-                float* pSrcEnd = psrc + src.Length;
-                float* pSrcCurrent = psrc;
-
                 Vector256<float> result256 = Avx.SetZeroVector256<float>();
 
-                while (pSrcCurrent + 8 <= pSrcEnd)
+                int count = Math.DivRem(src.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+
+                for (int i = 0; i < count; i++)
                 {
                     result256 = Avx.Add(result256, Avx.LoadVector256(pSrcCurrent));
                     pSrcCurrent += 8;
@@ -906,21 +855,21 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
-                if (pSrcCurrent + 4 <= pSrcEnd)
+                if (remainder >= 4)
                 {
                     result128 = Sse.Add(result128, Sse.LoadVector128(pSrcCurrent));
                     pSrcCurrent += 4;
                 }
 
                 result128 = SseIntrinsics.VectorSum128(in result128);
+                float result = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
 
-                while (pSrcCurrent < pSrcEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    result128 = Sse.AddScalar(result128, Sse.LoadScalarVector128(pSrcCurrent));
-                    pSrcCurrent++;
+                    result += pSrcCurrent[i];
                 }
 
-                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
+                return result;
             }
         }
 
@@ -928,12 +877,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             fixed (float* psrc = src)
             {
-                float* pSrcEnd = psrc + src.Length;
-                float* pSrcCurrent = psrc;
-
                 Vector256<float> result256 = Avx.SetZeroVector256<float>();
 
-                while (pSrcCurrent + 8 <= pSrcEnd)
+                int count = Math.DivRem(src.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     result256 = Avx.Add(result256, Avx.Multiply(srcVector, srcVector));
@@ -946,7 +895,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
-                if (pSrcCurrent + 4 <= pSrcEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result128 = Sse.Add(result128, Sse.Multiply(srcVector, srcVector));
@@ -955,16 +904,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result128 = SseIntrinsics.VectorSum128(in result128);
+                float result = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
 
-                while (pSrcCurrent < pSrcEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
-                    result128 = Sse.AddScalar(result128, Sse.MultiplyScalar(srcVector, srcVector));
-
-                    pSrcCurrent++;
+                    result += pSrcCurrent[i] * pSrcCurrent[i];
                 }
 
-                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
+                return result;
             }
         }
 
@@ -972,13 +919,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             fixed (float* psrc = src)
             {
-                float* pSrcEnd = psrc + src.Length;
-                float* pSrcCurrent = psrc;
-
                 Vector256<float> result256 = Avx.SetZeroVector256<float>();
                 Vector256<float> meanVector256 = Avx.SetAllVector256(mean);
 
-                while (pSrcCurrent + 8 <= pSrcEnd)
+                int count = Math.DivRem(src.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     srcVector = Avx.Subtract(srcVector, meanVector256);
@@ -993,7 +940,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> result128 = Sse.SetZeroVector128();
                 Vector128<float> meanVector128 = Sse.SetAllVector128(mean);
 
-                if (pSrcCurrent + 4 <= pSrcEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Subtract(srcVector, meanVector128);
@@ -1003,17 +950,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result128 = SseIntrinsics.VectorSum128(in result128);
+                float result = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
 
-                while (pSrcCurrent < pSrcEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
-                    srcVector = Sse.SubtractScalar(srcVector, meanVector128);
-                    result128 = Sse.AddScalar(result128, Sse.MultiplyScalar(srcVector, srcVector));
-
-                    pSrcCurrent++;
+                    float difference = pSrcCurrent[i] - mean;
+                    result += difference * difference;
                 }
 
-                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
+                return result;
             }
         }
 
@@ -1021,12 +966,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             fixed (float* psrc = src)
             {
-                float* pSrcEnd = psrc + src.Length;
-                float* pSrcCurrent = psrc;
-
                 Vector256<float> result256 = Avx.SetZeroVector256<float>();
 
-                while (pSrcCurrent + 8 <= pSrcEnd)
+                int count = Math.DivRem(src.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     result256 = Avx.Add(result256, Avx.And(srcVector, _absMask256));
@@ -1039,7 +984,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
-                if (pSrcCurrent + 4 <= pSrcEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result128 = Sse.Add(result128, Sse.And(srcVector, SseIntrinsics.AbsMask128));
@@ -1049,7 +994,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 result128 = SseIntrinsics.VectorSum128(in result128);
 
-                while (pSrcCurrent < pSrcEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
                     Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
                     result128 = Sse.AddScalar(result128, Sse.And(srcVector, SseIntrinsics.AbsMask128));
@@ -1065,13 +1010,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             fixed (float* psrc = src)
             {
-                float* pSrcEnd = psrc + src.Length;
-                float* pSrcCurrent = psrc;
-
                 Vector256<float> result256 = Avx.SetZeroVector256<float>();
                 Vector256<float> meanVector256 = Avx.SetAllVector256(mean);
 
-                while (pSrcCurrent + 8 <= pSrcEnd)
+                int count = Math.DivRem(src.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     srcVector = Avx.Subtract(srcVector, meanVector256);
@@ -1086,7 +1031,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> result128 = Sse.SetZeroVector128();
                 Vector128<float> meanVector128 = Sse.SetAllVector128(mean);
 
-                if (pSrcCurrent + 4 <= pSrcEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Subtract(srcVector, meanVector128);
@@ -1097,7 +1042,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 result128 = SseIntrinsics.VectorSum128(in result128);
 
-                while (pSrcCurrent < pSrcEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
                     Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
                     srcVector = Sse.SubtractScalar(srcVector, meanVector128);
@@ -1114,12 +1059,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             fixed (float* psrc = src)
             {
-                float* pSrcEnd = psrc + src.Length;
-                float* pSrcCurrent = psrc;
-
                 Vector256<float> result256 = Avx.SetZeroVector256<float>();
 
-                while (pSrcCurrent + 8 <= pSrcEnd)
+                int count = Math.DivRem(src.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     result256 = Avx.Max(result256, Avx.And(srcVector, _absMask256));
@@ -1132,7 +1077,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
-                if (pSrcCurrent + 4 <= pSrcEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     result128 = Sse.Max(result128, Sse.And(srcVector, SseIntrinsics.AbsMask128));
@@ -1142,7 +1087,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 result128 = SseIntrinsics.VectorMax128(in result128);
 
-                while (pSrcCurrent < pSrcEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
                     Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
                     result128 = Sse.MaxScalar(result128, Sse.And(srcVector, SseIntrinsics.AbsMask128));
@@ -1158,13 +1103,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             fixed (float* psrc = src)
             {
-                float* pSrcEnd = psrc + src.Length;
-                float* pSrcCurrent = psrc;
-
                 Vector256<float> result256 = Avx.SetZeroVector256<float>();
                 Vector256<float> meanVector256 = Avx.SetAllVector256(mean);
 
-                while (pSrcCurrent + 8 <= pSrcEnd)
+                int count = Math.DivRem(src.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     srcVector = Avx.Subtract(srcVector, meanVector256);
@@ -1179,7 +1124,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> result128 = Sse.SetZeroVector128();
                 Vector128<float> meanVector128 = Sse.SetAllVector128(mean);
 
-                if (pSrcCurrent + 4 <= pSrcEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Subtract(srcVector, meanVector128);
@@ -1190,7 +1135,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 result128 = SseIntrinsics.VectorMax128(in result128);
 
-                while (pSrcCurrent < pSrcEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
                     Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
                     srcVector = Sse.SubtractScalar(srcVector, meanVector128);
@@ -1208,13 +1153,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
-                float* pSrcCurrent = psrc;
-                float* pDstCurrent = pdst;
-                float* pSrcEnd = psrc + src.Length;
-
                 Vector256<float> result256 = Avx.SetZeroVector256<float>();
 
-                while (pSrcCurrent + 8 <= pSrcEnd)
+                int count = Math.DivRem(src.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+                float* pDstCurrent = pdst;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
@@ -1230,7 +1175,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
-                if (pSrcCurrent + 4 <= pSrcEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -1242,19 +1187,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result128 = SseIntrinsics.VectorSum128(in result128);
+                float result = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
 
-                while (pSrcCurrent < pSrcEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    Vector128<float> srcVector = Sse.LoadScalarVector128(pSrcCurrent);
-                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
-
-                    result128 = Sse.AddScalar(result128, Sse.MultiplyScalar(srcVector, dstVector));
-
-                    pSrcCurrent++;
-                    pDstCurrent++;
+                    result += pSrcCurrent[i] * pDstCurrent[i];
                 }
 
-                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
+                return result;
             }
         }
 
@@ -1264,14 +1204,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pdst = dst)
             fixed (int* pidx = idx)
             {
-                float* pSrcCurrent = psrc;
-                float* pDstCurrent = pdst;
-                int* pIdxCurrent = pidx;
-                int* pIdxEnd = pidx + idx.Length;
-
                 Vector256<float> result256 = Avx.SetZeroVector256<float>();
 
-                while (pIdxCurrent + 8 <= pIdxEnd)
+                int count = Math.DivRem(idx.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+                int* pIdxCurrent = pidx;
+                float* pDstCurrent = pdst;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> srcVector = Load8(pSrcCurrent, pIdxCurrent);
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
@@ -1287,7 +1227,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> result128 = Sse.SetZeroVector128();
 
-                if (pIdxCurrent + 4 <= pIdxEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> srcVector = SseIntrinsics.Load4(pSrcCurrent, pIdxCurrent);
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
@@ -1299,19 +1239,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 result128 = SseIntrinsics.VectorSum128(in result128);
+                float result = Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
 
-                while (pIdxCurrent < pIdxEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    Vector128<float> srcVector = SseIntrinsics.Load1(pSrcCurrent, pIdxCurrent);
-                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
-
-                    result128 = Sse.AddScalar(result128, Sse.MultiplyScalar(srcVector, dstVector));
-
-                    pIdxCurrent++;
-                    pDstCurrent++;
+                    int index = pIdxCurrent[i];
+                    result += pSrcCurrent[index] * pDstCurrent[i];
                 }
 
-                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
+                return result;
             }
         }
 
@@ -1320,13 +1256,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* psrc = src)
             fixed (float* pdst = dst)
             {
-                float* pSrcCurrent = psrc;
-                float* pDstCurrent = pdst;
-                float* pSrcEnd = psrc + src.Length;
-
                 Vector256<float> sqDistanceVector256 = Avx.SetZeroVector256<float>();
 
-                while (pSrcCurrent + 8 <= pSrcEnd)
+                int count = Math.DivRem(src.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+                float* pDstCurrent = pdst;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> distanceVector = Avx.Subtract(Avx.LoadVector256(pSrcCurrent),
                                                                     Avx.LoadVector256(pDstCurrent));
@@ -1342,7 +1278,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> sqDistanceVector128 = Sse.SetZeroVector128();
 
-                if (pSrcCurrent + 4 <= pSrcEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> distanceVector = Sse.Subtract(Sse.LoadVector128(pSrcCurrent),
                                                                     Sse.LoadVector128(pDstCurrent));
@@ -1354,15 +1290,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
 
                 sqDistanceVector128 = SseIntrinsics.VectorSum128(in sqDistanceVector128);
-
                 float norm = Sse.ConvertToSingle(Sse.AddScalar(sqDistanceVector128, sqDistanceVectorPadded));
-                while (pSrcCurrent < pSrcEnd)
-                {
-                    float distance = (*pSrcCurrent) - (*pDstCurrent);
-                    norm += distance * distance;
 
-                    pSrcCurrent++;
-                    pDstCurrent++;
+                for (int i = 0; i < remainder % 4; i++)
+                {
+                    float distance = pSrcCurrent[i] - pDstCurrent[i];
+                    norm += distance * distance;
                 }
 
                 return norm;
@@ -1375,15 +1308,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pdst1 = v)
             fixed (float* pdst2 = w)
             {
-                float* pSrcEnd = psrc + src.Length;
+                Vector256<float> xPrimal256 = Avx.SetAllVector256(primalUpdate);
+                Vector256<float> xThreshold256 = Avx.SetAllVector256(threshold);
+
+                int count = Math.DivRem(src.Length, 8, out int remainder);
                 float* pSrcCurrent = psrc;
                 float* pDst1Current = pdst1;
                 float* pDst2Current = pdst2;
 
-                Vector256<float> xPrimal256 = Avx.SetAllVector256(primalUpdate);
-                Vector256<float> xThreshold256 = Avx.SetAllVector256(threshold);
-
-                while (pSrcCurrent + 8 <= pSrcEnd)
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> xSrc = Avx.LoadVector256(pSrcCurrent);
 
@@ -1402,7 +1335,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> xPrimal128 = Sse.SetAllVector128(primalUpdate);
                 Vector128<float> xThreshold128 = Sse.SetAllVector128(threshold);
 
-                if (pSrcCurrent + 4 <= pSrcEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> xSrc = Sse.LoadVector128(pSrcCurrent);
 
@@ -1418,15 +1351,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pDst2Current += 4;
                 }
 
-                while (pSrcCurrent < pSrcEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    *pDst1Current += (*pSrcCurrent) * primalUpdate;
-                    float dst1 = *pDst1Current;
-                    *pDst2Current = Math.Abs(dst1) > threshold ? (dst1 > 0 ? dst1 - threshold : dst1 + threshold) : 0;
-
-                    pSrcCurrent++;
-                    pDst1Current++;
-                    pDst2Current++;
+                    pDst1Current[i] += primalUpdate * pSrcCurrent[i];
+                    float dst1 = pDst1Current[i];
+                    pDst2Current[i] = Math.Abs(dst1) > threshold ? (dst1 > 0 ? dst1 - threshold : dst1 + threshold) : 0;
                 }
             }
         }
@@ -1438,14 +1367,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pdst1 = v)
             fixed (float* pdst2 = w)
             {
-                int* pIdxEnd = pidx + indices.Length;
-                float* pSrcCurrent = psrc;
-                int* pIdxCurrent = pidx;
-
                 Vector256<float> xPrimal256 = Avx.SetAllVector256(primalUpdate);
                 Vector256<float> xThreshold = Avx.SetAllVector256(threshold);
 
-                while (pIdxCurrent + 8 <= pIdxEnd)
+                int count = Math.DivRem(src.Length, 8, out int remainder);
+                float* pSrcCurrent = psrc;
+                int* pIdxCurrent = pidx;
+
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> xSrc = Avx.LoadVector256(pSrcCurrent);
 
@@ -1463,7 +1392,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> xPrimal128 = Sse.SetAllVector128(primalUpdate);
                 Vector128<float> xThreshold128 = Sse.SetAllVector128(threshold);
 
-                if (pIdxCurrent + 4 <= pIdxEnd)
+                if (remainder >= 4)
                 {
                     Vector128<float> xSrc = Sse.LoadVector128(pSrcCurrent);
 
@@ -1478,15 +1407,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     pSrcCurrent += 4;
                 }
 
-                while (pIdxCurrent < pIdxEnd)
+                for (int i = 0; i < remainder % 4; i++)
                 {
-                    int index = *pIdxCurrent;
-                    pdst1[index] += (*pSrcCurrent) * primalUpdate;
+                    int index = pIdxCurrent[i];
+                    pdst1[index] += primalUpdate * pSrcCurrent[i];
                     float dst1 = pdst1[index];
                     pdst2[index] = Math.Abs(dst1) > threshold ? (dst1 > 0 ? dst1 - threshold : dst1 + threshold) : 0;
-
-                    pIdxCurrent++;
-                    pSrcCurrent++;
                 }
             }
         }
