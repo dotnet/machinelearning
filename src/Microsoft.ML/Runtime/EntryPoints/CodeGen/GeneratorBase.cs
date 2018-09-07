@@ -32,7 +32,6 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
         /// <param name="prefix">The module prefix.</param>
         /// <param name="regenerate">The command string used to generate.</param>
         /// <param name="component">The component.</param>
-        /// <param name="generateEnums">Whether to generate enums for SubComponents.</param>
         /// <param name="moduleId"></param>
         /// <param name="moduleName"></param>
         /// <param name="moduleOwner"></param>
@@ -43,7 +42,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
         /// <param name="moduleCategory"></param>
         /// <param name="exclude">The set of parameters to exclude</param>
         /// <param name="namespaces">The set of extra namespaces</param>
-        public void Generate(IndentingTextWriter writer, string prefix, string regenerate, ComponentCatalog.LoadableClassInfo component, bool generateEnums,
+        public void Generate(IndentingTextWriter writer, string prefix, string regenerate, ComponentCatalog.LoadableClassInfo component,
             string moduleId, string moduleName, string moduleOwner, string moduleVersion, string moduleState, string moduleType, string moduleDeterminism, string moduleCategory,
             HashSet<string> exclude, HashSet<string> namespaces)
         {
@@ -63,7 +62,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             {
                 GenerateClassName(writer, prefix, component);
                 using (writer.Nest())
-                    GenerateContent(writer, prefix, component, generateEnums, moduleId);
+                    GenerateContent(writer, prefix, component, moduleId);
                 GenerateFooter(writer);
             }
             GenerateFooter(writer);
@@ -103,7 +102,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             w.WriteLine("{");
         }
 
-        protected abstract void GenerateContent(IndentingTextWriter writer, string prefix, ComponentCatalog.LoadableClassInfo component, bool generateEnums, string moduleId);
+        protected abstract void GenerateContent(IndentingTextWriter writer, string prefix, ComponentCatalog.LoadableClassInfo component, string moduleId);
 
         private void GenerateFooter(IndentingTextWriter w)
         {
@@ -177,73 +176,6 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
         {
             return arg.ItemType == typeof(uint) ? "(uint)" : "";
         }
-
-        protected void GenerateEnums(IndentingTextWriter w, ComponentCatalog.LoadableClassInfo component)
-        {
-            var argumentInfo = CmdParser.GetArgInfo(component.ArgType, component.CreateArguments());
-            var seen = new HashSet<Tuple<Type, Type>>();
-            foreach (var arg in argumentInfo.Args)
-                GenerateEnums(w, arg, seen);
-        }
-
-        /// <summary>
-        /// Generate enums for subcomponents. Uses ReflectionUtils to filter only the subcomponents that match the base type and the signature.
-        /// </summary>
-        /// <param name="w"></param>
-        /// <param name="arg"></param>
-        /// <param name="seen"></param>
-        protected void GenerateEnums(IndentingTextWriter w, CmdParser.ArgInfo.Arg arg, HashSet<Tuple<Type, Type>> seen)
-        {
-            if (Exclude.Contains(arg.LongName))
-                return;
-
-            var moreEnums = new List<CmdParser.ArgInfo.Arg>();
-            if (arg.IsHidden || !arg.IsSubComponentItemType)
-                return;
-            Contracts.Assert(arg.ItemType.GetGenericTypeDefinition() == typeof(SubComponent<,>));
-            var types = arg.ItemType.GetGenericArguments();
-            var baseType = types[0];
-            var sigType = types[1];
-            var key = new Tuple<Type, Type>(baseType, sigType);
-            if (seen.Contains(key) || IsTrainer(sigType) || sigType == typeof(SignatureDataLoader))
-                return;
-            seen.Add(key);
-            var typeName = EnumName(arg, sigType);
-            w.WriteLine("/// <summary> Available choices for {0} </summary>", sigType);
-            w.WriteLine("public enum {0}", typeName);
-            w.Write("{");
-            using (w.Nest())
-            {
-                var pre = "";
-                if (arg.NullName != null)
-                {
-                    w.WriteLine();
-                    GenerateEnumValue(w, null);
-                    pre = ",";
-                }
-                var infos = ComponentCatalog.GetAllDerivedClasses(baseType, sigType);
-                foreach (var info in infos)
-                {
-                    w.WriteLine(pre);
-                    if (pre != "")
-                        w.WriteLine();
-                    pre = ",";
-                    GenerateEnumValue(w, info);
-                    var args = info.CreateArguments();
-                    if (args == null)
-                        continue;
-                    var argInfo = CmdParser.GetArgInfo(args.GetType(), args);
-                    moreEnums.AddRange(argInfo.Args);
-                }
-                w.WriteLine();
-            }
-            w.WriteLine("}");
-            w.WriteLine();
-            foreach (var argument in moreEnums)
-                GenerateEnums(w, argument, seen);
-        }
-
-        protected abstract void GenerateEnumValue(IndentingTextWriter w, ComponentCatalog.LoadableClassInfo info);
 
         protected object Stringify(object value)
         {

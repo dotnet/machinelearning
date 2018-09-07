@@ -51,7 +51,7 @@ namespace Microsoft.ML.Scenarios
             {
                 ModelFile = model_location,
                 InputColumns = new[] { "Input" },
-                OutputColumn = "Output"
+                OutputColumns = new[] { "Output" }
             });
 
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features", "Output"));

@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Text;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.CommandLine
+namespace Microsoft.ML.TestFramework
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
@@ -243,6 +243,15 @@ namespace Microsoft.ML.Runtime.CommandLine
         public SubComponent(string kind, params string[] settings)
             : base(kind, settings)
         {
+        }
+
+        public TRes CreateInstance(IHostEnvironment env, params object[] extra)
+        {
+            string options = CmdParser.CombineSettings(Settings);
+            TRes result;
+            if (ComponentCatalog.TryCreateInstance<TRes, TSig>(env, out result, Kind, options, extra))
+                return result;
+            throw Contracts.Except("Unknown loadable class: {0}", Kind).MarkSensitive(MessageSensitivity.None);
         }
     }
 

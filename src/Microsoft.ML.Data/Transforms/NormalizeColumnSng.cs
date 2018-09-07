@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -653,7 +654,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (Offset != null)
                             node.AddAttribute("offset", Offset);
                         else
-                            node.AddAttribute("offset", Enumerable.Repeat<float>(0, featureCount));
+                            node.AddAttribute("offset", Enumerable.Repeat<TFloat>(0, featureCount));
 
                         node.AddAttribute("scale", Scale);
                         return true;
@@ -1037,11 +1038,13 @@ namespace Microsoft.ML.Runtime.Data
 
             private static class Sng
             {
-                public sealed class ImplOne : BinColumnFunction
+                public sealed class ImplOne : BinColumnFunction, NormalizerTransformer.IBinData<TFloat>
                 {
                     private readonly TFloat[] _binUpperBounds;
                     private readonly TFloat _den;
                     private readonly TFloat _offset;
+
+                    ImmutableArray<TFloat> NormalizerTransformer.IBinData<TFloat>.UpperBounds => ImmutableArray.Create(_binUpperBounds);
 
                     public ImplOne(IHost host, TFloat[] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1107,11 +1110,14 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public sealed class ImplVec : BinColumnFunction
+                public sealed class ImplVec : BinColumnFunction, NormalizerTransformer.IBinData<ImmutableArray<TFloat>>
                 {
                     private readonly TFloat[][] _binUpperBounds;
                     private readonly TFloat[] _den;
                     private readonly TFloat[] _offset;
+
+                    ImmutableArray<ImmutableArray<TFloat>> NormalizerTransformer.IBinData<ImmutableArray<TFloat>>.UpperBounds
+                        => _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray();
 
                     public ImplVec(IHost host, TFloat[][] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1621,7 +1627,7 @@ namespace Microsoft.ML.Runtime.Data
                 public static IColumnFunctionBuilder Create(Normalizer.LogMeanVarColumn column, IHost host, ColumnType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
-                    var lim =column.MaxTrainingExamples;
+                    var lim = column.MaxTrainingExamples;
                     host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
                     var cv = srcType.ValueCount;
                     return new MeanVarVecColumnFunctionBuilder(host, cv, lim, false, getter, true, column.UseCdf);
@@ -1782,7 +1788,7 @@ namespace Microsoft.ML.Runtime.Data
                     host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
                     bool fix = column.FixZero;
                     var numBins = column.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "numBins must be greater than 1");
+                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "Must be greater than 1");
                     var cv = srcType.ValueCount;
                     return new BinVecColumnFunctionBuilder(host, cv, lim, fix, numBins, getter);
                 }
@@ -1904,11 +1910,11 @@ namespace Microsoft.ML.Runtime.Data
                 public static IColumnFunctionBuilder Create(SupervisedBinArguments args, IHost host, int argsColumnIndex, int valueColumnId, int labelColumnId, IRow dataRow)
                 {
                     var lim = args.Column[argsColumnIndex].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "maxTrainingExamples must be greater than 1");
+                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
                     bool fix = args.Column[argsColumnIndex].FixZero ?? args.FixZero;
                     var numBins = args.Column[argsColumnIndex].NumBins ?? args.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "numBins must be greater than 1");
-                    host.CheckUserArg(args.MinBinSize > 0, nameof(args.MinBinSize), "minBinSize must be positive");
+                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "Must be greater than 1");
+                    host.CheckUserArg(args.MinBinSize > 0, nameof(args.MinBinSize), "Must be positive");
                     return new SupervisedBinVecColumnFunctionBuilder(host, lim, fix, numBins, args.MinBinSize, valueColumnId, labelColumnId, dataRow);
                 }
             }

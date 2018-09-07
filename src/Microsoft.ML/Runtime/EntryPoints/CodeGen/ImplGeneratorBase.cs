@@ -12,11 +12,9 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
 {
     internal abstract class ImplGeneratorBase : GeneratorBase
     {
-        protected override void GenerateContent(IndentingTextWriter writer, string prefix, ComponentCatalog.LoadableClassInfo component, bool generateEnums, string moduleId)
+        protected override void GenerateContent(IndentingTextWriter writer, string prefix, ComponentCatalog.LoadableClassInfo component, string moduleId)
         {
             GenerateImplFields(writer, component, (w, a) => GenerateFieldsOrProperties(w, a, "", GenerateField));
-            if (generateEnums)
-                GenerateEnums(writer, component);
             GenerateImplFields(writer, component, (w, a) => GenerateFieldsOrProperties(w, a, "", GenerateProperty));
             GenerateMethodSignature(writer, prefix, component);
             GenerateImplBody(writer, component);
@@ -41,41 +39,10 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             if (Exclude.Contains(arg.LongName))
                 return;
 
-            if (arg.IsSubComponentItemType)
-            {
-                Contracts.Assert(arg.ItemType.GetGenericTypeDefinition() == typeof(SubComponent<,>));
-                var types = arg.ItemType.GetGenericArguments();
-                var baseType = types[0];
-                var sigType = types[1];
-                if (sigType == typeof(SignatureDataLoader))
-                    return;
-                if (IsTrainer(sigType))
-                {
-                    oneFieldGenerator(w, "Tuple<string, string>", arg.LongName + argSuffix, "", false, arg.HelpText);
-                    return;
-                }
-                var typeName = EnumName(arg, sigType);
-                string defVal = arg.DefaultValue != null ? string.Format(" = {0}.{1}", typeName, arg.DefaultValue) : "";
-                oneFieldGenerator(w, typeName, arg.LongName + argSuffix, defVal, arg.ItemType == typeof(bool),
-                    arg.HelpText);
-                var infos = ComponentCatalog.GetAllDerivedClasses(baseType, sigType);
-                foreach (var info in infos)
-                {
-                    var args = info.CreateArguments();
-                    if (args == null)
-                        continue;
-                    var argInfo = CmdParser.GetArgInfo(args.GetType(), args);
-                    foreach (var a in argInfo.Args)
-                        GenerateFieldsOrProperties(w, a, argSuffix + info.LoadNames[0], oneFieldGenerator);
-                }
-            }
-            else
-            {
-                object val = Stringify(arg.DefaultValue);
-                string defVal = val == null ? "" : string.Format(" = {0}", val);
-                var typeName = IsColumnType(arg) ? "string[]" : IsStringColumnType(arg) ? GetCSharpTypeName(arg.Field.FieldType) : GetCSharpTypeName(arg.ItemType);
-                oneFieldGenerator(w, typeName, arg.LongName + argSuffix, defVal, arg.ItemType == typeof(bool), arg.HelpText);
-            }
+            object val = Stringify(arg.DefaultValue);
+            string defVal = val == null ? "" : string.Format(" = {0}", val);
+            var typeName = IsColumnType(arg) ? "string[]" : IsStringColumnType(arg) ? GetCSharpTypeName(arg.Field.FieldType) : GetCSharpTypeName(arg.ItemType);
+            oneFieldGenerator(w, typeName, arg.LongName + argSuffix, defVal, arg.ItemType == typeof(bool), arg.HelpText);
         }
 
         protected static void GenerateField(IndentingTextWriter w, string typeName, string argName, string defVal,
@@ -112,73 +79,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             if (Exclude.Contains(arg.LongName))
                 return;
 
-            if (arg.IsSubComponentItemType)
-            {
-                // We need to create a tree with all the subcomponents, unless the subcomponent is a Trainer.
-                Contracts.Assert(arg.ItemType.GetGenericTypeDefinition() == typeof(SubComponent<,>));
-                var types = arg.ItemType.GetGenericArguments();
-                var baseType = types[0];
-                var sigType = types[1];
-                if (IsTrainer(sigType))
-                {
-                    if (arg.IsCollection)
-                        w.WriteLine("args{0}.{1} = new[] {{ new SubComponent<{2}, {3}>({4}.Item1, {4}.Item2) }};",
-                            argSuffix, arg.LongName, GetCSharpTypeName(baseType), GetCSharpTypeName(sigType),
-                            arg.LongName + argSuffix);
-                    else
-                        w.WriteLine("args{0}.{1} = new SubComponent<{2}, {3}>({4}.Item1, {4}.Item2);", argSuffix,
-                            arg.LongName, GetCSharpTypeName(baseType), GetCSharpTypeName(sigType),
-                            arg.LongName + argSuffix);
-                    return;
-                }
-                if (sigType == typeof(SignatureDataLoader))
-                    return;
-                var typeName = EnumName(arg, sigType);
-                w.WriteLine("switch ({0})", arg.LongName + argSuffix);
-                w.WriteLine("{");
-                using (w.Nest())
-                {
-                    if (arg.NullName != null)
-                    {
-                        w.WriteLine("case {0}.None:", typeName);
-                        using (w.Nest())
-                        {
-                            w.WriteLine("args{0}.{1} = null;", argSuffix, arg.LongName);
-                            w.WriteLine("break;");
-                        }
-                    }
-                    var infos = ComponentCatalog.GetAllDerivedClasses(baseType, sigType);
-                    foreach (var info in infos)
-                    {
-                        w.WriteLine("case {0}.{1}:", typeName, info.LoadNames[0]);
-                        using (w.Nest())
-                        {
-                            if (info.ArgType != null)
-                            {
-                                var newArgSuffix = argSuffix + info.LoadNames[0];
-                                w.WriteLine("var args{0} = new {1}();", newArgSuffix, GetCSharpTypeName(info.ArgType));
-                                w.WriteLine("var defs{0} = new {1}();", newArgSuffix, GetCSharpTypeName(info.ArgType));
-                                var args = info.CreateArguments();
-                                if (args != null)
-                                {
-                                    var argInfo = CmdParser.GetArgInfo(args.GetType(), args);
-                                    foreach (var a in argInfo.Args)
-                                        GenerateImplBody(w, a, newArgSuffix);
-                                }
-                                w.WriteLine(
-                                    "args{0}.{1} = new {2}(\"{3}\", CmdParser.GetSettings(args{4}, defs{4}));",
-                                    argSuffix, arg.LongName, GetCSharpTypeName(arg.ItemType), info.LoadNames[0],
-                                    newArgSuffix);
-                            }
-                            else
-                                w.WriteLine("args{0}.{1} = new {2}(\"{3}\");", argSuffix, arg.LongName, GetCSharpTypeName(arg.ItemType), info.LoadNames[0]);
-                            w.WriteLine("break;");
-                        }
-                    }
-                }
-                w.WriteLine("}");
-            }
-            else if (arg.IsCollection)
+            if (arg.IsCollection)
             {
                 if (IsColumnType(arg))
                     w.WriteLine("args{0}.{1} = {1}.Select({2}.Parse).ToArray();", argSuffix, arg.LongName, GetCSharpTypeName(arg.ItemType));
@@ -189,13 +90,6 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             }
             else
                 w.WriteLine("args{0}.{1} = {2};", argSuffix, arg.LongName, arg.LongName + argSuffix);
-        }
-
-        protected override void GenerateEnumValue(IndentingTextWriter w, ComponentCatalog.LoadableClassInfo info)
-        {
-            var name = info != null ? info.LoadNames[0] : "None";
-            w.WriteLine("/// <summary> {0} option </summary>", name);
-            w.Write("{0}", name);
         }
 
         protected override void GenerateUsings(IndentingTextWriter w)
