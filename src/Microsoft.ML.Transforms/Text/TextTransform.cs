@@ -528,20 +528,19 @@ namespace Microsoft.ML.Runtime.Data
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var srcName in _inputColumns)
             {
-                var col = inputSchema.FindColumn(srcName);
-
-                if (col == null)
+                if (!inputSchema.TryFindColumn(srcName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
                 if (!col.ItemType.IsText)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, "scalar or vector of text", col.GetTypeString());
             }
 
-            var metadata = new List<string> { MetadataUtils.Kinds.SlotNames };
+            var metadata = new List<SchemaShape.Column>(2);
+            metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
             if (AdvancedSettings.VectorNormalizer != TextNormKind.None)
-                metadata.Add(MetadataUtils.Kinds.IsNormalized);
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
 
             result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false,
-                metadata.ToArray());
+                new SchemaShape(metadata));
             if (AdvancedSettings.OutputTokens)
             {
                 string name = string.Format(TransformedTextColFormat, OutputColumn);
