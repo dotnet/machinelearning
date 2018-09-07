@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -13,6 +14,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.TestFramework;
 using Xunit;
 
 namespace Microsoft.ML.Runtime.RunTests
@@ -22,13 +24,13 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// 'Workout test' for an estimator.
         /// Checks the following traits:
-        /// - the estimator is applicable to the validFitInput, and not applicable to validTransformInput and invalidInput;
-        /// - the fitted transformer is applicable to validFitInput and validTransformInput, and not applicable to invalidInput;
+        /// - the estimator is applicable to the validFitInput and validForFitNotValidForTransformInput, and not applicable to validTransformInput and invalidInput;
+        /// - the fitted transformer is applicable to validFitInput and validTransformInput, and not applicable to invalidInput and validForFitNotValidForTransformInput;
         /// - fitted transformer can be saved and re-loaded into the transformer with the same behavior.
         /// - schema propagation for fitted transformer conforms to schema propagation of estimator.
         /// </summary>
         protected void TestEstimatorCore(IEstimator<ITransformer> estimator,
-            IDataView validFitInput, IDataView validTransformInput = null, IDataView invalidInput = null)
+            IDataView validFitInput, IDataView validTransformInput = null, IDataView invalidInput = null, IDataView validForFitNotValidForTransformInput = null)
         {
             Contracts.AssertValue(estimator);
             Contracts.AssertValue(validFitInput);
@@ -43,6 +45,15 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
                 catch (ArgumentOutOfRangeException) { }
                 catch (InvalidOperationException) { }
+                catch (TargetInvocationException ex)
+                {
+                    Exception e;
+                    for (e = ex; e.InnerException != null; e = e.InnerException)
+                    {
+                    }
+                    Assert.True(e is ArgumentOutOfRangeException || e is InvalidOperationException);
+                    Assert.True(e.IsMarked());
+                }
             };
 
             // Schema propagation tests for estimator.
@@ -57,6 +68,12 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 mustFail(() => estimator.GetOutputSchema(SchemaShape.Create(invalidInput.Schema)));
                 mustFail(() => estimator.Fit(invalidInput));
+            }
+
+            if (validForFitNotValidForTransformInput != null)
+            {
+                estimator.GetOutputSchema(SchemaShape.Create(validForFitNotValidForTransformInput.Schema));
+                estimator.Fit(validForFitNotValidForTransformInput);
             }
 
             var transformer = estimator.Fit(validFitInput);
@@ -104,6 +121,13 @@ namespace Microsoft.ML.Runtime.RunTests
                 mustFail(() => loadedTransformer.GetOutputSchema(invalidInput.Schema));
                 mustFail(() => loadedTransformer.Transform(invalidInput));
             }
+            if (validForFitNotValidForTransformInput != null)
+            {
+                mustFail(() => transformer.GetOutputSchema(validForFitNotValidForTransformInput.Schema));
+                mustFail(() => transformer.Transform(validForFitNotValidForTransformInput));
+                mustFail(() => loadedTransformer.GetOutputSchema(validForFitNotValidForTransformInput.Schema));
+                mustFail(() => loadedTransformer.Transform(validForFitNotValidForTransformInput));
+            }
 
             // Schema verification between estimator and transformer.
             var scoredTrainSchemaShape = SchemaShape.Create(transformer.GetOutputSchema(validFitInput.Schema));
@@ -116,9 +140,12 @@ namespace Microsoft.ML.Runtime.RunTests
             var sortedCols1 = first.Columns.OrderBy(x => x.Name);
             var sortedCols2 = second.Columns.OrderBy(x => x.Name);
 
-            Assert.True(sortedCols1.Zip(sortedCols2,
-                (x, y) => x.IsCompatibleWith(y) && y.IsCompatibleWith(x))
-                .All(x => x));
+            foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
+            {
+                Assert.Equal(x.Name, y.Name);
+                Assert.True(x.IsCompatibleWith(y), $"Mismatch on {x.Name}");
+                Assert.True(y.IsCompatibleWith(x), $"Mismatch on {x.Name}");
+            }
         }
 
         // REVIEW: incorporate the testing for re-apply logic here?
@@ -1237,38 +1264,5 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 #endif
-
-        /// <summary>
-        /// On demand open up new streams over a source of bytes.
-        /// </summary>
-        protected internal sealed class BytesSource : IMultiStreamSource
-        {
-            private readonly byte[] _data;
-
-            public BytesSource(byte[] data)
-            {
-                Contracts.AssertValue(data);
-                _data = data;
-            }
-
-            public int Count { get { return 1; } }
-
-            public string GetPathOrNull(int index)
-            {
-                Contracts.Check(index == 0);
-                return null;
-            }
-
-            public Stream Open(int index)
-            {
-                Contracts.Check(index == 0);
-                return new MemoryStream(_data, writable: false);
-            }
-
-            public TextReader OpenTextReader(int index)
-            {
-                return new StreamReader(Open(index));
-            }
-        }
     }
 }

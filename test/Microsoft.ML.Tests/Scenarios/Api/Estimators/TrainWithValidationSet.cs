@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             {
                 // Pipeline.
                 var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
-                var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs());
+                var pipeline = new TextTransform(env, "SentimentText", "Features");
 
                 // Train the pipeline, prepare train and validation set.
                 var data = reader.Read(new MultiFileSource(dataPath));

@@ -12,5 +12,10 @@
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
     <BenchmarkDotNetVersion>0.11.1</BenchmarkDotNetVersion>
     <TensorFlowVersion>1.10.0</TensorFlowVersion>
+    <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
+
+    <MicrosoftCodeAnalysisCSharpVersion>2.9.0</MicrosoftCodeAnalysisCSharpVersion>
+    <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
+    <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
   </PropertyGroup>
 </Project>
