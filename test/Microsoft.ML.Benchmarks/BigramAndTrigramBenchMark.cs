@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -22,8 +22,8 @@ namespace Microsoft.ML.Benchmarks
 
     public class BigramAndTrigramBenchmark
     {
-        private static string s_dataPath_Wiki;
-        private static string s_modelPath_Wiki;
+        private string s_dataPath_Wiki;
+        private string s_modelPath_Wiki;
 
         [GlobalSetup(Targets = new string[] { nameof(Preceptron_CV), nameof(LightGBM_CV) })]
         public void Setup_Preceptron_LightGBM()
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Benchmarks
 
             if (!File.Exists(s_dataPath_Wiki))
             {
-                throw new FileNotFoundException($"Could not find {s_dataPath_Wiki} Please ensure you have run 'build.cmd -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData' from the root");
+                throw new FileNotFoundException($"Could not find {s_dataPath_Wiki} Please ensure you have run 'build.cmd -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=true' from the root");
             }
         }
 
