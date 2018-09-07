@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Api
                 t == typeof(DvBool) || t == typeof(DvText) || t == typeof(string) || t.IsArray ||
                 (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(VBuffer<>)) ||
                 (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>)) ||
-                t == typeof(DvDateTime) || t == typeof(DvDateTimeZone) || t == typeof(DvTimeSpan) || t == typeof(UInt128))
+                t == typeof(DateTime) || t == typeof(DateTimeOffset) || t == typeof(TimeSpan) || t == typeof(UInt128))
             {
                 return OpCodes.Stobj;
             }

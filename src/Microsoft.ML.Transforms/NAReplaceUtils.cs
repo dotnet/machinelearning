@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         private static StatAggregator CreateStatAggregator(IChannel ch, ColumnType type, ReplacementKind? kind, bool bySlot, IRowCursor cursor, int col)
         {
-            ch.Assert(type.ItemType.IsNumber || type.ItemType.IsTimeSpan || type.ItemType.IsDateTime);
+            ch.Assert(type.ItemType.IsNumber);
             if (!type.IsVector)
             {
                 // The type is a scalar.
@@ -34,10 +34,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MeanAggregatorOne(ch, cursor, col);
                     case DataKind.R8:
                         return new R8.MeanAggregatorOne(ch, cursor, col);
-                    case DataKind.TS:
-                        return new Long.MeanAggregatorOne<DvTimeSpan>(ch, type, cursor, col);
-                    case DataKind.DT:
-                        return new Long.MeanAggregatorOne<DvDateTime>(ch, type, cursor, col);
                     default:
                         break;
                     }
@@ -58,10 +54,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
                         return new R8.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.TS:
-                        return new Long.MinMaxAggregatorOne<DvTimeSpan>(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.DT:
-                        return new Long.MinMaxAggregatorOne<DvDateTime>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     default:
                         break;
                     }
@@ -90,10 +82,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MeanAggregatorBySlot(ch, type, cursor, col);
                     case DataKind.R8:
                         return new R8.MeanAggregatorBySlot(ch, type, cursor, col);
-                    case DataKind.TS:
-                        return new Long.MeanAggregatorBySlot<DvTimeSpan>(ch, type, cursor, col);
-                    case DataKind.DT:
-                        return new Long.MeanAggregatorBySlot<DvDateTime>(ch, type, cursor, col);
                     default:
                         break;
                     }
@@ -114,10 +102,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
                         return new R8.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.TS:
-                        return new Long.MinMaxAggregatorBySlot<DvTimeSpan>(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.DT:
-                        return new Long.MinMaxAggregatorBySlot<DvDateTime>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     default:
                         break;
                     }
@@ -142,10 +126,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MeanAggregatorAcrossSlots(ch, cursor, col);
                     case DataKind.R8:
                         return new R8.MeanAggregatorAcrossSlots(ch, cursor, col);
-                    case DataKind.TS:
-                        return new Long.MeanAggregatorAcrossSlots<DvTimeSpan>(ch, type, cursor, col);
-                    case DataKind.DT:
-                        return new Long.MeanAggregatorAcrossSlots<DvDateTime>(ch, type, cursor, col);
                     default:
                         break;
                     }
@@ -166,10 +146,6 @@ namespace Microsoft.ML.Runtime.Data
                         return new R4.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
                         return new R8.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.TS:
-                        return new Long.MinMaxAggregatorAcrossSlots<DvTimeSpan>(ch, type, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.DT:
-                        return new Long.MinMaxAggregatorAcrossSlots<DvDateTime>(ch, type, cursor, col, kind == ReplacementKind.Max);
                     default:
                         break;
                     }
@@ -1655,16 +1631,9 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.AssertValue(type);
                 Contracts.Assert(typeof(TItem) == type.ItemType.RawType);
-                Converter converter;
-                if (type.ItemType.IsTimeSpan)
-                    converter = new TSConverter();
-                else if (type.ItemType.IsDateTime)
-                    converter = new DTConverter();
-                else
-                {
-                    Contracts.Assert(type.ItemType.RawKind == DataKind.I8);
-                    converter = new I8Converter();
-                }
+                Contracts.Assert(type.ItemType.RawKind == DataKind.I8);
+
+                Converter converter = new I8Converter();
                 return (Converter<TItem>)converter;
             }
 
@@ -1692,34 +1661,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Contracts.Assert(DvInt8.RawNA != val);
                     return (DvInt8)val;
-                }
-            }
-
-            private sealed class TSConverter : Converter<DvTimeSpan>
-            {
-                public override long ToLong(DvTimeSpan val)
-                {
-                    return val.Ticks.RawValue;
-                }
-
-                public override DvTimeSpan FromLong(long val)
-                {
-                    Contracts.Assert(DvInt8.RawNA != val);
-                    return new DvTimeSpan(val);
-                }
-            }
-
-            private sealed class DTConverter : Converter<DvDateTime>
-            {
-                public override long ToLong(DvDateTime val)
-                {
-                    return val.Ticks.RawValue;
-                }
-
-                public override DvDateTime FromLong(long val)
-                {
-                    Contracts.Assert(0 <= val && val <= DvDateTime.MaxTicks);
-                    return new DvDateTime(val);
                 }
             }
         }

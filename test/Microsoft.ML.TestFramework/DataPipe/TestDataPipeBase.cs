@@ -1037,11 +1037,11 @@ namespace Microsoft.ML.Runtime.RunTests
                     case DataKind.Bool:
                         return GetComparerOne<DvBool>(r1, r2, col, (x, y) => x.Equals(y));
                     case DataKind.TimeSpan:
-                        return GetComparerOne<DvTimeSpan>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<TimeSpan>(r1, r2, col, (x, y) => x == y);
                     case DataKind.DT:
-                        return GetComparerOne<DvDateTime>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x == y);
                     case DataKind.DZ:
-                        return GetComparerOne<DvDateTimeZone>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
                     case DataKind.UG:
                         return GetComparerOne<UInt128>(r1, r2, col, (x, y) => x.Equals(y));
                     case (DataKind)0:
@@ -1083,11 +1083,11 @@ namespace Microsoft.ML.Runtime.RunTests
                     case DataKind.Bool:
                         return GetComparerVec<DvBool>(r1, r2, col, size, (x, y) => x.Equals(y));
                     case DataKind.TimeSpan:
-                        return GetComparerVec<DvTimeSpan>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.DT:
-                        return GetComparerVec<DvDateTime>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.DZ:
-                        return GetComparerVec<DvDateTimeZone>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
                     case DataKind.UG:
                         return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
                 }

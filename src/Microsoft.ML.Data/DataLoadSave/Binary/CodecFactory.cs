@@ -54,18 +54,20 @@ namespace Microsoft.ML.Runtime.Data.IO
             RegisterSimpleCodec(new UnsafeTypeCodec<ulong>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<Single>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<Double>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvTimeSpan>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<TimeSpan>(this));
             RegisterSimpleCodec(new DvTextCodec(this));
             RegisterSimpleCodec(new BoolCodec(this));
             RegisterSimpleCodec(new DateTimeCodec(this));
-            RegisterSimpleCodec(new DateTimeZoneCodec(this));
+            RegisterSimpleCodec(new DateTimeOffsetCodec(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<UInt128>(this));
 
             // Register the old boolean reading codec.
             var oldBool = new OldBoolCodec(this);
             RegisterOtherCodec(oldBool.LoadName, oldBool.GetCodec);
-
             RegisterOtherCodec("VBuffer", GetVBufferCodec);
+            RegisterOtherCodec("DvDateTimeZone", new DateTimeOffsetCodec(this).GetCodec);
+            RegisterOtherCodec("DvDateTime", new DateTimeCodec(this).GetCodec);
+            RegisterOtherCodec("DvTimeSpan", new UnsafeTypeCodec<TimeSpan>(this).GetCodec);
             RegisterOtherCodec("Key", GetKeyCodec);
         }
 
