@@ -767,12 +767,23 @@ namespace Microsoft.ML.Runtime.Data
                     _termMap[i].AddMetadata(colMetaInfo);
 
                     foreach (var type in InputSchema.GetMetadataTypes(colIndex).Where(x => x.Key == MetadataUtils.Kinds.SlotNames))
-                    {
-                        Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, InputSchema, type.Key, type.Value, ColMapNewToOld);
-                    }
+                        Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, InputSchema, type.Key, type.Value, colIndex);
                     result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], colMetaInfo);
                 }
                 return result;
+            }
+
+            private int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, int originalCol)
+            {
+                MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
+                {
+                    // We don't care about 'col': this getter is specialized for a column 'originalCol',
+                    // and 'col' in this case is the 'metadata kind index', not the column index.
+                    schema.GetMetadata<T>(kind, originalCol, ref dst);
+                };
+                var info = new MetadataInfo<T>(ct, getter);
+                colMetaInfo.Add(kind, info);
+                return 0;
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)

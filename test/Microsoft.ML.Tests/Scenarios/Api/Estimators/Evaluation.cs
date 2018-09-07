@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 // Pipeline.
                 var pipeline = new TextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()))
+                    .Append(new TextTransform(env, "SentimentText", "Features"))
                     .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
 
                 // Train.

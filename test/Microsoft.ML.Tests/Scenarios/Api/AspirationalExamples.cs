@@ -64,6 +64,98 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 PetalLength = 5.1f
             });
         }
+
+
+        [Fact]
+        public void SimpleIrisDescisionTrees()
+        {
+            var env = new ConsoleEnvironment();
+            string dataPath = "iris.txt";
+            // Create reader with specific schema.
+            var dataReader = TextLoader.CreateReader(env, dataPath,
+                ctx => (
+                    label: ctx.LoadText(0),
+                    sepalWidth: ctx.LoadFloat(1),
+                    sepalLength: ctx.LoadFloat(2),
+                    petalWidth: ctx.LoadFloat(3),
+                    petalLength: ctx.LoadFloat(4)
+                ));
+
+            var pipeline = dataReader.MakeEstimator()
+                .Append(row => (
+                    // Convert string label to key.
+                    label: row.label.Dictionarize(),
+                    // Concatenate all features into a vector.
+                    features: row.sepalWidth.ConcatWith(row.sepalLength, row.petalWidth, row.petalLength)))
+                .Append(row => (
+                    label: row.label,
+                    prediction: row.label.PredictFastTreeMultiClass(row.features)));
+
+            // Load the data into the system.
+            var data = dataReader.Read(dataPath);
+            var model = pipeline.Fit(data);
+
+            var predictions = model.Transform(dataReader.Read(testDataPath));
+            var metrics = MultiClassEvaluator.Evaluate(predictions, row => row.label, row => row.prediction);
+        }
+
+        [Fact]
+        public void TwitterSentimentAnalysis()
+        {
+            var env = new ConsoleEnvironment();
+            var dataPath = "wikipedia-detox-250-line-data.tsv";
+            // Load the data into the system.
+            var dataReader = TextLoader.CreateReader(env, dataPath,
+                    ctx => (
+                        label: ctx.LoadFloat(0),
+                        text: ctx.LoadText(1)),
+                    hasHeader: true);
+
+            var pipeline = dataReader.MakeEstimator()
+                .Append(row => (
+                    label: row.label,
+                    // Concatenate all features into a vector.
+                    features: row.text.TextFeaturizer()))
+                 .Append(row => (
+                    label: row.label,
+                    row.label.TrainLinearClassification(row.features)));
+
+
+            var (trainData, testData) = dataReader.Read(dataPath).TrainTestSplit(trainFraction: 0.7);
+            var model = pipeline.Fit(trainData);
+            var predictions = model.Transform(testData);
+            var metrics = BinaryClassifierEvaluator.Evaluate(predictions, row => row.label, row => row.prediction);
+        }
+
+        [Fact]
+        public void TwentyNewsGroups()
+        {
+            var env = new ConsoleEnvironment();
+            var dataPath = "20newsGroups.txt";
+            // Load the data into the system.
+            var dataReader = TextLoader.CreateReader(env, dataPath,
+                   ctx => (
+                        label: ctx.LoadText(1),
+                        subject: ctx.LoadText(1),
+                        content: ctx.LoadText(2)),
+                   hasHeader: true);
+
+            var pipeline = dataReader.MakeEstimator().
+                Append(row => (
+                    // Convert string label to key.
+                    label: row.label.Dictionarize(),
+                    // Concatenate all features into a vector.
+                    features: row.subject.ConcatWith(row.content).TextFeaturizer()))
+                 .Append(row => (
+                    label: row.label,
+                    prediction: row.label.PredictSdcaMultiClass(row.features)));
+
+            var (trainData, testData) = dataReader.Read(dataPath).TrainTestSplit(trainFraction: 0.8);
+            var model = pipeline.Fit(trainData);
+
+            var predictions = model.Transform(testData);
+            var metrics = MultiClassEvaluator.Evaluate(predictions, row => row.label, row => row.prediction);
+        }
     }
 
     public class GithubClassification

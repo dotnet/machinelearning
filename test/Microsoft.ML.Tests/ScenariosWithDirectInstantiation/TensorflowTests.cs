@@ -103,9 +103,13 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                IDataView trans = TensorFlowTransform.Create(env, loader, model_location, "Softmax", "Placeholder");
-                trans = new ConcatTransform(env, trans, "reshape_input", "Placeholder");
-                trans = TensorFlowTransform.Create(env, trans, model_location, "dense/Relu", "reshape_input");
+                IDataView trans = CopyColumnsTransform.Create(env, new CopyColumnsTransform.Arguments()
+                {
+                    Column = new[] { new CopyColumnsTransform.Column()
+                                        { Name = "reshape_input", Source = "Placeholder" }
+                                    }
+                }, loader);
+                trans = TensorFlowTransform.Create(env, trans, model_location, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" });
                 trans = new ConcatTransform(env, trans, "Features", "Softmax", "dense/Relu");
 
                 var trainer = new LightGbmMulticlassTrainer(env, new LightGbmArguments());
