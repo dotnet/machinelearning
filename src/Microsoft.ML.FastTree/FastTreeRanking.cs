@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Core.Data;
 
 // REVIEW: Do we really need all these names?
 [assembly: LoadableClass(FastTreeRankingTrainer.Summary, typeof(FastTreeRankingTrainer), typeof(FastTreeRankingTrainer.Arguments),
@@ -39,8 +40,9 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 namespace Microsoft.ML.Runtime.FastTree
 {
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
-    public sealed partial class FastTreeRankingTrainer : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, FastTreeRankingPredictor>,
-        IHasLabelGains
+    public sealed partial class FastTreeRankingTrainer
+        : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, RankingPredictionTransformer<FastTreeRankingPredictor>, FastTreeRankingPredictor>,
+          IHasLabelGains
     {
         public const string LoadNameValue = "FastTreeRanking";
         internal const string UserNameValue = "FastTree (Boosted Trees) Ranking";
@@ -53,8 +55,10 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 
+        protected override SchemaShape.Column[] OutputColumns { get; }
+
         public FastTreeRankingTrainer(IHostEnvironment env, Arguments args)
-                : base(env, args)
+                : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
         }
 
@@ -63,7 +67,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return GetLabelGains().Length - 1;
         }
 
-        public override FastTreeRankingPredictor Train(TrainContext context)
+        protected override FastTreeRankingPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -123,6 +127,11 @@ namespace Microsoft.ML.Runtime.FastTree
                 "earlyStoppingMetrics should be 1 or 3.");
 
             base.CheckArgs(ch);
+        }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
 
         protected override void Initialize(IChannel ch)
@@ -404,6 +413,9 @@ namespace Microsoft.ML.Runtime.FastTree
 
             return headerBuilder.ToString();
         }
+
+        protected override RankingPredictionTransformer<FastTreeRankingPredictor> MakeTransformer(FastTreeRankingPredictor model, ISchema trainSchema)
+        => new RankingPredictionTransformer<FastTreeRankingPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         public sealed class LambdaRankObjectiveFunction : ObjectiveFunctionBase, IStepSearch
         {

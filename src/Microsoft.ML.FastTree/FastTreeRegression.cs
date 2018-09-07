@@ -4,6 +4,7 @@
 
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -32,7 +33,8 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 namespace Microsoft.ML.Runtime.FastTree
 {
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
-    public sealed partial class FastTreeRegressionTrainer : BoostingFastTreeTrainerBase<FastTreeRegressionTrainer.Arguments, FastTreeRegressionPredictor>
+    public sealed partial class FastTreeRegressionTrainer
+        : BoostingFastTreeTrainerBase<FastTreeRegressionTrainer.Arguments, RegressionPredictionTransformer<FastTreeRegressionPredictor>, FastTreeRegressionPredictor>
     {
         public const string LoadNameValue = "FastTreeRegression";
         internal const string UserNameValue = "FastTree (Boosted Trees) Regression";
@@ -45,12 +47,14 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
+        protected override SchemaShape.Column[] OutputColumns { get; }
+
         public FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
         }
 
-        public override FastTreeRegressionPredictor Train(TrainContext context)
+        protected override FastTreeRegressionPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -77,6 +81,11 @@ namespace Microsoft.ML.Runtime.FastTree
 
             ch.CheckUserArg((Args.EarlyStoppingRule == null && !Args.EnablePruning) || (Args.EarlyStoppingMetrics >= 1 && Args.EarlyStoppingMetrics <= 2), nameof(Args.EarlyStoppingMetrics),
                     "earlyStoppingMetrics should be 1 or 2. (1: L1, 2: L2)");
+        }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
@@ -123,6 +132,9 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
         }
+
+        protected override RegressionPredictionTransformer<FastTreeRegressionPredictor> MakeTransformer(FastTreeRegressionPredictor model, ISchema trainSchema)
+            => new RegressionPredictionTransformer<FastTreeRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         private void AddFullRegressionTests()
         {

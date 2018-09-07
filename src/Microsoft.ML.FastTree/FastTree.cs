@@ -25,6 +25,7 @@ using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.TreePredictor;
 using Newtonsoft.Json.Linq;
+using Microsoft.ML.Core.Data;
 
 // All of these reviews apply in general to fast tree and random forest implementations.
 //REVIEW: Decouple train method in Application.cs to have boosting and random forest logic seperate.
@@ -43,10 +44,11 @@ namespace Microsoft.ML.Runtime.FastTree
         public static readonly object TrainLock = new object();
     }
 
-    public abstract class FastTreeTrainerBase<TArgs, TPredictor> :
-        TrainerBase<TPredictor>
+    public abstract class FastTreeTrainerBase<TArgs, TTransformer, TModel> :
+        TrainerEstimatorBase<TTransformer, TModel>
+        where TTransformer: IPredictionTransformer<TModel>
         where TArgs : TreeArgs, new()
-        where TPredictor : IPredictorProducing<Float>
+        where TModel : IPredictorProducing<Float>
     {
         protected readonly TArgs Args;
         protected readonly bool AllowGC;
@@ -87,8 +89,8 @@ namespace Microsoft.ML.Runtime.FastTree
 
         private protected virtual bool NeedCalibration => false;
 
-        private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args)
-            : base(env, RegisterName)
+        private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(args.FeatureColumn), label, MakeWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
@@ -131,6 +133,18 @@ namespace Microsoft.ML.Runtime.FastTree
         protected virtual Float GetMaxLabel()
         {
             return Float.PositiveInfinity;
+        }
+
+        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
         }
 
         protected void ConvertData(RoleMappedData trainData)

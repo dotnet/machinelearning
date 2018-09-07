@@ -301,6 +301,52 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
+    public sealed class RankingPredictionTransformer<TModel> : PredictionTransformerBase<TModel>
+    where TModel : class, IPredictorProducing<float>
+    {
+        private readonly GenericScorer _scorer;
+
+        public RankingPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
+        {
+            var schema = new RoleMappedSchema(inputSchema, null, featureColumn);
+            _scorer = new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, inputSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        internal RankingPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<TModel>)), ctx)
+        {
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            _scorer = new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        public override IDataView Transform(IDataView input)
+        {
+            Host.CheckValue(input, nameof(input));
+            return _scorer.ApplyToData(Host, input);
+        }
+
+        protected override void SaveCore(ModelSaveContext ctx)
+        {
+            Contracts.AssertValue(ctx);
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // <base info>
+            base.SaveCore(ctx);
+        }
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "MC  RANK",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: RankingPredictionTransformer.LoaderSignature);
+        }
+    }
+
     internal static class BinaryPredictionTransformer
     {
         public const string LoaderSignature = "BinaryPredXfer";
@@ -323,5 +369,13 @@ namespace Microsoft.ML.Runtime.Data
 
         public static RegressionPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
             => new RegressionPredictionTransformer<IPredictorProducing<float>>(env, ctx);
+    }
+
+    internal static class RankingPredictionTransformer
+    {
+        public const string LoaderSignature = "RankingPredXfer";
+
+        public static RankingPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new RankingPredictionTransformer<IPredictorProducing<float>>(env, ctx);
     }
 }

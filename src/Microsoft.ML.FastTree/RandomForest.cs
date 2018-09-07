@@ -4,18 +4,20 @@
 
 using Float = System.Single;
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.FastTree.Internal;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
-    public abstract class RandomForestTrainerBase<TArgs, TPredictor> : FastTreeTrainerBase<TArgs, TPredictor>
+    public abstract class RandomForestTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
         where TArgs : FastForestArgumentsBase, new()
-        where TPredictor : IPredictorProducing<Float>
+        where TModel : IPredictorProducing<Float>
+        where TTransformer: IPredictionTransformer<TModel>
     {
         private readonly bool _quantileEnabled;
 
-        protected RandomForestTrainerBase(IHostEnvironment env, TArgs args, bool quantileEnabled = false)
-            : base(env, args)
+        protected RandomForestTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, bool quantileEnabled = false)
+            : base(env, args, label)
         {
             _quantileEnabled = quantileEnabled;
         }

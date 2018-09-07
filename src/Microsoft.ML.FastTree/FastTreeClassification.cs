@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(FastTreeBinaryClassificationTrainer.Summary, typeof(FastTreeBinaryClassificationTrainer), typeof(FastTreeBinaryClassificationTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
     /// <include file = 'doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeBinaryClassificationTrainer :
-        BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Arguments, IPredictorWithFeatureWeights<Float>>
+        BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Arguments, BinaryPredictionTransformer<IPredictorWithFeatureWeights<Float>>, IPredictorWithFeatureWeights<Float>>
     {
         public const string LoadNameValue = "FastTreeBinaryClassification";
         internal const string UserNameValue = "FastTree (Boosted Trees) Classification";
@@ -112,13 +113,15 @@ namespace Microsoft.ML.Runtime.FastTree
         private bool[] _trainSetLabels;
 
         public FastTreeBinaryClassificationTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public override IPredictorWithFeatureWeights<Float> Train(TrainContext context)
+        protected override SchemaShape.Column[] OutputColumns { get; }
+
+        protected override IPredictorWithFeatureWeights<Float> TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -180,6 +183,11 @@ namespace Microsoft.ML.Runtime.FastTree
             //Here we set regression labels to what is in bin file if the values were not overriden with floats
         }
 
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+        }
+
         protected override Test ConstructTestForTrainingData()
         {
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, Args.LearningRates);
@@ -223,6 +231,10 @@ namespace Microsoft.ML.Runtime.FastTree
                 }
             }
         }
+
+        protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<Float>> MakeTransformer(IPredictorWithFeatureWeights<Float> model, ISchema trainSchema)
+        => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<Float>>(Host, model, trainSchema, FeatureColumn.Name);
+
         internal sealed class ObjectiveImpl : ObjectiveFunctionBase, IStepSearch
         {
             private readonly bool[] _labels;

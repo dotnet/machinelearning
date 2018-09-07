@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(FastForestRegression.Summary, typeof(FastForestRegression), typeof(FastForestRegression.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -59,7 +60,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
-        internal FastForestRegressionPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount,
+        public FastForestRegressionPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount,
             string innerArgs, int samplesCount)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
@@ -138,7 +139,8 @@ namespace Microsoft.ML.Runtime.FastTree
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
-    public sealed partial class FastForestRegression : RandomForestTrainerBase<FastForestRegression.Arguments, FastForestRegressionPredictor>
+    public sealed partial class FastForestRegression
+        : RandomForestTrainerBase<FastForestRegression.Arguments, RegressionPredictionTransformer<FastForestRegressionPredictor>, FastForestRegressionPredictor>
     {
         public sealed class Arguments : FastForestArgumentsBase
         {
@@ -154,13 +156,15 @@ namespace Microsoft.ML.Runtime.FastTree
         internal const string ShortName = "ffr";
 
         public FastForestRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, true)
+            : base(env, args, MakeLabelColumn(args.LabelColumn), true)
         {
         }
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public override FastForestRegressionPredictor Train(TrainContext context)
+        protected override SchemaShape.Column[] OutputColumns { get; }
+
+        protected override FastForestRegressionPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -192,6 +196,14 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override Test ConstructTestForTrainingData()
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
+        }
+
+        protected override RegressionPredictionTransformer<FastForestRegressionPredictor> MakeTransformer(FastForestRegressionPredictor model, ISchema trainSchema)
+         => new RegressionPredictionTransformer<FastForestRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
 
         private abstract class ObjectiveFunctionImplBase : RandomForestObjectiveFunction

@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(FastForestClassification.Summary, typeof(FastForestClassification), typeof(FastForestClassification.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -108,7 +109,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
     /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestClassification :
-        RandomForestTrainerBase<FastForestClassification.Arguments, IPredictorWithFeatureWeights<Float>>
+        RandomForestTrainerBase<FastForestClassification.Arguments, BinaryPredictionTransformer<IPredictorWithFeatureWeights<Float>>, IPredictorWithFeatureWeights<Float>>
     {
         public sealed class Arguments : FastForestArgumentsBase
         {
@@ -132,12 +133,14 @@ namespace Microsoft.ML.Runtime.FastTree
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private protected override bool NeedCalibration => true;
 
+        protected override SchemaShape.Column[] OutputColumns { get; }
+
         public FastForestClassification(IHostEnvironment env, Arguments args)
-            : base(env, args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
         }
 
-        public override IPredictorWithFeatureWeights<Float> Train(TrainContext context)
+        protected override IPredictorWithFeatureWeights<Float> TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -175,10 +178,18 @@ namespace Microsoft.ML.Runtime.FastTree
             _trainSetLabels = TrainSet.Ratings.Select(x => x >= 1).ToArray(TrainSet.NumDocs);
         }
 
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+        }
+
         protected override Test ConstructTestForTrainingData()
         {
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, 1);
         }
+
+        protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, ISchema trainSchema)
+         => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<Float>>(Host, model, trainSchema, FeatureColumn.Name);
 
         private sealed class ObjectiveFunctionImpl : RandomForestObjectiveFunction
         {
