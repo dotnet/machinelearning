@@ -273,7 +273,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public string String_1;
 
             [Column("1")]
-            public string Number_1;
+            public float Number_1;
         }
 
         public class ModelWithoutColumnAttribute

@@ -33,7 +33,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="System.Memory" Version="4.5.1" />
     <None Include="Scenarios\Api\AspirationalExamples.cs" />
   </ItemGroup>
   <ItemGroup>
