@@ -545,8 +545,7 @@ namespace Microsoft.ML.Transforms
             for (var i = 0; i < Transformer.Inputs.Length; i++)
             {
                 var input = Transformer.Inputs[i];
-                var col = inputSchema.FindColumn(input);
-                if (col == null)
+                if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());

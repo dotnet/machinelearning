@@ -18,7 +18,7 @@ Along with these ML capabilities this first release of ML.NET also brings the fi
 
 ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
 
-The current release is 0.4. Check out the [release notes](docs/release-notes/0.4/release-0.4.md).
+The current release is 0.5. Check out the [release notes](docs/release-notes/0.5/release-0.5.md).
 
 First ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64 bit process.
 
