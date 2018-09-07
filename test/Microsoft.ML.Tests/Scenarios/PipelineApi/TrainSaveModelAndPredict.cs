@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 
         }
 
-        [Fact]
+        [Fact(Skip = "Need to merge previous changes to enable scooring with non-frozen models")]
         public async void TensorFlowTransformTrainSaveModelAndPredict()
         {
             var imageHeight = 32;

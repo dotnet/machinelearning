@@ -221,7 +221,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Need to merge previous changes to enable scooring with non-frozen models")]
         public void TensorFlowTransformCifarSavedModel()
         {
             var model_location = GetDataPath("cifar_save10");
