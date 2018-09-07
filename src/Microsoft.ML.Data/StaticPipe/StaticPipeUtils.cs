@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
@@ -13,7 +14,9 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 {
     /// <summary>
     /// Utility methods for components that want to expose themselves in the idioms of the statically-typed pipelines.
-    /// These utilities are meant to be called by and useful to component authors, not users of those components.
+    /// These utilities are meant to be called by and useful to component authors, not users of those components. The
+    /// purpose is not to keep them hidden per se, but rather out of the face of users that are just trying to use the
+    /// library without the details of how this library is written.
     /// </summary>
     public static class StaticPipeUtils
     {
@@ -312,8 +315,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             public T1 this[T2 key]
             {
                 get => _d21[key];
-                set
-                {
+                set {
                     Contracts.CheckValue((object)key, nameof(key));
                     Contracts.CheckValue((object)value, nameof(value));
 
@@ -332,8 +334,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             public T2 this[T1 key]
             {
                 get => _d12[key];
-                set
-                {
+                set {
                     Contracts.CheckValue((object)key, nameof(key));
                     Contracts.CheckValue((object)value, nameof(value));
 
@@ -364,6 +365,98 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
                 foreach (var v in keys)
                     d[v] = _d21[v];
                 return d;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the internally stored environment in <paramref name="schematized"/>.
+        /// Intended usecases is component generating code that needs to have access to an
+        /// environment.
+        /// </summary>
+        /// <typeparam name="T">The shape type.</typeparam>
+        /// <param name="schematized">The object for which we get the environment.</param>
+        /// <returns>The internal <see cref="IHostEnvironment"/> of the object.</returns>
+        public static IHostEnvironment GetEnvironment<T>(SchemaBearing<T> schematized)
+        {
+            Contracts.CheckValue(schematized, nameof(schematized));
+            return schematized.Env;
+        }
+
+        /// <summary>
+        /// Retrieves the index helper object for <paramref name="schematized"/>.
+        /// </summary>
+        /// <typeparam name="T">The shape type.</typeparam>
+        /// <param name="schematized">The object for which we get the indexer.</param>
+        /// <returns>The index helper.</returns>
+        public static IndexHelper<T> GetIndexer<T>(SchemaBearing<T> schematized)
+        {
+            Contracts.CheckValue(schematized, nameof(schematized));
+            return schematized.Indexer;
+        }
+
+        /// <summary>
+        /// An indexer that can be constructed over a static pipeline object, to enable us to determine
+        /// the names of the columns. This is used by component authors to allow users to "select" a column,
+        /// but the structure is itself not directly used by users of the API as a general rule. Rather,
+        /// one might imagine the component exposing some sort of delegate taking method that given the
+        /// instance <see cref="Indices"/>, returns one of the <see cref="PipelineColumn"/> instances stored
+        /// therein, which the component can use to do specific operations.
+        /// </summary>
+        /// <typeparam name="T">The shape type.</typeparam>
+        public sealed class IndexHelper<T>
+        {
+            /// <summary>
+            /// An instance of the shape type whose items can be used to index to find the names of column.
+            /// </summary>
+            public T Indices { get; }
+
+            /// <summary>
+            /// Maps the items inside <see cref="Indices"/> to the names of the associated data's column's name.
+            /// Components can use this structure, but it may be preferable to use <see cref="Get(PipelineColumn, IExceptionContext)" />
+            /// to ensure uniformity in the exception messages, if possible.
+            /// </summary>
+            private ImmutableDictionary<PipelineColumn, string> Map { get; }
+
+            /// <summary>
+            /// Performs a lookup on <see cref="Map"/>. If the key is not present this will throw an exception
+            /// more generally helpful in context than that of a direct failure of index on <see cref="Map"/>.
+            /// </summary>
+            /// <param name="key">The column to look up.</param>
+            /// <param name="ectx">The optional exception context.</param>
+            /// <returns>If successful the name of the column.</returns>
+            public string Get(PipelineColumn key, IExceptionContext ectx = null)
+            {
+                Contracts.CheckValueOrNull(ectx);
+                ectx.CheckValue(key, nameof(key));
+                if (!Map.TryGetValue(key, out string name))
+                {
+                    // The most obvious reason this might happen is if the user did something like try to attempt to
+                    // apply an estimator inside the index delegate, which obviously will not work.
+                    throw ectx.ExceptParam(nameof(key), "Column does not appear to be valid for this structure. " +
+                        "Please use columns in the provided indexing object without attempting modification.");
+                }
+                return name;
+            }
+
+            /// <summary>
+            /// Constructor for the index helper. Note that any public or component code will instead use
+            /// <see cref="GetIndexer{T}(SchemaBearing{T})"/>, to fetch the lazily constructed instance of this
+            /// object, since its construction is somewhat expensive.
+            /// </summary>
+            /// <param name="schematized">Constructs the helper for this object.</param>
+            internal IndexHelper(SchemaBearing<T> schematized)
+            {
+                Indices = StaticPipeInternalUtils.MakeAnalysisInstance<T>(out var rec);
+                // We don't really care about this, but we need to work over something.
+                // The names will not be useful, but we will be getting those from the object's shape anyway.
+                Func<T> dummyFunc = () => default;
+                var pairs = StaticPipeInternalUtils.GetNamesValues(Indices, dummyFunc.Method.ReturnParameter);
+                Contracts.Assert(pairs.Length == schematized.Shape.Pairs.Length);
+
+                var builder = ImmutableDictionary.CreateBuilder<PipelineColumn, string>();
+                for (int i = 0; i < pairs.Length; ++i)
+                    builder.Add(pairs[i].Value, schematized.Shape.Pairs[i].Key);
+                Map = builder.ToImmutable();
             }
         }
     }

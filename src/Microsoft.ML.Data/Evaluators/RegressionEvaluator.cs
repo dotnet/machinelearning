@@ -6,6 +6,8 @@ using Float = System.Single;
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data.StaticPipe.Runtime;
+using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -155,6 +157,129 @@ namespace Microsoft.ML.Runtime.Data
                 Host.AssertValue(dvBldr);
                 dvBldr.AddColumn(metricName, NumberType.R8, metric);
             }
+        }
+
+        public sealed class Result
+        {
+            /// <summary>
+            /// Gets the absolute loss of the model.
+            /// </summary>
+            /// <remarks>
+            /// The absolute loss is defined as
+            /// L1 = (1/m) * sum( abs( yi - y'i))
+            /// where m is the number of instances in the test set.
+            /// y'i are the predicted labels for each instance.
+            /// yi are the correct labels of each instance.
+            /// </remarks>
+            public double L1 { get; }
+
+            /// <summary>
+            /// Gets the squared loss of the model.
+            /// </summary>
+            /// <remarks>
+            /// The squared loss is defined as
+            /// L2 = (1/m) * sum(( yi - y'i)^2)
+            /// where m is the number of instances in the test set.
+            /// y'i are the predicted labels for each instance.
+            /// yi are the correct labels of each instance.
+            /// </remarks>
+            public double L2 { get; }
+
+            /// <summary>
+            /// Gets the root mean square loss (or RMS) which is the square root of the L2 loss.
+            /// </summary>
+            public double Rms { get; }
+
+            /// <summary>
+            /// Gets the user defined loss function.
+            /// </summary>
+            /// <remarks>
+            /// This is the average of a loss function defined by the user,
+            /// computed over all the instances in the test set.
+            /// </remarks>
+            public double LossFn { get; }
+
+            /// <summary>
+            /// Gets the R squared value of the model, which is also known as
+            /// the coefficient of determination​.
+            /// </summary>
+            public double RSquared { get; }
+
+            private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
+            {
+                if (!row.Schema.TryGetColumnIndex(name, out int col))
+                    throw ectx.Except($"Could not find column '{name}'");
+                T val = default;
+                row.GetGetter<T>(col)(ref val);
+                return val;
+            }
+
+            internal Result(IExceptionContext ectx, IRow overallResult)
+            {
+                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
+                L1 = Fetch(RegressionEvaluator.L1);
+                L2 = Fetch(RegressionEvaluator.L2);
+                Rms= Fetch(RegressionEvaluator.Rms);
+                LossFn = Fetch(RegressionEvaluator.Loss);
+                RSquared = Fetch(RegressionEvaluator.RSquared);
+            }
+        }
+
+        private sealed class TrivialLossFactory : ISupportRegressionLossFactory
+        {
+            private readonly IRegressionLoss _loss;
+            public TrivialLossFactory(IRegressionLoss loss) => _loss = loss;
+            public IRegressionLoss CreateComponent(IHostEnvironment env) => _loss;
+        }
+
+        /// <summary>
+        /// Evaluates scored binary classification data.
+        /// </summary>
+        /// <typeparam name="T">The shape type for the input data.</typeparam>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="label">The index delegate for the label column.</param>
+        /// <param name="score">The index delegate for the predicted score column.</param>
+        /// <param name="loss">Potentially custom loss function. If left unspecified defaults to <see cref="SquaredLoss"/>.</param>
+        /// <returns>The evaluation results for these outputs.</returns>
+        public static Result Evaluate<T>(
+            DataView<T> data,
+            Func<T, Scalar<float>> label,
+            Func<T, Scalar<float>> score,
+            IRegressionLoss loss = null)
+        {
+            Contracts.CheckValue(data, nameof(data));
+            var env = StaticPipeUtils.GetEnvironment(data);
+            Contracts.AssertValue(env);
+            env.CheckValue(label, nameof(label));
+            env.CheckValue(score, nameof(score));
+
+            var indexer = StaticPipeUtils.GetIndexer(data);
+            string labelName = indexer.Get(label(indexer.Indices));
+            string scoreName = indexer.Get(score(indexer.Indices));
+
+            var args = new Arguments() { };
+            if (loss != null)
+                args.LossFunction = new TrivialLossFactory(loss);
+            var eval = new RegressionEvaluator(env, args);
+
+            var roles = new RoleMappedData(data.AsDynamic, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(labelName),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreName));
+
+            var resultDict = eval.Evaluate(roles);
+            env.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            Result result;
+            using (var cursor = overall.GetRowCursor(i => true))
+            {
+                var moved = cursor.MoveNext();
+                env.Assert(moved);
+                result = new Result(env, cursor);
+                moved = cursor.MoveNext();
+                env.Assert(!moved);
+            }
+            return result;
         }
     }
 
