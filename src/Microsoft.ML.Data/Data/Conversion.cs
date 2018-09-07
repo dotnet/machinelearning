@@ -17,16 +17,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
     using BL = DvBool;
     using DT = DvDateTime;
     using DZ = DvDateTimeZone;
-    using I1 = DvInt1;
-    using I2 = DvInt2;
-    using I4 = DvInt4;
-    using I8 = DvInt8;
     using R4 = Single;
     using R8 = Double;
-    using RawI1 = SByte;
-    using RawI2 = Int16;
-    using RawI4 = Int32;
-    using RawI8 = Int64;
+    using I1 = SByte;
+    using I2 = Int16;
+    using I4 = Int32;
+    using I8 = Int64;
     using SB = StringBuilder;
     using TS = DvTimeSpan;
     using TX = ReadOnlyMemory<char>;
@@ -244,10 +240,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddStd<DZ, R8>(Convert);
             AddAux<DZ, SB>(Convert);
 
-            AddIsNA<I1>(IsNA);
-            AddIsNA<I2>(IsNA);
-            AddIsNA<I4>(IsNA);
-            AddIsNA<I8>(IsNA);
             AddIsNA<R4>(IsNA);
             AddIsNA<R8>(IsNA);
             AddIsNA<BL>(IsNA);
@@ -255,10 +247,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddIsNA<DT>(IsNA);
             AddIsNA<DZ>(IsNA);
 
-            AddGetNA<I1>(GetNA);
-            AddGetNA<I2>(GetNA);
-            AddGetNA<I4>(GetNA);
-            AddGetNA<I8>(GetNA);
             AddGetNA<R4>(GetNA);
             AddGetNA<R8>(GetNA);
             AddGetNA<BL>(GetNA);
@@ -266,10 +254,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             AddGetNA<DT>(GetNA);
             AddGetNA<DZ>(GetNA);
 
-            AddHasNA<I1>(HasNA);
-            AddHasNA<I2>(HasNA);
-            AddHasNA<I4>(HasNA);
-            AddHasNA<I8>(HasNA);
             AddHasNA<R4>(HasNA);
             AddHasNA<R8>(HasNA);
             AddHasNA<BL>(HasNA);
@@ -843,10 +827,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         // The IsNA methods are for efficient delegates (instance instead of static).
         #region IsNA
-        private bool IsNA(ref I1 src) => src.IsNA;
-        private bool IsNA(ref I2 src) => src.IsNA;
-        private bool IsNA(ref I4 src) => src.IsNA;
-        private bool IsNA(ref I8 src) => src.IsNA;
         private bool IsNA(ref R4 src) => src.IsNA();
         private bool IsNA(ref R8 src) => src.IsNA();
         private bool IsNA(ref BL src) => src.IsNA;
@@ -856,10 +836,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion IsNA
 
         #region HasNA
-        private bool HasNA(ref VBuffer<I1> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
-        private bool HasNA(ref VBuffer<I2> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
-        private bool HasNA(ref VBuffer<I4> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
-        private bool HasNA(ref VBuffer<I8> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
         private bool HasNA(ref VBuffer<R4> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA()) return true; } return false; }
         private bool HasNA(ref VBuffer<R8> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA()) return true; } return false; }
         private bool HasNA(ref VBuffer<BL> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA) return true; } return false; }
@@ -869,10 +845,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion HasNA
 
         #region IsDefault
-        private bool IsDefault(ref I1 src) => src.RawValue == 0;
-        private bool IsDefault(ref I2 src) => src.RawValue == 0;
-        private bool IsDefault(ref I4 src) => src.RawValue == 0;
-        private bool IsDefault(ref I8 src) => src.RawValue == 0;
+        private bool IsDefault(ref I1 src) => src == default(I1);
+        private bool IsDefault(ref I2 src) => src == default(I2);
+        private bool IsDefault(ref I4 src) => src == default(I4);
+        private bool IsDefault(ref I8 src) => src == default(I8);
         private bool IsDefault(ref R4 src) => src == 0;
         private bool IsDefault(ref R8 src) => src == 0;
         private bool IsDefault(ref TX src) => src.IsEmpty;
@@ -895,10 +871,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion HasZero
 
         #region GetNA
-        private void GetNA(ref I1 value) => value = I1.NA;
-        private void GetNA(ref I2 value) => value = I2.NA;
-        private void GetNA(ref I4 value) => value = I4.NA;
-        private void GetNA(ref I8 value) => value = I8.NA;
         private void GetNA(ref R4 value) => value = R4.NaN;
         private void GetNA(ref R8 value) => value = R8.NaN;
         private void GetNA(ref BL value) => value = BL.NA;
@@ -1016,10 +988,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion ToR8
 
         #region ToStringBuilder
-        public void Convert(ref I1 src, ref SB dst) { ClearDst(ref dst); if (!src.IsNA) dst.Append(src.RawValue); }
-        public void Convert(ref I2 src, ref SB dst) { ClearDst(ref dst); if (!src.IsNA) dst.Append(src.RawValue); }
-        public void Convert(ref I4 src, ref SB dst) { ClearDst(ref dst); if (!src.IsNA) dst.Append(src.RawValue); }
-        public void Convert(ref I8 src, ref SB dst) { ClearDst(ref dst); if (!src.IsNA) dst.Append(src.RawValue); }
+        public void Convert(ref I1 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
+        public void Convert(ref I2 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
+        public void Convert(ref I4 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
+        public void Convert(ref I8 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
         public void Convert(ref U1 src, ref SB dst) => ClearDst(ref dst).Append(src);
         public void Convert(ref U2 src, ref SB dst) => ClearDst(ref dst).Append(src);
         public void Convert(ref U4 src, ref SB dst) => ClearDst(ref dst).Append(src);
@@ -1057,6 +1029,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out U1 dst)
         {
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref src, out res) || res > U1.MaxValue)
             {
@@ -1072,6 +1045,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out U2 dst)
         {
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref src, out res) || res > U2.MaxValue)
             {
@@ -1087,6 +1061,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out U4 dst)
         {
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref src, out res) || res > U4.MaxValue)
             {
@@ -1102,7 +1077,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out U8 dst)
         {
-            if (src.IsEmpty)
+        	
+        	if (src.IsEmpty)
             {
                 dst = 0;
                 return false;
@@ -1216,11 +1192,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// Utility to assist in parsing key-type values. The min and max values define
         /// the legal input value bounds. The output dst value is "normalized" so min is
         /// mapped to 1, max is mapped to 1 + (max - min).
-        /// Missing values are mapped to zero with a true return.
+        /// Exception is thrown for missing values.
         /// Unparsable or out of range values are mapped to zero with a false return.
         /// </summary>
         public bool TryParseKey(ref TX src, U8 min, U8 max, out U8 dst)
         {
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to unsigned integer type.");
+            Contracts.Check(!IsStdMissing(ref src), "Missing text value cannot be converted to unsigned integer type.");
             Contracts.Assert(min <= max);
 
             // This simply ensures we don't have min == 0 and max == U8.MaxValue. This is illegal since
@@ -1242,7 +1220,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             {
                 dst = 0;
                 // Return true only for standard forms for NA.
-                return IsStdMissing(ref src);
+                return false;
             }
 
             if (min > uu || uu > max)
@@ -1288,57 +1266,65 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         /// <summary>
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
-        /// On failure, it sets dst to the NA value.
+        /// On failure, it sets dst to the default value.
         /// </summary>
         public bool TryParse(ref TX src, out I1 dst)
         {
-            long res;
-            bool f = TryParseSigned(RawI1.MaxValue, ref src, out res);
-            Contracts.Assert(f || res == I1.RawNA);
-            Contracts.Assert((RawI1)res == res);
-            dst = (RawI1)res;
-            return f;
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
+
+            dst = default;
+            TryParseSigned(I1.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
+            Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
+            dst = (I1)res;
+            return true;
         }
 
         /// <summary>
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
-        /// On failure, it sets dst to the NA value.
+        /// On failure, it sets dst to the default value.
         /// </summary>
         public bool TryParse(ref TX src, out I2 dst)
         {
-            long res;
-            bool f = TryParseSigned(RawI2.MaxValue, ref src, out res);
-            Contracts.Assert(f || res == I2.RawNA);
-            Contracts.Assert((RawI2)res == res);
-            dst = (RawI2)res;
-            return f;
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
+
+            dst = default;
+            TryParseSigned(I2.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
+            Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
+            dst = (I2)res;
+            return true;
         }
 
         /// <summary>
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
-        /// On failure, it sets dst to the NA value.
+        /// On failure, it sets dst to the defualt value.
         /// </summary>
         public bool TryParse(ref TX src, out I4 dst)
         {
-            long res;
-            bool f = TryParseSigned(RawI4.MaxValue, ref src, out res);
-            Contracts.Assert(f || res == I4.RawNA);
-            Contracts.Assert((RawI4)res == res);
-            dst = (RawI4)res;
-            return f;
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
+
+            dst = default;
+            TryParseSigned(I4.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to int32.");
+            Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
+            dst = (I4)res;
+            return true;
         }
 
         /// <summary>
         /// This produces zero for empty. It returns false if the text is not parsable or overflows.
-        /// On failure, it sets dst to the NA value.
+        /// On failure, it sets dst to the default value.
         /// </summary>
         public bool TryParse(ref TX src, out I8 dst)
         {
-            long res;
-            bool f = TryParseSigned(RawI8.MaxValue, ref src, out res);
-            Contracts.Assert(f || res == I8.RawNA);
-            dst = res;
-            return f;
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
+
+            dst = default;
+            TryParseSigned(I8.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
+            dst = (I8)res;
+            return true;
         }
 
         /// <summary>
@@ -1376,11 +1362,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         /// <summary>
         /// This produces zero for empty. It returns false if the text is not parsable as a signed integer
-        /// or the result overflows. The min legal value is -max. The NA value is -max - 1.
+        /// or the result overflows. The min legal value is -max. The NA value null.
         /// When it returns false, result is set to the NA value. The result can be NA on true return,
         /// since some representations of NA are not considered parse failure.
         /// </summary>
-        private bool TryParseSigned(long max, ref TX span, out long result)
+        private void TryParseSigned(long max, ref TX span, out long? result)
         {
             Contracts.Assert(max > 0);
             Contracts.Assert((max & (max + 1)) == 0);
@@ -1393,40 +1379,39 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             int ichMin = 0;
             int ichLim = span.Length;
-
-            long val;
-            if (span.Span[0] == '-')
+            ulong val;
+            if (span[0] == '-')
             {
-                if (span.Length == 1 ||
-                    !TryParseNonNegative(span, ichMin + 1, ichLim, out val) ||
-                    val > max)
+                if (span.Span.Length == 1 ||
+                    !TryParseCore(span, ichMin + 1, ichLim, out val) ||
+                    (val > ((ulong)max + 1)))
                 {
-                    result = -max - 1;
-                    return false;
+                    result = null;
+                    return;
                 }
                 Contracts.Assert(val >= 0);
                 result = -(long)val;
-                Contracts.Assert(long.MinValue < result && result <= 0);
-                return true;
+                Contracts.Assert(long.MinValue <= result && result <= 0);
+                return;
             }
 
-            if (!TryParseNonNegative(span, ichMin, ichLim, out val))
+            long sVal;
+            if (!TryParseNonNegative(span, ichMin, ichLim, out sVal))
             {
-                // Check for acceptable NA forms: ? NaN NA and N/A.
-                result = -max - 1;
-                return IsStdMissing(ref span);
+                result = null;
+                return;
             }
 
-            Contracts.Assert(val >= 0);
-            if (val > max)
+            Contracts.Assert(sVal >= 0);
+            if (sVal > max)
             {
-                result = -max - 1;
-                return false;
+                result = null;
+                return;
             }
 
-            result = (long)val;
+            result = (long)sVal;
             Contracts.Assert(0 <= result && result <= long.MaxValue);
-            return true;
+            return;
         }
 
         /// <summary>
@@ -1504,42 +1489,40 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             return IsStdMissing(ref src);
         }
 
-        // These map unparsable and overflow values to "NA", which is the value Ix.MinValue. Note that this NA
-        // value is the "evil" value - the non-zero value, x, such that x == -x. Note also, that for I4, this
-        // matches R's representation of NA.
+        // These throw an exception for unparsable and overflow values.
         private I1 ParseI1(ref TX src)
         {
-            long res;
-            bool f = TryParseSigned(RawI1.MaxValue, ref src, out res);
-            Contracts.Assert(f || res == I1.RawNA);
-            Contracts.Assert((RawI1)res == res);
-            return (RawI1)res;
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
+            TryParseSigned(I1.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
+            Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
+            return (I1)res;
         }
 
         private I2 ParseI2(ref TX src)
         {
-            long res;
-            bool f = TryParseSigned(RawI2.MaxValue, ref src, out res);
-            Contracts.Assert(f || res == I2.RawNA);
-            Contracts.Assert((RawI2)res == res);
-            return (RawI2)res;
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
+            TryParseSigned(I2.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
+            Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
+            return (I2)res;
         }
 
         private I4 ParseI4(ref TX src)
         {
-            long res;
-            bool f = TryParseSigned(RawI4.MaxValue, ref src, out res);
-            Contracts.Assert(f || res == I4.RawNA);
-            Contracts.Assert((RawI4)res == res);
-            return (RawI4)res;
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
+            TryParseSigned(I4.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to int.");
+            Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
+            return (I4)res;
         }
 
         private I8 ParseI8(ref TX src)
         {
-            long res;
-            bool f = TryParseSigned(RawI8.MaxValue, ref src, out res);
-            Contracts.Assert(f || res == I8.RawNA);
-            return res;
+            Contracts.Check(!src.IsNA, "Missing text value cannot be converted to integer type.");
+            TryParseSigned(I8.MaxValue, ref src, out long? res);
+            Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
+            return res.Value;
         }
 
         // These map unparsable and overflow values to zero. The unsigned integer types do not have an NA value.
@@ -1547,6 +1530,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         // unsigned integer types.
         private U1 ParseU1(ref TX span)
         {
+            Contracts.Check(!span.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref span, out res))
                 return 0;
@@ -1557,6 +1541,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private U2 ParseU2(ref TX span)
         {
+            Contracts.Check(!span.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref span, out res))
                 return 0;
@@ -1567,6 +1552,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private U4 ParseU4(ref TX span)
         {
+            Contracts.Check(!span.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref span, out res))
                 return 0;
@@ -1577,6 +1563,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         private U8 ParseU8(ref TX span)
         {
+            Contracts.Check(!span.IsNA, "Missing text value cannot be converted to unsigned integer type.");
             ulong res;
             if (!TryParse(ref span, out res))
                 return 0;

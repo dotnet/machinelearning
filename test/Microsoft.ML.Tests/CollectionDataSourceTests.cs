@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -295,6 +295,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public double fDouble;
             public bool fBool;
             public string fString="";
+            public DvBool fBool;
         }
 
         public bool CompareObjectValues(object x, object y, Type type)
@@ -465,14 +466,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                     }
                 }
             }
-        }
-
-        public class ConversionLossMinValueClass
-        {
-            public int? fInt;
-            public long? fLong;
-            public short? fShort;
-            public sbyte? fSByte;
         }
 
         public class ConversionLossMinValueClassProperties
@@ -659,7 +652,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     fInt = new int[3] { 0, 1, 2 },
                     fFloat = new float[3] { -0.99f, 0f, 0.99f },
                     fString = new string[2] { "hola", "lola" },
-                    fBool = new bool[2] { true, false },
+                    fBool = new DvBool[2] { true, false },
                     fByte = new byte[3] { 0, 124, 255 },
                     fDouble = new double[3] { -1, 0, 1 },
                     fLong = new long[] { 0, 1, 2 },
@@ -698,7 +691,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             private ulong[] _fuLong;
             private float[] _fFloat;
             private double[] _fDouble;
-            private bool[] _fBool;
+            private DvBool[] _fBool;
             public string[] StringProp { get { return _fString; } set { _fString = value; } }
             public int[] IntProp { get { return _fInt; } set { _fInt = value; } }
             public uint[] UIntProp { get { return _fuInt; } set { _fuInt = value; } }
@@ -724,7 +717,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IntProp = new int[3] { 0, 1, 2 },
                     FloatProp = new float[3] { -0.99f, 0f, 0.99f },
                     StringProp = new string[2] { "hola", "lola" },
-                    BoolProp = new bool[2] { true, false },
+                    BoolProp = new DvBool[2] { true, false },
                     ByteProp = new byte[3] { 0, 124, 255 },
                     DobuleProp = new double[3] { -1, 0, 1 },
                     LongProp = new long[] { 0, 1, 2 },

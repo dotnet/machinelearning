@@ -120,7 +120,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float[] Features;
 
             [ColumnName("Label")]
-            public bool Label;
+            public DvBool Label;
         }
 
         [Fact]
@@ -130,36 +130,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             data[0] = new BooleanLabelData
             {
                 Features = new float[] { 0.0f, 1.0f },
-                Label = false
-            };
-            var pipeline = new LearningPipeline();
-            pipeline.Add(CollectionDataSource.Create(data));
-            pipeline.Add(new FastForestBinaryClassifier());
-            var model = pipeline.Train<Data, Prediction>();
-        }
-
-        public class NullableBooleanLabelData
-        {
-            [ColumnName("Features")]
-            [VectorType(2)]
-            public float[] Features;
-
-            [ColumnName("Label")]
-            public bool? Label;
-        }
-
-        [Fact]
-        public void NullableBooleanLabelPipeline()
-        {
-            var data = new NullableBooleanLabelData[2];
-            data[0] = new NullableBooleanLabelData
-            {
-                Features = new float[] { 0.0f, 1.0f },
-                Label = null
-            };
-            data[1] = new NullableBooleanLabelData
-            {
-                Features = new float[] { 1.0f, 0.0f },
                 Label = false
             };
             var pipeline = new LearningPipeline();

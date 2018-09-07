@@ -44,13 +44,13 @@ namespace Microsoft.ML.Runtime.Data.IO
             _loadNameToCodecCreator = new Dictionary<string, GetCodecFromStreamDelegate>();
             _simpleCodecTypeMap = new Dictionary<DataKind, IValueCodec>();
             // Register the current codecs.
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt1>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<sbyte>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<byte>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt2>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<short>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<ushort>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt4>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<int>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<uint>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt8>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<long>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<ulong>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<Single>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<Double>(this));

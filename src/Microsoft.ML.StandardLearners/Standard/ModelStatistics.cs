@@ -414,7 +414,7 @@ namespace Microsoft.ML.Runtime.Learners
             _env.AssertValueOrNull(parent);
             _env.AssertValue(schema);
 
-            DvInt8 count = _trainingExampleCount;
+            long count = _trainingExampleCount;
             list.Add(RowColumnUtils.GetColumn("Count of training examples", NumberType.I8, ref count));
             var dev = _deviance;
             list.Add(RowColumnUtils.GetColumn("Residual Deviance", NumberType.R4, ref dev));

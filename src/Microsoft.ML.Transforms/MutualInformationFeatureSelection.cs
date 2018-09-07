@@ -407,7 +407,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Note: NAs have their own separate bin.
                 if (labelType == NumberType.I4)
                 {
-                    var tmp = default(VBuffer<DvInt4>);
+                    var tmp = default(VBuffer<int>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
                     BinInts(ref tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (type.ItemType == NumberType.I4)
                 {
                     return ComputeMutualInformation(trans, col,
-                        (ref VBuffer<DvInt4> src, ref VBuffer<int> dst, out int min, out int lim) =>
+                        (ref VBuffer<int> src, ref VBuffer<int> dst, out int min, out int lim) =>
                         {
                             BinInts(ref src, ref dst, _numBins, out min, out lim);
                         });
@@ -674,29 +674,20 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             /// <summary>
-            /// Maps from DvInt4 to ints. NaNs (and only NaNs) are mapped to the first bin.
+            /// Maps Ints.
             /// </summary>
-            private void BinInts(ref VBuffer<DvInt4> input, ref VBuffer<int> output,
+            private void BinInts(ref VBuffer<int> input, ref VBuffer<int> output,
                 int numBins, out int min, out int lim)
             {
                 Contracts.Assert(_singles.Count == 0);
-                if (input.Values != null)
-                {
-                    for (int i = 0; i < input.Count; i++)
-                    {
-                        var val = input.Values[i];
-                        if (!val.IsNA)
-                            _singles.Add((Single)val);
-                    }
-                }
 
                 var bounds = _binFinder.FindBins(numBins, _singles, input.Length - input.Count);
                 min = -1 - bounds.FindIndexSorted(0);
                 lim = min + bounds.Length + 1;
                 int offset = min;
-                ValueMapper<DvInt4, int> mapper =
-                    (ref DvInt4 src, ref int dst) =>
-                        dst = src.IsNA ? offset : offset + 1 + bounds.FindIndexSorted((Single)src);
+                ValueMapper<int, int> mapper =
+                    (ref int src, ref int dst) =>
+                        dst = offset + 1 + bounds.FindIndexSorted((Single)src);
                 mapper.MapVector(ref input, ref output);
                 _singles.Clear();
             }

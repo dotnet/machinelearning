@@ -160,19 +160,19 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(type);
 
             // REVIEW: Make this more efficient. Should we have a global dictionary?
-            if (type == typeof(DvInt1) || type == typeof(sbyte))
+            if (type == typeof(sbyte))
                 kind = DataKind.I1;
             else if (type == typeof(byte) || type == typeof(char))
                 kind = DataKind.U1;
-            else if (type == typeof(DvInt2) || type == typeof(short))
+            else if (type == typeof(short))
                 kind = DataKind.I2;
             else if (type == typeof(ushort))
                 kind = DataKind.U2;
-            else if (type == typeof(DvInt4) || type == typeof(int))
+            else if ( type == typeof(int))
                 kind = DataKind.I4;
             else if (type == typeof(uint))
                 kind = DataKind.U4;
-            else if (type == typeof(DvInt8) || type == typeof(long))
+            else if (type == typeof(long))
                 kind = DataKind.I8;
             else if (type == typeof(ulong))
                 kind = DataKind.U8;

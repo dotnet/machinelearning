@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void SparseDataView()
         {
             GenericSparseDataView(new[] { 1f, 2f, 3f }, new[] { 1f, 10f, 100f });
-            GenericSparseDataView(new DvInt4[] { 1, 2, 3 }, new DvInt4[] { 1, 10, 100 });
+            GenericSparseDataView(new int[] { 1, 2, 3 }, new int[] { 1, 10, 100 });
             GenericSparseDataView(new DvBool[] { true, true, true }, new DvBool[] { false, false, false });
             GenericSparseDataView(new double[] { 1, 2, 3 }, new double[] { 1, 10, 100 });
             GenericSparseDataView(new ReadOnlyMemory<char>[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() },
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void DenseDataView()
         {
             GenericDenseDataView(new[] { 1f, 2f, 3f }, new[] { 1f, 10f, 100f });
-            GenericDenseDataView(new DvInt4[] { 1, 2, 3 }, new DvInt4[] { 1, 10, 100 });
+            GenericDenseDataView(new int[] { 1, 2, 3 }, new int[] { 1, 10, 100 });
             GenericDenseDataView(new DvBool[] { true, true, true }, new DvBool[] { false, false, false });
             GenericDenseDataView(new double[] { 1, 2, 3 }, new double[] { 1, 10, 100 });
             GenericDenseDataView(new ReadOnlyMemory<char>[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() },

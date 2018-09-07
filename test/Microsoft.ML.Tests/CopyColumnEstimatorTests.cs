@@ -171,16 +171,16 @@ namespace Microsoft.ML.Tests
         {
             using (var cursor = result.GetRowCursor(x => true))
             {
-                DvInt4 avalue = 0;
-                DvInt4 bvalue = 0;
-                DvInt4 dvalue = 0;
-                DvInt4 evalue = 0;
-                DvInt4 fvalue = 0;
-                var aGetter = cursor.GetGetter<DvInt4>(0);
-                var bGetter = cursor.GetGetter<DvInt4>(1);
-                var dGetter = cursor.GetGetter<DvInt4>(3);
-                var eGetter = cursor.GetGetter<DvInt4>(4);
-                var fGetter = cursor.GetGetter<DvInt4>(5);
+                int avalue = 0;
+                int bvalue = 0;
+                int dvalue = 0;
+                int evalue = 0;
+                int fvalue = 0;
+                var aGetter = cursor.GetGetter<int>(0);
+                var bGetter = cursor.GetGetter<int>(1);
+                var dGetter = cursor.GetGetter<int>(3);
+                var eGetter = cursor.GetGetter<int>(4);
+                var fGetter = cursor.GetGetter<int>(5);
                 while (cursor.MoveNext())
                 {
                     aGetter(ref avalue);
