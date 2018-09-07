@@ -986,9 +986,9 @@ namespace Microsoft.ML.Runtime.Data
             var labelType = perInst.Schema.GetColumnType(labelCol);
             if (labelType.IsKey && (!perInst.Schema.HasKeyNames(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
             {
-                perInst = LambdaColumnMapper.Create(Host, "ConvertToLong", perInst, schema.Label.Name,
-                    schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.I8,
-                    (ref uint src, ref DvInt8 dst) => dst = src == 0 ? DvInt8.NA : src - 1 + (long)labelType.AsKey.Min);
+                perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
+                    schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,
+                    (ref uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)labelType.AsKey.Min);
             }
 
             var perInstSchema = perInst.Schema;

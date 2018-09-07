@@ -517,23 +517,23 @@ namespace Microsoft.ML.Runtime.CommandLine
 
         private struct Coord
         {
-            internal Int16 X;
-            internal Int16 Y;
+            internal short X;
+            internal short Y;
         }
 
         private struct SmallRect
         {
-            internal Int16 Left;
-            internal Int16 Top;
-            internal Int16 Right;
-            internal Int16 Bottom;
+            internal short Left;
+            internal short Top;
+            internal short Right;
+            internal short Bottom;
         }
 
         private struct ConsoleScreenBufferInfo
         {
             internal Coord DwSize;
             internal Coord DwCursorPosition;
-            internal Int16 WAttributes;
+            internal short WAttributes;
             internal SmallRect SrWindow;
             internal Coord DwMaximumWindowSize;
         }

@@ -729,7 +729,13 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <summary>
         /// Upper inclusive bound of versions this reader can read.
         /// </summary>
-        private const ulong ReaderVersion = MissingTextVersion;
+        private const ulong ReaderVersion = StandardDataTypesVersion;
+
+        /// <summary>
+        /// The first version that removes DvTypes and uses .NET standard
+        /// data types.
+        /// </summary>
+        private const ulong StandardDataTypesVersion = 0x0001000100010006;
 
         /// <summary>
         /// The first version of the format that accomodated DvText.NA.

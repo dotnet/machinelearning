@@ -626,8 +626,8 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 public override void Write(ref DvDateTime value)
                 {
-                    var ticks = value.Ticks.RawValue;
-                    Contracts.Assert(ticks == DvInt8.RawNA || (ulong)ticks <= DvDateTime.MaxTicks);
+                    var ticks = value.Ticks;
+                    Contracts.Assert(ticks == long.MinValue || (ulong)ticks <= DvDateTime.MaxTicks);
                     Writer.Write(ticks);
                     _numWritten++;
                 }
@@ -639,7 +639,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 public override long GetCommitLengthEstimate()
                 {
-                    return _numWritten * sizeof(Int64);
+                    return _numWritten * sizeof(long);
                 }
             }
 
@@ -658,7 +658,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     Contracts.Assert(_remaining > 0, "already consumed all values");
                     var value = Reader.ReadInt64();
-                    Contracts.CheckDecode(value == DvInt8.RawNA || (ulong)value <= DvDateTime.MaxTicks);
+                    Contracts.CheckDecode(value == long.MinValue || (ulong)value <= DvDateTime.MaxTicks);
                     _value = new DvDateTime(value);
                     _remaining--;
                 }
@@ -711,19 +711,19 @@ namespace Microsoft.ML.Runtime.Data.IO
                     var ticks = value.ClockDateTime.Ticks;
                     var offset = value.OffsetMinutes;
 
-                    _ticks.Add(ticks.RawValue);
-                    if (ticks.IsNA)
+                    _ticks.Add(ticks);
+                    if (ticks == long.MinValue)
                     {
-                        Contracts.Assert(offset.IsNA);
+                        Contracts.Assert(offset == short.MinValue);
                         _offsets.Add(0);
                     }
                     else
                     {
                         Contracts.Assert(
-                            offset.RawValue >= DvDateTimeZone.MinMinutesOffset &&
-                            offset.RawValue <= DvDateTimeZone.MaxMinutesOffset);
-                        Contracts.Assert(0 <= ticks.RawValue && ticks.RawValue <= DvDateTime.MaxTicks);
-                        _offsets.Add(offset.RawValue);
+                            offset >= DvDateTimeZone.MinMinutesOffset &&
+                            offset <= DvDateTimeZone.MaxMinutesOffset);
+                        Contracts.Assert(0 <= ticks && ticks <= DvDateTime.MaxTicks);
+                        _offsets.Add(offset);
                     }
                 }
 
@@ -740,7 +740,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 public override long GetCommitLengthEstimate()
                 {
-                    return (long)_offsets.Count * (sizeof(Int64) + sizeof(Int16));
+                    return (long)_offsets.Count * (sizeof(long) + sizeof(short));
                 }
             }
 
@@ -773,7 +773,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     for (int i = 0; i < _entries; i++)
                     {
                         _ticks[i] = Reader.ReadInt64();
-                        Contracts.CheckDecode(_ticks[i] == DvInt8.RawNA || (ulong)_ticks[i] <= DvDateTime.MaxTicks);
+                        Contracts.CheckDecode(_ticks[i] == long.MinValue || (ulong)_ticks[i] <= DvDateTime.MaxTicks);
                     }
                 }
 
