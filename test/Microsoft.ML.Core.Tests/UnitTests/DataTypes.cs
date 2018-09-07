@@ -21,26 +21,26 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TXToSByte()
         {
-            var mapper = GetMapper<DvText, sbyte>();
+            var mapper = GetMapper<ReadOnlyMemory<char>, sbyte>();
 
             Assert.NotNull(mapper);
 
             //1. sbyte.MinValue in text to sbyte.
             sbyte minValue = sbyte.MinValue;
             sbyte maxValue = sbyte.MaxValue;
-            DvText src = new DvText(minValue.ToString());
+            ReadOnlyMemory<char> src = minValue.ToString().AsMemory();
             sbyte dst = 0;
             mapper(ref src, ref dst);
             Assert.Equal(dst, minValue);
 
             //2. sbyte.MaxValue in text to sbyte.
-            src = new DvText(maxValue.ToString());
+            src = maxValue.ToString().AsMemory();
             dst = 0;
             mapper(ref src, ref dst);
             Assert.Equal(dst, maxValue);
 
             //3. ERROR condition: sbyte.MinValue - 1 in text to sbyte.
-            src = new DvText((sbyte.MinValue - 1).ToString());
+            src = (sbyte.MinValue - 1).ToString().AsMemory();
             dst = 0;
             bool error = false;
             try
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(error);
 
             //4. ERROR condition: sbyte.MaxValue + 1 in text to sbyte.
-            src = new DvText((sbyte.MaxValue + 1).ToString());
+            src = (sbyte.MaxValue + 1).ToString().AsMemory();
             dst = 0;
             error = false;
             try
@@ -76,46 +76,31 @@ namespace Microsoft.ML.Runtime.RunTests
             dst = -1;
             mapper(ref src, ref dst);
             Assert.Equal(default, dst);
-
-            //6. Missing value in text to sbyte.
-            src = DvText.NA;
-            dst = -1;
-            try
-            {
-                mapper(ref src, ref dst);
-            }
-            catch (Exception ex)
-            {
-                Assert.Equal("Missing text value cannot be converted to integer type.", ex.Message);
-                error = true;
-            }
-
-            Assert.True(error);
         }
 
         [Fact]
         public void TXToShort()
         {
-            var mapper = GetMapper<DvText, short>();
+            var mapper = GetMapper<ReadOnlyMemory<char>, short>();
 
             Assert.NotNull(mapper);
 
             //1. short.MinValue in text to short.
             short minValue = short.MinValue;
             short maxValue = short.MaxValue;
-            DvText src = new DvText(minValue.ToString());
+            ReadOnlyMemory<char> src = minValue.ToString().AsMemory();
             short dst = 0;
             mapper(ref src, ref dst);
             Assert.Equal(dst, minValue);
 
             //2. short.MaxValue in text to short.
-            src = new DvText(maxValue.ToString());
+            src = maxValue.ToString().AsMemory();
             dst = 0;
             mapper(ref src, ref dst);
             Assert.Equal(dst, maxValue);
 
             //3. ERROR condition: short.MinValue - 1 in text to short.
-            src = new DvText((minValue - 1).ToString());
+            src = (minValue - 1).ToString().AsMemory();
             dst = 0;
             bool error = false;
             try
@@ -131,7 +116,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(error);
 
             //4. ERROR condition: short.MaxValue + 1 in text to short.
-            src = new DvText((maxValue + 1).ToString());
+            src = (maxValue + 1).ToString().AsMemory();
             dst = 0;
             error = false;
             try
@@ -151,47 +136,31 @@ namespace Microsoft.ML.Runtime.RunTests
             dst = -1;
             mapper(ref src, ref dst);
             Assert.Equal(default, dst);
-
-            //6. Missing string in text to sbyte.
-            src = DvText.NA;
-            dst = -1;
-            error = false;
-            try
-            {
-                mapper(ref src, ref dst);
-            }
-            catch (Exception ex)
-            {
-                Assert.Equal("Missing text value cannot be converted to integer type.", ex.Message);
-                error = true;
-            }
-
-            Assert.True(error);
         }
 
         [Fact]
         public void TXToInt()
         {
-            var mapper = GetMapper<DvText, int>();
+            var mapper = GetMapper<ReadOnlyMemory<char>, int>();
 
             Assert.NotNull(mapper);
 
             //1. int.MinValue in text to int.
             int minValue = int.MinValue;
             int maxValue = int.MaxValue;
-            DvText src = new DvText(minValue.ToString());
+            ReadOnlyMemory<char> src = minValue.ToString().AsMemory();
             int dst = 0;
             mapper(ref src, ref dst);
             Assert.Equal(dst, minValue);
 
             //2. int.MaxValue in text to int.
-            src = new DvText(maxValue.ToString());
+            src = maxValue.ToString().AsMemory();
             dst = 0;
             mapper(ref src, ref dst);
             Assert.Equal(dst, maxValue);
 
             //3. ERROR condition: int.MinValue - 1 in text to int.
-            src = new DvText(((long)minValue - 1).ToString());
+            src = ((long)minValue - 1).ToString().AsMemory();
             dst = 0;
             bool error = false;
             try
@@ -207,7 +176,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(error);
 
             //4. ERROR condition: int.MaxValue + 1 in text to int.
-            src = new DvText(((long)maxValue + 1).ToString());
+            src = ((long)maxValue + 1).ToString().AsMemory();
             dst = 0;
             error = false;
             try
@@ -227,53 +196,37 @@ namespace Microsoft.ML.Runtime.RunTests
             dst = -1;
             mapper(ref src, ref dst);
             Assert.Equal(default, dst);
-
-            //6. Missing string in text to sbyte.
-            src = DvText.NA;
-            dst = -1;
-            error = false;
-            try
-            {
-                mapper(ref src, ref dst);
-            }
-            catch (Exception ex)
-            {
-                Assert.Equal("Missing text value cannot be converted to integer type.", ex.Message);
-                error = true;
-            }
-
-            Assert.True(error);
         }
 
         [Fact]
         public void TXToLong()
         {
-            var mapper = GetMapper<DvText, long>();
+            var mapper = GetMapper<ReadOnlyMemory<char>, long>();
 
             Assert.NotNull(mapper);
 
             //1. long.MinValue in text to long.
             var minValue = long.MinValue;
             var maxValue = long.MaxValue;
-            DvText src = new DvText(minValue.ToString());
+            ReadOnlyMemory<char> src = minValue.ToString().AsMemory();
             var dst = default(long);
             mapper(ref src, ref dst);
             Assert.Equal(dst, minValue);
 
             //2. long.MaxValue in text to long.
-            src = new DvText(maxValue.ToString());
+            src = maxValue.ToString().AsMemory();
             dst = 0;
             mapper(ref src, ref dst);
             Assert.Equal(dst, maxValue);
 
             //3. long.MinValue - 1 in text to long.
-            src = new DvText(((long)minValue - 1).ToString());
+            src = ((long)minValue - 1).ToString().AsMemory();
             dst = 0;
             mapper(ref src, ref dst);
             Assert.Equal(dst, (long)minValue - 1);
 
             //4. ERROR condition: long.MaxValue + 1 in text to long.
-            src = new DvText(((ulong)maxValue + 1).ToString());
+            src = ((ulong)maxValue + 1).ToString().AsMemory();
             dst = 0;
             bool error = false;
             try
@@ -293,22 +246,6 @@ namespace Microsoft.ML.Runtime.RunTests
             dst = -1;
             mapper(ref src, ref dst);
             Assert.Equal(default, dst);
-
-            //6. Missing string in text to sbyte.
-            error = false;
-            src = DvText.NA;
-            dst = -1;
-            try
-            {
-                mapper(ref src, ref dst);
-            }
-            catch (Exception ex)
-            {
-                Assert.Equal("Missing text value cannot be converted to integer type.", ex.Message);
-                error = true;
-            }
-
-            Assert.True(error);
         }
 
         public ValueMapper<TSrc, TDst> GetMapper<TSrc, TDst>()
