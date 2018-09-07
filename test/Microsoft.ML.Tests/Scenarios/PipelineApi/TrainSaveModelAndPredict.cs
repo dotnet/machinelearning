@@ -102,21 +102,21 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             Assert.Equal("hotdog", scoreLabels[1]);
             Assert.Equal("tomato", scoreLabels[2]);
 
-            //CifarPrediction prediction = loadedModel.Predict(new CifarData()
-            //{
-            //    ImagePath = GetDataPath("images/banana.jpg")
-            //});
-            //Assert.Equal(1, prediction.PredictedLabels[0], 2);
-            //Assert.Equal(0, prediction.PredictedLabels[1], 2);
-            //Assert.Equal(0, prediction.PredictedLabels[2], 2);
+            CifarPrediction prediction = loadedModel.Predict(new CifarData()
+            {
+                ImagePath = GetDataPath("images/banana.jpg")
+            });
+            Assert.Equal(1, prediction.PredictedLabels[0], 2);
+            Assert.Equal(0, prediction.PredictedLabels[1], 2);
+            Assert.Equal(0, prediction.PredictedLabels[2], 2);
 
-            //prediction = loadedModel.Predict(new CifarData()
-            //{
-            //    ImagePath = GetDataPath("images/hotdog.jpg")
-            //});
-            //Assert.Equal(0, prediction.PredictedLabels[0], 2);
-            //Assert.Equal(1, prediction.PredictedLabels[1], 2);
-            //Assert.Equal(0, prediction.PredictedLabels[2], 2);
+            prediction = loadedModel.Predict(new CifarData()
+            {
+                ImagePath = GetDataPath("images/hotdog.jpg")
+            });
+            Assert.Equal(0, prediction.PredictedLabels[0], 2);
+            Assert.Equal(1, prediction.PredictedLabels[1], 2);
+            Assert.Equal(0, prediction.PredictedLabels[2], 2);
         }
     }
 }

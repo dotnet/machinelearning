@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -41,6 +42,8 @@ namespace Microsoft.ML.Transforms
             private readonly bool[] _isVectorInput;
             private readonly TFShape[] _tfInputShapes;
             private readonly TFDataType[] _tfInputTypes;
+            private readonly bool _isFrozen;
+            private readonly string _exportDir;
 
             private readonly string _outputColName;
             private readonly ColumnType _outputColType;
@@ -66,7 +69,7 @@ namespace Microsoft.ML.Transforms
                 _host.CheckNonEmpty(modelBytes, nameof(modelBytes));
                 _host.CheckNonEmpty(inputColNames, nameof(inputColNames));
                 _host.CheckNonEmpty(outputColName, nameof(outputColName));
-
+                _isFrozen = true;
                 _session = LoadTFSession(modelBytes, null);
                 _host.CheckValue(_session.Graph[outputColName], nameof(outputColName), "Output does not exist in the model");
                 _host.Check(inputColNames.All(name => _session.Graph[name] != null), "One of the input does not exist in the model");
@@ -83,6 +86,8 @@ namespace Microsoft.ML.Transforms
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 _host.CheckNonEmpty(inputColNames, nameof(inputColNames));
                 _host.CheckNonEmpty(outputColName, nameof(outputColName));
+                _isFrozen = false;
+                _exportDir = exportDir;
 
                 _session = LoadTFSession(exportDir);
                 _host.CheckValue(_session.Graph[outputColName], nameof(outputColName), "Output does not exist in the model");
@@ -99,20 +104,48 @@ namespace Microsoft.ML.Transforms
                 env.CheckValue(ctx, nameof(ctx));
                 ctx.CheckAtModel(GetVersionInfo());
 
-                var numInputs = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(numInputs > 0);
+                var isFrozen = ctx.Reader.ReadInt32();
+                if (isFrozen==1)
+                {
+                    var numInputs = ctx.Reader.ReadInt32();
+                    Contracts.CheckDecode(numInputs > 0);
 
-                string[] source = new string[numInputs];
-                for (int j = 0; j < source.Length; j++)
-                    source[j] = ctx.LoadNonEmptyString();
+                    string[] source = new string[numInputs];
+                    for (int j = 0; j < source.Length; j++)
+                        source[j] = ctx.LoadNonEmptyString();
 
-                byte[] data = null;
-                if (!ctx.TryLoadBinaryStream("TFModel", r => data = r.ReadByteArray()))
-                    throw env.ExceptDecode();
+                    byte[] data = null;
+                    if (!ctx.TryLoadBinaryStream("TFModel", r => data = r.ReadByteArray()))
+                        throw env.ExceptDecode();
 
-                var outputColName = ctx.LoadNonEmptyString();
+                    var outputColName = ctx.LoadNonEmptyString();
 
-                return new TensorFlowMapper(env, schema, data, source, outputColName);
+                    return new TensorFlowMapper(env, schema, data, source, outputColName);
+                }
+                else
+                {
+                    var numInputs = ctx.Reader.ReadInt32();
+                    Contracts.CheckDecode(numInputs > 0);
+
+                    string[] source = new string[numInputs];
+                    for (int j = 0; j < source.Length; j++)
+                        source[j] = ctx.LoadNonEmptyString();
+
+                    // Load model binary
+                    byte[] tfFilesBin = null;
+                    var load = ctx.TryLoadBinaryStream("TFSavedModel", br => tfFilesBin = br.ReadByteArray());
+
+                    var tempDirName = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_MLNET_TFTransform_" + Guid.NewGuid()));
+                    var tempDir = Directory.CreateDirectory(tempDirName);
+                    var tfZipFilePath = Path.Combine(tempDir.FullName, "tf_savedmodel.zip");
+
+                    File.WriteAllBytes(tfZipFilePath, tfFilesBin);
+                    ZipFile.ExtractToDirectory(tfZipFilePath, Path.Combine(tempDir.FullName, "tf_savedmodel"));
+
+                    var outputColName = ctx.LoadNonEmptyString();
+
+                    return new TensorFlowMapper(env, schema, Path.Combine(tempDir.FullName, "tf_savedmodel"), source, outputColName);
+                }
             }
 
             public void Save(ModelSaveContext ctx)
@@ -120,20 +153,43 @@ namespace Microsoft.ML.Transforms
                 _host.AssertValue(ctx);
                 ctx.CheckAtModel();
                 ctx.SetVersionInfo(GetVersionInfo());
-
-                var buffer = new TFBuffer();
-                _session.Graph.ToGraphDef(buffer);
-
-                ctx.SaveBinaryStream("TFModel", w =>
+                ctx.Writer.Write(_isFrozen ? 1 : 0);
+                if (_isFrozen)
                 {
-                    w.WriteByteArray(buffer.ToArray());
-                });
-                Contracts.AssertNonEmpty(_inputColNames);
-                ctx.Writer.Write(_inputColNames.Length);
-                foreach (var colName in _inputColNames)
-                    ctx.SaveNonEmptyString(colName);
+                    var buffer = new TFBuffer();
+                    _session.Graph.ToGraphDef(buffer);
 
-                ctx.SaveNonEmptyString(_outputColName);
+                    ctx.SaveBinaryStream("TFModel", w =>
+                    {
+                        w.WriteByteArray(buffer.ToArray());
+                    });
+                    Contracts.AssertNonEmpty(_inputColNames);
+                    ctx.Writer.Write(_inputColNames.Length);
+                    foreach (var colName in _inputColNames)
+                        ctx.SaveNonEmptyString(colName);
+
+                    ctx.SaveNonEmptyString(_outputColName);
+                }
+                else
+                {
+                    var tempDirName = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_MLNET_TFTransform_" + Guid.NewGuid()));
+                    var tempDir = Directory.CreateDirectory(tempDirName);
+                    var tfZipFilePath = Path.Combine(tempDir.FullName, "tf_savedmodel.zip");
+
+                    ZipFile.CreateFromDirectory(_exportDir, tfZipFilePath, CompressionLevel.Fastest, false);
+                    byte[] byteArray = File.ReadAllBytes(tfZipFilePath);
+                    ctx.SaveBinaryStream("TFSavedModel", w =>
+                    {
+                        w.WriteByteArray(byteArray);
+                    });
+
+                    Contracts.AssertNonEmpty(_inputColNames);
+                    ctx.Writer.Write(_inputColNames.Length);
+                    foreach (var colName in _inputColNames)
+                        ctx.SaveNonEmptyString(colName);
+
+                    ctx.SaveNonEmptyString(_outputColName);
+                }
             }
 
             private TFSession LoadTFSession(byte[] modelBytes, string modelArg)
