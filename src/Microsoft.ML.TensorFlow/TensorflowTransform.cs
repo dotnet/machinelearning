@@ -158,22 +158,6 @@ namespace Microsoft.ML.Transforms
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private TFSession LoadTFSession(byte[] modelBytes)
-        {
-            var graph = new TFGraph();
-            try
-            {
-                graph.Import(modelBytes, "");
-            }
-            catch (Exception ex)
-            {
-#pragma warning disable MSML_NoMessagesForLoadContext
-                throw _host.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
-#pragma warning restore MSML_NoMessagesForLoadContext
-            }
-            return new TFSession(graph);
-        }
-
         private static byte[] CheckFileAndRead(IHostEnvironment env, string modelFile)
         {
             env.CheckNonWhiteSpace(modelFile, nameof(modelFile));
@@ -182,16 +166,16 @@ namespace Microsoft.ML.Transforms
         }
 
         public TensorFlowTransform(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs) :
-            this(env, CheckFileAndRead(env, modelFile), inputs, outputs)
+            this(env, CheckFileAndRead(env, modelFile), inputs, outputs, modelFile)
         {
         }
 
-        private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs)
+        private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs, string modelFile = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
             _host.CheckValue(modelBytes, nameof(modelBytes));
-            Session = LoadTFSession(modelBytes);
+            Session = TensorFlowUtils.LoadTFSession(_host, modelBytes, modelFile);
             foreach (var input in inputs)
             {
                 _host.CheckNonWhiteSpace(input, nameof(inputs));
