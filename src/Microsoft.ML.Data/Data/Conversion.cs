@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data.Conversion
 {
-    using BL = Boolean;;
+    using BL = Boolean;
     using DT = DateTime;
     using DZ = DateTimeOffset;
     using R4 = Single;

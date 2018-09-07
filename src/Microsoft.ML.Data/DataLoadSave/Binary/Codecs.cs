@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private sealed class DvTextCodec : SimpleCodec<ReadOnlyMemory<char>>
+        private sealed class TextCodec : SimpleCodec<ReadOnlyMemory<char>>
         {
             private const int LengthMask = unchecked((int)0x7FFFFFFF);
 
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             // int[entries]: The non-decreasing end-boundary character index array, with high bit set for "missing" values.
             // string: The UTF-8 encoded string, with the standard LEB128 byte-length preceeding it.
 
-            public DvTextCodec(CodecFactory factory)
+            public TextCodec(CodecFactory factory)
                 : base(factory, TextType.Instance)
             {
             }
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 private StringBuilder _builder;
                 private List<int> _boundaries;
 
-                public Writer(DvTextCodec codec, Stream stream)
+                public Writer(TextCodec codec, Stream stream)
                     : base(codec.Factory, stream)
                 {
                     _builder = new StringBuilder();
@@ -379,7 +379,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 private int _index;
                 private string _text;
 
-                public Reader(DvTextCodec codec, Stream stream, int items)
+                public Reader(TextCodec codec, Stream stream, int items)
                     : base(codec.Factory, stream)
                 {
                     _entries = Reader.ReadInt32();
@@ -753,7 +753,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Utils.EnsureSize(ref _ticks, _entries, false);
                     for (int i = 0; i < _entries; i++)
                         _ticks[i] = Reader.ReadInt64();
-                        
                 }
 
                 public override void MoveNext()
