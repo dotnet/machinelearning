@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Api
                         if (outputType.GetElementType() == typeof(string))
                         {
                             Ch.Assert(colType.ItemType.IsText);
-                            return CreateConvertingArrayGetterDelegate<string, ReadOnlyMemory<char>>(index, x => { Contracts.Check(x != null); return x.AsMemory(); });
+                            return CreateConvertingArrayGetterDelegate<string, ReadOnlyMemory<char>>(index, x =>  x != null ? x.AsMemory() : "".AsMemory() );
                         }
                         else if (outputType.GetElementType() == typeof(int))
                         {
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.Api
                         {
                             // String -> ReadOnlyMemory<char>
                             Ch.Assert(colType.IsText);
-                            return CreateConvertingGetterDelegate<String, ReadOnlyMemory<char>>(index, x => { Contracts.Check(x != null); return x.AsMemory(); });
+                            return CreateConvertingGetterDelegate<String, ReadOnlyMemory<char>>(index, x => x != null ? x.AsMemory() : "".AsMemory());
                         }
                         else if (outputType == typeof(bool))
                         {
