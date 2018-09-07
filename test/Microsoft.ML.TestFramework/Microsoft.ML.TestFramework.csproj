@@ -11,10 +11,12 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Parquet\Microsoft.ML.Parquet.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
   </ItemGroup>
