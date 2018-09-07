@@ -341,7 +341,7 @@ namespace Microsoft.ML.Runtime.Data
                         {
                             Host.Assert(0 <= col && col < _infos.Length);
                             InputSchema.TryGetColumnIndex(_infos[col].Source, out int sourceColumn);
-                            InputSchema.GetMetadata<VBuffer<DvText>>(MetadataUtils.Kinds.KeyValues, sourceColumn, ref dst);
+                            InputSchema.GetMetadata(MetadataUtils.Kinds.KeyValues, sourceColumn, ref dst);
                         };
                         var info = new MetadataInfo<VBuffer<DvText>>(typeNames, getter);
                         colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
@@ -770,24 +770,23 @@ namespace Microsoft.ML.Runtime.Data
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                var col = inputSchema.FindColumn(colInfo.Input);
-
-                if (col == null)
+                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
                 if ((col.ItemType.ItemType.RawKind == default) || !(col.ItemType.IsVector || col.ItemType.IsPrimitive))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                List<string> metadata = new List<string>();
+                var metadata = new List<SchemaShape.Column>();
 
-                if (col.MetadataKinds.Contains(MetadataUtils.Kinds.KeyValues))
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
                     if (col.Kind != SchemaShape.Column.VectorKind.VariableVector && col.ItemType.IsText)
-                        metadata.Add(MetadataUtils.Kinds.SlotNames);
+                        metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (!colInfo.Bag && (col.Kind == SchemaShape.Column.VectorKind.Scalar || col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges);
+                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Scalar, MetadataUtils.GetCategoricalType(1), false));
                 if (!colInfo.Bag || (col.Kind == SchemaShape.Column.VectorKind.Scalar))
-                    metadata.Add(MetadataUtils.Kinds.IsNormalized);
+                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar,
+                    BoolType.Instance, false));
 
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, metadata.ToArray());
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(metadata));
             }
 
             return new SchemaShape(result.Values);
