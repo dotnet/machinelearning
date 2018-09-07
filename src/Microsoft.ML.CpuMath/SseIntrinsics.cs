@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Sse.SetAllVector128(BitConverter.Int32BitsToSingle(0x7FFFFFFF));
 
         // The count of 32-bit floats in Vector128<T>
-        internal const int SseAlignment = 4;
+        internal const int Vector128SingleElementCount = 4;
 
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
         private const int Vector128Alignment = 16;
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pdst = dst)
             {
                 Vector128<float> scalarVector = Sse.SetAllVector128(scalar);
-                int count = Math.DivRem(dst.Length, SseAlignment, out int remainder);
+                int count = Math.DivRem(dst.Length, Vector128SingleElementCount, out int remainder);
                 float* pDstCurrent = pdst;
 
                 for (int i = 0; i < count; i++)
@@ -425,16 +425,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     dstVector = Sse.Add(dstVector, scalarVector);
                     Sse.Store(pDstCurrent, dstVector);
 
-                    pDstCurrent += SseAlignment;
+                    pDstCurrent += Vector128SingleElementCount;
                 }
 
                 for (int i = 0; i < remainder; i++)
                 {
-                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
-                    dstVector = Sse.AddScalar(dstVector, scalarVector);
-                    Sse.StoreScalar(pDstCurrent, dstVector);
-
-                    pDstCurrent++;
+                    pDstCurrent[i] += scalar;
                 }
             }
         }

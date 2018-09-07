@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         private static readonly Vector256<float> _absMask256 = Avx.StaticCast<int, float>(Avx.SetAllVector256(0x7FFFFFFF));
 
         // The count of 32-bit floats in Vector256<T>
-        private const int AvxAlignment = 8;
+        private const int Vector256SingleElementCount = 8;
 
         // The count of bytes in Vector256<T>, corresponding to _cbAlign in AlignedArray
         private const int Vector256Alignment = 32;
@@ -420,37 +420,32 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pdst = dst)
             {
                 Vector256<float> scalarVector256 = Avx.SetAllVector256(scalar);
-                int countAvx = Math.DivRem(dst.Length, AvxAlignment, out int remainderAvx);
+                int count = Math.DivRem(dst.Length, Vector256SingleElementCount, out int remainder);
                 float* pDstCurrent = pdst;
 
-                for (int i = 0; i < countAvx; i++)
+                for (int i = 0; i < count; i++)
                 {
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
                     dstVector = Avx.Add(dstVector, scalarVector256);
                     Avx.Store(pDstCurrent, dstVector);
 
-                    pDstCurrent += AvxAlignment;
+                    pDstCurrent += Vector256SingleElementCount;
                 }
 
                 Vector128<float> scalarVector128 = Sse.SetAllVector128(scalar);
-                int countSse = Math.DivRem(remainderAvx, SseIntrinsics.SseAlignment, out int remainderSse);
 
-                if (countSse > 0)
+                if (remainder >= 4)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, scalarVector128);
                     Sse.Store(pDstCurrent, dstVector);
 
-                    pDstCurrent += SseIntrinsics.SseAlignment;
+                    pDstCurrent += SseIntrinsics.Vector128SingleElementCount;
                 }
 
-                for (int i = 0; i < remainderSse; i++)
+                for (int i = 0; i < remainder - 4; i++)
                 {
-                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
-                    dstVector = Sse.AddScalar(dstVector, scalarVector128);
-                    Sse.StoreScalar(pDstCurrent, dstVector);
-
-                    pDstCurrent++;
+                    pDstCurrent[i] += scalar;
                 }
             }
         }
