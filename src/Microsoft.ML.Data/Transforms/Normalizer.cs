@@ -473,7 +473,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var colInfo = _parent._columns[iinfo];
                 var result = new ColumnMetadataInfo(colInfo.Output);
-                result.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<DvBool>(BoolType.Instance, IsNormalizedGetter));
+                result.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<bool>(BoolType.Instance, IsNormalizedGetter));
                 if (InputSchema.HasSlotNames(ColMapNewToOld[iinfo], colInfo.InputType.VectorSize))
                 {
                     MetadataUtils.MetadataGetter<VBuffer<DvText>> getter = (int col, ref VBuffer<DvText> slotNames) =>
@@ -485,7 +485,7 @@ namespace Microsoft.ML.Runtime.Data
                 return result;
             }
 
-            private void IsNormalizedGetter(int col, ref DvBool dst)
+            private void IsNormalizedGetter(int col, ref bool dst)
             {
                 dst = true;
             }
