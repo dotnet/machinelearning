@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.FastTree
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Train DCG instead of NDCG", ShortName = "dcg")]
             public bool TrainDcg;
 
-            // REVIEW: Hiding sorting for now. Should be an enum or SubComponent.
+            // REVIEW: Hiding sorting for now. Should be an enum or component factory.
             [Argument(ArgumentType.LastOccurenceWins,
                 HelpText = "The sorting algorithm to use for DCG and LambdaMart calculations [DescendingStablePessimistic/DescendingStable/DescendingReverse/DescendingDotNet]",
                 ShortName = "sort",
