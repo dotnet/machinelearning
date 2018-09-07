@@ -31,18 +31,26 @@ namespace Microsoft.ML.Runtime.Data
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                var col = inputSchema.FindColumn(colInfo.Input);
-
-                if (col == null)
+                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
                 if ((col.ItemType.ItemType.RawKind == default) || !(col.ItemType.IsVector || col.ItemType.IsPrimitive))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                string[] metadata;
-                if (col.MetadataKinds.Contains(MetadataUtils.Kinds.SlotNames))
-                    metadata = new[] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.KeyValues };
+                SchemaShape metadata;
+
+                // In the event that we are transforming something that is of type key, we will get their type of key value
+                // metadata, unless it has none or is not vector in which case we back off to having key values over the item type.
+                if (!col.IsKey || !col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var kv) || kv.Kind != SchemaShape.Column.VectorKind.Vector)
+                {
+                    kv = new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
+                        col.ItemType, col.IsKey);
+                }
+                Contracts.AssertValue(kv);
+
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    metadata = new SchemaShape(new[] { slotMeta, kv });
                 else
-                    metadata = new[] { MetadataUtils.Kinds.KeyValues };
+                    metadata = new SchemaShape(new[] { kv });
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, NumberType.U4, true, metadata);
             }
 
