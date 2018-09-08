@@ -60,6 +60,12 @@ namespace Microsoft.ML.Runtime.FastTree
         public FastTreeRankingTrainer(IHostEnvironment env, Arguments args)
                 : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
+            OutputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
+            };
         }
 
         protected override float GetMaxLabel()

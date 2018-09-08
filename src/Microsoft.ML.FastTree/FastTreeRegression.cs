@@ -52,6 +52,10 @@ namespace Microsoft.ML.Runtime.FastTree
         public FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
+            OutputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
+            };
         }
 
         protected override FastTreeRegressionPredictor TrainModelCore(TrainContext context)

@@ -46,12 +46,17 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected override SchemaShape.Column[] OutputColumns => throw new NotImplementedException();
+        protected override SchemaShape.Column[] OutputColumns { get; }
 
         public FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)
             : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
             Host.CheckUserArg(1 <= Args.Index && Args.Index <= 2, nameof(Args.Index), "Must be in the range [1, 2]");
+
+            OutputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
+            };
         }
 
         protected override FastTreeTweediePredictor TrainModelCore(TrainContext context)

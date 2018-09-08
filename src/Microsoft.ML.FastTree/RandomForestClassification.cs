@@ -79,8 +79,7 @@ namespace Microsoft.ML.Runtime.FastTree
         internal FastForestClassificationPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount,
             string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
-        {
-        }
+        {  }
 
         private FastForestClassificationPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx, GetVersionInfo())
@@ -138,6 +137,12 @@ namespace Microsoft.ML.Runtime.FastTree
         public FastForestClassification(IHostEnvironment env, Arguments args)
             : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
+            OutputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
+            };
         }
 
         protected override IPredictorWithFeatureWeights<Float> TrainModelCore(TrainContext context)

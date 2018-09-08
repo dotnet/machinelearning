@@ -158,6 +158,10 @@ namespace Microsoft.ML.Runtime.FastTree
         public FastForestRegression(IHostEnvironment env, Arguments args)
             : base(env, args, MakeLabelColumn(args.LabelColumn), true)
         {
+            OutputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
+            };
         }
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;

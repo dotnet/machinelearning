@@ -26,6 +26,7 @@ using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.TreePredictor;
 using Newtonsoft.Json.Linq;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 
 // All of these reviews apply in general to fast tree and random forest implementations.
 //REVIEW: Decouple train method in Application.cs to have boosting and random forest logic seperate.
@@ -135,9 +136,9 @@ namespace Microsoft.ML.Runtime.FastTree
             return Float.PositiveInfinity;
         }
 
-        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        private static SchemaShape.Column MakeWeightColumn(Optional<string> weightColumn)
         {
-            if (weightColumn == null)
+            if (weightColumn == null || !weightColumn.IsExplicit)
                 return null;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
