@@ -226,13 +226,9 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    var keyToVecArgs = new KeyToVectorTransform.Arguments
-                    {
-                        Bag = argsOutputKind == OutputKind.Bag,
-                        Column = cols.ToArray()
-                    };
+                    var keyToVecCols = cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.Source, x.Name, x.Bag ?? argsOutputKind == OutputKind.Bag)).ToArray();
 
-                    transform =KeyToVectorTransform.Create(h, keyToVecArgs, input);
+                    transform = KeyToVectorTransform.Create(h, input, keyToVecCols);
                 }
 
                 ch.Done();

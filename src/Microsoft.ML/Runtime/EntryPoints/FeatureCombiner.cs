@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
         }
 
-        private static IDataView ApplyKeyToVec(List<KeyToVectorTransform.Column> ktv, IDataView viewTrain, IHost host)
+        private static IDataView ApplyKeyToVec(List<KeyToVectorTransform.ColumnInfo> ktv, IDataView viewTrain, IHost host)
         {
             Contracts.AssertValueOrNull(ktv);
             Contracts.AssertValue(viewTrain);
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     new KeyToValueTransform.Arguments()
                     {
                         Column = ktv
-                            .Select(c => new KeyToValueTransform.Column() { Name = c.Name, Source = c.Source })
+                            .Select(c => new KeyToValueTransform.Column() { Name = c.Output, Source = c.Input })
                             .ToArray()
                     },
                      viewTrain);
@@ -105,12 +105,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     new TermTransform.Arguments()
                     {
                         Column = ktv
-                            .Select(c => new TermTransform.Column() { Name = c.Name, Source = c.Name, Terms = GetTerms(viewTrain, c.Source) })
+                            .Select(c => new TermTransform.Column() { Name = c.Output, Source = c.Output, Terms = GetTerms(viewTrain, c.Input) })
                             .ToArray(),
                         TextKeyValues = true
                     },
                      viewTrain);
-                viewTrain = KeyToVectorTransform.Create(host, viewTrain, ktv.Select(c => new KeyToVectorTransform.ColumnInfo(c.Name, c.Name)).ToArray());
+                viewTrain = KeyToVectorTransform.Create(host, viewTrain, ktv.Select(c => new KeyToVectorTransform.ColumnInfo(c.Output, c.Output)).ToArray());
             }
             return viewTrain;
         }
@@ -154,14 +154,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return viewTrain;
         }
 
-        private static List<KeyToVectorTransform.Column> ConvertFeatures(ColumnInfo[] feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
+        private static List<KeyToVectorTransform.ColumnInfo> ConvertFeatures(ColumnInfo[] feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
             out List<ConvertTransform.Column> cvt, out int errCount)
         {
             Contracts.AssertValue(feats);
             Contracts.AssertValue(featNames);
             Contracts.AssertValue(concatNames);
             Contracts.AssertValue(ch);
-            List<KeyToVectorTransform.Column> ktv = null;
+            List<KeyToVectorTransform.ColumnInfo> ktv = null;
             cvt = null;
             errCount = 0;
             foreach (var col in feats)
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             var colName = GetUniqueName();
                             concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                            Utils.Add(ref ktv, new KeyToVectorTransform.Column() { Name = colName, Source = col.Name });
+                            Utils.Add(ref ktv, new KeyToVectorTransform.ColumnInfo(col.Name, colName));
                             continue;
                         }
                     }

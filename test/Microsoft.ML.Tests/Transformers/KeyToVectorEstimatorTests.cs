@@ -19,12 +19,14 @@ namespace Microsoft.ML.Tests.Transformers
         public KeyToVectorEstimatorTest(ITestOutputHelper output) : base(output)
         {
         }
+
         class TestClass
         {
             public int A;
             public int B;
             public int C;
         }
+
         class TestMeta
         {
             [VectorType(2)]
@@ -189,11 +191,13 @@ namespace Microsoft.ML.Tests.Transformers
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC")
-                });
+            });
             var transformer = est.Fit(dataView);
             dataView = transformer.Transform(dataView);
-            var pipe = new KeyToVectorEstimator(Env, new KeyToVectorTransform.ColumnInfo("TermA", "CatA", false),
-        new KeyToVectorTransform.ColumnInfo("TermB", "CatB", true));
+            var pipe = new KeyToVectorEstimator(Env,
+                new KeyToVectorTransform.ColumnInfo("TermA", "CatA", false),
+                new KeyToVectorTransform.ColumnInfo("TermB", "CatB", true)
+            );
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())
@@ -201,7 +205,6 @@ namespace Microsoft.ML.Tests.Transformers
                 TrainUtils.SaveModel(Env, Env.Start("saving"), ms, null, resultRoles);
                 ms.Position = 0;
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
-
             }
         }
     }

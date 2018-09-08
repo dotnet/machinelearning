@@ -97,6 +97,7 @@ namespace Microsoft.ML.Runtime.Data
                 Bag = bag;
             }
         }
+
         internal sealed class ColInfo
         {
             public readonly string Name;
@@ -242,7 +243,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static IDataView Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) =>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) =>
              new KeyToVectorTransform(env, input, columns).MakeDataTransform(input);
 
         // Factory method for SignatureDataTransform.
@@ -256,7 +257,6 @@ namespace Microsoft.ML.Runtime.Data
             var cols = new ColumnInfo[args.Column.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
-
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = args.Column[i];
@@ -325,7 +325,6 @@ namespace Microsoft.ML.Runtime.Data
             private void AddMetadata(int i, ColumnMetadataInfo colMetaInfo)
             {
                 InputSchema.TryGetColumnIndex(_infos[i].Source, out int srcCol);
-                //IVAN: Simplify
                 var srcType = _infos[i].TypeSrc;
                 var typeNames = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
                 if (typeNames == null || !typeNames.IsKnownSizeVector || !typeNames.ItemType.IsText ||
@@ -347,7 +346,6 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    //IVAN:simplify it
                     var type = new VectorType(NumberType.Float, _parent._valueCounts[i], _parent._sizes[i]);
                     if (typeNames != null && type.VectorSize > 0)
                     {
@@ -359,6 +357,7 @@ namespace Microsoft.ML.Runtime.Data
                         colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
                     }
                 }
+
                 if (!_parent._bags[i] && srcType.ValueCount > 0)
                 {
                     MetadataUtils.MetadataGetter<VBuffer<DvInt4>> getter = (int col, ref VBuffer<DvInt4> dst) =>
@@ -368,6 +367,7 @@ namespace Microsoft.ML.Runtime.Data
                     var info = new MetadataInfo<VBuffer<DvInt4>>(MetadataUtils.GetCategoricalType(_parent._valueCounts[i]), getter);
                     colMetaInfo.Add(MetadataUtils.Kinds.CategoricalSlotRanges, info);
                 }
+
                 if (!_parent._bags[i] || srcType.ValueCount == 1)
                 {
                     MetadataUtils.MetadataGetter<DvBool> getter = (int col, ref DvBool dst) =>
@@ -736,7 +736,6 @@ namespace Microsoft.ML.Runtime.Data
                 node.AddAttribute("zeros", true);
                 return true;
             }
-
         }
     }
 
@@ -759,7 +758,6 @@ namespace Microsoft.ML.Runtime.Data
         public KeyToVectorEstimator(IHostEnvironment env, string name, string source = null, bool bag = Defaults.Bag) :
             this(env, new KeyToVectorTransform.ColumnInfo(source ?? name, name, bag))
         {
-
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -778,7 +776,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (col.Kind != SchemaShape.Column.VectorKind.VariableVector && col.ItemType.IsText)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (!colInfo.Bag && (col.Kind == SchemaShape.Column.VectorKind.Scalar || col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Scalar, MetadataUtils.GetCategoricalType(1), false));
+                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberType.I4, false));
                 if (!colInfo.Bag || (col.Kind == SchemaShape.Column.VectorKind.Scalar))
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
 
@@ -790,5 +788,4 @@ namespace Microsoft.ML.Runtime.Data
 
         public KeyToVectorTransform Fit(IDataView input) => new KeyToVectorTransform(_host, input, _columns);
     }
-
 }
