@@ -30,7 +30,6 @@
 		
       </remarks>
     </member>
-    <example name="TensorflowTransform">
       <example>
         <code language="csharp">
           pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;MNISTData&gt;(useHeader: false));
@@ -72,7 +71,6 @@
                 OutputColumn = &quot;Output&quot;
             });
         </code>
-      </example>
     </example>
     
   </members>

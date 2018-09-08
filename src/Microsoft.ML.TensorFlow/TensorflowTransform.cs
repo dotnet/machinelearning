@@ -296,9 +296,9 @@ namespace Microsoft.ML.Transforms
             public string OutputColumn;
         }
 
-        public const string Summary = "Transforms the data using the TensorFlow model.";
-        public const string UserName = "TensorFlowTransform";
-        public const string ShortName = "TFTransform";
+        internal const string Summary = "Transforms the data using the TensorFlow model.";
+        internal const string UserName = "TensorFlowTransform";
+        internal const string ShortName = "TFTransform";
         private const string RegistrationName = "TensorFlowTransform";
 
         /// <summary>
@@ -373,12 +373,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.TensorFlowScorer",
-            Desc = Summary,
-            UserName = UserName,
-            ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name=""TensorflowTransform""]/*' />",
-                                 @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/example[@name=""TensorflowTransform""]/*' />" })]
+        [TlcModule.EntryPoint(Name = "Transforms.TensorFlowScorer", Desc = Summary, UserName = UserName, ShortName = ShortName)]
         public static CommonOutputs.TransformOutput TensorFlowScorer(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
