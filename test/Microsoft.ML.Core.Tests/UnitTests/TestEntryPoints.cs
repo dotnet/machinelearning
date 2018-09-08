@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     {
                         new TextLoader.Column("Label", type: null, 0),
                         new TextLoader.Column("F1", DataKind.Text, 1),
-                        new TextLoader.Column("F2", DataKind.I4, 2),
+                        new TextLoader.Column("F2", DataKind.R4, 2),
                         new TextLoader.Column("Rest", type: null, new [] { new TextLoader.Range(3, 9) })
                     }
                 },
@@ -1968,7 +1968,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     "Transforms.ColumnTypeConverter",
                     "Transforms.ColumnTypeConverter",
-                    "Transforms.ColumnTypeConverter",
                 },
                 new[]
                 {
@@ -1984,7 +1983,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       {
                         'Name': 'Feat',
                         'Source': 'FT',
-                        'Type': 'I1'
+                        'Type': 'R4'
                       },
                       {
                         'Name': 'Key1',
@@ -1994,18 +1993,11 @@ namespace Microsoft.ML.Runtime.RunTests
                       ]",
                     @"'Column': [
                       {
-                        'Name': 'Ints',
+                        'Name': 'Doubles',
                         'Source': 'Feat'
                       }
                       ],
-                      'Type': 'I4'",
-                    @"'Column': [
-                      {
-                        'Name': 'Floats',
-                        'Source': 'Ints'
-                      }
-                      ],
-                      'Type': 'Num'",
+                      'Type': 'R8'",
                 });
         }
 
