@@ -44,7 +44,6 @@
         </a>.
 
       </remarks>
-    </member>
       <example>
         <code language="csharp">
           pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;MNISTData&gt;(useHeader: false));
@@ -87,6 +86,7 @@
           });
         </code>
     </example>
+    </member>
 
   </members>
 </doc>

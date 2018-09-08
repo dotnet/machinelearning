@@ -32,6 +32,7 @@ using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML.Transforms
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
     public sealed class TensorFlowTransform : ITransformer, ICanSaveModel
     {
         public sealed class Arguments : TransformInputBase
