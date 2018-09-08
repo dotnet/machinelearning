@@ -26,12 +26,13 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.Learners
 {
+    using Microsoft.ML.Core.Data;
     using TPredictor = LinearBinaryPredictor;
 
     /// <summary>
     /// Linear SVM that implements PEGASOS for training. See: http://ttic.uchicago.edu/~shai/papers/ShalevSiSr07.pdf
     /// </summary>
-    public sealed class LinearSvm : OnlineLinearTrainer<LinearSvm.Arguments, TPredictor>
+    public sealed class LinearSvm : OnlineLinearTrainer<BinaryPredictionTransformer<LinearBinaryPredictor>, LinearBinaryPredictor>
     {
         public const string LoadNameValue = "LinearSVM";
         public const string ShortName = "svm";
@@ -40,6 +41,8 @@ namespace Microsoft.ML.Runtime.Learners
             + "in which instances of the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it, "
             + "and all the negative examples are on the other. After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the "
             + "margin, i.e., the minimal distance between it and the instances.";
+
+        internal new readonly Arguments Args;
 
         public sealed class Arguments : OnlineLinearArguments
         {
@@ -83,13 +86,24 @@ namespace Microsoft.ML.Runtime.Learners
         protected override bool NeedCalibration => true;
 
         public LinearSvm(IHostEnvironment env, Arguments args)
-            : base(args, env, UserNameValue)
+            : base(args, env, UserNameValue, MakeLabelColumn(args.LabelColumn))
         {
             Contracts.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), UserErrorPositive);
             Contracts.CheckUserArg(args.BatchSize > 0, nameof(args.BatchSize), UserErrorPositive);
+
+            Args = args;
+
+            OutputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
+            };
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+
+        protected override SchemaShape.Column[] OutputColumns { get; }
 
         protected override void CheckLabel(RoleMappedData data)
         {
@@ -103,6 +117,11 @@ namespace Microsoft.ML.Runtime.Learners
         protected override Float Margin(ref VBuffer<Float> feat)
         {
             return Bias + VectorUtils.DotProduct(ref feat, ref Weights) * WeightsScale;
+        }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
         }
 
         protected override void InitCore(IChannel ch, int numFeatures, LinearPredictor predictor)
@@ -237,5 +256,8 @@ namespace Microsoft.ML.Runtime.Learners
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
+
+        protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, ISchema trainSchema)
+        => new BinaryPredictionTransformer<LinearBinaryPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 }

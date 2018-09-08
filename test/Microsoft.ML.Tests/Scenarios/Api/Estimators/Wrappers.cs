@@ -354,29 +354,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public sealed class MyAveragedPerceptron : TrainerBase<BinaryScorerWrapper<IPredictor>, IPredictor>
-    {
-        private readonly AveragedPerceptronTrainer _trainer;
-
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-
-        public MyAveragedPerceptron(IHostEnvironment env, AveragedPerceptronTrainer.Arguments args, string featureCol, string labelCol)
-            : base(env, new TrainerInfo(caching: false), featureCol, labelCol)
-        {
-            _trainer = new AveragedPerceptronTrainer(env, args);
-        }
-
-        protected override IPredictor TrainCore(TrainContext trainContext) => _trainer.Train(trainContext);
-
-        public ITransformer Train(IDataView trainData, IPredictor initialPredictor)
-        {
-            return TrainTransformer(trainData, initPredictor: initialPredictor);
-        }
-
-        protected override BinaryScorerWrapper<IPredictor> MakeScorer(IPredictor predictor, RoleMappedData data)
-            => new BinaryScorerWrapper<IPredictor>(_env, predictor, data.Data.Schema, _featureCol, new BinaryClassifierScorer.Arguments());
-    }
-
     public sealed class MyPredictionEngine<TSrc, TDst>
                 where TSrc : class
                 where TDst : class, new()
