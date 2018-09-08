@@ -4,7 +4,7 @@
 
     <member name="TensorflowTransform">
       <summary>
-        Extracts hidden layers' values from a pre-trained Tensorflow model.
+        Extracts hidden layers&apos; values from a pre-trained Tensorflow model.
       </summary>
       <remarks>
         <para>
@@ -48,7 +48,7 @@
       <example>
         <code language="csharp">
           pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;MNISTData&gt;(useHeader: false));
-          pipeline.Add(new ColumnCopier(("NumericImageVec", "Input");
+          pipeline.Add(new ColumnCopier((&quot;NumericImageVec&quot;, &quot;Input&quot;);
           pipeline.Add(new TensorFlowScorer()
           {
           ModelFile = model_location;
