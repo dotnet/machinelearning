@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             public bool Equals(TransformString other)
             {
                 return Kind == other.Kind &&
-                    Settings.Equals(other.Settings);
+                    Settings == other.Settings;
             }
 
             public override string ToString()
