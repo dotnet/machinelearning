@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
@@ -54,6 +55,8 @@ namespace Microsoft.ML.Transforms
         private const string RegistrationName = "TensorFlowTransform";
 
         internal readonly TFSession Session;
+        internal readonly bool IsFrozen;
+        internal readonly string ExportDir;
         internal readonly ColumnType[] OutputTypes;
         internal readonly TFDataType[] TFOutputTypes;
         internal readonly TFDataType[] TFInputTypes;
@@ -114,34 +117,68 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            // *** Binary format ***
-            // stream: tensorFlow model.
-            // int: number of input columns
-            // for each input column
-            //   int: id of int column name
-            // int: number of output columns
-            // for each output column
-            //   int: id of output column name
-            byte[] modelBytes = null;
-            if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
-                throw env.ExceptDecode();
-            var numInputs = ctx.Reader.ReadInt32();
-            env.CheckDecode(numInputs > 0);
-            string[] inputs = new string[numInputs];
-            for (int j = 0; j < inputs.Length; j++)
-                inputs[j] = ctx.LoadNonEmptyString();
 
-            bool isMultiOutput = ctx.Header.ModelVerReadable >= 0x00010002;
-            var numOutputs = 1;
-            if (isMultiOutput)
-                numOutputs = ctx.Reader.ReadInt32();
+            var isFrozen = ctx.Reader.ReadInt32();
+            if (isFrozen == 1)
+            {
+                // *** Binary format ***
+                // stream: tensorFlow model.
+                // int: number of input columns
+                // for each input column
+                //   int: id of int column name
+                // int: number of output columns
+                // for each output column
+                //   int: id of output column name
+                byte[] modelBytes = null;
+                if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
+                    throw env.ExceptDecode();
+                var numInputs = ctx.Reader.ReadInt32();
+                env.CheckDecode(numInputs > 0);
+                string[] inputs = new string[numInputs];
+                for (int j = 0; j < inputs.Length; j++)
+                    inputs[j] = ctx.LoadNonEmptyString();
 
-            env.CheckDecode(numOutputs > 0);
-            var outputs = new string[numOutputs];
-            for (int j = 0; j < outputs.Length; j++)
-                outputs[j] = ctx.LoadNonEmptyString();
+                bool isMultiOutput = ctx.Header.ModelVerReadable >= 0x00010002;
+                var numOutputs = 1;
+                if (isMultiOutput)
+                    numOutputs = ctx.Reader.ReadInt32();
 
-            return new TensorFlowTransform(env, modelBytes, inputs, outputs);
+                env.CheckDecode(numOutputs > 0);
+                var outputs = new string[numOutputs];
+                for (int j = 0; j < outputs.Length; j++)
+                    outputs[j] = ctx.LoadNonEmptyString();
+
+                return new TensorFlowTransform(env, modelBytes, (isFrozen==1), inputs, outputs);
+            }
+            else
+            {
+                // Load model binary
+                byte[] tfFilesBin = null;
+                var load = ctx.TryLoadBinaryStream("TFSavedModel", br => tfFilesBin = br.ReadByteArray());
+                var tempDirName = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_MLNET_TFTransform_" + Guid.NewGuid()));
+                var tempDir = Directory.CreateDirectory(tempDirName);
+                var tfZipFilePath = Path.Combine(tempDir.FullName, "tf_savedmodel.zip");
+                File.WriteAllBytes(tfZipFilePath, tfFilesBin);
+                ZipFile.ExtractToDirectory(tfZipFilePath, Path.Combine(tempDir.FullName, "tf_savedmodel"));
+
+                var numInputs = ctx.Reader.ReadInt32();
+                env.CheckDecode(numInputs > 0);
+                string[] inputs = new string[numInputs];
+                for (int j = 0; j < inputs.Length; j++)
+                    inputs[j] = ctx.LoadNonEmptyString();
+
+                bool isMultiOutput = ctx.Header.ModelVerReadable >= 0x00010002;
+                var numOutputs = 1;
+                if (isMultiOutput)
+                    numOutputs = ctx.Reader.ReadInt32();
+
+                env.CheckDecode(numOutputs > 0);
+                var outputs = new string[numOutputs];
+                for (int j = 0; j < outputs.Length; j++)
+                    outputs[j] = ctx.LoadNonEmptyString();
+
+                return new TensorFlowTransform(env, Path.Combine(tempDir.FullName, "tf_savedmodel"), (isFrozen == 1), inputs, outputs);
+            }
         }
 
         // Factory method for SignatureDataTransform.
@@ -200,23 +237,42 @@ namespace Microsoft.ML.Transforms
 
         public TensorFlowTransform(IHostEnvironment env, string modelFile, bool isFrozen, string[] inputs, string[] outputs)
         {
+            _host = env.Register(nameof(RegistrationName));
+            Inputs = inputs;
+            TFInputTypes = new TFDataType[Inputs.Length];
+            TFInputShapes = new TFShape[Inputs.Length];
+            Outputs = outputs;
+            OutputTypes = new ColumnType[Outputs.Length];
+            TFOutputTypes = new TFDataType[Outputs.Length];
+            IsFrozen = isFrozen;
+
             if (isFrozen)
             {
-                _host = env.Register(nameof(RegistrationName));
                 byte[] modelBytes = CheckFileAndRead(env, modelFile);
-
                 Session = LoadTFSession(modelBytes);
-                Inputs = inputs;
-                TFInputTypes = new TFDataType[Inputs.Length];
-                TFInputShapes = new TFShape[Inputs.Length];
-                Outputs = outputs;
-                OutputTypes = new ColumnType[Outputs.Length];
-                TFOutputTypes = new TFDataType[Outputs.Length];
-                TensorFlowInit(env, modelBytes, inputs, outputs);
+
+                _host.CheckValue(modelBytes, nameof(modelBytes));
+                foreach (var input in inputs)
+                {
+                    _host.CheckNonWhiteSpace(input, nameof(inputs));
+                    if (Session.Graph[input] == null)
+                        throw _host.ExceptParam(nameof(inputs), $"Input column '{input}' does not exist in the model");
+                    var tfInput = new TFOutput(Session.Graph[input]);
+                    if (!TensorFlowUtils.IsTypeSupported(tfInput.OutputType))
+                        throw _host.ExceptParam(nameof(modelBytes), $"Input type '{tfInput.OutputType}' of input column '{input}' is not supported in TensorFlow");
+                }
+
+                TensorFlowInit(env, inputs, outputs);
+            }
+            else
+            {
+                ExportDir = modelFile;
+                Session = LoadTFSession(ExportDir);
+                TensorFlowInit(env, inputs, outputs);
             }
         }
 
-        private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs)
+        private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, bool isFrozen, string[] inputs, string[] outputs)
         {
             _host = env.Register(nameof(RegistrationName));
             Session = LoadTFSession(modelBytes);
@@ -226,11 +282,7 @@ namespace Microsoft.ML.Transforms
             Outputs = outputs;
             OutputTypes = new ColumnType[Outputs.Length];
             TFOutputTypes = new TFDataType[Outputs.Length];
-            TensorFlowInit(env, modelBytes, inputs, outputs);
-        }
-        private void TensorFlowInit(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs)
-        {
-            Contracts.CheckValue(env, nameof(env));
+            IsFrozen = isFrozen;
 
             _host.CheckValue(modelBytes, nameof(modelBytes));
             foreach (var input in inputs)
@@ -242,6 +294,12 @@ namespace Microsoft.ML.Transforms
                 if (!TensorFlowUtils.IsTypeSupported(tfInput.OutputType))
                     throw _host.ExceptParam(nameof(modelBytes), $"Input type '{tfInput.OutputType}' of input column '{input}' is not supported in TensorFlow");
             }
+
+            TensorFlowInit(env, inputs, outputs);
+        }
+        private void TensorFlowInit(IHostEnvironment env, string[] inputs, string[] outputs)
+        {
+            Contracts.CheckValue(env, nameof(env));
 
             var newNames = new HashSet<string>();
             foreach (var output in outputs)
@@ -301,31 +359,59 @@ namespace Microsoft.ML.Transforms
             _host.AssertValue(ctx);
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-            // *** Binary format ***
-            // stream: tensorFlow model.
-            // int: number of input columns
-            // for each input column
-            //   int: id of int column name
-            // int: number of output columns
-            // for each output column
-            //   int: id of output column name
+            ctx.Writer.Write(IsFrozen ? 1 : 0);
 
-            var buffer = new TFBuffer();
-            Session.Graph.ToGraphDef(buffer);
-
-            ctx.SaveBinaryStream("TFModel", w =>
+            if (IsFrozen)
             {
-                w.WriteByteArray(buffer.ToArray());
-            });
-            _host.AssertNonEmpty(Inputs);
-            ctx.Writer.Write(Inputs.Length);
-            foreach (var colName in Inputs)
-                ctx.SaveNonEmptyString(colName);
+                // *** Binary format ***
+                // stream: tensorFlow model.
+                // int: number of input columns
+                // for each input column
+                //   int: id of int column name
+                // int: number of output columns
+                // for each output column
+                //   int: id of output column name
 
-            _host.AssertNonEmpty(Outputs);
-            ctx.Writer.Write(Outputs.Length);
-            foreach (var colName in Outputs)
-                ctx.SaveNonEmptyString(colName);
+                var buffer = new TFBuffer();
+                Session.Graph.ToGraphDef(buffer);
+
+                ctx.SaveBinaryStream("TFModel", w =>
+                {
+                    w.WriteByteArray(buffer.ToArray());
+                });
+                _host.AssertNonEmpty(Inputs);
+                ctx.Writer.Write(Inputs.Length);
+                foreach (var colName in Inputs)
+                    ctx.SaveNonEmptyString(colName);
+
+                _host.AssertNonEmpty(Outputs);
+                ctx.Writer.Write(Outputs.Length);
+                foreach (var colName in Outputs)
+                    ctx.SaveNonEmptyString(colName);
+            }
+            else
+            {
+                var tempDirName = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_MLNET_TFTransform_" + Guid.NewGuid()));
+                var tempDir = Directory.CreateDirectory(tempDirName);
+                var tfZipFilePath = Path.Combine(tempDir.FullName, "tf_savedmodel.zip");
+
+                ZipFile.CreateFromDirectory(ExportDir, tfZipFilePath, CompressionLevel.Fastest, false);
+                byte[] byteArray = File.ReadAllBytes(tfZipFilePath);
+                ctx.SaveBinaryStream("TFSavedModel", w =>
+                {
+                    w.WriteByteArray(byteArray);
+                });
+
+                _host.AssertNonEmpty(Inputs);
+                ctx.Writer.Write(Inputs.Length);
+                foreach (var colName in Inputs)
+                    ctx.SaveNonEmptyString(colName);
+
+                _host.AssertNonEmpty(Outputs);
+                ctx.Writer.Write(Outputs.Length);
+                foreach (var colName in Outputs)
+                    ctx.SaveNonEmptyString(colName);
+            }
         }
 
         private sealed class Mapper : IRowMapper

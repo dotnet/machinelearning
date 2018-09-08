@@ -42,12 +42,11 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 
         }
 
-        [Fact(Skip = "Need to merge previous changes to enable scooring with non-frozen models")]
+        [Fact]
         public async void TensorFlowTransformTrainSaveModelAndPredict()
         {
             var imageHeight = 32;
             var imageWidth = 32;
-            //var model_location = "cifar_model/frozen_model.pb";
             var model_location = GetDataPath("cifar_save10");
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
@@ -84,7 +83,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             pipeline.Add(new TextToKeyConverter("Label"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
-            TensorFlowUtils.Initialize();
+             TensorFlowUtils.Initialize();
             var model = pipeline.Train<CifarData, CifarPrediction>();
 
             var modelName = "tf_TrainSaveAndPredictdModel.zip";
