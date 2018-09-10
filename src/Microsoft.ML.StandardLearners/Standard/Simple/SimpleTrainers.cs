@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(RandomTrainer.Summary, typeof(RandomTrainer), typeof(RandomTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
@@ -38,7 +39,8 @@ namespace Microsoft.ML.Runtime.Learners
     /// <summary>
     /// A trainer that trains a predictor that returns random values
     /// </summary>
-    public sealed class RandomTrainer : TrainerBase<RandomPredictor>
+
+    public sealed class RandomTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<RandomPredictor>, RandomPredictor>
     {
         internal const string LoadNameValue = "RandomPredictor";
         internal const string UserNameValue = "Random Predictor";
@@ -46,12 +48,6 @@ namespace Microsoft.ML.Runtime.Learners
 
         public class Arguments
         {
-            // Some sample arguments
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr")]
-            public Float LearningRate = (Float)1.0;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Some bool arg", ShortName = "boolarg")]
-            public bool BooleanArg = false;
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -59,17 +55,21 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
         public override TrainerInfo Info => _info;
 
-        public RandomTrainer(IHostEnvironment env, Arguments args)
-            : base(env, LoadNameValue)
+        protected override SchemaShape.Column[] OutputColumns => throw new NotImplementedException();
+
+        public RandomTrainer(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight)
+            : base(host, feature, label, weight)
         {
-            Host.CheckValue(args, nameof(args));
         }
 
-        public override RandomPredictor Train(TrainContext context)
+        protected override RandomPredictor TrainModelCore(TrainContext trainContext)
         {
-            Host.CheckValue(context, nameof(context));
+            Host.CheckValue(trainContext, nameof(trainContext));
             return new RandomPredictor(Host, Host.Rand.Next());
         }
+
+        protected override BinaryPredictionTransformer<RandomPredictor> MakeTransformer(RandomPredictor model, ISchema trainSchema)
+            => new BinaryPredictionTransformer<RandomPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
     /// <summary>
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     // Learns the prior distribution for 0/1 class labels and just outputs that.
-    public sealed class PriorTrainer : TrainerBase<PriorPredictor>
+    public sealed class PriorTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<PriorPredictor>, PriorPredictor>
     {
         internal const string LoadNameValue = "PriorPredictor";
         internal const string UserNameValue = "Prior Predictor";
@@ -210,13 +210,14 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
         public override TrainerInfo Info => _info;
 
-        public PriorTrainer(IHostEnvironment env, Arguments args)
-            : base(env, LoadNameValue)
+        protected override SchemaShape.Column[] OutputColumns { get; }
+
+        public PriorTrainer(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight)
+            : base(host, feature, label, weight)
         {
-            Host.CheckValue(args, nameof(args));
         }
 
-        public override PriorPredictor Train(TrainContext context)
+        protected override PriorPredictor TrainModelCore(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -258,6 +259,10 @@ namespace Microsoft.ML.Runtime.Learners
             Float prob = prob = pos + neg > 0 ? (Float)(pos / (pos + neg)) : Float.NaN;
             return new PriorPredictor(Host, prob);
         }
+
+        protected override BinaryPredictionTransformer<PriorPredictor> MakeTransformer(PriorPredictor model, ISchema trainSchema)
+             => new BinaryPredictionTransformer<PriorPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
     }
 
     public sealed class PriorPredictor :
