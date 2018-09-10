@@ -56,7 +56,9 @@ namespace Microsoft.ML.Tests.Transformers
                 }).Fit(dataView).Transform(dataView);
 
             var pipe = new KeyToVectorEstimator(Env, new KeyToVectorTransform.ColumnInfo("TermA", "CatA", false),
-                new KeyToVectorTransform.ColumnInfo("TermB", "CatB", true));
+                new KeyToVectorTransform.ColumnInfo("TermB", "CatB", true),
+                new KeyToVectorTransform.ColumnInfo("TermC", "CatC", true),
+                new KeyToVectorTransform.ColumnInfo("TermC", "CatCNonBag", false));
             TestEstimatorCore(pipe, dataView);
         }
 
@@ -96,6 +98,7 @@ namespace Microsoft.ML.Tests.Transformers
             var result = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(result);
         }
+
         void ValidateMetadata(IDataView result)
         {
             Assert.True(result.Schema.TryGetColumnIndex("CatA", out int colA));
@@ -178,7 +181,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             using (var env = new TlcEnvironment())
             {
-                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} xf=KeyToVector{col=C:B} in=f:\2.txt" }), (int)0);
+                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} xf=KeyToVector{col=C:B col={name=D source=B bag+}} in=f:\2.txt" }), (int)0);
             }
         }
 

@@ -220,9 +220,8 @@ namespace Microsoft.ML.Runtime.Data
                     if ((catHashArgs?.InvertHash ?? 0) != 0)
                         ch.Warning("Invert hashing is being used with binary encoding.");
 
-                    var keyToBinaryArgs = new KeyToBinaryVectorTransform.Arguments();
-                    keyToBinaryArgs.Column = cols.ToArray();
-                    transform = new KeyToBinaryVectorTransform(h, keyToBinaryArgs, input);
+                    var keyToBinaryVecCols = cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.Source, x.Name)).ToArray();
+                    transform = KeyToBinaryVectorTransform.Create(h, input, keyToBinaryVecCols);
                 }
                 else
                 {
