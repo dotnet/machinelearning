@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -473,5 +474,72 @@ namespace Microsoft.ML.Runtime.Data
             return new SchemaShape(result.Values);
         }
     }
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class KeyToVectorExtensions
+    {
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+        }
 
+        private sealed class OutVectorColumn<TKey, TValue> : Vector<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutVectorColumn(Vector<Key<TKey, TValue>> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+
+            public OutVectorColumn(Key<TKey, TValue> input)
+              : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new KeyToBinaryVectorTransform.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var col = (IColInput)toOutput[i];
+                    infos[i] = new KeyToBinaryVectorTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]]);
+                }
+                return new KeyToBinaryVectorEstimator(env, infos);
+            }
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a binary encoded indicator vector of zeros and ones.
+        /// </summary>
+        public static Vector<TValue> ToBinaryVector<TKey, TValue>(this Key<TKey, TValue> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a binary encoded indicator vector of zeros and ones.
+        /// </summary>
+        public static Vector<TValue> ToBinaryVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input);
+        }
+
+    }
 }

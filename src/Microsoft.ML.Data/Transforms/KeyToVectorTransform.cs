@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -763,5 +764,102 @@ namespace Microsoft.ML.Runtime.Data
 
             return new SchemaShape(result.Values);
         }
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class KeyToVectorExtensions
+    {
+        private const bool DefaultBag = KeyToVectorEstimator.Defaults.Bag;
+        private struct Config
+        {
+            public readonly bool Bag;
+            public Config(bool bag)
+            {
+                Bag = bag;
+            }
+        }
+
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+            Config Config { get; }
+        }
+
+        private sealed class OutKeyColumn<TOuterKey, TInnerKey> : Key<TInnerKey>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+
+            public OutKeyColumn(PipelineColumn input, Config config)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+
+        }
+
+        private sealed class OutVectorColumn<TKey, TValue> : Vector<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+
+            public OutVectorColumn(Vector<Key<TKey, TValue>> input, Config config)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+
+            public OutVectorColumn(Key<TKey, TValue> input, Config config)
+              : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new KeyToVectorTransform.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var col = (IColInput)toOutput[i];
+                    infos[i] = new KeyToVectorTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Config.Bag);
+                }
+                return new KeyToVectorEstimator(env, infos);
+            }
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// </summary>
+        public static Vector<TValue> ToVector<TKey, TValue>(this Key<TKey, TValue> input, bool bag = DefaultBag)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input, new Config(bag));
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// </summary>
+        public static Vector<TValue> ToVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input, bool bag = DefaultBag)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input, new Config(bag));
+        }
+
     }
 }

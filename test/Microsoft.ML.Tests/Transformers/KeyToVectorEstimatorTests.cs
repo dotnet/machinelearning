@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
@@ -60,6 +61,37 @@ namespace Microsoft.ML.Tests.Transformers
                 new KeyToVectorTransform.ColumnInfo("TermC", "CatC", true),
                 new KeyToVectorTransform.ColumnInfo("TermC", "CatCNonBag", false));
             TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
+        [Fact]
+        public void KeyToVectorPigsty()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(Env, ctx => (
+                ScalarString: ctx.LoadText(1),
+                VectorString: ctx.LoadText(1, 4)
+            ));
+
+            var data = reader.Read(new MultiFileSource(dataPath));
+
+            // Non-pigsty Term.
+            var dynamicData = new TermEstimator(Env,
+                new TermTransform.ColumnInfo("ScalarString", "A"),
+                new TermTransform.ColumnInfo("VectorString", "B"))
+                .Fit(data.AsDynamic).Transform(data.AsDynamic);
+
+            var data2 = dynamicData.AssertStatic(Env, ctx => (
+                A: ctx.KeyU4.TextValues.Scalar,
+                B: ctx.KeyU4.TextValues.Vector));
+
+            var est = data2.MakeNewEstimator()
+                .Append(row => (
+                ScalarString: row.A.ToVector(bag: true),
+                VectorString: row.B.ToVector()));
+
+            TestEstimatorCore(est.AsDynamic, data2.AsDynamic, invalidInput: data.AsDynamic);
+
             Done();
         }
 

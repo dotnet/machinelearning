@@ -1,4 +1,9 @@
-﻿using Microsoft.ML.Runtime.Api;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Data.StaticPipe;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
@@ -34,7 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void KeyToVectorWorkout()
+        public void KeyToBinaryVectorWorkout()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
@@ -48,6 +53,37 @@ namespace Microsoft.ML.Tests.Transformers
             var pipe = new KeyToBinaryVectorEstimator(Env, new KeyToBinaryVectorTransform.ColumnInfo("TermA", "CatA"),
                 new KeyToBinaryVectorTransform.ColumnInfo("TermC", "CatC"));
             TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
+        [Fact]
+        public void KeyToBinaryVectorPigsty()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(Env, ctx => (
+                ScalarString: ctx.LoadText(1),
+                VectorString: ctx.LoadText(1, 4)
+            ));
+
+            var data = reader.Read(new MultiFileSource(dataPath));
+
+            // Non-pigsty Term.
+            var dynamicData = new TermEstimator(Env,
+                new TermTransform.ColumnInfo("ScalarString", "A"),
+                new TermTransform.ColumnInfo("VectorString", "B"))
+                .Fit(data.AsDynamic).Transform(data.AsDynamic);
+
+            var data2 = dynamicData.AssertStatic(Env, ctx => (
+                A: ctx.KeyU4.TextValues.Scalar,
+                B: ctx.KeyU4.TextValues.Vector));
+
+            var est = data2.MakeNewEstimator()
+                .Append(row => (
+                ScalarString: row.A.ToBinaryVector(),
+                VectorString: row.B.ToBinaryVector()));
+
+            TestEstimatorCore(est.AsDynamic, data2.AsDynamic, invalidInput: data.AsDynamic);
+
             Done();
         }
 
