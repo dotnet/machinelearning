@@ -113,9 +113,13 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private const string RegistrationName = "KeyToVector";
+
+        /// <summary>
+        /// _bags indicates whether vector inputs should have their output indicator vectors added
+        /// (instead of concatenated). This is faithful to what the user specified in the Arguments
+        ///   and is persisted.
+        /// </summary>
         private readonly bool[] _bags;
-        private readonly int[] _valueCounts;
-        private readonly int[] _sizes;
 
         private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
         {
@@ -155,16 +159,10 @@ namespace Microsoft.ML.Runtime.Data
         {
             var infos = CreateInfos(input.Schema);
             _bags = new bool[infos.Length];
-            _valueCounts = new int[infos.Length];
-            _sizes = new int[infos.Length];
-
             for (int i = 0; i < infos.Length; i++)
-            {
                 _bags[i] = columns[i].Bag;
-                _sizes[i] = infos[i].TypeSrc.ItemType.KeyCount;
-                _valueCounts[i] = infos[i].TypeSrc.ValueCount;
-            }
         }
+
         public const string LoaderSignature = "KeyToVectorTransform";
         public const string UserName = "KeyToVectorTransform";
         internal const string Summary = "Converts a key column to an indicator vector.";
@@ -173,10 +171,9 @@ namespace Microsoft.ML.Runtime.Data
         {
             return new VersionInfo(
                 modelSignature: "KEY2VECT",
-                //verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002, // Convert to Estimators
-                verReadableCur: 0x00010002,
-                verWeCanReadBack: 0x00010002,
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
         }
 
@@ -187,25 +184,19 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
+            // int: sizeof(Float)
             // <base>
             // for each added column
             //   byte: bag as 0/1
             // for each added column
             //  int: keyCount
             //  int: valueCount
+            ctx.Writer.Write(sizeof(float));
             SaveColumns(ctx);
 
             Host.Assert(_bags.Length == ColumnPairs.Length);
             for (int i = 0; i < _bags.Length; i++)
                 ctx.Writer.WriteBoolByte(_bags[i]);
-            Host.Assert(_valueCounts.Length == ColumnPairs.Length);
-            Host.Assert(_sizes.Length == ColumnPairs.Length);
-
-            for (int i = 0; i < ColumnPairs.Length; i++)
-            {
-                ctx.Writer.Write(_sizes[i]);
-                ctx.Writer.Write(_valueCounts[i]);
-            }
         }
 
         // Factory method for SignatureLoadModel.
@@ -219,9 +210,14 @@ namespace Microsoft.ML.Runtime.Data
 
             return new KeyToVectorTransform(host, ctx);
         }
-
+        private static ModelLoadContext ReadFloatFromCtx(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            int cbFloat = ctx.Reader.ReadInt32();
+            env.CheckDecode(cbFloat == sizeof(float));
+            return ctx;
+        }
         private KeyToVectorTransform(IHost host, ModelLoadContext ctx)
-          : base(host, ctx)
+          : base(host, ReadFloatFromCtx(host, ctx))
         {
             var columnsLength = ColumnPairs.Length;
             // *** Binary format ***
@@ -232,15 +228,7 @@ namespace Microsoft.ML.Runtime.Data
             //  int: keyCount
             //  int: valueCount
             _bags = new bool[columnsLength];
-            _sizes = new int[columnsLength];
-            _valueCounts = new int[columnsLength];
-
             _bags = ctx.Reader.ReadBoolArray(columnsLength);
-            for (int i = 0; i < columnsLength; i++)
-            {
-                _sizes[i] = ctx.Reader.ReadInt32();
-                _valueCounts[i] = ctx.Reader.ReadInt32();
-            }
         }
 
         public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) =>
@@ -294,10 +282,10 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     ColumnType type;
-                    if (_parent._valueCounts[i] == 1)
-                        type = new VectorType(NumberType.Float, _parent._sizes[i]);
+                    if (_infos[i].TypeSrc.ValueCount == 1)
+                        type = new VectorType(NumberType.Float, _infos[i].TypeSrc.ItemType.KeyCount);
                     else
-                        type = new VectorType(NumberType.Float, _parent._valueCounts[i], _parent._sizes[i]);
+                        type = new VectorType(NumberType.Float, _infos[i].TypeSrc.ValueCount, _infos[i].TypeSrc.ItemType.KeyCount);
                     _types[i] = type;
                 }
             }
@@ -313,10 +301,10 @@ namespace Microsoft.ML.Runtime.Data
                     AddMetadata(i, colMetaInfo);
 
                     ColumnType type;
-                    if (_parent._valueCounts[i] == 1)
-                        type = new VectorType(NumberType.Float, _parent._sizes[i]);
+                    if (_infos[i].TypeSrc.ValueCount == 1)
+                        type = new VectorType(NumberType.Float, _infos[i].TypeSrc.ItemType.KeyCount);
                     else
-                        type = new VectorType(NumberType.Float, _parent._valueCounts[i], _parent._sizes[i]);
+                        type = new VectorType(NumberType.Float, _infos[i].TypeSrc.ValueCount, _infos[i].TypeSrc.ItemType.KeyCount);
                     result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], colMetaInfo);
                 }
                 return result;
@@ -328,11 +316,11 @@ namespace Microsoft.ML.Runtime.Data
                 var srcType = _infos[i].TypeSrc;
                 var typeNames = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
                 if (typeNames == null || !typeNames.IsKnownSizeVector || !typeNames.ItemType.IsText ||
-                    typeNames.VectorSize != _parent._sizes[i])
+                    typeNames.VectorSize != _infos[i].TypeSrc.ItemType.KeyCount)
                 {
                     typeNames = null;
                 }
-                if (_parent._bags[i] || _parent._valueCounts[i] == 1)
+                if (_parent._bags[i] || _infos[i].TypeSrc.ValueCount == 1)
                 {
                     if (typeNames != null)
                     {
@@ -346,8 +334,8 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    var type = new VectorType(NumberType.Float, _parent._valueCounts[i], _parent._sizes[i]);
-                    if (typeNames != null && type.VectorSize > 0)
+                    var type = new VectorType(NumberType.Float, _infos[i].TypeSrc.ValueCount, _infos[i].TypeSrc.ItemType.KeyCount);
+                    if (typeNames != null && type.IsKnownSizeVector)
                     {
                         MetadataUtils.MetadataGetter<VBuffer<DvText>> getter = (int col, ref VBuffer<DvText> dst) =>
                         {
@@ -364,7 +352,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         GetCategoricalSlotRanges(i, ref dst);
                     };
-                    var info = new MetadataInfo<VBuffer<DvInt4>>(MetadataUtils.GetCategoricalType(_parent._valueCounts[i]), getter);
+                    var info = new MetadataInfo<VBuffer<DvInt4>>(MetadataUtils.GetCategoricalType(_infos[i].TypeSrc.ValueCount), getter);
                     colMetaInfo.Add(MetadataUtils.Kinds.CategoricalSlotRanges, info);
                 }
 
@@ -383,7 +371,7 @@ namespace Microsoft.ML.Runtime.Data
             private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
             {
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
-                var type = new VectorType(NumberType.Float, _parent._valueCounts[iinfo], _parent._sizes[iinfo]);
+                var type = new VectorType(NumberType.Float, _infos[iinfo].TypeSrc.ValueCount, _infos[iinfo].TypeSrc.ItemType.KeyCount);
                 Host.Assert(type.IsKnownSizeVector);
 
                 // Size one should have been treated the same as Bag (by the caller).
@@ -404,7 +392,7 @@ namespace Microsoft.ML.Runtime.Data
                 else
                     namesSlotSrc = VBufferUtils.CreateEmpty<DvText>(typeSrc.VectorSize);
 
-                int keyCount = typeSrc.ItemType.KeyCount;
+                int keyCount = typeSrc.ItemType.ItemType.KeyCount;
                 int slotLim = type.VectorSize;
                 Host.Assert(slotLim == (long)typeSrc.VectorSize * keyCount);
 
@@ -488,7 +476,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Host.AssertValue(input);
                 Host.Assert(_infos[iinfo].TypeSrc.IsKey);
-                Host.Assert(_infos[iinfo].TypeSrc.KeyCount == _parent._valueCounts[iinfo] * _parent._sizes[iinfo]);
+                Host.Assert(_infos[iinfo].TypeSrc.KeyCount == _types[iinfo].VectorSize);
 
                 int size = _infos[iinfo].TypeSrc.KeyCount;
                 Host.Assert(size > 0);
@@ -527,7 +515,7 @@ namespace Microsoft.ML.Runtime.Data
                 Host.Assert(_infos[iinfo].TypeSrc.IsVector);
                 Host.Assert(_infos[iinfo].TypeSrc.ItemType.IsKey);
                 Host.Assert(_parent._bags[iinfo]);
-                Host.Assert(_infos[iinfo].TypeSrc.ItemType.KeyCount == _parent._valueCounts[iinfo] * _parent._sizes[iinfo]);
+                Host.Assert(_infos[iinfo].TypeSrc.ItemType.KeyCount == _types[iinfo].VectorSize);
 
                 var info = _infos[iinfo];
                 int size = info.TypeSrc.ItemType.KeyCount;
@@ -577,7 +565,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 int cv = info.TypeSrc.VectorSize;
                 Host.Assert(cv >= 0);
-                Host.Assert(_parent._valueCounts[iinfo] * _parent._sizes[iinfo] == size * cv);
+                Host.Assert(_types[iinfo].VectorSize == size * cv);
                 input.Schema.TryGetColumnIndex(info.Source, out int srcCol);
                 var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, input, srcCol);
                 var src = default(VBuffer<uint>);
