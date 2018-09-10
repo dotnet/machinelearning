@@ -36,6 +36,6 @@
     <None Include="Scenarios\Api\AspirationalExamples.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsft.ML.TensorFlow.TestModels" Version="0.0.2-test" />
+    <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="0.0.3-test" />
   </ItemGroup>
 </Project>
