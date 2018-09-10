@@ -41,7 +41,7 @@ namespace Microsoft.ML.Scenarios
                                          b = new[] { 3.0f, 3.0f,
                                                      3.0f, 3.0f } } }));
 
-                var trans = TensorFlowTransform.Create(env, loader, model_location, true, "c", "a", "b");
+                var trans = TensorFlowTransform.Create(env, loader, model_location, new[] { "c" }, new[] { "a", "b" });
 
                 using (var cursor = trans.GetRowCursor(a => true))
                 {
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Scenarios
                                         { Name = "reshape_input", Source = "Placeholder" }
                                     }
                 }, loader);
-                trans = TensorFlowTransform.Create(env, trans, model_location, true, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" });
+                trans = TensorFlowTransform.Create(env, trans, model_location, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" });
                 trans = new ConcatTransform(env, trans, "Features", "Softmax", "dense/Relu");
 
                 var trainer = new LightGbmMulticlassTrainer(env, new LightGbmArguments());
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, true, "Output", "Input");
+                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" });
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, false, "Output", "Input");
+                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" }, false);
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
@@ -313,7 +313,7 @@ namespace Microsoft.ML.Scenarios
                 var thrown = false;
                 try
                 {
-                    IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, true, "Output", "Input");
+                    IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" });
                 }
                 catch
                 {

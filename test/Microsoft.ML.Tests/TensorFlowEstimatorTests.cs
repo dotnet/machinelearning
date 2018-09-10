@@ -74,7 +74,7 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[4], B = new float[4] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { a = new string[4], b = new string[4] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { a = new float[2], b = new float[2] } };
-            var pipe = new TensorFlowEstimator(Env, modelFile, true, new[] { "a", "b" }, new[] { "c" });
+            var pipe = new TensorFlowEstimator(Env, modelFile, new[] { "a", "b" }, new[] { "c" });
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Tests
                         b = new[] { 10.0f, 8.0f, 6.0f, 6.0f }
                     }
                 }));
-            var est = new TensorFlowEstimator(Env, modelFile, true, new[] { "a", "b" }, new[] { "c" });
+            var est = new TensorFlowEstimator(Env, modelFile, new[] { "a", "b" }, new[] { "c" });
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);

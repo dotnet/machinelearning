@@ -21716,14 +21716,31 @@
       "ShortName": "TFTransform",
       "Inputs": [
         {
-          "Name": "ModelFile",
+          "Name": "Model",
           "Type": "String",
-          "Desc": "This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
-          "Aliases": [
-            "model"
-          ],
+          "Desc": "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
           "Required": true,
           "SortOrder": 0.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "IsFrozen",
+          "Type": "Bool",
+          "Desc": "Indicator for frozen models",
+          "Aliases": [
+            "frozen"
+          ],
+          "Required": false,
+          "SortOrder": 1.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
           "IsNullable": false
         },
         {
@@ -21737,15 +21754,7 @@
             "inputs"
           ],
           "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
+          "SortOrder": 2.0,
           "IsNullable": false
         },
         {
@@ -21759,20 +21768,8 @@
             "outputs"
           ],
           "Required": true,
-          "SortOrder": 2.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "IsFrozen",
-          "Type": "Bool",
-          "Desc": "Indicator for frozen models",
-          "Aliases": [
-            "Frozen"
-          ],
-          "Required": false,
           "SortOrder": 3.0,
-          "IsNullable": false,
-          "Default": true
+          "IsNullable": false
         }
       ],
       "Outputs": [

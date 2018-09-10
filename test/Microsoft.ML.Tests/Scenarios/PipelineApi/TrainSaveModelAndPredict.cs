@@ -73,10 +73,10 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 
             pipeline.Add(new TensorFlowScorer()
             {
-                ModelFile = model_location,
+                Model = model_location,
+                IsFrozen = false,
                 InputColumns = new[] { "Input" },
                 OutputColumns = new[] { "Output" },
-                IsFrozen = false
             });
 
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features", "Output"));

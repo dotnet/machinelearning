@@ -15785,9 +15785,14 @@ namespace Microsoft.ML
 
 
             /// <summary>
-            /// This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more details.
+            /// TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.
             /// </summary>
-            public string ModelFile { get; set; }
+            public string Model { get; set; }
+
+            /// <summary>
+            /// Indicator for frozen models
+            /// </summary>
+            public bool IsFrozen { get; set; } = true;
 
             /// <summary>
             /// The names of the model inputs
@@ -15798,11 +15803,6 @@ namespace Microsoft.ML
             /// The name of the outputs
             /// </summary>
             public string[] OutputColumns { get; set; }
-
-            /// <summary>
-            /// Indicator for frozen models
-            /// </summary>
-            public bool IsFrozen { get; set; } = true;
 
             /// <summary>
             /// Input dataset

@@ -3741,7 +3741,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[]
                 {
                     @"'InputColumns': [ 'Placeholder' ],
-                      'ModelFile': 'mnist_model/frozen_saved_model.pb',
+                      'Model': 'mnist_model/frozen_saved_model.pb',
                       'OutputColumns': [ 'Softmax' ]"
                 });
         }
