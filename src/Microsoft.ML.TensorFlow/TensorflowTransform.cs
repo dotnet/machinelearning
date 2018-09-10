@@ -192,6 +192,7 @@ namespace Microsoft.ML.Transforms
             _host = env.Register(nameof(RegistrationName));
             _host.CheckValue(modelBytes, nameof(modelBytes));
             _host.CheckNonEmpty(inputs, nameof(inputs));
+            _host.CheckNonEmpty(outputs, nameof(outputs));
 
             Session = LoadTFSession(modelBytes);
             foreach (var input in inputs)
@@ -207,7 +208,7 @@ namespace Microsoft.ML.Transforms
             var newNames = new HashSet<string>();
             foreach (var output in outputs)
             {
-                _host.CheckNonEmpty(output, nameof(outputs));
+                _host.CheckNonWhiteSpace(output, nameof(outputs));
                 if (!newNames.Add(output))
                     throw _host.ExceptParam(nameof(outputs), $"Output column '{output}' specified multiple times");
                 if (Session.Graph[output] == null)
@@ -593,7 +594,7 @@ namespace Microsoft.ML.Transforms
             for (var i = 0; i < Transformer.Outputs.Length; i++)
             {
                 resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
-                    Transformer.OutputTypes[i].VectorSize > 0 ? SchemaShape.Column.VectorKind.Vector
+                    Transformer.OutputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
                     : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].ItemType, false);
             }
             return new SchemaShape(resultDic.Values);
