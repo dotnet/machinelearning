@@ -120,7 +120,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Whether this type is the standard <see cref="TimeSpan"/> type.
+        /// Whether this type is the standard <see cref="TimeSpanType"/> type.
         /// </summary>
         public bool IsTimeSpan
         {
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Whether this type is a <see cref="DateTime"/>.
+        /// Whether this type is a <see cref="DateTimeType"/>.
         /// </summary>
         public bool IsDateTime
         {
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Whether this type is a <see cref="DateTimeOffset"/>
+        /// Whether this type is a <see cref="DateTimeOffsetType"/>
         /// </summary>
         public bool IsDateTimeZone
         {

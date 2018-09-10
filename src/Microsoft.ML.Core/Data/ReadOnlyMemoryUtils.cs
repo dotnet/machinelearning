@@ -13,18 +13,20 @@ namespace Microsoft.ML.Runtime.Data
     {
 
         /// <summary>
-        /// This implements IEquatable's Equals method.
+        /// Compares two <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> byte by byte.
         /// </summary>
-        public static bool Equals(ReadOnlyMemory<char> b, ReadOnlyMemory<char> memory)
+        public static bool Equals(ReadOnlyMemory<char> b, ReadOnlyMemory<char> a)
         {
-            if (memory.Length != b.Length)
+            if (a.Length != b.Length)
                 return false;
 
-            Contracts.Assert(memory.IsEmpty == b.IsEmpty);
+            Contracts.Assert(a.IsEmpty == b.IsEmpty);
+            var aSpan = a.Span;
+            var bSpan = b.Span;
 
-            for (int i = 0; i < memory.Length; i++)
+            for (int i = 0; i < a.Length; i++)
             {
-                if (memory.Span[i] != b.Span[i])
+                if (aSpan[i] != bSpan[i])
                     return false;
             }
             return true;
@@ -43,31 +45,34 @@ namespace Microsoft.ML.Runtime.Data
             if (s.Length != memory.Length)
                 return false;
 
+            var span = memory.Span;
             for (int i = 0; i < memory.Length; i++)
             {
-                if (s[i] != memory.Span[i])
+                if (s[i] != span[i])
                     return false;
             }
             return true;
         }
 
         /// <summary>
-        /// For implementation of ReadOnlyMemory. Uses code point comparison.
+        /// For implementation of <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/>. Uses code point comparison.
         /// Generally, this is not appropriate for sorting for presentation to a user.
         /// </summary>
-        public static int CompareTo(ReadOnlyMemory<char> other, ReadOnlyMemory<char> memory)
+        public static int CompareTo(ReadOnlyMemory<char> b, ReadOnlyMemory<char> a)
         {
-            int len = Math.Min(memory.Length, other.Length);
+            int len = Math.Min(a.Length, b.Length);
+            var aSpan = a.Span;
+            var bSpan = b.Span;
             for (int ich = 0; ich < len; ich++)
             {
-                char ch1 = memory.Span[ich];
-                char ch2 = other.Span[ich];
+                char ch1 = aSpan[ich];
+                char ch2 = bSpan[ich];
                 if (ch1 != ch2)
                     return ch1 < ch2 ? -1 : +1;
             }
-            if (len < other.Length)
+            if (len < b.Length)
                 return -1;
-            if (len < memory.Length)
+            if (len < a.Length)
                 return +1;
             return 0;
         }
@@ -85,18 +90,16 @@ namespace Microsoft.ML.Runtime.Data
                 yield break;
             }
 
-            int ichMin = 0;
-            int ichLim = memory.Length;
             if (separators.Length == 1)
             {
                 char chSep = separators[0];
-                for (int ichCur = ichMin; ;)
+                for (int ichCur = 0; ;)
                 {
                     int ichMinLocal = ichCur;
                     for (; ; ichCur++)
                     {
-                        Contracts.Assert(ichCur <= ichLim);
-                        if (ichCur >= ichLim)
+                        Contracts.Assert(ichCur <= memory.Length);
+                        if (ichCur >= memory.Length)
                         {
                             yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
                             yield break;
@@ -113,13 +116,13 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                for (int ichCur = ichMin; ;)
+                for (int ichCur = 0; ;)
                 {
                     int ichMinLocal = ichCur;
                     for (; ; ichCur++)
                     {
-                        Contracts.Assert(ichCur <= ichLim);
-                        if (ichCur >= ichLim)
+                        Contracts.Assert(ichCur <= memory.Length);
+                        if (ichCur >= memory.Length)
                         {
                             yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
                             yield break;
@@ -138,10 +141,10 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Splits this instance on the left-most occurrence of separator and produces the left
-        /// and right ReadOnlyMemory values. If this instance does not contain the separator character,
+        /// Splits <paramref name="memory"/> on the left-most occurrence of separator and produces the left
+        /// and right <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> values. If <paramref name="memory"/> does not contain the separator character,
         /// this returns false and sets <paramref name="left"/> to this instance and <paramref name="right"/>
-        /// to the default ReadOnlyMemory value.
+        /// to the default <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> value.
         /// </summary>
         public static bool SplitOne(char separator, out ReadOnlyMemory<char> left, out ReadOnlyMemory<char> right, ReadOnlyMemory<char> memory)
         {
@@ -152,35 +155,31 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            int ichMin = 0;
-            int ichLim = memory.Length;
-            var text = memory.Span;
-            int ichCur = ichMin;
+            var span = memory.Span;
+            int ichCur = 0;
             for (; ; ichCur++)
             {
-                Contracts.Assert(ichMin <= ichCur && ichCur <= ichLim);
-                if (ichCur >= ichLim)
+                Contracts.Assert(0 <= ichCur && ichCur <= memory.Length);
+                if (ichCur >= memory.Length)
                 {
                     left = memory;
                     right = default;
                     return false;
                 }
-                if (text[ichCur] == separator)
+                if (span[ichCur] == separator)
                     break;
             }
 
-            // Note that we don't use any fields of "this" here in case one
-            // of the out parameters is the same as "this".
-            left = memory.Slice(ichMin, ichCur - ichMin);
-            right = memory.Slice(ichCur + 1, ichLim - ichCur - 1);
+            left = memory.Slice(0, ichCur);
+            right = memory.Slice(ichCur + 1, memory.Length - ichCur - 1);
             return true;
         }
 
         /// <summary>
-        /// Splits this instance on the left-most occurrence of an element of separators character array and
-        /// produces the left and right ReadOnlyMemory values. If this instance does not contain any of the
-        /// characters in separators, thiss return false and initializes <paramref name="left"/> to this instance
-        /// and <paramref name="right"/> to the default ReadOnlyMemory value.
+        /// Splits <paramref name="memory"/> on the left-most occurrence of an element of separators character array and
+        /// produces the left and right <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> values. If <paramref name="memory"/> does not contain any of the
+        /// characters in separators, this return false and initializes <paramref name="left"/> to this instance
+        /// and <paramref name="right"/> to the default <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> value.
         /// </summary>
         public static bool SplitOne(char[] separators, out ReadOnlyMemory<char> left, out ReadOnlyMemory<char> right, ReadOnlyMemory<char> memory)
         {
@@ -193,11 +192,9 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            int ichMin = 0;
-            int ichLim = memory.Length;
-            var text = memory.Span;
+            var span = memory.Span;
 
-            int ichCur = ichMin;
+            int ichCur = 0;
             if (separators.Length == 1)
             {
                 // Note: This duplicates code of the other SplitOne, but doing so improves perf because this is
@@ -205,14 +202,14 @@ namespace Microsoft.ML.Runtime.Data
                 char chSep = separators[0];
                 for (; ; ichCur++)
                 {
-                    Contracts.Assert(ichMin <= ichCur && ichCur <= ichLim);
-                    if (ichCur >= ichLim)
+                    Contracts.Assert(0 <= ichCur && ichCur <= memory.Length);
+                    if (ichCur >= memory.Length)
                     {
                         left = memory;
                         right = default;
                         return false;
                     }
-                    if (text[ichCur] == chSep)
+                    if (span[ichCur] == chSep)
                         break;
                 }
             }
@@ -220,28 +217,26 @@ namespace Microsoft.ML.Runtime.Data
             {
                 for (; ; ichCur++)
                 {
-                    Contracts.Assert(ichMin <= ichCur && ichCur <= ichLim);
-                    if (ichCur >= ichLim)
+                    Contracts.Assert(0 <= ichCur && ichCur <= memory.Length);
+                    if (ichCur >= memory.Length)
                     {
                         left = memory;
                         right = default;
                         return false;
                     }
                     // REVIEW: Can this be faster?
-                    if (ContainsChar(text[ichCur], separators))
+                    if (ContainsChar(span[ichCur], separators))
                         break;
                 }
             }
 
-            // Note that we don't use any fields of "this" here in case one
-            // of the out parameters is the same as "this".
-            left = memory.Slice(ichMin, ichCur - ichMin);
-            right = memory.Slice(ichCur + 1, ichLim - ichCur - 1);
+            left = memory.Slice(0, ichCur);
+            right = memory.Slice(ichCur + 1, memory.Length - ichCur - 1);
             return true;
         }
 
         /// <summary>
-        /// Returns a text span with leading and trailing spaces trimmed. Note that this
+        /// Returns a <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> with leading and trailing spaces trimmed. Note that this
         /// will remove only spaces, not any form of whitespace.
         /// </summary>
         public static ReadOnlyMemory<char> Trim(ReadOnlyMemory<char> memory)
@@ -251,18 +246,19 @@ namespace Microsoft.ML.Runtime.Data
 
             int ichLim = memory.Length;
             int ichMin = 0;
-            if (memory.Span[ichMin] != ' ' && memory.Span[ichLim - 1] != ' ')
+            var span = memory.Span;
+            if (span[ichMin] != ' ' && span[ichLim - 1] != ' ')
                 return memory;
 
-            while (ichMin < ichLim && memory.Span[ichMin] == ' ')
+            while (ichMin < ichLim && span[ichMin] == ' ')
                 ichMin++;
-            while (ichMin < ichLim && memory.Span[ichLim - 1] == ' ')
+            while (ichMin < ichLim && span[ichLim - 1] == ' ')
                 ichLim--;
             return memory.Slice(ichMin, ichLim - ichMin);
         }
 
         /// <summary>
-        /// Returns a text span with leading and trailing whitespace trimmed.
+        /// Returns a <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> with leading and trailing whitespace trimmed.
         /// </summary>
         public static ReadOnlyMemory<char> TrimWhiteSpace(ReadOnlyMemory<char> memory)
         {
@@ -271,19 +267,20 @@ namespace Microsoft.ML.Runtime.Data
 
             int ichMin = 0;
             int ichLim = memory.Length;
-            if (!char.IsWhiteSpace(memory.Span[ichMin]) && !char.IsWhiteSpace(memory.Span[ichLim - 1]))
+            var span = memory.Span;
+            if (!char.IsWhiteSpace(span[ichMin]) && !char.IsWhiteSpace(span[ichLim - 1]))
                 return memory;
 
-            while (ichMin < ichLim && char.IsWhiteSpace(memory.Span[ichMin]))
+            while (ichMin < ichLim && char.IsWhiteSpace(span[ichMin]))
                 ichMin++;
-            while (ichMin < ichLim && char.IsWhiteSpace(memory.Span[ichLim - 1]))
+            while (ichMin < ichLim && char.IsWhiteSpace(span[ichLim - 1]))
                 ichLim--;
 
             return memory.Slice(ichMin, ichLim - ichMin);
         }
 
         /// <summary>
-        /// Returns a text span with trailing whitespace trimmed.
+        /// Returns a <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> with trailing whitespace trimmed.
         /// </summary>
         public static ReadOnlyMemory<char> TrimEndWhiteSpace(ReadOnlyMemory<char> memory)
         {
@@ -291,10 +288,11 @@ namespace Microsoft.ML.Runtime.Data
                 return memory;
 
             int ichLim = memory.Length;
-            if (!char.IsWhiteSpace(memory.Span[ichLim - 1]))
+            var span = memory.Span;
+            if (!char.IsWhiteSpace(span[ichLim - 1]))
                 return memory;
 
-            while (0 < ichLim && char.IsWhiteSpace(memory.Span[ichLim - 1]))
+            while (0 < ichLim && char.IsWhiteSpace(span[ichLim - 1]))
                 ichLim--;
 
             return memory.Slice(0, ichLim);
@@ -347,29 +345,28 @@ namespace Microsoft.ML.Runtime.Data
 
             if (!memory.IsEmpty)
             {
-                int ichLim = memory.Length;
                 int min = 0;
                 int j;
-                for (j = min; j < ichLim; j++)
+                var span = memory.Span;
+                for (j = min; j < memory.Length; j++)
                 {
-                    char ch = CharUtils.ToLowerInvariant(memory.Span[j]);
-                    if (ch != memory.Span[j])
+                    char ch = CharUtils.ToLowerInvariant(span[j]);
+                    if (ch != span[j])
                     {
                         sb.Append(memory, min, j - min).Append(ch);
                         min = j + 1;
                     }
                 }
 
-                Contracts.Assert(j == ichLim);
+                Contracts.Assert(j == memory.Length);
                 if (min != j)
                     sb.Append(memory, min, j - min);
             }
         }
 
-        // REVIEW: Can this be faster?
         private static bool ContainsChar(char ch, char[] rgch)
         {
-            Contracts.CheckNonEmpty(rgch, nameof(rgch));
+            Contracts.AssertNonEmpty(rgch, nameof(rgch));
 
             for (int i = 0; i < rgch.Length; i++)
             {
@@ -383,15 +380,16 @@ namespace Microsoft.ML.Runtime.Data
 
         public static StringBuilder Append(this StringBuilder sb, ReadOnlyMemory<char> memory, int startIndex, int length)
         {
-            Contracts.Assert(startIndex >= 0, nameof(startIndex));
-            Contracts.Assert(length >= 0, nameof(length));
+            Contracts.Check(startIndex >= 0, nameof(startIndex));
+            Contracts.Check(length >= 0, nameof(length));
 
             int ichLim = startIndex + length;
 
-            Contracts.Assert(memory.Length >= ichLim, nameof(memory));
+            Contracts.Check(memory.Length >= ichLim, nameof(memory));
 
+            var span = memory.Span;
             for (int index = startIndex; index < ichLim; index++)
-                sb.Append(memory.Span[index]);
+                sb.Append(span[index]);
 
             return sb;
         }

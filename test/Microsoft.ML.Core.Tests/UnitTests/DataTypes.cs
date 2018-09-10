@@ -19,6 +19,54 @@ namespace Microsoft.ML.Runtime.RunTests
         private readonly static Conversions _conv = Conversions.Instance;
 
         [Fact]
+        public void R4ToSBtoR4()
+        {
+            var r4ToSB = Conversions.Instance.GetStringConversion<float>(NumberType.FromKind(DataKind.R4));
+
+            var txToR4 = Conversions.Instance.GetStandardConversion< ReadOnlyMemory<char>, float>(
+                TextType.Instance, NumberType.FromKind(DataKind.R4), out bool identity2);
+
+            Assert.NotNull(r4ToSB);
+            Assert.NotNull(txToR4);
+
+            float fVal = float.NaN;
+            StringBuilder textFVal = default;
+            r4ToSB(ref fVal, ref textFVal);
+
+            Assert.True("?" == textFVal.ToString());
+
+            fVal = 0;
+            var fValTX = textFVal.ToString().AsMemory();
+            txToR4(ref fValTX, ref fVal);
+
+            Assert.Equal(fVal, float.NaN);
+        }
+
+        [Fact]
+        public void R8ToSBtoR8()
+        {
+            var r8ToSB = Conversions.Instance.GetStringConversion<double>(NumberType.FromKind(DataKind.R8));
+
+            var txToR8 = Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, double>(
+                TextType.Instance, NumberType.FromKind(DataKind.R8), out bool identity2);
+
+            Assert.NotNull(r8ToSB);
+            Assert.NotNull(txToR8);
+
+            double dVal = double.NaN;
+            StringBuilder textDVal = default;
+            r8ToSB(ref dVal, ref textDVal);
+
+            Assert.True("?" == textDVal.ToString());
+
+            dVal = 0;
+            var dValTX = textDVal.ToString().AsMemory();
+            txToR8(ref dValTX, ref dVal);
+
+            Assert.Equal(dVal, double.NaN);
+        }
+
+        [Fact]
         public void TXToSByte()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, sbyte>();

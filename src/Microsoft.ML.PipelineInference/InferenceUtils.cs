@@ -59,7 +59,14 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     getter(ref currentLabel);
                     string currentLabelString = currentLabel.ToString();
                     if (!String.IsNullOrEmpty(currentLabelString) && !uniqueLabelValues.Contains(currentLabelString))
+                    {
+                        //Missing values in float and doubles are converted to "NaN" in text and they should not
+                        //be treated as label values.
+                        if ((label.ItemKind == DataKind.R4 || label.ItemKind == DataKind.R8) && currentLabelString == "?")
+                            continue;
+
                         uniqueLabelValues.Add(currentLabelString);
+                    }
                 }
             }
 

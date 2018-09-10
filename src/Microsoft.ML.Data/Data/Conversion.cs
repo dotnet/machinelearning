@@ -973,8 +973,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(ref U4 src, ref SB dst) => ClearDst(ref dst).Append(src);
         public void Convert(ref U8 src, ref SB dst) => ClearDst(ref dst).Append(src);
         public void Convert(ref UG src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("0x{0:x16}{1:x16}", src.Hi, src.Lo); }
-        public void Convert(ref R4 src, ref SB dst) { ClearDst(ref dst); if (!src.IsNA()) dst.AppendFormat(CultureInfo.InvariantCulture, "{0:R}", src); }
-        public void Convert(ref R8 src, ref SB dst) { ClearDst(ref dst); if (!src.IsNA()) dst.AppendFormat(CultureInfo.InvariantCulture, "{0:G17}", src); }
+        public void Convert(ref R4 src, ref SB dst) { ClearDst(ref dst); if (src.IsNA()) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:R}", src); }
+        public void Convert(ref R8 src, ref SB dst) { ClearDst(ref dst); if (src.IsNA()) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:G17}", src); }
         public void Convert(ref BL src, ref SB dst)
         {
             ClearDst(ref dst);

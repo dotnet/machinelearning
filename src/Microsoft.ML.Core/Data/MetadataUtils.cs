@@ -42,7 +42,8 @@ namespace Microsoft.ML.Runtime.Data
             public const string ScoreColumnSetId = "ScoreColumnSetId";
 
             /// <summary>
-            /// Metadata kind that indicates the prediction kind as a string. E.g. "BinaryClassification". The value is typically a ReadOnlyMemory.
+            /// Metadata kind that indicates the prediction kind as a string. E.g. "BinaryClassification".
+            /// The value is typically a ReadOnlyMemory&lt;char&gt;.
             /// </summary>
             public const string ScoreColumnKind = "ScoreColumnKind";
 
@@ -295,7 +296,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Returns <c>true</c> if the specified column:
         ///  * is a vector of length N (including 0)
         ///  * has a SlotNames metadata
-        ///  * metadata type is VBuffer&lt;ReadOnlyMemory&gt; of length N
+        ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length N
         /// </summary>
         public static bool HasSlotNames(this ISchema schema, int col, int vectorSize)
         {
