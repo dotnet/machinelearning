@@ -520,11 +520,11 @@ namespace Microsoft.ML.Runtime.Data
             PipelineColumn Input { get; }
         }
 
-        private sealed class OutKeyColumn<T1, T2, T3> : Key<T2, T3>, IColInput
+        private sealed class OutKeyColumn<TOuterKey, TInnerKey> : Key<TInnerKey>, IColInput
         {
             public PipelineColumn Input { get; }
 
-            public OutKeyColumn(Key<T1, Key<T2, T3>> input)
+            public OutKeyColumn(Key<TOuterKey, Key<TInnerKey>> input)
                 : base(Reconciler.Inst, input)
             {
                 Input = input;
@@ -589,10 +589,10 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Convert a key column to a column containing the corresponding value.
         /// </summary>
-        public static Key<T2, T3> ToValue<T1, T2, T3>(this Key<T1, Key<T2, T3>> input)
+        public static Key<TInnerKey> ToValue<TOuterKey, TInnerKey>(this Key<TOuterKey, Key<TInnerKey>> input)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new OutKeyColumn<T1, T2, T3>(input);
+            return new OutKeyColumn<TOuterKey, TInnerKey>(input);
         }
 
         /// <summary>
