@@ -31,7 +31,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Runtime.Data
 {
-
     public sealed class KeyToVectorTransform : OneToOneTransformerBase
     {
         public abstract class ColumnBase : OneToOneColumn
@@ -219,7 +218,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var item = args.Column[i];
 
-                    cols[i] = new ColumnInfo(item.Source,
+                    cols[i] = new ColumnInfo(item.Source??item.Name,
                         item.Name,
                         item.Bag ?? args.Bag);
                 };

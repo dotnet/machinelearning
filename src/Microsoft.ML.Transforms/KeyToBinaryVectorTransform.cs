@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = args.Column[i];
-                    cols[i] = new ColumnInfo(item.Source, item.Name);
+                    cols[i] = new ColumnInfo(item.Source ?? item.Name, item.Name);
                 };
             }
             return new KeyToBinaryVectorTransform(env, cols).MakeDataTransform(input);
