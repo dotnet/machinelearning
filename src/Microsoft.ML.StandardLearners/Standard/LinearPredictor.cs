@@ -487,9 +487,7 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public override PredictionKind PredictionKind {
-            get { return PredictionKind.BinaryClassification; }
-        }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters

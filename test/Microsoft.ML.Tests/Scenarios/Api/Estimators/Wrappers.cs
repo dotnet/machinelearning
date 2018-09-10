@@ -327,27 +327,31 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public sealed class MyAveragedPerceptron : TrainerBase<BinaryScorerWrapper<IPredictor>, IPredictor>
+    public class MyKeyToValueTransform : IEstimator<TransformWrapper>
     {
-        private readonly AveragedPerceptronTrainer _trainer;
+        private readonly IHostEnvironment _env;
+        private readonly string _name;
+        private readonly string _source;
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-
-        public MyAveragedPerceptron(IHostEnvironment env, AveragedPerceptronTrainer.Arguments args, string featureCol, string labelCol)
-            : base(env, new TrainerInfo(caching: false), featureCol, labelCol)
+        public MyKeyToValueTransform(IHostEnvironment env, string name, string source = null)
         {
-            _trainer = new AveragedPerceptronTrainer(env, args);
+            _env = env;
+            _name = name;
+            _source = source;
         }
 
-        protected override IPredictor TrainCore(TrainContext trainContext) => _trainer.Train(trainContext);
-
-        public ITransformer Train(IDataView trainData, IPredictor initialPredictor)
+        public TransformWrapper Fit(IDataView input)
         {
-            return TrainTransformer(trainData, initPredictor: initialPredictor);
+            var xf = new KeyToValueTransform(_env, input, _name, _source);
+            var empty = new EmptyDataView(_env, input.Schema);
+            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
+            return new TransformWrapper(_env, chunk);
         }
 
-        protected override BinaryScorerWrapper<IPredictor> MakeScorer(IPredictor predictor, RoleMappedData data)
-            => new BinaryScorerWrapper<IPredictor>(_env, predictor, data.Data.Schema, _featureCol, new BinaryClassifierScorer.Arguments());
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public sealed class MyPredictionEngine<TSrc, TDst>
