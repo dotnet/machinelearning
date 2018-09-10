@@ -8,7 +8,10 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
 
-    <ProjectReference Include="..\..\src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Analyzer</OutputItemType>
+    </ProjectReference>
 
     <NativeAssemblyReference Include="CpuMathNative" />
   </ItemGroup>

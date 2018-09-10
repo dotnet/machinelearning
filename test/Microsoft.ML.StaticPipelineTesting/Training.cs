@@ -45,8 +45,15 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
+            var metrics = RegressionEvaluator.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
+            Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
+            Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+
             // Just output some data on the schema for fun.
-            var rows = DataViewUtils.ComputeRowCount(data.AsDynamic);
             var schema = data.AsDynamic.Schema;
             for (int c = 0; c < schema.ColumnCount; ++c)
                 Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
@@ -111,8 +118,15 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
+            var metrics = BinaryClassifierEvaluator.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.LogLoss, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.Entropy, 0, double.PositiveInfinity);
+
             // Just output some data on the schema for fun.
-            var rows = DataViewUtils.ComputeRowCount(data.AsDynamic);
             var schema = data.AsDynamic.Schema;
             for (int c = 0; c < schema.ColumnCount; ++c)
                 Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
@@ -148,8 +162,13 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
+            var metrics = BinaryClassifierEvaluator.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
+
             // Just output some data on the schema for fun.
-            var rows = DataViewUtils.ComputeRowCount(data.AsDynamic);
             var schema = data.AsDynamic.Schema;
             for (int c = 0; c < schema.ColumnCount; ++c)
                 Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
