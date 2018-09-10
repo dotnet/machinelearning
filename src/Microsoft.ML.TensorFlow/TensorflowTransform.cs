@@ -423,7 +423,7 @@ namespace Microsoft.ML.Transforms
                 var outputCache = new OutputCache();
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
-                var valueGetters = new List<Delegate>();
+                var valueGetters = new Delegate[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
                 {
                     if (activeOutput(i))
@@ -431,10 +431,10 @@ namespace Microsoft.ML.Transforms
                         var type = TFTensor.TypeFromTensorType(_parent.TFOutputTypes[i]);
                         _host.Assert(type == _parent.OutputTypes[i].ItemType.RawType);
                         var srcTensorGetters = GetTensorValueGetters(input);
-                        valueGetters.Add(Utils.MarshalInvoke(MakeGetter<int>, type, input, i, srcTensorGetters, activeOutputColNames, outputCache));
+                        valueGetters[i] = Utils.MarshalInvoke(MakeGetter<int>, type, input, i, srcTensorGetters, activeOutputColNames, outputCache);
                     }
                 }
-                return valueGetters.ToArray();
+                return valueGetters;
             }
 
             private Delegate MakeGetter<T>(IRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
