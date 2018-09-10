@@ -897,8 +897,8 @@ namespace Microsoft.ML.Runtime.Data
             /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
             /// (LL(prior) - LL(classifier)) / LL(prior)
             /// This metric can be interpreted as the advantage of the classifier over a random prediction.
-            /// E.g., if the RIG equals 20, it can be interpreted as "the probability of a correct prediction is
-            /// 20% better than random guessing".
+            /// E.g., if the RIG equals 20, it can be interpreted as &quot;the probability of a correct prediction is
+            /// 20% better than random guessing.&quot;
             /// </remarks>
             public double LogLossReduction { get; }
 

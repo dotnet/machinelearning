@@ -15,8 +15,8 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     /// <summary>
     /// Utility methods for components that want to expose themselves in the idioms of the statically-typed pipelines.
     /// These utilities are meant to be called by and useful to component authors, not users of those components. The
-    /// purpose is not to keep them hidden per se, but rather out of the face of users that are just trying to use the
-    /// library without the details of how this library is written.
+    /// purpose is not to keep them hidden per se, but rather in a place less conspicuous to users that are just trying
+    /// to use the library without writing additional components of their own.
     /// </summary>
     public static class StaticPipeUtils
     {
@@ -447,14 +447,16 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             internal IndexHelper(SchemaBearing<T> schematized)
             {
                 Indices = StaticPipeInternalUtils.MakeAnalysisInstance<T>(out var rec);
-                // We don't really care about this, but we need to work over something.
-                // The names will not be useful, but we will be getting those from the object's shape anyway.
+                // We define this delegate just to get its return parameter, so the name extractor has something
+                // to work over. Because this is defined without the names the names will be default, which is not
+                // useful, except we can get the "real" names from the schematized object's shape.
                 Func<T> dummyFunc = () => default;
                 var pairs = StaticPipeInternalUtils.GetNamesValues(Indices, dummyFunc.Method.ReturnParameter);
                 Contracts.Assert(pairs.Length == schematized.Shape.Pairs.Length);
 
                 var builder = ImmutableDictionary.CreateBuilder<PipelineColumn, string>();
                 for (int i = 0; i < pairs.Length; ++i)
+                    // Each "index" come from the analysis of the indices object, but we get the names from the shape.
                     builder.Add(pairs[i].Value, schematized.Shape.Pairs[i].Key);
                 Map = builder.ToImmutable();
             }

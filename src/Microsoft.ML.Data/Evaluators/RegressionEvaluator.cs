@@ -166,7 +166,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             /// <remarks>
             /// The absolute loss is defined as
-            /// L1 = (1/m) * sum( abs( yi - y'i))
+            /// L1 = (1/m) * sum( abs( yi - y&apos;i))
             /// where m is the number of instances in the test set.
             /// y'i are the predicted labels for each instance.
             /// yi are the correct labels of each instance.
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             /// <remarks>
             /// The squared loss is defined as
-            /// L2 = (1/m) * sum(( yi - y'i)^2)
+            /// L2 = (1/m) * sum(( yi - y&apos;i)^2)
             /// where m is the number of instances in the test set.
             /// y'i are the predicted labels for each instance.
             /// yi are the correct labels of each instance.
