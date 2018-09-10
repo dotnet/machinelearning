@@ -278,7 +278,7 @@ namespace Microsoft.ML.Scenarios
                 InputColumns = new[] { "Placeholder", "reshape_input" }
             });
             pipeline.Add(new Transforms.ColumnConcatenator() { Column = new[] { new ConcatTransformColumn() { Name = "Features", Source = new[] { "Placeholder", "dense/Relu" } } } });
-            pipeline.Add(new Trainers.LightGbmClassifier());
+            pipeline.Add(new Trainers.LogisticRegressionClassifier());
             TensorFlowUtils.Initialize();
             var model = pipeline.Train<MNISTData, MNISTPrediction>();
 
