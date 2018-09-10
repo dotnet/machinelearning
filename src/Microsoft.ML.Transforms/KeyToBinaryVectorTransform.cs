@@ -47,23 +47,10 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        internal sealed class ColInfo
-        {
-            public readonly string Name;
-            public readonly string Source;
-            public readonly ColumnType TypeSrc;
-
-            public ColInfo(string name, string source, ColumnType type)
-            {
-                Name = name;
-                Source = source;
-                TypeSrc = type;
-            }
-        }
-
         internal const string Summary = "Converts a key column to a binary encoded vector.";
         public const string UserName = "KeyToBinaryVectorTransform";
         public const string LoaderSignature = "KeyToBinaryTransform";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -81,6 +68,8 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
+        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+        private readonly ColumnInfo[] _columns;
 
         private string TestIsKey(ColumnType type)
         {
@@ -89,28 +78,19 @@ namespace Microsoft.ML.Runtime.Data
             return "key type of known cardinality";
         }
 
-        private ColInfo[] CreateInfos(ISchema inputSchema)
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
-            Host.AssertValue(inputSchema);
-            var infos = new ColInfo[ColumnPairs.Length];
-            for (int i = 0; i < ColumnPairs.Length; i++)
-            {
-                if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input);
-                var type = inputSchema.GetColumnType(colSrc);
-                string reason = TestIsKey(type);
-                if (reason != null)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input, reason, type.ToString());
-                infos[i] = new ColInfo(ColumnPairs[i].output, ColumnPairs[i].input, type);
-            }
-            return infos;
+            var type = inputSchema.GetColumnType(srcCol);
+            string reason = TestIsKey(type);
+            if (reason != null)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
         }
 
-        public KeyToBinaryVectorTransform(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
+        public KeyToBinaryVectorTransform(IHostEnvironment env, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
-            // Validate input schema.
-            CreateInfos(input.Schema);
+            _columns = columns.ToArray();
+
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -140,10 +120,13 @@ namespace Microsoft.ML.Runtime.Data
         private KeyToBinaryVectorTransform(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
+            _columns = new ColumnInfo[ColumnPairs.Length];
+            for (int i = 0; i < ColumnPairs.Length; i++)
+                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output);
         }
 
         public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) =>
-            new KeyToBinaryVectorTransform(env, input, columns).MakeDataTransform(input);
+            new KeyToBinaryVectorTransform(env, columns).MakeDataTransform(input);
 
         // Factory method for SignatureDataTransform.
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -162,7 +145,7 @@ namespace Microsoft.ML.Runtime.Data
                     cols[i] = new ColumnInfo(item.Source, item.Name);
                 };
             }
-            return new KeyToBinaryVectorTransform(env, input, cols).MakeDataTransform(input);
+            return new KeyToBinaryVectorTransform(env, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -177,6 +160,20 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Mapper : MapperBase
         {
+            private sealed class ColInfo
+            {
+                public readonly string Name;
+                public readonly string Source;
+                public readonly ColumnType TypeSrc;
+
+                public ColInfo(string name, string source, ColumnType type)
+                {
+                    Name = name;
+                    Source = source;
+                    TypeSrc = type;
+                }
+            }
+
             private readonly KeyToBinaryVectorTransform _parent;
             private readonly ColInfo[] _infos;
             private readonly VectorType[] _types;
@@ -186,7 +183,7 @@ namespace Microsoft.ML.Runtime.Data
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _infos = _parent.CreateInfos(inputSchema);
+                _infos = CreateInfos(inputSchema);
                 _types = new VectorType[_parent.ColumnPairs.Length];
                 _bitsPerKey = new int[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
@@ -201,6 +198,20 @@ namespace Microsoft.ML.Runtime.Data
                         // Output is the concatenation of the multiple output indicator vectors.
                         _types[i] = new VectorType(NumberType.Float, _infos[i].TypeSrc.ValueCount, _bitsPerKey[i]);
                 }
+            }
+            private ColInfo[] CreateInfos(ISchema inputSchema)
+            {
+                Host.AssertValue(inputSchema);
+                var infos = new ColInfo[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
+                    var type = inputSchema.GetColumnType(colSrc);
+
+                    infos[i] = new ColInfo(_parent.ColumnPairs[i].output, _parent.ColumnPairs[i].input, type);
+                }
+                return infos;
             }
 
             public override RowMapperColumnInfo[] GetOutputColumns()
@@ -421,33 +432,34 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class KeyToBinaryVectorEstimator : IEstimator<KeyToBinaryVectorTransform>
+    public sealed class KeyToBinaryVectorEstimator : TrivialEstimator<KeyToBinaryVectorTransform>
     {
-        private readonly IHost _host;
-        private readonly KeyToBinaryVectorTransform.ColumnInfo[] _columns;
 
         public KeyToBinaryVectorEstimator(IHostEnvironment env, params KeyToBinaryVectorTransform.ColumnInfo[] columns)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(KeyToBinaryVectorEstimator));
-            _columns = columns;
-        }
-
-        public KeyToBinaryVectorEstimator(IHostEnvironment env, string name, string source = null) :
-          this(env, new KeyToBinaryVectorTransform.ColumnInfo(source ?? name, name))
+            : this(env, new KeyToBinaryVectorTransform(env, columns))
         {
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        public KeyToBinaryVectorEstimator(IHostEnvironment env, string name, string source = null)
+            : this(env, new KeyToBinaryVectorTransform(env, new KeyToBinaryVectorTransform.ColumnInfo(source ?? name, name)))
         {
-            _host.CheckValue(inputSchema, nameof(inputSchema));
+        }
+
+        public KeyToBinaryVectorEstimator(IHostEnvironment env, KeyToBinaryVectorTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToBinaryVectorEstimator)), transformer)
+        {
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
-            foreach (var colInfo in _columns)
+            foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
                 if ((col.ItemType.ItemType.RawKind == default) || !(col.ItemType.IsVector || col.ItemType.IsPrimitive))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
@@ -460,8 +472,6 @@ namespace Microsoft.ML.Runtime.Data
 
             return new SchemaShape(result.Values);
         }
-
-        public KeyToBinaryVectorTransform Fit(IDataView input) => new KeyToBinaryVectorTransform(_host, input, _columns);
     }
 
 }
