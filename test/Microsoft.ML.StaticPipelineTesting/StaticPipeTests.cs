@@ -3,27 +3,29 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data.StaticPipe;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.TestFramework;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
+using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {
-    public abstract class MakeConsoleWork : IDisposable
+    public abstract class BaseTestClassWithConsole : BaseTestClass, IDisposable
     {
-        private readonly ITestOutputHelper _output;
         private readonly TextWriter _originalOut;
         private readonly TextWriter _textWriter;
 
-        public MakeConsoleWork(ITestOutputHelper output)
+        public BaseTestClassWithConsole(ITestOutputHelper output)
+            : base(output)
         {
-            _output = output;
             _originalOut = Console.Out;
             _textWriter = new StringWriter();
             Console.SetOut(_textWriter);
@@ -31,12 +33,12 @@ namespace Microsoft.ML.StaticPipelineTesting
 
         public void Dispose()
         {
-            _output.WriteLine(_textWriter.ToString());
+            Output.WriteLine(_textWriter.ToString());
             Console.SetOut(_originalOut);
         }
     }
 
-    public sealed class StaticPipeTests : MakeConsoleWork
+    public sealed class StaticPipeTests : BaseTestClassWithConsole
     {
         public StaticPipeTests(ITestOutputHelper output)
             : base(output)
@@ -110,7 +112,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // The next step where we shuffle the names around a little bit is one where we are
             // testing out the implicit usage of copy columns.
 
-            var est = Estimator.MakeNew(text).Append(r => (text: r.label, label: r.numericFeatures));
+            var est = text.MakeNewEstimator().Append(r => (text: r.label, label: r.numericFeatures));
             var newText = text.Append(est);
             var newTextData = newText.Fit(dataSource).Read(dataSource);
 
@@ -127,7 +129,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             => new KeyValuePair<string, ColumnType>(name, type);
 
         [Fact]
-        public void StaticPipeAssertSimple()
+        public void AssertStaticSimple()
         {
             var env = new TlcEnvironment(new SysRandom(0), verbose: true);
             var schema = new SimpleSchema(env,
@@ -151,7 +153,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
-        public void StaticPipeAssertKeys()
+        public void AssertStaticKeys()
         {
             var env = new TlcEnvironment(new SysRandom(0), verbose: true);
             var counted = new MetaCounted();
@@ -255,6 +257,75 @@ namespace Microsoft.ML.StaticPipelineTesting
                 view.AssertStatic(env, c => (
                    stay: c.KeyU4.TextValues.Scalar,
                    alot: c.KeyU1.I4Values.Vector)));
+        }
+
+        [Fact]
+        public void Normalizer()
+        {
+            var env = new TlcEnvironment(seed: 0);
+            var dataPath = GetDataPath("external", "winequality-white.csv");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+            var data = reader.Read(dataSource);
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, r.features, bin: r.features.NormalizeByBinning(), mm: r.features.Normalize()));
+            var tdata = est.Fit(data).Transform(data);
+
+            var schema = tdata.AsDynamic.Schema;
+            Assert.True(schema.TryGetColumnIndex("features", out int featCol));
+            Assert.True(schema.TryGetColumnIndex("bin", out int binCol));
+            Assert.True(schema.TryGetColumnIndex("mm", out int mmCol));
+            Assert.False(schema.IsNormalized(featCol));
+            Assert.True(schema.IsNormalized(binCol));
+            Assert.True(schema.IsNormalized(mmCol));
+        }
+
+        [Fact]
+        public void NormalizerWithOnFit()
+        {
+            var env = new TlcEnvironment(seed: 0);
+            var dataPath = GetDataPath("external", "winequality-white.csv");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => c.LoadFloat(0, 2),
+                separator: ';', hasHeader: true);
+            var data = reader.Read(dataSource);
+
+            // These will be populated once we call fit.
+            ImmutableArray<float> mm;
+            ImmutableArray<float> ss;
+            ImmutableArray<ImmutableArray<float>> bb;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r, 
+                    ncdf: r.NormalizeByCumulativeDistribution(onFit: (m, s) => mm = m),
+                    n: r.NormalizeByMeanVar(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
+                    b: r.NormalizeByBinning(onFit: b => bb = b)));
+            var tdata = est.Fit(data).Transform(data);
+
+            Assert.Equal(3, mm.Length);
+            Assert.Equal(3, ss.Length);
+            Assert.Equal(3, bb.Length);
+
+            // Just for fun, let's also write out some of the lines of the data to the console.
+            using (var stream = new MemoryStream())
+            {
+                IDataView v = new ChooseColumnsTransform(env, tdata.AsDynamic, "r", "ncdf", "n", "b");
+                v = TakeFilter.Create(env, v, 10);
+                var saver = new TextSaver(env, new TextSaver.Arguments()
+                {
+                    Dense = true,
+                    Separator = ",",
+                    OutputHeader = false
+                });
+                saver.SaveData(stream, v, Utils.GetIdentityPermutation(v.Schema.ColumnCount));
+                Console.WriteLine(Encoding.UTF8.GetString(stream.ToArray()));
+            }
         }
     }
 }

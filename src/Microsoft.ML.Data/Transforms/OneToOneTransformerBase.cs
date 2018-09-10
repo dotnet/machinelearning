@@ -172,18 +172,6 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             protected abstract Delegate MakeGetter(IRow input, int iinfo, out Action disposer);
-
-            protected int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, Dictionary<int, int> colMap)
-            {
-                MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
-                {
-                    var originalCol = colMap[col];
-                    schema.GetMetadata<T>(kind, originalCol, ref dst);
-                };
-                var info = new MetadataInfo<T>(ct, getter);
-                colMetaInfo.Add(kind, info);
-                return 0;
-            }
         }
     }
 }

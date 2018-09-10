@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
@@ -92,8 +91,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 
             foreach (var pair in Pairs)
             {
-                var col = shape.FindColumn(pair.Key);
-                if (col == null)
+                if (!shape.TryFindColumn(pair.Key, out var col))
                     throw ectx.ExceptParam(nameof(shape), $"Column named '{pair.Key}' was not found");
                 var type = GetTypeOrNull(col);
                 if ((type != null && !pair.Value.IsAssignableFromStaticPipeline(type)) || (type == null && IsStandard(ectx, pair.Value)))
@@ -105,15 +103,6 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
                     // that the statically declared type should not have corresponded to a recognized type.
                     if (!pair.Value.IsAssignableFromStaticPipeline(type))
                     {
-                        // This is generally an error, unless it's the situation where the asserted type is Key<,> but we could
-                        // only resolve it so far as Key<>, since for the moment the SchemaShape cannot determine the type of key
-                        // value metadata. In which case, we can check if the declared type is a subtype of the key that was determined
-                        // from the analysis.
-                        if (pair.Value.IsGenericType && pair.Value.GetGenericTypeDefinition() == typeof(Key<,>) &&
-                                type.IsAssignableFromStaticPipeline(pair.Value))
-                        {
-                            continue;
-                        }
                         throw ectx.ExceptParam(nameof(shape),
                             $"Column '{pair.Key}' of type '{col.GetTypeString()}' cannot be expressed statically as type '{pair.Value}'.");
                     }
@@ -126,13 +115,14 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             Contracts.AssertValue(col);
 
             Type vecType = null;
+
             switch (col.Kind)
             {
                 case SchemaShape.Column.VectorKind.Scalar:
                     break; // Keep it null.
                 case SchemaShape.Column.VectorKind.Vector:
                     // Assume that if the normalized metadata is indicated by the schema shape, it is bool and true.
-                    vecType = col.MetadataKinds.Contains(MetadataUtils.Kinds.IsNormalized) ? typeof(NormVector<>) : typeof(Vector<>);
+                    vecType = col.IsNormalized() ? typeof(NormVector<>) : typeof(Vector<>);
                     break;
                 case SchemaShape.Column.VectorKind.VariableVector:
                     vecType = typeof(VarVector<>);
@@ -148,11 +138,22 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
                 Type physType = StaticKind(col.ItemType.RawKind);
                 Contracts.Assert(physType == typeof(byte) || physType == typeof(ushort)
                     || physType == typeof(uint) || physType == typeof(ulong));
-                // As of the time of this writing we cannot distinguish between multiple types of key value metadata,
-                // so, we don't try. This is tracked in this issue: https://github.com/dotnet/machinelearning/issues/755.
-                // Because Key<,> descends from Key<> the check will still work. Also the idiom here has no way of
-                // representing variable size keys.
                 var keyType = typeof(Key<>).MakeGenericType(physType);
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var kvMeta))
+                {
+                    var subtype = GetTypeOrNull(kvMeta);
+                    if (subtype != null && subtype.IsGenericType)
+                    {
+                        var sgtype = subtype.GetGenericTypeDefinition();
+                        if (sgtype == typeof(NormVector<>) || sgtype == typeof(Vector<>))
+                        {
+                            var args = subtype.GetGenericArguments();
+                            Contracts.Assert(args.Length == 1);
+                            keyType = typeof(Key<,>).MakeGenericType(physType, args[0]);
+                        }
+                    }
+                }
+
                 return vecType?.MakeGenericType(keyType) ?? keyType;
             }
 

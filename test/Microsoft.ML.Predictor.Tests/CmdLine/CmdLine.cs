@@ -7,12 +7,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Xunit.Abstractions;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -192,14 +194,17 @@ namespace Microsoft.ML.Runtime.RunTests
             [Argument(ArgumentType.AtMostOnce)]
             public string text = "";
 
-            [Argument(ArgumentType.Multiple)]
-            public SubComponent sub = new SubComponent("Xyz", "Abc");
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureDataSaver))]
+            public IComponentFactory<IDataSaver> sub = (IComponentFactory<IDataSaver>)CmdParser.CreateComponentFactory(
+                typeof(IComponentFactory<IDataSaver>),
+                typeof(SignatureDataSaver), 
+                "Text");
 
-            [Argument(ArgumentType.Multiple)]
-            public SubComponent[] subArray = null;
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureDataSaver))]
+            public IComponentFactory<IDataSaver>[] subArray = null;
 
-            [Argument(ArgumentType.Multiple)]
-            public KeyValuePair<string, SubComponent>[] subTaggedArray = null;
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureDataSaver))]
+            public KeyValuePair<string, IComponentFactory<IDataSaver>>[] subTaggedArray = null;
 
             [Argument(ArgumentType.Multiple)]
             public Nested[] nest;
@@ -228,20 +233,23 @@ namespace Microsoft.ML.Runtime.RunTests
                 return sb.ToString();
             }
 
-            private static void AppendSubArray(StringBuilder sb, SubComponent[] subComponents)
+            private static void AppendSubArray(StringBuilder sb, IComponentFactory[] subComponents)
             {
                 if (subComponents == null)
                     return;
-                foreach (var sc in subComponents)
-                    sb.AppendFormat(" subArray={0}{1}", sc.Kind, string.Join("", sc.Settings));
+                foreach (var sc in subComponents.Cast<ICommandLineComponentFactory>())
+                    sb.AppendFormat(" subArray={0}{1}", sc.Name, sc.GetSettingsString());
             }
 
-            private static void AppendSubTaggedArray(StringBuilder sb, KeyValuePair<string, SubComponent>[] pairs)
+            private static void AppendSubTaggedArray<T>(StringBuilder sb, KeyValuePair<string, IComponentFactory<T>>[] pairs)
             {
                 if (pairs == null)
                     return;
                 foreach (var pair in pairs)
-                    sb.AppendFormat(" subTaggedArray{1}={0}{2}", pair.Value.Kind, pair.Key == "" ? "" : "[" + pair.Key + "]", string.Join("", pair.Value.Settings));
+                {
+                    var value = (ICommandLineComponentFactory)pair.Value;
+                    sb.AppendFormat(" subTaggedArray{1}={0}{2}", value.Name, pair.Key == "" ? "" : "[" + pair.Key + "]", value.GetSettingsString());
+                }
             }
 
             private static void AppendArray<T>(StringBuilder sb, T[] arr)

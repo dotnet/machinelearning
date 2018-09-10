@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {
-    public sealed class ImageAnalyticsTests : MakeConsoleWork
+    public sealed class ImageAnalyticsTests : BaseTestClassWithConsole
     {
         public ImageAnalyticsTests(ITestOutputHelper output)
             : base(output)
