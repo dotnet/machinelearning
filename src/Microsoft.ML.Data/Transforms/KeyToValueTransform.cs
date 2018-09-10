@@ -79,11 +79,17 @@ namespace Microsoft.ML.Runtime.Data
                 loaderSignature: LoaderSignature);
         }
 
+        /// <summary>
+        /// Create a <see cref="KeyToValueTransform"/> that takes and transforms one column.
+        /// </summary>
         public KeyToValueTransform(IHostEnvironment env, string columnName)
             : this(env, (columnName, columnName))
         {
         }
 
+        /// <summary>
+        /// Create a <see cref="KeyToValueTransform"/> that takes multiple pairs of columns.
+        /// </summary>
         public KeyToValueTransform(IHostEnvironment env, params (string input, string output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueTransform)), columns)
         {
@@ -92,7 +98,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Factory method for SignatureDataTransform.
         /// </summary>
-        public static IDataView Create(IHostEnvironment env, Arguments args, IDataView input)
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
