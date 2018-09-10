@@ -241,6 +241,13 @@ namespace Microsoft.ML.Runtime.Data
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
+        internal static string TestIsKnownDataKind(ColumnType type)
+        {
+            if (type.ItemType.RawKind != default && (type.IsVector || type.IsPrimitive))
+                return null;
+            return "standard type or a vector of standard type";
+        }
+
         private ColInfo[] CreateInfos(ISchema schema)
         {
             Host.AssertValue(schema);
@@ -252,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
                 var type = schema.GetColumnType(colSrc);
                 string reason = TestIsKnownDataKind(type);
                 if (reason != null)
-                    throw Host.ExceptUserArg(nameof(ColumnPairs), InvalidTypeErrorFormat, ColumnPairs[i].input, type, reason);
+                    throw Host.ExceptSchemaMismatch(nameof(ColumnPairs), "input", ColumnPairs[i].input, reason, type.ToString());
                 infos[i] = new ColInfo(ColumnPairs[i].output, ColumnPairs[i].input, type);
             }
             return infos;
@@ -427,13 +434,6 @@ namespace Microsoft.ML.Runtime.Data
                 TermsColumn = args.TermsColumn,
                 TextKeyValues = args.TextKeyValues
             }, input);
-        }
-
-        internal static string TestIsKnownDataKind(ColumnType type)
-        {
-            if (type.ItemType.RawKind != default && (type.IsVector || type.IsPrimitive))
-                return null;
-            return "Expected standard type or a vector of standard type";
         }
 
         /// <summary>

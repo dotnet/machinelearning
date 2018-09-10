@@ -82,28 +82,25 @@ namespace Microsoft.ML.Runtime.Data
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        //REVIEW: This and method below need to go to base class as it get created.
-        private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
-
         private string TestIsKey(ColumnType type)
         {
             if (type.ItemType.KeyCount > 0)
                 return null;
-            return "Expected Key type of known cardinality";
+            return "key type of known cardinality";
         }
 
-        private ColInfo[] CreateInfos(ISchema schema)
+        private ColInfo[] CreateInfos(ISchema inputSchema)
         {
-            Host.AssertValue(schema);
+            Host.AssertValue(inputSchema);
             var infos = new ColInfo[ColumnPairs.Length];
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                if (!schema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
+                if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
                     throw Host.ExceptUserArg(nameof(ColumnPairs), "Source column '{0}' not found", ColumnPairs[i].input);
-                var type = schema.GetColumnType(colSrc);
+                var type = inputSchema.GetColumnType(colSrc);
                 string reason = TestIsKey(type);
                 if (reason != null)
-                    throw Host.ExceptUserArg(nameof(ColumnPairs), InvalidTypeErrorFormat, ColumnPairs[i].input, type, reason);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input, reason, type.ToString());
                 infos[i] = new ColInfo(ColumnPairs[i].output, ColumnPairs[i].input, type);
             }
             return infos;

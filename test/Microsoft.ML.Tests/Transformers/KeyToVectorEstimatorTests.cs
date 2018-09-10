@@ -20,14 +20,14 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        class TestClass
+        private class TestClass
         {
             public int A;
             public int B;
             public int C;
         }
 
-        class TestMeta
+        private class TestMeta
         {
             [VectorType(2)]
             public string[] A;
@@ -60,10 +60,11 @@ namespace Microsoft.ML.Tests.Transformers
                 new KeyToVectorTransform.ColumnInfo("TermC", "CatC", true),
                 new KeyToVectorTransform.ColumnInfo("TermC", "CatCNonBag", false));
             TestEstimatorCore(pipe, dataView);
+            Done();
         }
 
         [Fact]
-        void TestMetadataPropagation()
+        public void TestMetadataPropagation()
         {
             var data = new[] {
                 new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 3,5}, D= 6, E= new float[2] { 1.0f,2.0f}, F = 1.0f , G= new string[2]{ "A","D"}, H="D"},
@@ -99,7 +100,7 @@ namespace Microsoft.ML.Tests.Transformers
             ValidateMetadata(result);
         }
 
-        void ValidateMetadata(IDataView result)
+        private void ValidateMetadata(IDataView result)
         {
             Assert.True(result.Schema.TryGetColumnIndex("CatA", out int colA));
             Assert.True(result.Schema.TryGetColumnIndex("CatB", out int colB));
@@ -177,7 +178,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestCommandLine()
+        public void TestCommandLine()
         {
             using (var env = new TlcEnvironment())
             {
@@ -186,7 +187,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestOldSavingAndLoading()
+        public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);

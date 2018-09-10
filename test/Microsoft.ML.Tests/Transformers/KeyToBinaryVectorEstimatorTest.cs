@@ -15,13 +15,15 @@ namespace Microsoft.ML.Tests.Transformers
         public KeyToBinaryVectorEstimatorTest(ITestOutputHelper output) : base(output)
         {
         }
-        class TestClass
+
+        private class TestClass
         {
             public int A;
             public int B;
             public int C;
         }
-        class TestMeta
+
+        private class TestMeta
         {
             [VectorType(2)]
             public string[] A;
@@ -29,12 +31,6 @@ namespace Microsoft.ML.Tests.Transformers
             [VectorType(2)]
             public int[] C;
             public int D;
-            [VectorType(2)]
-            public float[] E;
-            public float F;
-            [VectorType(2)]
-            public string[] G;
-            public string H;
         }
 
         [Fact]
@@ -52,15 +48,16 @@ namespace Microsoft.ML.Tests.Transformers
             var pipe = new KeyToBinaryVectorEstimator(Env, new KeyToBinaryVectorTransform.ColumnInfo("TermA", "CatA"),
                 new KeyToBinaryVectorTransform.ColumnInfo("TermC", "CatC"));
             TestEstimatorCore(pipe, dataView);
+            Done();
         }
 
         [Fact]
-        void TestMetadataPropagation()
+        public void TestMetadataPropagation()
         {
             var data = new[] {
-                new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 3,5}, D= 6, E= new float[2] { 1.0f,2.0f}, F = 1.0f , G= new string[2]{ "A","D"}, H="D"},
-                new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 5,3}, D= 1, E=new float[2] { 3.0f,4.0f}, F = -1.0f ,G= new string[2]{"E", "A"}, H="E"},
-                new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 3,5}, D= 6, E=new float[2] { 5.0f,6.0f}, F = 1.0f ,G= new string[2]{ "D", "E"}, H="D"} };
+                new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 3,5}, D= 6},
+                new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 5,3}, D= 1},
+                new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 3,5}, D= 6} };
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
@@ -82,7 +79,7 @@ namespace Microsoft.ML.Tests.Transformers
             ValidateMetadata(result);
         }
 
-        void ValidateMetadata(IDataView result)
+        private void ValidateMetadata(IDataView result)
         {
             Assert.True(result.Schema.TryGetColumnIndex("CatA", out int colA));
             Assert.True(result.Schema.TryGetColumnIndex("CatB", out int colB));
@@ -114,7 +111,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestCommandLine()
+        public void TestCommandLine()
         {
             using (var env = new TlcEnvironment())
             {
@@ -123,7 +120,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        void TestOldSavingAndLoading()
+        public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
