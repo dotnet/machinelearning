@@ -135,18 +135,18 @@ namespace Microsoft.ML.Runtime.Data
             return "key type of known cardinality";
         }
 
-        private ColInfo[] CreateInfos(ISchema schema)
+        private ColInfo[] CreateInfos(ISchema inputSchema)
         {
-            Host.AssertValue(schema);
+            Host.AssertValue(inputSchema);
             var infos = new ColInfo[ColumnPairs.Length];
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                if (!schema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
-                    throw Host.ExceptUserArg(nameof(ColumnPairs), "Source column '{0}' not found", ColumnPairs[i].input);
-                var type = schema.GetColumnType(colSrc);
+                if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input);
+                var type = inputSchema.GetColumnType(colSrc);
                 string reason = TestIsKey(type);
                 if (reason != null)
-                    throw Host.ExceptSchemaMismatch(nameof(ColumnPairs), "input", ColumnPairs[i].input, reason, type.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input, reason, type.ToString());
                 infos[i] = new ColInfo(ColumnPairs[i].output, ColumnPairs[i].input, type);
             }
             return infos;
@@ -170,7 +170,8 @@ namespace Microsoft.ML.Runtime.Data
         {
             return new VersionInfo(
                 modelSignature: "KEY2VECT",
-                verWrittenCur: 0x00010001, // Initial
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Get rid of writing float size in model context
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
@@ -181,13 +182,10 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-
             // *** Binary format ***
-            // int: sizeof(Float)
             // <base>
             // for each added column
             //   byte: bag as 0/1
-            ctx.Writer.Write(sizeof(float));
             SaveColumns(ctx);
 
             Host.Assert(_bags.Length == ColumnPairs.Length);
@@ -209,8 +207,11 @@ namespace Microsoft.ML.Runtime.Data
 
         private static ModelLoadContext ReadFloatFromCtx(IHostEnvironment env, ModelLoadContext ctx)
         {
-            int cbFloat = ctx.Reader.ReadInt32();
-            env.CheckDecode(cbFloat == sizeof(float));
+            if (ctx.Header.ModelVerWritten == 0x00010001)
+            {
+                int cbFloat = ctx.Reader.ReadInt32();
+                env.CheckDecode(cbFloat == sizeof(float));
+            }
             return ctx;
         }
 

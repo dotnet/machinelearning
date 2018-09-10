@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
                 if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
-                    throw Host.ExceptUserArg(nameof(ColumnPairs), "Source column '{0}' not found", ColumnPairs[i].input);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input);
                 var type = inputSchema.GetColumnType(colSrc);
                 string reason = TestIsKey(type);
                 if (reason != null)

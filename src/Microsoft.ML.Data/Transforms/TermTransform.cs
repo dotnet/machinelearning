@@ -241,25 +241,25 @@ namespace Microsoft.ML.Runtime.Data
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        internal static string TestIsKnownDataKind(ColumnType type)
+        internal string TestIsKnownDataKind(ColumnType type)
         {
             if (type.ItemType.RawKind != default && (type.IsVector || type.IsPrimitive))
                 return null;
             return "standard type or a vector of standard type";
         }
 
-        private ColInfo[] CreateInfos(ISchema schema)
+        private ColInfo[] CreateInfos(ISchema inputSchema)
         {
-            Host.AssertValue(schema);
+            Host.AssertValue(inputSchema);
             var infos = new ColInfo[ColumnPairs.Length];
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                if (!schema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
-                    throw Host.ExceptUserArg(nameof(ColumnPairs), "Source column '{0}' not found", ColumnPairs[i].input);
-                var type = schema.GetColumnType(colSrc);
+                if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input);
+                var type = inputSchema.GetColumnType(colSrc);
                 string reason = TestIsKnownDataKind(type);
                 if (reason != null)
-                    throw Host.ExceptSchemaMismatch(nameof(ColumnPairs), "input", ColumnPairs[i].input, reason, type.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input, reason, type.ToString());
                 infos[i] = new ColInfo(ColumnPairs[i].output, ColumnPairs[i].input, type);
             }
             return infos;
@@ -406,9 +406,6 @@ namespace Microsoft.ML.Runtime.Data
             IDataView input, string name, string source = null,
             int maxNumTerms = Defaults.MaxNumTerms, SortOrder sort = Defaults.Sort) =>
             new TermTransform(env, input, new[] { new ColumnInfo(source ?? name, name, maxNumTerms, sort) }).MakeDataTransform(input);
-
-        //REVIEW: This and static method below need to go to base class as it get created.
-        private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
 
         public static IDataTransform Create(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
         {
@@ -713,12 +710,6 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
           => new Mapper(this, schema);
-
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
-        {
-            if ((inputSchema.GetColumnType(srcCol).ItemType.RawKind == default))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "image", inputSchema.GetColumnType(srcCol).ToString());
-        }
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
