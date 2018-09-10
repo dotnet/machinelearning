@@ -112,7 +112,14 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // Exclude the hidden learners, and the metalinear learners.
             var trainers = ComponentCatalog.GetAllDerivedClasses(typeof(ITrainer), predictorType).Where(cls => !cls.IsHidden);
 
-            string loader = $" loader=TextLoader{{{loaderSettings}}}";
+            if (!string.IsNullOrEmpty(loaderSettings))
+            {
+                StringBuilder sb = new StringBuilder();
+                CmdQuoter.QuoteValue(loaderSettings, sb, true);
+                loaderSettings = sb.ToString();
+            }
+
+            string loader = $" loader=TextLoader{loaderSettings}";
 
             // REVIEW: there are more learners than recipes atm.
             // Flip looping through recipes, then through learners if the cardinality changes.
