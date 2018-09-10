@@ -3,13 +3,13 @@
 #@   sep=tab
 #@   col=ScalarString:TX:0
 #@   col=VectorString:TX:1-4
-#@   col=NakedKey:U4[0-5]:5
+#@   col=BareKey:U4[0-5]:5
 #@   col=A:U4[0-34]:6
 #@   col=B:U4[0-73]:7-10
 #@   col=A_back:TX:11
 #@   col=B_back:TX:12-15
 #@ }
-ScalarString	15	4:NakedKey	5:A	10:A_back
+ScalarString	15	4:BareKey	5:A	10:A_back
 5.1	5.1	3.5	1.4	0.2	0	0	0	1	2	3	5.1	5.1	3.5	1.4	0.2
 4.9	4.9	3.0	1.4	0.2	0	1	4	5	2	3	4.9	4.9	3.0	1.4	0.2
 4.7	4.7	3.2	1.3	0.2	0	2	6	7	8	3	4.7	4.7	3.2	1.3	0.2
