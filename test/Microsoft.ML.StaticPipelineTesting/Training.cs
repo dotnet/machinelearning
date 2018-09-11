@@ -173,5 +173,40 @@ namespace Microsoft.ML.StaticPipelineTesting
             for (int c = 0; c < schema.ColumnCount; ++c)
                 Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
         }
+
+        [Fact]
+        public void SdcaMulticlassClassification()
+        {
+            var env = new TlcEnvironment(seed: 0);
+            var dataPath = GetDataPath("iris.data");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(4), values: c.LoadFloat(0, 3)),
+                separator: ',');
+
+            MulticlassLogisticRegressionPredictor pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: r.label.ToKey().PredictSdcaClassification(r.values, onFit: p => pred = p)));
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            VBuffer<float>[] weights = default;
+            pred.GetWeights(ref weights, out int numClasses);
+            Assert.Equal(3, numClasses);
+            Assert.Equal(3, weights.Length);
+            for (int i = 0; i < weights.Length; ++i)
+                Assert.Equal(4, weights[i].Length);
+
+            var data = model.Read(dataSource);
+            // Just output some data on the schema for fun.
+            var schema = data.AsDynamic.Schema;
+            for (int c = 0; c < schema.ColumnCount; ++c)
+                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+        }
     }
 }

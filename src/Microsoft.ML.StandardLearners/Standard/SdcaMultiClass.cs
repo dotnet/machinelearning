@@ -252,6 +252,28 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
+        /// <summary>
+        /// Gets the output schema. Overriden in the case of multiclass SDCA because if the input labels are of key-type with values,
+        /// then the output predictions will be a key type with those same values.
+        /// </summary>
+        /// <param name="inputSchema">The input schema.</param>
+        /// <returns>The output schema given the input schema.</returns>
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            var baseResult = base.GetOutputSchema(inputSchema);
+            var outColumns = baseResult.Columns.ToDictionary(x => x.Name);
+
+            bool labelResult = inputSchema.TryFindColumn(LabelColumn.Name, out var labelInput);
+            Host.Assert(labelResult); // Already verified by the check.
+            if (labelInput.IsKey && labelInput.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var kv))
+            {
+                var newCol = new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true,
+                    new SchemaShape(new[] { kv }));
+                outColumns[DefaultColumnNames.PredictedLabel] = newCol;
+            }
+            return new SchemaShape(outColumns.Values);
+        }
+
         /// <inheritdoc/>
         protected override bool CheckConvergence(
             IProgressChannel pch,

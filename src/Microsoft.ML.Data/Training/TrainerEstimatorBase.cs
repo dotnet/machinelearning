@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.Training
 
         public TTransformer Fit(IDataView input) => TrainTransformer(input);
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        public virtual SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 

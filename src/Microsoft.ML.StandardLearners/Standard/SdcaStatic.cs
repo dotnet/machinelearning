@@ -197,6 +197,57 @@ namespace Microsoft.ML.Runtime.Learners
             return rec.Output;
         }
 
+        /// <summary>
+        /// Predict a target using a linear multi-classification model trained with the SDCA trainer, and log-loss.
+        /// </summary>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="l2Const">The L2 regularization hyperparameter.</param>
+        /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
+        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was trained, as well as the calibrator on top of that model. Note that this action cannot change the
+        /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
+        /// <returns>The set of output columns including in order the predicted class scores (which will range from 0 to 1, and sum to
+        /// 1), and the predicted label.</returns>
+
+        public static (Vector<float> score, Key<uint, TVal> predictedLabel)
+            PredictSdcaClassification<TVal>(this Key<uint, TVal> label, Vector<float> features,
+                Scalar<float> weights = null,
+                float? l2Const = null,
+                float? l1Threshold = null,
+                int? maxIterations = null,
+                Action<MulticlassLogisticRegressionPredictor> onFit = null)
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckParam(!(l2Const < 0), nameof(l2Const), "Must not be negative");
+            Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative");
+            Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
+            Contracts.CheckValueOrNull(onFit);
+
+            var args = new SdcaMultiClassTrainer.Arguments()
+            {
+                L2Const = l2Const,
+                L1Threshold = l1Threshold,
+                MaxIterations = maxIterations,
+            };
+
+            var rec = new TrainerEstimatorReconciler.MultiClassifier<TVal>(
+                (env, labelName, featuresName, weightsName) =>
+                {
+                    var trainer = new SdcaMultiClassTrainer(env, args, featuresName, labelName, weightsName);
+                    if (onFit != null)
+                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+                    return trainer;
+                }, label, features, weights);
+            return rec.Output;
+        }
+
         private sealed class TrivialRegressionLossFactory : ISupportSdcaRegressionLossFactory
         {
             private readonly ISupportSdcaRegressionLoss _loss;
