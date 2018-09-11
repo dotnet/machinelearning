@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 // Cut out term transform from pipeline.
                 var newScorer = ApplyTransformUtils.ApplyAllTransformsToData(env, scorer, loader, term);
-                var keyToValue = new KeyToValueTransform(env, newScorer, "PredictedLabel");
+                var keyToValue = new KeyToValueTransform(env, "PredictedLabel").Transform(newScorer);
                 var model = env.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(keyToValue);
 
                 var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
