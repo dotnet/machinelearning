@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Core.Data;
+using System.Linq;
 
 [assembly: LoadableClass(RandomTrainer.Summary, typeof(RandomTrainer), typeof(RandomTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
@@ -40,13 +41,14 @@ namespace Microsoft.ML.Runtime.Learners
     /// A trainer that trains a predictor that returns random values
     /// </summary>
 
-    public sealed class RandomTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<RandomPredictor>, RandomPredictor>
+    public sealed class RandomTrainer : TrainerBase<RandomPredictor>,
+        ITrainerEstimator<BinaryPredictionTransformer<RandomPredictor>, RandomPredictor>
     {
         internal const string LoadNameValue = "RandomPredictor";
         internal const string UserNameValue = "Random Predictor";
         internal const string Summary = "A toy predictor that returns a random value.";
 
-        public class Arguments
+        public sealed class Arguments
         {
         }
 
@@ -55,21 +57,41 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
         public override TrainerInfo Info => _info;
 
-        protected override SchemaShape.Column[] OutputColumns => throw new NotImplementedException();
-
-        public RandomTrainer(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight)
-            : base(host, feature, label, weight)
+        public RandomTrainer(IHostEnvironment env, Arguments args)
+            : base(env, LoadNameValue)
         {
+            Host.CheckValue(args, nameof(args));
         }
 
-        protected override RandomPredictor TrainModelCore(TrainContext trainContext)
+        public BinaryPredictionTransformer<RandomPredictor> Fit(IDataView input)
         {
-            Host.CheckValue(trainContext, nameof(trainContext));
+            var cachedTrain = Info.WantCaching ? new CacheDataView(Host, input, prefetch: null) : input;
+
+            RoleMappedData trainRoles = new RoleMappedData(cachedTrain);
+            var pred = Train(new TrainContext(trainRoles));
+            return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, cachedTrain.Schema, trainRoles.Schema.Feature.Name);
+        }
+
+        public override RandomPredictor Train(TrainContext context)
+        {
+            Host.CheckValue(context, nameof(context));
             return new RandomPredictor(Host, Host.Rand.Next());
         }
 
-        protected override BinaryPredictionTransformer<RandomPredictor> MakeTransformer(RandomPredictor model, ISchema trainSchema)
-            => new BinaryPredictionTransformer<RandomPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        /// <summary>
+        /// Create a new SchemaShape with all columns in inputScema and an additional
+        /// Score column which is the output of the Estimator.
+        /// </summary>
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var newColumn = new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, isKey: false);
+            outColumns[DefaultColumnNames.Score] = newColumn;
+
+            return new SchemaShape(outColumns.Values);
+        }
     }
 
     /// <summary>
@@ -212,9 +234,22 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected override SchemaShape.Column[] OutputColumns { get; }
 
+        public PriorTrainer(IHostEnvironment env, Arguments args)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), MakeFeatureColumn(DefaultColumnNames.Score), MakeFeatureColumn(DefaultColumnNames.Label), null)
+        {
+            OutputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, isKey: false)
+            };
+        }
+
         public PriorTrainer(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight)
             : base(host, feature, label, weight)
         {
+            OutputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, isKey: false)
+            };
         }
 
         protected override PriorPredictor TrainModelCore(TrainContext context)
@@ -263,6 +298,15 @@ namespace Microsoft.ML.Runtime.Learners
         protected override BinaryPredictionTransformer<PriorPredictor> MakeTransformer(PriorPredictor model, ISchema trainSchema)
              => new BinaryPredictionTransformer<PriorPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+        }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+        }
     }
 
     public sealed class PriorPredictor :
