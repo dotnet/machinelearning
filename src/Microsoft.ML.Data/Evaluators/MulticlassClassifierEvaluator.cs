@@ -2,16 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
+using Microsoft.ML.Data.StaticPipe;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 [assembly: LoadableClass(typeof(MultiClassClassifierEvaluator), typeof(MultiClassClassifierEvaluator), typeof(MultiClassClassifierEvaluator.Arguments), typeof(SignatureEvaluator),
     "Multi-Class Classifier Evaluator", MultiClassClassifierEvaluator.LoadName, "MultiClassClassifier", "MultiClass")]
@@ -141,15 +143,15 @@ namespace Microsoft.ML.Runtime.Data
             var stratVal = new List<DvText>();
             var isWeighted = new List<DvBool>();
 
-            var microAcc = new List<Double>();
-            var macroAcc = new List<Double>();
-            var logLoss = new List<Double>();
-            var logLossRed = new List<Double>();
-            var topKAcc = new List<Double>();
-            var perClassLogLoss = new List<Double[]>();
+            var microAcc = new List<double>();
+            var macroAcc = new List<double>();
+            var logLoss = new List<double>();
+            var logLossRed = new List<double>();
+            var topKAcc = new List<double>();
+            var perClassLogLoss = new List<double[]>();
 
-            var counts = new List<Double[]>();
-            var weights = new List<Double[]>();
+            var counts = new List<double[]>();
+            var weights = new List<double[]>();
             var confStratCol = new List<uint>();
             var confStratVal = new List<DvText>();
 
@@ -243,22 +245,22 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly int _numClasses;
                 public readonly int? OutputTopKAcc;
 
-                private Double _totalLogLoss;
-                private Double _numInstances;
-                private Double _numCorrect;
-                private Double _numCorrectTopK;
-                private readonly Double[] _sumWeightsOfClass;
-                private readonly Double[] _totalPerClassLogLoss;
-                public readonly Double[][] ConfusionTable;
+                private double _totalLogLoss;
+                private double _numInstances;
+                private double _numCorrect;
+                private double _numCorrectTopK;
+                private readonly double[] _sumWeightsOfClass;
+                private readonly double[] _totalPerClassLogLoss;
+                public readonly double[][] ConfusionTable;
 
-                public Double MicroAvgAccuracy { get { return _numInstances > 0 ? _numCorrect / _numInstances : 0; } }
-                public Double MacroAvgAccuracy
+                public double MicroAvgAccuracy { get { return _numInstances > 0 ? _numCorrect / _numInstances : 0; } }
+                public double MacroAvgAccuracy
                 {
                     get
                     {
                         if (_numInstances == 0)
                             return 0;
-                        Double macroAvgAccuracy = 0;
+                        double macroAvgAccuracy = 0;
                         int countOfNonEmptyClasses = 0;
                         for (int i = 0; i < _numClasses; ++i)
                         {
@@ -273,14 +275,14 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public Double LogLoss { get { return _numInstances > 0 ? _totalLogLoss / _numInstances : 0; } }
+                public double LogLoss { get { return _numInstances > 0 ? _totalLogLoss / _numInstances : 0; } }
 
-                public Double Reduction
+                public double Reduction
                 {
                     get
                     {
                         // reduction -- prior log loss is entropy
-                        Double entropy = 0;
+                        double entropy = 0;
                         for (int i = 0; i < _numClasses; ++i)
                         {
                             if (_sumWeightsOfClass[i] != 0)
@@ -291,11 +293,11 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public Double TopKAccuracy { get { return _numInstances > 0 ? _numCorrectTopK / _numInstances : 0; } }
+                public double TopKAccuracy { get { return _numInstances > 0 ? _numCorrectTopK / _numInstances : 0; } }
 
                 // The per class average log loss is calculated by dividing the weighted sum of the log loss of examples
                 // in each class by the total weight of examples in that class.
-                public Double[] PerClassLogLoss
+                public double[] PerClassLogLoss
                 {
                     get
                     {
@@ -311,14 +313,14 @@ namespace Microsoft.ML.Runtime.Data
                     _numClasses = numClasses;
                     OutputTopKAcc = outputTopKAcc;
 
-                    _sumWeightsOfClass = new Double[numClasses];
-                    _totalPerClassLogLoss = new Double[numClasses];
-                    ConfusionTable = new Double[numClasses][];
+                    _sumWeightsOfClass = new double[numClasses];
+                    _totalPerClassLogLoss = new double[numClasses];
+                    ConfusionTable = new double[numClasses][];
                     for (int i = 0; i < ConfusionTable.Length; i++)
-                        ConfusionTable[i] = new Double[numClasses];
+                        ConfusionTable[i] = new double[numClasses];
                 }
 
-                public void Update(int[] indices, Double loglossCurr, int label, Single weight)
+                public void Update(int[] indices, double loglossCurr, int label, float weight)
                 {
                     Contracts.Assert(Utils.Size(indices) == _numClasses);
 
@@ -353,15 +355,15 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private ValueGetter<Single> _labelGetter;
-            private ValueGetter<VBuffer<Single>> _scoreGetter;
-            private ValueGetter<Single> _weightGetter;
+            private ValueGetter<float> _labelGetter;
+            private ValueGetter<VBuffer<float>> _scoreGetter;
+            private ValueGetter<float> _weightGetter;
 
-            private VBuffer<Single> _scores;
-            private readonly Single[] _scoresArr;
+            private VBuffer<float> _scores;
+            private readonly float[] _scoresArr;
             private int[] _indicesArr;
 
-            private const Single Epsilon = (Single)1e-15;
+            private const float Epsilon = (float)1e-15;
 
             public readonly Counters UnweightedCounters;
             public readonly Counters WeightedCounters;
@@ -379,7 +381,7 @@ namespace Microsoft.ML.Runtime.Data
                 Host.Assert(scoreVectorSize > 0);
                 Host.Assert(Utils.Size(classNames) == scoreVectorSize);
 
-                _scoresArr = new Single[scoreVectorSize];
+                _scoresArr = new float[scoreVectorSize];
                 UnweightedCounters = new Counters(scoreVectorSize, outputTopKAcc);
                 Weighted = weighted;
                 WeightedCounters = Weighted ? new Counters(scoreVectorSize, outputTopKAcc) : null;
@@ -394,19 +396,19 @@ namespace Microsoft.ML.Runtime.Data
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
                 Host.Assert(score.Type.VectorSize == _scoresArr.Length);
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Index);
-                _scoreGetter = row.GetGetter<VBuffer<Single>>(score.Index);
+                _scoreGetter = row.GetGetter<VBuffer<float>>(score.Index);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
 
                 if (schema.Weight != null)
-                    _weightGetter = row.GetGetter<Single>(schema.Weight.Index);
+                    _weightGetter = row.GetGetter<float>(schema.Weight.Index);
             }
 
             public override void ProcessRow()
             {
-                Single label = 0;
+                float label = 0;
                 _labelGetter(ref label);
-                if (Single.IsNaN(label))
+                if (float.IsNaN(label))
                 {
                     NumUnlabeledInstances++;
                     return;
@@ -426,7 +428,7 @@ namespace Microsoft.ML.Runtime.Data
                     return;
                 }
                 _scores.CopyTo(_scoresArr);
-                Single weight = 1;
+                float weight = 1;
                 if (_weightGetter != null)
                 {
                     _weightGetter(ref weight);
@@ -453,7 +455,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     // REVIEW: This assumes that the predictions are probabilities, not just relative scores
                     // for the classes. Is this a correct assumption?
-                    Single p = Math.Min(1, Math.Max(Epsilon, _scoresArr[intLabel]));
+                    float p = Math.Min(1, Math.Max(Epsilon, _scoresArr[intLabel]));
                     logloss = -Math.Log(p);
                 }
                 else
@@ -497,6 +499,167 @@ namespace Microsoft.ML.Runtime.Data
                 slotNames = new VBuffer<DvText>(ClassNames.Length, values);
             }
         }
+
+        public sealed class Result
+        {
+            /// <summary>
+            /// Gets the micro-average accuracy of the model.
+            /// </summary>
+            /// <remarks>
+            /// The micro-average is the fraction of instances predicted correctly.
+            ///
+            /// The micro-average metric weighs each class according to the number of instances that belong
+            /// to it in the dataset.
+            /// </remarks>
+            public double AccuracyMicro { get; }
+
+            /// <summary>
+            /// Gets the macro-average accuracy of the model.
+            /// </summary>
+            /// <remarks>
+            /// The macro-average is computed by taking the average over all the classes of the fraction
+            /// of correct predictions in this class (the number of correctly predicted instances in the class,
+            /// divided by the total number of instances in the class).
+            ///
+            /// The macro-average metric gives the same weight to each class, no matter how many instances from
+            /// that class the dataset contains.
+            /// </remarks>
+            public double AccuracyMacro { get; }
+
+            /// <summary>
+            /// Gets the average log-loss of the classifier.
+            /// </summary>
+            /// <remarks>
+            /// The log-loss metric, is computed as follows:
+            /// LL = - (1/m) * sum( log(p[i]))
+            /// where m is the number of instances in the test set.
+            /// p[i] is the probability returned by the classifier if the instance belongs to class 1,
+            /// and 1 minus the probability returned by the classifier if the instance belongs to class 0.
+            /// </remarks>
+            public double LogLoss { get; }
+
+            /// <summary>
+            /// Gets the log-loss reduction (also known as relative log-loss, or reduction in information gain - RIG)
+            /// of the classifier.
+            /// </summary>
+            /// <remarks>
+            /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
+            /// (LL(prior) - LL(classifier)) / LL(prior)
+            /// This metric can be interpreted as the advantage of the classifier over a random prediction.
+            /// E.g., if the RIG equals 20, it can be interpreted as "the probability of a correct prediction is
+            /// 20% better than random guessing".
+            /// </remarks>
+            public double LogLossReduction { get; private set; }
+
+            /// <summary>
+            /// If positive, this is the top-K for which the <see cref="TopKAccuracy"/> is calculated.
+            /// </summary>
+            public int TopK { get; }
+
+            /// <summary>
+            /// If <see cref="TopK"/> is positive, this is the relative number of examples where
+            /// the true label is one of the top k predicted labels by the predictor.
+            /// </summary>
+            public double TopKAccuracy { get; }
+
+            /// <summary>
+            /// Gets the log-loss of the classifier for each class.
+            /// </summary>
+            /// <remarks>
+            /// The log-loss metric, is computed as follows:
+            /// LL = - (1/m) * sum( log(p[i]))
+            /// where m is the number of instances in the test set.
+            /// p[i] is the probability returned by the classifier if the instance belongs to the class,
+            /// and 1 minus the probability returned by the classifier if the instance does not belong to the class.
+            /// </remarks>
+            public double[] PerClassLogLoss { get; }
+
+            private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
+            {
+                if (!row.Schema.TryGetColumnIndex(name, out int col))
+                    throw ectx.Except($"Could not find column '{name}'");
+                T val = default;
+                row.GetGetter<T>(col)(ref val);
+                return val;
+            }
+            internal Result(IExceptionContext ectx, IRow overallResult, int topK)
+            {
+                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
+                AccuracyMicro = Fetch(MultiClassClassifierEvaluator.AccuracyMicro);
+                AccuracyMacro = Fetch(MultiClassClassifierEvaluator.AccuracyMacro);
+                LogLoss = Fetch(MultiClassClassifierEvaluator.LogLoss);
+                LogLossReduction = Fetch(MultiClassClassifierEvaluator.LogLossReduction);
+                TopK = topK;
+                if (topK > 0)
+                    TopKAccuracy = Fetch(MultiClassClassifierEvaluator.TopKAccuracy);
+
+                var perClassLogLoss = Fetch<VBuffer<double>>(ectx, overallResult, MultiClassClassifierEvaluator.PerClassLogLoss);
+                PerClassLogLoss = new double[perClassLogLoss.Length];
+                perClassLogLoss.CopyTo(PerClassLogLoss);
+            }
+        }
+
+        /// <summary>
+        /// Evaluates scored regression data.
+        /// </summary>
+        /// <typeparam name="T">The shape type for the input data.</typeparam>
+        /// <typeparam name="TKey">The value type for the key label.</typeparam>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="label">The index delegate for the label column.</param>
+        /// <param name="pred">The index delegate for columns from prediction of a multi-class classifier.
+        /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
+        /// <param name="topK">If given a positive value, the <see cref="Result.TopKAccuracy"/> will be filled with
+        /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
+        /// the top-K values as being stored "correctly."</param>
+        /// <returns>The evaluation results for these outputs.</returns>
+        public static Result Evaluate<T, TKey>(
+            DataView<T> data,
+            Func<T, Key<uint, TKey>> label,
+            Func<T, (Vector<float> score, Key<uint, TKey> predictedLabel)> pred,
+            int topK = 0)
+        {
+            Contracts.CheckValue(data, nameof(data));
+            var env = StaticPipeUtils.GetEnvironment(data);
+            Contracts.AssertValue(env);
+            env.CheckValue(label, nameof(label));
+            env.CheckValue(pred, nameof(pred));
+            env.CheckParam(topK >= 0, nameof(topK), "Must not be negative.");
+
+            var indexer = StaticPipeUtils.GetIndexer(data);
+            string labelName = indexer.Get(label(indexer.Indices));
+            (var scoreCol, var predCol) = pred(indexer.Indices);
+            Contracts.CheckParam(scoreCol != null, nameof(pred), "Indexing delegate resulted in null score column.");
+            Contracts.CheckParam(predCol != null, nameof(pred), "Indexing delegate resulted in null predicted label column.");
+            string scoreName = indexer.Get(scoreCol);
+            string predName = indexer.Get(predCol);
+
+            var args = new Arguments() { };
+            if (topK > 0)
+                args.OutputTopKAcc = topK;
+
+            var eval = new MultiClassClassifierEvaluator(env, args);
+
+            var roles = new RoleMappedData(data.AsDynamic, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(labelName),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreName),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predName));
+
+            var resultDict = eval.Evaluate(roles);
+            env.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            Result result;
+            using (var cursor = overall.GetRowCursor(i => true))
+            {
+                var moved = cursor.MoveNext();
+                env.Assert(moved);
+                result = new Result(env, cursor, topK);
+                moved = cursor.MoveNext();
+                env.Assert(!moved);
+            }
+            return result;
+        }
+
     }
 
     public sealed class MultiClassPerInstanceEvaluator : PerInstanceEvaluatorBase
@@ -525,7 +688,7 @@ namespace Microsoft.ML.Runtime.Data
         public const string SortedScores = "SortedScores";
         public const string SortedClasses = "SortedClasses";
 
-        private const Single Epsilon = (Single)1e-15;
+        private const float Epsilon = (float)1e-15;
 
         private readonly int _numClasses;
         private readonly DvText[] _classNames;
@@ -636,14 +799,14 @@ namespace Microsoft.ML.Runtime.Data
                 return getters;
 
             long cachedPosition = -1;
-            VBuffer<Single> scores = default(VBuffer<Single>);
-            Single label = 0;
-            var scoresArr = new Single[_numClasses];
+            VBuffer<float> scores = default(VBuffer<float>);
+            float label = 0;
+            var scoresArr = new float[_numClasses];
             int[] sortedIndices = new int[_numClasses];
 
             var labelGetter = activeOutput(LogLossCol) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) :
-                (ref Single dst) => dst = Single.NaN;
-            var scoreGetter = input.GetGetter<VBuffer<Single>>(ScoreIndex);
+                (ref float dst) => dst = float.NaN;
+            var scoreGetter = input.GetGetter<VBuffer<float>>(ScoreIndex);
             Action updateCacheIfNeeded =
                 () =>
                 {
@@ -672,16 +835,16 @@ namespace Microsoft.ML.Runtime.Data
 
             if (activeOutput(SortedScoresCol))
             {
-                ValueGetter<VBuffer<Single>> topKScoresFn =
-                    (ref VBuffer<Single> dst) =>
+                ValueGetter<VBuffer<float>> topKScoresFn =
+                    (ref VBuffer<float> dst) =>
                     {
                         updateCacheIfNeeded();
                         var values = dst.Values;
                         if (Utils.Size(values) < _numClasses)
-                            values = new Single[_numClasses];
+                            values = new float[_numClasses];
                         for (int i = 0; i < _numClasses; i++)
                             values[i] = scores.GetItemOrDefault(sortedIndices[i]);
-                        dst = new VBuffer<Single>(_numClasses, values);
+                        dst = new VBuffer<float>(_numClasses, values);
                     };
                 getters[SortedScoresCol] = topKScoresFn;
             }
@@ -708,16 +871,16 @@ namespace Microsoft.ML.Runtime.Data
                     (ref double dst) =>
                     {
                         updateCacheIfNeeded();
-                        if (Single.IsNaN(label))
+                        if (float.IsNaN(label))
                         {
-                            dst = Double.NaN;
+                            dst = double.NaN;
                             return;
                         }
 
                         int intLabel = (int)label;
                         if (intLabel < _numClasses)
                         {
-                            Single p = Math.Min(1, Math.Max(Epsilon, scoresArr[intLabel]));
+                            float p = Math.Min(1, Math.Max(Epsilon, scoresArr[intLabel]));
                             dst = -Math.Log(p);
                             return;
                         }
@@ -892,8 +1055,8 @@ namespace Microsoft.ML.Runtime.Data
 
             if (_outputPerClass)
             {
-                EvaluateUtils.ReconcileSlotNames<Double>(Host, views, MultiClassClassifierEvaluator.PerClassLogLoss, NumberType.R8,
-                    def: Double.NaN);
+                EvaluateUtils.ReconcileSlotNames<double>(Host, views, MultiClassClassifierEvaluator.PerClassLogLoss, NumberType.R8,
+                    def: double.NaN);
                 for (int i = 0; i < overallList.Count; i++)
                 {
                     var idv = views[i];
