@@ -17,7 +17,7 @@
 
     <ItemGroup>
       <NativeAssemblyReference>
-        <FullAssemblyPath>$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension)</FullAssemblyPath>
+        <FullAssemblyPath>$(NativeOutputPath)%(NativeAssemblyReference.SubPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension)</FullAssemblyPath>
       </NativeAssemblyReference>
     </ItemGroup>
 
