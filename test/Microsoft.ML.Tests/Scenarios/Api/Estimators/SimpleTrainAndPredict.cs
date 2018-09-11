@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         /// <summary>
         /// Start with a dataset in a text file. Run text featurization on text values. 
-        /// Train a linear model over that. (I am thinking sentiment classification.) 
+        /// Train a fast tree model over that. 
         /// Out of the result, produce some structure over which you can get predictions programmatically 
         /// (e.g., the prediction does not happen over a file as it did during training).
         /// </summary>
@@ -69,8 +69,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
                 var data = reader.Read(new MultiFileSource(dataPath));
                 // Pipeline.
-                var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs())
-                     .Append(new FastTreeBinaryClassificationTrainer(env,
+                var pipeline = new TextTransform(env, "SentimentText", "Features")
+                  .Append(new FastTreeBinaryClassificationTrainer(env,
                          new FastTreeBinaryClassificationTrainer.Arguments
                          {
                              NumThreads = 1
