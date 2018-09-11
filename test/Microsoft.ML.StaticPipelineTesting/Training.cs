@@ -184,24 +184,28 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            LinearBinaryPredictor pred = null;
+            MulticlassLogisticRegressionPredictor pred = null;
 
             var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
-                .Append(r=> (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: r.label.Predict(r.features,
-                maxIterations: 2,
-                loss: loss, onFit: p => pred = p)));
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: r.label.PredictSdcaClassification(
+                    r.features,
+                    maxIterations: 2,
+                    loss: loss, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 
             Assert.Null(pred);
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
-            // 9 input features, so we ought to have 9 weights.
-            Assert.Equal(9, pred.Weights2.Count);
+            VBuffer<float>[] weights = default;
+            pred.GetWeights(ref weights, out int n);
+            Assert.True(n == 3 && n == weights.Length);
+            foreach (var w in weights)
+                Assert.True(w.Length == 4);
 
             var data = model.Read(dataSource);
 
