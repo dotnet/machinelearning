@@ -20,7 +20,7 @@ namespace Microsoft.ML.Benchmarks
         public override Encoding Encoding => null;
     }
 
-    public class BigramAndTrigramBenchmark
+    public class MultiClassClassification
     {
         private string _dataPath_Wiki;
         private string _modelPath_Wiki;
