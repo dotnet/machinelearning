@@ -129,7 +129,8 @@ namespace Microsoft.ML.Runtime.Data
     /// It does so with the help of an <see cref="IRowMapper"/>, that is given a schema in its constructor, and has methods
     /// to get the dependencies on input columns and the getters for the output columns, given an active set of output columns.
     /// </summary>
-    public sealed class RowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper, ITransformCanSaveOnnx, ITransformCanSavePfa
+    public sealed class RowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
+        ITransformCanSaveOnnx, ITransformCanSavePfa
     {
         private sealed class Bindings : ColumnBindingsBase
         {
